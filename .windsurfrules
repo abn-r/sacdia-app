@@ -1,0 +1,345 @@
+# Flutter Development Rules - MVVM + Clean Architecture
+
+## 🏗️ ARQUITECTURA OBLIGATORIA
+- **SIEMPRE** implementar MVVM + Clean Architecture integrados
+- Estructura de carpetas estricta por features
+- Separación clara de responsabilidades en capas
+
+## 🛠️ STACK TECNOLÓGICO OBLIGATORIO
+- **Gestor de Estado**: Riverpod (StateNotifier/AsyncNotifier)
+- **HTTP Client**: DIO para consultas HTTP
+- **Autenticación**: Supabase Auth
+- **Persistencia Local**: SharedPreferences
+- **Inyección de Dependencias**: Riverpod Providers
+- **Navegación**: GoRouter
+- **Iconos**: HugeIcons 
+
+## 📁 ESTRUCTURA DE PROYECTO
+```
+lib/
+├── core/
+│   ├── constants/
+│   │   ├── app_constants.dart
+│   │   └── supabase_constants.dart
+│   ├── errors/
+│   │   ├── failures.dart
+│   │   └── exceptions.dart
+│   ├── network/
+│   │   ├── dio_client.dart
+│   │   ├── network_info.dart
+│   │   └── interceptors/
+│   ├── storage/
+│   │   ├── local_storage.dart
+│   │   └── secure_storage.dart
+│   ├── auth/
+│   │   ├── supabase_auth.dart
+│   │   └── auth_providers.dart
+│   ├── utils/
+│   │   ├── validators.dart
+│   │   └── extensions.dart
+│   └── usecases/
+│       └── usecase.dart
+├── providers/
+│   ├── dio_provider.dart
+│   ├── supabase_provider.dart
+│   └── storage_provider.dart
+├── features/
+│   └── [feature_name]/
+│       ├── data/
+│       │   ├── datasources/
+│       │   ├── models/
+│       │   └── repositories/
+│       ├── domain/
+│       │   ├── entities/
+│       │   ├── repositories/
+│       │   └── usecases/
+│       └── presentation/
+│           ├── providers/
+│           ├── views/
+│           └── widgets/
+└── documentation/
+    └── features/
+        └── [feature_name]/
+            ├── architecture.md
+            ├── data_flow.md
+            └── implementation.md
+```
+
+## 🎯 REGLAS DE DESARROLLO
+
+### Comunicación y Código
+- **Respuestas y comentarios**: SIEMPRE en español
+- **Código**: SIEMPRE en inglés (variables, funciones, clases)
+- **Documentación**: En español para explicaciones, en inglés para código
+
+### División de Tareas
+- **OBLIGATORIO**: Dividir cada feature en subtareas
+- Crear checklist detallado antes de implementar
+- Documentar cada paso del proceso
+
+### Arquitectura MVVM + Clean con Riverpod
+1. **Domain Layer**: Entities, Use Cases, Repository Interfaces
+2. **Data Layer**: Models, Data Sources (DIO + Supabase), Repository Implementations  
+3. **Presentation Layer**: Views, Riverpod Providers, Widgets
+
+### Gestión de Estado con Riverpod
+- **StateNotifier/AsyncNotifier** para lógica compleja
+- **StateProvider** para estados simples
+- **FutureProvider** para datos asincrónicos
+- **StreamProvider** para streams de Supabase
+- Manejar estados: loading, data, error con AsyncValue
+
+### HTTP Client con DIO
+- **Interceptors obligatorios**: Auth, Logging, Error Handling
+- **Timeout configurado**: Connect, Send, Receive
+- **Retry automático** para errores de red
+- **Base URL** centralizada en constantes
+
+### Autenticación con Supabase
+- **Supabase Auth** para login/register/logout/reset-password
+- **Session management** automático
+- **Token refresh** transparente
+- **Auth state listeners** con StreamProvider
+
+### Persistencia Local
+- **SharedPreferences** para configuraciones
+- **Secure Storage** para tokens sensitivos
+- **Cache de datos** cuando sea necesario
+
+### Navegación con GoRouter
+- **GoRouter** para navegación
+- **Navigation state** automático
+- **Navigation state listeners** con StreamProvider
+
+### Arquitectura de Navegación
+- **GoRouter** como sistema centralizado de rutas
+- Implementar patrones de navegación reactiva basados en el estado de autenticación
+- Utilizar **ShellRoute** para mantener estados de navegación anidados cuando sea necesario
+
+### Gestión del Estado de Autenticación
+- Utilizar un único `StreamProvider` para observar el estado de autenticación
+- Implementar un componente `AuthGate` centralizado para manejar la redirección basada en autenticación
+- NUNCA implementar listeners redundantes para el mismo estado de autenticación
+
+### Iconos con HugeIcons
+- **HugeIcons** para iconos
+- **Iconos personalizados** cuando sea necesario
+- **Uso de iconos en SVG** cuando sea solicitado
+
+### Buenas Prácticas
+- Usar const constructors donde sea posible
+- Implementar error handling robusto con Result<T> pattern
+- Aplicar principios SOLID
+- **Riverpod**: Providers inmutables y autodispose
+- **DIO**: Interceptors para logging y error handling
+- **Supabase**: Manejo seguro de auth states
+- **SharedPreferences**: Keys centralizados en constantes
+- Tests unitarios para Providers y Use Cases
+- Documentar flujo de datos en cada feature
+
+## 🔧 CONFIGURACIONES OBLIGATORIAS
+
+### DIO Configuration
+```dart
+// core/network/dio_client.dart
+class DioClient {
+  static Dio createDio() {
+    final dio = Dio(BaseOptions(
+      baseUrl: AppConstants.baseUrl,
+      connectTimeout: Duration(seconds: 30),
+      sendTimeout: Duration(seconds: 30),
+      receiveTimeout: Duration(seconds: 30),
+    ));
+    
+    dio.interceptors.addAll([
+      AuthInterceptor(),
+      LoggerInterceptor(),
+      ErrorInterceptor(),
+    ]);
+    
+    return dio;
+  }
+}
+```
+
+### Supabase Configuration
+```dart
+// core/auth/supabase_auth.dart
+class SupabaseAuth {
+  static Future<void> initialize() async {
+    await Supabase.initialize(
+      url: SupabaseConstants.url,
+      anonKey: SupabaseConstants.anonKey,
+    );
+  }
+}
+```
+
+### Riverpod Providers Base
+```dart
+// providers/dio_provider.dart
+final dioProvider = Provider<Dio>((ref) => DioClient.createDio());
+
+// providers/supabase_provider.dart
+final supabaseProvider = Provider<SupabaseClient>(
+  (ref) => Supabase.instance.client,
+);
+
+// providers/storage_provider.dart
+final storageProvider = Provider<SharedPreferences>((ref) {
+  throw UnimplementedError('storageProvider must be overridden');
+});
+```
+
+## 📝 DOCUMENTACIÓN AUTOMÁTICA
+### Para cada modificación generar:
+1. **architecture.md**: Diagrama de la arquitectura del feature
+2. **data_flow.md**: Flujo completo de datos
+3. **implementation.md**: Detalles de implementación
+
+### Banco de Memoria
+- Crear `memory_bank.md` con:
+  - Patrones utilizados
+  - Decisiones arquitectónicas
+  - Componentes reutilizables
+  - Configuraciones específicas
+
+## 🔄 FLUJO DE TRABAJO
+1. **Análisis**: Entender requerimiento
+2. **Planificación**: Dividir en subtareas
+3. **Arquitectura**: Diseñar estructura del feature
+4. **Implementación**: Desarrollar por capas (Domain → Data → Presentation)
+5. **Documentación**: Actualizar wiki automáticamente
+6. **Testing**: Pruebas unitarias y de widget
+
+## 🚀 NIVELES DE EXPERIENCIA
+- Actuar como **desarrollador senior**
+- Sugerir optimizaciones y mejores prácticas
+- Anticipar problemas comunes
+- Proponer soluciones escalables
+
+## ⚡ COMANDOS RÁPIDOS
+- Generar feature completo con Riverpod providers
+- Crear templates con DIO + Supabase integrados
+- Automatizar documentación
+- Configurar interceptors y error handling
+- Setup inicial de Supabase y SharedPreferences
+
+## 📋 DEPENDENCIAS OBLIGATORIAS
+```yaml
+dependencies:
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+  dio: ^5.8.0+1
+  supabase_flutter: ^2.9.1
+  shared_preferences: ^2.5.3
+  flutter_secure_storage: ^9.2.4
+
+dev_dependencies:
+  riverpod_generator: ^2.6.5
+  build_runner: ^2.4.15
+  riverpod_lint: ^2.6.5
+```
+
+## 🎯 PATRONES ESPECÍFICOS
+
+### Provider Pattern con Riverpod
+```dart
+// Feature Provider
+@riverpod
+class UserNotifier extends _$UserNotifier {
+  @override
+  Future<List<User>> build() async {
+    return ref.read(userRepositoryProvider).getUsers();
+  }
+  
+  Future<void> addUser(User user) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await ref.read(userRepositoryProvider).addUser(user);
+      return ref.read(userRepositoryProvider).getUsers();
+    });
+  }
+}
+```
+
+### Repository con DIO
+```dart
+// Data Source con DIO
+class UserRemoteDataSource {
+  final Dio _dio;
+  
+  UserRemoteDataSource(this._dio);
+  
+  Future<List<UserModel>> getUsers() async {
+    try {
+      final response = await _dio.get('/users');
+      return (response.data as List)
+          .map((json) => UserModel.fromJson(json))
+          .toList();
+    } on DioException catch (e) {
+      throw ServerException(e.message ?? 'Server error');
+    }
+  }
+}
+```
+
+### Auth con Supabase
+```dart
+// Auth Provider
+@riverpod
+class AuthNotifier extends _$AuthNotifier {
+  @override
+  User? build() {
+    final supabase = ref.read(supabaseProvider);
+    return supabase.auth.currentUser;
+  }
+  
+  Future<void> signIn(String email, String password) async {
+    final supabase = ref.read(supabaseProvider);
+    await supabase.auth.signInWithPassword(
+      email: email,
+      password: password,
+    );
+    ref.invalidateSelf();
+  }
+}
+```
+
+### Implementación del AuthGate
+```dart
+// Patrón recomendado para AuthGate
+class AuthGate extends ConsumerWidget {
+  const AuthGate({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Usar Consumer para reconstruir solo cuando cambia el estado de autenticación
+    return Consumer(
+      builder: (context, ref, _) {
+        final authState = ref.watch(authStateProvider);
+        
+        return authState.when(
+          loading: () => const LoadingScreen(),
+          error: (error, _) => ErrorScreen(error: error),
+          data: (isAuthenticated) => isAuthenticated 
+              ? const HomeView() 
+              : const LoginView(),
+        );
+      }
+    );
+  }
+}
+```
+
+### Flujo Correcto de Autenticación
+1. **Inicio de app**: `AuthGate` decide la vista inicial basada en `authStateProvider`
+2. **Login/Registro**: Utilizar `authNotifierProvider.notifier` para operaciones de autenticación
+3. **Cambio de estado**: El `authStateProvider` detecta cambios y actualiza automáticamente la UI
+4. **Cierre de sesión**: El `authStateProvider` detecta el logout y redirige a la vista de login
+
+### Anti-patrones a EVITAR
+- ❌ NO implementar múltiples listeners para el mismo estado de autenticación
+- ❌ NO usar `Navigator.pushReplacement` manualmente para gestionar rutas de autenticación
+- ❌ NO crear componentes `AuthGate` duplicados o con lógica inconsistente
+- ❌ NO mezclar navegación imperativa con gestión reactiva del estado
