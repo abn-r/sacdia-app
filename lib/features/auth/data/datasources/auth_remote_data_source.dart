@@ -38,6 +38,18 @@ abstract class AuthRemoteDataSource {
 
   /// Actualiza la contraseña del usuario
   Future<UserModel> updatePassword(String newPassword);
+
+  /// Inicia sesión con Google OAuth
+  Future<UserModel> signInWithGoogle();
+
+  /// Inicia sesión con Apple OAuth
+  Future<UserModel> signInWithApple();
+
+  /// Obtiene el estado de completitud del post-registro
+  Future<bool> getCompletionStatus();
+
+  /// Verifica si hay un token guardado localmente (sin llamar al API)
+  Future<bool> hasLocalToken();
 }
 
 /// Implementación de la fuente de datos remota con Dio para API personalizada
@@ -59,14 +71,41 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     _checkInitialAuthState();
   }
   
-  /// Verificar el estado inicial de autenticación
+  /// Verificar el estado inicial de autenticación validando el token contra la API
   Future<void> _checkInitialAuthState() async {
     try {
       final token = await _secureStorage.read(key: 'auth_token');
-      _authStateController.add(token != null);
+      
+      // Paso 1: No hay token → no autenticado
+      if (token == null) {
+        log('🔒 [AuthRemoteDataSource] No hay token local, usuario no autenticado');
+        _authStateController.add(false);
+        return;
+      }
+      
+      // Paso 2: Hay token → validar contra /auth/me
+      log('🔑 [AuthRemoteDataSource] Token encontrado, validando con el servidor...');
+      final response = await _dio.get(
+        '$_baseUrl/auth/me',
+        options: Options(headers: {
+          'Authorization': 'Bearer $token',
+        }),
+      );
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        log('✅ [AuthRemoteDataSource] Token válido, usuario autenticado');
+        _authStateController.add(true);
+      } else if (response.statusCode == 401 || response.statusCode == 403) {
+        log('🔒 [AuthRemoteDataSource] Token expirado/inválido (${response.statusCode}), limpiando sesión');
+        await _clearToken();
+      } else {
+        log('⚠️ [AuthRemoteDataSource] Respuesta inesperada (${response.statusCode}), limpiando sesión');
+        await _clearToken();
+      }
     } catch (e) {
-      log('Error al verificar estado inicial: $e');
-      _authStateController.add(false);
+      log('❌ [AuthRemoteDataSource] Error al verificar estado inicial: $e');
+      // En caso de error de red, limpiar token para evitar que la app se quede pasmada
+      await _clearToken();
     }
   }
   
@@ -92,24 +131,35 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (token == null) {
         return null;
       }
-      
-      // Configurar headers con el token
-      _dio.options.headers['Authorization'] = 'Bearer $token';
-      
-      // Llamar a un endpoint para obtener datos del usuario actual
-      // Esta implementación probablemente sea necesario adaptarla a tu API real
-      // final response = await _dio.get('$_baseUrl/auth/me');
-      // return UserModel.fromCustomApi(response.data);
-      
-      // Por ahora, devolvemos un usuario mock para que el flujo funcione
-      return UserModel(
-        id: 'current-user-id',
-        email: 'usuario@ejemplo.com',
-        name: 'Usuario Actual',
-        postRegisterComplete: true,
+
+      // Llamar al endpoint /auth/me para obtener datos del usuario actual
+      final response = await _dio.get(
+        '$_baseUrl/auth/me',
+        options: Options(headers: {
+          'Authorization': 'Bearer $token',
+        }),
       );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return UserModel.fromCustomApi(
+          response.data,
+          postRegisterComplete: response.data['post_register_complete'] as bool? ?? false,
+        );
+      }
+
+      // Token inválido o expirado, limpiar sesión
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        log('🔒 [AuthRemoteDataSource] Token inválido (${response.statusCode}), limpiando sesión');
+        await _clearToken();
+      }
+
+      return null;
     } catch (e) {
       log('Error al obtener usuario actual: $e');
+      if (e is DioException && e.response?.statusCode == 401) {
+        // Token inválido, limpiar sesión
+        await _clearToken();
+      }
       return null;
     }
   }
@@ -123,7 +173,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       log('📱 [AuthRemoteDataSource] Iniciando login para: $email');
       
       // Llamar a la API para iniciar sesión
-      final response = await _dio.post('$_baseUrl/auth/signin', data: {
+      final response = await _dio.post('$_baseUrl/auth/login', data: {
         'email': email,
         'password': password,
       });
@@ -136,28 +186,40 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw AuthException(message: response.data['message'] ?? 'Error de autenticación');
       }
             
+      // Extraer el objeto 'data' de la respuesta
+      final responseData = response.data['data'] as Map<String, dynamic>?;
+      if (responseData == null) {
+        log('📱 [AuthRemoteDataSource] No se encontró "data" en la respuesta');
+        throw AuthException(message: 'Respuesta del servidor inválida');
+      }
+
       // Verificar que la respuesta contenga el token
-      final token = response.data['access_token'] as String?;
+      final token = responseData['accessToken'] as String?;
       if (token == null) {
-        log('📱 [AuthRemoteDataSource] No se encontró token en la respuesta');
+        log('📱 [AuthRemoteDataSource] No se encontró accessToken en la respuesta');
         throw AuthException(message: 'No se recibió token de autenticación');
       }
       
       log('📱 [AuthRemoteDataSource] Token obtenido correctamente');
       await _saveToken(token);
       
-      final userId = response.data['user_context']['user_id'] as String?;
+      // Extraer datos del usuario
+      final userData = responseData['user'] as Map<String, dynamic>?;
+      final userId = userData?['id'] as String?;
       if (userId == null) {
-        log('📱 [AuthRemoteDataSource] No se encontró user_id en la respuesta');
+        log('📱 [AuthRemoteDataSource] No se encontró user.id en la respuesta');
         throw AuthException(message: 'No se recibió ID de usuario');
       }
+
+      // Verificar estado de post-registro
+      final needsPostRegistration = responseData['needsPostRegistration'] as bool? ?? true;
       
       // Construir el modelo de usuario
       return UserModel(
         id: userId,
-        email: email,
-        name: response.data['name'] as String? ?? '',
-        postRegisterComplete: response.data['post_register_complete'] as bool? ?? false,
+        email: userData?['email'] as String? ?? email,
+        name: userData?['name'] as String? ?? '',
+        postRegisterComplete: !needsPostRegistration,
       );
     } catch (e) {
       log('📱 [AuthRemoteDataSource] Error en login: $e');
@@ -335,6 +397,60 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       log('Limpieza completa de datos de autenticación realizada');
     } catch (e) {
       log('Error al limpiar datos: $e');
+    }
+  }
+
+  @override
+  Future<UserModel> signInWithGoogle() async {
+    // TODO: Implementar cuando el backend OAuth esté listo
+    throw AuthException(message: 'OAuth con Google no disponible aún');
+  }
+
+  @override
+  Future<UserModel> signInWithApple() async {
+    // TODO: Implementar cuando el backend OAuth esté listo
+    throw AuthException(message: 'OAuth con Apple no disponible aún');
+  }
+
+  @override
+  Future<bool> hasLocalToken() async {
+    try {
+      final token = await _secureStorage.read(key: 'auth_token');
+      return token != null;
+    } catch (e) {
+      log('Error al verificar token local: $e');
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> getCompletionStatus() async {
+    try {
+      final token = await _secureStorage.read(key: 'auth_token');
+      if (token == null) {
+        throw AuthException(message: 'No hay sesión activa');
+      }
+
+      final response = await _dio.post(
+        '$_baseUrl/auth/pr-check',
+        options: Options(headers: {
+          'Authorization': 'Bearer $token',
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return response.data['complete'] as bool? ?? false;
+      }
+
+      return false;
+    } catch (e) {
+      if (e is DioException) {
+        throw AuthException(
+          message: e.message ?? 'Error al verificar estado de completitud',
+        );
+      }
+      if (e is AuthException) rethrow;
+      throw AuthException(message: e.toString());
     }
   }
 }

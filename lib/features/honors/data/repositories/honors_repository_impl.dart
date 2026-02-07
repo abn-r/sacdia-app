@@ -1,0 +1,179 @@
+import 'package:dartz/dartz.dart';
+import '../../../../core/errors/exceptions.dart';
+import '../../../../core/errors/failures.dart';
+import '../../../../core/network/network_info.dart';
+import '../../domain/entities/honor.dart';
+import '../../domain/entities/honor_category.dart';
+import '../../domain/entities/user_honor.dart';
+import '../../domain/repositories/honors_repository.dart';
+import '../datasources/honors_remote_data_source.dart';
+
+/// Implementación del repositorio de especialidades
+class HonorsRepositoryImpl implements HonorsRepository {
+  final HonorsRemoteDataSource remoteDataSource;
+  final NetworkInfo networkInfo;
+
+  HonorsRepositoryImpl({
+    required this.remoteDataSource,
+    required this.networkInfo,
+  });
+
+  @override
+  Future<Either<Failure, List<HonorCategory>>> getHonorCategories() async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+
+    try {
+      final categoryModels = await remoteDataSource.getHonorCategories();
+      final categories = categoryModels.map((model) => model.toEntity()).toList();
+      return Right(categories);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Honor>>> getHonors({
+    int? categoryId,
+    int? clubTypeId,
+    int? skillLevel,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+
+    try {
+      final honorModels = await remoteDataSource.getHonors(
+        categoryId: categoryId,
+        clubTypeId: clubTypeId,
+        skillLevel: skillLevel,
+      );
+      final honors = honorModels.map((model) => model.toEntity()).toList();
+      return Right(honors);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Honor>> getHonorById(int honorId) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+
+    try {
+      final honorModel = await remoteDataSource.getHonorById(honorId);
+      return Right(honorModel.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<UserHonor>>> getUserHonors(String userId) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+
+    try {
+      final userHonorModels = await remoteDataSource.getUserHonors(userId);
+      final userHonors = userHonorModels.map((model) => model.toEntity()).toList();
+      return Right(userHonors);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getUserHonorStats(String userId) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+
+    try {
+      final stats = await remoteDataSource.getUserHonorStats(userId);
+      return Right(stats);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserHonor>> enrollUserInHonor(String userId, int honorId) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+
+    try {
+      final userHonorModel = await remoteDataSource.enrollUserInHonor(userId, honorId);
+      return Right(userHonorModel.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserHonor>> updateUserHonor(
+    String userId,
+    int honorId,
+    Map<String, dynamic> data,
+  ) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+
+    try {
+      final userHonorModel = await remoteDataSource.updateUserHonor(userId, honorId, data);
+      return Right(userHonorModel.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteUserHonor(String userId, int honorId) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+
+    try {
+      await remoteDataSource.deleteUserHonor(userId, honorId);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+}

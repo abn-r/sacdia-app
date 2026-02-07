@@ -1,10 +1,11 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/widgets/custom_text_field.dart';
-import 'package:sacdia_app/features/auth/presentation/views/register_view.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 
 import '../../../../core/utils/validators.dart';
 import '../providers/auth_providers.dart';
@@ -58,7 +59,6 @@ class _LoginViewState extends ConsumerState<LoginView> {
           );
 
       if (!success && mounted) {
-        final error = ref.read(authNotifierProvider).error;
         setState(() {
           _errorMessage =
               'Credenciales incorrectas, por favor revise su correo y contraseña.';
@@ -141,7 +141,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                               fontWeight: FontWeight.bold),
                           recognizer: TapGestureRecognizer()
                             ..onTap = () {
-                              //context.go('/forgot-password');
+                              context.push(RouteNames.forgotPassword);
                             },
                         ),
                       ],
@@ -196,10 +196,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                               fontWeight: FontWeight.bold),
                           recognizer: TapGestureRecognizer()
                             ..onTap = () {
-                              Navigator.push(
-                                context, 
-                                MaterialPageRoute(builder: (context) => const RegisterView()),
-                              );
+                              context.push(RouteNames.register);
                             },
                         ),
                       ],

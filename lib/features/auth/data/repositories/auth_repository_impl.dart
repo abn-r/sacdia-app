@@ -133,4 +133,57 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(NetworkFailure(message: 'No hay conexión a internet'));
     }
   }
+
+  @override
+  Future<Either<Failure, UserEntity>> signInWithGoogle() async {
+    if (await networkInfo.isConnected) {
+      try {
+        final user = await remoteDataSource.signInWithGoogle();
+        return Right(user);
+      } on core_exceptions.AuthException catch (e) {
+        return Left(AuthFailure(message: e.message, code: e.code));
+      } catch (e) {
+        return Left(ServerFailure(message: e.toString()));
+      }
+    } else {
+      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> signInWithApple() async {
+    if (await networkInfo.isConnected) {
+      try {
+        final user = await remoteDataSource.signInWithApple();
+        return Right(user);
+      } on core_exceptions.AuthException catch (e) {
+        return Left(AuthFailure(message: e.message, code: e.code));
+      } catch (e) {
+        return Left(ServerFailure(message: e.toString()));
+      }
+    } else {
+      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+  }
+
+  @override
+  Future<bool> hasLocalToken() async {
+    return remoteDataSource.hasLocalToken();
+  }
+
+  @override
+  Future<Either<Failure, bool>> getCompletionStatus() async {
+    if (await networkInfo.isConnected) {
+      try {
+        final status = await remoteDataSource.getCompletionStatus();
+        return Right(status);
+      } on core_exceptions.AuthException catch (e) {
+        return Left(AuthFailure(message: e.message, code: e.code));
+      } catch (e) {
+        return Left(ServerFailure(message: e.toString()));
+      }
+    } else {
+      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+  }
 }

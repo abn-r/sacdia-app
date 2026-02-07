@@ -33,4 +33,16 @@ abstract class AuthRepository {
   
   /// Actualiza la contraseña del usuario
   Future<Either<Failure, UserEntity>> updatePassword(String newPassword);
+
+  /// Inicia sesión con Google OAuth
+  Future<Either<Failure, UserEntity>> signInWithGoogle();
+
+  /// Inicia sesión con Apple OAuth
+  Future<Either<Failure, UserEntity>> signInWithApple();
+
+  /// Obtiene el estado de completitud del post-registro
+  Future<Either<Failure, bool>> getCompletionStatus();
+
+  /// Verifica si hay un token guardado localmente (sin llamar al API)
+  Future<bool> hasLocalToken();
 }

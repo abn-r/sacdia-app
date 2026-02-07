@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/utils/validators.dart';
@@ -128,7 +129,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
         });
       } else if (success && mounted) {
         // Si el registro fue exitoso, regresar a la pantalla de login
-        Navigator.of(context).pop();
+        context.pop();
         // Mostrar un snackbar de éxito
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -161,7 +162,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         centerTitle: true,
         title: const Text(

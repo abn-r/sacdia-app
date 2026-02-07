@@ -89,10 +89,37 @@ final authStateProvider = StreamProvider<bool>((ref) {
 class AuthNotifier extends AsyncNotifier<UserEntity?> {
   @override
   Future<UserEntity?> build() async {
+    final repository = ref.read(authRepositoryProvider);
+
+    // Paso 1: Verificar si hay token guardado localmente
+    log('🔄 [AuthNotifier] Paso 1: Verificando token local...');
+    final hasToken = await repository.hasLocalToken();
+
+    // Paso 3: NO hay token → ir directo a login (sin llamar al endpoint)
+    if (!hasToken) {
+      log('🔒 [AuthNotifier] No hay token local → redirigiendo a login');
+      return null;
+    }
+
+    // Paso 2: SÍ hay token → llamar a /auth/me
+    log('🔑 [AuthNotifier] Token encontrado → validando con /auth/me...');
     final result = await ref.read(getCurrentUserProvider)(NoParams());
+
     return result.fold(
-      (failure) => null,
-      (user) => user,
+      (failure) {
+        // Token expirado o error → ir a login
+        log('❌ [AuthNotifier] Error al validar token: ${failure.message} → redirigiendo a login');
+        return null;
+      },
+      (user) {
+        if (user != null) {
+          log('✅ [AuthNotifier] Usuario autenticado: ${user.email}');
+        } else {
+          // /auth/me respondió pero no devolvió usuario → ir a login
+          log('🔒 [AuthNotifier] Token inválido (401) → redirigiendo a login');
+        }
+        return user;
+      },
     );
   }
 

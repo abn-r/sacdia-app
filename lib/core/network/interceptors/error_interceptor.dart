@@ -85,8 +85,5 @@ class ErrorInterceptor extends Interceptor {
           stackTrace: err.stackTrace,
         );
     }
-    
-    // Si no manejamos el error, lo pasamos al siguiente interceptor
-    handler.next(err);
   }
 }
