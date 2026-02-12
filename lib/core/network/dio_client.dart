@@ -17,10 +17,12 @@ class DioClient {
         'Accept': 'application/json',
       },
     ));
-    
+
     // Añadir interceptores requeridos
+    // AuthInterceptor recibe la instancia de Dio para poder reintentar
+    // después de refrescar el token en caso de 401
     dio.interceptors.addAll([
-      AuthInterceptor(),
+      AuthInterceptor(dio: dio),
       LoggerInterceptor(),
       ErrorInterceptor(),
       // Retry interceptor
@@ -34,7 +36,7 @@ class DioClient {
         ],
       ),
     ]);
-    
+
     return dio;
   }
 }

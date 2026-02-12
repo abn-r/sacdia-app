@@ -74,22 +74,110 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
   }
 
   @override
-  Future<Either<Failure, Attendance>> registerAttendance(
+  Future<Either<Failure, Activity>> createActivity({
+    required int clubId,
+    required String title,
+    String? description,
+    required int activityType,
+    required DateTime startDate,
+    required DateTime endDate,
+    String? location,
+    required String instanceType,
+    required int instanceId,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+
+    try {
+      final activityModel = await remoteDataSource.createActivity(
+        clubId: clubId,
+        title: title,
+        description: description,
+        activityType: activityType,
+        startDate: startDate,
+        endDate: endDate,
+        location: location,
+        instanceType: instanceType,
+        instanceId: instanceId,
+      );
+      return Right(activityModel.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Activity>> updateActivity({
+    required int activityId,
+    String? title,
+    String? description,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? location,
+    bool? active,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+
+    try {
+      final activityModel = await remoteDataSource.updateActivity(
+        activityId: activityId,
+        title: title,
+        description: description,
+        startDate: startDate,
+        endDate: endDate,
+        location: location,
+        active: active,
+      );
+      return Right(activityModel.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteActivity(int activityId) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+
+    try {
+      await remoteDataSource.deleteActivity(activityId);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> registerAttendance(
     int activityId,
-    String userId,
-    bool attended,
+    List<String> userIds,
   ) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure(message: 'No hay conexión a internet'));
     }
 
     try {
-      final attendanceModel = await remoteDataSource.registerAttendance(
+      final recordedCount = await remoteDataSource.registerAttendance(
         activityId,
-        userId,
-        attended,
+        userIds,
       );
-      return Right(attendanceModel.toEntity());
+      return Right(recordedCount);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on AuthException catch (e) {

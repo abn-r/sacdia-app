@@ -11,8 +11,7 @@ class LoggerInterceptor extends Interceptor {
       lineLength: 75,
       colors: true,
       printEmojis: true,
-      printTime: true,
-      dateTimeFormat: DateTimeFormat.dateAndTime
+      dateTimeFormat: DateTimeFormat.dateAndTime,
     ),
   );
 

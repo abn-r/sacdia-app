@@ -44,7 +44,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(24),
-                  color: _getTypeColor(activity.type).withOpacity(0.1),
+                  color: _getTypeColor(activity.type).withValues(alpha: 0.1),
                   child: Column(
                     children: [
                       Icon(
@@ -125,8 +125,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                       // Botón de asistencia
                       AttendanceButton(
                         isAttending: _hasRegistered ||
-                            (attendanceState.value != null &&
-                                attendanceState.value!.activityId == widget.activityId),
+                            (attendanceState.value != null && attendanceState.value! > 0),
                         isLoading: attendanceState.isLoading,
                         onPressed: () async {
                           final userId = authState.value?.id;
@@ -134,20 +133,21 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
 
                           await ref
                               .read(attendanceNotifierProvider.notifier)
-                              .register(widget.activityId, userId, true);
+                              .register(widget.activityId, userId);
 
-                          if (mounted && !attendanceState.hasError) {
-                            setState(() {
-                              _hasRegistered = true;
-                            });
+                          if (!mounted) return;
+                          if (attendanceState.hasError) return;
 
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Asistencia registrada exitosamente'),
-                                backgroundColor: AppColors.success,
-                              ),
-                            );
-                          }
+                          setState(() {
+                            _hasRegistered = true;
+                          });
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Asistencia registrada exitosamente'),
+                              backgroundColor: AppColors.success,
+                            ),
+                          );
                         },
                       ),
                       const SizedBox(height: 24),

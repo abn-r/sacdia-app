@@ -26,7 +26,7 @@ class ThemeProvider extends ChangeNotifier {
 
   /// Método para cargar el tema guardado del almacenamiento local
   Future<void> _loadTheme() async {
-    final savedTheme = await _localStorage.getString(AppConstants.themeKey);
+    final savedTheme = _localStorage.getString(AppConstants.themeKey);
     
     if (savedTheme == 'light') {
       _themeMode = ThemeMode.light;

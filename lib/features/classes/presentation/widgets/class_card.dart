@@ -33,7 +33,7 @@ class ClassCard extends StatelessWidget {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight.withOpacity(0.2),
+                  color: AppColors.primaryLight.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: progressiveClass.imageUrl != null

@@ -32,7 +32,7 @@ class HonorProgressCard extends StatelessWidget {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: _getStatusColor(userHonor.status).withOpacity(0.1),
+                  color: _getStatusColor(userHonor.status).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -62,7 +62,7 @@ class HonorProgressCard extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: _getStatusColor(userHonor.status).withOpacity(0.2),
+                            color: _getStatusColor(userHonor.status).withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(

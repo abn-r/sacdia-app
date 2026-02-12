@@ -36,7 +36,7 @@ class SettingTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: (iconColor ?? AppColors.sacGreen).withOpacity(0.1),
+                color: (iconColor ?? AppColors.sacGreen).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(

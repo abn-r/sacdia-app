@@ -35,7 +35,7 @@ class AttendanceButton extends StatelessWidget {
           backgroundColor: isAttending ? AppColors.success : AppColors.primaryBlue,
           padding: const EdgeInsets.symmetric(vertical: 16),
           disabledBackgroundColor:
-              isAttending ? AppColors.success.withOpacity(0.6) : null,
+              isAttending ? AppColors.success.withValues(alpha: 0.6) : null,
         ),
       ),
     );

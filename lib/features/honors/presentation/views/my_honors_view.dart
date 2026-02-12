@@ -26,7 +26,7 @@ class MyHonorsView extends ConsumerWidget {
           statsAsync.when(
             data: (stats) => Container(
               padding: const EdgeInsets.all(16),
-              color: AppColors.primaryBlue.withOpacity(0.1),
+              color: AppColors.primaryBlue.withValues(alpha: 0.1),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [

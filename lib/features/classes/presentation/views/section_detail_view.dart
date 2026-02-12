@@ -111,22 +111,22 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
                         },
                       );
 
+                  if (!mounted) return;
+
                   setState(() {
                     _isCompleted = newStatus;
                   });
 
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          newStatus
-                              ? 'Sección marcada como completada'
-                              : 'Sección marcada como pendiente',
-                        ),
-                        backgroundColor: newStatus ? AppColors.success : AppColors.warning,
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        newStatus
+                            ? 'Sección marcada como completada'
+                            : 'Sección marcada como pendiente',
                       ),
-                    );
-                  }
+                      backgroundColor: newStatus ? AppColors.success : AppColors.warning,
+                    ),
+                  );
                 },
                 icon: Icon(_isCompleted ? Icons.close : Icons.check),
                 label: Text(_isCompleted ? 'Marcar como pendiente' : 'Marcar como completada'),

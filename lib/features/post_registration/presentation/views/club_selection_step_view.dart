@@ -71,25 +71,25 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
         classId: classId,
       );
 
-      if (mounted) {
-        // Refrescar el estado de completitud
-        await ref.read(completionStatusProvider.notifier).refresh();
+      if (!mounted) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Información guardada exitosamente'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
+      // Refrescar el estado de completitud
+      await ref.read(completionStatusProvider.notifier).refresh();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Información guardada exitosamente'),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
       log('Error al guardar selección de club: $e');
       ref.read(step3ErrorProvider.notifier).state = e.toString();
       _showError('Error al guardar la información: $e');
     } finally {
-      if (mounted) {
-        ref.read(isSavingStep3Provider.notifier).state = false;
-      }
+      if (!mounted) return;
+      ref.read(isSavingStep3Provider.notifier).state = false;
     }
   }
 

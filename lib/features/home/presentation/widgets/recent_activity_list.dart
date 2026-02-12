@@ -24,7 +24,7 @@ class RecentActivityList extends StatelessWidget {
           final activity = activities[index];
           return ListTile(
             leading: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               child: const Icon(Icons.history),
             ),
             title: Text(activity),

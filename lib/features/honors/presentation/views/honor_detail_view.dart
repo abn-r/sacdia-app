@@ -52,7 +52,7 @@ class HonorDetailView extends ConsumerWidget {
                   Container(
                     width: double.infinity,
                     height: 200,
-                    color: AppColors.primaryBlue.withOpacity(0.2),
+                    color: AppColors.primaryBlue.withValues(alpha: 0.2),
                     child: const Icon(
                       Icons.workspace_premium,
                       size: 80,

@@ -94,7 +94,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 try {
                   // Cerrar sesión a través del provider
                   await ref.read(authNotifierProvider.notifier).signOut();
-                  
+
                   // Limpieza adicional forzada de datos locales
                   final prefs = await SharedPreferences.getInstance();
                   await prefs.remove('supabase.auth.token');
@@ -102,19 +102,16 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   await prefs.remove('supabase.auth.expires_at');
                   await prefs.remove('supabase.auth.expires_in');
                   await prefs.remove('supabase.auth.user');
-                  
-                  // Asegurar actualización de UI
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Sesión cerrada correctamente')),
-                    );
-                  }
+
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Sesión cerrada correctamente')),
+                  );
                 } catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error al cerrar sesión: ${e.toString()}')),
-                    );
-                  }
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error al cerrar sesión: ${e.toString()}')),
+                  );
                 }
               }
             },

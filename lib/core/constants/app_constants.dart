@@ -14,6 +14,7 @@ class AppConstants {
   
   // Almacenamiento local
   static const String tokenKey = 'auth_token';
+  static const String refreshTokenKey = 'refresh_token';
   static const String userKey = 'user_data';
   static const String themeKey = 'app_theme';
   static const String localeKey = 'app_locale';

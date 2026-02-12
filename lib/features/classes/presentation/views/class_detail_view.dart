@@ -44,7 +44,7 @@ class ClassDetailView extends ConsumerWidget {
                   Container(
                     width: double.infinity,
                     height: 200,
-                    color: AppColors.primaryBlue.withOpacity(0.2),
+                    color: AppColors.primaryBlue.withValues(alpha: 0.2),
                     child: const Icon(
                       Icons.school,
                       size: 80,

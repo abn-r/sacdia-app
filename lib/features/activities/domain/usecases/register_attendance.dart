@@ -1,21 +1,20 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
-import '../entities/attendance.dart';
 import '../repositories/activities_repository.dart';
 
 /// Caso de uso para registrar la asistencia a una actividad
-class RegisterAttendance implements UseCase<Attendance, RegisterAttendanceParams> {
+/// Retorna el número de registros creados
+class RegisterAttendance implements UseCase<int, RegisterAttendanceParams> {
   final ActivitiesRepository repository;
 
   RegisterAttendance(this.repository);
 
   @override
-  Future<Either<Failure, Attendance>> call(RegisterAttendanceParams params) async {
+  Future<Either<Failure, int>> call(RegisterAttendanceParams params) async {
     return await repository.registerAttendance(
       params.activityId,
-      params.userId,
-      params.attended,
+      params.userIds,
     );
   }
 }
@@ -23,12 +22,21 @@ class RegisterAttendance implements UseCase<Attendance, RegisterAttendanceParams
 /// Parámetros para registrar asistencia
 class RegisterAttendanceParams {
   final int activityId;
-  final String userId;
-  final bool attended;
+  final List<String> userIds;
 
   const RegisterAttendanceParams({
     required this.activityId,
-    required this.userId,
-    required this.attended,
+    required this.userIds,
   });
+
+  /// Constructor de conveniencia para un solo usuario
+  factory RegisterAttendanceParams.single({
+    required int activityId,
+    required String userId,
+  }) {
+    return RegisterAttendanceParams(
+      activityId: activityId,
+      userIds: [userId],
+    );
+  }
 }

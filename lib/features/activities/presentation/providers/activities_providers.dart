@@ -3,7 +3,6 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/datasources/activities_remote_data_source.dart';
 import '../../data/repositories/activities_repository_impl.dart';
 import '../../domain/entities/activity.dart';
-import '../../domain/entities/attendance.dart';
 import '../../domain/repositories/activities_repository.dart';
 import '../../domain/usecases/get_club_activities.dart';
 import '../../domain/usecases/get_activity_detail.dart';
@@ -71,32 +70,36 @@ final activityDetailProvider =
 });
 
 /// State notifier para manejar el registro de asistencia
-class AttendanceNotifier extends StateNotifier<AsyncValue<Attendance?>> {
+class AttendanceNotifier extends StateNotifier<AsyncValue<int?>> {
   final RegisterAttendance registerAttendance;
 
   AttendanceNotifier(this.registerAttendance) : super(const AsyncValue.data(null));
 
-  /// Registrar asistencia
-  Future<void> register(int activityId, String userId, bool attended) async {
+  /// Registrar asistencia de múltiples usuarios
+  Future<void> registerMultiple(int activityId, List<String> userIds) async {
     state = const AsyncValue.loading();
 
     final result = await registerAttendance(
       RegisterAttendanceParams(
         activityId: activityId,
-        userId: userId,
-        attended: attended,
+        userIds: userIds,
       ),
     );
 
     state = result.fold(
       (failure) => AsyncValue.error(failure.message, StackTrace.current),
-      (attendance) => AsyncValue.data(attendance),
+      (count) => AsyncValue.data(count),
     );
+  }
+
+  /// Registrar asistencia de un solo usuario (conveniencia)
+  Future<void> register(int activityId, String userId) async {
+    await registerMultiple(activityId, [userId]);
   }
 }
 
 /// Provider para el notifier de asistencia
 final attendanceNotifierProvider =
-    StateNotifierProvider<AttendanceNotifier, AsyncValue<Attendance?>>((ref) {
+    StateNotifierProvider<AttendanceNotifier, AsyncValue<int?>>((ref) {
   return AttendanceNotifier(ref.read(registerAttendanceProvider));
 });

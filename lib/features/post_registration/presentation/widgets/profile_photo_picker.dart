@@ -80,7 +80,7 @@ class ProfilePhotoPicker extends StatelessWidget {
                           height: 200,
                         ),
                         Container(
-                          color: Colors.black.withOpacity(0.5),
+                          color: Colors.black.withValues(alpha: 0.5),
                           child: const Center(
                             child: CircularProgressIndicator(
                               color: Colors.white,

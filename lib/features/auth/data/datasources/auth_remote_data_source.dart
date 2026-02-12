@@ -109,15 +109,19 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
   
-  /// Guardar token en almacenamiento seguro
-  Future<void> _saveToken(String token) async {
+  /// Guardar tokens en almacenamiento seguro
+  Future<void> _saveToken(String token, {String? refreshToken}) async {
     await _secureStorage.write(key: 'auth_token', value: token);
+    if (refreshToken != null) {
+      await _secureStorage.write(key: 'refresh_token', value: refreshToken);
+    }
     _authStateController.add(true);
   }
   
-  /// Eliminar token
+  /// Eliminar tokens
   Future<void> _clearToken() async {
     await _secureStorage.delete(key: 'auth_token');
+    await _secureStorage.delete(key: 'refresh_token');
     _authStateController.add(false);
   }
   
@@ -199,9 +203,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         log('📱 [AuthRemoteDataSource] No se encontró accessToken en la respuesta');
         throw AuthException(message: 'No se recibió token de autenticación');
       }
-      
+
+      // Extraer refresh token si existe
+      final refreshToken = responseData['refreshToken'] as String?;
+
       log('📱 [AuthRemoteDataSource] Token obtenido correctamente');
-      await _saveToken(token);
+      await _saveToken(token, refreshToken: refreshToken);
       
       // Extraer datos del usuario
       final userData = responseData['user'] as Map<String, dynamic>?;
@@ -243,71 +250,88 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String maternalSurname,
   }) async {
     try {
-      // Implementación del flujo de registro personalizado
-      final response = await _dio.post('$_baseUrl/auth/signUp', data: {
-        "email": email,
-        "password": password,
-        "name": name,
-        "p_lastname": paternalSurname,
-        "m_lastname": maternalSurname,
+      log('📱 [AuthRemoteDataSource] Iniciando registro para: $email');
+
+      // Llamar al endpoint correcto según API spec
+      final response = await _dio.post('$_baseUrl/auth/register', data: {
+        'email': email,
+        'password': password,
+        'name': name,
+        'paternal_last_name': paternalSurname,
+        'maternal_last_name': maternalSurname,
       });
-      
-      log('Respuesta del registro: ${response.data}');
-      
-      final userId = response.data['user_id'] as String;
-      final token = response.data['access_token'] as String;
-      
-      // Guardar el token
-      await _saveToken(token);
-      
-      // Verificar si el post-registro está completo
-      final postRegisterComplete = await _checkPostRegisterComplete(userId);
-      
-      return UserModel.fromCustomApi(
-        response.data,
-        postRegisterComplete: postRegisterComplete,
+
+      log('📱 [AuthRemoteDataSource] Respuesta del registro: ${response.statusCode}');
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw AuthException(
+          message: response.data['message'] ?? 'Error en el registro',
+        );
+      }
+
+      // Extraer datos de la respuesta
+      // El registro exitoso retorna el usuario creado
+      final userData = response.data['user'] as Map<String, dynamic>?;
+      final userId = userData?['id'] as String?;
+
+      if (userId == null) {
+        throw AuthException(message: 'No se recibió ID de usuario');
+      }
+
+      log('✅ [AuthRemoteDataSource] Usuario registrado: $userId');
+
+      // El registro no devuelve token, el usuario debe hacer login
+      // Retornamos el modelo sin sesión activa
+      return UserModel(
+        id: userId,
+        email: userData?['email'] as String? ?? email,
+        name: userData?['name'] as String? ?? name,
+        postRegisterComplete: false, // Registro nuevo siempre requiere post-registro
       );
     } catch (e) {
+      log('❌ [AuthRemoteDataSource] Error en registro: $e');
       if (e is DioException) {
-        throw AuthException(message: e.message ?? 'Error de conexión');
+        final message = e.response?.data?['message'] ?? e.message ?? 'Error de conexión';
+        throw AuthException(message: message);
       }
+      if (e is AuthException) rethrow;
       throw AuthException(message: e.toString());
-    }
-  }
-
-  /// Método para verificar si el post-registro está completo
-  Future<bool> _checkPostRegisterComplete(String userId) async {
-    try {
-      final response = await _dio.post('$_baseUrl/auth/pr-check', data: {
-        'user_id': userId
-      }, options: Options(headers: {
-        'Authorization': 'Bearer ${await _secureStorage.read(key: 'auth_token')}',
-      }));
-      
-      if (response.data != null && response.data['complete'] == true) {
-        return true;
-      }
-      return false;
-    } catch (e) {
-      log('Error al verificar post-registro: $e');
-      return false;
     }
   }
 
   @override
   Future<void> signOut() async {
     try {
-      // Borrar el token de autenticación
+      log('📱 [AuthRemoteDataSource] Iniciando cierre de sesión');
+
+      // Obtener tokens antes de limpiar para invalidar en servidor
+      final token = await _secureStorage.read(key: 'auth_token');
+      final refreshToken = await _secureStorage.read(key: 'refresh_token');
+
+      // Borrar tokens locales primero
       await _clearToken();
-      
+
       // Limpiar todos los datos de autenticación almacenados
       await _clearAllPersistentData();
-      
-      // Llamada a la API para cerrar sesión (opcional)
-      // await _dio.post('$_baseUrl/auth/logout');
+
+      // Llamar a la API para invalidar el refresh token en el servidor
+      if (token != null && refreshToken != null) {
+        try {
+          await _dio.post(
+            '$_baseUrl/auth/logout',
+            data: {'refresh_token': refreshToken},
+            options: Options(headers: {'Authorization': 'Bearer $token'}),
+          );
+          log('✅ [AuthRemoteDataSource] Sesión invalidada en servidor');
+        } catch (e) {
+          // Si falla la llamada al servidor, no es crítico
+          // ya limpiamos los tokens locales
+          log('⚠️ [AuthRemoteDataSource] No se pudo invalidar en servidor: $e');
+        }
+      }
     } catch (e) {
-      log('Error al cerrar sesión: $e');
-      // Aún si la llamada falla, eliminamos el token local
+      log('❌ [AuthRemoteDataSource] Error al cerrar sesión: $e');
+      // Aún si algo falla, aseguramos limpiar tokens locales
       await _clearToken();
       throw AuthException(message: e.toString());
     }
@@ -316,14 +340,25 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> resetPassword(String email) async {
     try {
-      // Implementación para solicitar cambio de contraseña
-      // En una API personalizada, esto generalmente envía un correo
-      await _dio.post('$_baseUrl/auth/reset-password', data: {
-        'email': email,
-      });
+      log('📱 [AuthRemoteDataSource] Solicitando recuperación para: $email');
+
+      // Endpoint correcto según API spec: /auth/request-password-reset
+      final response = await _dio.post(
+        '$_baseUrl/auth/request-password-reset',
+        data: {'email': email},
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        log('✅ [AuthRemoteDataSource] Correo de recuperación enviado');
+      }
     } catch (e) {
+      log('❌ [AuthRemoteDataSource] Error en reset password: $e');
       if (e is DioException) {
-        throw AuthException(message: e.message ?? 'Error al solicitar cambio de contraseña');
+        // La API devuelve mensaje genérico por seguridad
+        throw AuthException(
+          message: e.response?.data?['message'] ??
+              'Si el correo existe, recibirás un enlace de recuperación',
+        );
       }
       throw AuthException(message: e.toString());
     }
