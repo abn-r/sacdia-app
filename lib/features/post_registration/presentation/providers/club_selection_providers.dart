@@ -118,23 +118,32 @@ final clubInstancesProvider = FutureProvider<List<ClubInstanceModel>>((ref) asyn
   if (instances.length == 1) {
     Future.microtask(() {
       ref.read(selectedClubInstanceProvider.notifier).state = instances.first.id;
+      ref.read(selectedClubTypeSlugProvider.notifier).state = instances.first.clubTypeSlug;
     });
   } else if (age != null && instances.isNotEmpty) {
     // Pre-selección basada en edad
     ClubInstanceModel? recommended;
     if (age >= 4 && age <= 9) {
       recommended = instances.firstWhere(
-        (instance) => instance.clubTypeName.toLowerCase().contains('aventurero'),
+        (instance) =>
+            instance.clubTypeSlug == 'adventurers' ||
+            (instance.clubTypeName?.toLowerCase().contains('aventurero') ??
+                false),
         orElse: () => instances.first,
       );
     } else if (age >= 10 && age <= 15) {
       recommended = instances.firstWhere(
-        (instance) => instance.clubTypeName.toLowerCase().contains('conquistador'),
+        (instance) =>
+            instance.clubTypeSlug == 'pathfinders' ||
+            (instance.clubTypeName?.toLowerCase().contains('conquistador') ??
+                false),
         orElse: () => instances.first,
       );
     } else if (age >= 16) {
       recommended = instances.firstWhere(
-        (instance) => instance.clubTypeName.toLowerCase().contains('guía'),
+        (instance) =>
+            instance.clubTypeSlug == 'master_guild' ||
+            (instance.clubTypeName?.toLowerCase().contains('guía') ?? false),
         orElse: () => instances.first,
       );
     }
@@ -142,6 +151,7 @@ final clubInstancesProvider = FutureProvider<List<ClubInstanceModel>>((ref) asyn
     if (recommended != null) {
       Future.microtask(() {
         ref.read(selectedClubInstanceProvider.notifier).state = recommended!.id;
+        ref.read(selectedClubTypeSlugProvider.notifier).state = recommended.clubTypeSlug;
       });
     }
   }
@@ -151,6 +161,10 @@ final clubInstancesProvider = FutureProvider<List<ClubInstanceModel>>((ref) asyn
 
 /// Provider para la instancia de club seleccionada
 final selectedClubInstanceProvider = StateProvider<int?>((ref) => null);
+
+/// Provider para el slug del tipo de club de la instancia seleccionada
+/// Valores posibles: 'adventurers' | 'pathfinders' | 'master_guild'
+final selectedClubTypeSlugProvider = StateProvider<String?>((ref) => null);
 
 /// Provider para obtener las clases del tipo de club seleccionado
 final classesProvider = FutureProvider<List<ClassModel>>((ref) async {
@@ -211,12 +225,14 @@ final canCompleteStep3Provider = Provider<bool>((ref) {
   final localField = ref.watch(selectedLocalFieldProvider);
   final clubInstance = ref.watch(selectedClubInstanceProvider);
   final classId = ref.watch(selectedClassProvider);
+  final clubTypeSlug = ref.watch(selectedClubTypeSlugProvider);
 
   return country != null &&
       union != null &&
       localField != null &&
       clubInstance != null &&
-      classId != null;
+      classId != null &&
+      clubTypeSlug != null;
 });
 
 /// Provider para indicar si se está guardando el paso 3

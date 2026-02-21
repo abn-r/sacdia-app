@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/theme/app_colors.dart';
 
 import '../../data/models/club_instance_model.dart';
 import '../providers/club_selection_providers.dart';
@@ -47,35 +51,35 @@ class ClubTypeSelector extends ConsumerWidget {
                   onTap: () {
                     ref.read(selectedClubInstanceProvider.notifier).state = instance.id;
                   },
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       border: Border.all(
                         color: isSelected
-                            ? Theme.of(context).primaryColor
-                            : Colors.grey.shade300,
+                            ? AppColors.primary
+                            : AppColors.lightBorder,
                         width: isSelected ? 2 : 1,
                       ),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                       color: isSelected
-                          ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
+                          ? AppColors.primaryLight
                           : null,
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          isSelected
-                              ? Icons.radio_button_checked
-                              : Icons.radio_button_unchecked,
+                        HugeIcon(
+                          icon: isSelected
+                              ? HugeIcons.strokeRoundedCheckmarkCircle02
+                              : HugeIcons.strokeRoundedRadioButton,
                           color: isSelected
-                              ? Theme.of(context).primaryColor
-                              : Colors.grey,
+                              ? AppColors.primary
+                              : AppColors.lightTextTertiary,
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            instance.clubTypeName,
+                            instance.clubTypeName ?? instance.clubTypeSlug,
                             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                                   fontWeight: isSelected
                                       ? FontWeight.w600
@@ -90,14 +94,14 @@ class ClubTypeSelector extends ConsumerWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.green.shade100,
+                              color: AppColors.secondaryLight,
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
                               'Recomendado',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.green.shade800,
+                                color: AppColors.secondaryDark,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -111,17 +115,17 @@ class ClubTypeSelector extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const Center(
+      loading: () => Center(
         child: Padding(
-          padding: EdgeInsets.all(16),
-          child: CircularProgressIndicator(),
+          padding: const EdgeInsets.all(16),
+          child: const SacLoading(),
         ),
       ),
       error: (error, stack) => Padding(
         padding: const EdgeInsets.all(16),
         child: Text(
           'Error al cargar tipos de club: $error',
-          style: TextStyle(color: Colors.red.shade700),
+          style: TextStyle(color: AppColors.error),
         ),
       ),
     );
@@ -129,21 +133,21 @@ class ClubTypeSelector extends ConsumerWidget {
 
   Widget _buildAgeRecommendation(BuildContext context, int age) {
     String recommendation = '';
-    IconData icon = Icons.info_outline;
-    Color color = Colors.blue;
+    dynamic icon = HugeIcons.strokeRoundedInformationCircle;
+    Color color = AppColors.primary;
 
     if (age >= 4 && age <= 9) {
-      recommendation = 'Para tu edad (${age} años), recomendamos el club de Aventureros.';
-      icon = Icons.child_care;
-      color = Colors.orange;
+      recommendation = 'Para tu edad ($age años), recomendamos el club de Aventureros.';
+      icon = HugeIcons.strokeRoundedBaby01;
+      color = AppColors.accent;
     } else if (age >= 10 && age <= 15) {
-      recommendation = 'Para tu edad (${age} años), recomendamos el club de Conquistadores.';
-      icon = Icons.hiking;
-      color = Colors.blue;
+      recommendation = 'Para tu edad ($age años), recomendamos el club de Conquistadores.';
+      icon = HugeIcons.strokeRoundedCompass01;
+      color = AppColors.primary;
     } else if (age >= 16) {
-      recommendation = 'Para tu edad (${age} años), recomendamos el club de Guías Mayores.';
-      icon = Icons.groups;
-      color = Colors.green;
+      recommendation = 'Para tu edad ($age años), recomendamos el club de Guías Mayores.';
+      icon = HugeIcons.strokeRoundedUserGroup;
+      color = AppColors.secondary;
     }
 
     if (recommendation.isEmpty) return const SizedBox.shrink();
@@ -157,7 +161,7 @@ class ClubTypeSelector extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: color, size: 20),
+          buildIcon(icon, color: color, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -176,14 +180,16 @@ class ClubTypeSelector extends ConsumerWidget {
   bool _isRecommendedForAge(ClubInstanceModel instance, int? age) {
     if (age == null) return false;
 
-    final typeName = instance.clubTypeName.toLowerCase();
-
-    if (age >= 4 && age <= 9) {
-      return typeName.contains('aventurero');
-    } else if (age >= 10 && age <= 15) {
-      return typeName.contains('conquistador');
-    } else if (age >= 16) {
-      return typeName.contains('guía');
+    if (instance.clubTypeSlug == 'adventurers' ||
+        (instance.clubTypeName?.toLowerCase().contains('aventurero') ?? false)) {
+      return age >= 4 && age <= 9;
+    } else if (instance.clubTypeSlug == 'pathfinders' ||
+        (instance.clubTypeName?.toLowerCase().contains('conquistador') ??
+            false)) {
+      return age >= 10 && age <= 15;
+    } else if (instance.clubTypeSlug == 'master_guild' ||
+        (instance.clubTypeName?.toLowerCase().contains('guía') ?? false)) {
+      return age >= 16;
     }
 
     return false;

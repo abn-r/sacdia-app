@@ -1,6 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 /// Botón reutilizable y configurable para toda la aplicación
 class CustomButton extends StatelessWidget {
@@ -20,7 +20,7 @@ class CustomButton extends StatelessWidget {
   final Color textColor;
   
   /// Ícono opcional que se mostrará antes del texto
-  final IconData? icon;
+  final dynamic icon;
   
   /// Tamaño del ícono
   final double iconSize;
@@ -45,7 +45,7 @@ class CustomButton extends StatelessWidget {
     required this.text,
     this.onPressed,
     this.isLoading = false,
-    this.backgroundColor = AppColors.sacGreenLight,
+    this.backgroundColor = AppColors.primary,
     this.textColor = Colors.black,
     this.icon,
     this.iconSize = 20,
@@ -66,18 +66,19 @@ class CustomButton extends StatelessWidget {
         backgroundColor: effectivelyDisabled 
             ? backgroundColor.withValues(alpha: 0.6) 
             : backgroundColor,
-        disabledBackgroundColor: AppColors.sacGrey.withValues(alpha: 0.6),
+        disabledBackgroundColor: AppColors.lightTextTertiary.withValues(alpha: 0.6),
         padding: padding,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadius),
         ),
       ),
       child: isLoading
-          ? const SizedBox(
+          ? SizedBox(
               height: 24,
               width: 24,
-              child: CupertinoActivityIndicator(
-                color: Colors.black,
+              child: CircularProgressIndicator(
+                color: textColor,
+                strokeWidth: 2.0,
               ),
             )
           : Row(
@@ -85,7 +86,7 @@ class CustomButton extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (icon != null) ...[
-                  Icon(
+                  buildIcon(
                     icon,
                     color: textColor,
                     size: iconSize,

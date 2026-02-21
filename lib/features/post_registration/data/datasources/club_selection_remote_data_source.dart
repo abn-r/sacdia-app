@@ -36,6 +36,7 @@ abstract class ClubSelectionRemoteDataSource {
     required int countryId,
     required int unionId,
     required int localFieldId,
+    required String clubTypeSlug,
     required int clubInstanceId,
     required int classId,
   });
@@ -173,8 +174,21 @@ class ClubSelectionRemoteDataSourceImpl
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final List<dynamic> data = response.data as List<dynamic>;
-        return data.map((json) => ClubInstanceModel.fromJson(json)).toList();
+        final Map<String, dynamic> buckets =
+            response.data as Map<String, dynamic>;
+        final List<ClubInstanceModel> result = [];
+
+        for (final entry in buckets.entries) {
+          final rawKey = entry.key; // 'adventurers', 'pathfinders', 'master_guilds'
+          final slug = rawKey == 'master_guilds' ? 'master_guild' : rawKey;
+          final items = entry.value as List<dynamic>;
+          for (final item in items) {
+            result.add(ClubInstanceModel.fromJsonWithSlug(
+                item as Map<String, dynamic>, slug));
+          }
+        }
+
+        return result;
       }
 
       throw ServerException(message: 'Error al obtener tipos de club');
@@ -219,17 +233,19 @@ class ClubSelectionRemoteDataSourceImpl
     required int countryId,
     required int unionId,
     required int localFieldId,
+    required String clubTypeSlug,
     required int clubInstanceId,
     required int classId,
   }) async {
     try {
       final options = await _authOptions();
       final response = await _dio.post(
-        '$_baseUrl/users/$userId/post-registration/complete-step-3',
+        '$_baseUrl/users/$userId/post-registration/step-3/complete',
         data: {
           'country_id': countryId,
           'union_id': unionId,
           'local_field_id': localFieldId,
+          'club_type': clubTypeSlug,
           'club_instance_id': clubInstanceId,
           'class_id': classId,
         },

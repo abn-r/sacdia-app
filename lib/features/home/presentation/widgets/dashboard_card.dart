@@ -1,72 +1,71 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
 
-/// Widget para mostrar una tarjeta con información en el dashboard
+/// Card de estadística del dashboard - Estilo "Scout Vibrante"
 class DashboardCard extends StatelessWidget {
   final String title;
   final String value;
-  final IconData icon;
+  final dynamic icon;
   final Color color;
+  final VoidCallback? onTap;
 
   const DashboardCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.value,
     required this.icon,
-    this.color = Colors.blue,
-  }) : super(key: key);
+    this.color = AppColors.primary,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 32,
-              ),
+    return SacCard(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(width: 16),
-            Column(
+            child: buildIcon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.lightTextSecondary,
+                  ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   value,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                       ),
                 ),
               ],
             ),
-            const Spacer(),
-            IconButton(
-              icon: const Icon(Icons.chevron_right),
-              onPressed: () {
-                // Acción al presionar el botón, por ejemplo navegación a detalle
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Ver detalles de $title')),
-                );
-              },
+          ),
+          if (onTap != null)
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              color: AppColors.lightTextTertiary,
+              size: 24,
             ),
-          ],
-        ),
+        ],
       ),
     );
   }

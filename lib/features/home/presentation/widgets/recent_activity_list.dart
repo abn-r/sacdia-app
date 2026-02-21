@@ -1,67 +1,73 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
 
-/// Widget para mostrar la lista de actividades recientes
+/// Lista de actividades recientes - Estilo "Scout Vibrante"
 class RecentActivityList extends StatelessWidget {
   final List<String> activities;
 
   const RecentActivityList({
-    Key? key,
+    super.key,
     required this.activities,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return SacCard(
+      padding: EdgeInsets.zero,
       child: ListView.separated(
         physics: const NeverScrollableScrollPhysics(),
         shrinkWrap: true,
         itemCount: activities.length,
-        separatorBuilder: (context, index) => const Divider(height: 1),
+        separatorBuilder: (_, __) => Divider(
+          height: 1,
+          indent: 60,
+          color: AppColors.lightBorder,
+        ),
         itemBuilder: (context, index) {
           final activity = activities[index];
-          return ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-              child: const Icon(Icons.history),
-            ),
-            title: Text(activity),
-            subtitle: Text('Hace ${index + 1} ${index == 0 ? 'hora' : 'horas'}'),
-            trailing: IconButton(
-              icon: const Icon(Icons.more_horiz),
-              onPressed: () {
-                // Mostrar opciones para esta actividad
-                showModalBottomSheet(
-                  context: context,
-                  builder: (context) => Column(
-                    mainAxisSize: MainAxisSize.min,
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedClock05,
+                    size: 18,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ListTile(
-                        leading: const Icon(Icons.visibility),
-                        title: const Text('Ver detalles'),
-                        onTap: () {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Ver detalles de: $activity')),
-                          );
-                        },
+                      Text(
+                        activity,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      ListTile(
-                        leading: const Icon(Icons.delete_outline),
-                        title: const Text('Eliminar de historial'),
-                        onTap: () {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Actividad eliminada: $activity')),
-                          );
-                        },
+                      const SizedBox(height: 2),
+                      Text(
+                        'Hace ${index + 1} ${index == 0 ? 'hora' : 'horas'}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.lightTextSecondary,
+                        ),
                       ),
                     ],
                   ),
-                );
-              },
+                ),
+              ],
             ),
           );
         },

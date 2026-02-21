@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../providers/personal_info_providers.dart';
 import '../widgets/searchable_selection_list.dart';
 
@@ -16,27 +19,31 @@ class AllergiesSelectionView extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Alergias'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            tooltip: 'Guardar',
+          TextButton.icon(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const HugeIcon(
+              icon: HugeIcons.strokeRoundedTick02,
+              size: 20,
+            ),
+            label: const Text('Guardar'),
           ),
         ],
       ),
       body: allergiesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: SacLoading()),
         error: (error, stack) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              HugeIcon(
+                  icon: HugeIcons.strokeRoundedAlert02,
+                  size: 48,
+                  color: AppColors.error),
               const SizedBox(height: 16),
               Text('Error: $error'),
               const SizedBox(height: 16),
               ElevatedButton.icon(
-                icon: const Icon(Icons.refresh),
+                icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 20),
                 label: const Text('Reintentar'),
                 onPressed: () => ref.refresh(allergiesCatalogProvider),
               ),
@@ -58,17 +65,19 @@ class AllergiesSelectionView extends ConsumerWidget {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
-                color: Colors.blue.shade50,
+                color: AppColors.primaryLight,
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: Colors.blue.shade700),
+                    HugeIcon(
+                        icon: HugeIcons.strokeRoundedInformationCircle,
+                        color: AppColors.primaryDark),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'Selecciona todas las alergias que tengas. Si no tienes ninguna, marca "Ninguna".',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.blue.shade900,
+                          color: AppColors.primaryDark,
                         ),
                       ),
                     ),

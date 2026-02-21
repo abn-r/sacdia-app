@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 
@@ -14,7 +13,7 @@ class AuthButton extends StatelessWidget {
     required this.text,
     required this.onPressed,
     this.isLoading = false,
-    this.backgroundColor = AppColors.sacGreenLight,
+    this.backgroundColor = AppColors.primary,
   });
 
   @override
@@ -32,9 +31,9 @@ class AuthButton extends StatelessWidget {
           ? const SizedBox(
               height: 20,
               width: 20,
-              child: CupertinoActivityIndicator(
-                color: Colors.black,
-                radius: 10,
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 2.0,
               ),
             )
           : Text(

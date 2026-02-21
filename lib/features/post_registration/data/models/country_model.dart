@@ -12,16 +12,17 @@ class CountryModel extends Equatable {
 
   /// Crea una instancia desde JSON
   factory CountryModel.fromJson(Map<String, dynamic> json) {
+    final rawId = json['country_id'] ?? json['id'];
     return CountryModel(
-      id: json['id'] as int,
-      name: json['name'] as String,
+      id: rawId is int ? rawId : (int.tryParse(rawId?.toString() ?? '') ?? 0),
+      name: (json['name'] as String?) ?? '',
     );
   }
 
   /// Convierte la instancia a JSON
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'country_id': id,
       'name': name,
     };
   }

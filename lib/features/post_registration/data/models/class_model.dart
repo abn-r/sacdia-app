@@ -18,19 +18,25 @@ class ClassModel extends Equatable {
 
   /// Crea una instancia desde JSON
   factory ClassModel.fromJson(Map<String, dynamic> json) {
+    // Tolerar claves alternativas para el ID
+    final rawId = json['class_id'] ?? json['id'];
+    final rawClubTypeId = json['club_type_id'];
+
     return ClassModel(
-      id: json['id'] as int,
-      name: json['name'] as String,
+      id: rawId is int ? rawId : (int.tryParse(rawId?.toString() ?? '') ?? 0),
+      name: (json['name'] as String?) ?? '',
       minAge: json['min_age'] as int?,
       maxAge: json['max_age'] as int?,
-      clubTypeId: json['club_type_id'] as int,
+      clubTypeId: rawClubTypeId is int
+          ? rawClubTypeId
+          : (int.tryParse(rawClubTypeId?.toString() ?? '') ?? 0),
     );
   }
 
   /// Convierte la instancia a JSON
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'class_id': id,
       'name': name,
       'min_age': minAge,
       'max_age': maxAge,

@@ -14,9 +14,11 @@ class DiseaseModel extends Equatable {
 
   /// Crea una instancia desde JSON
   factory DiseaseModel.fromJson(Map<String, dynamic> json) {
+    // Tolerar diferentes nombres de campo para el ID
+    final rawId = json['id'] ?? json['disease_id'];
     return DiseaseModel(
-      id: json['id'] as int,
-      name: json['name'] as String,
+      id: rawId is int ? rawId : (int.tryParse(rawId?.toString() ?? '') ?? 0),
+      name: (json['name'] as String?) ?? '',
       isSelected: json['is_selected'] as bool? ?? false,
     );
   }

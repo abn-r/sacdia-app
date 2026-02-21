@@ -1,4 +1,3 @@
-
 import '../../domain/entities/user_entity.dart';
 
 /// Modelo de usuario para la capa de datos
@@ -15,16 +14,24 @@ class UserModel extends UserEntity {
   });
 
   /// Crea un UserModel a partir de la respuesta de la API personalizada
-  factory UserModel.fromCustomApi(Map<String, dynamic> data, {bool postRegisterComplete = false}) {
+  /// Soporta tanto 'user_id' como 'id' en la respuesta
+  factory UserModel.fromCustomApi(Map<String, dynamic> data,
+      {bool postRegisterComplete = false}) {
+    // La API puede devolver el id como 'user_id' o como 'id'
+    final userId = (data['user_id'] ?? data['id'])?.toString();
+    if (userId == null || userId.isEmpty) {
+      throw FormatException(
+          'La respuesta de la API no contiene un ID de usuario válido: $data');
+    }
+
     return UserModel(
-      id: data['user_id'] as String,
-      email: data['email'] as String? ?? '',
+      id: userId,
+      email: (data['email'] as String?) ?? '',
       name: data['name'] as String?,
-      // Los siguientes campos pueden ser null o configurarse según la respuesta real de la API
-      avatar: null,
+      avatar: data['avatar'] as String?,
       metadata: data,
-      lastSignInAt: DateTime.now(), // Usamos la fecha actual para el inicio de sesión
-      createdAt: DateTime.now(),   // Usamos la fecha actual para la creación
+      lastSignInAt: _parseDateTime(data['last_sign_in_at']) ?? DateTime.now(),
+      createdAt: _parseDateTime(data['created_at']) ?? DateTime.now(),
       postRegisterComplete: postRegisterComplete,
     );
   }
@@ -46,10 +53,10 @@ class UserModel extends UserEntity {
   /// Método estático para parsear fechas de forma segura
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) return null;
-    
+
     // Si ya es un DateTime, retornarlo directamente
     if (value is DateTime) return value;
-    
+
     // Si es String, intentar parsearlo
     if (value is String) {
       try {
@@ -58,7 +65,7 @@ class UserModel extends UserEntity {
         return null;
       }
     }
-    
+
     // Si es otra cosa, convertir a string e intentar parsear
     try {
       return DateTime.parse(value.toString());
@@ -66,7 +73,7 @@ class UserModel extends UserEntity {
       return null;
     }
   }
-  
+
   /// Crea un UserModel desde un mapa JSON
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(

@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_progress_ring.dart';
 
-import '../../../../core/theme/app_colors.dart';
-
-/// Widget para mostrar la clase actual y su progreso
+/// Card de clase actual con SacProgressRing - Estilo "Scout Vibrante"
+///
+/// Grande SacProgressRing centrado (Apple Health style),
+/// nombre de clase, motivational text.
+/// Ring size adapts via LayoutBuilder — no fixed 140px.
 class CurrentClassCard extends StatelessWidget {
   final String? currentClassName;
   final double classProgress;
@@ -13,161 +19,121 @@ class CurrentClassCard extends StatelessWidget {
     required this.classProgress,
   });
 
-  /// Obtiene el color según el nombre de la clase
-  Color _getClassColor(String? className) {
-    if (className == null) return AppColors.sacBlue;
-
-    final lowerName = className.toLowerCase();
-    if (lowerName.contains('amigo')) return AppColors.colorAmigo;
-    if (lowerName.contains('compañero')) return AppColors.colorCompanero;
-    if (lowerName.contains('explorador')) return AppColors.colorExplorador;
-    if (lowerName.contains('orientador')) return AppColors.colorOrientador;
-    if (lowerName.contains('viajero')) return AppColors.colorViajero;
-    if (lowerName.contains('guía')) return AppColors.colorGuia;
-
-    return AppColors.sacBlue;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final classColor = _getClassColor(currentClassName);
     final progressPercentage = (classProgress * 100).toInt();
+    final isComplete = classProgress >= 1.0;
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
+    return SacCard(
+      child: Column(
+        children: [
+          // Section header
+          Row(
+            children: [
+              HugeIcon(icon: HugeIcons.strokeRoundedSchool, size: 20, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Text(
+                'Mi Clase',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const Spacer(),
+              if (isComplete)
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: classColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    color: AppColors.secondaryLight,
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Icon(
-                    Icons.school,
-                    color: classColor,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
+                      HugeIcon(
+                          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                          size: 14,
+                          color: AppColors.secondaryDark),
+                      const SizedBox(width: 4),
                       Text(
-                        'Clase Actual',
+                        'Completada',
                         style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
+                          fontSize: 12,
                           fontWeight: FontWeight.w500,
+                          color: AppColors.secondaryDark,
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        currentClassName ?? 'Sin clase asignada',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.sacBlack,
-                        ),
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Progress ring — size scales with available card width
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final ringSize =
+                  (constraints.maxWidth * 0.45).clamp(100.0, 180.0);
+              return SacProgressRing(
+                progress: classProgress,
+                size: ringSize,
+                strokeWidth: 10,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      'Progreso',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[700],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
                     Text(
                       '$progressPercentage%',
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineMedium
+                          ?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.lightText,
+                          ),
+                    ),
+                    Text(
+                      'progreso',
                       style: TextStyle(
-                        fontSize: 14,
-                        color: classColor,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: AppColors.lightTextSecondary,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: classProgress,
-                    backgroundColor: Colors.grey[200],
-                    color: classColor,
-                    minHeight: 8,
-                  ),
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+
+          // Class name
+          Text(
+            currentClassName ?? 'Sin clase asignada',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
                 ),
-              ],
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+
+          // Motivational text
+          Text(
+            isComplete
+                ? '¡Felicidades! Has completado esta clase.'
+                : currentClassName != null
+                    ? '¡Sigue adelante, vas muy bien!'
+                    : 'Únete a un club para comenzar',
+            style: TextStyle(
+              fontSize: 14,
+              color: isComplete
+                  ? AppColors.secondaryDark
+                  : AppColors.lightTextSecondary,
             ),
-            if (currentClassName != null && classProgress < 1.0) ...[
-              const SizedBox(height: 12),
-              Text(
-                '¡Sigue adelante! Estás progresando en tu clase.',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ],
-            if (currentClassName != null && classProgress >= 1.0) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.check_circle,
-                      color: AppColors.success,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        '¡Felicidades! Has completado esta clase.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[800],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

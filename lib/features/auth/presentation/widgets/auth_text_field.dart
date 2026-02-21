@@ -5,7 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 class AuthTextField extends StatefulWidget {
   final TextEditingController controller;
   final String hintText;
-  final IconData icon;
+  final dynamic icon;
   final bool obscureText;
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
@@ -41,7 +41,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
         suffixIcon: widget.obscureText
             ? IconButton(
                 icon: HugeIcon(
-                  icon: _showPassword ? Icons.visibility_off : Icons.visibility,
+                  icon: _showPassword ? HugeIcons.strokeRoundedViewOff : HugeIcons.strokeRoundedViewOffSlash,
                   color: Colors.grey,
                   size: 20,
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 /// Widget genérico para dropdown en cascada
 class CascadingDropdown<T> extends StatelessWidget {
@@ -44,11 +45,11 @@ class CascadingDropdown<T> extends StatelessWidget {
               border: Border.all(color: Colors.grey.shade300),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Center(
+            child: Center(
               child: SizedBox(
                 width: 24,
                 height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                child: SacLoadingSmall(),
               ),
             ),
           )

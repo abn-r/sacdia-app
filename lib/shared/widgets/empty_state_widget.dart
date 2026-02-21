@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 /// Widget para mostrar estados vacíos de manera consistente
 ///
@@ -8,8 +10,8 @@ class EmptyStateWidget extends StatelessWidget {
   /// Mensaje a mostrar
   final String message;
 
-  /// Icono a mostrar
-  final IconData icon;
+  /// Icono a mostrar (IconData o HugeIcons)
+  final dynamic icon;
 
   /// Etiqueta del botón de acción opcional
   final String? actionLabel;
@@ -20,7 +22,7 @@ class EmptyStateWidget extends StatelessWidget {
   const EmptyStateWidget({
     super.key,
     required this.message,
-    this.icon = Icons.inbox,
+    this.icon = HugeIcons.strokeRoundedInbox,
     this.actionLabel,
     this.onAction,
   });
@@ -36,7 +38,7 @@ class EmptyStateWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
+            buildIcon(
               icon,
               size: 80,
               color: theme.colorScheme.secondary.withValues(alpha: 0.5),
@@ -51,7 +53,7 @@ class EmptyStateWidget extends StatelessWidget {
               const SizedBox(height: 32),
               ElevatedButton.icon(
                 onPressed: onAction,
-                icon: const Icon(Icons.add),
+                icon: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: Colors.white, size: 20),
                 label: Text(actionLabel!),
               ),
             ],

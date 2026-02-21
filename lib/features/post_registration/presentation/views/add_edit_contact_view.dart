@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/sac_dropdown_field.dart';
+import '../../../../core/widgets/sac_text_field.dart';
 import '../../data/models/emergency_contact_model.dart';
 import '../providers/personal_info_providers.dart';
 
@@ -20,7 +25,8 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
-  int? _selectedRelationshipTypeId;
+  String? _selectedRelationshipTypeId;
+  bool _isPrimary = false;
   bool _isLoading = false;
 
   bool get _isEditing => widget.contact != null;
@@ -32,6 +38,7 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
       _nameController.text = widget.contact!.name;
       _phoneController.text = widget.contact!.phone;
       _selectedRelationshipTypeId = widget.contact!.relationshipTypeId;
+      _isPrimary = widget.contact!.primary;
     }
   }
 
@@ -59,12 +66,18 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
         name: _nameController.text.trim(),
         phone: _phoneController.text.trim(),
         relationshipTypeId: _selectedRelationshipTypeId!,
+        primary: _isPrimary,
       );
 
       final notifier = ref.read(emergencyContactsProvider.notifier);
 
       if (_isEditing) {
-        await notifier.updateContact(widget.contact!.id!, contact);
+        final contactId = widget.contact!.id;
+        if (contactId == null) {
+          throw Exception(
+              'No se pudo obtener el ID del contacto. Intenta cerrar y abrir la pantalla.');
+        }
+        await notifier.updateContact(contactId, contact);
       } else {
         await notifier.addContact(contact);
       }
@@ -78,7 +91,11 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
                   ? 'Contacto actualizado correctamente'
                   : 'Contacto agregado correctamente',
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.secondary,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         );
       }
@@ -87,7 +104,11 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         );
       }
@@ -113,30 +134,33 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
                 child: SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+                  child: SacLoadingSmall(),
                 ),
               ),
             )
           else
             IconButton(
-              icon: const Icon(Icons.check),
+              icon: HugeIcon(icon: HugeIcons.strokeRoundedTick02, size: 24),
               onPressed: _handleSave,
               tooltip: 'Guardar',
             ),
         ],
       ),
       body: relationshipTypesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: SacLoading()),
         error: (error, stack) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              HugeIcon(
+                  icon: HugeIcons.strokeRoundedAlert02,
+                  size: 48,
+                  color: AppColors.error),
               const SizedBox(height: 16),
               Text('Error: $error'),
               const SizedBox(height: 16),
               ElevatedButton.icon(
-                icon: const Icon(Icons.refresh),
+                icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 20),
                 label: const Text('Reintentar'),
                 onPressed: () => ref.refresh(relationshipTypesProvider),
               ),
@@ -149,14 +173,11 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
             padding: const EdgeInsets.all(16),
             children: [
               // Nombre
-              TextFormField(
+              SacTextField(
                 controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre completo *',
-                  hintText: 'Ej: Juan Pérez González',
-                  prefixIcon: Icon(Icons.person_outline),
-                  border: OutlineInputBorder(),
-                ),
+                label: 'Nombre completo',
+                hint: 'Ej: Juan Pérez González',
+                prefixIcon: HugeIcons.strokeRoundedUser,
                 textCapitalization: TextCapitalization.words,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -172,26 +193,23 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
               const SizedBox(height: 16),
 
               // Tipo de relación
-              DropdownButtonFormField<int>(
+              SacDropdownField<String>(
                 value: _selectedRelationshipTypeId,
-                decoration: const InputDecoration(
-                  labelText: 'Tipo de relación *',
-                  prefixIcon: Icon(Icons.family_restroom),
-                  border: OutlineInputBorder(),
-                ),
+                label: 'Tipo de relación',
+                hint: 'Selecciona un tipo de relación',
+                prefixIcon: HugeIcons.strokeRoundedUserGroup,
+                enabled: !_isLoading,
                 items: relationshipTypes.map((type) {
                   return DropdownMenuItem(
                     value: type.id,
                     child: Text(type.name),
                   );
                 }).toList(),
-                onChanged: _isLoading
-                    ? null
-                    : (value) {
-                        setState(() {
-                          _selectedRelationshipTypeId = value;
-                        });
-                      },
+                onChanged: (value) {
+                  setState(() {
+                    _selectedRelationshipTypeId = value;
+                  });
+                },
                 validator: (value) {
                   if (value == null) {
                     return 'Selecciona un tipo de relación';
@@ -201,16 +219,70 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
               ),
               const SizedBox(height: 16),
 
-              // Teléfono
-              TextFormField(
-                controller: _phoneController,
-                decoration: const InputDecoration(
-                  labelText: 'Teléfono *',
-                  hintText: 'Ej: 5512345678',
-                  prefixIcon: Icon(Icons.phone_outlined),
-                  border: OutlineInputBorder(),
+              // Contacto primario
+              Container(
+                decoration: BoxDecoration(
+                  color: _isPrimary ? AppColors.primaryLight : Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      offset: const Offset(0, 3),
+                      blurRadius: 20,
+                    ),
+                  ],
+                  border: _isPrimary
+                      ? Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.4),
+                          width: 1.5,
+                        )
+                      : null,
                 ),
+                child: SwitchListTile(
+                  value: _isPrimary,
+                  onChanged: _isLoading
+                      ? null
+                      : (value) => setState(() => _isPrimary = value),
+                  title: const Text(
+                    'Contacto primario',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    'Se notificará primero en caso de emergencia',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.lightTextSecondary,
+                    ),
+                  ),
+                  secondary: HugeIcon(
+                    icon: _isPrimary
+                        ? HugeIcons.strokeRoundedStar
+                        : HugeIcons.strokeRoundedStar,
+                    size: 24,
+                    color: _isPrimary
+                        ? AppColors.primary
+                        : AppColors.lightTextSecondary,
+                  ),
+                  activeThumbColor: Colors.white,
+                  activeTrackColor: AppColors.primary,
+                  inactiveThumbColor: Colors.white,
+                  inactiveTrackColor:
+                      AppColors.lightTextTertiary.withValues(alpha: 0.4),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Teléfono
+              SacTextField(
+                controller: _phoneController,
+                label: 'Teléfono',
+                hint: 'Ej: 5512345678',
+                prefixIcon: HugeIcons.strokeRoundedCall,
                 keyboardType: TextInputType.phone,
+                maxLength: 10,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'El teléfono es requerido';
@@ -225,21 +297,20 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
               ),
               const SizedBox(height: 24),
 
-              // Botón de guardar (alternativo)
+              // Botón de guardar
               SizedBox(
                 height: 48,
                 child: ElevatedButton.icon(
                   icon: _isLoading
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
+                          child: SacLoadingSmall(),
                         )
-                      : const Icon(Icons.save),
-                  label: Text(_isEditing ? 'Actualizar Contacto' : 'Guardar Contacto'),
+                      : HugeIcon(
+                          icon: HugeIcons.strokeRoundedFloppyDisk, size: 22),
+                  label: Text(
+                      _isEditing ? 'Actualizar Contacto' : 'Guardar Contacto'),
                   onPressed: _isLoading ? null : _handleSave,
                 ),
               ),
@@ -250,21 +321,25 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
+                  color: AppColors.primaryLight,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue.shade200),
+                  border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline, color: Colors.blue.shade700, size: 20),
+                    HugeIcon(
+                        icon: HugeIcons.strokeRoundedInformationCircle,
+                        color: AppColors.primaryDark,
+                        size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'El contacto de emergencia será notificado en caso de alguna eventualidad.',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.blue.shade900,
+                          color: AppColors.primaryDark,
                         ),
                       ),
                     ),

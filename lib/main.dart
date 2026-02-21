@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -81,6 +82,16 @@ final themeProvider = ChangeNotifierProvider<ThemeProvider>((ref) {
   return ThemeProvider(localStorage);
 });
 
+/// Unified scroll behavior — iOS-inspired bouncing physics on all platforms.
+class _AppScrollBehavior extends ScrollBehavior {
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return const BouncingScrollPhysics(
+      parent: AlwaysScrollableScrollPhysics(),
+    );
+  }
+}
+
 /// Widget principal de la aplicación
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
@@ -90,13 +101,26 @@ class MyApp extends ConsumerWidget {
     final themeProviderState = ref.watch(themeProvider);
     final router = ref.watch(routerProvider);
 
-    return MaterialApp.router(
-      title: 'Sacdia App',
-      debugShowCheckedModeBanner: false,
-      theme: themeProviderState.lightTheme,
-      darkTheme: themeProviderState.darkTheme,
-      themeMode: themeProviderState.themeMode,
-      routerConfig: router,
+    return ScrollConfiguration(
+      behavior: _AppScrollBehavior(),
+      child: MaterialApp.router(
+        title: 'Sacdia App',
+        debugShowCheckedModeBanner: false,
+        theme: themeProviderState.lightTheme,
+        darkTheme: themeProviderState.darkTheme,
+        themeMode: themeProviderState.themeMode,
+        routerConfig: router,
+        locale: const Locale('es'),
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('es'),
+          Locale('en'),
+        ],
+      ),
     );
   }
 }

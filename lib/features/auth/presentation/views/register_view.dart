@@ -1,14 +1,21 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/validators.dart';
-import 'package:sacdia_app/core/widgets/custom_button.dart';
-import 'package:sacdia_app/core/widgets/custom_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 
-/// Vista para el registro de nuevos usuarios
+/// Vista de registro - Estilo "Scout Vibrante"
+///
+/// Fondo blanco, formulario limpio, indicador de fortaleza de contraseña,
+/// botón indigo. Responsive: ConstrainedBox limita el ancho en tablets,
+/// padding se adapta al tamaño de pantalla.
 class RegisterView extends ConsumerStatefulWidget {
   const RegisterView({super.key});
 
@@ -18,23 +25,20 @@ class RegisterView extends ConsumerStatefulWidget {
 
 class _RegisterViewState extends ConsumerState<RegisterView> {
   final _formKey = GlobalKey<FormState>();
-  
-  // Controllers privados para los campos del formulario
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _paternalController = TextEditingController();
-  final TextEditingController _maternalController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-  
+  final _nameController = TextEditingController();
+  final _paternalController = TextEditingController();
+  final _maternalController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
   bool _isLoading = false;
-  bool _isButtonEnabled = false; // Estado para controlar la habilitación del botón
+  bool _isButtonEnabled = false;
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    // Agregar listeners a todos los controladores
     _nameController.addListener(_validateFields);
     _paternalController.addListener(_validateFields);
     _maternalController.addListener(_validateFields);
@@ -45,15 +49,6 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
 
   @override
   void dispose() {
-    // Remover listeners antes de disponer los controladores
-    _nameController.removeListener(_validateFields);
-    _paternalController.removeListener(_validateFields);
-    _maternalController.removeListener(_validateFields);
-    _emailController.removeListener(_validateFields);
-    _passwordController.removeListener(_validateFields);
-    _confirmPasswordController.removeListener(_validateFields);
-    
-    // Disponer los controladores
     _nameController.dispose();
     _paternalController.dispose();
     _maternalController.dispose();
@@ -63,50 +58,35 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
     super.dispose();
   }
 
-  // Método para validar que las contraseñas coincidan
+  void _validateFields() {
+    final allFilled = _nameController.text.isNotEmpty &&
+        _paternalController.text.isNotEmpty &&
+        _maternalController.text.isNotEmpty &&
+        _emailController.text.isNotEmpty &&
+        _passwordController.text.isNotEmpty &&
+        _confirmPasswordController.text.isNotEmpty;
+
+    final emailValid = RegExp(r'^[\w\-.]+@([\w\-]+\.)+[\w\-]{2,4}$')
+        .hasMatch(_emailController.text);
+
+    final passwordsMatch = _passwordController.text.isNotEmpty &&
+        _confirmPasswordController.text.isNotEmpty &&
+        _passwordController.text == _confirmPasswordController.text;
+
+    setState(() {
+      _isButtonEnabled = allFilled && emailValid && passwordsMatch;
+    });
+  }
+
   String? _validateConfirmPassword(String? value) {
     return Validators.validatePasswordMatch(
       _passwordController.text,
       value,
     );
   }
-  
-  // Método para verificar si todos los campos cumplen las condiciones
-  void _validateFields() {
-    // Verificamos si todos los campos están llenos
-    final bool allFieldsFilled = 
-        _nameController.text.isNotEmpty &&
-        _paternalController.text.isNotEmpty &&
-        _maternalController.text.isNotEmpty &&
-        _emailController.text.isNotEmpty &&
-        _passwordController.text.isNotEmpty &&
-        _confirmPasswordController.text.isNotEmpty;
-    
-    // Verificamos si el email es válido - validación simplificada
-    bool isEmailValid = true;
-    if (_emailController.text.isNotEmpty) {
-      // Validación básica de email con expresión regular
-      final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-      isEmailValid = emailRegex.hasMatch(_emailController.text);
-    } else {
-      isEmailValid = false;
-    }
-    
-    // Verificamos si las contraseñas coinciden
-    final bool doPasswordsMatch = 
-        _passwordController.text.isNotEmpty && 
-        _confirmPasswordController.text.isNotEmpty &&
-        _passwordController.text == _confirmPasswordController.text;
-    
-    setState(() {
-      _isButtonEnabled = allFieldsFilled && isEmailValid && doPasswordsMatch;
-    });
-  }
 
   Future<void> _signUp() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() {
       _isLoading = true;
@@ -115,178 +95,352 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
 
     try {
       final success = await ref.read(authNotifierProvider.notifier).signUp(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-        name: _nameController.text.trim(),
-        paternalSurname: _paternalController.text.trim(),
-        maternalSurname: _maternalController.text.trim(),
-      );
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+            name: _nameController.text.trim(),
+            paternalSurname: _paternalController.text.trim(),
+            maternalSurname: _maternalController.text.trim(),
+          );
 
       if (!success && mounted) {
         final error = ref.read(authNotifierProvider).error;
         setState(() {
-          _errorMessage = error?.toString() ?? 'Error al registrar la cuenta. Por favor inténtalo nuevamente.';
+          _errorMessage = error?.toString() ??
+              'Error al registrar la cuenta. Intenta nuevamente.';
         });
       } else if (success && mounted) {
-        // Si el registro fue exitoso, regresar a la pantalla de login
         context.pop();
-        // Mostrar un snackbar de éxito
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡Cuenta creada exitosamente! Ya puedes iniciar sesión.', style: TextStyle(color: AppColors.sacBlack)),
-            backgroundColor: Colors.white,
+          SnackBar(
+            content: const Text('Cuenta creada. Ya puedes iniciar sesión.'),
+            backgroundColor: AppColors.secondary,
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'Error al registrar la cuenta: ${e.toString()}';
+          _errorMessage = 'Error al registrar la cuenta. Intenta de nuevo.';
         });
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Responsive title: smaller on very small phones
+    final isSmallPhone = Responsive.isSmallPhone(context);
+    final titleStyle = isSmallPhone
+        ? Theme.of(context).textTheme.headlineLarge
+        : Theme.of(context).textTheme.displayMedium;
+
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: AppColors.sacRed,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => context.pop(),
-        ),
-        centerTitle: true,
-        title: const Text(
-          'CREAR CUENTA',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  CustomTextField(
-                    controller: _nameController,
-                    hintText: 'Escribe tu nombre',
-                    labelText: 'NOMBRE',
-                    keyboardType: TextInputType.name,
-                    isPrefixHugeIcon: false,
-                    prefixIcon: HugeIcons.strokeRoundedUser,
-                    validator: Validators.validateName,
-                  ),
-                  const SizedBox(height: 15),
-                  CustomTextField(
-                    controller: _paternalController,
-                    hintText: 'Escribe tu apellido paterno',
-                    labelText: 'APELLIDO PATERNO',
-                    keyboardType: TextInputType.name,
-                    isPrefixHugeIcon: false,
-                    prefixIcon: HugeIcons.strokeRoundedUser,
-                    validator: (value) => Validators.validateRequired(value, 'apellido paterno'),
-                  ),
-                  const SizedBox(height: 15),
-                  CustomTextField(
-                    controller: _maternalController,
-                    hintText: 'Escribe tu apellido materno',
-                    labelText: 'APELLIDO MATERNO',
-                    keyboardType: TextInputType.name,
-                    isPrefixHugeIcon: false,
-                    prefixIcon: HugeIcons.strokeRoundedUser,
-                    validator: (value) => Validators.validateRequired(value, 'apellido materno'),
-                  ),
-                  const SizedBox(height: 15),
-                  CustomTextField(
-                    controller: _emailController,
-                    hintText: 'Escribe tu correo electrónico',
-                    labelText: 'CORREO',
-                    keyboardType: TextInputType.emailAddress,
-                    isPrefixHugeIcon: false,
-                    prefixIcon: HugeIcons.strokeRoundedMail02,
-                    validator: Validators.validateEmail,
-                  ),
-                  const SizedBox(height: 15),
-                  CustomTextField(
-                    controller: _passwordController,
-                    hintText: 'Escribe tu contraseña',
-                    labelText: 'CONTRASEÑA',
-                    keyboardType: TextInputType.visiblePassword,
-                    obscureText: true,
-                    isPrefixHugeIcon: false,
-                    prefixIcon: HugeIcons.strokeRoundedLockPassword,
-                    validator: Validators.validatePassword,
-                  ),
-                  const SizedBox(height: 15),
-                  CustomTextField(
-                    controller: _confirmPasswordController,
-                    hintText: 'Confirma tu contraseña',
-                    labelText: 'CONFIRMAR CONTRASEÑA',
-                    keyboardType: TextInputType.visiblePassword,
-                    obscureText: true,
-                    isPrefixHugeIcon: false,
-                    prefixIcon: HugeIcons.strokeRoundedLockPassword,
-                    validator: _validateConfirmPassword,
-                  ),
-                  const SizedBox(height: 24),
-                  if (_errorMessage != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.red[50],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.error,
-                            size: 30,
-                            color: Colors.red[700]!,
+            padding: Responsive.formPadding(context),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: Responsive.maxFormWidth,
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 12),
+
+                      // Back button
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: IconButton(
+                          onPressed: () => context.pop(),
+                          icon: HugeIcon(
+                            icon: HugeIcons.strokeRoundedArrowLeft01,
+                            color: AppColors.lightText,
                           ),
-                          const SizedBox(width: 10),
+                          style: IconButton.styleFrom(
+                            backgroundColor: AppColors.lightBackground,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Title — smaller on very small phones
+                      Text(
+                        'Crear cuenta',
+                        style: titleStyle,
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Name fields
+                      SacTextField(
+                        controller: _nameController,
+                        label: 'Nombre',
+                        hint: 'Tu nombre',
+                        keyboardType: TextInputType.name,
+                        prefixIcon: HugeIcons.strokeRoundedUser,
+                        validator: Validators.validateName,
+                        textInputAction: TextInputAction.next,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Surnames in a row
+                      Row(
+                        children: [
                           Expanded(
-                            child: Text(
-                              _errorMessage!,
-                              style: TextStyle(
-                                color: Colors.red[700], 
-                                fontSize: 15,
-                              ),
+                            child: SacTextField(
+                              controller: _paternalController,
+                              label: 'Apellido paterno',
+                              hint: 'Paterno',
+                              keyboardType: TextInputType.name,
+                              validator: (v) => Validators.validateRequired(
+                                  v, 'apellido paterno'),
+                              textInputAction: TextInputAction.next,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: SacTextField(
+                              controller: _maternalController,
+                              label: 'Apellido materno',
+                              hint: 'Materno',
+                              keyboardType: TextInputType.name,
+                              validator: (v) => Validators.validateRequired(
+                                  v, 'apellido materno'),
+                              textInputAction: TextInputAction.next,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  CustomButton(
-                    text: 'Crear Cuenta',
-                    isLoading: _isLoading,
-                    isEnabled: _isButtonEnabled && !_isLoading,
-                    onPressed: _isButtonEnabled ? _signUp : null,
-                    backgroundColor: AppColors.sacRed,
-                    textColor: Colors.white,
-                    fontSize: 20,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                      const SizedBox(height: 16),
+
+                      // Email
+                      SacTextField(
+                        controller: _emailController,
+                        label: 'Correo electrónico',
+                        hint: 'tu@correo.com',
+                        keyboardType: TextInputType.emailAddress,
+                        prefixIcon: HugeIcons.strokeRoundedMail01,
+                        validator: Validators.validateEmail,
+                        textInputAction: TextInputAction.next,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Password
+                      SacTextField(
+                        controller: _passwordController,
+                        label: 'Contraseña',
+                        hint: 'Mínimo 6 caracteres',
+                        obscureText: true,
+                        prefixIcon: HugeIcons.strokeRoundedLockKey,
+                        validator: Validators.validatePassword,
+                        textInputAction: TextInputAction.next,
+                        onChanged: (_) => setState(() {}),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Password strength indicator
+                      _PasswordStrengthIndicator(
+                        password: _passwordController.text,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Confirm password
+                      SacTextField(
+                        controller: _confirmPasswordController,
+                        label: 'Confirmar contraseña',
+                        hint: 'Repite tu contraseña',
+                        obscureText: true,
+                        prefixIcon: HugeIcons.strokeRoundedLockKey,
+                        validator: _validateConfirmPassword,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _isButtonEnabled ? _signUp() : null,
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Error message
+                      if (_errorMessage != null) ...[
+                        SacCard(
+                          backgroundColor: AppColors.errorLight,
+                          borderColor: AppColors.error.withValues(alpha: 0.3),
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              HugeIcon(
+                                icon: HugeIcons.strokeRoundedAlert02,
+                                size: 20,
+                                color: AppColors.errorDark,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  _errorMessage!,
+                                  style: const TextStyle(
+                                    color: AppColors.errorDark,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Register button
+                      SacButton.primary(
+                        text: 'Crear Cuenta',
+                        isLoading: _isLoading,
+                        isEnabled: _isButtonEnabled,
+                        onPressed: _isButtonEnabled ? _signUp : null,
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Link to login
+                      Center(
+                        child: RichText(
+                          text: TextSpan(
+                            text: '¿Ya tienes cuenta? ',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: AppColors.lightTextSecondary,
+                                ),
+                            children: [
+                              TextSpan(
+                                text: 'Inicia sesión',
+                                style: const TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () => context.pop(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Indicador de fortaleza de contraseña con 4 segmentos.
+///
+/// Criterios: longitud >= 6, mayúsculas, números, caracteres especiales.
+/// Colores: rojo (débil) → ámbar (media) → esmeralda (fuerte).
+class _PasswordStrengthIndicator extends StatelessWidget {
+  final String password;
+
+  const _PasswordStrengthIndicator({required this.password});
+
+  int get _strength {
+    if (password.isEmpty) return 0;
+    int score = 0;
+    if (password.length >= 6) score++;
+    if (password.contains(RegExp(r'[A-Z]'))) score++;
+    if (password.contains(RegExp(r'[0-9]'))) score++;
+    if (password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) score++;
+    return score;
+  }
+
+  String get _label {
+    switch (_strength) {
+      case 0:
+        return '';
+      case 1:
+        return 'Muy débil';
+      case 2:
+        return 'Débil';
+      case 3:
+        return 'Buena';
+      case 4:
+        return 'Fuerte';
+      default:
+        return '';
+    }
+  }
+
+  Color _segmentColor(int index) {
+    if (index >= _strength) return AppColors.lightBorderLight;
+    switch (_strength) {
+      case 1:
+        return AppColors.error;
+      case 2:
+        return AppColors.accent;
+      case 3:
+        return AppColors.accent;
+      case 4:
+        return AppColors.secondary;
+      default:
+        return AppColors.lightBorderLight;
+    }
+  }
+
+  Color get _labelColor {
+    switch (_strength) {
+      case 1:
+        return AppColors.error;
+      case 2:
+        return AppColors.accent;
+      case 3:
+        return AppColors.accent;
+      case 4:
+        return AppColors.secondary;
+      default:
+        return AppColors.lightTextTertiary;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (password.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: List.generate(4, (index) {
+            return Expanded(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                height: 4,
+                margin: EdgeInsets.only(right: index < 3 ? 4 : 0),
+                decoration: BoxDecoration(
+                  color: _segmentColor(index),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            );
+          }),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          _label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: _labelColor,
+          ),
+        ),
+      ],
     );
   }
 }

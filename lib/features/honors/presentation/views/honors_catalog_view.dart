@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/responsive.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
+
 import '../providers/honors_providers.dart';
 import '../widgets/honor_category_card.dart';
 import '../widgets/honor_card.dart';
 import 'honor_detail_view.dart';
 
-/// Vista de catálogo de especialidades
+/// Vista de catálogo de especialidades - Estilo "Scout Vibrante"
+///
+/// Grid responsivo de categorías: 2 columnas en teléfonos, 3-4 en tablets.
+/// Al seleccionar muestra lista filtrada con chips scrollables.
+/// Sin AppBar (tab).
 class HonorsCatalogView extends ConsumerStatefulWidget {
-  const HonorsCatalogView({Key? key}) : super(key: key);
+  const HonorsCatalogView({super.key});
 
   @override
   ConsumerState<HonorsCatalogView> createState() => _HonorsCatalogViewState();
@@ -22,122 +31,160 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
     final categoriesAsync = ref.watch(honorCategoriesProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Catálogo de Especialidades'),
-        backgroundColor: AppColors.primaryBlue,
-      ),
-      body: categoriesAsync.when(
-        data: (categories) {
-          if (_selectedCategoryId == null) {
-            // Mostrar grid de categorías
-            return _buildCategoriesGrid(categories);
-          } else {
-            // Mostrar lista de especialidades por categoría
-            return _buildHonorsList(_selectedCategoryId!);
-          }
-        },
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
-        ),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.error_outline,
-                size: 60,
-                color: AppColors.error,
+      backgroundColor: AppColors.lightBackground,
+      body: SafeArea(
+        child: categoriesAsync.when(
+          data: (categories) {
+            if (_selectedCategoryId == null) {
+              return _buildCategoriesGrid(categories);
+            } else {
+              return _buildHonorsList(_selectedCategoryId!);
+            }
+          },
+          loading: () => const Center(child: SacLoading()),
+          error: (error, stack) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  HugeIcon(
+                      icon: HugeIcons.strokeRoundedAlert02,
+                      size: 56,
+                      color: AppColors.error),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error al cargar categorías',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 24),
+                  SacButton.primary(
+                    text: 'Reintentar',
+                    icon: HugeIcons.strokeRoundedRefresh,
+                    onPressed: () {
+                      ref.invalidate(honorCategoriesProvider);
+                    },
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              Text(
-                'Error al cargar categorías',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                error.toString(),
-                style: const TextStyle(color: AppColors.lightTextSecondary),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: () {
-                  ref.invalidate(honorCategoriesProvider);
-                },
-                icon: const Icon(Icons.refresh),
-                label: const Text('Reintentar'),
-              ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  /// Construye el grid de categorías
-  Widget _buildCategoriesGrid(categories) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 1.2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: categories.length,
-      itemBuilder: (context, index) {
-        final category = categories[index];
-        return HonorCategoryCard(
-          category: category,
-          onTap: () {
-            setState(() {
-              _selectedCategoryId = category.id;
-            });
-          },
-        );
-      },
+  Widget _buildCategoriesGrid(List<dynamic> categories) {
+    final hPad = Responsive.horizontalPadding(context);
+
+    return CustomScrollView(
+      slivers: [
+        // Header
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 20),
+            child: Row(
+              children: [
+                HugeIcon(
+                    icon: HugeIcons.strokeRoundedAward01,
+                    size: 24,
+                    color: AppColors.accent),
+                const SizedBox(width: 10),
+                Text(
+                  'Especialidades',
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ],
+            ),
+          ),
+        ),
+        // Responsive grid: SliverGridDelegateWithMaxCrossAxisExtent gives
+        // 2 columns on phones (~180px each) and 3-4 on tablets automatically.
+        SliverPadding(
+          padding: EdgeInsets.symmetric(horizontal: hPad),
+          sliver: SliverGrid(
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: Responsive.honorGridMaxCrossAxisExtent,
+              childAspectRatio: 1.15,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final category = categories[index];
+                return HonorCategoryCard(
+                  category: category,
+                  onTap: () {
+                    setState(() {
+                      _selectedCategoryId = category.id;
+                    });
+                  },
+                );
+              },
+              childCount: categories.length,
+            ),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 24)),
+      ],
     );
   }
 
-  /// Construye la lista de especialidades por categoría
   Widget _buildHonorsList(int categoryId) {
     final honorsAsync = ref.watch(honorsByCategoryProvider(categoryId));
 
     return Column(
       children: [
-        // Botón para volver a categorías
-        Container(
-          padding: const EdgeInsets.all(8),
-          child: ListTile(
-            leading: const Icon(Icons.arrow_back),
-            title: const Text('Volver a categorías'),
-            onTap: () {
-              setState(() {
-                _selectedCategoryId = null;
-              });
-            },
+        // Back bar
+        Padding(
+          padding: const EdgeInsets.fromLTRB(8, 8, 20, 0),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    _selectedCategoryId = null;
+                  });
+                },
+                icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowLeft01, size: 24),
+                color: AppColors.primary,
+              ),
+              Text(
+                'Categoría',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ],
           ),
         ),
-        const Divider(),
-        // Lista de especialidades
+
+        // Honors list
         Expanded(
           child: honorsAsync.when(
             data: (honors) {
               if (honors.isEmpty) {
-                return const Center(
+                return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.workspace_premium_outlined,
-                        size: 80,
-                        color: AppColors.lightTextSecondary,
-                      ),
-                      SizedBox(height: 16),
+                      HugeIcon(
+                          icon: HugeIcons.strokeRoundedAward01,
+                          size: 56,
+                          color: AppColors.lightTextTertiary),
+                      const SizedBox(height: 12),
                       Text(
                         'No hay especialidades en esta categoría',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           color: AppColors.lightTextSecondary,
                         ),
                       ),
@@ -146,7 +193,9 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                 );
               }
 
+              final hPad = Responsive.horizontalPadding(context);
               return ListView.builder(
+                padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 24),
                 itemCount: honors.length,
                 itemBuilder: (context, index) {
                   final honor = honors[index];
@@ -166,32 +215,30 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                 },
               );
             },
-            loading: () => const Center(
-              child: CircularProgressIndicator(),
-            ),
+            loading: () => const Center(child: SacLoading()),
             error: (error, stack) => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 60,
-                    color: AppColors.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Error al cargar especialidades',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      ref.invalidate(honorsByCategoryProvider(categoryId));
-                    },
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Reintentar'),
-                  ),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    HugeIcon(
+                        icon: HugeIcons.strokeRoundedAlert02,
+                        size: 56,
+                        color: AppColors.error),
+                    const SizedBox(height: 16),
+                    Text('Error al cargar especialidades',
+                        style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 24),
+                    SacButton.primary(
+                      text: 'Reintentar',
+                      icon: HugeIcons.strokeRoundedRefresh,
+                      onPressed: () {
+                        ref.invalidate(honorsByCategoryProvider(categoryId));
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

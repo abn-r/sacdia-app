@@ -1,88 +1,113 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
 
-/// Indicador de progreso para los pasos del post-registro
+/// Indicador de progreso visual para los pasos del post-registro.
+///
+/// 3 círculos (32px) conectados por línea horizontal animada.
+/// - Completado: fondo emerald + check blanco
+/// - Activo: fondo indigo + número blanco
+/// - Pendiente: borde gris + número gris
+/// Labels debajo: "Foto", "Datos", "Club"
 class StepIndicator extends StatelessWidget {
-  /// Número total de pasos
   final int totalSteps;
-
-  /// Paso actual (base 1)
   final int currentStep;
-
-  /// Etiquetas para cada paso
   final List<String> labels;
 
   const StepIndicator({
     super.key,
     required this.totalSteps,
     required this.currentStep,
-    this.labels = const ['Foto', 'Info', 'Club'],
+    this.labels = const ['Foto', 'Datos', 'Club'],
   });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
       child: Row(
         children: List.generate(totalSteps * 2 - 1, (index) {
-          // Índices pares son los círculos, impares son las líneas
           if (index.isOdd) {
-            // Línea conectora
+            // Connector line
             final stepBefore = (index ~/ 2) + 1;
             final isCompleted = stepBefore < currentStep;
             return Expanded(
-              child: Container(
-                height: 3,
-                color: isCompleted ? AppColors.sacGreen : Colors.grey[300],
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                height: 2,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: isCompleted
+                      ? AppColors.secondary
+                      : AppColors.lightBorderLight,
+                  borderRadius: BorderRadius.circular(1),
+                ),
               ),
             );
           }
 
-          // Círculo del paso
           final stepNumber = (index ~/ 2) + 1;
           final isActive = stepNumber == currentStep;
           final isCompleted = stepNumber < currentStep;
-          final label = stepNumber <= labels.length ? labels[stepNumber - 1] : '';
+          final label =
+              stepNumber <= labels.length ? labels[stepNumber - 1] : '';
 
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 36,
-                height: 36,
+              // Circle
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                width: 26,
+                height: 26,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: isCompleted
-                      ? AppColors.sacGreen
+                      ? AppColors.secondary
                       : isActive
-                          ? AppColors.sacGreen
-                          : Colors.grey[300],
-                  border: isActive
-                      ? Border.all(color: AppColors.sacGreen, width: 3)
-                      : null,
+                          ? AppColors.primary
+                          : Colors.white,
+                  border: Border.all(
+                    color: isCompleted
+                        ? AppColors.secondary
+                        : isActive
+                            ? AppColors.primary
+                            : AppColors.lightBorder,
+                    width: 2,
+                  ),
                 ),
                 child: Center(
                   child: isCompleted
-                      ? const Icon(Icons.check, color: Colors.white, size: 20)
+                      ? HugeIcon(
+                          icon: HugeIcons.strokeRoundedTick02,
+                          color: Colors.white,
+                          size: 14)
                       : Text(
                           '$stepNumber',
                           style: TextStyle(
-                            color: isActive ? Colors.white : Colors.grey[600],
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                            color: isActive
+                                ? Colors.white
+                                : AppColors.lightTextTertiary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 11,
                           ),
                         ),
                 ),
               ),
               const SizedBox(height: 4),
+              // Label
               Text(
                 label,
                 style: TextStyle(
                   fontSize: 12,
-                  color: isActive || isCompleted
-                      ? AppColors.sacGreen
-                      : Colors.grey[600],
-                  fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: isActive || isCompleted
+                      ? FontWeight.w600
+                      : FontWeight.w400,
+                  color: isCompleted
+                      ? AppColors.secondary
+                      : isActive
+                          ? AppColors.primary
+                          : AppColors.lightTextTertiary,
                 ),
               ),
             ],

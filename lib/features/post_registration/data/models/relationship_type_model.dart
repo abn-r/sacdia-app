@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 /// Modelo de tipo de relación para contactos de emergencia
 class RelationshipTypeModel extends Equatable {
-  final int id;
+  final String id;
   final String name;
 
   const RelationshipTypeModel({
@@ -12,16 +12,17 @@ class RelationshipTypeModel extends Equatable {
 
   /// Crea una instancia desde JSON
   factory RelationshipTypeModel.fromJson(Map<String, dynamic> json) {
+    final rawId = json['relationship_type_id'] ?? json['id'];
     return RelationshipTypeModel(
-      id: json['id'] as int,
-      name: json['name'] as String,
+      id: rawId?.toString() ?? '',
+      name: (json['name'] as String?) ?? '',
     );
   }
 
   /// Convierte la instancia a JSON
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'relationship_type_id': id,
       'name': name,
     };
   }

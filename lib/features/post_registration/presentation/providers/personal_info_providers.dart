@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../data/datasources/personal_info_remote_data_source.dart';
@@ -9,10 +10,13 @@ import '../../data/models/relationship_type_model.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 
 /// Provider del data source de información personal
-final personalInfoDataSourceProvider = Provider<PersonalInfoRemoteDataSource>((ref) {
+final personalInfoDataSourceProvider =
+    Provider<PersonalInfoRemoteDataSource>((ref) {
   final dio = ref.watch(dioProvider);
+  final baseUrl = ref.watch(apiBaseUrlProvider);
   return PersonalInfoRemoteDataSourceImpl(
     dio: dio,
+    baseUrl: baseUrl,
     secureStorage: const FlutterSecureStorage(),
   );
 });
@@ -52,13 +56,15 @@ final personalInfoFormProvider = StateProvider<PersonalInfoFormState>((ref) {
 });
 
 /// Provider de tipos de relación
-final relationshipTypesProvider = FutureProvider<List<RelationshipTypeModel>>((ref) async {
+final relationshipTypesProvider =
+    FutureProvider<List<RelationshipTypeModel>>((ref) async {
   final dataSource = ref.watch(personalInfoDataSourceProvider);
   return await dataSource.getRelationshipTypes();
 });
 
 /// Provider de catálogo de alergias
-final allergiesCatalogProvider = FutureProvider<List<AllergyModel>>((ref) async {
+final allergiesCatalogProvider =
+    FutureProvider<List<AllergyModel>>((ref) async {
   final dataSource = ref.watch(personalInfoDataSourceProvider);
   return await dataSource.getAllergiesCatalog();
 });
@@ -87,7 +93,8 @@ final legalRepresentativeRequiredProvider = FutureProvider<bool>((ref) async {
 });
 
 /// Notifier de contactos de emergencia
-class EmergencyContactsNotifier extends AsyncNotifier<List<EmergencyContactModel>> {
+class EmergencyContactsNotifier
+    extends AsyncNotifier<List<EmergencyContactModel>> {
   @override
   Future<List<EmergencyContactModel>> build() async {
     final authState = ref.watch(authNotifierProvider);
@@ -101,6 +108,9 @@ class EmergencyContactsNotifier extends AsyncNotifier<List<EmergencyContactModel
 
   /// Agrega un nuevo contacto de emergencia
   Future<void> addContact(EmergencyContactModel contact) async {
+    // Guardar los contactos actuales ANTES de poner loading
+    final currentContacts = state.valueOrNull ?? [];
+
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
@@ -109,8 +119,7 @@ class EmergencyContactsNotifier extends AsyncNotifier<List<EmergencyContactModel
 
       if (userId == null) throw Exception('Usuario no autenticado');
 
-      // Verificar límite de contactos
-      final currentContacts = await future;
+      // Verificar límite de contactos con la lista ya obtenida
       if (currentContacts.length >= 5) {
         throw Exception('Máximo 5 contactos de emergencia permitidos');
       }
@@ -124,7 +133,8 @@ class EmergencyContactsNotifier extends AsyncNotifier<List<EmergencyContactModel
   }
 
   /// Actualiza un contacto de emergencia existente
-  Future<void> updateContact(int contactId, EmergencyContactModel contact) async {
+  Future<void> updateContact(
+      int contactId, EmergencyContactModel contact) async {
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
@@ -176,13 +186,14 @@ class EmergencyContactsNotifier extends AsyncNotifier<List<EmergencyContactModel
 }
 
 /// Provider de contactos de emergencia
-final emergencyContactsProvider =
-    AsyncNotifierProvider<EmergencyContactsNotifier, List<EmergencyContactModel>>(
+final emergencyContactsProvider = AsyncNotifierProvider<
+    EmergencyContactsNotifier, List<EmergencyContactModel>>(
   () => EmergencyContactsNotifier(),
 );
 
 /// Notifier de representante legal
-class LegalRepresentativeNotifier extends AsyncNotifier<LegalRepresentativeModel?> {
+class LegalRepresentativeNotifier
+    extends AsyncNotifier<LegalRepresentativeModel?> {
   @override
   Future<LegalRepresentativeModel?> build() async {
     final authState = ref.watch(authNotifierProvider);
@@ -195,7 +206,8 @@ class LegalRepresentativeNotifier extends AsyncNotifier<LegalRepresentativeModel
   }
 
   /// Crea o actualiza el representante legal
-  Future<void> saveRepresentative(LegalRepresentativeModel representative) async {
+  Future<void> saveRepresentative(
+      LegalRepresentativeModel representative) async {
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
@@ -208,17 +220,19 @@ class LegalRepresentativeNotifier extends AsyncNotifier<LegalRepresentativeModel
       final existing = await dataSource.getLegalRepresentative(userId);
 
       if (existing == null) {
-        return await dataSource.createLegalRepresentative(userId, representative);
+        return await dataSource.createLegalRepresentative(
+            userId, representative);
       } else {
-        return await dataSource.updateLegalRepresentative(userId, representative);
+        return await dataSource.updateLegalRepresentative(
+            userId, representative);
       }
     });
   }
 }
 
 /// Provider de representante legal
-final legalRepresentativeProvider =
-    AsyncNotifierProvider<LegalRepresentativeNotifier, LegalRepresentativeModel?>(
+final legalRepresentativeProvider = AsyncNotifierProvider<
+    LegalRepresentativeNotifier, LegalRepresentativeModel?>(
   () => LegalRepresentativeNotifier(),
 );
 
@@ -274,28 +288,42 @@ final savePersonalInfoProvider = Provider<Future<void> Function()>((ref) {
     final formState = ref.read(personalInfoFormProvider);
     final dataSource = ref.read(personalInfoDataSourceProvider);
 
+    // === DEBUG: imprimir estado del formulario ===
+    log('\n========== SAVE PERSONAL INFO ==========');
+    log('userId: $userId');
+    log('gender: ${formState.gender}');
+    log('birthdate: ${formState.birthdate}');
+    log('birthdate formatted: ${formState.birthdate?.toIso8601String().split('T')[0]}');
+    log('baptized: ${formState.baptized}');
+    log('baptismDate: ${formState.baptismDate}');
+    log('==========================================\n');
+
     // Guardar información personal
     await dataSource.updatePersonalInfo(
       userId,
       gender: formState.gender,
-      birthdate: formState.birthdate?.toIso8601String().split('T')[0],
+      birthdate: formState.birthdate?.toUtc().toIso8601String(),
       baptized: formState.baptized,
-      baptismDate: formState.baptismDate?.toIso8601String().split('T')[0],
+      baptismDate: formState.baptismDate?.toUtc().toIso8601String(),
     );
 
     // Guardar alergias
     final selectedAllergies = ref.read(selectedAllergiesProvider);
+    log('Alergias seleccionadas: $selectedAllergies');
     if (selectedAllergies.isNotEmpty) {
       await dataSource.saveUserAllergies(userId, selectedAllergies);
     }
 
     // Guardar enfermedades
     final selectedDiseases = ref.read(selectedDiseasesProvider);
+    log('Enfermedades seleccionadas: $selectedDiseases');
     if (selectedDiseases.isNotEmpty) {
       await dataSource.saveUserDiseases(userId, selectedDiseases);
     }
 
+    log('Llamando completeStep2...');
     // Completar paso 2
     await dataSource.completeStep2(userId);
+    log('completeStep2 exitoso!');
   };
 });

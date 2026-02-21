@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../auth/presentation/providers/auth_providers.dart';
-import '../providers/honors_providers.dart';
-import '../../domain/usecases/get_honors.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
-/// Vista de detalle de una especialidad
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../domain/usecases/get_honors.dart';
+import '../providers/honors_providers.dart';
+
+/// Vista de detalle de honor - Estilo "Scout Vibrante"
+///
+/// Header con imagen/icono grande, nombre, categoría, nivel,
+/// descripción, requisitos checklist, botón de acción.
 class HonorDetailView extends ConsumerWidget {
   final int honorId;
 
   const HonorDetailView({
-    Key? key,
+    super.key,
     required this.honorId,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,10 +29,7 @@ class HonorDetailView extends ConsumerWidget {
     final enrollmentState = ref.watch(honorEnrollmentNotifierProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detalle de Especialidad'),
-        backgroundColor: AppColors.primaryBlue,
-      ),
+      backgroundColor: AppColors.lightBackground,
       body: honorAsync.when(
         data: (honors) {
           final honor = honors.firstWhere(
@@ -32,148 +37,196 @@ class HonorDetailView extends ConsumerWidget {
             orElse: () => throw Exception('Especialidad no encontrada'),
           );
 
-          return SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Imagen de la especialidad
-                if (honor.imageUrl != null)
-                  Container(
-                    width: double.infinity,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: NetworkImage(honor.imageUrl!),
-                        fit: BoxFit.cover,
+          return CustomScrollView(
+            slivers: [
+              // Header
+              SliverAppBar(
+                expandedHeight: 220,
+                pinned: true,
+                backgroundColor: AppColors.accent,
+                foregroundColor: Colors.white,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.accent,
+                          AppColors.accentDark,
+                        ],
                       ),
                     ),
-                  )
-                else
-                  Container(
-                    width: double.infinity,
-                    height: 200,
-                    color: AppColors.primaryBlue.withValues(alpha: 0.2),
-                    child: const Icon(
-                      Icons.workspace_premium,
-                      size: 80,
-                      color: AppColors.primaryBlue,
+                    child: SafeArea(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 40),
+                          // Honor icon
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: Colors.white24,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: honor.imageUrl != null
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Image.network(
+                                      honor.imageUrl!,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) =>
+                                          HugeIcon(
+                                        icon: HugeIcons.strokeRoundedAward01,
+                                        size: 44,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                : HugeIcon(
+                                    icon: HugeIcons.strokeRoundedAward01,
+                                    size: 44,
+                                    color: Colors.white,
+                                  ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            honor.name,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                            textAlign: TextAlign.center,
+                          ),
+                          if (honor.skillLevel != null) ...[
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white24,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  HugeIcon(icon: HugeIcons.strokeRoundedStar,
+                                      size: 14, color: Colors.white),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Nivel ${honor.skillLevel}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                   ),
-                const SizedBox(height: 16),
-                // Información de la especialidad
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                ),
+              ),
+
+              // Body
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        honor.name,
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      if (honor.skillLevel != null) ...[
-                        const SizedBox(height: 8),
+                      // Description
+                      if (honor.description != null) ...[
                         Row(
                           children: [
-                            const Icon(
-                              Icons.star,
-                              size: 20,
-                              color: AppColors.warning,
-                            ),
+                            HugeIcon(icon: HugeIcons.strokeRoundedInformationCircle,
+                                size: 20, color: AppColors.primary),
                             const SizedBox(width: 8),
                             Text(
-                              'Nivel de habilidad: ${honor.skillLevel}',
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    color: AppColors.warning,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              'Descripción',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
                             ),
                           ],
                         ),
-                      ],
-                      const SizedBox(height: 16),
-                      if (honor.description != null) ...[
-                        Text(
-                          'Descripción',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         Text(
                           honor.description!,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
-                            height: 1.5,
+                            height: 1.6,
+                            color: AppColors.lightTextSecondary,
                           ),
                         ),
                         const SizedBox(height: 24),
                       ],
-                      // Sección de requisitos (placeholder)
-                      Text(
-                        'Requisitos',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+
+                      // Requirements
+                      Row(
+                        children: [
+                          HugeIcon(icon: HugeIcons.strokeRoundedCheckList,
+                              size: 20, color: AppColors.primary),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Requisitos',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Los requisitos específicos de esta especialidad se mostrarán aquí.',
-                        style: TextStyle(
-                          fontSize: 14,
-                          height: 1.5,
+                      const SizedBox(height: 10),
+                      SacCard(
+                        backgroundColor: AppColors.lightSurfaceVariant,
+                        child: Text(
+                          'Los requisitos específicos de esta especialidad se mostrarán aquí.',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.lightTextSecondary,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      // Botón de inscripción
-                      SizedBox(
-                        width: double.infinity,
-                        child: enrollmentState.when(
-                          data: (userHonor) {
-                            if (userHonor != null) {
-                              return ElevatedButton.icon(
-                                onPressed: null,
-                                icon: const Icon(Icons.check),
-                                label: const Text('Ya estás inscrito'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.success,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                ),
-                              );
-                            }
+                      const SizedBox(height: 28),
 
-                            return ElevatedButton.icon(
-                              onPressed: () async {
-                                final userId = authState.value?.id;
-                                if (userId == null) return;
-
-                                await ref
-                                    .read(honorEnrollmentNotifierProvider.notifier)
-                                    .enrollInHonor(userId, honorId);
-
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Inscripción exitosa'),
-                                      backgroundColor: AppColors.success,
+                      // Action button
+                      enrollmentState.when(
+                        data: (userHonor) {
+                          if (userHonor != null) {
+                            return SacCard(
+                              backgroundColor: AppColors.secondaryLight,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                                      size: 20,
+                                      color: AppColors.secondaryDark),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Ya estás inscrito',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.secondaryDark,
                                     ),
-                                  );
-                                  ref.invalidate(userHonorsProvider);
-                                }
-                              },
-                              icon: const Icon(Icons.add),
-                              label: const Text('Inscribirme'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primaryBlue,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                  ),
+                                ],
                               ),
                             );
-                          },
-                          loading: () => const Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                          error: (error, stack) => ElevatedButton.icon(
+                          }
+
+                          return SacButton.primary(
+                            text: 'Iniciar este honor',
+                            icon: HugeIcons.strokeRoundedAdd01,
                             onPressed: () async {
                               final userId = authState.value?.id;
                               if (userId == null) return;
@@ -181,50 +234,68 @@ class HonorDetailView extends ConsumerWidget {
                               await ref
                                   .read(honorEnrollmentNotifierProvider.notifier)
                                   .enrollInHonor(userId, honorId);
+
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content:
+                                        const Text('Inscripción exitosa'),
+                                    backgroundColor: AppColors.secondary,
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                );
+                                ref.invalidate(userHonorsProvider);
+                              }
                             },
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Reintentar inscripción'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.error,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                            ),
-                          ),
+                          );
+                        },
+                        loading: () => const Center(child: SacLoading()),
+                        error: (error, stack) => SacButton.primary(
+                          text: 'Reintentar inscripción',
+                          icon: HugeIcons.strokeRoundedRefresh,
+                          onPressed: () async {
+                            final userId = authState.value?.id;
+                            if (userId == null) return;
+
+                            await ref
+                                .read(
+                                    honorEnrollmentNotifierProvider.notifier)
+                                .enrollInHonor(userId, honorId);
+                          },
                         ),
                       ),
-                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
-              ],
-            ),
-          );
-        },
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
-        ),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.error_outline,
-                size: 60,
-                color: AppColors.error,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Error al cargar detalle',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: () {
-                  ref.invalidate(honorsProvider);
-                },
-                icon: const Icon(Icons.refresh),
-                label: const Text('Reintentar'),
               ),
             ],
+          );
+        },
+        loading: () => const Center(child: SacLoading()),
+        error: (error, stack) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                HugeIcon(icon: HugeIcons.strokeRoundedAlert02,
+                    size: 56, color: AppColors.error),
+                const SizedBox(height: 16),
+                Text('Error al cargar detalle',
+                    style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 24),
+                SacButton.primary(
+                  text: 'Reintentar',
+                  icon: HugeIcons.strokeRoundedRefresh,
+                  onPressed: () {
+                    ref.invalidate(honorsProvider);
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

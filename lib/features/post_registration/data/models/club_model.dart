@@ -14,17 +14,23 @@ class ClubModel extends Equatable {
 
   /// Crea una instancia desde JSON
   factory ClubModel.fromJson(Map<String, dynamic> json) {
+    // Tolerar claves alternativas para el ID
+    final rawId = json['club_id'] ?? json['id'];
+    final rawFieldId = json['local_field_id'];
+
     return ClubModel(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      localFieldId: json['local_field_id'] as int,
+      id: rawId is int ? rawId : (int.tryParse(rawId?.toString() ?? '') ?? 0),
+      name: (json['name'] as String?) ?? '',
+      localFieldId: rawFieldId is int
+          ? rawFieldId
+          : (int.tryParse(rawFieldId?.toString() ?? '') ?? 0),
     );
   }
 
   /// Convierte la instancia a JSON
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'club_id': id,
       'name': name,
       'local_field_id': localFieldId,
     };

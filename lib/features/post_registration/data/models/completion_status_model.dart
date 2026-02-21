@@ -12,17 +12,37 @@ class CompletionStatusModel extends CompletionStatus {
 
   /// Crea una instancia desde JSON
   factory CompletionStatusModel.fromJson(Map<String, dynamic> json) {
-    final photoComplete = json['photo_complete'] as bool? ?? false;
-    final personalInfoComplete = json['personal_info_complete'] as bool? ?? false;
-    final clubSelectionComplete = json['club_selection_complete'] as bool? ?? false;
+    final data = json['data'] as Map<String, dynamic>? ?? json;
+    final steps = data['steps'] as Map<String, dynamic>? ?? {};
 
-    // Determinar paso actual basado en el progreso
-    int currentStep = 1;
-    if (photoComplete) currentStep = 2;
-    if (personalInfoComplete) currentStep = 3;
+    final isComplete = data['complete'] as bool? ?? false;
+    final nextStep = data['nextStep'] as String?;
+
+    final photoComplete = steps['profilePicture'] as bool? ?? false;
+    final personalInfoComplete = steps['personalInfo'] as bool? ?? false;
+    final clubSelectionComplete = steps['clubSelection'] as bool? ?? false;
+
+    int currentStep;
+    if (isComplete && nextStep == null) {
+      currentStep = 3;
+    } else {
+      switch (nextStep) {
+        case 'profilePicture':
+          currentStep = 1;
+          break;
+        case 'personalInfo':
+          currentStep = 2;
+          break;
+        case 'clubSelection':
+          currentStep = 3;
+          break;
+        default:
+          currentStep = 1;
+      }
+    }
 
     return CompletionStatusModel(
-      isComplete: json['complete'] as bool? ?? false,
+      isComplete: isComplete,
       currentStep: currentStep,
       photoComplete: photoComplete,
       personalInfoComplete: personalInfoComplete,

@@ -1,189 +1,348 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/animations/animated_counter.dart';
+import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/responsive.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
+
+import '../../domain/usecases/get_honors.dart';
 import '../providers/honors_providers.dart';
 import '../widgets/honor_progress_card.dart';
-import '../../domain/usecases/get_honors.dart';
 
-/// Vista de mis especialidades
+/// Vista de "Mis Honores" - Estilo "Scout Vibrante"
+///
+/// Tabs: "En progreso" (indigo) / "Completados" (amber badge).
+/// Stats header con 3 mini cards con AnimatedCounter.
+/// Lista con staggered slide-up entrance.
 class MyHonorsView extends ConsumerWidget {
-  const MyHonorsView({Key? key}) : super(key: key);
+  const MyHonorsView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userHonorsAsync = ref.watch(userHonorsProvider);
     final statsAsync = ref.watch(userHonorStatsProvider);
     final honorsAsync = ref.watch(honorsProvider(const GetHonorsParams()));
+    final hPad = Responsive.horizontalPadding(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mis Especialidades'),
-        backgroundColor: AppColors.primaryBlue,
-      ),
-      body: Column(
-        children: [
-          // Estadísticas
-          statsAsync.when(
-            data: (stats) => Container(
-              padding: const EdgeInsets.all(16),
-              color: AppColors.primaryBlue.withValues(alpha: 0.1),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildStatItem(
-                    context,
-                    'Total',
-                    stats['total']?.toString() ?? '0',
-                    Icons.workspace_premium,
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: AppColors.lightBackground,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Header
+              StaggeredListItem(
+                index: 0,
+                initialDelay: const Duration(milliseconds: 60),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 0),
+                  child: Row(
+                    children: [
+                      HugeIcon(
+                          icon: HugeIcons.strokeRoundedMedal01,
+                          size: 24,
+                          color: AppColors.accent),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Mis Especialidades',
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                    ],
                   ),
-                  _buildStatItem(
-                    context,
-                    'En progreso',
-                    stats['in_progress']?.toString() ?? '0',
-                    Icons.hourglass_bottom,
-                  ),
-                  _buildStatItem(
-                    context,
-                    'Completadas',
-                    stats['completed']?.toString() ?? '0',
-                    Icons.check_circle,
-                  ),
-                ],
+                ),
               ),
-            ),
-            loading: () => const SizedBox(),
-            error: (_, __) => const SizedBox(),
-          ),
-          const Divider(),
-          // Lista de especialidades
-          Expanded(
-            child: userHonorsAsync.when(
-              data: (userHonors) {
-                if (userHonors.isEmpty) {
-                  return const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+              const SizedBox(height: 16),
+
+              // Stats row with AnimatedCounter values
+              StaggeredListItem(
+                index: 1,
+                initialDelay: const Duration(milliseconds: 60),
+                child: statsAsync.when(
+                  data: (stats) => Padding(
+                    padding: EdgeInsets.symmetric(horizontal: hPad),
+                    child: Row(
                       children: [
-                        Icon(
-                          Icons.workspace_premium_outlined,
-                          size: 80,
-                          color: AppColors.lightTextSecondary,
+                        _StatMini(
+                          value: stats['total'] ?? 0,
+                          label: 'Total',
+                          color: AppColors.primary,
+                          bgColor: AppColors.primaryLight,
                         ),
-                        SizedBox(height: 16),
-                        Text(
-                          'No tienes especialidades',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: AppColors.lightTextSecondary,
-                          ),
+                        const SizedBox(width: 10),
+                        _StatMini(
+                          value: stats['in_progress'] ?? 0,
+                          label: 'En progreso',
+                          color: AppColors.primary,
+                          bgColor: AppColors.primaryLight,
                         ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Inscríbete en el catálogo',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppColors.lightTextSecondary,
-                          ),
+                        const SizedBox(width: 10),
+                        _StatMini(
+                          value: stats['completed'] ?? 0,
+                          label: 'Completadas',
+                          color: AppColors.accent,
+                          bgColor: AppColors.accentLight,
                         ),
                       ],
                     ),
-                  );
-                }
-
-                return honorsAsync.when(
-                  data: (honors) {
-                    return RefreshIndicator(
-                      onRefresh: () async {
-                        ref.invalidate(userHonorsProvider);
-                        ref.invalidate(userHonorStatsProvider);
-                      },
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        itemCount: userHonors.length,
-                        itemBuilder: (context, index) {
-                          final userHonor = userHonors[index];
-                          final honor = honors.firstWhere(
-                            (h) => h.id == userHonor.honorId,
-                            orElse: () => throw Exception('Honor no encontrado'),
-                          );
-
-                          return HonorProgressCard(
-                            userHonor: userHonor,
-                            honorName: honor.name,
-                            onTap: () {
-                              // Navegar al detalle
-                            },
-                          );
-                        },
-                      ),
-                    );
-                  },
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(),
                   ),
-                  error: (error, stack) => Center(
-                    child: Text('Error: $error'),
-                  ),
-                );
-              },
-              loading: () => const Center(
-                child: CircularProgressIndicator(),
-              ),
-              error: (error, stack) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 60,
-                      color: AppColors.error,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Error al cargar especialidades',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        ref.invalidate(userHonorsProvider);
-                      },
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Reintentar'),
-                    ),
-                  ],
+                  loading: () => const SizedBox(height: 60),
+                  error: (_, __) => const SizedBox(),
                 ),
               ),
-            ),
+              const SizedBox(height: 16),
+
+              // Tab bar
+              StaggeredListItem(
+                index: 2,
+                initialDelay: const Duration(milliseconds: 60),
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: hPad),
+                  decoration: BoxDecoration(
+                    color: AppColors.lightSurfaceVariant,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: TabBar(
+                    indicator: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x10000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    dividerHeight: 0,
+                    labelColor: AppColors.primary,
+                    unselectedLabelColor: AppColors.lightTextSecondary,
+                    labelStyle: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    tabs: const [
+                      Tab(text: 'En progreso'),
+                      Tab(text: 'Completados'),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Tab content
+              Expanded(
+                child: userHonorsAsync.when(
+                  data: (userHonors) {
+                    if (userHonors.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            HugeIcon(
+                                icon: HugeIcons.strokeRoundedAward01,
+                                size: 56,
+                                color: AppColors.lightTextTertiary),
+                            const SizedBox(height: 12),
+                            Text(
+                              'No tienes especialidades',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: AppColors.lightTextSecondary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Inscríbete en el catálogo',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.lightTextTertiary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return honorsAsync.when(
+                      data: (honors) {
+                        final inProgress = userHonors
+                            .where((uh) =>
+                                uh.status.toLowerCase() != 'completed')
+                            .toList();
+                        final completed = userHonors
+                            .where((uh) =>
+                                uh.status.toLowerCase() == 'completed')
+                            .toList();
+
+                        return TabBarView(
+                          children: [
+                            _buildHonorsList(
+                              context,
+                              ref,
+                              inProgress,
+                              honors,
+                              emptyMessage: 'No tienes honores en progreso',
+                              hPad: hPad,
+                            ),
+                            _buildHonorsList(
+                              context,
+                              ref,
+                              completed,
+                              honors,
+                              emptyMessage: 'Aún no has completado honores',
+                              hPad: hPad,
+                            ),
+                          ],
+                        );
+                      },
+                      loading: () => const Center(child: SacLoading()),
+                      error: (error, _) =>
+                          Center(child: Text('Error: $error')),
+                    );
+                  },
+                  loading: () => const Center(child: SacLoading()),
+                  error: (error, stack) => Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          HugeIcon(
+                              icon: HugeIcons.strokeRoundedAlert02,
+                              size: 56,
+                              color: AppColors.error),
+                          const SizedBox(height: 16),
+                          Text('Error al cargar especialidades',
+                              style:
+                                  Theme.of(context).textTheme.titleMedium),
+                          const SizedBox(height: 24),
+                          SacButton.primary(
+                            text: 'Reintentar',
+                            icon: HugeIcons.strokeRoundedRefresh,
+                            onPressed: () {
+                              ref.invalidate(userHonorsProvider);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  /// Construye un item de estadística
-  Widget _buildStatItem(
+  Widget _buildHonorsList(
     BuildContext context,
-    String label,
-    String value,
-    IconData icon,
-  ) {
-    return Column(
-      children: [
-        Icon(icon, size: 32, color: AppColors.primaryBlue),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppColors.primaryBlue,
+    WidgetRef ref,
+    List userHonors,
+    List honors, {
+    required String emptyMessage,
+    required double hPad,
+  }) {
+    if (userHonors.isEmpty) {
+      return Center(
+        child: Text(
+          emptyMessage,
+          style: TextStyle(
+            fontSize: 14,
+            color: AppColors.lightTextSecondary,
+          ),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      color: AppColors.primary,
+      onRefresh: () async {
+        ref.invalidate(userHonorsProvider);
+        ref.invalidate(userHonorStatsProvider);
+      },
+      child: ListView.builder(
+        padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 24),
+        itemCount: userHonors.length,
+        itemBuilder: (context, index) {
+          final userHonor = userHonors[index];
+          final honor = honors.firstWhere(
+            (h) => h.id == userHonor.honorId,
+            orElse: () => throw Exception('Honor no encontrado'),
+          );
+
+          return StaggeredListItem(
+            index: index,
+            initialDelay: const Duration(milliseconds: 60),
+            staggerDelay: const Duration(milliseconds: 55),
+            child: HonorProgressCard(
+              userHonor: userHonor,
+              honorName: honor.name,
+              onTap: () {
+                // Navigate to detail
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _StatMini extends StatelessWidget {
+  final int value;
+  final String label;
+  final Color color;
+  final Color bgColor;
+
+  const _StatMini({
+    required this.value,
+    required this.label,
+    required this.color,
+    required this.bgColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: SacCard(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        child: Column(
+          children: [
+            AnimatedCounter(
+              value: value,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: color,
               ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: AppColors.lightTextSecondary,
+              ),
+              textAlign: TextAlign.center,
+              // Fix 2.1: guard against overflow on very narrow phones
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-      ],
+      ),
     );
   }
 }

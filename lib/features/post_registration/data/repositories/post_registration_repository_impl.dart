@@ -98,4 +98,22 @@ class PostRegistrationRepositoryImpl implements PostRegistrationRepository {
       return Left(NetworkFailure(message: 'No hay conexión a internet'));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> completeStep1(String userId) async {
+    if (await networkInfo.isConnected) {
+      try {
+        await remoteDataSource.completeStep1(userId);
+        return const Right(null);
+      } on core_exceptions.ServerException catch (e) {
+        return Left(ServerFailure(message: e.message, code: e.code));
+      } on core_exceptions.AuthException catch (e) {
+        return Left(AuthFailure(message: e.message, code: e.code));
+      } catch (e) {
+        return Left(ServerFailure(message: e.toString()));
+      }
+    } else {
+      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+  }
 }

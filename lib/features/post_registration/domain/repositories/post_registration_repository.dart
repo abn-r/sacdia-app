@@ -22,4 +22,7 @@ abstract class PostRegistrationRepository {
   Future<Either<Failure, bool>> getPhotoStatus({
     required String userId,
   });
+
+  /// Completa el paso 1 del post-registro
+  Future<Either<Failure, void>> completeStep1(String userId);
 }

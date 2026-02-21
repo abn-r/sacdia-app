@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
 
 /// Widget para un elemento de configuración
 class SettingTile extends StatelessWidget {
-  final IconData icon;
+  final dynamic icon;
   final String title;
   final String? subtitle;
   final Widget? trailing;
@@ -34,15 +35,16 @@ class SettingTile extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
-                color: (iconColor ?? AppColors.sacGreen).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: (iconColor ?? AppColors.primary).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 icon,
-                color: iconColor ?? AppColors.sacGreen,
-                size: 24,
+                color: iconColor ?? AppColors.primary,
+                size: 22,
               ),
             ),
             const SizedBox(width: 16),
@@ -53,18 +55,18 @@ class SettingTile extends StatelessWidget {
                   Text(
                     title,
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.sacBlack,
+                      color: AppColors.lightText,
                     ),
                   ),
                   if (subtitle != null) ...[
                     const SizedBox(height: 4),
                     Text(
                       subtitle!,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.lightTextSecondary,
                       ),
                     ),
                   ],
@@ -74,9 +76,9 @@ class SettingTile extends StatelessWidget {
             if (trailing != null)
               trailing!
             else if (onTap != null)
-              Icon(
-                Icons.chevron_right,
-                color: Colors.grey[400],
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
+                color: AppColors.lightTextTertiary,
               ),
           ],
         ),

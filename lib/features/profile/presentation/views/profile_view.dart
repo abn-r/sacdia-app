@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
+import 'package:sacdia_app/core/utils/responsive.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
-import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/profile_providers.dart';
@@ -13,12 +19,15 @@ import 'edit_profile_view.dart';
 import 'settings_view.dart';
 
 /// Vista principal del perfil del usuario
+///
+/// Secciones aparecen con staggered slide-up entrance.
 class ProfileView extends ConsumerWidget {
   const ProfileView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileState = ref.watch(profileNotifierProvider);
+    final hPad = Responsive.horizontalPadding(context);
 
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
@@ -31,14 +40,14 @@ class ProfileView extends ConsumerWidget {
                   'No se pudo cargar el perfil',
                   style: TextStyle(
                     fontSize: 16,
-                    color: AppColors.sacBlack,
+                    color: AppColors.lightText,
                   ),
                 ),
               );
             }
 
             return RefreshIndicator(
-              color: AppColors.sacGreen,
+              color: AppColors.primary,
               onRefresh: () async {
                 await ref.read(profileNotifierProvider.notifier).refresh();
               },
@@ -46,175 +55,161 @@ class ProfileView extends ConsumerWidget {
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
                   children: [
-                    // Encabezado con foto y nombre
-                    ProfileHeader(
-                      name: profile.fullName,
-                      email: profile.email,
-                      avatar: profile.avatar,
-                      onEditPhoto: () {
-                        // TODO: Implementar cambio de foto
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Cambio de foto próximamente'),
-                          ),
-                        );
-                      },
-                    ),
-                    // Contenido
-                    Padding(
-                      padding: const EdgeInsets.all(AppConstants.paddingM),
-                      child: Column(
-                        children: [
-                          // Botón de editar perfil
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const EditProfileView(),
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.edit),
-                              label: const Text('Editar Perfil'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.sacGreen,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: AppConstants.paddingM,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
+                    // Profile header fades in first
+                    StaggeredListItem(
+                      index: 0,
+                      initialDelay: const Duration(milliseconds: 60),
+                      child: ProfileHeader(
+                        name: profile.fullName,
+                        email: profile.email,
+                        avatar: profile.avatar,
+                        onEditPhoto: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content:
+                                  const Text('Cambio de foto próximamente'),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
                               ),
                             ),
+                          );
+                        },
+                      ),
+                    ),
+
+                    // Content sections with staggered entrance
+                    Padding(
+                      padding: EdgeInsets.all(hPad),
+                      child: StaggeredColumn(
+                        initialDelay: const Duration(milliseconds: 140),
+                        staggerDelay: const Duration(milliseconds: 80),
+                        children: [
+                          // Edit button
+                          SacButton.primary(
+                            text: 'Editar perfil',
+                            icon: HugeIcons.strokeRoundedEdit02,
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const EditProfileView(),
+                                ),
+                              );
+                            },
                           ),
-                          const SizedBox(height: AppConstants.paddingM),
-                          // Información personal
+                          const SizedBox(height: 16),
+
+                          // Personal info section
                           InfoSection(
                             title: 'Información Personal',
                             items: [
                               InfoItem(
-                                icon: Icons.person,
+                                icon: HugeIcons.strokeRoundedUser,
                                 label: 'Nombre completo',
                                 value: profile.fullName,
                               ),
                               InfoItem(
-                                icon: Icons.email,
+                                icon: HugeIcons.strokeRoundedMail01,
                                 label: 'Correo electrónico',
                                 value: profile.email,
                               ),
                               if (profile.phone != null)
                                 InfoItem(
-                                  icon: Icons.phone,
+                                  icon: HugeIcons.strokeRoundedCall,
                                   label: 'Teléfono',
                                   value: profile.phone,
                                 ),
                               if (profile.birthDate != null)
                                 InfoItem(
-                                  icon: Icons.cake,
+                                  icon: HugeIcons.strokeRoundedBirthdayCake,
                                   label: 'Fecha de nacimiento',
                                   value: DateFormat('dd/MM/yyyy')
                                       .format(profile.birthDate!),
                                 ),
                               if (profile.gender != null)
                                 InfoItem(
-                                  icon: Icons.person_outline,
+                                  icon: HugeIcons.strokeRoundedUser,
                                   label: 'Género',
                                   value: profile.gender,
                                 ),
                             ],
                           ),
-                          const SizedBox(height: AppConstants.paddingM),
-                          // Información del club
+                          const SizedBox(height: 16),
+
+                          // Club info section
                           if (profile.clubName != null) ...[
                             InfoSection(
                               title: 'Mi Club',
                               items: [
                                 InfoItem(
-                                  icon: Icons.groups,
+                                  icon: HugeIcons.strokeRoundedUserGroup,
                                   label: 'Club',
                                   value: profile.clubName,
                                 ),
                                 if (profile.clubType != null)
                                   InfoItem(
-                                    icon: Icons.category,
+                                    icon: HugeIcons.strokeRoundedGridView,
                                     label: 'Tipo',
                                     value: profile.clubType,
                                   ),
                                 if (profile.roles.isNotEmpty)
                                   InfoItem(
-                                    icon: Icons.badge,
+                                    icon: HugeIcons.strokeRoundedLabel,
                                     label: 'Rol',
                                     value: profile.roles.join(', '),
                                   ),
                                 if (profile.currentClass != null)
                                   InfoItem(
-                                    icon: Icons.school,
+                                    icon: HugeIcons.strokeRoundedSchool,
                                     label: 'Clase actual',
                                     value: profile.currentClass,
                                   ),
                               ],
                             ),
-                            const SizedBox(height: AppConstants.paddingM),
+                            const SizedBox(height: 16),
                           ],
-                          // Configuración
-                          Card(
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+
+                          // Settings card
+                          SacCard(
+                            padding: EdgeInsets.zero,
                             child: Column(
                               children: [
                                 SettingTile(
-                                  icon: Icons.settings,
+                                  icon: HugeIcons.strokeRoundedSettings01,
                                   title: 'Configuración',
                                   subtitle: 'Tema, notificaciones y más',
                                   onTap: () {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const SettingsView(),
+                                        builder: (context) =>
+                                            const SettingsView(),
                                       ),
                                     );
                                   },
                                 ),
                                 const Divider(height: 1),
                                 SettingTile(
-                                  icon: Icons.logout,
+                                  icon: HugeIcons.strokeRoundedLogout01,
                                   title: 'Cerrar sesión',
                                   iconColor: AppColors.error,
                                   onTap: () async {
-                                    final shouldLogout = await showDialog<bool>(
-                                      context: context,
-                                      builder: (context) => AlertDialog(
-                                        title: const Text('Cerrar sesión'),
-                                        content: const Text(
+                                    final shouldLogout =
+                                        await SacDialog.show(
+                                      context,
+                                      title: 'Cerrar sesión',
+                                      content:
                                           '¿Estás seguro que deseas cerrar sesión?',
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () =>
-                                                Navigator.pop(context, false),
-                                            child: const Text('Cancelar'),
-                                          ),
-                                          ElevatedButton(
-                                            onPressed: () =>
-                                                Navigator.pop(context, true),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: AppColors.error,
-                                            ),
-                                            child: const Text('Cerrar sesión'),
-                                          ),
-                                        ],
-                                      ),
+                                      confirmLabel: 'Cerrar sesión',
+                                      confirmIsDestructive: true,
                                     );
 
                                     if (shouldLogout == true) {
                                       await ref
-                                          .read(authNotifierProvider.notifier)
+                                          .read(authNotifierProvider
+                                              .notifier)
                                           .signOut();
                                     }
                                   },
@@ -230,56 +225,45 @@ class ProfileView extends ConsumerWidget {
               ),
             );
           },
-          loading: () => const Center(
-            child: CircularProgressIndicator(
-              color: AppColors.sacGreen,
-            ),
-          ),
+          loading: () => const Center(child: SacLoading()),
           error: (error, stack) => Center(
             child: Padding(
-              padding: const EdgeInsets.all(AppConstants.paddingL),
+              padding: const EdgeInsets.all(24),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 64,
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedAlert02,
+                    size: 56,
                     color: AppColors.error,
                   ),
-                  const SizedBox(height: AppConstants.paddingM),
-                  const Text(
+                  const SizedBox(height: 16),
+                  Text(
                     'Error al cargar el perfil',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.sacBlack,
-                    ),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.lightText,
+                        ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: AppConstants.paddingS),
+                  const SizedBox(height: 8),
                   Text(
                     error.toString(),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[600],
+                      color: AppColors.lightTextSecondary,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: AppConstants.paddingL),
-                  ElevatedButton.icon(
+                  const SizedBox(height: 24),
+                  SacButton.primary(
+                    text: 'Reintentar',
+                    icon: HugeIcons.strokeRoundedRefresh,
                     onPressed: () {
-                      ref.read(profileNotifierProvider.notifier).refresh();
+                      ref
+                          .read(profileNotifierProvider.notifier)
+                          .refresh();
                     },
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Reintentar'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.sacGreen,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppConstants.paddingL,
-                        vertical: AppConstants.paddingM,
-                      ),
-                    ),
                   ),
                 ],
               ),

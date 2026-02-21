@@ -1,6 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/sac_loading.dart';
 
 import '../providers/auth_providers.dart';
 import '../../presentation/views/login_view.dart';
@@ -18,12 +20,9 @@ class AuthGate extends ConsumerWidget {
         final authState = ref.watch(authStateProvider);
         
         return authState.when(
-          loading: () => const Scaffold(
+          loading: () => Scaffold(
             body: Center(
-              child: CupertinoActivityIndicator(
-                color: Colors.black,
-                radius: 10,
-              ),
+              child: const SacLoading(),
             ),
           ),
           error: (error, stackTrace) => Scaffold(
@@ -31,9 +30,9 @@ class AuthGate extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.error_outline,
-                    color: Colors.red,
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedAlert02,
+                    color: AppColors.error,
                     size: 60,
                   ),
                   const SizedBox(height: 16),

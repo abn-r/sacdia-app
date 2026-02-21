@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../providers/storage_provider.dart';
 import '../../data/datasources/auth_remote_data_source.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/user_entity.dart';
@@ -95,32 +96,76 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     log('🔄 [AuthNotifier] Paso 1: Verificando token local...');
     final hasToken = await repository.hasLocalToken();
 
-    // Paso 3: NO hay token → ir directo a login (sin llamar al endpoint)
+    // NO hay token → ir directo a login (sin llamar al endpoint)
     if (!hasToken) {
       log('🔒 [AuthNotifier] No hay token local → redirigiendo a login');
       return null;
     }
 
-    // Paso 2: SÍ hay token → llamar a /auth/me
+    // SÍ hay token → llamar a /auth/me para validar
     log('🔑 [AuthNotifier] Token encontrado → validando con /auth/me...');
     final result = await ref.read(getCurrentUserProvider)(NoParams());
 
     return result.fold(
       (failure) {
-        // Token expirado o error → ir a login
+        // Error de red / servidor: restaurar sesión desde caché local (offline-first)
+        if (failure is NetworkFailure || failure is ServerFailure) {
+          log('⚠️ [AuthNotifier] Sin conectividad al inicio → intentando usuario en caché');
+          final prefs = ref.read(sharedPreferencesProvider);
+          final cachedId = prefs.getString('cached_user_id');
+          final cachedEmail = prefs.getString('cached_user_email');
+          if (cachedId != null && cachedEmail != null) {
+            log('✅ [AuthNotifier] Sesión restaurada desde caché: $cachedEmail');
+            return UserEntity(
+              id: cachedId,
+              email: cachedEmail,
+              name: prefs.getString('cached_user_name'),
+              postRegisterComplete: prefs.getBool('cached_post_register_complete') ?? false,
+            );
+          }
+          log('⚠️ [AuthNotifier] Sin caché local → redirigiendo a login');
+          return null;
+        }
+        // Error de autenticación (401/403) → token inválido, ir a login
         log('❌ [AuthNotifier] Error al validar token: ${failure.message} → redirigiendo a login');
         return null;
       },
       (user) {
         if (user != null) {
           log('✅ [AuthNotifier] Usuario autenticado: ${user.email}');
-        } else {
-          // /auth/me respondió pero no devolvió usuario → ir a login
-          log('🔒 [AuthNotifier] Token inválido (401) → redirigiendo a login');
+          // Actualizar caché con datos frescos del servidor
+          _cacheUser(user);
+          return user;
         }
-        return user;
+        // El servidor respondió pero devolvió null (respuesta inesperada).
+        // Intentar restaurar desde caché antes de forzar login.
+        log('⚠️ [AuthNotifier] Servidor respondió sin usuario → intentando caché');
+        final prefs = ref.read(sharedPreferencesProvider);
+        final cachedId = prefs.getString('cached_user_id');
+        final cachedEmail = prefs.getString('cached_user_email');
+        if (cachedId != null && cachedEmail != null) {
+          log('✅ [AuthNotifier] Sesión restaurada desde caché: $cachedEmail');
+          return UserEntity(
+            id: cachedId,
+            email: cachedEmail,
+            name: prefs.getString('cached_user_name'),
+            postRegisterComplete: prefs.getBool('cached_post_register_complete') ?? false,
+          );
+        }
+        log('🔒 [AuthNotifier] Sin caché disponible → redirigiendo a login');
+        return null;
       },
     );
+  }
+
+  /// Persiste los datos del usuario en SharedPreferences para restauración offline
+  void _cacheUser(UserEntity user) {
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setString('cached_user_id', user.id);
+      prefs.setString('cached_user_email', user.email);
+      if (user.name != null) prefs.setString('cached_user_name', user.name!);
+      prefs.setBool('cached_post_register_complete', user.postRegisterComplete);
+    });
   }
 
   /// Iniciar sesión con email y contraseña
@@ -143,8 +188,15 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       },
       (user) {
         log('💬 [AuthNotifier] Login exitoso para usuario: ${user.email}');
-        // Reseteamos el flag de cierre de sesión para que el authStateProvider se actualice
+        // Reseteamos el flag de cierre de sesión en memoria y en persistencia
         ref.read(isUserLoggedOutProvider.notifier).state = false;
+        SharedPreferences.getInstance().then((prefs) {
+          prefs.setBool('user_manually_logged_out', false);
+          prefs.setString('cached_user_id', user.id);
+          prefs.setString('cached_user_email', user.email);
+          if (user.name != null) prefs.setString('cached_user_name', user.name!);
+          prefs.setBool('cached_post_register_complete', user.postRegisterComplete);
+        });
         return AsyncValue.data(user);
       },
     );
@@ -187,6 +239,24 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     return !state.hasError;
   }
 
+  /// Marks the current user's post-registration as complete in the in-memory
+  /// auth state. Call this after step 3 is successfully saved so the router
+  /// redirects correctly without waiting for a full /auth/me refresh.
+  void markPostRegisterComplete() {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    state = AsyncValue.data(UserEntity(
+      id: current.id,
+      email: current.email,
+      name: current.name,
+      avatar: current.avatar,
+      metadata: current.metadata,
+      lastSignInAt: current.lastSignInAt,
+      createdAt: current.createdAt,
+      postRegisterComplete: true,
+    ));
+  }
+
   /// Cerrar sesión
   Future<bool> signOut() async {
     state = const AsyncValue.loading();
@@ -211,12 +281,16 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       (_) {
         // Cierre exitoso, establecemos el estado a null (no autenticado)
         state = const AsyncValue.data(null);
-        
-        // Guardar el estado de cierre de sesión en SharedPreferences para persistencia
+
+        // Limpiar caché de usuario y marcar cierre manual en SharedPreferences
         SharedPreferences.getInstance().then((prefs) {
           prefs.setBool('user_manually_logged_out', true);
+          prefs.remove('cached_user_id');
+          prefs.remove('cached_user_email');
+          prefs.remove('cached_user_name');
+          prefs.remove('cached_post_register_complete');
         });
-        
+
         return true;
       },
     );

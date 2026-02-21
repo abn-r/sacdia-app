@@ -3,52 +3,91 @@ import 'package:equatable/equatable.dart';
 /// Modelo de instancia de club (tipo específico de club)
 class ClubInstanceModel extends Equatable {
   final int id;
-  final String clubTypeName;
   final int clubTypeId;
   final int clubId;
 
+  /// Slug canónico del tipo de club: adventurers | pathfinders | master_guild
+  final String clubTypeSlug;
+
+  /// Nombre legible (puede ser null si el API no lo devuelve)
+  final String? clubTypeName;
+
   const ClubInstanceModel({
     required this.id,
-    required this.clubTypeName,
     required this.clubTypeId,
     required this.clubId,
+    required this.clubTypeSlug,
+    this.clubTypeName,
   });
 
-  /// Crea una instancia desde JSON
-  factory ClubInstanceModel.fromJson(Map<String, dynamic> json) {
+  /// Parsea un item individual desde el bucket de instancias.
+  /// [slug] es la clave del bucket normalizada (master_guilds → master_guild).
+  factory ClubInstanceModel.fromJsonWithSlug(
+      Map<String, dynamic> json, String slug) {
+    final rawId = json['club_instance_id'] ?? json['id'];
+    final rawClubTypeId = json['club_type_id'];
+    final rawClubId = json['club_id'];
+
     return ClubInstanceModel(
-      id: json['id'] as int,
-      clubTypeName: json['club_type_name'] as String,
-      clubTypeId: json['club_type_id'] as int,
-      clubId: json['club_id'] as int,
+      id: rawId is int ? rawId : (int.tryParse(rawId?.toString() ?? '') ?? 0),
+      clubTypeId: rawClubTypeId is int
+          ? rawClubTypeId
+          : (int.tryParse(rawClubTypeId?.toString() ?? '') ?? 0),
+      clubId: rawClubId is int
+          ? rawClubId
+          : (int.tryParse(rawClubId?.toString() ?? '') ?? 0),
+      clubTypeSlug: slug,
+      clubTypeName: json['club_type_name'] as String?,
+    );
+  }
+
+  /// Legacy factory — kept for compatibility; slug defaults to empty string.
+  factory ClubInstanceModel.fromJson(Map<String, dynamic> json) {
+    final rawId = json['club_instance_id'] ?? json['id'];
+    final rawClubTypeId = json['club_type_id'];
+    final rawClubId = json['club_id'];
+
+    return ClubInstanceModel(
+      id: rawId is int ? rawId : (int.tryParse(rawId?.toString() ?? '') ?? 0),
+      clubTypeId: rawClubTypeId is int
+          ? rawClubTypeId
+          : (int.tryParse(rawClubTypeId?.toString() ?? '') ?? 0),
+      clubId: rawClubId is int
+          ? rawClubId
+          : (int.tryParse(rawClubId?.toString() ?? '') ?? 0),
+      clubTypeSlug: json['club_type_slug'] as String? ?? '',
+      clubTypeName: json['club_type_name'] as String?,
     );
   }
 
   /// Convierte la instancia a JSON
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'club_type_name': clubTypeName,
+      'club_instance_id': id,
       'club_type_id': clubTypeId,
       'club_id': clubId,
+      'club_type_slug': clubTypeSlug,
+      if (clubTypeName != null) 'club_type_name': clubTypeName,
     };
   }
 
   /// Crea una copia con campos actualizados
   ClubInstanceModel copyWith({
     int? id,
-    String? clubTypeName,
     int? clubTypeId,
     int? clubId,
+    String? clubTypeSlug,
+    String? clubTypeName,
   }) {
     return ClubInstanceModel(
       id: id ?? this.id,
-      clubTypeName: clubTypeName ?? this.clubTypeName,
       clubTypeId: clubTypeId ?? this.clubTypeId,
       clubId: clubId ?? this.clubId,
+      clubTypeSlug: clubTypeSlug ?? this.clubTypeSlug,
+      clubTypeName: clubTypeName ?? this.clubTypeName,
     );
   }
 
   @override
-  List<Object?> get props => [id, clubTypeName, clubTypeId, clubId];
+  List<Object?> get props => [id, clubTypeId, clubId, clubTypeSlug];
 }

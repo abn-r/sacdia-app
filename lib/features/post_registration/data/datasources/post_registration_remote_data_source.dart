@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http_parser/http_parser.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../models/completion_status_model.dart';
@@ -21,6 +22,9 @@ abstract class PostRegistrationRemoteDataSource {
 
   /// Obtiene el estado de la foto
   Future<bool> getPhotoStatus({required String userId});
+
+  /// Completa el paso 1 del post-registro (foto de perfil)
+  Future<void> completeStep1(String userId);
 }
 
 /// Implementación de la fuente de datos remota de post-registro
@@ -77,8 +81,23 @@ class PostRegistrationRemoteDataSourceImpl
       final options = await _authOptions();
       options.contentType = 'multipart/form-data';
 
+      // Inferir mimetype desde la extensión, o usar jpeg por defecto
+      final String extension = filePath.contains('.')
+          ? filePath.split('.').last.toLowerCase()
+          : 'jpg';
+
+      String mimeType = 'image/jpeg';
+      if (extension == 'png') {
+        mimeType = 'image/png';
+      } else if (extension == 'webp') {
+        mimeType = 'image/webp';
+      }
+
       final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(filePath),
+        'file': await MultipartFile.fromFile(
+          filePath,
+          contentType: MediaType.parse(mimeType),
+        ),
       });
 
       final response = await _dio.post(
@@ -138,6 +157,29 @@ class PostRegistrationRemoteDataSourceImpl
 
       return false;
     } catch (e) {
+      if (e is DioException) {
+        throw ServerException(message: e.message ?? 'Error de conexión');
+      }
+      if (e is AppException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<void> completeStep1(String userId) async {
+    try {
+      final options = await _authOptions();
+      final response = await _dio.post(
+        '$_baseUrl/users/$userId/post-registration/step-1/complete',
+        options: options,
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw ServerException(
+            message: 'Error al completar el paso 1 del post-registro');
+      }
+    } catch (e) {
+      log('Error al completar paso 1: $e');
       if (e is DioException) {
         throw ServerException(message: e.message ?? 'Error de conexión');
       }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/sac_card.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/class_section.dart';
 import '../providers/classes_providers.dart';
@@ -36,7 +38,7 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detalle de Sección'),
-        backgroundColor: AppColors.primaryBlue,
+        backgroundColor: AppColors.primary,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -52,13 +54,13 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
             ),
             const SizedBox(height: 24),
             // Estado de completitud
-            Card(
+            SacCard(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    Icon(
-                      _isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
+                    HugeIcon(
+                      icon: _isCompleted ? HugeIcons.strokeRoundedCheckmarkCircle02 : HugeIcons.strokeRoundedRadioButton,
                       color: _isCompleted ? AppColors.success : AppColors.lightTextSecondary,
                       size: 32,
                     ),
@@ -128,11 +130,11 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
                     ),
                   );
                 },
-                icon: Icon(_isCompleted ? Icons.close : Icons.check),
+                icon: HugeIcon(icon: _isCompleted ? HugeIcons.strokeRoundedCancel01 : HugeIcons.strokeRoundedTick02, color: Colors.white, size: 24),
                 label: Text(_isCompleted ? 'Marcar como pendiente' : 'Marcar como completada'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
-                      _isCompleted ? AppColors.warning : AppColors.primaryBlue,
+                      _isCompleted ? AppColors.warning : AppColors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
               ),

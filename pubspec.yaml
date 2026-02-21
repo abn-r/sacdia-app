@@ -10,12 +10,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   # UI
   cupertino_icons: ^1.0.8
   flutter_svg: ^2.2.0
   cached_network_image: ^3.4.1
-  hugeicons: ^0.0.11
+  hugeicons: ^1.1.5
   
   # Gestión de estado
   flutter_riverpod: ^2.6.1

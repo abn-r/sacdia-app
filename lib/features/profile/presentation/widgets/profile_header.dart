@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/utils/responsive.dart';
 
 import '../../../../core/theme/app_colors.dart';
 
-/// Widget para el encabezado del perfil con foto y nombre
+/// Widget para el encabezado del perfil con foto y nombre.
+/// Avatar radius scales with screen width via Responsive.headerAvatarSize.
+/// Name and email have overflow guards.
 class ProfileHeader extends StatelessWidget {
   final String name;
   final String email;
@@ -19,13 +23,16 @@ class ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final avatarRadius = Responsive.headerAvatarSize(context);
+    final fallbackFontSize = (avatarRadius * 0.65).clamp(22.0, 44.0);
+
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.sacGreen,
-            AppColors.sacGreenLight,
+            AppColors.primary,
+            AppColors.primaryDark,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -41,7 +48,7 @@ class ProfileHeader extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: Colors.white,
-                    width: 4,
+                    width: 3,
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -52,22 +59,23 @@ class ProfileHeader extends StatelessWidget {
                   ],
                 ),
                 child: CircleAvatar(
-                  radius: 60,
+                  radius: avatarRadius,
                   backgroundColor: Colors.white,
-                  backgroundImage: avatar != null ? NetworkImage(avatar!) : null,
+                  backgroundImage:
+                      avatar != null ? NetworkImage(avatar!) : null,
                   child: avatar == null
                       ? Text(
                           name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                          style: const TextStyle(
-                            fontSize: 48,
+                          style: TextStyle(
+                            fontSize: fallbackFontSize,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.sacGreen,
+                            color: AppColors.primary,
                           ),
                         )
                       : null,
                 ),
               ),
-              // Botón de editar foto
+              // Edit photo button
               if (onEditPhoto != null)
                 Positioned(
                   bottom: 0,
@@ -77,15 +85,15 @@ class ProfileHeader extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.sacBlue,
+                        color: AppColors.primary,
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: Colors.white,
                           width: 2,
                         ),
                       ),
-                      child: const Icon(
-                        Icons.camera_alt,
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedCamera01,
                         color: Colors.white,
                         size: 20,
                       ),
@@ -95,25 +103,28 @@ class ProfileHeader extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          // Nombre
+          // Name — overflow guard
           Text(
             name,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
             textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
-          // Email
+          // Email — overflow guard
           Text(
             email,
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 14,
               color: Colors.white70,
             ),
             textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

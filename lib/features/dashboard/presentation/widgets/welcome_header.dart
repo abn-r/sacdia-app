@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/responsive.dart';
 
-import '../../../../core/theme/app_colors.dart';
-
-/// Widget para el encabezado de bienvenida del dashboard
+/// Encabezado de bienvenida del dashboard - Estilo "Scout Vibrante"
+///
+/// Fondo blanco, saludo contextual (mañana/tarde/noche),
+/// nombre del usuario, avatar circular a la derecha.
+/// Avatar size adapts to screen width via Responsive.smallAvatarSize.
 class WelcomeHeader extends StatelessWidget {
   final String userName;
   final String? userAvatar;
@@ -13,83 +17,96 @@ class WelcomeHeader extends StatelessWidget {
     this.userAvatar,
   });
 
-  /// Obtiene el saludo según la hora del día
   String _getGreeting() {
     final hour = DateTime.now().hour;
-
-    if (hour < 12) {
-      return 'Buenos días';
-    } else if (hour < 18) {
-      return 'Buenas tardes';
-    } else {
-      return 'Buenas noches';
-    }
+    if (hour < 12) return '¡Buenos días';
+    if (hour < 18) return '¡Buenas tardes';
+    return '¡Buenas noches';
   }
 
   @override
   Widget build(BuildContext context) {
     final greeting = _getGreeting();
+    final firstName = userName.split(' ').first;
+    final avatarSize = Responsive.smallAvatarSize(context);
+    final hPad = Responsive.horizontalPadding(context);
 
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.sacGreen,
-            AppColors.sacGreenLight,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
+    return Padding(
+      padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 8),
       child: Row(
         children: [
-          // Avatar del usuario
-          CircleAvatar(
-            radius: 32,
-            backgroundColor: Colors.white,
-            backgroundImage: userAvatar != null
-                ? NetworkImage(userAvatar!)
-                : null,
-            child: userAvatar == null
-                ? Text(
-                    userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.sacGreen,
-                    ),
-                  )
-                : null,
-          ),
-          const SizedBox(width: 16),
-          // Saludo y nombre
+          // Greeting and name
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  greeting,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
-                    fontWeight: FontWeight.w400,
-                  ),
+                  '$greeting,',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.lightTextSecondary,
+                      ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
-                  userName,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  '$firstName!',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.lightText,
+                      ),
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
+
+          // Avatar — size adapts to screen
+          GestureDetector(
+            child: Container(
+              width: avatarSize,
+              height: avatarSize,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.primaryLight,
+                  width: 2,
+                ),
+              ),
+              child: ClipOval(
+                child: userAvatar != null
+                    ? Image.network(
+                        userAvatar!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _AvatarFallback(
+                          initial: firstName,
+                        ),
+                      )
+                    : _AvatarFallback(initial: firstName),
+              ),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _AvatarFallback extends StatelessWidget {
+  final String initial;
+  const _AvatarFallback({required this.initial});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.primaryLight,
+      alignment: Alignment.center,
+      child: Text(
+        initial.isNotEmpty ? initial[0].toUpperCase() : 'U',
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          color: AppColors.primary,
+        ),
       ),
     );
   }

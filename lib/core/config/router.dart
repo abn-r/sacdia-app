@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -11,7 +13,19 @@ import '../../features/post_registration/presentation/views/post_registration_sh
 import '../../features/dashboard/presentation/views/dashboard_view.dart';
 import '../../features/classes/presentation/views/classes_list_view.dart';
 import '../../features/profile/presentation/views/profile_view.dart';
+import '../utils/responsive.dart';
 import 'route_names.dart';
+
+/// Returns a [CupertinoPage] for use with GoRouter [pageBuilder].
+///
+/// Unified iOS-style slide-from-right transition on all platforms.
+Page<void> _buildPage(
+  BuildContext context,
+  GoRouterState state,
+  Widget child,
+) {
+  return CupertinoPage<void>(child: child, key: state.pageKey);
+}
 
 /// Provider principal del router de la aplicación
 final routerProvider = Provider<GoRouter>((ref) {
@@ -73,54 +87,64 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Splash Screen
       GoRoute(
         path: RouteNames.splash,
-        builder: (context, state) => const SplashView(),
+        pageBuilder: (context, state) =>
+            _buildPage(context, state, const SplashView()),
       ),
 
       // Login
       GoRoute(
         path: RouteNames.login,
-        builder: (context, state) => const LoginView(),
+        pageBuilder: (context, state) =>
+            _buildPage(context, state, const LoginView()),
       ),
 
       // Registro
       GoRoute(
         path: RouteNames.register,
-        builder: (context, state) => const RegisterView(),
+        pageBuilder: (context, state) =>
+            _buildPage(context, state, const RegisterView()),
       ),
 
       // Recuperar contraseña
       GoRoute(
         path: RouteNames.forgotPassword,
-        builder: (context, state) => const ForgotPasswordView(),
+        pageBuilder: (context, state) =>
+            _buildPage(context, state, const ForgotPasswordView()),
       ),
 
       // Post-registro
       GoRoute(
         path: RouteNames.postRegistration,
-        builder: (context, state) => const PostRegistrationShell(),
+        pageBuilder: (context, state) =>
+            _buildPage(context, state, const PostRegistrationShell()),
       ),
 
-      // Shell con bottom navigation
+      // Shell con navegación adaptativa (bottom bar en phones, rail en tablets)
       ShellRoute(
         builder: (context, state, child) => _MainShell(child: child),
         routes: [
           GoRoute(
             path: RouteNames.homeDashboard,
-            builder: (context, state) => const DashboardView(),
+            pageBuilder: (context, state) =>
+                _buildPage(context, state, const DashboardView()),
           ),
           GoRoute(
             path: RouteNames.homeClasses,
-            builder: (context, state) => const ClassesListView(),
+            pageBuilder: (context, state) =>
+                _buildPage(context, state, const ClassesListView()),
           ),
           GoRoute(
             path: RouteNames.homeActivities,
-            builder: (context, state) => const _PlaceholderScreen(
-              title: 'Actividades',
+            pageBuilder: (context, state) => _buildPage(
+              context,
+              state,
+              const _PlaceholderScreen(title: 'Actividades'),
             ),
           ),
           GoRoute(
             path: RouteNames.homeProfile,
-            builder: (context, state) => const ProfileView(),
+            pageBuilder: (context, state) =>
+                _buildPage(context, state, const ProfileView()),
           ),
         ],
       ),
@@ -128,34 +152,78 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Detalle de club
       GoRoute(
         path: RouteNames.clubDetail,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final clubId = state.pathParameters['clubId']!;
-          return _PlaceholderScreen(title: 'Club: $clubId');
+          return _buildPage(
+              context, state, _PlaceholderScreen(title: 'Club: $clubId'));
         },
       ),
 
       // Detalle de clase
       GoRoute(
         path: RouteNames.classDetail,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final classId = state.pathParameters['classId']!;
-          return _PlaceholderScreen(title: 'Clase: $classId');
+          return _buildPage(
+              context, state, _PlaceholderScreen(title: 'Clase: $classId'));
         },
       ),
 
       // Detalle de honor
       GoRoute(
         path: RouteNames.honorDetail,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final honorId = state.pathParameters['honorId']!;
-          return _PlaceholderScreen(title: 'Honor: $honorId');
+          return _buildPage(
+              context, state, _PlaceholderScreen(title: 'Honor: $honorId'));
         },
       ),
     ],
   );
 });
 
-/// Shell principal con bottom navigation bar
+// ── Navigation destination data ───────────────────────────────────────────────
+
+class _NavItem {
+  final String route;
+  final List<List<dynamic>> icon;
+  final String label;
+
+  const _NavItem({
+    required this.route,
+    required this.icon,
+    required this.label,
+  });
+}
+
+final List<_NavItem> _navItems = [
+  _NavItem(
+    route: RouteNames.homeDashboard,
+    icon: HugeIcons.strokeRoundedHome01,
+    label: 'Inicio',
+  ),
+  _NavItem(
+    route: RouteNames.homeClasses,
+    icon: HugeIcons.strokeRoundedSchool,
+    label: 'Clases',
+  ),
+  _NavItem(
+    route: RouteNames.homeActivities,
+    icon: HugeIcons.strokeRoundedCalendar01,
+    label: 'Actividades',
+  ),
+  _NavItem(
+    route: RouteNames.homeProfile,
+    icon: HugeIcons.strokeRoundedUser,
+    label: 'Perfil',
+  ),
+];
+
+// ── Main shell — adaptive navigation ─────────────────────────────────────────
+
+/// Shell principal con navegación adaptativa:
+/// - Phones (< 600dp): Material 3 NavigationBar en la parte inferior.
+/// - Tablets / landscape (>= 600dp): NavigationRail a la izquierda.
 class _MainShell extends StatelessWidget {
   final Widget child;
 
@@ -169,46 +237,74 @@ class _MainShell extends StatelessWidget {
     return 0;
   }
 
+  void _navigate(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        context.go(RouteNames.homeDashboard);
+      case 1:
+        context.go(RouteNames.homeClasses);
+      case 2:
+        context.go(RouteNames.homeActivities);
+      case 3:
+        context.go(RouteNames.homeProfile);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final selectedIndex = _currentIndex(context);
+    final useRail = Responsive.isTablet(context);
+
+    if (useRail) {
+      // ── Tablet / landscape: side NavigationRail ──────────────────────────
+      return Scaffold(
+        body: Row(
+          children: [
+            NavigationRail(
+              selectedIndex: selectedIndex,
+              onDestinationSelected: (index) => _navigate(context, index),
+              labelType: NavigationRailLabelType.all,
+              useIndicator: true,
+              destinations: _navItems
+                  .map(
+                    (item) => NavigationRailDestination(
+                      icon: HugeIcon(
+                        icon: item.icon,
+                        size: 24,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      selectedIcon: HugeIcon(
+                        icon: item.icon,
+                        size: 24,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      label: Text(item.label),
+                    ),
+                  )
+                  .toList(),
+            ),
+            const VerticalDivider(width: 1, thickness: 1),
+            Expanded(child: child),
+          ],
+        ),
+      );
+    }
+
+    // ── Phone: bottom NavigationBar ──────────────────────────────────────────
     return Scaffold(
       body: child,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex(context),
-        onDestinationSelected: (index) {
-          switch (index) {
-            case 0:
-              context.go(RouteNames.homeDashboard);
-            case 1:
-              context.go(RouteNames.homeClasses);
-            case 2:
-              context.go(RouteNames.homeActivities);
-            case 3:
-              context.go(RouteNames.homeProfile);
-          }
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Inicio',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.school_outlined),
-            selectedIcon: Icon(Icons.school),
-            label: 'Clases',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.event_outlined),
-            selectedIcon: Icon(Icons.event),
-            label: 'Actividades',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outlined),
-            selectedIcon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
-        ],
+        selectedIndex: selectedIndex,
+        onDestinationSelected: (index) => _navigate(context, index),
+        destinations: _navItems
+            .map(
+              (item) => NavigationDestination(
+                icon: HugeIcon(icon: item.icon),
+                selectedIcon: HugeIcon(icon: item.icon),
+                label: item.label,
+              ),
+            )
+            .toList(),
       ),
     );
   }

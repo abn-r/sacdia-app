@@ -14,17 +14,23 @@ class UnionModel extends Equatable {
 
   /// Crea una instancia desde JSON
   factory UnionModel.fromJson(Map<String, dynamic> json) {
+    // Tolerar claves alternativas para el ID
+    final rawId = json['union_id'] ?? json['id'];
+    final rawCountryId = json['country_id'];
+
     return UnionModel(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      countryId: json['country_id'] as int,
+      id: rawId is int ? rawId : (int.tryParse(rawId?.toString() ?? '') ?? 0),
+      name: (json['name'] as String?) ?? '',
+      countryId: rawCountryId is int
+          ? rawCountryId
+          : (int.tryParse(rawCountryId?.toString() ?? '') ?? 0),
     );
   }
 
   /// Convierte la instancia a JSON
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'union_id': id,
       'name': name,
       'country_id': countryId,
     };

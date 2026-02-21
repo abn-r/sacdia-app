@@ -1,172 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
+
 import '../../domain/entities/activity.dart';
 
-/// Widget de tarjeta de actividad
+/// Card de actividad - Estilo "Scout Vibrante"
+///
+/// Date badge indigo a la izquierda, título, hora+ubicación,
+/// chip de tipo con color.
 class ActivityCard extends StatelessWidget {
   final Activity activity;
   final VoidCallback onTap;
 
   const ActivityCard({
-    Key? key,
+    super.key,
     required this.activity,
     required this.onTap,
-  }) : super(key: key);
+  });
 
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              // Icono de tipo de actividad
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: _getTypeColor(activity.type).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  _getTypeIcon(activity.type),
-                  size: 30,
-                  color: _getTypeColor(activity.type),
-                ),
-              ),
-              const SizedBox(width: 16),
-              // Información de la actividad
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      activity.title,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.calendar_today,
-                          size: 14,
-                          color: AppColors.lightTextSecondary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          DateFormat('dd/MM/yyyy').format(activity.date),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.lightTextSecondary,
-                              ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Icon(
-                          Icons.access_time,
-                          size: 14,
-                          color: AppColors.lightTextSecondary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          DateFormat('HH:mm').format(activity.date),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.lightTextSecondary,
-                              ),
-                        ),
-                      ],
-                    ),
-                    if (activity.location != null) ...[
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.location_on,
-                            size: 14,
-                            color: AppColors.lightTextSecondary,
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              activity.location!,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: AppColors.lightTextSecondary,
-                                  ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _getTypeColor(activity.type).withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        _getTypeText(activity.type),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: _getTypeColor(activity.type),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Obtiene el color según el tipo de actividad
-  Color _getTypeColor(String type) {
-    switch (type.toLowerCase()) {
-      case 'meeting':
-        return AppColors.info;
-      case 'event':
-        return AppColors.primaryBlue;
-      case 'campout':
-        return AppColors.sacGreen;
-      case 'service':
-        return AppColors.secondaryTeal;
-      default:
-        return AppColors.lightTextSecondary;
-    }
-  }
-
-  /// Obtiene el icono según el tipo de actividad
-  IconData _getTypeIcon(String type) {
-    switch (type.toLowerCase()) {
-      case 'meeting':
-        return Icons.groups;
-      case 'event':
-        return Icons.event;
-      case 'campout':
-        return Icons.forest;
-      case 'service':
-        return Icons.volunteer_activism;
-      default:
-        return Icons.event_available;
-    }
-  }
-
-  /// Obtiene el texto según el tipo de actividad
   String _getTypeText(String type) {
     switch (type.toLowerCase()) {
       case 'meeting':
@@ -180,5 +34,120 @@ class ActivityCard extends StatelessWidget {
       default:
         return 'Actividad';
     }
+  }
+
+  SacBadgeVariant _getTypeBadgeVariant(String type) {
+    switch (type.toLowerCase()) {
+      case 'meeting':
+        return SacBadgeVariant.primary;
+      case 'event':
+        return SacBadgeVariant.accent;
+      case 'campout':
+        return SacBadgeVariant.secondary;
+      default:
+        return SacBadgeVariant.neutral;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SacCard(
+      onTap: onTap,
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          // Date badge
+          Container(
+            width: 52,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  DateFormat('dd').format(activity.date),
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                    height: 1,
+                  ),
+                ),
+                Text(
+                  DateFormat('MMM', 'es').format(activity.date).toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 14),
+
+          // Activity info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  activity.title,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleSmall
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text(
+                      DateFormat('HH:mm').format(activity.date),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.lightTextSecondary,
+                      ),
+                    ),
+                    if (activity.location != null) ...[
+                      Text(
+                        ' · ',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.lightTextTertiary,
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          activity.location!,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.lightTextSecondary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 6),
+                SacBadge(
+                  label: _getTypeText(activity.type),
+                  variant: _getTypeBadgeVariant(activity.type),
+                ),
+              ],
+            ),
+          ),
+
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowRight01,
+            color: AppColors.lightTextTertiary,
+            size: 24,
+          ),
+        ],
+      ),
+    );
   }
 }

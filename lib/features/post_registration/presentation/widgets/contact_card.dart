@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../data/models/emergency_contact_model.dart';
 
 /// Card que muestra un contacto de emergencia con opciones de edición y eliminación
@@ -20,7 +22,7 @@ class ContactCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.only(left: 16, right: 16),
         child: Row(
           children: [
             // Icono de contacto
@@ -30,8 +32,8 @@ class ContactCard extends StatelessWidget {
                 color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                Icons.person_outline,
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedUser,
                 color: Theme.of(context).primaryColor,
                 size: 28,
               ),
@@ -46,7 +48,7 @@ class ContactCard extends StatelessWidget {
                   Text(
                     contact.name,
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -56,24 +58,24 @@ class ContactCard extends StatelessWidget {
                       contact.relationshipTypeName!,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: AppColors.lightTextSecondary,
                       ),
                     ),
                     const SizedBox(height: 2),
                   ],
                   Row(
                     children: [
-                      Icon(
-                        Icons.phone,
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedCall,
                         size: 16,
-                        color: Colors.grey[600],
+                        color: AppColors.lightTextSecondary,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         contact.phone,
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey[600],
+                          color: AppColors.lightTextSecondary,
                         ),
                       ),
                     ],
@@ -86,14 +88,15 @@ class ContactCard extends StatelessWidget {
             Column(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.edit_outlined),
+                  icon: HugeIcon(icon: HugeIcons.strokeRoundedEdit02, size: 20),
                   color: Theme.of(context).primaryColor,
                   onPressed: onEdit,
                   tooltip: 'Editar',
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  color: Colors.red,
+                  icon:
+                      HugeIcon(icon: HugeIcons.strokeRoundedDelete02, size: 20),
+                  color: AppColors.error,
                   onPressed: onDelete,
                   tooltip: 'Eliminar',
                 ),

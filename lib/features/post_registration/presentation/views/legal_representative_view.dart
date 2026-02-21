@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../data/models/legal_representative_model.dart';
 import '../providers/personal_info_providers.dart';
 
@@ -12,20 +15,15 @@ class LegalRepresentativeView extends ConsumerStatefulWidget {
       _LegalRepresentativeViewState();
 }
 
-class _LegalRepresentativeViewState extends ConsumerState<LegalRepresentativeView> {
+class _LegalRepresentativeViewState
+    extends ConsumerState<LegalRepresentativeView> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _paternalSurnameController = TextEditingController();
   final _maternalSurnameController = TextEditingController();
   final _phoneController = TextEditingController();
-  String _selectedType = 'padre';
+  String? _selectedTypeId;
   bool _isLoading = false;
-
-  final List<Map<String, String>> _representativeTypes = [
-    {'value': 'padre', 'label': 'Padre'},
-    {'value': 'madre', 'label': 'Madre'},
-    {'value': 'tutor', 'label': 'Tutor/Tutora'},
-  ];
 
   @override
   void initState() {
@@ -40,7 +38,15 @@ class _LegalRepresentativeViewState extends ConsumerState<LegalRepresentativeVie
             _paternalSurnameController.text = rep.paternalSurname;
             _maternalSurnameController.text = rep.maternalSurname;
             _phoneController.text = rep.phone;
-            _selectedType = rep.type;
+            // Buscar el ID del tipo de relación que coincida con el nombre guardado
+            final typesAsync = ref.read(relationshipTypesProvider);
+            typesAsync.whenData((types) {
+              final match = types
+                  .where((t) => t.name.toLowerCase() == rep.type.toLowerCase());
+              if (match.isNotEmpty && mounted) {
+                setState(() => _selectedTypeId = match.first.id);
+              }
+            });
           });
         }
       });
@@ -62,21 +68,33 @@ class _LegalRepresentativeViewState extends ConsumerState<LegalRepresentativeVie
     setState(() => _isLoading = true);
 
     try {
+      // Obtener el nombre del tipo seleccionado
+      final typesAsync = ref.read(relationshipTypesProvider);
+      final types = typesAsync.valueOrNull ?? [];
+      final selectedType = types.where((t) => t.id == _selectedTypeId);
+      final typeName = selectedType.isNotEmpty ? selectedType.first.name : '';
+
       final representative = LegalRepresentativeModel(
         name: _nameController.text.trim(),
         paternalSurname: _paternalSurnameController.text.trim(),
         maternalSurname: _maternalSurnameController.text.trim(),
         phone: _phoneController.text.trim(),
-        type: _selectedType,
+        type: typeName,
       );
 
-      await ref.read(legalRepresentativeProvider.notifier).saveRepresentative(representative);
+      await ref
+          .read(legalRepresentativeProvider.notifier)
+          .saveRepresentative(representative);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Representante legal guardado correctamente'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: const Text('Representante legal guardado correctamente'),
+            backgroundColor: AppColors.secondary,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         );
         Navigator.of(context).pop(true);
@@ -86,7 +104,11 @@ class _LegalRepresentativeViewState extends ConsumerState<LegalRepresentativeVie
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         );
       }
@@ -110,13 +132,13 @@ class _LegalRepresentativeViewState extends ConsumerState<LegalRepresentativeVie
                 child: SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+                  child: SacLoadingSmall(),
                 ),
               ),
             )
           else
             IconButton(
-              icon: const Icon(Icons.check),
+              icon: HugeIcon(icon: HugeIcons.strokeRoundedTick02, size: 24),
               onPressed: _handleSave,
               tooltip: 'Guardar',
             ),
@@ -131,21 +153,25 @@ class _LegalRepresentativeViewState extends ConsumerState<LegalRepresentativeVie
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.amber.shade50,
+                color: AppColors.accentLight,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.amber.shade200),
+                border:
+                    Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.info_outline, color: Colors.amber.shade900, size: 20),
+                  HugeIcon(
+                      icon: HugeIcons.strokeRoundedInformationCircle,
+                      color: AppColors.accentDark,
+                      size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Los menores de 18 años requieren un representante legal.',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.amber.shade900,
+                        color: AppColors.accentDark,
                       ),
                     ),
                   ),
@@ -154,29 +180,63 @@ class _LegalRepresentativeViewState extends ConsumerState<LegalRepresentativeVie
             ),
             const SizedBox(height: 24),
 
-            // Tipo de representante
-            DropdownButtonFormField<String>(
-              value: _selectedType,
-              decoration: const InputDecoration(
-                labelText: 'Tipo de representante *',
-                prefixIcon: Icon(Icons.people_outline),
-                border: OutlineInputBorder(),
-              ),
-              items: _representativeTypes.map((type) {
-                return DropdownMenuItem(
-                  value: type['value'],
-                  child: Text(type['label']!),
+            // Tipo de representante - cargado desde la API
+            Consumer(
+              builder: (context, ref, _) {
+                final typesAsync = ref.watch(relationshipTypesProvider);
+                return typesAsync.when(
+                  loading: () => const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: SacLoadingSmall(),
+                    ),
+                  ),
+                  error: (error, _) => Text(
+                    'Error al cargar tipos: $error',
+                    style: const TextStyle(color: AppColors.error),
+                  ),
+                  data: (types) {
+                    // Preseleccionar el primer tipo si no hay selección
+                    if (_selectedTypeId == null && types.isNotEmpty) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) {
+                          setState(() => _selectedTypeId = types.first.id);
+                        }
+                      });
+                    }
+                    return DropdownButtonFormField<String>(
+                      initialValue: types.any((t) => t.id == _selectedTypeId)
+                          ? _selectedTypeId
+                          : null,
+                      decoration: const InputDecoration(
+                        labelText: 'Tipo de representante *',
+                        prefixIcon: HugeIcon(
+                            icon: HugeIcons.strokeRoundedUserGroup, size: 22),
+                        border: OutlineInputBorder(),
+                      ),
+                      items: types.map((type) {
+                        return DropdownMenuItem(
+                          value: type.id,
+                          child: Text(type.name),
+                        );
+                      }).toList(),
+                      onChanged: _isLoading
+                          ? null
+                          : (value) {
+                              if (value != null) {
+                                setState(() => _selectedTypeId = value);
+                              }
+                            },
+                      validator: (value) {
+                        if (value == null) {
+                          return 'Selecciona un tipo de representante';
+                        }
+                        return null;
+                      },
+                    );
+                  },
                 );
-              }).toList(),
-              onChanged: _isLoading
-                  ? null
-                  : (value) {
-                      if (value != null) {
-                        setState(() {
-                          _selectedType = value;
-                        });
-                      }
-                    },
+              },
             ),
             const SizedBox(height: 16),
 
@@ -186,7 +246,8 @@ class _LegalRepresentativeViewState extends ConsumerState<LegalRepresentativeVie
               decoration: const InputDecoration(
                 labelText: 'Nombre(s) *',
                 hintText: 'Ej: Juan Carlos',
-                prefixIcon: Icon(Icons.person_outline),
+                prefixIcon:
+                    HugeIcon(icon: HugeIcons.strokeRoundedUser, size: 22),
                 border: OutlineInputBorder(),
               ),
               textCapitalization: TextCapitalization.words,
@@ -209,7 +270,8 @@ class _LegalRepresentativeViewState extends ConsumerState<LegalRepresentativeVie
               decoration: const InputDecoration(
                 labelText: 'Apellido Paterno *',
                 hintText: 'Ej: Pérez',
-                prefixIcon: Icon(Icons.person_outline),
+                prefixIcon:
+                    HugeIcon(icon: HugeIcons.strokeRoundedUser, size: 22),
                 border: OutlineInputBorder(),
               ),
               textCapitalization: TextCapitalization.words,
@@ -232,7 +294,8 @@ class _LegalRepresentativeViewState extends ConsumerState<LegalRepresentativeVie
               decoration: const InputDecoration(
                 labelText: 'Apellido Materno *',
                 hintText: 'Ej: González',
-                prefixIcon: Icon(Icons.person_outline),
+                prefixIcon:
+                    HugeIcon(icon: HugeIcons.strokeRoundedUser, size: 22),
                 border: OutlineInputBorder(),
               ),
               textCapitalization: TextCapitalization.words,
@@ -255,10 +318,12 @@ class _LegalRepresentativeViewState extends ConsumerState<LegalRepresentativeVie
               decoration: const InputDecoration(
                 labelText: 'Teléfono *',
                 hintText: 'Ej: 5512345678',
-                prefixIcon: Icon(Icons.phone_outlined),
+                prefixIcon:
+                    HugeIcon(icon: HugeIcons.strokeRoundedCall, size: 22),
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.phone,
+              maxLength: 10,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'El teléfono es requerido';
@@ -278,15 +343,13 @@ class _LegalRepresentativeViewState extends ConsumerState<LegalRepresentativeVie
               height: 48,
               child: ElevatedButton.icon(
                 icon: _isLoading
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
+                        child: SacLoadingSmall(),
                       )
-                    : const Icon(Icons.save),
+                    : HugeIcon(
+                        icon: HugeIcons.strokeRoundedFloppyDisk, size: 22),
                 label: const Text('Guardar Representante Legal'),
                 onPressed: _isLoading ? null : _handleSave,
               ),

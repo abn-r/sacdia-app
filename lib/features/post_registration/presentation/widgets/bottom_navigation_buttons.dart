@@ -1,27 +1,20 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 
-/// Botones de navegación fijos en la parte inferior del post-registro
+/// Botones de navegación fijos en la parte inferior del post-registro.
 ///
-/// Muestra botones "Regresar" y "Continuar" según el paso actual.
+/// Estilo "Scout Vibrante": SacButton.outline para regresar,
+/// SacButton.primary para continuar. Opción de omitir en paso 1.
 class BottomNavigationButtons extends StatelessWidget {
-  /// Paso actual (base 1)
   final int currentStep;
-
-  /// Número total de pasos
   final int totalSteps;
-
-  /// Indica si el botón "Continuar" está habilitado
   final bool canContinue;
-
-  /// Indica si se está procesando una acción
   final bool isLoading;
-
-  /// Callback al presionar "Regresar"
   final VoidCallback? onBack;
-
-  /// Callback al presionar "Continuar"
   final VoidCallback? onContinue;
+  final VoidCallback? onSkip;
 
   const BottomNavigationButtons({
     super.key,
@@ -31,87 +24,73 @@ class BottomNavigationButtons extends StatelessWidget {
     this.isLoading = false,
     this.onBack,
     this.onContinue,
+    this.onSkip,
   });
 
   @override
   Widget build(BuildContext context) {
     final showBack = currentStep > 1;
-    final showContinue = currentStep <= totalSteps;
+    final isLastStep = currentStep == totalSteps;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
+        color: Colors.white,
+        border: Border(
+          top: BorderSide(color: AppColors.lightBorderLight, width: 1),
+        ),
       ),
       child: SafeArea(
         top: false,
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Botón "Regresar"
-            if (showBack)
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: isLoading ? null : onBack,
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: const BorderSide(color: AppColors.sacGreen),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+            Row(
+              children: [
+                // Back button
+                if (showBack) ...[
+                  Expanded(
+                    flex: 2,
+                    child: SacButton.outline(
+                      text: 'Atrás',
+                      onPressed: isLoading ? null : onBack,
+                      icon: HugeIcons.strokeRoundedArrowLeft01,
                     ),
                   ),
-                  child: const Text(
-                    'Regresar',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: AppColors.sacGreen,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  const SizedBox(width: 12),
+                ],
+
+                // Continue button
+                Expanded(
+                  flex: showBack ? 3 : 1,
+                  child: SacButton.primary(
+                    text: isLastStep ? 'Finalizar' : 'Continuar',
+                    isLoading: isLoading,
+                    isEnabled: canContinue,
+                    onPressed: canContinue ? onContinue : null,
+                    trailingIcon: isLastStep
+                        ? HugeIcons.strokeRoundedTick02
+                        : HugeIcons.strokeRoundedArrowRight01,
+                  ),
+                ),
+              ],
+            ),
+
+            // Skip option (only for step 1 - photo)
+            if (onSkip != null && currentStep == 1) ...[
+              const SizedBox(height: 4),
+              TextButton(
+                onPressed: isLoading ? null : onSkip,
+                child: Text(
+                  'Omitir por ahora',
+                  style: TextStyle(
+                    color: AppColors.lightTextTertiary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
-
-            if (showBack && showContinue) const SizedBox(width: 16),
-
-            // Botón "Continuar"
-            if (showContinue)
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: canContinue && !isLoading ? onContinue : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.sacGreen,
-                    disabledBackgroundColor: Colors.grey[300],
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : const Text(
-                          'Continuar',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                ),
-              ),
+            ],
           ],
         ),
       ),

@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_badge.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
 
-import '../../../../core/theme/app_colors.dart';
-
-/// Widget para mostrar información del club
+/// Card de información del club - Estilo "Scout Vibrante"
+///
+/// SacCard con barra de acento lateral del color del club,
+/// badges para tipo y rol, icono de grupo.
 class ClubInfoCard extends StatelessWidget {
   final String? clubName;
   final String? clubType;
@@ -15,20 +20,18 @@ class ClubInfoCard extends StatelessWidget {
     this.userRole,
   });
 
-  /// Obtiene el color según el tipo de club
   Color _getClubColor(String? type) {
-    if (type == null) return AppColors.sacBlue;
-
+    if (type == null) return AppColors.primary;
     switch (type.toLowerCase()) {
       case 'conquistadores':
-        return AppColors.sacBlue;
+        return AppColors.primary;
       case 'aventureros':
-        return AppColors.sacRed;
+        return AppColors.error;
       case 'guías mayores':
       case 'guias mayores':
-        return AppColors.colorGuiaMayor;
+        return AppColors.secondary;
       default:
-        return AppColors.sacBlue;
+        return AppColors.primary;
     }
   }
 
@@ -36,141 +39,65 @@ class ClubInfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final clubColor = _getClubColor(clubType);
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border(
-            left: BorderSide(
+    return SacCard(
+      accentColor: clubColor,
+      child: Row(
+        children: [
+          // Club icon
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: clubColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedUserGroup,
               color: clubColor,
-              width: 4,
+              size: 24,
             ),
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+          const SizedBox(width: 14),
+
+          // Club info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.groups,
-                  color: clubColor,
-                  size: 28,
+                Text(
+                  clubName ?? 'Sin club asignado',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Mi Club',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                        ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    if (clubType != null)
+                      SacBadge(label: clubType!),
+                    if (userRole != null)
+                      SacBadge(
+                        label: userRole!,
+                        variant: SacBadgeVariant.neutral,
+                        icon: HugeIcons.strokeRoundedUser,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        clubName ?? 'Sin club asignado',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.sacBlack,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
+                  ],
                 ),
               ],
             ),
-            if (clubType != null || userRole != null) ...[
-              const SizedBox(height: 12),
-              const Divider(),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  if (clubType != null) ...[
-                    Expanded(
-                      child: _InfoItem(
-                        icon: Icons.category,
-                        label: 'Tipo',
-                        value: clubType!,
-                      ),
-                    ),
-                  ],
-                  if (clubType != null && userRole != null)
-                    Container(
-                      width: 1,
-                      height: 40,
-                      color: Colors.grey[300],
-                      margin: const EdgeInsets.symmetric(horizontal: 8),
-                    ),
-                  if (userRole != null) ...[
-                    Expanded(
-                      child: _InfoItem(
-                        icon: Icons.badge,
-                        label: 'Rol',
-                        value: userRole!,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ],
-          ],
-        ),
+          ),
+
+          // Chevron
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowRight01,
+            color: AppColors.lightTextTertiary,
+            size: 24,
+          ),
+        ],
       ),
-    );
-  }
-}
-
-class _InfoItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _InfoItem({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(
-          icon,
-          color: AppColors.sacGreen,
-          size: 20,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppColors.sacBlack,
-          ),
-          textAlign: TextAlign.center,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
     );
   }
 }

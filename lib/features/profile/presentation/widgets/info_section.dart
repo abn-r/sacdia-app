@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
 
 import '../../../../core/theme/app_colors.dart';
 
@@ -15,28 +17,20 @@ class InfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.sacBlack,
-              ),
-            ),
-            const SizedBox(height: 16),
-            ...items.map((item) => _InfoItemWidget(item: item)),
-          ],
-        ),
+    return SacCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          const SizedBox(height: 16),
+          ...items.map((item) => _InfoItemWidget(item: item)),
+        ],
       ),
     );
   }
@@ -44,7 +38,7 @@ class InfoSection extends StatelessWidget {
 
 /// Modelo para un elemento de información
 class InfoItem {
-  final IconData icon;
+  final dynamic icon;
   final String label;
   final String? value;
   final VoidCallback? onTap;
@@ -72,14 +66,15 @@ class _InfoItemWidget extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
-                color: AppColors.sacGreen.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.primaryLight,
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 item.icon,
-                color: AppColors.sacGreen,
+                color: AppColors.primary,
                 size: 20,
               ),
             ),
@@ -90,29 +85,36 @@ class _InfoItemWidget extends StatelessWidget {
                 children: [
                   Text(
                     item.label,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.lightTextSecondary,
                     ),
                   ),
                   const SizedBox(height: 4),
+                  // Value — overflow guard for long strings
                   Text(
                     item.value ?? 'No especificado',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: item.value != null
-                          ? AppColors.sacBlack
-                          : Colors.grey[400],
-                    ),
+                    style: item.value != null
+                        ? Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.lightText,
+                            )
+                        : Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.lightTextTertiary,
+                              fontStyle: FontStyle.italic,
+                            ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
             if (item.onTap != null)
-              Icon(
-                Icons.chevron_right,
-                color: Colors.grey[400],
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
+                color: AppColors.lightTextTertiary,
               ),
           ],
         ),

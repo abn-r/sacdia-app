@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/responsive.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/post_registration_providers.dart';
 import '../widgets/profile_photo_picker.dart';
@@ -12,6 +13,7 @@ import '../widgets/profile_photo_picker.dart';
 ///
 /// Permite al usuario tomar una foto o seleccionar una de la galería,
 /// recortarla en formato cuadrado y subirla al servidor.
+/// Horizontal padding adapts via Responsive.horizontalPadding.
 class PhotoStepView extends ConsumerStatefulWidget {
   const PhotoStepView({super.key});
 
@@ -38,9 +40,12 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
       log('Error al tomar foto: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al acceder a la cámara'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: const Text('Error al acceder a la cámara'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
         );
       }
@@ -63,9 +68,12 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
       log('Error al seleccionar foto: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al acceder a la galería'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: const Text('Error al acceder a la galería'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
         );
       }
@@ -81,7 +89,7 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
         uiSettings: [
           AndroidUiSettings(
             toolbarTitle: 'Recortar foto',
-            toolbarColor: AppColors.sacGreen,
+            toolbarColor: AppColors.primary,
             toolbarWidgetColor: Colors.white,
             lockAspectRatio: true,
             hideBottomControls: false,
@@ -96,16 +104,18 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
 
       if (croppedFile != null) {
         ref.read(selectedPhotoPathProvider.notifier).state = croppedFile.path;
-        // Subir foto al servidor
         await _uploadPhoto(croppedFile.path);
       }
     } catch (e) {
       log('Error al recortar imagen: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al recortar la imagen'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: const Text('Error al recortar la imagen'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
         );
       }
@@ -130,10 +140,12 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Error al subir foto: ${failure.message}'),
-                backgroundColor: Colors.red,
+                backgroundColor: AppColors.error,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
               ),
             );
-            // Limpiar foto seleccionada en caso de error
             ref.read(selectedPhotoPathProvider.notifier).state = null;
           }
         },
@@ -156,9 +168,10 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
   Widget build(BuildContext context) {
     final selectedPhoto = ref.watch(selectedPhotoPathProvider);
     final isUploading = ref.watch(isUploadingPhotoProvider);
+    final hPad = Responsive.horizontalPadding(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: EdgeInsets.symmetric(horizontal: hPad, vertical: 16),
       child: ProfilePhotoPicker(
         imagePath: selectedPhoto,
         isUploading: isUploading,

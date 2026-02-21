@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/theme/app_colors.dart';
 
 import '../providers/club_selection_providers.dart';
 
@@ -39,15 +41,15 @@ class ClassRecommendation extends ConsumerWidget {
           padding: const EdgeInsets.all(12),
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: Colors.blue.shade50,
+            color: AppColors.primaryLight,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.blue.shade200),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
           ),
           child: Row(
             children: [
-              Icon(
-                Icons.school,
-                color: Colors.blue.shade700,
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedSchool,
+                color: AppColors.primary,
                 size: 20,
               ),
               const SizedBox(width: 12),
@@ -60,15 +62,15 @@ class ClassRecommendation extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Colors.blue.shade900,
+                        color: AppColors.primaryDark,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Para tu edad (${userAge} años), recomendamos la clase "${recommendedClass.name}"',
+                      'Para tu edad ($userAge años), recomendamos la clase "${recommendedClass.name}"',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.blue.shade800,
+                        color: AppColors.primaryDark,
                       ),
                     ),
                     if (recommendedClass.minAge != null &&
@@ -79,7 +81,7 @@ class ClassRecommendation extends ConsumerWidget {
                           'Rango de edad: ${recommendedClass.minAge} - ${recommendedClass.maxAge} años',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.blue.shade600,
+                            color: AppColors.primary,
                             fontStyle: FontStyle.italic,
                           ),
                         ),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
 
-import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../providers/profile_providers.dart';
 
@@ -78,21 +80,51 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     if (mounted) {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Perfil actualizado correctamente'),
-            backgroundColor: AppColors.success,
+          SnackBar(
+            content: const Text('Perfil actualizado correctamente'),
+            backgroundColor: AppColors.secondary,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         );
         Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al actualizar el perfil'),
+          SnackBar(
+            content: const Text('Error al actualizar el perfil'),
             backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         );
       }
     }
+  }
+
+  InputDecoration _fieldDecoration({
+    required String label,
+    required dynamic prefixIcon,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(prefixIcon, color: AppColors.primary),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.lightBorder),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.lightBorder),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+      ),
+    );
   }
 
   @override
@@ -101,130 +133,96 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
       backgroundColor: AppColors.lightBackground,
       appBar: AppBar(
         title: const Text('Editar Perfil'),
-        backgroundColor: AppColors.sacGreen,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppConstants.paddingM),
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(AppConstants.paddingM),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Información Personal',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.sacBlack,
+              SacCard(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Sección header
+                    Row(
+                      children: [
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedUser,
+                          size: 20,
+                          color: AppColors.primary,
                         ),
-                      ),
-                      const SizedBox(height: AppConstants.paddingM),
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: InputDecoration(
-                          labelText: 'Nombre',
-                          prefixIcon: const Icon(Icons.person),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Información Personal',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor ingresa tu nombre';
-                          }
-                          return null;
-                        },
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: _fieldDecoration(
+                        label: 'Nombre',
+                        prefixIcon: HugeIcons.strokeRoundedUser,
                       ),
-                      const SizedBox(height: AppConstants.paddingM),
-                      TextFormField(
-                        controller: _paternalSurnameController,
-                        decoration: InputDecoration(
-                          labelText: 'Apellido Paterno',
-                          prefixIcon: const Icon(Icons.person_outline),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor ingresa tu nombre';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _paternalSurnameController,
+                      decoration: _fieldDecoration(
+                        label: 'Apellido Paterno',
+                        prefixIcon: HugeIcons.strokeRoundedUser,
                       ),
-                      const SizedBox(height: AppConstants.paddingM),
-                      TextFormField(
-                        controller: _maternalSurnameController,
-                        decoration: InputDecoration(
-                          labelText: 'Apellido Materno',
-                          prefixIcon: const Icon(Icons.person_outline),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _maternalSurnameController,
+                      decoration: _fieldDecoration(
+                        label: 'Apellido Materno',
+                        prefixIcon: HugeIcons.strokeRoundedUser,
                       ),
-                      const SizedBox(height: AppConstants.paddingM),
-                      TextFormField(
-                        controller: _phoneController,
-                        decoration: InputDecoration(
-                          labelText: 'Teléfono',
-                          prefixIcon: const Icon(Icons.phone),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        keyboardType: TextInputType.phone,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _phoneController,
+                      decoration: _fieldDecoration(
+                        label: 'Teléfono',
+                        prefixIcon: HugeIcons.strokeRoundedCall,
                       ),
-                      const SizedBox(height: AppConstants.paddingM),
-                      TextFormField(
-                        controller: _addressController,
-                        decoration: InputDecoration(
-                          labelText: 'Dirección',
-                          prefixIcon: const Icon(Icons.location_on),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        maxLines: 2,
+                      keyboardType: TextInputType.phone,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _addressController,
+                      decoration: _fieldDecoration(
+                        label: 'Dirección',
+                        prefixIcon: HugeIcons.strokeRoundedLocation01,
                       ),
-                    ],
-                  ),
+                      maxLines: 2,
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: AppConstants.paddingL),
-              ElevatedButton(
+              const SizedBox(height: 24),
+              SacButton.primary(
+                text: 'Guardar cambios',
+                icon: HugeIcons.strokeRoundedFloppyDisk,
+                isLoading: _isLoading,
                 onPressed: _isLoading ? null : _saveProfile,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.sacGreen,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: AppConstants.paddingM,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text(
-                        'Guardar Cambios',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
               ),
             ],
           ),

@@ -1,17 +1,23 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
-import 'package:sacdia_app/core/widgets/custom_text_field.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/responsive.dart';
+import 'package:sacdia_app/core/utils/validators.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 
-import '../../../../core/utils/validators.dart';
-import '../providers/auth_providers.dart';
-import '../widgets/auth_button.dart';
-
-/// Vista para el inicio de sesión
+/// Vista de login - Estilo "Scout Vibrante"
+///
+/// Fondo blanco, logo compacto, campos limpios, botón indigo.
+/// Responsive: ConstrainedBox limita el ancho en tablets, logo se reduce
+/// en landscape, padding se adapta al tamaño de pantalla.
 class LoginView extends ConsumerStatefulWidget {
   const LoginView({super.key});
 
@@ -27,12 +33,6 @@ class _LoginViewState extends ConsumerState<LoginView> {
   String? _errorMessage;
 
   @override
-  void initState() {
-    super.initState();
-    // La redirección se maneja ahora centralmente en AuthGate
-  }
-
-  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -40,172 +40,313 @@ class _LoginViewState extends ConsumerState<LoginView> {
   }
 
   Future<void> _signIn() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-
     try {
       final success = await ref.read(authNotifierProvider.notifier).signIn(
-            email: email,
-            password: password,
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
           );
 
       if (!success && mounted) {
         setState(() {
           _errorMessage =
-              'Credenciales incorrectas, por favor revise su correo y contraseña.';
+              'Credenciales incorrectas. Revisa tu correo y contraseña.';
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'Error al iniciar sesión: ${e.toString()}';
+          _errorMessage = 'Error al iniciar sesión. Intenta de nuevo.';
         });
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final logoSize = Responsive.authLogoSize(context) * 1.5;
+    final logoBottomSpacing = Responsive.authLogoBottomSpacing(context);
+
     return Scaffold(
       backgroundColor: AppColors.sacGreen,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Image.asset(
-                    'assets/img/LogoSACDIA.png',
-                    width: 160,
-                    height: 160,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Bienvenido de nuevo',
-                    style: Theme.of(context).textTheme.headlineMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 40),
-                  CustomTextField(
-                    controller: _emailController,
-                    hintText: 'Escribe tu correo electrónico',
-                    labelText: 'CORREO',
-                    keyboardType: TextInputType.emailAddress,
-                    obscureText: false,
-                    isPrefixHugeIcon: true,
-                    prefixIcon: HugeIcons.strokeRoundedMail02,
-                    validator: Validators.validateEmail,
-                  ),
-                  const SizedBox(height: 15),
-                  CustomTextField(
-                    controller: _passwordController,
-                    hintText: 'Escribe tu contraseña',
-                    labelText: 'CONTRASEÑA',
-                    keyboardType: TextInputType.visiblePassword,
-                    obscureText: true,
-                    isPrefixHugeIcon: true,
-                    prefixIcon: HugeIcons.strokeRoundedLockPassword,
-                    validator: Validators.validatePassword,
-                  ),
-                  const SizedBox(height: 20),
-                  RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
-                      text: '¿Olvidaste tu contraseña?',
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
-                      children: [
-                        TextSpan(
-                          text: '¡Recupérala aquí!',
-                          style: const TextStyle(
-                              color: AppColors.sacBlack,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              context.push(RouteNames.forgotPassword);
-                            },
+            padding: Responsive.formPadding(context),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: Responsive.maxFormWidth,
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 22),
+
+                      // Logo — smaller in landscape to save vertical space
+                      Center(
+                        child: Image.asset(
+                          'assets/img/LogoSACDIA.png',
+                          width: logoSize,
+                          height: logoSize,
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  if (_errorMessage != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.red[50],
-                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Row(
-                        children: [
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedAlert01,
-                            size: 30,
-                            color: Colors.red[700]!,
+                      SizedBox(height: logoBottomSpacing),
+
+                      // Título
+                      Text(
+                        'Bienvenido de vuelta',
+                        style: Theme.of(context).textTheme.displayMedium,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Inicia sesión para continuar',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.lightTextSecondary,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 30),
+
+                      // Campo email
+                      SacTextField(
+                        controller: _emailController,
+                        label: 'Correo electrónico',
+                        hint: 'tu@correo.com',
+                        keyboardType: TextInputType.emailAddress,
+                        prefixIcon: HugeIcons.strokeRoundedMail01,
+                        validator: Validators.validateEmail,
+                        textInputAction: TextInputAction.next,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Campo password
+                      SacTextField(
+                        controller: _passwordController,
+                        label: 'Contraseña',
+                        hint: 'Tu contraseña',
+                        obscureText: true,
+                        prefixIcon: HugeIcons.strokeRoundedLockKey,
+                        validator: Validators.validatePassword,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _signIn(),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Forgot password link
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () =>
+                              context.push(RouteNames.forgotPassword),
+                          child: const Text(
+                            '¿Olvidaste tu contraseña?',
+                            style: TextStyle(
+                                color: AppColors.sacBlack,
+                                fontWeight: FontWeight.bold),
                           ),
-                          const SizedBox(width: 10),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Error message
+                      if (_errorMessage != null) ...[
+                        SacCard(
+                          backgroundColor: AppColors.errorLight,
+                          borderColor: AppColors.error.withValues(alpha: 0.3),
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              HugeIcon(
+                                icon: HugeIcons.strokeRoundedAlert02,
+                                size: 20,
+                                color: AppColors.errorDark,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  _errorMessage!,
+                                  style: const TextStyle(
+                                    color: AppColors.errorDark,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Botón login
+                      SacButton.primary(
+                        text: 'Iniciar Sesión',
+                        backgroundColor: AppColors.sacGreenLight,
+                        isLoading: _isLoading,
+                        onPressed: _signIn,
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Divider "o continúa con"
+                      Row(
+                        children: [
                           Expanded(
+                            child: Container(
+                              height: 1,
+                              color: AppColors.lightBorder,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Text(
-                              _errorMessage!,
-                              style: TextStyle(
-                                  color: Colors.red[700], fontSize: 15),
+                              'o continúa con',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: AppColors.sacBlack,
+                                  ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Container(
+                              height: 1,
+                              color: AppColors.lightBorder,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  const SizedBox(height: 10),
-                  AuthButton(
-                    text: 'Iniciar Sesión',
-                    isLoading: _isLoading,
-                    onPressed: _signIn,
-                  ),
-                  const SizedBox(height: 40),
-                  RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
-                      text: '¿Aún no tienes cuenta? ',
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
-                      children: [
-                        TextSpan(
-                          text: '¡Regístrate aquí!',
-                          style: const TextStyle(
-                              color: AppColors.sacBlack,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              context.push(RouteNames.register);
-                            },
+                      const SizedBox(height: 24),
+
+                      // Botones OAuth — estilo glassmorphism
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _OAuthButton(
+                              onPressed: () {
+                                // TODO: Google OAuth
+                              },
+                              iconPath: 'assets/svg/google_logo.svg',
+                              label: 'Google',
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: _OAuthButton(
+                              onPressed: () {
+                                // TODO: Apple OAuth
+                              },
+                              iconPath: 'assets/svg/apple_logo.svg',
+                              label: 'Apple',
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 40),
+
+                      // Link a registro
+                      Center(
+                        child: RichText(
+                          text: TextSpan(
+                            text: '¿No tienes cuenta? ',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: AppColors.sacBlack,
+                                ),
+                            children: [
+                              TextSpan(
+                                text: 'Regístrate',
+                                style: const TextStyle(
+                                  color: AppColors.sacBlack,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap =
+                                      () => context.push(RouteNames.register),
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                ],
+                ),
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Widget privado para botones de OAuth con estilo glassmorphism.
+/// Fondo semitransparente, bordes suaves y tipografía consistente.
+class _OAuthButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final String iconPath;
+  final String label;
+
+  const _OAuthButton({
+    required this.onPressed,
+    required this.iconPath,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(14),
+        splashColor: Colors.white.withValues(alpha: 0.15),
+        highlightColor: Colors.white.withValues(alpha: 0.08),
+        child: Ink(
+          decoration: BoxDecoration(
+            // Fondo glassmorphism — blanco semitransparente
+            color: Colors.white.withValues(alpha: 0.18),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.4),
+              width: 1.5,
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SvgPicture.asset(
+                iconPath,
+                width: 22,
+                height: 22,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: AppColors.sacBlack,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
           ),
         ),
       ),

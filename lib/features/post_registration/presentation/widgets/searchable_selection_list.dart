@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import '../../../../core/theme/app_colors.dart';
 
 /// Item seleccionable con checkbox
 class SelectableItem {
@@ -33,7 +35,8 @@ class SearchableSelectionList extends StatefulWidget {
   });
 
   @override
-  State<SearchableSelectionList> createState() => _SearchableSelectionListState();
+  State<SearchableSelectionList> createState() =>
+      _SearchableSelectionListState();
 }
 
 class _SearchableSelectionListState extends State<SearchableSelectionList> {
@@ -137,10 +140,12 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
             controller: _searchController,
             decoration: InputDecoration(
               hintText: widget.searchHint,
-              prefixIcon: const Icon(Icons.search),
+              prefixIcon:
+                  HugeIcon(icon: HugeIcons.strokeRoundedSearch01, size: 22),
               suffixIcon: _searchQuery.isNotEmpty
                   ? IconButton(
-                      icon: const Icon(Icons.clear),
+                      icon: HugeIcon(
+                          icon: HugeIcons.strokeRoundedCancel01, size: 22),
                       onPressed: () {
                         setState(() {
                           _searchController.clear();
@@ -153,7 +158,7 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
                 borderRadius: BorderRadius.circular(12),
               ),
               filled: true,
-              fillColor: Colors.grey[100],
+              fillColor: AppColors.lightSurfaceVariant,
             ),
             onChanged: (value) {
               setState(() {
@@ -170,17 +175,17 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.search_off,
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedSearchMinus,
                         size: 64,
-                        color: Colors.grey[400],
+                        color: AppColors.lightTextTertiary,
                       ),
                       const SizedBox(height: 16),
                       Text(
                         'No se encontraron resultados',
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.grey[600],
+                          color: AppColors.lightTextSecondary,
                         ),
                       ),
                     ],
@@ -196,7 +201,9 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
                       title: Text(
                         item.name,
                         style: TextStyle(
-                          fontWeight: isNoneOption ? FontWeight.bold : FontWeight.normal,
+                          fontWeight: isNoneOption
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                         ),
                       ),
                       leading: Checkbox(
@@ -213,9 +220,9 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.grey[100],
+            color: AppColors.lightSurfaceVariant,
             border: Border(
-              top: BorderSide(color: Colors.grey[300]!),
+              top: BorderSide(color: AppColors.lightBorder),
             ),
           ),
           child: Row(
@@ -225,13 +232,14 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
                 _getSelectionCountText(),
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey[700],
+                  color: AppColors.lightTextSecondary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               if (_items.any((i) => i.isSelected && i.id != _noneOptionId))
                 TextButton.icon(
-                  icon: const Icon(Icons.clear_all),
+                  icon:
+                      HugeIcon(icon: HugeIcons.strokeRoundedCancel02, size: 20),
                   label: const Text('Limpiar'),
                   onPressed: () {
                     setState(() {
@@ -250,7 +258,8 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
   }
 
   String _getSelectionCountText() {
-    final count = _items.where((i) => i.isSelected && i.id != _noneOptionId).length;
+    final count =
+        _items.where((i) => i.isSelected && i.id != _noneOptionId).length;
 
     if (count == 0) {
       return 'Ningún elemento seleccionado';

@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hugeicons/hugeicons.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/validators.dart';
-import '../../../../core/widgets/custom_text_field.dart';
-import '../providers/auth_providers.dart';
-import '../widgets/auth_button.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/validators.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 
-/// Vista de recuperación de contraseña
+/// Vista de recuperación de contraseña - Estilo "Scout Vibrante"
 ///
-/// Permite al usuario solicitar un enlace para restablecer su contraseña.
+/// Pantalla minimalista con un solo campo de correo y mensaje
+/// explicativo claro.
 class ForgotPasswordView extends ConsumerStatefulWidget {
   const ForgotPasswordView({super.key});
 
@@ -23,6 +25,7 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
   final _emailController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
+  bool _emailSent = false;
 
   @override
   void dispose() {
@@ -32,7 +35,6 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
 
   Future<void> _handleSubmit() async {
     setState(() => _errorMessage = null);
-
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
@@ -52,21 +54,16 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
           });
         },
         (_) {
-          setState(() => _isLoading = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Se ha enviado un enlace de recuperación a tu correo'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 4),
-            ),
-          );
-          context.pop();
+          setState(() {
+            _isLoading = false;
+            _emailSent = true;
+          });
         },
       );
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = 'Error inesperado. Por favor, intenta de nuevo.';
+        _errorMessage = 'Error inesperado. Intenta de nuevo.';
         _isLoading = false;
       });
     }
@@ -76,76 +73,166 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: AppColors.sacRed,
-        foregroundColor: Colors.white,
-        title: const Text(
-          'RECUPERAR CONTRASEÑA',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        centerTitle: true,
-        elevation: 0,
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 20),
-                const Text(
-                  'Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: AppColors.sacBlack,
-                    height: 1.5,
+                const SizedBox(height: 12),
+
+                // Back button
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    onPressed: () => context.pop(),
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowLeft01,
+                      color: AppColors.lightText,
+                    ),
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppColors.lightBackground,
+                    ),
                   ),
+                ),
+                const SizedBox(height: 24),
+
+                // Icon
+                Center(
+                  child: Container(
+                    width: 82,
+                    height: 82,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Center(
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedLockPassword,
+                        size: 40,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Title
+                Text(
+                  'Recuperar contraseña',
+                  style: Theme.of(context).textTheme.displayMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.lightTextSecondary,
+                        height: 1.5,
+                      ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 40),
-                CustomTextField(
-                  controller: _emailController,
-                  hintText: 'ejemplo@correo.com',
-                  labelText: 'CORREO ELECTRÓNICO',
-                  keyboardType: TextInputType.emailAddress,
-                  prefixIcon: HugeIcons.strokeRoundedMail02,
-                  isPrefixHugeIcon: true,
-                  validator: Validators.validateEmail,
-                ),
-                const SizedBox(height: 30),
-                if (_errorMessage != null) ...[
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.red[50],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
+
+                if (_emailSent) ...[
+                  // Success state
+                  SacCard(
+                    backgroundColor: AppColors.secondaryLight,
+                    borderColor: AppColors.secondary.withValues(alpha: 0.3),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
                       children: [
                         HugeIcon(
-                          icon: HugeIcons.strokeRoundedAlert01,
-                          size: 30,
-                          color: Colors.red[700]!,
+                          icon: HugeIcons.strokeRoundedMailOpen01,
+                          size: 48,
+                          color: AppColors.secondary,
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            _errorMessage!,
-                            style: TextStyle(color: Colors.red[700], fontSize: 15),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Enlace enviado',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.secondaryDark,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Revisa tu bandeja de entrada en ${_emailController.text.trim()}',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: AppColors.secondaryDark,
+                            height: 1.4,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 40),
+                  SacButton.outline(
+                    text: 'Volver al inicio de sesión',
+                    onPressed: () => context.pop(),
+                  ),
+                ] else ...[
+                  // Email input
+                  SacTextField(
+                    controller: _emailController,
+                    label: 'Correo electrónico',
+                    hint: 'tu@correo.com',
+                    keyboardType: TextInputType.emailAddress,
+                    prefixIcon: HugeIcons.strokeRoundedMail01,
+                    validator: Validators.validateEmail,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => _handleSubmit(),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Error message
+                  if (_errorMessage != null) ...[
+                    SacCard(
+                      backgroundColor: AppColors.errorLight,
+                      borderColor: AppColors.error.withValues(alpha: 0.3),
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedAlert02,
+                            size: 20,
+                            color: AppColors.errorDark,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _errorMessage!,
+                              style: const TextStyle(
+                                color: AppColors.errorDark,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Submit button
+                  SacButton.primary(
+                    text: 'Enviar enlace',
+                    isLoading: _isLoading,
+                    onPressed: _handleSubmit,
+                  ),
+                  const SizedBox(height: 40),
+                  SacButton.ghost(
+                    text: 'Volver al inicio de sesión',
+                    onPressed: () => context.pop(),
+                  ),
                 ],
-                AuthButton(
-                  text: 'Enviar enlace',
-                  isLoading: _isLoading,
-                  onPressed: _handleSubmit,
-                ),
+
+                const SizedBox(height: 32),
               ],
             ),
           ),

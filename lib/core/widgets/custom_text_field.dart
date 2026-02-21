@@ -94,7 +94,7 @@ class CustomTextFieldState extends State<CustomTextField> {
             style: Theme.of(context)
                 .textTheme
                 .titleLarge!
-                .copyWith(color: AppColors.sacBlack, fontWeight: FontWeight.w600),
+                .copyWith(color: AppColors.lightText, fontWeight: FontWeight.w600),
             textAlign: TextAlign.start,
           ),
           const SizedBox(height: 6),
@@ -154,15 +154,15 @@ class CustomTextFieldState extends State<CustomTextField> {
                 // Aumentar el padding para que el texto no quede tan pegado a los bordes
                 contentPadding:
                     const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
-                hintStyle: const TextStyle(color: AppColors.sacGrey),
+                hintStyle: TextStyle(color: AppColors.lightTextTertiary),
                 fillColor: Colors.white,
                 filled: true,
                 prefixIcon: _buildPrefixIcon(),
                 suffixIcon: widget.obscureText
                     ? IconButton(
                         icon: _obscureText
-                            ? const Icon(Icons.visibility, color: AppColors.sacBlack)
-                            : const Icon(Icons.visibility_off, color: AppColors.sacBlack),
+                            ? HugeIcon(icon: HugeIcons.strokeRoundedViewOffSlash, color: AppColors.lightTextSecondary, size: 20)
+                            : HugeIcon(icon: HugeIcons.strokeRoundedViewOff, color: AppColors.lightTextSecondary, size: 20),
                         onPressed: _toggleObscureText,
                       )
                     : null,
@@ -199,11 +199,11 @@ class CustomTextFieldState extends State<CustomTextField> {
     if (widget.isPrefixHugeIcon) {
       return HugeIcon(
         icon: widget.prefixIcon,
-        color: AppColors.sacBlack,
+        color: AppColors.lightTextSecondary,
         size: 24,
       );
     } else {
-      return Icon(widget.prefixIcon, color: AppColors.sacGrey);
+      return Icon(widget.prefixIcon, color: AppColors.lightTextTertiary);
     }
   }
 }

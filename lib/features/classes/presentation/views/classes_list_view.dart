@@ -1,110 +1,155 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/responsive.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
+
 import '../providers/classes_providers.dart';
 import '../widgets/class_card.dart';
 import 'class_detail_view.dart';
 
-/// Vista de lista de clases progresivas
+/// Vista de lista de clases - Estilo "Scout Vibrante"
+///
+/// Sin AppBar (tab del bottom nav), título inline,
+/// ClassCards con SacProgressBar y badge "Clase actual".
+/// Items animan con stagger slide-up al cargar.
 class ClassesListView extends ConsumerWidget {
-  const ClassesListView({Key? key}) : super(key: key);
+  const ClassesListView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final classesAsync = ref.watch(userClassesProvider);
+    final hPad = Responsive.horizontalPadding(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Clases Progresivas'),
-        backgroundColor: AppColors.primaryBlue,
-      ),
-      body: classesAsync.when(
-        data: (classes) {
-          if (classes.isEmpty) {
-            return const Center(
+      backgroundColor: AppColors.lightBackground,
+      body: SafeArea(
+        child: classesAsync.when(
+          data: (classes) {
+            if (classes.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    HugeIcon(
+                        icon: HugeIcons.strokeRoundedSchool,
+                        size: 56,
+                        color: AppColors.lightTextTertiary),
+                    const SizedBox(height: 12),
+                    Text(
+                      'No tienes clases asignadas',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: AppColors.lightTextSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return RefreshIndicator(
+              color: AppColors.primary,
+              onRefresh: () async {
+                ref.invalidate(userClassesProvider);
+              },
+              child: ListView.builder(
+                padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 24),
+                itemCount: classes.length + 1, // +1 for header
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    // Header is item 0 — no stagger needed, shows instantly
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: Row(
+                        children: [
+                          HugeIcon(
+                              icon: HugeIcons.strokeRoundedSchool,
+                              size: 24,
+                              color: AppColors.primary),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Mis Clases',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  final classIndex = index - 1;
+                  final progressiveClass = classes[classIndex];
+                  // TODO: Obtener progreso real de la API
+                  const progress = 0.0;
+
+                  return StaggeredListItem(
+                    // Offset index by 1 so first card starts at index 0 delay
+                    index: classIndex,
+                    initialDelay: const Duration(milliseconds: 80),
+                    staggerDelay: const Duration(milliseconds: 65),
+                    child: ClassCard(
+                      progressiveClass: progressiveClass,
+                      progress: progress,
+                      isCurrent: classIndex == 0, // First class is current
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ClassDetailView(
+                              classId: progressiveClass.id,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+          loading: () => const Center(child: SacLoading()),
+          error: (error, stack) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.school_outlined,
-                    size: 80,
-                    color: AppColors.lightTextSecondary,
-                  ),
-                  SizedBox(height: 16),
+                  HugeIcon(
+                      icon: HugeIcons.strokeRoundedAlert02,
+                      size: 56,
+                      color: AppColors.error),
+                  const SizedBox(height: 16),
                   Text(
-                    'No tienes clases asignadas',
+                    'Error al cargar clases',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    error.toString(),
                     style: TextStyle(
-                      fontSize: 18,
-                      color: AppColors.lightTextSecondary,
-                    ),
+                        fontSize: 14, color: AppColors.lightTextSecondary),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  SacButton.primary(
+                    text: 'Reintentar',
+                    icon: HugeIcons.strokeRoundedRefresh,
+                    onPressed: () {
+                      ref.invalidate(userClassesProvider);
+                    },
                   ),
                 ],
               ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              ref.invalidate(userClassesProvider);
-            },
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: classes.length,
-              itemBuilder: (context, index) {
-                final progressiveClass = classes[index];
-                // TODO: Obtener progreso real de la API
-                final progress = 0.0;
-
-                return ClassCard(
-                  progressiveClass: progressiveClass,
-                  progress: progress,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ClassDetailView(
-                          classId: progressiveClass.id,
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
             ),
-          );
-        },
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
-        ),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.error_outline,
-                size: 60,
-                color: AppColors.error,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Error al cargar clases',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                error.toString(),
-                style: const TextStyle(color: AppColors.lightTextSecondary),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: () {
-                  ref.invalidate(userClassesProvider);
-                },
-                icon: const Icon(Icons.refresh),
-                label: const Text('Reintentar'),
-              ),
-            ],
           ),
         ),
       ),

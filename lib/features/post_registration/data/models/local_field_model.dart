@@ -14,17 +14,23 @@ class LocalFieldModel extends Equatable {
 
   /// Crea una instancia desde JSON
   factory LocalFieldModel.fromJson(Map<String, dynamic> json) {
+    // Tolerar claves alternativas para el ID
+    final rawId = json['local_field_id'] ?? json['id'];
+    final rawUnionId = json['union_id'];
+
     return LocalFieldModel(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      unionId: json['union_id'] as int,
+      id: rawId is int ? rawId : (int.tryParse(rawId?.toString() ?? '') ?? 0),
+      name: (json['name'] as String?) ?? '',
+      unionId: rawUnionId is int
+          ? rawUnionId
+          : (int.tryParse(rawUnionId?.toString() ?? '') ?? 0),
     );
   }
 
   /// Convierte la instancia a JSON
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'local_field_id': id,
       'name': name,
       'union_id': unionId,
     };

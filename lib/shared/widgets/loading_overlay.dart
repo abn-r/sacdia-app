@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 /// Overlay de carga reutilizable
 ///
@@ -30,7 +31,7 @@ class LoadingOverlay extends StatelessWidget {
           Container(
             color: barrierColor ?? Colors.black.withValues(alpha: 0.3),
             child: const Center(
-              child: CircularProgressIndicator(),
+              child: SacLoading(),
             ),
           ),
       ],

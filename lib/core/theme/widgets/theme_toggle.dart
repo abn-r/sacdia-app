@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../../../main.dart';
 import '../../constants/app_constants.dart';
@@ -32,9 +33,10 @@ class ThemeToggle extends ConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              isDarkMode ? Icons.light_mode : Icons.dark_mode,
-              color: color,
+            HugeIcon(
+              icon: isDarkMode ? HugeIcons.strokeRoundedSun01 : HugeIcons.strokeRoundedMoon,
+              color: color ?? Colors.black,
+              size: 24,
             ),
             if (showText) ...[
               const SizedBox(width: AppConstants.paddingS),

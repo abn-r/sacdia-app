@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
 
-/// Widget de fila de información de actividad
+/// Fila de información de actividad - Estilo "Scout Vibrante"
+///
+/// IconBox 36px + label + value.
 class ActivityInfoRow extends StatelessWidget {
-  final IconData icon;
+  final dynamic icon;
   final String label;
   final String value;
 
   const ActivityInfoRow({
-    Key? key,
+    super.key,
     required this.icon,
     required this.label,
     required this.value,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -21,10 +24,14 @@ class ActivityInfoRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
-            size: 24,
-            color: AppColors.primaryBlue,
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: buildIcon(icon, size: 18, color: AppColors.primary),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -33,15 +40,18 @@ class ActivityInfoRow extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.lightTextSecondary,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.lightTextSecondary,
+                  ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   value,
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
                 ),
               ],
             ),
