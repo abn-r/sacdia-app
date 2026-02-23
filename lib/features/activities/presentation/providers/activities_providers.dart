@@ -70,17 +70,16 @@ final activityDetailProvider =
   );
 });
 
-/// State notifier para manejar el registro de asistencia
-class AttendanceNotifier extends StateNotifier<AsyncValue<int?>> {
-  final RegisterAttendance registerAttendance;
-
-  AttendanceNotifier(this.registerAttendance) : super(const AsyncValue.data(null));
+/// Notifier para manejar el registro de asistencia
+class AttendanceNotifier extends AsyncNotifier<int?> {
+  @override
+  Future<int?> build() async => null;
 
   /// Registrar asistencia de múltiples usuarios
   Future<void> registerMultiple(int activityId, List<String> userIds) async {
     state = const AsyncValue.loading();
 
-    final result = await registerAttendance(
+    final result = await ref.read(registerAttendanceProvider)(
       RegisterAttendanceParams(
         activityId: activityId,
         userIds: userIds,
@@ -101,6 +100,6 @@ class AttendanceNotifier extends StateNotifier<AsyncValue<int?>> {
 
 /// Provider para el notifier de asistencia
 final attendanceNotifierProvider =
-    StateNotifierProvider<AttendanceNotifier, AsyncValue<int?>>((ref) {
-  return AttendanceNotifier(ref.read(registerAttendanceProvider));
+    AsyncNotifierProvider<AttendanceNotifier, int?>(() {
+  return AttendanceNotifier();
 });
