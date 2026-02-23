@@ -32,9 +32,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  bool _isLoading = false;
   bool _isButtonEnabled = false;
-  String? _errorMessage;
 
   @override
   void initState() {
@@ -88,51 +86,37 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
   Future<void> _signUp() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final success = await ref.read(authNotifierProvider.notifier).signUp(
-            email: _emailController.text.trim(),
-            password: _passwordController.text.trim(),
-            name: _nameController.text.trim(),
-            paternalSurname: _paternalController.text.trim(),
-            maternalSurname: _maternalController.text.trim(),
-          );
-
-      if (!success && mounted) {
-        final error = ref.read(authNotifierProvider).error;
-        setState(() {
-          _errorMessage = error?.toString() ??
-              'Error al registrar la cuenta. Intenta nuevamente.';
-        });
-      } else if (success && mounted) {
-        context.pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Cuenta creada. Ya puedes iniciar sesión.'),
-            backgroundColor: AppColors.secondary,
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          ),
+    final success = await ref.read(authNotifierProvider.notifier).signUp(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+          name: _nameController.text.trim(),
+          paternalSurname: _paternalController.text.trim(),
+          maternalSurname: _maternalController.text.trim(),
         );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = 'Error al registrar la cuenta. Intenta de nuevo.';
-        });
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+
+    if (success && mounted) {
+      context.pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Cuenta creada. Ya puedes iniciar sesión.'),
+          backgroundColor: AppColors.secondary,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      );
     }
+    // Error is surfaced via ref.watch in build().
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authNotifierProvider);
+    final isLoading = authState.isLoading;
+    final errorMessage = authState.hasError
+        ? (authState.error?.toString() ?? 'Error al registrar la cuenta')
+        : null;
+
     // Responsive title: smaller on very small phones
     final isSmallPhone = Responsive.isSmallPhone(context);
     final titleStyle = isSmallPhone
@@ -267,7 +251,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                       const SizedBox(height: 24),
 
                       // Error message
-                      if (_errorMessage != null) ...[
+                      if (errorMessage != null) ...[
                         SacCard(
                           backgroundColor: AppColors.errorLight,
                           borderColor: AppColors.error.withValues(alpha: 0.3),
@@ -282,7 +266,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  _errorMessage!,
+                                  errorMessage,
                                   style: const TextStyle(
                                     color: AppColors.errorDark,
                                     fontSize: 14,
@@ -298,7 +282,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                       // Register button
                       SacButton.primary(
                         text: 'Crear Cuenta',
-                        isLoading: _isLoading,
+                        isLoading: isLoading,
                         isEnabled: _isButtonEnabled,
                         onPressed: _isButtonEnabled ? _signUp : null,
                       ),
