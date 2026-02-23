@@ -127,17 +127,16 @@ final userHonorStatsProvider =
   );
 });
 
-/// State notifier para manejar inscripciones en especialidades
-class HonorEnrollmentNotifier extends StateNotifier<AsyncValue<UserHonor?>> {
-  final StartHonor startHonor;
-
-  HonorEnrollmentNotifier(this.startHonor) : super(const AsyncValue.data(null));
+/// Notifier para manejar inscripciones en especialidades
+class HonorEnrollmentNotifier extends AsyncNotifier<UserHonor?> {
+  @override
+  Future<UserHonor?> build() async => null;
 
   /// Inscribir a un usuario en una especialidad
   Future<void> enrollInHonor(String userId, int honorId) async {
     state = const AsyncValue.loading();
 
-    final result = await startHonor(
+    final result = await ref.read(startHonorProvider)(
       StartHonorParams(userId: userId, honorId: honorId),
     );
 
@@ -150,6 +149,6 @@ class HonorEnrollmentNotifier extends StateNotifier<AsyncValue<UserHonor?>> {
 
 /// Provider para el notifier de inscripción en especialidades
 final honorEnrollmentNotifierProvider =
-    StateNotifierProvider<HonorEnrollmentNotifier, AsyncValue<UserHonor?>>((ref) {
-  return HonorEnrollmentNotifier(ref.read(startHonorProvider));
+    AsyncNotifierProvider<HonorEnrollmentNotifier, UserHonor?>(() {
+  return HonorEnrollmentNotifier();
 });
