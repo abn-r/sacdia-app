@@ -96,11 +96,10 @@ final classModulesProvider =
   );
 });
 
-/// State notifier para manejar actualizaciones de progreso
-class ClassProgressNotifier extends StateNotifier<AsyncValue<ClassProgress?>> {
-  final UpdateClassProgress updateClassProgress;
-
-  ClassProgressNotifier(this.updateClassProgress) : super(const AsyncValue.data(null));
+/// Notifier para manejar actualizaciones de progreso
+class ClassProgressNotifier extends AsyncNotifier<ClassProgress?> {
+  @override
+  Future<ClassProgress?> build() async => null;
 
   /// Actualizar progreso de una sección
   Future<void> updateProgress(
@@ -110,7 +109,7 @@ class ClassProgressNotifier extends StateNotifier<AsyncValue<ClassProgress?>> {
   ) async {
     state = const AsyncValue.loading();
 
-    final result = await updateClassProgress(
+    final result = await ref.read(updateClassProgressProvider)(
       UpdateClassProgressParams(
         userId: userId,
         classId: classId,
@@ -127,6 +126,6 @@ class ClassProgressNotifier extends StateNotifier<AsyncValue<ClassProgress?>> {
 
 /// Provider para el notifier de progreso de clase
 final classProgressNotifierProvider =
-    StateNotifierProvider<ClassProgressNotifier, AsyncValue<ClassProgress?>>((ref) {
-  return ClassProgressNotifier(ref.read(updateClassProgressProvider));
+    AsyncNotifierProvider<ClassProgressNotifier, ClassProgress?>(() {
+  return ClassProgressNotifier();
 });
