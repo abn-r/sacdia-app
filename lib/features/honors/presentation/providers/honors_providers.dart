@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../../providers/dio_provider.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../data/datasources/honors_remote_data_source.dart';
 import '../../data/repositories/honors_repository_impl.dart';

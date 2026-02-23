@@ -8,6 +8,7 @@ import '../../data/models/allergy_model.dart';
 import '../../data/models/disease_model.dart';
 import '../../data/models/relationship_type_model.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../../providers/dio_provider.dart';
 
 /// Provider del data source de información personal
 final personalInfoDataSourceProvider =
@@ -80,6 +81,134 @@ final selectedAllergiesProvider = StateProvider<List<int>>((ref) => []);
 
 /// Provider de enfermedades seleccionadas
 final selectedDiseasesProvider = StateProvider<List<int>>((ref) => []);
+
+/// Notifier de alergias del usuario (pre-cargadas desde la API)
+class UserAllergiesNotifier extends AsyncNotifier<List<AllergyModel>> {
+  @override
+  Future<List<AllergyModel>> build() async {
+    final authState = ref.watch(authNotifierProvider);
+    final userId = authState.valueOrNull?.id;
+
+    if (userId == null) return [];
+
+    final dataSource = ref.watch(personalInfoDataSourceProvider);
+    final userAllergies = await dataSource.getUserAllergies(userId);
+
+    // Sincronizar los IDs pre-cargados con selectedAllergiesProvider
+    final ids = userAllergies.map((a) => a.id).toList();
+    ref.read(selectedAllergiesProvider.notifier).state = ids;
+
+    return userAllergies;
+  }
+
+  /// Elimina una alergia del usuario (soft-delete)
+  Future<void> deleteAllergy(int allergyId) async {
+    state = const AsyncValue.loading();
+
+    state = await AsyncValue.guard(() async {
+      final authState = ref.read(authNotifierProvider);
+      final userId = authState.valueOrNull?.id;
+
+      if (userId == null) throw Exception('Usuario no autenticado');
+
+      final dataSource = ref.read(personalInfoDataSourceProvider);
+      await dataSource.deleteUserAllergy(userId, allergyId);
+
+      // Actualizar selectedAllergiesProvider
+      final currentIds = ref.read(selectedAllergiesProvider);
+      ref.read(selectedAllergiesProvider.notifier).state =
+          currentIds.where((id) => id != allergyId).toList();
+
+      // Recargar la lista
+      return await dataSource.getUserAllergies(userId);
+    });
+  }
+
+  /// Recarga la lista de alergias del usuario
+  Future<void> refresh() async {
+    state = const AsyncValue.loading();
+
+    state = await AsyncValue.guard(() async {
+      final authState = ref.read(authNotifierProvider);
+      final userId = authState.valueOrNull?.id;
+
+      if (userId == null) return [];
+
+      final dataSource = ref.read(personalInfoDataSourceProvider);
+      return await dataSource.getUserAllergies(userId);
+    });
+  }
+}
+
+/// Provider de alergias del usuario (con pre-carga)
+final userAllergiesProvider =
+    AsyncNotifierProvider<UserAllergiesNotifier, List<AllergyModel>>(
+  () => UserAllergiesNotifier(),
+);
+
+/// Notifier de enfermedades del usuario (pre-cargadas desde la API)
+class UserDiseasesNotifier extends AsyncNotifier<List<DiseaseModel>> {
+  @override
+  Future<List<DiseaseModel>> build() async {
+    final authState = ref.watch(authNotifierProvider);
+    final userId = authState.valueOrNull?.id;
+
+    if (userId == null) return [];
+
+    final dataSource = ref.watch(personalInfoDataSourceProvider);
+    final userDiseases = await dataSource.getUserDiseases(userId);
+
+    // Sincronizar los IDs pre-cargados con selectedDiseasesProvider
+    final ids = userDiseases.map((d) => d.id).toList();
+    ref.read(selectedDiseasesProvider.notifier).state = ids;
+
+    return userDiseases;
+  }
+
+  /// Elimina una enfermedad del usuario (soft-delete)
+  Future<void> deleteDisease(int diseaseId) async {
+    state = const AsyncValue.loading();
+
+    state = await AsyncValue.guard(() async {
+      final authState = ref.read(authNotifierProvider);
+      final userId = authState.valueOrNull?.id;
+
+      if (userId == null) throw Exception('Usuario no autenticado');
+
+      final dataSource = ref.read(personalInfoDataSourceProvider);
+      await dataSource.deleteUserDisease(userId, diseaseId);
+
+      // Actualizar selectedDiseasesProvider
+      final currentIds = ref.read(selectedDiseasesProvider);
+      ref.read(selectedDiseasesProvider.notifier).state =
+          currentIds.where((id) => id != diseaseId).toList();
+
+      // Recargar la lista
+      return await dataSource.getUserDiseases(userId);
+    });
+  }
+
+  /// Recarga la lista de enfermedades del usuario
+  Future<void> refresh() async {
+    state = const AsyncValue.loading();
+
+    state = await AsyncValue.guard(() async {
+      final authState = ref.read(authNotifierProvider);
+      final userId = authState.valueOrNull?.id;
+
+      if (userId == null) return [];
+
+      final dataSource = ref.read(personalInfoDataSourceProvider);
+      return await dataSource.getUserDiseases(userId);
+    });
+  }
+}
+
+/// Provider de enfermedades del usuario (con pre-carga)
+final userDiseasesProvider =
+    AsyncNotifierProvider<UserDiseasesNotifier, List<DiseaseModel>>(
+  () => UserDiseasesNotifier(),
+);
 
 /// Provider que verifica si se requiere representante legal
 final legalRepresentativeRequiredProvider = FutureProvider<bool>((ref) async {

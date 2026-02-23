@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
-import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../../providers/dio_provider.dart';
 import '../../data/datasources/club_selection_remote_data_source.dart';
 import '../../data/models/country_model.dart';
 import '../../data/models/union_model.dart';

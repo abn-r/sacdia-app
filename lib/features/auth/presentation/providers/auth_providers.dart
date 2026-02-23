@@ -2,7 +2,6 @@ import 'dart:developer';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -17,16 +16,7 @@ import '../../domain/usecases/sign_out.dart';
 import '../../domain/usecases/sign_up.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../../core/constants/app_constants.dart';
-
-/// Provider para el cliente Dio
-final dioProvider = Provider((ref) {
-  return Dio(BaseOptions(
-    connectTimeout: const Duration(seconds: 30),
-    receiveTimeout: const Duration(seconds: 30),
-    contentType: 'application/json',
-    validateStatus: (_) => true,
-  ));
-});
+import '../../../../providers/dio_provider.dart';
 
 /// Provider para la URL base de la API
 final apiBaseUrlProvider = Provider((ref) {

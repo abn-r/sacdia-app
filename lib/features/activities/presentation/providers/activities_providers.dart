@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../../providers/dio_provider.dart';
 import '../../data/datasources/activities_remote_data_source.dart';
 import '../../data/repositories/activities_repository_impl.dart';
 import '../../domain/entities/activity.dart';
