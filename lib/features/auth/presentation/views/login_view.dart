@@ -29,8 +29,6 @@ class _LoginViewState extends ConsumerState<LoginView> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isLoading = false;
-  String? _errorMessage;
 
   @override
   void dispose() {
@@ -41,37 +39,22 @@ class _LoginViewState extends ConsumerState<LoginView> {
 
   Future<void> _signIn() async {
     if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final success = await ref.read(authNotifierProvider.notifier).signIn(
-            email: _emailController.text.trim(),
-            password: _passwordController.text.trim(),
-          );
-
-      if (!success && mounted) {
-        setState(() {
-          _errorMessage =
-              'Credenciales incorrectas. Revisa tu correo y contraseña.';
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = 'Error al iniciar sesión. Intenta de nuevo.';
-        });
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
+    await ref.read(authNotifierProvider.notifier).signIn(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+    // Navigation handled by the router watching authNotifierProvider.
+    // Error surfaced via ref.watch in build().
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authNotifierProvider);
+    final isLoading = authState.isLoading;
+    final errorMessage = authState.hasError
+        ? (authState.error?.toString() ?? 'Error al iniciar sesión')
+        : null;
+
     final logoSize = Responsive.authLogoSize(context) * 1.5;
     final logoBottomSpacing = Responsive.authLogoBottomSpacing(context);
 
@@ -162,7 +145,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                       const SizedBox(height: 8),
 
                       // Error message
-                      if (_errorMessage != null) ...[
+                      if (errorMessage != null) ...[
                         SacCard(
                           backgroundColor: AppColors.errorLight,
                           borderColor: AppColors.error.withValues(alpha: 0.3),
@@ -177,7 +160,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  _errorMessage!,
+                                  errorMessage,
                                   style: const TextStyle(
                                     color: AppColors.errorDark,
                                     fontSize: 14,
@@ -194,7 +177,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                       SacButton.primary(
                         text: 'Iniciar Sesión',
                         backgroundColor: AppColors.sacGreenLight,
-                        isLoading: _isLoading,
+                        isLoading: isLoading,
                         onPressed: _signIn,
                       ),
                       const SizedBox(height: 24),
