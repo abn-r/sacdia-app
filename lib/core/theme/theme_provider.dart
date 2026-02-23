@@ -1,71 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/constants/app_constants.dart';
-import 'package:sacdia_app/core/storage/local_storage.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/providers/storage_provider.dart';
 
-/// Proveedor para manejar el tema de la aplicación
-class ThemeProvider extends ChangeNotifier {
-  // Dependencia para el almacenamiento local
-  final LocalStorage _localStorage;
-
-  // El tema actual
-  ThemeMode _themeMode = ThemeMode.system;
-
-  ThemeProvider(this._localStorage) {
-    _loadTheme();
+/// Notifier para manejar el tema de la aplicación.
+/// El estado ES el ThemeMode actual.
+class ThemeNotifier extends Notifier<ThemeMode> {
+  @override
+  ThemeMode build() {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final saved = prefs.getString(AppConstants.themeKey);
+    if (saved == 'light') return ThemeMode.light;
+    if (saved == 'dark') return ThemeMode.dark;
+    return ThemeMode.system;
   }
 
-  /// Getter para el tema actual
-  ThemeMode get themeMode => _themeMode;
-
-  /// Getter para el ThemeData del tema claro
-  ThemeData get lightTheme => AppTheme.lightTheme;
-
-  /// Getter para el ThemeData del tema oscuro
-  ThemeData get darkTheme => AppTheme.darkTheme;
-
-  /// Método para cargar el tema guardado del almacenamiento local
-  Future<void> _loadTheme() async {
-    final savedTheme = _localStorage.getString(AppConstants.themeKey);
-    
-    if (savedTheme == 'light') {
-      _themeMode = ThemeMode.light;
-    } else if (savedTheme == 'dark') {
-      _themeMode = ThemeMode.dark;
-    } else {
-      _themeMode = ThemeMode.system;
-    }
-    
-    notifyListeners();
-  }
-
-  /// Método para cambiar al tema claro
+  /// Cambia al tema claro
   Future<void> setLightTheme() async {
-    _themeMode = ThemeMode.light;
-    await _localStorage.saveString(AppConstants.themeKey, 'light');
-    notifyListeners();
+    state = ThemeMode.light;
+    await ref.read(sharedPreferencesProvider).setString(AppConstants.themeKey, 'light');
   }
 
-  /// Método para cambiar al tema oscuro
+  /// Cambia al tema oscuro
   Future<void> setDarkTheme() async {
-    _themeMode = ThemeMode.dark;
-    await _localStorage.saveString(AppConstants.themeKey, 'dark');
-    notifyListeners();
+    state = ThemeMode.dark;
+    await ref.read(sharedPreferencesProvider).setString(AppConstants.themeKey, 'dark');
   }
 
-  /// Método para cambiar al tema del sistema
+  /// Cambia al tema del sistema
   Future<void> setSystemTheme() async {
-    _themeMode = ThemeMode.system;
-    await _localStorage.saveString(AppConstants.themeKey, 'system');
-    notifyListeners();
+    state = ThemeMode.system;
+    await ref.read(sharedPreferencesProvider).setString(AppConstants.themeKey, 'system');
   }
 
-  /// Método para alternar entre temas
+  /// Alterna entre tema claro y oscuro
   Future<void> toggleTheme() async {
-    if (_themeMode == ThemeMode.light) {
+    if (state == ThemeMode.light) {
       await setDarkTheme();
     } else {
       await setLightTheme();
     }
   }
 }
+
+final themeNotifierProvider = NotifierProvider<ThemeNotifier, ThemeMode>(() {
+  return ThemeNotifier();
+});

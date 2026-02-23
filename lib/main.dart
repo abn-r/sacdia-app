@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/auth/supabase_auth.dart';
 import 'core/config/router.dart';
-import 'core/storage/local_storage.dart';
+import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'features/auth/presentation/providers/auth_providers.dart';
 import 'providers/storage_provider.dart';
@@ -76,11 +76,6 @@ Future<void> _checkAndCleanSessionAtStartup() async {
   }
 }
 
-/// Provider para el ThemeProvider
-final themeProvider = ChangeNotifierProvider<ThemeProvider>((ref) {
-  final localStorage = SharedPreferencesStorage(ref.read(sharedPreferencesProvider));
-  return ThemeProvider(localStorage);
-});
 
 /// Unified scroll behavior — iOS-inspired bouncing physics on all platforms.
 class _AppScrollBehavior extends ScrollBehavior {
@@ -98,7 +93,7 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeProviderState = ref.watch(themeProvider);
+    final themeMode = ref.watch(themeNotifierProvider);
     final router = ref.watch(routerProvider);
 
     return ScrollConfiguration(
@@ -106,9 +101,9 @@ class MyApp extends ConsumerWidget {
       child: MaterialApp.router(
         title: 'Sacdia App',
         debugShowCheckedModeBanner: false,
-        theme: themeProviderState.lightTheme,
-        darkTheme: themeProviderState.darkTheme,
-        themeMode: themeProviderState.themeMode,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: themeMode,
         routerConfig: router,
         locale: const Locale('es'),
         localizationsDelegates: const [
