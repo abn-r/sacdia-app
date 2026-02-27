@@ -1,8 +1,8 @@
-import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../models/dashboard_summary_model.dart';
 
 /// Interfaz para la fuente de datos remota del dashboard
@@ -17,6 +17,8 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
   final String _baseUrl;
   final FlutterSecureStorage _secureStorage;
 
+  static const _tag = 'DashboardDS';
+
   DashboardRemoteDataSourceImpl({
     required Dio dio,
     required String baseUrl,
@@ -24,7 +26,6 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
         _baseUrl = baseUrl,
         _secureStorage = const FlutterSecureStorage();
 
-  /// Obtiene el token de autenticación
   Future<String?> _getToken() async {
     return await _secureStorage.read(key: 'auth_token');
   }
@@ -37,7 +38,6 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
         throw AuthException(message: 'No hay sesión activa');
       }
 
-      // Obtener datos del usuario y sus roles
       final meResponse = await _dio.get(
         '$_baseUrl/auth/me',
         options: Options(headers: {
@@ -52,106 +52,47 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
         );
       }
 
-      final userData = meResponse.data;
+      // /auth/me responde: { "status": "success", "data": { ... } }
+      final meBody = meResponse.data as Map<String, dynamic>;
+      final userData = (meBody['data'] as Map<String, dynamic>?) ?? meBody;
 
-      // Obtener clase actual del usuario
-      Map<String, dynamic>? currentClass;
-      try {
-        final classResponse = await _dio.get(
-          '$_baseUrl/users/$userId/classes',
-          options: Options(headers: {
-            'Authorization': 'Bearer $token',
-          }),
-        );
+      final firstName = (userData['name'] as String?) ?? '';
+      final paternalLn = (userData['paternal_last_name'] as String?) ?? '';
+      final maternalLn = (userData['maternal_last_name'] as String?) ?? '';
+      final fullName = [firstName, paternalLn, maternalLn]
+          .where((s) => s.isNotEmpty)
+          .join(' ');
 
-        if (classResponse.statusCode == 200 || classResponse.statusCode == 201) {
-          final classes = classResponse.data as List<dynamic>?;
-          if (classes != null && classes.isNotEmpty) {
-            // Buscar la clase actual (la que está en progreso)
-            currentClass = classes.firstWhere(
-              (c) => c['status'] == 'in_progress',
-              orElse: () => classes.first,
-            ) as Map<String, dynamic>?;
-          }
-        }
-      } catch (e) {
-        log('Error al obtener clases: $e');
-        // No es crítico, continuar sin datos de clase
-      }
+      final rawRoles = userData['roles'] as List<dynamic>?;
+      final firstRole = rawRoles?.isNotEmpty == true
+          ? rawRoles!.first as String?
+          : null;
 
-      // Obtener estadísticas de especialidades
-      Map<String, dynamic>? honorsStats;
-      try {
-        final honorsResponse = await _dio.get(
-          '$_baseUrl/users/$userId/honors/stats',
-          options: Options(headers: {
-            'Authorization': 'Bearer $token',
-          }),
-        );
+      final clubData = userData['club'] as Map<String, dynamic>?;
 
-        if (honorsResponse.statusCode == 200 || honorsResponse.statusCode == 201) {
-          honorsStats = honorsResponse.data as Map<String, dynamic>?;
-        }
-      } catch (e) {
-        log('Error al obtener estadísticas de especialidades: $e');
-        // No es crítico, continuar sin estadísticas
-      }
-
-      // Obtener actividades próximas
-      List<Map<String, dynamic>> upcomingActivities = [];
-      try {
-        final activitiesResponse = await _dio.get(
-          '$_baseUrl/activities',
-          queryParameters: {
-            'limit': 3,
-            'status': 'upcoming',
-          },
-          options: Options(headers: {
-            'Authorization': 'Bearer $token',
-          }),
-        );
-
-        if (activitiesResponse.statusCode == 200 || activitiesResponse.statusCode == 201) {
-          final activities = activitiesResponse.data as List<dynamic>?;
-          if (activities != null) {
-            upcomingActivities = activities
-                .map((a) => a as Map<String, dynamic>)
-                .toList();
-          }
-        }
-      } catch (e) {
-        log('Error al obtener actividades: $e');
-        // No es crítico, continuar sin actividades
-      }
-
-      // Construir el modelo de resumen
       final dashboardData = {
-        'user_name': userData['name'] ?? 'Usuario',
-        'user_avatar': userData['avatar'],
-        'club_name': userData['club']?['name'],
-        'club_type': userData['club']?['type'],
-        'user_role': userData['roles']?.isNotEmpty == true
-            ? userData['roles'][0]['name']
-            : null,
-        'current_class_name': currentClass?['class_name'],
-        'class_progress': currentClass?['progress'] ?? 0.0,
-        'honors_completed': honorsStats?['completed'] ?? 0,
-        'honors_in_progress': honorsStats?['in_progress'] ?? 0,
-        'upcoming_activities': upcomingActivities,
+        'user_name': fullName.isNotEmpty ? fullName : 'Usuario',
+        'user_avatar': userData['user_image'] as String?,
+        'club_name': clubData?['club_name'] as String?,
+        'club_type': clubData?['club_type'] as String?,
+        'user_role': firstRole,
+        'current_class_name': null,
+        'class_progress': 0.0,
+        'honors_completed': 0,
+        'honors_in_progress': 0,
+        'upcoming_activities': <Map<String, dynamic>>[],
       };
 
       return DashboardSummaryModel.fromJson(dashboardData);
     } on DioException catch (e) {
-      log('Error Dio al obtener datos del dashboard: ${e.message}');
+      AppLogger.e('Error al obtener datos del dashboard', tag: _tag, error: e);
       throw ServerException(
         message: e.response?.data?['message'] ?? 'Error al obtener datos del dashboard',
         code: e.response?.statusCode,
       );
     } catch (e) {
-      if (e is AuthException || e is ServerException) {
-        rethrow;
-      }
-      log('Error al obtener datos del dashboard: $e');
+      if (e is AuthException || e is ServerException) rethrow;
+      AppLogger.e('Error inesperado en dashboard', tag: _tag, error: e);
       throw ServerException(message: e.toString());
     }
   }

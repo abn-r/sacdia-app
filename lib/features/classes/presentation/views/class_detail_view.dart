@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_ring.dart';
@@ -26,7 +27,7 @@ class ClassDetailView extends ConsumerWidget {
     final classDetailAsync = ref.watch(classDetailProvider(classId));
 
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: context.sac.background,
       body: classDetailAsync.when(
         data: (progressiveClass) {
           return CustomScrollView(
@@ -130,7 +131,7 @@ class ClassDetailView extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 14,
                             height: 1.6,
-                            color: AppColors.lightTextSecondary,
+                            color: context.sac.textSecondary,
                           ),
                         ),
                         const SizedBox(height: 28),
@@ -179,7 +180,7 @@ class ClassDetailView extends ConsumerWidget {
                 Text(
                   error.toString(),
                   style: TextStyle(
-                      fontSize: 14, color: AppColors.lightTextSecondary),
+                      fontSize: 14, color: context.sac.textSecondary),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),

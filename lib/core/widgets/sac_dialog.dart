@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// SACDIA custom dialog widget — iOS-inspired design with SACDIA color system.
 ///
@@ -112,10 +113,10 @@ class SacDialog extends StatelessWidget {
                       Text(
                         content!,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
-                          color: AppColors.lightTextSecondary,
+                          color: context.sac.textSecondary,
                           height: 1.4,
                         ),
                       ),
@@ -127,7 +128,7 @@ class SacDialog extends StatelessWidget {
               // Thin top divider before actions
               Container(
                 height: 0.5,
-                color: AppColors.lightBorder,
+                color: context.sac.border,
               ),
 
               // Action buttons — iOS-style row layout
@@ -150,10 +151,10 @@ class SacDialog extends StatelessWidget {
       if (i > 0) {
         // Vertical divider between buttons
         widgets.add(
-          Container(
+          Builder(builder: (ctx) => Container(
             width: 0.5,
-            color: AppColors.lightBorder,
-          ),
+            color: ctx.sac.border,
+          )),
         );
       }
       widgets.add(Expanded(child: _ActionButton(action: actions[i])));
@@ -249,14 +250,14 @@ class _ActionButton extends StatelessWidget {
 
   const _ActionButton({required this.action});
 
-  Color _labelColor() {
+  Color _labelColor(BuildContext context) {
     switch (action.style) {
       case SacDialogActionStyle.confirm:
         return AppColors.primary;
       case SacDialogActionStyle.destructive:
         return AppColors.error;
       case SacDialogActionStyle.cancel:
-        return AppColors.lightTextSecondary;
+        return context.sac.textSecondary;
     }
   }
 
@@ -275,7 +276,7 @@ class _ActionButton extends StatelessWidget {
     return TextButton(
       onPressed: action.onPressed,
       style: TextButton.styleFrom(
-        foregroundColor: _labelColor(),
+        foregroundColor: _labelColor(context),
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: const RoundedRectangleBorder(),
       ),
@@ -284,7 +285,7 @@ class _ActionButton extends StatelessWidget {
         style: TextStyle(
           fontSize: 16,
           fontWeight: _fontWeight(),
-          color: _labelColor(),
+          color: _labelColor(context),
         ),
       ),
     );

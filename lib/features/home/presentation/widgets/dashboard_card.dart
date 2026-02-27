@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
 /// Card de estadística del dashboard - Estilo "Scout Vibrante"
@@ -46,7 +47,7 @@ class DashboardCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.lightTextSecondary,
+                    color: context.sac.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -62,7 +63,7 @@ class DashboardCard extends StatelessWidget {
           if (onTap != null)
             HugeIcon(
               icon: HugeIcons.strokeRoundedArrowRight01,
-              color: AppColors.lightTextTertiary,
+              color: context.sac.textTertiary,
               size: 24,
             ),
         ],

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 /// Botones de navegación fijos en la parte inferior del post-registro.
@@ -35,9 +35,9 @@ class BottomNavigationButtons extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.sac.surface,
         border: Border(
-          top: BorderSide(color: AppColors.lightBorderLight, width: 1),
+          top: BorderSide(color: context.sac.borderLight, width: 1),
         ),
       ),
       child: SafeArea(
@@ -84,7 +84,7 @@ class BottomNavigationButtons extends StatelessWidget {
                 child: Text(
                   'Omitir por ahora',
                   style: TextStyle(
-                    color: AppColors.lightTextTertiary,
+                    color: context.sac.textTertiary,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),

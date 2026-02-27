@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
 /// Card del design system SACDIA "Scout Vibrante"
@@ -82,12 +82,9 @@ class _SacCardState extends State<SacCard>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final defaultBorder =
-        isDark ? AppColors.darkBorder : AppColors.lightBorder;
-    final defaultBg =
-        widget.backgroundColor ??
-            (isDark ? AppColors.darkSurface : Colors.white);
+    final c = context.sac;
+    final defaultBorder = c.border;
+    final defaultBg = widget.backgroundColor ?? c.surface;
     final radius = BorderRadius.circular(AppTheme.radiusMD);
 
     Widget content = Container(

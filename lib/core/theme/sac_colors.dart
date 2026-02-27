@@ -1,0 +1,56 @@
+import 'package:flutter/material.dart';
+
+import 'app_colors.dart';
+
+/// Extension on [BuildContext] that resolves semantic color tokens
+/// to their light or dark variant based on the current [Brightness].
+///
+/// Usage:
+/// ```dart
+/// final bg = context.sac.background;
+/// final text = context.sac.text;
+/// ```
+///
+/// This avoids hardcoding `AppColors.lightText` / `AppColors.darkText`
+/// everywhere and makes dark-mode support automatic.
+extension SacColorsExtension on BuildContext {
+  SacColors get sac => SacColors(Theme.of(this).brightness);
+}
+
+class SacColors {
+  final Brightness _brightness;
+
+  const SacColors(this._brightness);
+
+  bool get _isDark => _brightness == Brightness.dark;
+
+  // ── Surfaces ──────────────────────────────────────────────────
+  Color get background =>
+      _isDark ? AppColors.darkBackground : AppColors.lightBackground;
+
+  Color get surface =>
+      _isDark ? AppColors.darkSurface : AppColors.lightSurface;
+
+  Color get surfaceVariant =>
+      _isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant;
+
+  // ── Borders ───────────────────────────────────────────────────
+  Color get border =>
+      _isDark ? AppColors.darkBorder : AppColors.lightBorder;
+
+  Color get borderLight =>
+      _isDark ? AppColors.darkSurfaceVariant : AppColors.lightBorderLight;
+
+  Color get divider =>
+      _isDark ? AppColors.darkDivider : AppColors.lightDivider;
+
+  // ── Text ──────────────────────────────────────────────────────
+  Color get text =>
+      _isDark ? AppColors.darkText : AppColors.lightText;
+
+  Color get textSecondary =>
+      _isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+
+  Color get textTertiary =>
+      _isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary;
+}

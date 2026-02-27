@@ -23,36 +23,46 @@ class UserDetailModel extends UserDetail {
 
   /// Crea un UserDetailModel a partir de datos de la API
   factory UserDetailModel.fromJson(Map<String, dynamic> json) {
-    // Parsear roles
+    // Roles: API sends flat List<String>, legacy format was List<{name: String}>
     final rolesList = json['roles'] as List<dynamic>?;
     final roles = rolesList
-            ?.map((r) => r['name'] as String? ?? '')
+            ?.map((r) => r is String ? r : (r['name'] as String? ?? ''))
             .where((r) => r.isNotEmpty)
             .toList() ??
         [];
 
+    // Club: API sends { club_name, club_type, club_id }
+    final club = json['club'] as Map<String, dynamic>?;
+
+    // Birthdate: API sends 'birthday', legacy was 'birth_date'
+    final birthdayRaw =
+        json['birthday'] as String? ?? json['birth_date'] as String?;
+
     return UserDetailModel(
-      id: json['user_id'] as String? ?? json['id'] as String,
-      email: json['email'] as String,
-      name: json['name'] as String,
-      paternalSurname: json['p_lastname'] as String?,
-      maternalSurname: json['m_lastname'] as String?,
-      avatar: json['avatar'] as String?,
+      id: json['user_id'] as String? ?? json['id'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      // API sends 'paternal_last_name' / 'maternal_last_name'
+      paternalSurname: json['paternal_last_name'] as String? ??
+          json['p_lastname'] as String?,
+      maternalSurname: json['maternal_last_name'] as String? ??
+          json['m_lastname'] as String?,
+      // API sends 'user_image', legacy was 'avatar'
+      avatar: json['user_image'] as String? ?? json['avatar'] as String?,
       phone: json['phone'] as String?,
-      birthDate: json['birth_date'] != null
-          ? DateTime.tryParse(json['birth_date'] as String)
-          : null,
+      birthDate: birthdayRaw != null ? DateTime.tryParse(birthdayRaw) : null,
       gender: json['gender'] as String?,
       address: json['address'] as String?,
-      clubName: json['club']?['name'] as String?,
-      clubType: json['club']?['type'] as String?,
+      // Club fields: API sends club_name / club_type (not name / type)
+      clubName: club?['club_name'] as String? ?? club?['name'] as String?,
+      clubType: club?['club_type'] as String? ?? club?['type'] as String?,
       currentClass: json['current_class']?['name'] as String?,
       roles: roles,
       createdAt: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'] as String)
+          ? DateTime.tryParse(json['created_at'].toString())
           : null,
       lastSignInAt: json['last_sign_in_at'] != null
-          ? DateTime.tryParse(json['last_sign_in_at'] as String)
+          ? DateTime.tryParse(json['last_sign_in_at'].toString())
           : null,
     );
   }

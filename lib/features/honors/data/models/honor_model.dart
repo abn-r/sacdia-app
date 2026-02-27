@@ -22,10 +22,12 @@ class HonorModel extends Equatable {
   /// Crea una instancia desde JSON
   factory HonorModel.fromJson(Map<String, dynamic> json) {
     return HonorModel(
-      id: json['id'] as int,
+      // Backend PK is 'honor_id'; 'id' is fallback
+      id: (json['honor_id'] ?? json['id']) as int,
       name: json['name'] as String,
       description: json['description'] as String?,
-      categoryId: json['category_id'] as int,
+      // Backend FK is 'honors_category_id'; 'category_id' is fallback
+      categoryId: (json['honors_category_id'] ?? json['category_id']) as int,
       imageUrl: json['image_url'] as String?,
       skillLevel: json['skill_level'] as int?,
     );

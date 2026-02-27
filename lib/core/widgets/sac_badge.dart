@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 /// Variantes del badge
@@ -32,7 +33,7 @@ class SacBadge extends StatelessWidget {
   const SacBadge.error({super.key, required this.label, this.icon})
       : variant = SacBadgeVariant.error;
 
-  Color get _backgroundColor {
+  Color _backgroundColor(BuildContext context) {
     switch (variant) {
       case SacBadgeVariant.primary:
         return AppColors.primaryLight;
@@ -43,11 +44,11 @@ class SacBadge extends StatelessWidget {
       case SacBadgeVariant.error:
         return AppColors.errorLight;
       case SacBadgeVariant.neutral:
-        return AppColors.lightSurfaceVariant;
+        return context.sac.surfaceVariant;
     }
   }
 
-  Color get _foregroundColor {
+  Color _foregroundColor(BuildContext context) {
     switch (variant) {
       case SacBadgeVariant.primary:
         return AppColors.primaryDark;
@@ -58,7 +59,7 @@ class SacBadge extends StatelessWidget {
       case SacBadgeVariant.error:
         return AppColors.errorDark;
       case SacBadgeVariant.neutral:
-        return AppColors.lightTextSecondary;
+        return context.sac.textSecondary;
     }
   }
 
@@ -70,14 +71,14 @@ class SacBadge extends StatelessWidget {
         horizontal: icon != null ? 10 : 12,
       ),
       decoration: BoxDecoration(
-        color: _backgroundColor,
+        color: _backgroundColor(context),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            buildIcon(icon, size: 14, color: _foregroundColor),
+            buildIcon(icon, size: 14, color: _foregroundColor(context)),
             const SizedBox(width: 4),
           ],
           Text(
@@ -85,7 +86,7 @@ class SacBadge extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: _foregroundColor,
+              color: _foregroundColor(context),
               height: 1.2,
             ),
           ),

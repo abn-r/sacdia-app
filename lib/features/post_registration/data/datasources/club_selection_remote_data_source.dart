@@ -1,8 +1,8 @@
-import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../models/country_model.dart';
 import '../models/union_model.dart';
 import '../models/local_field_model.dart';
@@ -12,25 +12,12 @@ import '../models/class_model.dart';
 
 /// Interfaz para la fuente de datos remota de selección de club
 abstract class ClubSelectionRemoteDataSource {
-  /// Obtiene la lista de países
   Future<List<CountryModel>> getCountries();
-
-  /// Obtiene las uniones de un país
   Future<List<UnionModel>> getUnionsByCountry(int countryId);
-
-  /// Obtiene los campos locales de una unión
   Future<List<LocalFieldModel>> getLocalFieldsByUnion(int unionId);
-
-  /// Obtiene los clubes de un campo local
   Future<List<ClubModel>> getClubsByLocalField(int localFieldId);
-
-  /// Obtiene las instancias (tipos) de un club
   Future<List<ClubInstanceModel>> getClubInstances(int clubId);
-
-  /// Obtiene las clases progresivas de un tipo de club
   Future<List<ClassModel>> getClassesByClubType(int clubTypeId);
-
-  /// Completa el paso 3 del post-registro
   Future<void> completeStep3({
     required String userId,
     required int countryId,
@@ -48,6 +35,8 @@ class ClubSelectionRemoteDataSourceImpl
   final Dio _dio;
   final String _baseUrl;
   final FlutterSecureStorage _secureStorage;
+
+  static const _tag = 'ClubSelectionDS';
 
   ClubSelectionRemoteDataSourceImpl({
     required Dio dio,
@@ -80,7 +69,7 @@ class ClubSelectionRemoteDataSourceImpl
 
       throw ServerException(message: 'Error al obtener países');
     } catch (e) {
-      log('Error al obtener países: $e');
+      AppLogger.e('Error en getCountries', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(message: e.message ?? 'Error de conexión');
       }
@@ -105,7 +94,7 @@ class ClubSelectionRemoteDataSourceImpl
 
       throw ServerException(message: 'Error al obtener uniones');
     } catch (e) {
-      log('Error al obtener uniones: $e');
+      AppLogger.e('Error en getUnionsByCountry', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(message: e.message ?? 'Error de conexión');
       }
@@ -130,7 +119,7 @@ class ClubSelectionRemoteDataSourceImpl
 
       throw ServerException(message: 'Error al obtener campos locales');
     } catch (e) {
-      log('Error al obtener campos locales: $e');
+      AppLogger.e('Error en getLocalFieldsByUnion', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(message: e.message ?? 'Error de conexión');
       }
@@ -144,18 +133,20 @@ class ClubSelectionRemoteDataSourceImpl
     try {
       final options = await _authOptions();
       final response = await _dio.get(
-        '$_baseUrl/catalogs/local-fields/$localFieldId/clubs',
+        '$_baseUrl/clubs',
+        queryParameters: {'localFieldId': localFieldId},
         options: options,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final List<dynamic> data = response.data as List<dynamic>;
+        final responseBody = response.data as Map<String, dynamic>;
+        final List<dynamic> data = responseBody['data'] as List<dynamic>;
         return data.map((json) => ClubModel.fromJson(json)).toList();
       }
 
       throw ServerException(message: 'Error al obtener clubes');
     } catch (e) {
-      log('Error al obtener clubes: $e');
+      AppLogger.e('Error en getClubsByLocalField', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(message: e.message ?? 'Error de conexión');
       }
@@ -178,13 +169,24 @@ class ClubSelectionRemoteDataSourceImpl
             response.data as Map<String, dynamic>;
         final List<ClubInstanceModel> result = [];
 
+        const bucketConfig = {
+          'adventurers': ('adventurers', 'club_adv_id'),
+          'pathfinders': ('pathfinders', 'club_pathf_id'),
+          'master_guilds': ('master_guild', 'club_mg_id'),
+        };
+
         for (final entry in buckets.entries) {
-          final rawKey = entry.key; // 'adventurers', 'pathfinders', 'master_guilds'
-          final slug = rawKey == 'master_guilds' ? 'master_guild' : rawKey;
+          final config = bucketConfig[entry.key];
+          if (config == null) continue;
+
+          final slug = config.$1;
+          final idKey = config.$2;
           final items = entry.value as List<dynamic>;
+
           for (final item in items) {
-            result.add(ClubInstanceModel.fromJsonWithSlug(
-                item as Map<String, dynamic>, slug));
+            final json = item as Map<String, dynamic>;
+            if (json['active'] == false) continue;
+            result.add(ClubInstanceModel.fromJsonWithSlug(json, slug, idKey));
           }
         }
 
@@ -193,7 +195,7 @@ class ClubSelectionRemoteDataSourceImpl
 
       throw ServerException(message: 'Error al obtener tipos de club');
     } catch (e) {
-      log('Error al obtener tipos de club: $e');
+      AppLogger.e('Error en getClubInstances', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(message: e.message ?? 'Error de conexión');
       }
@@ -207,18 +209,20 @@ class ClubSelectionRemoteDataSourceImpl
     try {
       final options = await _authOptions();
       final response = await _dio.get(
-        '$_baseUrl/catalogs/classes?clubTypeId=$clubTypeId',
+        '$_baseUrl/classes',
+        queryParameters: {'clubTypeId': clubTypeId},
         options: options,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final List<dynamic> data = response.data as List<dynamic>;
+        final responseBody = response.data as Map<String, dynamic>;
+        final List<dynamic> data = responseBody['data'] as List<dynamic>;
         return data.map((json) => ClassModel.fromJson(json)).toList();
       }
 
       throw ServerException(message: 'Error al obtener clases');
     } catch (e) {
-      log('Error al obtener clases: $e');
+      AppLogger.e('Error en getClassesByClubType', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(message: e.message ?? 'Error de conexión');
       }
@@ -257,7 +261,7 @@ class ClubSelectionRemoteDataSourceImpl
             message: 'Error al completar el paso 3 del post-registro');
       }
     } catch (e) {
-      log('Error al completar paso 3: $e');
+      AppLogger.e('Error en completeStep3', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(message: e.message ?? 'Error de conexión');
       }

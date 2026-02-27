@@ -1,14 +1,15 @@
-import 'dart:developer';
-
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../constants/app_constants.dart';
+import '../../utils/app_logger.dart';
 
 /// Interceptor para añadir token de autenticación a las peticiones
 class AuthInterceptor extends QueuedInterceptor {
   final FlutterSecureStorage _secureStorage;
   final Dio? _dio;
+
+  static const _tag = 'AuthInterceptor';
 
   AuthInterceptor({
     FlutterSecureStorage? secureStorage,
@@ -21,10 +22,8 @@ class AuthInterceptor extends QueuedInterceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    // Obtener el token de FlutterSecureStorage
     final token = await _secureStorage.read(key: AppConstants.tokenKey);
 
-    // Si hay un token válido, lo añadimos a la cabecera
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
     }
@@ -37,15 +36,12 @@ class AuthInterceptor extends QueuedInterceptor {
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
-    // Manejar errores 401 (Unauthorized) - Token expirado o inválido
     if (err.response?.statusCode == 401 && _dio != null) {
-      log('⚠️ [AuthInterceptor] Token inválido o expirado, intentando refresh...');
+      AppLogger.w('Token expirado, intentando refresh', tag: _tag);
 
-      // Intentar refresh token
       final refreshed = await _tryRefreshToken();
 
       if (refreshed) {
-        // Reintentar la petición original con el nuevo token
         try {
           final newToken = await _secureStorage.read(key: AppConstants.tokenKey);
           final opts = Options(
@@ -65,8 +61,12 @@ class AuthInterceptor extends QueuedInterceptor {
 
           return handler.resolve(response);
         } catch (e) {
-          log('❌ [AuthInterceptor] Error al reintentar después de refresh: $e');
+          AppLogger.e('Error al reintentar después de refresh', tag: _tag, error: e);
         }
+      } else {
+        AppLogger.w('Refresh fallido, limpiando tokens locales', tag: _tag);
+        await _secureStorage.delete(key: AppConstants.tokenKey);
+        await _secureStorage.delete(key: AppConstants.refreshTokenKey);
       }
     }
 
@@ -79,11 +79,10 @@ class AuthInterceptor extends QueuedInterceptor {
       final refreshToken = await _secureStorage.read(key: AppConstants.refreshTokenKey);
 
       if (refreshToken == null || refreshToken.isEmpty) {
-        log('⚠️ [AuthInterceptor] No hay refresh token disponible');
+        AppLogger.w('Sin refresh token disponible', tag: _tag);
         return false;
       }
 
-      // Llamar al endpoint de refresh (sin usar el interceptor para evitar loops)
       final response = await Dio().post(
         '${AppConstants.baseUrl}/auth/refresh',
         data: {'refresh_token': refreshToken},
@@ -96,23 +95,31 @@ class AuthInterceptor extends QueuedInterceptor {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = response.data;
-        final newAccessToken = data['access_token'] as String?;
+        final responseBody = response.data;
+        final innerData = responseBody['data'] as Map<String, dynamic>?;
+        final newAccessToken = innerData?['accessToken'] as String?;
+        final newRefreshToken = innerData?['refreshToken'] as String?;
 
         if (newAccessToken != null) {
           await _secureStorage.write(
             key: AppConstants.tokenKey,
             value: newAccessToken,
           );
-          log('✅ [AuthInterceptor] Token refrescado exitosamente');
+          if (newRefreshToken != null) {
+            await _secureStorage.write(
+              key: AppConstants.refreshTokenKey,
+              value: newRefreshToken,
+            );
+          }
+          AppLogger.i('Token refrescado exitosamente', tag: _tag);
           return true;
         }
       }
 
-      log('❌ [AuthInterceptor] Refresh token falló: ${response.statusCode}');
+      AppLogger.w('Refresh token falló: ${response.statusCode}', tag: _tag);
       return false;
     } catch (e) {
-      log('❌ [AuthInterceptor] Error en refresh token: $e');
+      AppLogger.e('Error en refresh token', tag: _tag, error: e);
       return false;
     }
   }

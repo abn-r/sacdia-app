@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../data/datasources/personal_info_remote_data_source.dart';
@@ -9,6 +8,7 @@ import '../../data/models/disease_model.dart';
 import '../../data/models/relationship_type_model.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
+import '../../../../core/utils/app_logger.dart';
 
 /// Provider del data source de información personal
 final personalInfoDataSourceProvider =
@@ -94,7 +94,6 @@ class UserAllergiesNotifier extends AsyncNotifier<List<AllergyModel>> {
     final dataSource = ref.watch(personalInfoDataSourceProvider);
     final userAllergies = await dataSource.getUserAllergies(userId);
 
-    // Sincronizar los IDs pre-cargados con selectedAllergiesProvider
     final ids = userAllergies.map((a) => a.id).toList();
     ref.read(selectedAllergiesProvider.notifier).state = ids;
 
@@ -114,12 +113,10 @@ class UserAllergiesNotifier extends AsyncNotifier<List<AllergyModel>> {
       final dataSource = ref.read(personalInfoDataSourceProvider);
       await dataSource.deleteUserAllergy(userId, allergyId);
 
-      // Actualizar selectedAllergiesProvider
       final currentIds = ref.read(selectedAllergiesProvider);
       ref.read(selectedAllergiesProvider.notifier).state =
           currentIds.where((id) => id != allergyId).toList();
 
-      // Recargar la lista
       return await dataSource.getUserAllergies(userId);
     });
   }
@@ -158,7 +155,6 @@ class UserDiseasesNotifier extends AsyncNotifier<List<DiseaseModel>> {
     final dataSource = ref.watch(personalInfoDataSourceProvider);
     final userDiseases = await dataSource.getUserDiseases(userId);
 
-    // Sincronizar los IDs pre-cargados con selectedDiseasesProvider
     final ids = userDiseases.map((d) => d.id).toList();
     ref.read(selectedDiseasesProvider.notifier).state = ids;
 
@@ -178,12 +174,10 @@ class UserDiseasesNotifier extends AsyncNotifier<List<DiseaseModel>> {
       final dataSource = ref.read(personalInfoDataSourceProvider);
       await dataSource.deleteUserDisease(userId, diseaseId);
 
-      // Actualizar selectedDiseasesProvider
       final currentIds = ref.read(selectedDiseasesProvider);
       ref.read(selectedDiseasesProvider.notifier).state =
           currentIds.where((id) => id != diseaseId).toList();
 
-      // Recargar la lista
       return await dataSource.getUserDiseases(userId);
     });
   }
@@ -237,7 +231,6 @@ class EmergencyContactsNotifier
 
   /// Agrega un nuevo contacto de emergencia
   Future<void> addContact(EmergencyContactModel contact) async {
-    // Guardar los contactos actuales ANTES de poner loading
     final currentContacts = state.valueOrNull ?? [];
 
     state = const AsyncValue.loading();
@@ -248,7 +241,6 @@ class EmergencyContactsNotifier
 
       if (userId == null) throw Exception('Usuario no autenticado');
 
-      // Verificar límite de contactos con la lista ya obtenida
       if (currentContacts.length >= 5) {
         throw Exception('Máximo 5 contactos de emergencia permitidos');
       }
@@ -256,7 +248,6 @@ class EmergencyContactsNotifier
       final dataSource = ref.read(personalInfoDataSourceProvider);
       await dataSource.addEmergencyContact(userId, contact);
 
-      // Recargar la lista
       return await dataSource.getEmergencyContacts(userId);
     });
   }
@@ -275,7 +266,6 @@ class EmergencyContactsNotifier
       final dataSource = ref.read(personalInfoDataSourceProvider);
       await dataSource.updateEmergencyContact(contactId, contact);
 
-      // Recargar la lista
       return await dataSource.getEmergencyContacts(userId);
     });
   }
@@ -293,7 +283,6 @@ class EmergencyContactsNotifier
       final dataSource = ref.read(personalInfoDataSourceProvider);
       await dataSource.deleteEmergencyContact(contactId);
 
-      // Recargar la lista
       return await dataSource.getEmergencyContacts(userId);
     });
   }
@@ -367,7 +356,6 @@ final legalRepresentativeProvider = AsyncNotifierProvider<
 
 /// Provider que determina si se puede completar el paso 2
 final canCompleteStep2Provider = Provider<bool>((ref) {
-  // Verificar formulario personal
   final formState = ref.watch(personalInfoFormProvider);
   if (formState.gender == null || formState.birthdate == null) {
     return false;
@@ -377,7 +365,6 @@ final canCompleteStep2Provider = Provider<bool>((ref) {
     return false;
   }
 
-  // Verificar contactos de emergencia (al menos 1)
   final contactsAsync = ref.watch(emergencyContactsProvider);
   final hasContacts = contactsAsync.maybeWhen(
     data: (contacts) => contacts.isNotEmpty,
@@ -386,7 +373,6 @@ final canCompleteStep2Provider = Provider<bool>((ref) {
 
   if (!hasContacts) return false;
 
-  // Verificar representante legal si es requerido
   final requiresRepAsync = ref.watch(legalRepresentativeRequiredProvider);
   final requiresRep = requiresRepAsync.maybeWhen(
     data: (required) => required,
@@ -409,6 +395,7 @@ final canCompleteStep2Provider = Provider<bool>((ref) {
 /// Provider para guardar información personal
 final savePersonalInfoProvider = Provider<Future<void> Function()>((ref) {
   return () async {
+    const tag = 'PersonalInfo';
     final authState = ref.read(authNotifierProvider);
     final userId = authState.valueOrNull?.id;
 
@@ -417,17 +404,11 @@ final savePersonalInfoProvider = Provider<Future<void> Function()>((ref) {
     final formState = ref.read(personalInfoFormProvider);
     final dataSource = ref.read(personalInfoDataSourceProvider);
 
-    // === DEBUG: imprimir estado del formulario ===
-    log('\n========== SAVE PERSONAL INFO ==========');
-    log('userId: $userId');
-    log('gender: ${formState.gender}');
-    log('birthdate: ${formState.birthdate}');
-    log('birthdate formatted: ${formState.birthdate?.toIso8601String().split('T')[0]}');
-    log('baptized: ${formState.baptized}');
-    log('baptismDate: ${formState.baptismDate}');
-    log('==========================================\n');
+    AppLogger.d(
+      'savePersonalInfo userId=$userId gender=${formState.gender} baptized=${formState.baptized}',
+      tag: tag,
+    );
 
-    // Guardar información personal
     await dataSource.updatePersonalInfo(
       userId,
       gender: formState.gender,
@@ -436,23 +417,17 @@ final savePersonalInfoProvider = Provider<Future<void> Function()>((ref) {
       baptismDate: formState.baptismDate?.toUtc().toIso8601String(),
     );
 
-    // Guardar alergias
     final selectedAllergies = ref.read(selectedAllergiesProvider);
-    log('Alergias seleccionadas: $selectedAllergies');
     if (selectedAllergies.isNotEmpty) {
       await dataSource.saveUserAllergies(userId, selectedAllergies);
     }
 
-    // Guardar enfermedades
     final selectedDiseases = ref.read(selectedDiseasesProvider);
-    log('Enfermedades seleccionadas: $selectedDiseases');
     if (selectedDiseases.isNotEmpty) {
       await dataSource.saveUserDiseases(userId, selectedDiseases);
     }
 
-    log('Llamando completeStep2...');
-    // Completar paso 2
     await dataSource.completeStep2(userId);
-    log('completeStep2 exitoso!');
+    AppLogger.i('Paso 2 completado', tag: tag);
   };
 });

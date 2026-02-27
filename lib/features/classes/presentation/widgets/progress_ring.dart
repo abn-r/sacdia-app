@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 
 /// Widget de anillo de progreso circular
 class ProgressRing extends StatelessWidget {
@@ -29,7 +30,7 @@ class ProgressRing extends StatelessWidget {
             child: CircularProgressIndicator(
               value: progress / 100,
               strokeWidth: strokeWidth,
-              backgroundColor: AppColors.lightDivider,
+              backgroundColor: context.sac.divider,
               valueColor: AlwaysStoppedAnimation<Color>(
                 _getProgressColor(progress),
               ),

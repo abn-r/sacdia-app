@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
@@ -57,25 +58,25 @@ class HonorProgressCard extends StatelessWidget {
     }
   }
 
-  Color get _iconColor {
+  Color _iconColor(BuildContext context) {
     switch (userHonor.status.toLowerCase()) {
       case 'completed':
         return AppColors.accent;
       case 'in_progress':
         return AppColors.primary;
       default:
-        return AppColors.lightTextTertiary;
+        return context.sac.textTertiary;
     }
   }
 
-  Color get _iconBgColor {
+  Color _iconBgColor(BuildContext context) {
     switch (userHonor.status.toLowerCase()) {
       case 'completed':
         return AppColors.accentLight;
       case 'in_progress':
         return AppColors.primaryLight;
       default:
-        return AppColors.lightSurfaceVariant;
+        return context.sac.surfaceVariant;
     }
   }
 
@@ -91,10 +92,10 @@ class HonorProgressCard extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: _iconBgColor,
+              color: _iconBgColor(context),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: buildIcon(_statusIcon, size: 22, color: _iconColor),
+            child: buildIcon(_statusIcon, size: 22, color: _iconColor(context)),
           ),
           const SizedBox(width: 14),
 
@@ -125,7 +126,7 @@ class HonorProgressCard extends StatelessWidget {
                             .format(userHonor.completionDate!),
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.lightTextSecondary,
+                          color: context.sac.textSecondary,
                         ),
                       )
                     else if (userHonor.startDate != null)
@@ -133,7 +134,7 @@ class HonorProgressCard extends StatelessWidget {
                         'Desde ${DateFormat('dd/MM/yyyy').format(userHonor.startDate!)}',
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.lightTextSecondary,
+                          color: context.sac.textSecondary,
                         ),
                       ),
                   ],

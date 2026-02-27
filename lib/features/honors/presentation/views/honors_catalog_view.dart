@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -31,7 +32,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
     final categoriesAsync = ref.watch(honorCategoriesProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: context.sac.background,
       body: SafeArea(
         child: categoriesAsync.when(
           data: (categories) {
@@ -179,13 +180,13 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                       HugeIcon(
                           icon: HugeIcons.strokeRoundedAward01,
                           size: 56,
-                          color: AppColors.lightTextTertiary),
+                          color: context.sac.textTertiary),
                       const SizedBox(height: 12),
                       Text(
                         'No hay especialidades en esta categoría',
                         style: TextStyle(
                           fontSize: 16,
-                          color: AppColors.lightTextSecondary,
+                          color: context.sac.textSecondary,
                         ),
                       ),
                     ],

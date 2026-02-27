@@ -1,29 +1,17 @@
-import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http_parser/http_parser.dart';
 
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../models/completion_status_model.dart';
 
 /// Interfaz para la fuente de datos remota de post-registro
 abstract class PostRegistrationRemoteDataSource {
-  /// Obtiene el estado de completitud del post-registro
   Future<CompletionStatusModel> getCompletionStatus();
-
-  /// Sube la foto de perfil
-  Future<String> uploadProfilePicture({
-    required String userId,
-    required String filePath,
-  });
-
-  /// Elimina la foto de perfil
+  Future<String> uploadProfilePicture({required String userId, required String filePath});
   Future<void> deleteProfilePicture({required String userId});
-
-  /// Obtiene el estado de la foto
   Future<bool> getPhotoStatus({required String userId});
-
-  /// Completa el paso 1 del post-registro (foto de perfil)
   Future<void> completeStep1(String userId);
 }
 
@@ -33,6 +21,8 @@ class PostRegistrationRemoteDataSourceImpl
   final Dio _dio;
   final String _baseUrl;
   final FlutterSecureStorage _secureStorage;
+
+  static const _tag = 'PostRegistrationDS';
 
   PostRegistrationRemoteDataSourceImpl({
     required Dio dio,
@@ -81,7 +71,6 @@ class PostRegistrationRemoteDataSourceImpl
       final options = await _authOptions();
       options.contentType = 'multipart/form-data';
 
-      // Inferir mimetype desde la extensión, o usar jpeg por defecto
       final String extension = filePath.contains('.')
           ? filePath.split('.').last.toLowerCase()
           : 'jpg';
@@ -112,7 +101,7 @@ class PostRegistrationRemoteDataSourceImpl
 
       throw ServerException(message: 'Error al subir foto de perfil');
     } catch (e) {
-      log('Error al subir foto de perfil: $e');
+      AppLogger.e('Error al subir foto de perfil', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(message: e.message ?? 'Error de conexión');
       }
@@ -179,7 +168,7 @@ class PostRegistrationRemoteDataSourceImpl
             message: 'Error al completar el paso 1 del post-registro');
       }
     } catch (e) {
-      log('Error al completar paso 1: $e');
+      AppLogger.e('Error en completeStep1', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(message: e.message ?? 'Error de conexión');
       }

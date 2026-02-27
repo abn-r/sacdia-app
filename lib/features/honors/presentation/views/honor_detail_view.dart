@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -29,7 +30,7 @@ class HonorDetailView extends ConsumerWidget {
     final enrollmentState = ref.watch(honorEnrollmentNotifierProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: context.sac.background,
       body: honorAsync.when(
         data: (honors) {
           final honor = honors.firstWhere(
@@ -165,7 +166,7 @@ class HonorDetailView extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 14,
                             height: 1.6,
-                            color: AppColors.lightTextSecondary,
+                            color: context.sac.textSecondary,
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -188,12 +189,12 @@ class HonorDetailView extends ConsumerWidget {
                       ),
                       const SizedBox(height: 10),
                       SacCard(
-                        backgroundColor: AppColors.lightSurfaceVariant,
+                        backgroundColor: context.sac.surfaceVariant,
                         child: Text(
                           'Los requisitos específicos de esta especialidad se mostrarán aquí.',
                           style: TextStyle(
                             fontSize: 14,
-                            color: AppColors.lightTextSecondary,
+                            color: context.sac.textSecondary,
                           ),
                         ),
                       ),

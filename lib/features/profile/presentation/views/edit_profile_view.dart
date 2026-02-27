@@ -5,6 +5,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../providers/profile_providers.dart';
 
 /// Vista para editar el perfil del usuario
@@ -114,11 +115,11 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
       prefixIcon: Icon(prefixIcon, color: AppColors.primary),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.lightBorder),
+        borderSide: BorderSide(color: context.sac.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.lightBorder),
+        borderSide: BorderSide(color: context.sac.border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -130,7 +131,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: context.sac.background,
       appBar: AppBar(
         title: const Text('Editar Perfil'),
         backgroundColor: AppColors.primary,

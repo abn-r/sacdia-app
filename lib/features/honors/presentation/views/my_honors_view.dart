@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/animations/animated_counter.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
@@ -31,7 +32,7 @@ class MyHonorsView extends ConsumerWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: AppColors.lightBackground,
+        backgroundColor: context.sac.background,
         body: SafeArea(
           child: Column(
             children: [
@@ -106,12 +107,12 @@ class MyHonorsView extends ConsumerWidget {
                 child: Container(
                   margin: EdgeInsets.symmetric(horizontal: hPad),
                   decoration: BoxDecoration(
-                    color: AppColors.lightSurfaceVariant,
+                    color: context.sac.surfaceVariant,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: TabBar(
                     indicator: BoxDecoration(
-                      color: Colors.white,
+                      color: context.sac.surface,
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: const [
                         BoxShadow(
@@ -124,7 +125,7 @@ class MyHonorsView extends ConsumerWidget {
                     indicatorSize: TabBarIndicatorSize.tab,
                     dividerHeight: 0,
                     labelColor: AppColors.primary,
-                    unselectedLabelColor: AppColors.lightTextSecondary,
+                    unselectedLabelColor: context.sac.textSecondary,
                     labelStyle: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -150,13 +151,13 @@ class MyHonorsView extends ConsumerWidget {
                             HugeIcon(
                                 icon: HugeIcons.strokeRoundedAward01,
                                 size: 56,
-                                color: AppColors.lightTextTertiary),
+                                color: context.sac.textTertiary),
                             const SizedBox(height: 12),
                             Text(
                               'No tienes especialidades',
                               style: TextStyle(
                                 fontSize: 16,
-                                color: AppColors.lightTextSecondary,
+                                color: context.sac.textSecondary,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -164,7 +165,7 @@ class MyHonorsView extends ConsumerWidget {
                               'Inscríbete en el catálogo',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: AppColors.lightTextTertiary,
+                                color: context.sac.textTertiary,
                               ),
                             ),
                           ],
@@ -259,7 +260,7 @@ class MyHonorsView extends ConsumerWidget {
           emptyMessage,
           style: TextStyle(
             fontSize: 14,
-            color: AppColors.lightTextSecondary,
+            color: context.sac.textSecondary,
           ),
         ),
       );
@@ -333,7 +334,7 @@ class _StatMini extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
-                color: AppColors.lightTextSecondary,
+                color: context.sac.textSecondary,
               ),
               textAlign: TextAlign.center,
               // Fix 2.1: guard against overflow on very narrow phones

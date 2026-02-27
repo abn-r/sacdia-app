@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Animated progress ring — Apple Health / Fitness style.
 ///
@@ -129,7 +130,7 @@ class _SacProgressRingState extends State<SacProgressRing>
                   progress: animatedProgress,
                   strokeWidth: widget.strokeWidth,
                   progressColor: widget.color ?? AppColors.primary,
-                  trackColor: widget.trackColor ?? AppColors.lightBorderLight,
+                  trackColor: widget.trackColor ?? context.sac.borderLight,
                 ),
               ),
               if (widget.child != null)

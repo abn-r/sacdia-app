@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 import '../../domain/entities/class_section.dart';
 
@@ -40,7 +41,7 @@ class SectionCheckbox extends StatelessWidget {
                 border: Border.all(
                   color: section.isCompleted
                       ? AppColors.secondary
-                      : AppColors.lightBorder,
+                      : context.sac.border,
                   width: 2,
                 ),
               ),
@@ -60,8 +61,8 @@ class SectionCheckbox extends StatelessWidget {
                   decoration:
                       section.isCompleted ? TextDecoration.lineThrough : null,
                   color: section.isCompleted
-                      ? AppColors.lightTextTertiary
-                      : AppColors.lightText,
+                      ? context.sac.textTertiary
+                      : context.sac.text,
                 ),
               ),
             ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 
 class SacTextField extends StatefulWidget {
@@ -111,8 +111,8 @@ class _SacTextFieldState extends State<SacTextField> {
             Container(
               decoration: BoxDecoration(
                 color: widget.enabled
-                    ? Colors.white
-                    : AppColors.lightSurfaceVariant,
+                    ? context.sac.surface
+                    : context.sac.surfaceVariant,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.08),
@@ -165,11 +165,11 @@ class _SacTextFieldState extends State<SacTextField> {
                   ),
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                  hintStyle: TextStyle(color: AppColors.lightTextTertiary),
+                  hintStyle: TextStyle(color: context.sac.textTertiary),
                   filled: true,
                   fillColor: widget.enabled
-                      ? Colors.white
-                      : AppColors.lightSurfaceVariant,
+                      ? context.sac.surface
+                      : context.sac.surfaceVariant,
                   prefixIcon: _buildPrefixIcon(),
                   prefixIconConstraints: const BoxConstraints(
                     minWidth: 40,
@@ -209,11 +209,11 @@ class _SacTextFieldState extends State<SacTextField> {
       padding: const EdgeInsets.only(left: 15, right: 8),
       child: widget.prefixIcon is IconData
           ? Icon(widget.prefixIcon,
-              size: 20, color: AppColors.lightTextSecondary)
+              size: 20, color: context.sac.textSecondary)
           : HugeIcon(
               icon: widget.prefixIcon,
               size: 20,
-              color: AppColors.lightTextSecondary),
+              color: context.sac.textSecondary),
     );
   }
 
@@ -228,7 +228,7 @@ class _SacTextFieldState extends State<SacTextField> {
               ? HugeIcons.strokeRoundedViewOffSlash
               : HugeIcons.strokeRoundedViewOff,
           size: 20,
-          color: AppColors.lightTextSecondary,
+          color: context.sac.textSecondary,
         ),
         onPressed: () => setState(() => _obscureText = !_obscureText),
       );

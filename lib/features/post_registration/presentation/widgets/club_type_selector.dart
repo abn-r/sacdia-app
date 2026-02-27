@@ -4,6 +4,7 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 
 import '../../data/models/club_instance_model.dart';
 import '../providers/club_selection_providers.dart';
@@ -21,7 +22,36 @@ class ClubTypeSelector extends ConsumerWidget {
     return clubInstancesAsync.when(
       data: (instances) {
         if (instances.isEmpty) {
-          return const SizedBox.shrink();
+          // Caso edge: el club existe pero no tiene instancias activas
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.accentLight,
+              borderRadius: BorderRadius.circular(12),
+              border:
+                  Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
+            ),
+            child: Row(
+              children: [
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedAlertCircle,
+                  color: AppColors.accentDark,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Este club no tiene instancias activas. Elige otro club.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.accentDark,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
         }
 
         return Column(
@@ -49,7 +79,13 @@ class ClubTypeSelector extends ConsumerWidget {
                 padding: const EdgeInsets.only(bottom: 8),
                 child: InkWell(
                   onTap: () {
-                    ref.read(selectedClubInstanceProvider.notifier).state = instance.id;
+                    // Actualizar instancia seleccionada y su slug en paralelo
+                    ref.read(selectedClubInstanceProvider.notifier).state =
+                        instance.id;
+                    ref.read(selectedClubTypeSlugProvider.notifier).state =
+                        instance.clubTypeSlug;
+                    // Limpiar clase al cambiar tipo de club
+                    ref.read(selectedClassProvider.notifier).state = null;
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Container(
@@ -58,13 +94,11 @@ class ClubTypeSelector extends ConsumerWidget {
                       border: Border.all(
                         color: isSelected
                             ? AppColors.primary
-                            : AppColors.lightBorder,
+                            : context.sac.border,
                         width: isSelected ? 2 : 1,
                       ),
                       borderRadius: BorderRadius.circular(12),
-                      color: isSelected
-                          ? AppColors.primaryLight
-                          : null,
+                      color: isSelected ? AppColors.primaryLight : null,
                     ),
                     child: Row(
                       children: [
@@ -74,17 +108,18 @@ class ClubTypeSelector extends ConsumerWidget {
                               : HugeIcons.strokeRoundedRadioButton,
                           color: isSelected
                               ? AppColors.primary
-                              : AppColors.lightTextTertiary,
+                              : context.sac.textTertiary,
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            instance.clubTypeName ?? instance.clubTypeSlug,
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                  fontWeight: isSelected
-                                      ? FontWeight.w600
-                                      : FontWeight.normal,
-                                ),
+                            instance.displayName,
+                            style:
+                                Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                      fontWeight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                    ),
                           ),
                         ),
                         if (isRecommended)
@@ -137,15 +172,18 @@ class ClubTypeSelector extends ConsumerWidget {
     Color color = AppColors.primary;
 
     if (age >= 4 && age <= 9) {
-      recommendation = 'Para tu edad ($age años), recomendamos el club de Aventureros.';
+      recommendation =
+          'Para tu edad ($age años), recomendamos el club de Aventureros.';
       icon = HugeIcons.strokeRoundedBaby01;
       color = AppColors.accent;
     } else if (age >= 10 && age <= 15) {
-      recommendation = 'Para tu edad ($age años), recomendamos el club de Conquistadores.';
+      recommendation =
+          'Para tu edad ($age años), recomendamos el club de Conquistadores.';
       icon = HugeIcons.strokeRoundedCompass01;
       color = AppColors.primary;
     } else if (age >= 16) {
-      recommendation = 'Para tu edad ($age años), recomendamos el club de Guías Mayores.';
+      recommendation =
+          'Para tu edad ($age años), recomendamos el club de Guías Mayores.';
       icon = HugeIcons.strokeRoundedUserGroup;
       color = AppColors.secondary;
     }
@@ -181,7 +219,8 @@ class ClubTypeSelector extends ConsumerWidget {
     if (age == null) return false;
 
     if (instance.clubTypeSlug == 'adventurers' ||
-        (instance.clubTypeName?.toLowerCase().contains('aventurero') ?? false)) {
+        (instance.clubTypeName?.toLowerCase().contains('aventurero') ??
+            false)) {
       return age >= 4 && age <= 9;
     } else if (instance.clubTypeSlug == 'pathfinders' ||
         (instance.clubTypeName?.toLowerCase().contains('conquistador') ??

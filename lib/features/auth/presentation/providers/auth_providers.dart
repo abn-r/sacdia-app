@@ -1,10 +1,10 @@
-import 'dart:developer';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../../../../providers/storage_provider.dart';
 import '../../data/datasources/auth_remote_data_source.dart';
 import '../../data/repositories/auth_repository_impl.dart';
@@ -20,8 +20,7 @@ import '../../../../providers/dio_provider.dart';
 
 /// Provider para la URL base de la API
 final apiBaseUrlProvider = Provider((ref) {
-  // Ajusta esta URL según tu entorno
-  return AppConstants.baseUrl; // Cambia esto a la URL real de tu API
+  return AppConstants.baseUrl;
 });
 
 /// Provider para el repositorio de autenticación
@@ -29,7 +28,7 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final networkInfo = ref.read(networkInfoProvider);
   final dio = ref.read(dioProvider);
   final baseUrl = ref.read(apiBaseUrlProvider);
-  
+
   return AuthRepositoryImpl(
     remoteDataSource: AuthRemoteDataSourceImpl(
       dio: dio,
@@ -64,91 +63,88 @@ final isUserLoggedOutProvider = StateProvider<bool>((ref) => false);
 
 /// Provider para el stream de estado de autenticación con verificación manual adicional
 final authStateProvider = StreamProvider<bool>((ref) {
-  // Observamos el flag manual de cierre de sesión
   final manuallyLoggedOut = ref.watch(isUserLoggedOutProvider);
-  
-  // Si el usuario cerró sesión manualmente, forzamos el estado a false
+
   if (manuallyLoggedOut) {
     return Stream.value(false);
   }
-  
-  // Caso contrario, usamos el stream normal con nuestras mejoras
+
   return ref.read(authRepositoryProvider).authStateChanges;
 });
 
 /// Notifier para manejar la autenticación y sus estados
 class AuthNotifier extends AsyncNotifier<UserEntity?> {
+  static const _tag = 'AuthNotifier';
+
   @override
   Future<UserEntity?> build() async {
     final repository = ref.read(authRepositoryProvider);
 
-    // Paso 1: Verificar si hay token guardado localmente
-    log('🔄 [AuthNotifier] Paso 1: Verificando token local...');
+    AppLogger.i('Verificando token local', tag: _tag);
     final hasToken = await repository.hasLocalToken();
 
-    // NO hay token → ir directo a login (sin llamar al endpoint)
     if (!hasToken) {
-      log('🔒 [AuthNotifier] No hay token local → redirigiendo a login');
+      AppLogger.i('Sin token local, redirigiendo a login', tag: _tag);
       return null;
     }
 
-    // SÍ hay token → llamar a /auth/me para validar
-    log('🔑 [AuthNotifier] Token encontrado → validando con /auth/me...');
+    AppLogger.i('Token encontrado, validando con /auth/me', tag: _tag);
     final result = await ref.read(getCurrentUserProvider)(NoParams());
 
     return result.fold(
       (failure) {
-        // Error de red / servidor: restaurar sesión desde caché local (offline-first)
         if (failure is NetworkFailure || failure is ServerFailure) {
-          log('⚠️ [AuthNotifier] Sin conectividad al inicio → intentando usuario en caché');
+          AppLogger.w('Sin conectividad, intentando caché', tag: _tag);
           final prefs = ref.read(sharedPreferencesProvider);
           final cachedId = prefs.getString('cached_user_id');
           final cachedEmail = prefs.getString('cached_user_email');
           if (cachedId != null && cachedEmail != null) {
-            log('✅ [AuthNotifier] Sesión restaurada desde caché: $cachedEmail');
+            AppLogger.i('Sesión restaurada desde caché: $cachedEmail',
+                tag: _tag);
             return UserEntity(
               id: cachedId,
               email: cachedEmail,
               name: prefs.getString('cached_user_name'),
-              postRegisterComplete: prefs.getBool('cached_post_register_complete') ?? false,
+              postRegisterComplete:
+                  prefs.getBool('cached_post_register_complete') ?? false,
             );
           }
-          log('⚠️ [AuthNotifier] Sin caché local → redirigiendo a login');
+          AppLogger.i('Sin caché, redirigiendo a login', tag: _tag);
           return null;
         }
-        // Error de autenticación (401/403) → token inválido, ir a login
-        log('❌ [AuthNotifier] Error al validar token: ${failure.message} → redirigiendo a login');
+        AppLogger.e('Error al validar token: ${failure.message}', tag: _tag);
         return null;
       },
       (user) {
         if (user != null) {
-          log('✅ [AuthNotifier] Usuario autenticado: ${user.email}');
-          // Actualizar caché con datos frescos del servidor
+          AppLogger.i('Usuario autenticado: ${user.email}', tag: _tag);
           _cacheUser(user);
           return user;
         }
-        // El servidor respondió pero devolvió null (respuesta inesperada).
-        // Intentar restaurar desde caché antes de forzar login.
-        log('⚠️ [AuthNotifier] Servidor respondió sin usuario → intentando caché');
+        AppLogger.w('Servidor respondió sin usuario, intentando caché',
+            tag: _tag);
         final prefs = ref.read(sharedPreferencesProvider);
         final cachedId = prefs.getString('cached_user_id');
         final cachedEmail = prefs.getString('cached_user_email');
         if (cachedId != null && cachedEmail != null) {
-          log('✅ [AuthNotifier] Sesión restaurada desde caché: $cachedEmail');
+          AppLogger.i('Sesión restaurada desde caché: $cachedEmail', tag: _tag);
           return UserEntity(
             id: cachedId,
             email: cachedEmail,
             name: prefs.getString('cached_user_name'),
-            postRegisterComplete: prefs.getBool('cached_post_register_complete') ?? false,
+            postRegisterComplete:
+                prefs.getBool('cached_post_register_complete') ?? false,
           );
         }
-        log('🔒 [AuthNotifier] Sin caché disponible → redirigiendo a login');
+        AppLogger.i('Sin caché, redirigiendo a login', tag: _tag);
         return null;
       },
     );
   }
 
-  /// Persiste los datos del usuario en SharedPreferences para restauración offline
+  /// Persiste los datos del usuario en SharedPreferences y SecureStorage para
+  /// restauración offline. El flag post_register_complete se escribe en ambos
+  /// almacenes para que el datasource pueda leerlo como fallback en /auth/me.
   void _cacheUser(UserEntity user) {
     SharedPreferences.getInstance().then((prefs) {
       prefs.setString('cached_user_id', user.id);
@@ -156,76 +152,73 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       if (user.name != null) prefs.setString('cached_user_name', user.name!);
       prefs.setBool('cached_post_register_complete', user.postRegisterComplete);
     });
+    const FlutterSecureStorage().write(
+      key: 'cached_post_register_complete',
+      value: user.postRegisterComplete.toString(),
+    );
   }
 
   /// Iniciar sesión con email y contraseña
   Future<bool> signIn({required String email, required String password}) async {
-    log('💬 [AuthNotifier] Inicio del proceso de login para: $email');
+    AppLogger.i('Login iniciado: $email', tag: _tag);
     state = const AsyncValue.loading();
-    
-    log('💬 [AuthNotifier] Llamando a signInProvider');
+
     final result = await ref.read(signInProvider)(
       SignInParams(email: email, password: password),
     );
-    
+
     state = result.fold(
       (failure) {
-        String errorMessage = failure is AuthFailure
+        final errorMessage = failure is AuthFailure
             ? failure.message
             : 'Error al iniciar sesión';
-        log('💬 [AuthNotifier] Error en login: $errorMessage');
+        AppLogger.w('Login fallido: $errorMessage', tag: _tag);
         return AsyncValue.error(errorMessage, StackTrace.current);
       },
       (user) {
-        log('💬 [AuthNotifier] Login exitoso para usuario: ${user.email}');
-        // Reseteamos el flag de cierre de sesión en memoria y en persistencia
+        AppLogger.i('Login exitoso: ${user.email}', tag: _tag);
         ref.read(isUserLoggedOutProvider.notifier).state = false;
         SharedPreferences.getInstance().then((prefs) {
           prefs.setBool('user_manually_logged_out', false);
-          prefs.setString('cached_user_id', user.id);
-          prefs.setString('cached_user_email', user.email);
-          if (user.name != null) prefs.setString('cached_user_name', user.name!);
-          prefs.setBool('cached_post_register_complete', user.postRegisterComplete);
         });
+        _cacheUser(user);
         return AsyncValue.data(user);
       },
     );
-    
-    final result2 = !state.hasError;
-    log('💬 [AuthNotifier] Resultado final del login: $result2');
-    return result2;
+
+    return !state.hasError;
   }
 
   /// Registrar un nuevo usuario
   Future<bool> signUp({
-    required String email, 
+    required String email,
     required String password,
     required String name,
     required String paternalSurname,
     required String maternalSurname,
   }) async {
     state = const AsyncValue.loading();
-    
+
     final result = await ref.read(signUpProvider)(
       SignUpParams(
-        email: email, 
+        email: email,
         password: password,
         name: name,
         paternalSurname: paternalSurname,
         maternalSurname: maternalSurname,
       ),
     );
-    
+
     state = result.fold(
       (failure) {
-        String errorMessage = failure is AuthFailure
+        final errorMessage = failure is AuthFailure
             ? failure.message
             : 'Error al registrar usuario';
         return AsyncValue.error(errorMessage, StackTrace.current);
       },
       (user) => AsyncValue.data(user),
     );
-    
+
     return !state.hasError;
   }
 
@@ -235,7 +228,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   void markPostRegisterComplete() {
     final current = state.valueOrNull;
     if (current == null) return;
-    state = AsyncValue.data(UserEntity(
+    final updatedUser = UserEntity(
       id: current.id,
       email: current.email,
       name: current.name,
@@ -244,35 +237,29 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       lastSignInAt: current.lastSignInAt,
       createdAt: current.createdAt,
       postRegisterComplete: true,
-    ));
+    );
+    state = AsyncValue.data(updatedUser);
+    _cacheUser(updatedUser);
   }
 
   /// Cerrar sesión
   Future<bool> signOut() async {
     state = const AsyncValue.loading();
-    
-    // Establecer el flag de cierre de sesión manual ANTES de llamar al signOut
-    // para evitar que el stream pueda emitir un valor incorrecto
+
     ref.read(isUserLoggedOutProvider.notifier).state = true;
-    
+
     final result = await ref.read(signOutProvider)(NoParams());
-    
+
     return result.fold(
       (failure) {
-        String errorMessage = failure is AuthFailure
-            ? failure.message
-            : 'Error al cerrar sesión';
+        final errorMessage =
+            failure is AuthFailure ? failure.message : 'Error al cerrar sesión';
         state = AsyncValue.error(errorMessage, StackTrace.current);
-        
-        // Si hay un error, no podemos estar seguros del estado, pero mantenemos el flag activo
-        // para evitar que el usuario quede con sesión abierta
         return false;
       },
       (_) {
-        // Cierre exitoso, establecemos el estado a null (no autenticado)
         state = const AsyncValue.data(null);
 
-        // Limpiar caché de usuario y marcar cierre manual en SharedPreferences
         SharedPreferences.getInstance().then((prefs) {
           prefs.setBool('user_manually_logged_out', true);
           prefs.remove('cached_user_id');
@@ -280,6 +267,9 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
           prefs.remove('cached_user_name');
           prefs.remove('cached_post_register_complete');
         });
+        const FlutterSecureStorage().delete(
+          key: 'cached_post_register_complete',
+        );
 
         return true;
       },
@@ -293,6 +283,7 @@ final networkInfoProvider = Provider<NetworkInfo>((ref) {
 });
 
 /// Provider para AuthNotifier
-final authNotifierProvider = AsyncNotifierProvider<AuthNotifier, UserEntity?>(() {
+final authNotifierProvider =
+    AsyncNotifierProvider<AuthNotifier, UserEntity?>(() {
   return AuthNotifier();
 });

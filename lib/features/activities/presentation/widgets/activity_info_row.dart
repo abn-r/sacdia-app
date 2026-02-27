@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Fila de información de actividad - Estilo "Scout Vibrante"
 ///
@@ -43,7 +44,7 @@ class ActivityInfoRow extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.lightTextSecondary,
+                    color: context.sac.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 2),

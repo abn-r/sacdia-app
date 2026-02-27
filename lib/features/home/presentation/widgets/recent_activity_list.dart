@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
 /// Lista de actividades recientes - Estilo "Scout Vibrante"
@@ -23,7 +24,7 @@ class RecentActivityList extends StatelessWidget {
         separatorBuilder: (_, __) => Divider(
           height: 1,
           indent: 60,
-          color: AppColors.lightBorder,
+          color: context.sac.border,
         ),
         itemBuilder: (context, index) {
           final activity = activities[index];
@@ -61,7 +62,7 @@ class RecentActivityList extends StatelessWidget {
                         'Hace ${index + 1} ${index == 0 ? 'hora' : 'horas'}',
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.lightTextSecondary,
+                          color: context.sac.textSecondary,
                         ),
                       ),
                     ],

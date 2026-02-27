@@ -31,5 +31,6 @@ class UserEntity extends Equatable {
         metadata,
         lastSignInAt,
         createdAt,
+        postRegisterComplete,
       ];
 }

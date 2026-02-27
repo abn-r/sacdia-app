@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
@@ -83,7 +84,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     final attendanceState = ref.watch(attendanceNotifierProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: context.sac.background,
       body: activityAsync.when(
         data: (activity) {
           final typeColor = _getTypeColor(activity.type);
@@ -203,7 +204,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                           style: TextStyle(
                             fontSize: 14,
                             height: 1.6,
-                            color: AppColors.lightTextSecondary,
+                            color: context.sac.textSecondary,
                           ),
                         ),
                       ],

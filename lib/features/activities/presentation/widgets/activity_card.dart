@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
@@ -108,7 +109,7 @@ class ActivityCard extends StatelessWidget {
                       DateFormat('HH:mm').format(activity.date),
                       style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.lightTextSecondary,
+                        color: context.sac.textSecondary,
                       ),
                     ),
                     if (activity.location != null) ...[
@@ -116,7 +117,7 @@ class ActivityCard extends StatelessWidget {
                         ' · ',
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.lightTextTertiary,
+                          color: context.sac.textTertiary,
                         ),
                       ),
                       Expanded(
@@ -124,7 +125,7 @@ class ActivityCard extends StatelessWidget {
                           activity.location!,
                           style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.lightTextSecondary,
+                            color: context.sac.textSecondary,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -143,7 +144,7 @@ class ActivityCard extends StatelessWidget {
 
           HugeIcon(
             icon: HugeIcons.strokeRoundedArrowRight01,
-            color: AppColors.lightTextTertiary,
+            color: context.sac.textTertiary,
             size: 24,
           ),
         ],

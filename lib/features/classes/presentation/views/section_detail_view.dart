@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_card.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/class_section.dart';
@@ -61,7 +62,7 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
                   children: [
                     HugeIcon(
                       icon: _isCompleted ? HugeIcons.strokeRoundedCheckmarkCircle02 : HugeIcons.strokeRoundedRadioButton,
-                      color: _isCompleted ? AppColors.success : AppColors.lightTextSecondary,
+                      color: _isCompleted ? AppColors.success : context.sac.textSecondary,
                       size: 32,
                     ),
                     const SizedBox(width: 16),
@@ -75,7 +76,7 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
                                   fontWeight: FontWeight.bold,
                                   color: _isCompleted
                                       ? AppColors.success
-                                      : AppColors.lightTextSecondary,
+                                      : context.sac.textSecondary,
                                 ),
                           ),
                           const SizedBox(height: 4),

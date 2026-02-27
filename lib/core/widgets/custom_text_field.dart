@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 class CustomTextField extends StatefulWidget {
   final TextEditingController controller;
@@ -94,13 +95,13 @@ class CustomTextFieldState extends State<CustomTextField> {
             style: Theme.of(context)
                 .textTheme
                 .titleLarge!
-                .copyWith(color: AppColors.lightText, fontWeight: FontWeight.w600),
+                .copyWith(color: context.sac.text, fontWeight: FontWeight.w600),
             textAlign: TextAlign.start,
           ),
           const SizedBox(height: 6),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.sac.surface,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.1),
@@ -154,15 +155,15 @@ class CustomTextFieldState extends State<CustomTextField> {
                 // Aumentar el padding para que el texto no quede tan pegado a los bordes
                 contentPadding:
                     const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
-                hintStyle: TextStyle(color: AppColors.lightTextTertiary),
-                fillColor: Colors.white,
+                hintStyle: TextStyle(color: context.sac.textTertiary),
+                fillColor: context.sac.surface,
                 filled: true,
                 prefixIcon: _buildPrefixIcon(),
                 suffixIcon: widget.obscureText
                     ? IconButton(
                         icon: _obscureText
-                            ? HugeIcon(icon: HugeIcons.strokeRoundedViewOffSlash, color: AppColors.lightTextSecondary, size: 20)
-                            : HugeIcon(icon: HugeIcons.strokeRoundedViewOff, color: AppColors.lightTextSecondary, size: 20),
+                            ? HugeIcon(icon: HugeIcons.strokeRoundedViewOffSlash, color: context.sac.textSecondary, size: 20)
+                            : HugeIcon(icon: HugeIcons.strokeRoundedViewOff, color: context.sac.textSecondary, size: 20),
                         onPressed: _toggleObscureText,
                       )
                     : null,
@@ -199,11 +200,11 @@ class CustomTextFieldState extends State<CustomTextField> {
     if (widget.isPrefixHugeIcon) {
       return HugeIcon(
         icon: widget.prefixIcon,
-        color: AppColors.lightTextSecondary,
+        color: context.sac.textSecondary,
         size: 24,
       );
     } else {
-      return Icon(widget.prefixIcon, color: AppColors.lightTextTertiary);
+      return Icon(widget.prefixIcon, color: context.sac.textTertiary);
     }
   }
 }

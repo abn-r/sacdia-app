@@ -1,9 +1,9 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/app_logger.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/post_registration_providers.dart';
@@ -22,6 +22,7 @@ class PhotoStepView extends ConsumerStatefulWidget {
 }
 
 class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
+  static const _tag = 'PhotoStep';
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _takePhoto() async {
@@ -37,7 +38,7 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
         await _cropAndSetImage(photo.path);
       }
     } catch (e) {
-      log('Error al tomar foto: $e');
+      AppLogger.e('Error al tomar foto', tag: _tag, error: e);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -65,7 +66,7 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
         await _cropAndSetImage(photo.path);
       }
     } catch (e) {
-      log('Error al seleccionar foto: $e');
+      AppLogger.e('Error al seleccionar foto', tag: _tag, error: e);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -107,7 +108,7 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
         await _uploadPhoto(croppedFile.path);
       }
     } catch (e) {
-      log('Error al recortar imagen: $e');
+      AppLogger.e('Error al recortar imagen', tag: _tag, error: e);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -150,7 +151,7 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
           }
         },
         (url) {
-          log('Foto subida exitosamente: $url');
+          AppLogger.i('Foto subida exitosamente', tag: _tag);
         },
       );
     } finally {

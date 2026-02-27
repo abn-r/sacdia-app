@@ -22,9 +22,14 @@ class ClubInstanceModel extends Equatable {
 
   /// Parsea un item individual desde el bucket de instancias.
   /// [slug] es la clave del bucket normalizada (master_guilds → master_guild).
+  /// [idKey] es el campo de ID específico del bucket (ej: 'club_adv_id').
   factory ClubInstanceModel.fromJsonWithSlug(
-      Map<String, dynamic> json, String slug) {
-    final rawId = json['club_instance_id'] ?? json['id'];
+      Map<String, dynamic> json, String slug, String idKey) {
+    // Cada bucket tiene su propio campo de ID en la respuesta de la API:
+    //   adventurers  → club_adv_id
+    //   pathfinders  → club_pathf_id
+    //   master_guilds → club_mg_id
+    final rawId = json[idKey] ?? json['club_instance_id'] ?? json['id'];
     final rawClubTypeId = json['club_type_id'];
     final rawClubId = json['club_id'];
 
@@ -69,6 +74,23 @@ class ClubInstanceModel extends Equatable {
       'club_type_slug': clubTypeSlug,
       if (clubTypeName != null) 'club_type_name': clubTypeName,
     };
+  }
+
+  /// Nombre para mostrar: usa clubTypeName si viene del API,
+  /// o traduce el slug al español como fallback.
+  String get displayName {
+    if (clubTypeName != null && clubTypeName!.isNotEmpty) return clubTypeName!;
+    switch (clubTypeSlug) {
+      case 'adventurers':
+        return 'Aventureros';
+      case 'pathfinders':
+        return 'Conquistadores';
+      case 'master_guild':
+      case 'master_guilds':
+        return 'Guías Mayores';
+      default:
+        return clubTypeSlug;
+    }
   }
 
   /// Crea una copia con campos actualizados

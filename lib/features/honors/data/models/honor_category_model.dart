@@ -16,7 +16,7 @@ class HonorCategoryModel extends Equatable {
   /// Crea una instancia desde JSON
   factory HonorCategoryModel.fromJson(Map<String, dynamic> json) {
     return HonorCategoryModel(
-      id: json['id'] as int,
+      id: (json['honor_category_id'] ?? json['id']) as int,
       name: json['name'] as String,
       description: json['description'] as String?,
     );

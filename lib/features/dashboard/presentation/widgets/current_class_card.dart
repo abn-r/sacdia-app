@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_ring.dart';
 
@@ -89,14 +90,14 @@ class CurrentClassCard extends StatelessWidget {
                           .headlineMedium
                           ?.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: AppColors.lightText,
+                            color: context.sac.text,
                           ),
                     ),
                     Text(
                       'progreso',
                       style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.lightTextSecondary,
+                        color: context.sac.textSecondary,
                       ),
                     ),
                   ],
@@ -129,7 +130,7 @@ class CurrentClassCard extends StatelessWidget {
               fontSize: 14,
               color: isComplete
                   ? AppColors.secondaryDark
-                  : AppColors.lightTextSecondary,
+                  : context.sac.textSecondary,
             ),
             textAlign: TextAlign.center,
           ),

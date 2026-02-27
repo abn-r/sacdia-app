@@ -21,16 +21,28 @@ class UserHonorModel extends Equatable {
 
   /// Crea una instancia desde JSON
   factory UserHonorModel.fromJson(Map<String, dynamic> json) {
+    // PK is 'user_honor_id'; 'id' as fallback
+    final id = (json['user_honor_id'] ?? json['id']) as int;
+
+    // Status derived from boolean fields: validate=true → completed, else in_progress
+    final validate = json['validate'] as bool? ?? false;
+    final status = json['status'] as String? ??
+        (validate ? 'completed' : 'in_progress');
+
+    // Date field: 'date' is the honor date, 'created_at' as fallback
+    final dateRaw = json['date'] as String? ?? json['created_at'] as String?;
+    final startDate = dateRaw != null ? DateTime.tryParse(dateRaw) : null;
+
+    final completionRaw = json['completion_date'] as String?;
+
     return UserHonorModel(
-      id: json['id'] as int,
+      id: id,
       honorId: json['honor_id'] as int,
       userId: json['user_id'] as String,
-      status: json['status'] as String,
-      startDate: json['start_date'] != null
-          ? DateTime.parse(json['start_date'] as String)
-          : null,
-      completionDate: json['completion_date'] != null
-          ? DateTime.parse(json['completion_date'] as String)
+      status: status,
+      startDate: startDate,
+      completionDate: completionRaw != null
+          ? DateTime.tryParse(completionRaw)
           : null,
     );
   }

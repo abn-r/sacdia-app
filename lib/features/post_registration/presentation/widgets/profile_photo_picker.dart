@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
@@ -44,7 +45,7 @@ class ProfilePhotoPicker extends StatelessWidget {
         Text(
           'Sube una foto para que te reconozcan en tu club',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.lightTextSecondary,
+                color: context.sac.textSecondary,
               ),
           textAlign: TextAlign.center,
         ),
@@ -94,7 +95,8 @@ class ProfilePhotoPicker extends StatelessWidget {
                         border: Border.all(color: Colors.white, width: 3),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.15),
+                            // Reemplazado withOpacity (deprecado) por withValues para compatibilidad con Impeller
+                            color: Colors.black.withValues(alpha: 0.15),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
@@ -144,33 +146,36 @@ class ProfilePhotoPicker extends StatelessWidget {
           // Dashed circle placeholder
           GestureDetector(
             onTap: onPickFromGallery,
-            child: CustomPaint(
-              painter: _DashedCirclePainter(color: AppColors.primary),
-              child: Container(
-                width: 200,
-                height: 200,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primaryLight,
-                ),
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedCamera01,
-                      size: 40,
-                      color: AppColors.primary,
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Agregar foto',
-                      style: TextStyle(
-                        fontSize: 12,
+            // RepaintBoundary evita que Impeller propague opacidad heredada al CustomPaint
+            child: RepaintBoundary(
+              child: CustomPaint(
+                painter: _DashedCirclePainter(color: AppColors.primary),
+                child: Container(
+                  width: 200,
+                  height: 200,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.primaryLight,
+                  ),
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedCamera01,
+                        size: 40,
                         color: AppColors.primary,
-                        fontWeight: FontWeight.w500,
                       ),
-                    ),
-                  ],
+                      SizedBox(height: 4),
+                      Text(
+                        'Agregar foto',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -186,7 +191,7 @@ class ProfilePhotoPicker extends StatelessWidget {
                 child: SacCard(
                   onTap: isUploading ? null : onTakePhoto,
                   padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: const Column(
+                  child: Column(
                     children: [
                       HugeIcon(
                         icon: HugeIcons.strokeRoundedCamera01,
@@ -199,7 +204,7 @@ class ProfilePhotoPicker extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.lightText,
+                          color: context.sac.text,
                         ),
                       ),
                     ],
@@ -211,7 +216,7 @@ class ProfilePhotoPicker extends StatelessWidget {
                 child: SacCard(
                   onTap: isUploading ? null : onPickFromGallery,
                   padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: const Column(
+                  child: Column(
                     children: [
                       HugeIcon(
                         icon: HugeIcons.strokeRoundedCamera02,
@@ -224,7 +229,7 @@ class ProfilePhotoPicker extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.lightText,
+                          color: context.sac.text,
                         ),
                       ),
                     ],

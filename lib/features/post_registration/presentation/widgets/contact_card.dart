@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../data/models/emergency_contact_model.dart';
 
 /// Card que muestra un contacto de emergencia con opciones de edición y eliminación
@@ -58,7 +59,7 @@ class ContactCard extends StatelessWidget {
                       contact.relationshipTypeName!,
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.lightTextSecondary,
+                        color: context.sac.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -68,14 +69,14 @@ class ContactCard extends StatelessWidget {
                       HugeIcon(
                         icon: HugeIcons.strokeRoundedCall,
                         size: 16,
-                        color: AppColors.lightTextSecondary,
+                        color: context.sac.textSecondary,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         contact.phone,
                         style: TextStyle(
                           fontSize: 14,
-                          color: AppColors.lightTextSecondary,
+                          color: context.sac.textSecondary,
                         ),
                       ),
                     ],

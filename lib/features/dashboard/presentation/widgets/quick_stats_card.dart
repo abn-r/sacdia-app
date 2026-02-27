@@ -3,6 +3,7 @@ import 'package:sacdia_app/core/animations/animated_counter.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
 /// Fila de 3 mini cards de estadísticas - Estilo "Scout Vibrante"
@@ -114,7 +115,7 @@ class _MiniStatCard extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: 11,
-              color: AppColors.lightTextSecondary,
+              color: context.sac.textSecondary,
               fontWeight: FontWeight.w500,
             ),
             textAlign: TextAlign.center,

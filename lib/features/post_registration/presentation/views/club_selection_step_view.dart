@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import '../../data/models/country_model.dart';
@@ -67,7 +68,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
           Text(
             'Selecciona tu ubicación y club para unirte a la aventura',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.lightTextSecondary,
+                  color: context.sac.textSecondary,
                 ),
           ),
           const SizedBox(height: 32),
@@ -138,7 +139,8 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                   onChanged: (union) {
                     if (union != null) {
                       ref.read(selectedUnionProvider.notifier).state = union.id;
-                      ref.read(selectedLocalFieldProvider.notifier).state = null;
+                      ref.read(selectedLocalFieldProvider.notifier).state =
+                          null;
                       ref.read(selectedClubProvider.notifier).state = null;
                       ref.read(selectedClubInstanceProvider.notifier).state =
                           null;
@@ -211,7 +213,6 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
               ],
             ),
             const SizedBox(height: 16),
-
             clubsAsync.when(
               data: (clubs) {
                 if (clubs.isEmpty) {
@@ -229,7 +230,10 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                   onChanged: (club) {
                     if (club != null) {
                       ref.read(selectedClubProvider.notifier).state = club.id;
+                      // Resetear tipo de club y clase al cambiar de club
                       ref.read(selectedClubInstanceProvider.notifier).state =
+                          null;
+                      ref.read(selectedClubTypeSlugProvider.notifier).state =
                           null;
                       ref.read(selectedClassProvider.notifier).state = null;
                     }
@@ -246,8 +250,24 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
             const SizedBox(height: 16),
           ],
 
-          // Club Type
+          // Tipo de Club
           if (selectedClubId != null) ...[
+            Row(
+              children: [
+                HugeIcon(
+                    icon: HugeIcons.strokeRoundedUserGroup,
+                    size: 20,
+                    color: AppColors.primary),
+                const SizedBox(width: 8),
+                Text(
+                  'Tipo de club',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             const ClubTypeSelector(),
             const SizedBox(height: 24),
           ],
@@ -339,7 +359,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
       child: Text(
         message,
         style: TextStyle(
-          color: AppColors.lightTextTertiary,
+          color: context.sac.textTertiary,
           fontSize: 14,
         ),
       ),

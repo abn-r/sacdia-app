@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
@@ -27,7 +28,7 @@ class ClassModulesView extends ConsumerWidget {
     final authState = ref.watch(authNotifierProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: context.sac.background,
       appBar: AppBar(
         title: const Text('Módulos'),
         backgroundColor: AppColors.primary,
@@ -42,13 +43,13 @@ class ClassModulesView extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   HugeIcon(icon: HugeIcons.strokeRoundedCheckList,
-                      size: 56, color: AppColors.lightTextTertiary),
+                      size: 56, color: context.sac.textTertiary),
                   const SizedBox(height: 12),
                   Text(
                     'No hay módulos disponibles',
                     style: TextStyle(
                       fontSize: 16,
-                      color: AppColors.lightTextSecondary,
+                      color: context.sac.textSecondary,
                     ),
                   ),
                 ],
@@ -131,7 +132,7 @@ class ClassModulesView extends ConsumerWidget {
                 Text(
                   error.toString(),
                   style: TextStyle(
-                      fontSize: 14, color: AppColors.lightTextSecondary),
+                      fontSize: 14, color: context.sac.textSecondary),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),

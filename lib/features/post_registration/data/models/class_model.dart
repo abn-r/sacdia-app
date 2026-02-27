@@ -25,7 +25,7 @@ class ClassModel extends Equatable {
     return ClassModel(
       id: rawId is int ? rawId : (int.tryParse(rawId?.toString() ?? '') ?? 0),
       name: (json['name'] as String?) ?? '',
-      minAge: json['min_age'] as int?,
+      minAge: (json['minimum_age'] ?? json['min_age']) as int?,
       maxAge: json['max_age'] as int?,
       clubTypeId: rawClubTypeId is int
           ? rawClubTypeId

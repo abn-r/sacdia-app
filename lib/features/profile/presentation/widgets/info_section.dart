@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/widgets/sac_card.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 
-/// Widget para mostrar una sección de información del perfil
+/// Sección de información estilo iOS grouped list.
+/// Sin Card — agrupación de filas con Divider fino, header en uppercase.
 class InfoSection extends StatelessWidget {
   final String title;
   final List<InfoItem> items;
@@ -17,21 +17,53 @@ class InfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SacCard(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header estilo iOS section — uppercase, pequeño, gris
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            title.toUpperCase(),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: context.sac.textTertiary,
+              letterSpacing: 0.8,
+            ),
           ),
-          const SizedBox(height: 16),
-          ...items.map((item) => _InfoItemWidget(item: item)),
-        ],
-      ),
+        ),
+        // Contenedor de filas agrupadas — fondo blanco, bordes redondeados
+        Container(
+          decoration: BoxDecoration(
+            color: context.sac.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: context.sac.border,
+              width: 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              for (int i = 0; i < items.length; i++) ...[
+                _InfoItemWidget(
+                    item: items[i],
+                    isFirst: i == 0,
+                    isLast: i == items.length - 1),
+                if (i < items.length - 1)
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    // Divider alineado con el contenido (indentado)
+                    indent: 56,
+                    endIndent: 0,
+                    color: context.sac.borderLight,
+                  ),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -53,58 +85,76 @@ class InfoItem {
 
 class _InfoItemWidget extends StatelessWidget {
   final InfoItem item;
+  final bool isFirst;
+  final bool isLast;
 
-  const _InfoItemWidget({required this.item});
+  const _InfoItemWidget({
+    required this.item,
+    required this.isFirst,
+    required this.isLast,
+  });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: item.onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.vertical(
+        top: isFirst ? const Radius.circular(14) : Radius.zero,
+        bottom: isLast ? const Radius.circular(14) : Radius.zero,
+      ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
         child: Row(
           children: [
+            // ícono en contenedor neutro — estilo iOS SF Symbol container
             Container(
-              width: 36,
-              height: 36,
+              width: 32,
+              height: 32,
               decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                borderRadius: BorderRadius.circular(10),
+                color: context.sac.surfaceVariant,
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                item.icon,
-                color: AppColors.primary,
-                size: 20,
-              ),
+              child: item.icon is IconData
+                  ? Icon(
+                      item.icon as IconData,
+                      color: context.sac.textSecondary,
+                      size: 17,
+                    )
+                  : HugeIcon(
+                      icon: item.icon,
+                      color: context.sac.textSecondary,
+                      size: 17,
+                    ),
             ),
             const SizedBox(width: 12),
+            // Label + Valor
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     item.label,
-                    style: const TextStyle(
-                      fontSize: 12,
+                    style: TextStyle(
+                      fontSize: 11,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.lightTextSecondary,
+                      color: context.sac.textTertiary,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  // Value — overflow guard for long strings
+                  const SizedBox(height: 2),
                   Text(
                     item.value ?? 'No especificado',
                     style: item.value != null
-                        ? Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.lightText,
-                            )
-                        : Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.lightTextTertiary,
-                              fontStyle: FontStyle.italic,
-                            ),
+                        ? TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: context.sac.text,
+                          )
+                        : TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: context.sac.textTertiary,
+                            fontStyle: FontStyle.italic,
+                          ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -112,9 +162,10 @@ class _InfoItemWidget extends StatelessWidget {
               ),
             ),
             if (item.onTap != null)
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowRight01,
-                color: AppColors.lightTextTertiary,
+              Icon(
+                Icons.chevron_right,
+                color: context.sac.textTertiary,
+                size: 18,
               ),
           ],
         ),

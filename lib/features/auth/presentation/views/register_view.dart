@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/validators.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -124,7 +125,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
         : Theme.of(context).textTheme.displayMedium;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.sac.surface,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -148,10 +149,10 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                           onPressed: () => context.pop(),
                           icon: HugeIcon(
                             icon: HugeIcons.strokeRoundedArrowLeft01,
-                            color: AppColors.lightText,
+                            color: context.sac.text,
                           ),
                           style: IconButton.styleFrom(
-                            backgroundColor: AppColors.lightBackground,
+                            backgroundColor: context.sac.background,
                           ),
                         ),
                       ),
@@ -297,7 +298,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                                 .textTheme
                                 .bodyMedium
                                 ?.copyWith(
-                                  color: AppColors.lightTextSecondary,
+                                  color: context.sac.textSecondary,
                                 ),
                             children: [
                               TextSpan(
@@ -362,8 +363,8 @@ class _PasswordStrengthIndicator extends StatelessWidget {
     }
   }
 
-  Color _segmentColor(int index) {
-    if (index >= _strength) return AppColors.lightBorderLight;
+  Color _segmentColor(int index, BuildContext context) {
+    if (index >= _strength) return context.sac.borderLight;
     switch (_strength) {
       case 1:
         return AppColors.error;
@@ -374,11 +375,11 @@ class _PasswordStrengthIndicator extends StatelessWidget {
       case 4:
         return AppColors.secondary;
       default:
-        return AppColors.lightBorderLight;
+        return context.sac.borderLight;
     }
   }
 
-  Color get _labelColor {
+  Color _labelColor(BuildContext context) {
     switch (_strength) {
       case 1:
         return AppColors.error;
@@ -389,7 +390,7 @@ class _PasswordStrengthIndicator extends StatelessWidget {
       case 4:
         return AppColors.secondary;
       default:
-        return AppColors.lightTextTertiary;
+        return context.sac.textTertiary;
     }
   }
 
@@ -408,7 +409,7 @@ class _PasswordStrengthIndicator extends StatelessWidget {
                 height: 4,
                 margin: EdgeInsets.only(right: index < 3 ? 4 : 0),
                 decoration: BoxDecoration(
-                  color: _segmentColor(index),
+                  color: _segmentColor(index, context),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -421,7 +422,7 @@ class _PasswordStrengthIndicator extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: _labelColor,
+            color: _labelColor(context),
           ),
         ),
       ],

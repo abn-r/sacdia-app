@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/theme/theme_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../widgets/setting_tile.dart';
-
-/// Provider para el modo de tema
-final themeModeProvider = StateProvider<ThemeMode>((ref) {
-  // TODO: Cargar desde SharedPreferences
-  return ThemeMode.system;
-});
 
 /// Vista de configuración de la aplicación
 class SettingsView extends ConsumerStatefulWidget {
@@ -43,10 +38,17 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
       barrierColor: Colors.black54,
       barrierDismissible: true,
       builder: (context) => _ThemePickerDialog(
-        currentMode: ref.read(themeModeProvider),
+        currentMode: ref.read(themeNotifierProvider),
         onModeSelected: (mode) {
-          ref.read(themeModeProvider.notifier).state = mode;
-          // TODO: Guardar en SharedPreferences
+          final notifier = ref.read(themeNotifierProvider.notifier);
+          switch (mode) {
+            case ThemeMode.light:
+              notifier.setLightTheme();
+            case ThemeMode.dark:
+              notifier.setDarkTheme();
+            case ThemeMode.system:
+              notifier.setSystemTheme();
+          }
           Navigator.pop(context);
         },
       ),
@@ -83,186 +85,89 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = ref.watch(themeModeProvider);
+    final themeMode = ref.watch(themeNotifierProvider);
+
+    final c = context.sac;
 
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: c.surfaceVariant,
       appBar: AppBar(
         title: const Text('Configuración'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        backgroundColor: c.surfaceVariant,
+        foregroundColor: c.text,
+        elevation: 0,
+        scrolledUnderElevation: 0,
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         children: [
-          // Sección de Apariencia
-          SacCard(
-            padding: EdgeInsets.zero,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedPaintBrush01,
-                        size: 20,
-                        color: AppColors.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Apariencia',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                ),
-                SettingTile(
-                  icon: HugeIcons.strokeRoundedPaintBrush01,
-                  title: 'Tema',
-                  subtitle: _getThemeName(themeMode),
-                  onTap: _showThemeDialog,
-                ),
-              ],
-            ),
+          // ── APARIENCIA ────────────────────────────────────────────
+          _SectionHeader(title: 'APARIENCIA'),
+          _GroupContainer(
+            children: [
+              SettingTile(
+                icon: HugeIcons.strokeRoundedPaintBrush01,
+                title: 'Tema',
+                subtitle: _getThemeName(themeMode),
+                iconColor: AppColors.primary,
+                onTap: _showThemeDialog,
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          // Sección de Notificaciones
-          SacCard(
-            padding: EdgeInsets.zero,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedNotification01,
-                        size: 20,
-                        color: AppColors.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Notificaciones',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                ),
-                SettingTile(
-                  icon: HugeIcons.strokeRoundedNotification01,
-                  title: 'Notificaciones push',
-                  subtitle: 'Recibe notificaciones de actividades',
-                  trailing: Switch.adaptive(
-                    value: true,
-                    onChanged: (value) {
-                      // TODO: Implementar toggle de notificaciones
-                    },
-                    activeColor: AppColors.primary,
-                  ),
-                ),
-              ],
-            ),
+          const SizedBox(height: 24),
+
+          // ── ACERCA DE ─────────────────────────────────────────────
+          _SectionHeader(title: 'ACERCA DE'),
+          _GroupContainer(
+            children: [
+              SettingTile(
+                icon: HugeIcons.strokeRoundedInformationCircle,
+                title: 'Versión de la app',
+                subtitle: _appVersion,
+              ),
+              _groupDivider(),
+              SettingTile(
+                icon: HugeIcons.strokeRoundedSecurityCheck,
+                title: 'Política de privacidad',
+                onTap: () {
+                  // TODO: Abrir política de privacidad
+                },
+              ),
+              _groupDivider(),
+              SettingTile(
+                icon: HugeIcons.strokeRoundedLegalDocument01,
+                title: 'Términos y condiciones',
+                onTap: () {
+                  // TODO: Abrir términos y condiciones
+                },
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          // Sección de Cuenta
-          SacCard(
-            padding: EdgeInsets.zero,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedUser,
-                        size: 20,
-                        color: AppColors.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Cuenta',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                ),
-                SettingTile(
-                  icon: HugeIcons.strokeRoundedLogout01,
-                  title: 'Cerrar sesión',
-                  iconColor: AppColors.error,
-                  onTap: _handleLogout,
-                ),
-              ],
-            ),
+          const SizedBox(height: 24),
+
+          // ── CUENTA ────────────────────────────────────────────────
+          _GroupContainer(
+            children: [
+              SettingTile(
+                icon: HugeIcons.strokeRoundedLogout01,
+                title: 'Cerrar sesión',
+                iconColor: AppColors.error,
+                onTap: _handleLogout,
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          // Sección de Acerca de
-          SacCard(
-            padding: EdgeInsets.zero,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedInformationCircle,
-                        size: 20,
-                        color: AppColors.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Acerca de',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                ),
-                SettingTile(
-                  icon: HugeIcons.strokeRoundedInformationCircle,
-                  title: 'Versión de la app',
-                  subtitle: _appVersion,
-                ),
-                const Divider(height: 1),
-                SettingTile(
-                  icon: HugeIcons.strokeRoundedSecurityCheck,
-                  title: 'Política de privacidad',
-                  onTap: () {
-                    // TODO: Abrir política de privacidad
-                  },
-                ),
-                const Divider(height: 1),
-                SettingTile(
-                  icon: HugeIcons.strokeRoundedLegalDocument01,
-                  title: 'Términos y condiciones',
-                  onTap: () {
-                    // TODO: Abrir términos y condiciones
-                  },
-                ),
-              ],
-            ),
-          ),
+          const SizedBox(height: 32),
         ],
       ),
     );
   }
+
+  Widget _groupDivider() => Divider(
+        height: 1,
+        thickness: 1,
+        indent: 60,
+        color: context.sac.borderLight,
+      );
 }
 
 /// SACDIA-styled theme picker dialog — multi-option, no confirm/cancel.
@@ -277,8 +182,7 @@ class _ThemePickerDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.darkSurface : Colors.white;
+    final c = context.sac;
 
     final options = [
       (ThemeMode.light, 'Claro', HugeIcons.strokeRoundedSun01),
@@ -292,7 +196,7 @@ class _ThemePickerDialog extends StatelessWidget {
       child: _ScaleFadeIn(
         child: Container(
           decoration: BoxDecoration(
-            color: bgColor,
+            color: c.surface,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -318,7 +222,7 @@ class _ThemePickerDialog extends StatelessWidget {
                   ),
                 ),
               ),
-              Container(height: 0.5, color: AppColors.lightBorder),
+              Container(height: 0.5, color: c.border),
               // Options
               ...options.map((entry) {
                 final (mode, label, icon) = entry;
@@ -338,7 +242,7 @@ class _ThemePickerDialog extends StatelessWidget {
                               size: 20,
                               color: isSelected
                                   ? AppColors.primary
-                                  : AppColors.lightTextSecondary,
+                                  : c.textSecondary,
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -351,7 +255,7 @@ class _ThemePickerDialog extends StatelessWidget {
                                       : FontWeight.w400,
                                   color: isSelected
                                       ? AppColors.primary
-                                      : AppColors.lightTextSecondary,
+                                      : c.textSecondary,
                                 ),
                               ),
                             ),
@@ -369,27 +273,27 @@ class _ThemePickerDialog extends StatelessWidget {
                       Container(
                         height: 0.5,
                         margin: const EdgeInsets.only(left: 52),
-                        color: AppColors.lightBorder,
+                        color: c.border,
                       ),
                   ],
                 );
               }),
               // Cancel row
-              Container(height: 0.5, color: AppColors.lightBorder),
+              Container(height: 0.5, color: c.border),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
                 style: TextButton.styleFrom(
-                  foregroundColor: AppColors.lightTextSecondary,
+                  foregroundColor: c.textSecondary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   minimumSize: const Size(double.infinity, 0),
                   shape: const RoundedRectangleBorder(),
                 ),
-                child: const Text(
+                child: Text(
                   'Cancelar',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
-                    color: AppColors.lightTextSecondary,
+                    color: c.textSecondary,
                   ),
                 ),
               ),
@@ -397,6 +301,48 @@ class _ThemePickerDialog extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Header de sección estilo iOS — uppercase, pequeño, gris.
+class _SectionHeader extends StatelessWidget {
+  final String title;
+
+  const _SectionHeader({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: context.sac.textTertiary,
+          letterSpacing: 0.8,
+        ),
+      ),
+    );
+  }
+}
+
+/// Contenedor agrupado estilo iOS Settings — fondo blanco, bordes redondeados.
+class _GroupContainer extends StatelessWidget {
+  final List<Widget> children;
+
+  const _GroupContainer({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: context.sac.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: context.sac.border, width: 1),
+      ),
+      child: Column(children: children),
     );
   }
 }

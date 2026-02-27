@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
+import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
@@ -22,8 +24,10 @@ class DashboardView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dashboardState = ref.watch(dashboardNotifierProvider);
 
+    final c = context.sac;
+
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: c.background,
       body: SafeArea(
         child: dashboardState.when(
           data: (dashboard) {
@@ -35,13 +39,13 @@ class DashboardView extends ConsumerWidget {
                     HugeIcon(
                         icon: HugeIcons.strokeRoundedDashboardSquare01,
                         size: 56,
-                        color: AppColors.lightTextTertiary),
+                        color: c.textTertiary),
                     const SizedBox(height: 12),
                     Text(
                       'No se pudo cargar el dashboard',
                       style: TextStyle(
                         fontSize: 16,
-                        color: AppColors.lightTextSecondary,
+                        color: c.textSecondary,
                       ),
                     ),
                   ],
@@ -85,7 +89,7 @@ class DashboardView extends ConsumerWidget {
                           ClubInfoCard(
                             clubName: dashboard.clubName,
                             clubType: dashboard.clubType,
-                            userRole: dashboard.userRole,
+                            userRole: RoleUtils.translate(dashboard.userRole),
                           ),
                           const SizedBox(height: 16),
 
@@ -142,7 +146,7 @@ class DashboardView extends ConsumerWidget {
                     error.toString(),
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.lightTextSecondary,
+                      color: c.textSecondary,
                     ),
                     textAlign: TextAlign.center,
                   ),

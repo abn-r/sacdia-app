@@ -3,10 +3,12 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 
-/// Widget para el encabezado del perfil con foto y nombre.
-/// Avatar radius scales with screen width via Responsive.headerAvatarSize.
-/// Name and email have overflow guards.
+/// Header del perfil con estilo Apple (iOS-inspired):
+/// - Sin gradiente, fondo blanco limpio
+/// - Avatar con borde rojo de marca y fondo neutro
+/// - Nombre en negro, email en gris secundario
 class ProfileHeader extends StatelessWidget {
   final String name;
   final String email;
@@ -26,41 +28,30 @@ class ProfileHeader extends StatelessWidget {
     final avatarRadius = Responsive.headerAvatarSize(context);
     final fallbackFontSize = (avatarRadius * 0.65).clamp(22.0, 44.0);
 
+    final c = context.sac;
+
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primary,
-            AppColors.primaryDark,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
+      // Fondo limpio — sin degradado
+      color: c.background,
+      padding: EdgeInsets.fromLTRB(24, 28, 24, 24),
       child: Column(
         children: [
+          // ── Avatar ─────────────────────────────────────────────
           Stack(
+            clipBehavior: Clip.none,
             children: [
-              // Avatar
               Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: Colors.white,
-                    width: 3,
+                    color: AppColors.primary,
+                    width: 2.5,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
                 ),
                 child: CircleAvatar(
                   radius: avatarRadius,
-                  backgroundColor: Colors.white,
+                  // Fondo muy sutil cuando no hay foto
+                  backgroundColor: AppColors.primarySurface,
                   backgroundImage:
                       avatar != null ? NetworkImage(avatar!) : null,
                   child: avatar == null
@@ -68,14 +59,14 @@ class ProfileHeader extends StatelessWidget {
                           name.isNotEmpty ? name[0].toUpperCase() : 'U',
                           style: TextStyle(
                             fontSize: fallbackFontSize,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                             color: AppColors.primary,
                           ),
                         )
                       : null,
                 ),
               ),
-              // Edit photo button
+              // Botón editar foto — pequeño, minimalista
               if (onEditPhoto != null)
                 Positioned(
                   bottom: 0,
@@ -83,44 +74,55 @@ class ProfileHeader extends StatelessWidget {
                   child: GestureDetector(
                     onTap: onEditPhoto,
                     child: Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        color: c.background,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: Colors.white,
-                          width: 2,
+                          color: c.border,
+                          width: 1.5,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: HugeIcon(
                         icon: HugeIcons.strokeRoundedCamera01,
-                        color: Colors.white,
-                        size: 20,
+                        color: c.textSecondary,
+                        size: 16,
                       ),
                     ),
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: 16),
-          // Name — overflow guard
+          const SizedBox(height: 14),
+
+          // ── Nombre ─────────────────────────────────────────────
           Text(
             name,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: c.text,
+                  letterSpacing: -0.3,
                 ),
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
-          // Email — overflow guard
+
+          // ── Email ──────────────────────────────────────────────
           Text(
             email,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: Colors.white70,
+              color: c.textSecondary,
+              fontWeight: FontWeight.w400,
             ),
             textAlign: TextAlign.center,
             maxLines: 1,

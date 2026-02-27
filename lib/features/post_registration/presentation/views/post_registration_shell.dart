@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/post_registration_providers.dart';
@@ -14,7 +15,6 @@ import 'personal_info_step_view.dart';
 import 'photo_step_view.dart';
 import '../providers/club_selection_providers.dart';
 import '../providers/personal_info_providers.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 /// Shell del post-registro - Estilo "Scout Vibrante"
 ///
@@ -31,8 +31,7 @@ class PostRegistrationShell extends ConsumerStatefulWidget {
       _PostRegistrationShellState();
 }
 
-class _PostRegistrationShellState
-    extends ConsumerState<PostRegistrationShell> {
+class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
   final PageController _pageController = PageController();
 
   @override
@@ -48,6 +47,9 @@ class _PostRegistrationShellState
     if (status == null || !mounted) return;
 
     if (status.isComplete) {
+      // Keep auth state/cache in sync so GoRouter does not bounce back
+      // to /post-registration when completion-status already says complete.
+      ref.read(authNotifierProvider.notifier).markPostRegisterComplete();
       context.go(RouteNames.homeDashboard);
       return;
     }
@@ -167,10 +169,6 @@ class _PostRegistrationShellState
     // Update auth state so router redirects correctly
     ref.read(authNotifierProvider.notifier).markPostRegisterComplete();
 
-    // Also persist to SharedPreferences cache
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('cached_post_register_complete', true);
-
     if (mounted) context.go(RouteNames.homeDashboard);
   }
 
@@ -237,7 +235,7 @@ class _PostRegistrationShellState
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.sac.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -252,18 +250,17 @@ class _PostRegistrationShellState
                     Expanded(
                       child: Text(
                         'Completar perfil',
-                        style:
-                            Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.lightText,
-                                ),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: context.sac.text,
+                            ),
                       ),
                     ),
                     const SizedBox(width: 8),
                     IconButton(
                       onPressed: _showLogoutDialog,
                       icon: const Icon(Icons.logout_rounded),
-                      color: AppColors.lightText,
+                      color: context.sac.text,
                       tooltip: 'Cerrar sesión',
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),

@@ -27,21 +27,28 @@ Page<void> _buildPage(
   return CupertinoPage<void>(child: child, key: state.pageKey);
 }
 
-/// Provider principal del router de la aplicación
+/// Provider principal del router de la aplicación.
+///
+/// IMPORTANT: The GoRouter instance is created ONCE and kept alive for the
+/// entire app lifecycle. Auth state changes are handled via [ref.listen] which
+/// calls [router.refresh()] — this triggers a re-evaluation of the redirect
+/// callback WITHOUT rebuilding the router itself, avoiding race conditions that
+/// stem from constructing a new GoRouter mid-navigation.
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authNotifierProvider);
-
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: RouteNames.splash,
     debugLogDiagnostics: true,
     redirect: (context, state) {
+      // Read the current auth state snapshot without watching it here —
+      // watching would cause the Provider to rebuild and recreate the router.
+      final authState = ref.read(authNotifierProvider);
       final isLoading = authState.isLoading;
       final user = authState.valueOrNull;
       final isLoggedIn = user != null;
       final currentPath = state.matchedLocation;
 
       // Rutas públicas que no requieren autenticación
-      final publicRoutes = [
+      const publicRoutes = [
         RouteNames.splash,
         RouteNames.login,
         RouteNames.register,
@@ -50,35 +57,43 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       final isPublicRoute = publicRoutes.contains(currentPath);
 
-      // Mientras carga, mostrar splash
-      if (isLoading && currentPath != RouteNames.splash) {
-        return RouteNames.splash;
+      // Mientras el AuthNotifier está resolviendo el estado inicial,
+      // quedarse en splash para que no haya redirects prematuros.
+      if (isLoading) {
+        return currentPath == RouteNames.splash ? null : RouteNames.splash;
       }
 
-      // Si no está autenticado y está en ruta protegida o en splash -> login
-      if (!isLoading && !isLoggedIn && !isPublicRoute) {
-        return RouteNames.login;
+      // Splash es transitorio: una vez que la carga terminó, siempre salir.
+      if (currentPath == RouteNames.splash) {
+        if (!isLoggedIn) return RouteNames.login;
+        return user.postRegisterComplete
+            ? RouteNames.homeDashboard
+            : RouteNames.postRegistration;
       }
 
-      // Si no está autenticado y está en splash -> login
-      if (!isLoading && !isLoggedIn && currentPath == RouteNames.splash) {
-        return RouteNames.login;
+      // Sin usuario autenticado → login
+      if (!isLoggedIn) {
+        return isPublicRoute ? null : RouteNames.login;
       }
 
-      // Si está autenticado y está en splash/login/register -> verificar post-registro
-      if (!isLoading && isLoggedIn && isPublicRoute) {
-        if (!user.postRegisterComplete) {
-          return RouteNames.postRegistration;
-        }
-        return RouteNames.homeDashboard;
+      // Usuario autenticado en ruta pública → decidir destino
+      if (isPublicRoute) {
+        return user.postRegisterComplete
+            ? RouteNames.homeDashboard
+            : RouteNames.postRegistration;
       }
 
-      // Si está autenticado pero post-registro incompleto y NO está en post-registro
-      if (!isLoading &&
-          isLoggedIn &&
-          !user.postRegisterComplete &&
+      // Usuario autenticado con post-registro incompleto fuera de la ruta de post-registro
+      if (!user.postRegisterComplete &&
           currentPath != RouteNames.postRegistration) {
         return RouteNames.postRegistration;
+      }
+
+      // Usuario autenticado con post-registro completo en la ruta de post-registro
+      // (e.g., navigated back somehow) → redirigir a home
+      if (user.postRegisterComplete &&
+          currentPath == RouteNames.postRegistration) {
+        return RouteNames.homeDashboard;
       }
 
       return null;
@@ -180,6 +195,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+
+  // Listen to auth state changes and refresh the router so the redirect
+  // callback re-evaluates with the latest state. This replaces the previous
+  // ref.watch() pattern which caused the GoRouter instance to be recreated on
+  // every state change, introducing race conditions and double redirects.
+  ref.listen<AsyncValue<dynamic>>(authNotifierProvider, (_, __) {
+    router.refresh();
+  });
+
+  return router;
 });
 
 // ── Navigation destination data ───────────────────────────────────────────────

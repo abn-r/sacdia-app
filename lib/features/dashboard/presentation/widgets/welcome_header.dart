@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 
 /// Encabezado de bienvenida del dashboard - Estilo "Scout Vibrante"
@@ -43,7 +44,7 @@ class WelcomeHeader extends StatelessWidget {
                 Text(
                   '$greeting,',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.lightTextSecondary,
+                        color: context.sac.textSecondary,
                       ),
                 ),
                 const SizedBox(height: 2),
@@ -51,7 +52,7 @@ class WelcomeHeader extends StatelessWidget {
                   '$firstName!',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: AppColors.lightText,
+                        color: context.sac.text,
                       ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

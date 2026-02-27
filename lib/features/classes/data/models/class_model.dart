@@ -20,10 +20,12 @@ class ClassModel extends Equatable {
   /// Crea una instancia desde JSON
   factory ClassModel.fromJson(Map<String, dynamic> json) {
     return ClassModel(
-      id: json['id'] as int,
+      // Backend uses 'class_id' as PK; 'id' is fallback for catalog endpoint
+      id: (json['class_id'] ?? json['id']) as int,
       name: json['name'] as String,
       description: json['description'] as String?,
-      clubTypeId: json['club_type_id'] as int,
+      // Enrollment response nests club type; catalog has flat club_type_id
+      clubTypeId: (json['club_type_id'] ?? 0) as int,
       imageUrl: json['image_url'] as String?,
     );
   }

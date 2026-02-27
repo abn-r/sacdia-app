@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../providers/personal_info_providers.dart';
 import '../widgets/contact_card.dart';
 import 'add_edit_contact_view.dart';
@@ -122,14 +123,14 @@ class EmergencyContactsView extends ConsumerWidget {
                   HugeIcon(
                     icon: HugeIcons.strokeRoundedContactBook,
                     size: 64,
-                    color: AppColors.lightTextTertiary,
+                    color: context.sac.textTertiary,
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'No hay contactos de emergencia',
                     style: TextStyle(
                       fontSize: 18,
-                      color: AppColors.lightTextSecondary,
+                      color: context.sac.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -138,7 +139,7 @@ class EmergencyContactsView extends ConsumerWidget {
                     'Agrega al menos un contacto de emergencia',
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.lightTextTertiary,
+                      color: context.sac.textTertiary,
                     ),
                   ),
                   const SizedBox(height: 24),

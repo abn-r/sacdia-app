@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
@@ -95,7 +96,7 @@ class ClassCard extends StatelessWidget {
                         progressiveClass.description!,
                         style: TextStyle(
                           fontSize: 13,
-                          color: AppColors.lightTextSecondary,
+                          color: context.sac.textSecondary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

@@ -1,23 +1,15 @@
-import 'dart:developer';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../models/user_detail_model.dart';
 
 /// Interfaz para la fuente de datos remota del perfil
 abstract class ProfileRemoteDataSource {
-  /// Obtiene el perfil del usuario
   Future<UserDetailModel> getUserProfile(String userId);
-
-  /// Actualiza el perfil del usuario
-  Future<UserDetailModel> updateUserProfile(
-    String userId,
-    Map<String, dynamic> data,
-  );
-
-  /// Actualiza la foto de perfil del usuario
+  Future<UserDetailModel> updateUserProfile(String userId, Map<String, dynamic> data);
   Future<String> updateProfilePicture(String userId, String filePath);
 }
 
@@ -27,6 +19,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   final String _baseUrl;
   final FlutterSecureStorage _secureStorage;
 
+  static const _tag = 'ProfileDS';
+
   ProfileRemoteDataSourceImpl({
     required Dio dio,
     required String baseUrl,
@@ -34,7 +28,6 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         _baseUrl = baseUrl,
         _secureStorage = const FlutterSecureStorage();
 
-  /// Obtiene el token de autenticación
   Future<String?> _getToken() async {
     return await _secureStorage.read(key: 'auth_token');
   }
@@ -47,7 +40,6 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         throw AuthException(message: 'No hay sesión activa');
       }
 
-      // Llamar al endpoint /auth/me para obtener el perfil completo
       final response = await _dio.get(
         '$_baseUrl/auth/me',
         options: Options(headers: {
@@ -62,18 +54,21 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         );
       }
 
-      return UserDetailModel.fromJson(response.data);
+      // API wraps response: { "status": "success", "data": { ... } }
+      final raw = response.data;
+      final json = (raw is Map && raw.containsKey('data'))
+          ? raw['data'] as Map<String, dynamic>
+          : raw as Map<String, dynamic>;
+      return UserDetailModel.fromJson(json);
     } on DioException catch (e) {
-      log('Error Dio al obtener perfil: ${e.message}');
+      AppLogger.e('Error al obtener perfil', tag: _tag, error: e.message);
       throw ServerException(
         message: e.response?.data?['message'] ?? 'Error al obtener perfil',
         code: e.response?.statusCode,
       );
     } catch (e) {
-      if (e is AuthException || e is ServerException) {
-        rethrow;
-      }
-      log('Error al obtener perfil: $e');
+      if (e is AuthException || e is ServerException) rethrow;
+      AppLogger.e('Error inesperado al obtener perfil', tag: _tag, error: e);
       throw ServerException(message: e.toString());
     }
   }
@@ -89,7 +84,6 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         throw AuthException(message: 'No hay sesión activa');
       }
 
-      // Llamar al endpoint PATCH /users/:userId
       final response = await _dio.patch(
         '$_baseUrl/users/$userId',
         data: data,
@@ -107,16 +101,14 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
       return UserDetailModel.fromJson(response.data);
     } on DioException catch (e) {
-      log('Error Dio al actualizar perfil: ${e.message}');
+      AppLogger.e('Error al actualizar perfil', tag: _tag, error: e.message);
       throw ServerException(
         message: e.response?.data?['message'] ?? 'Error al actualizar perfil',
         code: e.response?.statusCode,
       );
     } catch (e) {
-      if (e is AuthException || e is ServerException) {
-        rethrow;
-      }
-      log('Error al actualizar perfil: $e');
+      if (e is AuthException || e is ServerException) rethrow;
+      AppLogger.e('Error inesperado al actualizar perfil', tag: _tag, error: e);
       throw ServerException(message: e.toString());
     }
   }
@@ -129,7 +121,6 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         throw AuthException(message: 'No hay sesión activa');
       }
 
-      // Crear FormData con la imagen
       final file = File(filePath);
       final fileName = file.path.split('/').last;
 
@@ -140,7 +131,6 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         ),
       });
 
-      // Llamar al endpoint POST /users/:userId/profile-picture
       final response = await _dio.post(
         '$_baseUrl/users/$userId/profile-picture',
         data: formData,
@@ -157,21 +147,18 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         );
       }
 
-      // Retornar la URL de la imagen
       return response.data['url'] as String? ??
           response.data['avatar'] as String? ??
           '';
     } on DioException catch (e) {
-      log('Error Dio al actualizar foto: ${e.message}');
+      AppLogger.e('Error al actualizar foto de perfil', tag: _tag, error: e.message);
       throw ServerException(
         message: e.response?.data?['message'] ?? 'Error al actualizar foto',
         code: e.response?.statusCode,
       );
     } catch (e) {
-      if (e is AuthException || e is ServerException) {
-        rethrow;
-      }
-      log('Error al actualizar foto: $e');
+      if (e is AuthException || e is ServerException) rethrow;
+      AppLogger.e('Error inesperado al actualizar foto', tag: _tag, error: e);
       throw ServerException(message: e.toString());
     }
   }

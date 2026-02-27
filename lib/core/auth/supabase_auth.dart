@@ -2,10 +2,13 @@ import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/supabase_constants.dart';
 import '../errors/exceptions.dart';
+import '../utils/app_logger.dart';
 
 
 /// Clase para manejar la autenticación con Supabase
 class SupabaseAuth {
+  static const _tag = 'SupabaseAuth';
+
   /// Inicializa el cliente Supabase
   static Future<void> initialize() async {
     await supabase.Supabase.initialize(
@@ -13,22 +16,22 @@ class SupabaseAuth {
       anonKey: SupabaseConstants.anonKey,
     );
   }
-  
+
   /// Devuelve la instancia del cliente Supabase
   static supabase.SupabaseClient get client => supabase.Supabase.instance.client;
-  
+
   /// Devuelve la sesión actual si existe
   static supabase.Session? get currentSession => client.auth.currentSession;
-  
+
   /// Devuelve el usuario actual si está autenticado
   static supabase.User? get currentUser => client.auth.currentUser;
-  
+
   /// Verifica si el usuario está autenticado
   static bool get isAuthenticated => currentUser != null;
-  
+
   /// Inicia sesión con email y contraseña
   static Future<supabase.AuthResponse> signInWithEmailAndPassword({
-    required String email, 
+    required String email,
     required String password,
   }) async {
     try {
@@ -49,10 +52,10 @@ class SupabaseAuth {
       );
     }
   }
-  
+
   /// Crea una nueva cuenta con email y contraseña
   static Future<supabase.AuthResponse> signUpWithEmailAndPassword({
-    required String email, 
+    required String email,
     required String password,
     Map<String, dynamic>? data,
   }) async {
@@ -75,43 +78,32 @@ class SupabaseAuth {
       );
     }
   }
-  
+
   /// Cierra la sesión actual (tanto local como en el servidor)
   static Future<void> signOut() async {
     try {
-      // Primero intentamos un cierre normal con alcance global
       await client.auth.signOut(scope: supabase.SignOutScope.global);
-      
-      // Crear un método para invalidar tokens de sesión y limpiar almacenamiento local
       await _forceClearSession();
-      
     } on supabase.AuthException catch (e) {
-      // Incluso si hay error, intentamos limpiar datos locales
       await _forceClearSession();
-      
       throw AuthException(
         message: e.message,
         code: e.statusCode != null ? int.tryParse(e.statusCode!) : null,
       );
     } catch (e) {
-      // Incluso si hay error, intentamos limpiar datos locales
       await _forceClearSession();
-      
       throw AuthException(
         message: e.toString(),
         code: null,
       );
     }
   }
-  
+
   /// Método para forzar la eliminación de todos los datos de sesión
   static Future<void> _forceClearSession() async {
     try {
-      // Intentar un segundo cierre de sesión forzado
       await client.auth.signOut();
-      
-      // El SDK de Supabase usa SharedPreferences para almacenar datos de sesión
-      // Limpiar manualmente las claves más comunes utilizadas por Supabase
+
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('supabase.auth.token');
       await prefs.remove('supabase.auth.refresh_token');
@@ -121,8 +113,7 @@ class SupabaseAuth {
       await prefs.remove('supabase.auth.provider_token');
       await prefs.remove('supabase.auth.provider_refresh_token');
       await prefs.remove('supabase.auth.user');
-      
-      // Borrar datos de todas las claves que contengan 'supabase.auth'
+
       final allKeys = prefs.getKeys();
       for (final key in allKeys) {
         if (key.contains('supabase.auth')) {
@@ -130,10 +121,10 @@ class SupabaseAuth {
         }
       }
     } catch (e) {
-      print('Error al limpiar datos de sesión: $e');
+      AppLogger.e('Error al limpiar datos de sesión', tag: _tag, error: e);
     }
   }
-  
+
   /// Envía email de recuperación de contraseña
   static Future<void> resetPassword(String email) async {
     try {
@@ -150,7 +141,7 @@ class SupabaseAuth {
       );
     }
   }
-  
+
   /// Actualiza contraseña del usuario
   static Future<supabase.UserResponse> updatePassword(String newPassword) async {
     try {
@@ -172,8 +163,8 @@ class SupabaseAuth {
       );
     }
   }
-  
+
   /// Stream para escuchar cambios en el estado de autenticación
-  static Stream<supabase.AuthState> get onAuthStateChange => 
+  static Stream<supabase.AuthState> get onAuthStateChange =>
       client.auth.onAuthStateChange;
 }

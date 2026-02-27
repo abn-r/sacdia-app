@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_dropdown_field.dart';
 import '../../../../core/widgets/sac_text_field.dart';
 import '../../data/models/emergency_contact_model.dart';
@@ -222,7 +223,7 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
               // Contacto primario
               Container(
                 decoration: BoxDecoration(
-                  color: _isPrimary ? AppColors.primaryLight : Colors.white,
+                  color: _isPrimary ? AppColors.primaryLight : context.sac.surface,
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
@@ -251,7 +252,7 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
                     'Se notificará primero en caso de emergencia',
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.lightTextSecondary,
+                      color: context.sac.textSecondary,
                     ),
                   ),
                   secondary: HugeIcon(
@@ -261,13 +262,13 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
                     size: 24,
                     color: _isPrimary
                         ? AppColors.primary
-                        : AppColors.lightTextSecondary,
+                        : context.sac.textSecondary,
                   ),
                   activeThumbColor: Colors.white,
                   activeTrackColor: AppColors.primary,
                   inactiveThumbColor: Colors.white,
                   inactiveTrackColor:
-                      AppColors.lightTextTertiary.withValues(alpha: 0.4),
+                      context.sac.textTertiary.withValues(alpha: 0.4),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),

@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/emergency_contact_model.dart';
@@ -6,10 +5,10 @@ import '../models/legal_representative_model.dart';
 import '../models/allergy_model.dart';
 import '../models/disease_model.dart';
 import '../models/relationship_type_model.dart';
+import '../../../../core/utils/app_logger.dart';
 
 /// Interface del data source remoto para información personal
 abstract class PersonalInfoRemoteDataSource {
-  /// Actualiza la información personal del usuario
   Future<void> updatePersonalInfo(
     String userId, {
     String? gender,
@@ -18,58 +17,23 @@ abstract class PersonalInfoRemoteDataSource {
     String? baptismDate,
   });
 
-  /// Obtiene los contactos de emergencia del usuario
   Future<List<EmergencyContactModel>> getEmergencyContacts(String userId);
-
-  /// Agrega un contacto de emergencia
-  Future<EmergencyContactModel> addEmergencyContact(
-    String userId,
-    EmergencyContactModel contact,
-  );
-
-  /// Actualiza un contacto de emergencia
-  Future<EmergencyContactModel> updateEmergencyContact(
-    int contactId,
-    EmergencyContactModel contact,
-  );
-
-  /// Elimina un contacto de emergencia
+  Future<EmergencyContactModel> addEmergencyContact(String userId, EmergencyContactModel contact);
+  Future<EmergencyContactModel> updateEmergencyContact(int contactId, EmergencyContactModel contact);
   Future<void> deleteEmergencyContact(int contactId);
-
-  /// Obtiene los tipos de relación disponibles
   Future<List<RelationshipTypeModel>> getRelationshipTypes();
-
-  /// Verifica si el usuario requiere representante legal
   Future<bool> checkLegalRepresentativeRequired(String userId);
-
-  /// Crea el representante legal del usuario
-  Future<LegalRepresentativeModel> createLegalRepresentative(
-    String userId,
-    LegalRepresentativeModel representative,
-  );
-
-  /// Obtiene el representante legal del usuario
+  Future<LegalRepresentativeModel> createLegalRepresentative(String userId, LegalRepresentativeModel representative);
   Future<LegalRepresentativeModel?> getLegalRepresentative(String userId);
-
-  /// Actualiza el representante legal del usuario
-  Future<LegalRepresentativeModel> updateLegalRepresentative(
-    String userId,
-    LegalRepresentativeModel representative,
-  );
-
-  /// Obtiene el catálogo de alergias
+  Future<LegalRepresentativeModel> updateLegalRepresentative(String userId, LegalRepresentativeModel representative);
   Future<List<AllergyModel>> getAllergiesCatalog();
-
-  /// Guarda las alergias seleccionadas del usuario
+  Future<List<AllergyModel>> getUserAllergies(String userId);
   Future<void> saveUserAllergies(String userId, List<int> allergyIds);
-
-  /// Obtiene el catálogo de enfermedades
+  Future<void> deleteUserAllergy(String userId, int allergyId);
   Future<List<DiseaseModel>> getDiseasesCatalog();
-
-  /// Guarda las enfermedades seleccionadas del usuario
+  Future<List<DiseaseModel>> getUserDiseases(String userId);
   Future<void> saveUserDiseases(String userId, List<int> diseaseIds);
-
-  /// Completa el paso 2 del post-registro
+  Future<void> deleteUserDisease(String userId, int diseaseId);
   Future<void> completeStep2(String userId);
 }
 
@@ -79,6 +43,8 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
   final String _baseUrl;
   final FlutterSecureStorage secureStorage;
 
+  static const _tag = 'PersonalInfoDS';
+
   PersonalInfoRemoteDataSourceImpl({
     required this.dio,
     required String baseUrl,
@@ -86,7 +52,6 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
   }) : _baseUrl = baseUrl;
 
   /// Helper: extrae una lista desde la respuesta de la API.
-  /// Tolera tanto formato directo (List) como wrapper ({ data: [...] }).
   List<dynamic> _extractList(dynamic responseData) {
     if (responseData is List) return responseData;
     if (responseData is Map<String, dynamic>) {
@@ -96,21 +61,16 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
     return [];
   }
 
-  /// Obtiene el token de autenticación
   Future<String> _getAuthToken() async {
-    // La key debe coincidir con la usada en auth_remote_data_source ('auth_token')
     final token = await secureStorage.read(key: 'auth_token');
     if (token == null) {
-      // Log de diagnóstico: verificar qué keys existen
       final allKeys = await secureStorage.readAll();
-      log('🔍 [PersonalInfoDS] Token null. Keys disponibles: ${allKeys.keys.toList()}');
+      AppLogger.w('Token null. Keys disponibles: ${allKeys.keys.toList()}', tag: _tag);
       throw Exception('No se encontró token de autenticación');
     }
-    log('✅ [PersonalInfoDS] Token encontrado correctamente');
     return token;
   }
 
-  /// Configura los headers de autenticación
   Future<Map<String, String>> _getHeaders() async {
     final token = await _getAuthToken();
     return {
@@ -134,16 +94,9 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
       if (gender != null) data['gender'] = gender;
       if (birthdate != null) data['birthday'] = birthdate;
       if (baptized != null) data['baptism'] = baptized;
-      // Solo enviar baptism_date si baptism es true
       if (baptized == true && baptismDate != null) {
         data['baptism_date'] = baptismDate;
       }
-
-      // === DEBUG: imprimir payload ===
-      log('\n========== PATCH /users/$userId ==========');
-      log('URL: $_baseUrl/users/$userId');
-      log('Payload: $data');
-      log('==========================================\n');
 
       final response = await dio.patch(
         '$_baseUrl/users/$userId',
@@ -151,18 +104,15 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
         options: Options(headers: headers),
       );
 
-      // === DEBUG: imprimir respuesta ===
-      log('Response status: ${response.statusCode}');
-      log('Response data: ${response.data}');
+      AppLogger.d('PATCH /users/$userId ${response.statusCode}', tag: _tag);
     } on DioException catch (e) {
-      log('ERROR PATCH /users/$userId: ${e.response?.statusCode} - ${e.response?.data}');
+      AppLogger.e('Error PATCH /users/$userId', tag: _tag, error: e.response?.data ?? e.message);
       throw Exception('Error al actualizar información personal: ${e.message}');
     }
   }
 
   @override
-  Future<List<EmergencyContactModel>> getEmergencyContacts(
-      String userId) async {
+  Future<List<EmergencyContactModel>> getEmergencyContacts(String userId) async {
     try {
       final headers = await _getHeaders();
       final response = await dio.get(
@@ -172,8 +122,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
 
       final contactsJson = _extractList(response.data);
       return contactsJson
-          .map((json) =>
-              EmergencyContactModel.fromJson(json as Map<String, dynamic>))
+          .map((json) => EmergencyContactModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
       throw Exception('Error al obtener contactos de emergencia: ${e.message}');
@@ -193,7 +142,6 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
         options: Options(headers: headers),
       );
 
-      // Tolerar respuesta directa o envuelta en { data: {...} }
       final responseData = response.data is Map<String, dynamic> &&
               response.data['data'] is Map<String, dynamic>
           ? response.data['data'] as Map<String, dynamic>
@@ -217,15 +165,13 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
         options: Options(headers: headers),
       );
 
-      // Tolerar respuesta directa o envuelta en { data: {...} }
       final responseData = response.data is Map<String, dynamic> &&
               response.data['data'] is Map<String, dynamic>
           ? response.data['data'] as Map<String, dynamic>
           : response.data as Map<String, dynamic>;
       return EmergencyContactModel.fromJson(responseData);
     } on DioException catch (e) {
-      throw Exception(
-          'Error al actualizar contacto de emergencia: ${e.message}');
+      throw Exception('Error al actualizar contacto de emergencia: ${e.message}');
     }
   }
 
@@ -253,8 +199,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
 
       final typesJson = _extractList(response.data);
       return typesJson
-          .map((json) =>
-              RelationshipTypeModel.fromJson(json as Map<String, dynamic>))
+          .map((json) => RelationshipTypeModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
       throw Exception('Error al obtener tipos de relación: ${e.message}');
@@ -289,16 +234,14 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
         options: Options(headers: headers),
       );
 
-      return LegalRepresentativeModel.fromJson(
-          response.data as Map<String, dynamic>);
+      return LegalRepresentativeModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw Exception('Error al crear representante legal: ${e.message}');
     }
   }
 
   @override
-  Future<LegalRepresentativeModel?> getLegalRepresentative(
-      String userId) async {
+  Future<LegalRepresentativeModel?> getLegalRepresentative(String userId) async {
     try {
       final headers = await _getHeaders();
       final response = await dio.get(
@@ -306,13 +249,10 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
         options: Options(headers: headers),
       );
 
-      // El endpoint retorna 200 con { data: null, hasLegalRepresentative: false }
-      // cuando el usuario existe pero no tiene representante.
       final responseData = response.data;
       if (responseData == null) return null;
 
       if (responseData is Map<String, dynamic>) {
-        // Formato wrapper: extraer campo 'data'
         final data = responseData['data'];
         if (data == null) return null;
         return LegalRepresentativeModel.fromJson(data as Map<String, dynamic>);
@@ -338,8 +278,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
         options: Options(headers: headers),
       );
 
-      return LegalRepresentativeModel.fromJson(
-          response.data as Map<String, dynamic>);
+      return LegalRepresentativeModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw Exception('Error al actualizar representante legal: ${e.message}');
     }
@@ -364,6 +303,25 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
   }
 
   @override
+  Future<List<AllergyModel>> getUserAllergies(String userId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await dio.get(
+        '$_baseUrl/users/$userId/allergies',
+        options: Options(headers: headers),
+      );
+
+      final allergiesJson = _extractList(response.data);
+      return allergiesJson
+          .map((json) => AllergyModel.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return [];
+      throw Exception('Error al obtener alergias del usuario: ${e.message}');
+    }
+  }
+
+  @override
   Future<void> saveUserAllergies(String userId, List<int> allergyIds) async {
     try {
       final headers = await _getHeaders();
@@ -374,6 +332,19 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
       );
     } on DioException catch (e) {
       throw Exception('Error al guardar alergias: ${e.message}');
+    }
+  }
+
+  @override
+  Future<void> deleteUserAllergy(String userId, int allergyId) async {
+    try {
+      final headers = await _getHeaders();
+      await dio.delete(
+        '$_baseUrl/users/$userId/allergies/$allergyId',
+        options: Options(headers: headers),
+      );
+    } on DioException catch (e) {
+      throw Exception('Error al eliminar alergia: ${e.message}');
     }
   }
 
@@ -391,8 +362,26 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
           .map((json) => DiseaseModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
-      throw Exception(
-          'Error al obtener catálogo de enfermedades: ${e.message}');
+      throw Exception('Error al obtener catálogo de enfermedades: ${e.message}');
+    }
+  }
+
+  @override
+  Future<List<DiseaseModel>> getUserDiseases(String userId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await dio.get(
+        '$_baseUrl/users/$userId/diseases',
+        options: Options(headers: headers),
+      );
+
+      final diseasesJson = _extractList(response.data);
+      return diseasesJson
+          .map((json) => DiseaseModel.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return [];
+      throw Exception('Error al obtener enfermedades del usuario: ${e.message}');
     }
   }
 
@@ -407,6 +396,19 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
       );
     } on DioException catch (e) {
       throw Exception('Error al guardar enfermedades: ${e.message}');
+    }
+  }
+
+  @override
+  Future<void> deleteUserDisease(String userId, int diseaseId) async {
+    try {
+      final headers = await _getHeaders();
+      await dio.delete(
+        '$_baseUrl/users/$userId/diseases/$diseaseId',
+        options: Options(headers: headers),
+      );
+    } on DioException catch (e) {
+      throw Exception('Error al eliminar enfermedad: ${e.message}');
     }
   }
 

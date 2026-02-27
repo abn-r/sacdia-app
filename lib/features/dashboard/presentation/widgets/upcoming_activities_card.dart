@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
 import '../../domain/entities/dashboard_summary.dart';
@@ -63,14 +64,14 @@ class UpcomingActivitiesCard extends StatelessWidget {
                     HugeIcon(
                       icon: HugeIcons.strokeRoundedCalendar04,
                       size: 40,
-                      color: AppColors.lightTextTertiary,
+                      color: context.sac.textTertiary,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'No hay actividades programadas',
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.lightTextSecondary,
+                        color: context.sac.textSecondary,
                       ),
                     ),
                   ],
@@ -174,7 +175,7 @@ class _ActivityRow extends StatelessWidget {
                           '${_formatRelativeDate(activity.date)} · ${_formatTime(activity.date)}',
                           style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.lightTextSecondary,
+                            color: context.sac.textSecondary,
                           ),
                         ),
                         if (activity.location != null) ...[
@@ -182,7 +183,7 @@ class _ActivityRow extends StatelessWidget {
                             ' · ',
                             style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.lightTextTertiary,
+                              color: context.sac.textTertiary,
                             ),
                           ),
                           Expanded(
@@ -190,7 +191,7 @@ class _ActivityRow extends StatelessWidget {
                               activity.location!,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: AppColors.lightTextSecondary,
+                                color: context.sac.textSecondary,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -207,7 +208,7 @@ class _ActivityRow extends StatelessWidget {
         if (showDivider)
           Divider(
             height: 1,
-            color: AppColors.lightBorderLight,
+            color: context.sac.borderLight,
             indent: 60,
           ),
       ],

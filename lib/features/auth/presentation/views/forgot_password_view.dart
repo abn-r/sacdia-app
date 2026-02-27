@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/validators.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
@@ -72,7 +73,7 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.sac.surface,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -90,10 +91,10 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                     onPressed: () => context.pop(),
                     icon: HugeIcon(
                       icon: HugeIcons.strokeRoundedArrowLeft01,
-                      color: AppColors.lightText,
+                      color: context.sac.text,
                     ),
                     style: IconButton.styleFrom(
-                      backgroundColor: AppColors.lightBackground,
+                      backgroundColor: context.sac.background,
                     ),
                   ),
                 ),
@@ -129,7 +130,7 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                 Text(
                   'Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.lightTextSecondary,
+                        color: context.sac.textSecondary,
                         height: 1.5,
                       ),
                   textAlign: TextAlign.center,

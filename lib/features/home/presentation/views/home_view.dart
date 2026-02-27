@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
@@ -23,8 +24,10 @@ class HomeView extends ConsumerWidget {
     final user = ref.watch(authNotifierProvider).valueOrNull;
     final hPad = Responsive.horizontalPadding(context);
 
+    final c = context.sac;
+
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: c.background,
       body: SafeArea(
         child: dashboardState.when(
           loading: () => const Center(child: SacLoading()),
@@ -52,7 +55,7 @@ class HomeView extends ConsumerWidget {
                     error.toString(),
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.lightTextSecondary,
+                      color: c.textSecondary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -97,7 +100,7 @@ class HomeView extends ConsumerWidget {
                                 user.name ?? user.email,
                                 style: TextStyle(
                                   fontSize: 15,
-                                  color: AppColors.lightTextSecondary,
+                                  color: c.textSecondary,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -108,7 +111,7 @@ class HomeView extends ConsumerWidget {
                       IconButton(
                         icon: HugeIcon(
                           icon: HugeIcons.strokeRoundedLogout01,
-                          color: AppColors.lightTextTertiary,
+                          color: c.textTertiary,
                           size: 24,
                         ),
                         onPressed: () => _handleLogout(context, ref),
@@ -157,7 +160,7 @@ class HomeView extends ConsumerWidget {
                               'No hay actividades próximas',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: AppColors.lightTextSecondary,
+                                color: c.textSecondary,
                               ),
                             ),
                           ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -24,8 +25,10 @@ class ClassesListView extends ConsumerWidget {
     final classesAsync = ref.watch(userClassesProvider);
     final hPad = Responsive.horizontalPadding(context);
 
+    final c = context.sac;
+
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: c.background,
       body: SafeArea(
         child: classesAsync.when(
           data: (classes) {
@@ -37,13 +40,13 @@ class ClassesListView extends ConsumerWidget {
                     HugeIcon(
                         icon: HugeIcons.strokeRoundedSchool,
                         size: 56,
-                        color: AppColors.lightTextTertiary),
+                        color: c.textTertiary),
                     const SizedBox(height: 12),
                     Text(
                       'No tienes clases asignadas',
                       style: TextStyle(
                         fontSize: 16,
-                        color: AppColors.lightTextSecondary,
+                        color: c.textSecondary,
                       ),
                     ),
                   ],
@@ -136,7 +139,7 @@ class ClassesListView extends ConsumerWidget {
                   Text(
                     error.toString(),
                     style: TextStyle(
-                        fontSize: 14, color: AppColors.lightTextSecondary),
+                        fontSize: 14, color: c.textSecondary),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),

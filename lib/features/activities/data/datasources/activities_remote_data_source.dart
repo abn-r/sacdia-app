@@ -1,19 +1,14 @@
-import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../models/activity_model.dart';
 import '../models/attendance_model.dart';
 
 /// Interfaz para la fuente de datos remota de actividades
 abstract class ActivitiesRemoteDataSource {
-  /// Obtiene las actividades de un club
   Future<List<ActivityModel>> getClubActivities(int clubId);
-
-  /// Obtiene el detalle de una actividad
   Future<ActivityModel> getActivityById(int activityId);
-
-  /// Crea una nueva actividad
   Future<ActivityModel> createActivity({
     required int clubId,
     required String title,
@@ -25,8 +20,6 @@ abstract class ActivitiesRemoteDataSource {
     required String instanceType,
     required int instanceId,
   });
-
-  /// Actualiza una actividad existente
   Future<ActivityModel> updateActivity({
     required int activityId,
     String? title,
@@ -36,14 +29,8 @@ abstract class ActivitiesRemoteDataSource {
     String? location,
     bool? active,
   });
-
-  /// Elimina (desactiva) una actividad
   Future<void> deleteActivity(int activityId);
-
-  /// Obtiene la asistencia de una actividad
   Future<List<AttendanceModel>> getActivityAttendance(int activityId);
-
-  /// Registra la asistencia de usuarios a una actividad
   Future<int> registerAttendance(int activityId, List<String> userIds);
 }
 
@@ -53,6 +40,8 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   final String _baseUrl;
   final FlutterSecureStorage _secureStorage;
 
+  static const _tag = 'ActivitiesDS';
+
   ActivitiesRemoteDataSourceImpl({
     required Dio dio,
     required String baseUrl,
@@ -60,7 +49,6 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
         _baseUrl = baseUrl,
         _secureStorage = const FlutterSecureStorage();
 
-  /// Obtiene el token de autenticación
   Future<String> _getAuthToken() async {
     final token = await _secureStorage.read(key: 'auth_token');
     if (token == null) {
@@ -73,33 +61,23 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   Future<List<ActivityModel>> getClubActivities(int clubId) async {
     try {
       final token = await _getAuthToken();
-
       final response = await _dio.get(
         '$_baseUrl/clubs/$clubId/activities',
-        options: Options(headers: {
-          'Authorization': 'Bearer $token',
-        }),
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final List<dynamic> data = response.data as List<dynamic>;
         return data
-            .map((activityJson) =>
-                ActivityModel.fromJson(activityJson as Map<String, dynamic>))
+            .map((json) => ActivityModel.fromJson(json as Map<String, dynamic>))
             .toList();
       }
 
-      throw ServerException(
-        message: 'Error al obtener actividades',
-        code: response.statusCode,
-      );
+      throw ServerException(message: 'Error al obtener actividades', code: response.statusCode);
     } catch (e) {
-      log('Error al obtener actividades: $e');
+      AppLogger.e('Error en getClubActivities', tag: _tag, error: e);
       if (e is DioException) {
-        throw ServerException(
-          message: e.message ?? 'Error de conexión',
-          code: e.response?.statusCode,
-        );
+        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
@@ -110,29 +88,20 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   Future<ActivityModel> getActivityById(int activityId) async {
     try {
       final token = await _getAuthToken();
-
       final response = await _dio.get(
         '$_baseUrl/activities/$activityId',
-        options: Options(headers: {
-          'Authorization': 'Bearer $token',
-        }),
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return ActivityModel.fromJson(response.data as Map<String, dynamic>);
       }
 
-      throw ServerException(
-        message: 'Error al obtener actividad',
-        code: response.statusCode,
-      );
+      throw ServerException(message: 'Error al obtener actividad', code: response.statusCode);
     } catch (e) {
-      log('Error al obtener actividad: $e');
+      AppLogger.e('Error en getActivityById', tag: _tag, error: e);
       if (e is DioException) {
-        throw ServerException(
-          message: e.message ?? 'Error de conexión',
-          code: e.response?.statusCode,
-        );
+        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
@@ -143,33 +112,23 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   Future<List<AttendanceModel>> getActivityAttendance(int activityId) async {
     try {
       final token = await _getAuthToken();
-
       final response = await _dio.get(
         '$_baseUrl/activities/$activityId/attendance',
-        options: Options(headers: {
-          'Authorization': 'Bearer $token',
-        }),
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final List<dynamic> data = response.data as List<dynamic>;
         return data
-            .map((attendanceJson) =>
-                AttendanceModel.fromJson(attendanceJson as Map<String, dynamic>))
+            .map((json) => AttendanceModel.fromJson(json as Map<String, dynamic>))
             .toList();
       }
 
-      throw ServerException(
-        message: 'Error al obtener asistencia',
-        code: response.statusCode,
-      );
+      throw ServerException(message: 'Error al obtener asistencia', code: response.statusCode);
     } catch (e) {
-      log('Error al obtener asistencia: $e');
+      AppLogger.e('Error en getActivityAttendance', tag: _tag, error: e);
       if (e is DioException) {
-        throw ServerException(
-          message: e.message ?? 'Error de conexión',
-          code: e.response?.statusCode,
-        );
+        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
@@ -189,7 +148,7 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
     required int instanceId,
   }) async {
     try {
-      log('📅 [ActivitiesDataSource] Creando actividad: $title');
+      AppLogger.i('Creando actividad: $title', tag: _tag);
       final token = await _getAuthToken();
 
       final response = await _dio.post(
@@ -204,22 +163,16 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
           'instance_type': instanceType,
           'instance_id': instanceId,
         },
-        options: Options(headers: {
-          'Authorization': 'Bearer $token',
-        }),
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        log('✅ [ActivitiesDataSource] Actividad creada exitosamente');
         return ActivityModel.fromJson(response.data as Map<String, dynamic>);
       }
 
-      throw ServerException(
-        message: 'Error al crear actividad',
-        code: response.statusCode,
-      );
+      throw ServerException(message: 'Error al crear actividad', code: response.statusCode);
     } catch (e) {
-      log('❌ [ActivitiesDataSource] Error al crear actividad: $e');
+      AppLogger.e('Error en createActivity', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
           message: e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
@@ -242,10 +195,9 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
     bool? active,
   }) async {
     try {
-      log('📅 [ActivitiesDataSource] Actualizando actividad: $activityId');
+      AppLogger.i('Actualizando actividad: $activityId', tag: _tag);
       final token = await _getAuthToken();
 
-      // Solo incluir campos que se quieren actualizar
       final data = <String, dynamic>{};
       if (title != null) data['title'] = title;
       if (description != null) data['description'] = description;
@@ -257,23 +209,17 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
       final response = await _dio.patch(
         '$_baseUrl/activities/$activityId',
         data: data,
-        options: Options(headers: {
-          'Authorization': 'Bearer $token',
-        }),
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        log('✅ [ActivitiesDataSource] Actividad actualizada exitosamente');
         final activityData = response.data['activity'] ?? response.data;
         return ActivityModel.fromJson(activityData as Map<String, dynamic>);
       }
 
-      throw ServerException(
-        message: 'Error al actualizar actividad',
-        code: response.statusCode,
-      );
+      throw ServerException(message: 'Error al actualizar actividad', code: response.statusCode);
     } catch (e) {
-      log('❌ [ActivitiesDataSource] Error al actualizar actividad: $e');
+      AppLogger.e('Error en updateActivity', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
           message: e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
@@ -288,27 +234,19 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   @override
   Future<void> deleteActivity(int activityId) async {
     try {
-      log('📅 [ActivitiesDataSource] Eliminando actividad: $activityId');
+      AppLogger.i('Eliminando actividad: $activityId', tag: _tag);
       final token = await _getAuthToken();
 
       final response = await _dio.delete(
         '$_baseUrl/activities/$activityId',
-        options: Options(headers: {
-          'Authorization': 'Bearer $token',
-        }),
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        log('✅ [ActivitiesDataSource] Actividad eliminada exitosamente');
-        return;
-      }
+      if (response.statusCode == 200 || response.statusCode == 201) return;
 
-      throw ServerException(
-        message: 'Error al eliminar actividad',
-        code: response.statusCode,
-      );
+      throw ServerException(message: 'Error al eliminar actividad', code: response.statusCode);
     } catch (e) {
-      log('❌ [ActivitiesDataSource] Error al eliminar actividad: $e');
+      AppLogger.e('Error en deleteActivity', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
           message: e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
@@ -323,31 +261,24 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   @override
   Future<int> registerAttendance(int activityId, List<String> userIds) async {
     try {
-      log('📅 [ActivitiesDataSource] Registrando asistencia para ${userIds.length} usuarios');
+      AppLogger.i('Registrando asistencia: ${userIds.length} usuarios', tag: _tag);
       final token = await _getAuthToken();
 
       final response = await _dio.post(
         '$_baseUrl/activities/$activityId/attendance',
-        data: {
-          'user_ids': userIds,
-        },
-        options: Options(headers: {
-          'Authorization': 'Bearer $token',
-        }),
+        data: {'user_ids': userIds},
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final recordedCount = response.data['recorded_count'] as int? ?? userIds.length;
-        log('✅ [ActivitiesDataSource] Asistencia registrada: $recordedCount usuarios');
+        AppLogger.i('Asistencia registrada: $recordedCount usuarios', tag: _tag);
         return recordedCount;
       }
 
-      throw ServerException(
-        message: 'Error al registrar asistencia',
-        code: response.statusCode,
-      );
+      throw ServerException(message: 'Error al registrar asistencia', code: response.statusCode);
     } catch (e) {
-      log('❌ [ActivitiesDataSource] Error al registrar asistencia: $e');
+      AppLogger.e('Error en registerAttendance', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
           message: e.response?.data?['message'] ?? e.message ?? 'Error de conexión',

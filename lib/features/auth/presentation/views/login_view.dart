@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/validators.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -97,7 +98,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                       Text(
                         'Inicia sesión para continuar',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.lightTextSecondary,
+                              color: context.sac.textSecondary,
                             ),
                         textAlign: TextAlign.center,
                       ),
@@ -188,7 +189,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                           Expanded(
                             child: Container(
                               height: 1,
-                              color: AppColors.lightBorder,
+                              color: context.sac.border,
                             ),
                           ),
                           Padding(
@@ -206,7 +207,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                           Expanded(
                             child: Container(
                               height: 1,
-                              color: AppColors.lightBorder,
+                              color: context.sac.border,
                             ),
                           ),
                         ],

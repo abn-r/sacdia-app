@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../models/user_model.dart';
 
 /// Interfaz para la fuente de datos remota de autenticación
@@ -59,7 +59,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final StreamController<bool> _authStateController;
   final FlutterSecureStorage _secureStorage;
 
-  // Constructor
+  static const _tag = 'AuthDS';
+
   AuthRemoteDataSourceImpl({
     required Dio dio,
     required String baseUrl,
@@ -67,7 +68,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         _baseUrl = baseUrl,
         _authStateController = StreamController<bool>.broadcast(),
         _secureStorage = const FlutterSecureStorage() {
-    // Inicializar el estado de autenticación
     _checkInitialAuthState();
   }
 
@@ -76,15 +76,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final token = await _secureStorage.read(key: 'auth_token');
 
-      // Paso 1: No hay token → no autenticado
       if (token == null) {
-        log('🔒 [AuthRemoteDataSource] No hay token local, usuario no autenticado');
+        AppLogger.i('Sin token local, usuario no autenticado', tag: _tag);
         _authStateController.add(false);
         return;
       }
 
-      // Paso 2: Hay token → validar contra /auth/me
-      log('🔑 [AuthRemoteDataSource] Token encontrado, validando con el servidor...');
+      AppLogger.i('Token encontrado, validando con el servidor', tag: _tag);
       final response = await _dio.get(
         '$_baseUrl/auth/me',
         options: Options(headers: {
@@ -93,24 +91,31 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        log('✅ [AuthRemoteDataSource] Token válido, usuario autenticado');
+        AppLogger.i('Token válido, usuario autenticado', tag: _tag);
         _authStateController.add(true);
       } else if (response.statusCode == 401 || response.statusCode == 403) {
-        log('🔒 [AuthRemoteDataSource] Token expirado/inválido (${response.statusCode}), limpiando sesión');
+        AppLogger.w(
+            'Token expirado/inválido (${response.statusCode}), limpiando sesión',
+            tag: _tag);
         await _clearToken();
       } else {
-        // Error de servidor (5xx, 4xx no-auth): NO borrar el token.
-        // El token podría ser válido; el servidor tuvo un problema temporal.
-        log('⚠️ [AuthRemoteDataSource] Error de servidor (${response.statusCode}), conservando token');
+        AppLogger.w(
+            'Error de servidor (${response.statusCode}), conservando token',
+            tag: _tag);
       }
     } catch (e) {
-      log('⚠️ [AuthRemoteDataSource] Error de red al verificar estado inicial: $e');
-      // Error de red: NO borrar el token, podría ser válido.
-      // El estado se resolverá cuando AuthNotifier valide con el servidor.
+      if (e is AuthException) {
+        AppLogger.w('AuthException en estado inicial, limpiando tokens',
+            tag: _tag, error: e);
+        await _clearToken();
+      } else {
+        AppLogger.w('Error de red al verificar estado inicial',
+            tag: _tag, error: e);
+        _authStateController.add(false);
+      }
     }
   }
 
-  /// Guardar tokens en almacenamiento seguro
   Future<void> _saveToken(String token, {String? refreshToken}) async {
     await _secureStorage.write(key: 'auth_token', value: token);
     if (refreshToken != null) {
@@ -119,11 +124,74 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     _authStateController.add(true);
   }
 
-  /// Eliminar tokens
   Future<void> _clearToken() async {
     await _secureStorage.delete(key: 'auth_token');
     await _secureStorage.delete(key: 'refresh_token');
     _authStateController.add(false);
+  }
+
+  bool? _parseBool(dynamic rawValue) {
+    if (rawValue is bool) return rawValue;
+    if (rawValue is num) return rawValue != 0;
+    if (rawValue is String) {
+      final value = rawValue.trim().toLowerCase();
+      if (value == 'true' || value == '1' || value == 'yes') return true;
+      if (value == 'false' || value == '0' || value == 'no') return false;
+    }
+    return null;
+  }
+
+  Future<void> _persistCompletionCache(bool value) async {
+    await _secureStorage.write(
+      key: 'cached_post_register_complete',
+      value: value.toString(),
+    );
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('cached_post_register_complete', value);
+  }
+
+  Future<bool> _readCompletionCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final sharedValue = prefs.getBool('cached_post_register_complete');
+    if (sharedValue != null) {
+      return sharedValue;
+    }
+    final secureValue = await _secureStorage.read(
+      key: 'cached_post_register_complete',
+    );
+    return _parseBool(secureValue) ?? false;
+  }
+
+  Future<bool?> _fetchCompletionStatus(String token) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl/auth/profile/completion-status',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        return null;
+      }
+
+      if (response.data is! Map<String, dynamic>) {
+        return null;
+      }
+
+      final body = response.data as Map<String, dynamic>;
+      final nested = body['data'];
+      final rawComplete = nested is Map<String, dynamic>
+          ? nested['complete']
+          : body['complete'];
+
+      return _parseBool(rawComplete);
+    } catch (e) {
+      AppLogger.w(
+        'No se pudo consultar /auth/profile/completion-status como fallback',
+        tag: _tag,
+        error: e,
+      );
+      return null;
+    }
   }
 
   @override
@@ -133,11 +201,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<UserModel?> getCurrentUser() async {
     try {
       final token = await _secureStorage.read(key: 'auth_token');
-      if (token == null) {
-        return null;
-      }
+      if (token == null) return null;
 
-      // Llamar al endpoint /auth/me para obtener datos del usuario actual
       final response = await _dio.get(
         '$_baseUrl/auth/me',
         options: Options(headers: {
@@ -146,42 +211,71 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        log('📦 [AuthRemoteDataSource] Respuesta de /auth/me: ${response.data}');
-
-        // La respuesta puede venir directamente o dentro de un campo 'data'
-        final Map<String, dynamic> userData;
+        final Map<String, dynamic> responseBody;
         if (response.data is Map<String, dynamic>) {
-          // Si la respuesta tiene un campo 'data' que es un Map, usarlo
-          final nestedData = response.data['data'];
-          if (nestedData is Map<String, dynamic>) {
-            userData = nestedData;
-          } else {
-            userData = response.data as Map<String, dynamic>;
-          }
+          responseBody = response.data as Map<String, dynamic>;
         } else {
-          log('⚠️ [AuthRemoteDataSource] Respuesta inesperada de /auth/me: ${response.data.runtimeType}');
+          AppLogger.w(
+              'Respuesta inesperada de /auth/me: ${response.data.runtimeType}',
+              tag: _tag);
           return null;
         }
 
+        // The nested user payload lives under 'data'; fall back to root level.
+        final Map<String, dynamic> userData;
+        final nestedData = responseBody['data'];
+        if (nestedData is Map<String, dynamic>) {
+          userData = nestedData;
+        } else {
+          userData = responseBody;
+        }
+
+        // 'post_register_complete' may sit at the root envelope OR inside 'data'.
+        // Check both explicitly and cast safely so a missing field never silently
+        // defaults to false when the user has actually completed post-registration.
+        final dynamic rawFlag = responseBody['post_register_complete'] ??
+            userData['post_register_complete'];
+        final bool postRegisterComplete;
+        final parsedFlag = _parseBool(rawFlag);
+        if (parsedFlag != null) {
+          postRegisterComplete = parsedFlag;
+        } else {
+          final completionFromApi = await _fetchCompletionStatus(token);
+          if (completionFromApi != null) {
+            postRegisterComplete = completionFromApi;
+            AppLogger.i(
+              'post_register_complete ausente en /auth/me; usando /auth/profile/completion-status: $postRegisterComplete',
+              tag: _tag,
+            );
+          } else {
+            // Last-resort fallback: cached value to avoid forcing user back to
+            // post-registration when the API field is temporarily missing.
+            postRegisterComplete = await _readCompletionCache();
+            AppLogger.w(
+              'post_register_complete ausente en /auth/me y completion-status no disponible; usando caché: $postRegisterComplete',
+              tag: _tag,
+            );
+          }
+        }
+
+        await _persistCompletionCache(postRegisterComplete);
+
         return UserModel.fromCustomApi(
           userData,
-          postRegisterComplete: (response.data['post_register_complete'] ??
-                  userData['post_register_complete']) as bool? ??
-              false,
+          postRegisterComplete: postRegisterComplete,
         );
       }
 
-      // Token inválido o expirado, limpiar sesión
       if (response.statusCode == 401 || response.statusCode == 403) {
-        log('🔒 [AuthRemoteDataSource] Token inválido (${response.statusCode}), limpiando sesión');
+        AppLogger.w('Token inválido (${response.statusCode}), limpiando sesión',
+            tag: _tag);
         await _clearToken();
       }
 
       return null;
     } catch (e) {
-      log('Error al obtener usuario actual: $e');
+      AppLogger.e('Error al obtener usuario actual', tag: _tag, error: e);
       if (e is DioException && e.response?.statusCode == 401) {
-        // Token inválido, limpiar sesión
         await _clearToken();
       }
       return null;
@@ -194,56 +288,41 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String password,
   }) async {
     try {
-      log('📱 [AuthRemoteDataSource] Iniciando login para: $email');
+      AppLogger.i('Login: $email', tag: _tag);
 
-      // Llamar a la API para iniciar sesión
       final response = await _dio.post('$_baseUrl/auth/login', data: {
         'email': email,
         'password': password,
       });
 
-      log('📱 [AuthRemoteDataSource] Respuesta del servidor: ${response.statusCode}');
-
-      // Verificar si la respuesta es exitosa
       if (response.statusCode != 200 && response.statusCode != 201) {
-        log('📱 [AuthRemoteDataSource] Error en la respuesta: ${response.statusMessage}');
         throw AuthException(
             message: response.data['message'] ?? 'Error de autenticación');
       }
 
-      // Extraer el objeto 'data' de la respuesta
       final responseData = response.data['data'] as Map<String, dynamic>?;
       if (responseData == null) {
-        log('📱 [AuthRemoteDataSource] No se encontró "data" en la respuesta');
         throw AuthException(message: 'Respuesta del servidor inválida');
       }
 
-      // Verificar que la respuesta contenga el token
       final token = responseData['accessToken'] as String?;
       if (token == null) {
-        log('📱 [AuthRemoteDataSource] No se encontró accessToken en la respuesta');
         throw AuthException(message: 'No se recibió token de autenticación');
       }
 
-      // Extraer refresh token si existe
       final refreshToken = responseData['refreshToken'] as String?;
-
-      log('📱 [AuthRemoteDataSource] Token obtenido correctamente');
       await _saveToken(token, refreshToken: refreshToken);
 
-      // Extraer datos del usuario
       final userData = responseData['user'] as Map<String, dynamic>?;
       final userId = userData?['id'] as String?;
       if (userId == null) {
-        log('📱 [AuthRemoteDataSource] No se encontró user.id en la respuesta');
         throw AuthException(message: 'No se recibió ID de usuario');
       }
 
-      // Verificar estado de post-registro
       final needsPostRegistration =
           responseData['needsPostRegistration'] as bool? ?? true;
 
-      // Construir el modelo de usuario
+      AppLogger.i('Login exitoso: $email', tag: _tag);
       return UserModel(
         id: userId,
         email: userData?['email'] as String? ?? email,
@@ -251,14 +330,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         postRegisterComplete: !needsPostRegistration,
       );
     } catch (e) {
-      log('📱 [AuthRemoteDataSource] Error en login: $e');
+      AppLogger.e('Error en login', tag: _tag, error: e);
       if (e is DioException) {
-        log('📱 [AuthRemoteDataSource] Dio error: ${e.message}, código: ${e.response?.statusCode}, datos: ${e.response?.data}');
         throw AuthException(message: e.message ?? 'Error de conexión');
       }
-      if (e is AuthException) {
-        rethrow;
-      }
+      if (e is AuthException) rethrow;
       throw AuthException(message: e.toString());
     }
   }
@@ -272,9 +348,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String maternalSurname,
   }) async {
     try {
-      log('📱 [AuthRemoteDataSource] Iniciando registro para: $email');
+      AppLogger.i('Registro: $email', tag: _tag);
 
-      // Llamar al endpoint correcto según API spec
       final response = await _dio.post('$_baseUrl/auth/register', data: {
         'email': email,
         'password': password,
@@ -283,16 +358,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'maternal_last_name': maternalSurname,
       });
 
-      log('📱 [AuthRemoteDataSource] Respuesta del registro: ${response.statusCode}');
-
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw AuthException(
           message: response.data['message'] ?? 'Error en el registro',
         );
       }
 
-      // Extraer datos de la respuesta
-      // El registro exitoso retorna el usuario creado
       final userData = response.data['user'] as Map<String, dynamic>?;
       final userId = userData?['id'] as String?;
 
@@ -300,19 +371,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw AuthException(message: 'No se recibió ID de usuario');
       }
 
-      log('✅ [AuthRemoteDataSource] Usuario registrado: $userId');
-
-      // El registro no devuelve token, el usuario debe hacer login
-      // Retornamos el modelo sin sesión activa
+      AppLogger.i('Usuario registrado: $userId', tag: _tag);
       return UserModel(
         id: userId,
         email: userData?['email'] as String? ?? email,
         name: userData?['name'] as String? ?? name,
-        postRegisterComplete:
-            false, // Registro nuevo siempre requiere post-registro
+        postRegisterComplete: false,
       );
     } catch (e) {
-      log('❌ [AuthRemoteDataSource] Error en registro: $e');
+      AppLogger.e('Error en registro', tag: _tag, error: e);
       if (e is DioException) {
         final message =
             e.response?.data?['message'] ?? e.message ?? 'Error de conexión';
@@ -326,19 +393,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> signOut() async {
     try {
-      log('📱 [AuthRemoteDataSource] Iniciando cierre de sesión');
+      AppLogger.i('Cerrando sesión', tag: _tag);
 
-      // Obtener tokens antes de limpiar para invalidar en servidor
       final token = await _secureStorage.read(key: 'auth_token');
       final refreshToken = await _secureStorage.read(key: 'refresh_token');
 
-      // Borrar tokens locales primero
       await _clearToken();
-
-      // Limpiar todos los datos de autenticación almacenados
       await _clearAllPersistentData();
 
-      // Llamar a la API para invalidar el refresh token en el servidor
       if (token != null && refreshToken != null) {
         try {
           await _dio.post(
@@ -346,16 +408,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
             data: {'refresh_token': refreshToken},
             options: Options(headers: {'Authorization': 'Bearer $token'}),
           );
-          log('✅ [AuthRemoteDataSource] Sesión invalidada en servidor');
+          AppLogger.i('Sesión invalidada en servidor', tag: _tag);
         } catch (e) {
-          // Si falla la llamada al servidor, no es crítico
-          // ya limpiamos los tokens locales
-          log('⚠️ [AuthRemoteDataSource] No se pudo invalidar en servidor: $e');
+          AppLogger.w('No se pudo invalidar sesión en servidor',
+              tag: _tag, error: e);
         }
       }
     } catch (e) {
-      log('❌ [AuthRemoteDataSource] Error al cerrar sesión: $e');
-      // Aún si algo falla, aseguramos limpiar tokens locales
+      AppLogger.e('Error al cerrar sesión', tag: _tag, error: e);
       await _clearToken();
       throw AuthException(message: e.toString());
     }
@@ -364,21 +424,19 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> resetPassword(String email) async {
     try {
-      log('📱 [AuthRemoteDataSource] Solicitando recuperación para: $email');
+      AppLogger.i('Recuperación de contraseña: $email', tag: _tag);
 
-      // Endpoint correcto según API spec: /auth/request-password-reset
       final response = await _dio.post(
         '$_baseUrl/auth/request-password-reset',
         data: {'email': email},
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        log('✅ [AuthRemoteDataSource] Correo de recuperación enviado');
+        AppLogger.i('Correo de recuperación enviado', tag: _tag);
       }
     } catch (e) {
-      log('❌ [AuthRemoteDataSource] Error en reset password: $e');
+      AppLogger.e('Error en reset password', tag: _tag, error: e);
       if (e is DioException) {
-        // La API devuelve mensaje genérico por seguridad
         throw AuthException(
           message: e.response?.data?['message'] ??
               'Si el correo existe, recibirás un enlace de recuperación',
@@ -396,19 +454,16 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw AuthException(message: 'No hay sesión activa');
       }
 
-      // Configurar headers con el token
       _dio.options.headers['Authorization'] = 'Bearer $token';
 
-      // Implementación para actualizar la contraseña
       await _dio.post('$_baseUrl/auth/update-password', data: {
         'password': newPassword,
       });
 
-      // Devolver usuario actualizado
       return UserModel(
-        id: 'current-user-id', // Idealmente obtener de la respuesta
-        email: 'usuario@ejemplo.com', // Idealmente obtener de la respuesta
-        name: 'Usuario Actual', // Idealmente obtener de la respuesta
+        id: 'current-user-id',
+        email: 'usuario@ejemplo.com',
+        name: 'Usuario Actual',
         postRegisterComplete: true,
       );
     } catch (e) {
@@ -420,13 +475,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
-  /// Método para limpiar todos los datos persistentes relacionados con la autenticación
   Future<void> _clearAllPersistentData() async {
     try {
-      // 1. Limpiar datos de SharedPreferences
       final prefs = await SharedPreferences.getInstance();
 
-      // Limpiar claves relacionadas con la autenticación
       final keysToRemove = [
         'auth-token',
         'auth-refresh-token',
@@ -437,7 +489,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         await prefs.remove(key);
       }
 
-      // Borrar cualquier otra clave relacionada con autenticación
       final allKeys = prefs.getKeys();
       for (final key in allKeys) {
         if (key.contains('auth')) {
@@ -445,18 +496,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         }
       }
 
-      // 2. Limpiar FlutterSecureStorage (también puede contener tokens)
       final secureKeys = await _secureStorage.readAll();
-
       for (final entry in secureKeys.entries) {
         if (entry.key.contains('auth')) {
           await _secureStorage.delete(key: entry.key);
         }
       }
-
-      log('Limpieza completa de datos de autenticación realizada');
     } catch (e) {
-      log('Error al limpiar datos: $e');
+      AppLogger.e('Error al limpiar datos persistentes', tag: _tag, error: e);
     }
   }
 
@@ -478,7 +525,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final token = await _secureStorage.read(key: 'auth_token');
       return token != null;
     } catch (e) {
-      log('Error al verificar token local: $e');
+      AppLogger.e('Error al verificar token local', tag: _tag, error: e);
       return false;
     }
   }

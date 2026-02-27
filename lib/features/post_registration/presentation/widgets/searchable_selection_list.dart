@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 
 /// Item seleccionable con checkbox
 class SelectableItem {
@@ -158,7 +158,7 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
                 borderRadius: BorderRadius.circular(12),
               ),
               filled: true,
-              fillColor: AppColors.lightSurfaceVariant,
+              fillColor: context.sac.surfaceVariant,
             ),
             onChanged: (value) {
               setState(() {
@@ -178,14 +178,14 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
                       HugeIcon(
                         icon: HugeIcons.strokeRoundedSearchMinus,
                         size: 64,
-                        color: AppColors.lightTextTertiary,
+                        color: context.sac.textTertiary,
                       ),
                       const SizedBox(height: 16),
                       Text(
                         'No se encontraron resultados',
                         style: TextStyle(
                           fontSize: 16,
-                          color: AppColors.lightTextSecondary,
+                          color: context.sac.textSecondary,
                         ),
                       ),
                     ],
@@ -220,9 +220,9 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.lightSurfaceVariant,
+            color: context.sac.surfaceVariant,
             border: Border(
-              top: BorderSide(color: AppColors.lightBorder),
+              top: BorderSide(color: context.sac.border),
             ),
           ),
           child: Row(
@@ -232,7 +232,7 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
                 _getSelectionCountText(),
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.lightTextSecondary,
+                  color: context.sac.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
               ),

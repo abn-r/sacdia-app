@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Indicador de progreso visual para los pasos del post-registro.
 ///
@@ -39,7 +40,7 @@ class StepIndicator extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isCompleted
                       ? AppColors.secondary
-                      : AppColors.lightBorderLight,
+                      : context.sac.borderLight,
                   borderRadius: BorderRadius.circular(1),
                 ),
               ),
@@ -66,13 +67,13 @@ class StepIndicator extends StatelessWidget {
                       ? AppColors.secondary
                       : isActive
                           ? AppColors.primary
-                          : Colors.white,
+                          : context.sac.surface,
                   border: Border.all(
                     color: isCompleted
                         ? AppColors.secondary
                         : isActive
                             ? AppColors.primary
-                            : AppColors.lightBorder,
+                            : context.sac.border,
                     width: 2,
                   ),
                 ),
@@ -87,7 +88,7 @@ class StepIndicator extends StatelessWidget {
                           style: TextStyle(
                             color: isActive
                                 ? Colors.white
-                                : AppColors.lightTextTertiary,
+                                : context.sac.textTertiary,
                             fontWeight: FontWeight.w600,
                             fontSize: 11,
                           ),
@@ -107,7 +108,7 @@ class StepIndicator extends StatelessWidget {
                       ? AppColors.secondary
                       : isActive
                           ? AppColors.primary
-                          : AppColors.lightTextTertiary,
+                          : context.sac.textTertiary,
                 ),
               ),
             ],

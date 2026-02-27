@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
@@ -81,7 +82,7 @@ class HonorCard extends StatelessWidget {
 
           HugeIcon(
             icon: HugeIcons.strokeRoundedArrowRight01,
-            color: AppColors.lightTextTertiary,
+            color: context.sac.textTertiary,
             size: 24,
           ),
         ],

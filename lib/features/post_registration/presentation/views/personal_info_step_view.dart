@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
@@ -81,7 +82,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
           Text(
             'Esta información ayuda a tu club a cuidarte mejor',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.lightTextSecondary,
+                  color: context.sac.textSecondary,
                 ),
           ),
           const SizedBox(height: 24),
@@ -107,7 +108,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
           Text(
             'Género',
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: AppColors.lightTextSecondary,
+                  color: context.sac.textSecondary,
                 ),
           ),
           const SizedBox(height: 8),
@@ -192,7 +193,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
           Text(
             'Registra al menos un contacto de emergencia',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.lightTextTertiary,
+                  color: context.sac.textTertiary,
                 ),
           ),
           const SizedBox(height: 12),
@@ -214,7 +215,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                     height: 40,
                     decoration: BoxDecoration(
                       color: contacts.isEmpty
-                          ? AppColors.lightSurfaceVariant
+                          ? context.sac.surfaceVariant
                           : AppColors.primaryLight,
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -222,7 +223,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                       icon: HugeIcons.strokeRoundedContactBook,
                       size: 20,
                       color: contacts.isEmpty
-                          ? AppColors.lightTextTertiary
+                          ? context.sac.textTertiary
                           : AppColors.primary,
                     ),
                   ),
@@ -253,7 +254,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                   ),
                   HugeIcon(
                     icon: HugeIcons.strokeRoundedArrowRight01,
-                    color: AppColors.lightTextTertiary,
+                    color: context.sac.textTertiary,
                   ),
                 ],
               ),
@@ -321,7 +322,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                             decoration: BoxDecoration(
                               color: rep != null
                                   ? AppColors.primaryLight
-                                  : AppColors.lightSurfaceVariant,
+                                  : context.sac.surfaceVariant,
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: HugeIcon(
@@ -329,7 +330,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                               size: 20,
                               color: rep != null
                                   ? AppColors.primary
-                                  : AppColors.lightTextTertiary,
+                                  : context.sac.textTertiary,
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -346,7 +347,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                           ),
                           HugeIcon(
                             icon: HugeIcons.strokeRoundedArrowRight01,
-                            color: AppColors.lightTextTertiary,
+                            color: context.sac.textTertiary,
                           ),
                         ],
                       ),
@@ -379,7 +380,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                   decoration: BoxDecoration(
                     color: selectedAllergies.isNotEmpty
                         ? AppColors.errorLight
-                        : AppColors.lightSurfaceVariant,
+                        : context.sac.surfaceVariant,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: HugeIcon(
@@ -387,7 +388,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                     size: 20,
                     color: selectedAllergies.isNotEmpty
                         ? AppColors.error
-                        : AppColors.lightTextTertiary,
+                        : context.sac.textTertiary,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -404,7 +405,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                 ),
                 HugeIcon(
                   icon: HugeIcons.strokeRoundedArrowRight01,
-                  color: AppColors.lightTextTertiary,
+                  color: context.sac.textTertiary,
                 ),
               ],
             ),
@@ -422,7 +423,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                   decoration: BoxDecoration(
                     color: selectedDiseases.isNotEmpty
                         ? AppColors.accentLight
-                        : AppColors.lightSurfaceVariant,
+                        : context.sac.surfaceVariant,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: HugeIcon(
@@ -430,7 +431,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                     size: 20,
                     color: selectedDiseases.isNotEmpty
                         ? AppColors.accent
-                        : AppColors.lightTextTertiary,
+                        : context.sac.textTertiary,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -447,7 +448,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                 ),
                 HugeIcon(
                   icon: HugeIcons.strokeRoundedArrowRight01,
-                  color: AppColors.lightTextTertiary,
+                  color: context.sac.textTertiary,
                 ),
               ],
             ),
@@ -592,7 +593,7 @@ class _SectionHeader extends StatelessWidget {
             '($subtitle)',
             style: TextStyle(
               fontSize: 13,
-              color: AppColors.lightTextTertiary,
+              color: context.sac.textTertiary,
             ),
           ),
         ],
@@ -638,10 +639,10 @@ class _GenderChip extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primaryLight : Colors.white,
+            color: isSelected ? AppColors.primaryLight : context.sac.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? AppColors.primary : AppColors.lightBorder,
+              color: isSelected ? AppColors.primary : context.sac.border,
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -653,7 +654,7 @@ class _GenderChip extends StatelessWidget {
                 size: 20,
                 color: isSelected
                     ? AppColors.primary
-                    : AppColors.lightTextSecondary,
+                    : context.sac.textSecondary,
               ),
               const SizedBox(width: 8),
               Text(
@@ -663,7 +664,7 @@ class _GenderChip extends StatelessWidget {
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   color: isSelected
                       ? AppColors.primary
-                      : AppColors.lightTextSecondary,
+                      : context.sac.textSecondary,
                 ),
               ),
             ],
@@ -700,7 +701,7 @@ class _DatePickerCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: date != null
                   ? AppColors.primaryLight
-                  : AppColors.lightSurfaceVariant,
+                  : context.sac.surfaceVariant,
               borderRadius: BorderRadius.circular(10),
             ),
             child: buildIcon(
@@ -708,7 +709,7 @@ class _DatePickerCard extends StatelessWidget {
               size: 20,
               color: date != null
                   ? AppColors.primary
-                  : AppColors.lightTextTertiary,
+                  : context.sac.textTertiary,
             ),
           ),
           const SizedBox(width: 12),
@@ -720,7 +721,7 @@ class _DatePickerCard extends StatelessWidget {
                   label,
                   style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.lightTextTertiary,
+                    color: context.sac.textTertiary,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -732,8 +733,8 @@ class _DatePickerCard extends StatelessWidget {
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                     color: date != null
-                        ? AppColors.lightText
-                        : AppColors.lightTextTertiary,
+                        ? context.sac.text
+                        : context.sac.textTertiary,
                   ),
                 ),
               ],
@@ -742,7 +743,7 @@ class _DatePickerCard extends StatelessWidget {
           HugeIcon(
             icon: HugeIcons.strokeRoundedCalendar01,
             size: 18,
-            color: AppColors.lightTextTertiary,
+            color: context.sac.textTertiary,
           ),
         ],
       ),

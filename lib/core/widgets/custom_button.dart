@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 /// Botón reutilizable y configurable para toda la aplicación
@@ -66,7 +67,7 @@ class CustomButton extends StatelessWidget {
         backgroundColor: effectivelyDisabled 
             ? backgroundColor.withValues(alpha: 0.6) 
             : backgroundColor,
-        disabledBackgroundColor: AppColors.lightTextTertiary.withValues(alpha: 0.6),
+        disabledBackgroundColor: context.sac.textTertiary.withValues(alpha: 0.6),
         padding: padding,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadius),

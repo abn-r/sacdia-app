@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Barra de progreso lineal del design system SACDIA "Scout Vibrante"
 ///
@@ -16,8 +17,8 @@ class SacProgressBar extends StatefulWidget {
   /// Color sólido (si useGradient es false)
   final Color color;
 
-  /// Color del track de fondo
-  final Color trackColor;
+  /// Color del track de fondo (null = resolved from theme)
+  final Color? trackColor;
 
   /// Usar gradiente primary → secondary
   final bool useGradient;
@@ -42,7 +43,7 @@ class SacProgressBar extends StatefulWidget {
     required this.progress,
     this.height = 6.0,
     this.color = AppColors.primary,
-    this.trackColor = AppColors.lightBorderLight,
+    this.trackColor,
     this.useGradient = true,
     this.borderRadius = 100.0,
     this.label,
@@ -140,7 +141,7 @@ class _SacProgressBarState extends State<SacProgressBar>
                           // Track background
                           Container(
                             decoration: BoxDecoration(
-                              color: widget.trackColor,
+                              color: widget.trackColor ?? context.sac.borderLight,
                               borderRadius:
                                   BorderRadius.circular(widget.borderRadius),
                             ),
