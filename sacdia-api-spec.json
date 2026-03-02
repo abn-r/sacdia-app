@@ -7,18 +7,26 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "tags": [
           "App"
+        ]
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "operationId": "HealthController_check_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Check API status",
+        "tags": [
+          "health"
         ]
       }
     },
@@ -73,6 +81,34 @@
           }
         },
         "summary": "Iniciar sesión",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/refresh": {
+      "post": {
+        "operationId": "AuthController_refresh_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshSessionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tokens renovados exitosamente"
+          },
+          "401": {
+            "description": "Refresh token inválido o expirado"
+          }
+        },
+        "summary": "Refrescar sesión con refresh token",
         "tags": [
           "auth"
         ]
@@ -138,7 +174,71 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Información del usuario"
+            "description": "Información del usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user_id": {
+                          "type": "string",
+                          "example": "user-uuid"
+                        },
+                        "email": {
+                          "type": "string",
+                          "example": "usuario@sacdia.app"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Juan"
+                        },
+                        "roles": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "example": [
+                            "user"
+                          ]
+                        },
+                        "permissions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "example": [
+                            "read"
+                          ]
+                        },
+                        "post_register_complete": {
+                          "type": "boolean",
+                          "example": true,
+                          "description": "Indica si el usuario completó el post-registro."
+                        }
+                      },
+                      "required": [
+                        "user_id",
+                        "email",
+                        "roles",
+                        "permissions",
+                        "post_register_complete"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "data"
+                  ]
+                }
+              }
+            }
           }
         },
         "security": [
@@ -203,16 +303,6 @@
                 }
               }
             }
-          },
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
           }
         },
         "security": [
@@ -244,9 +334,6 @@
         "responses": {
           "200": {
             "description": "2FA activado exitosamente"
-          },
-          "201": {
-            "description": ""
           },
           "401": {
             "description": "Código inválido"
@@ -487,6 +574,240 @@
         ]
       }
     },
+    "/v1/auth/oauth/google": {
+      "post": {
+        "description": "Retorna URL de OAuth de Google. Frontend debe redirigir al usuario a esta URL.",
+        "operationId": "OAuthController_googleSignIn_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OAuthInitiateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "URL de OAuth generada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "url": "https://accounts.google.com/o/oauth2/v2/auth?client_id=..."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error al iniciar OAuth"
+          }
+        },
+        "summary": "Iniciar autenticación con Google",
+        "tags": [
+          "OAuth"
+        ]
+      }
+    },
+    "/v1/auth/oauth/apple": {
+      "post": {
+        "description": "Retorna URL de OAuth de Apple. Frontend debe redirigir al usuario a esta URL.",
+        "operationId": "OAuthController_appleSignIn_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OAuthInitiateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "URL de OAuth generada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "url": "https://appleid.apple.com/auth/authorize?client_id=..."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error al iniciar OAuth"
+          }
+        },
+        "summary": "Iniciar autenticación con Apple",
+        "tags": [
+          "OAuth"
+        ]
+      }
+    },
+    "/v1/auth/oauth/callback": {
+      "get": {
+        "description": "Procesa el callback de Google/Apple después de autenticación exitosa. Auto-crea usuario si es primera vez. Retorna access_token y datos de usuario.",
+        "operationId": "OAuthController_handleCallback_v1",
+        "parameters": [
+          {
+            "name": "access_token",
+            "required": true,
+            "in": "query",
+            "description": "Access token de Supabase",
+            "schema": {
+              "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "type": "string"
+            }
+          },
+          {
+            "name": "refresh_token",
+            "required": false,
+            "in": "query",
+            "description": "Refresh token de Supabase",
+            "schema": {
+              "example": "v1.abc123...",
+              "type": "string"
+            }
+          },
+          {
+            "name": "provider",
+            "required": false,
+            "in": "query",
+            "description": "Provider usado (google, apple)",
+            "schema": {
+              "example": "google",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Autenticación exitosa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "access_token": "eyJhbGc...",
+                    "refresh_token": "v1.abc...",
+                    "user": {
+                      "id": "uuid-123",
+                      "email": "user@gmail.com",
+                      "name": "Juan",
+                      "paternal_last_name": "Pérez",
+                      "maternal_last_name": "González",
+                      "avatar": "https://lh3.googleusercontent.com/...",
+                      "google_connected": true,
+                      "apple_connected": false
+                    },
+                    "needsPostRegistration": true
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token de OAuth inválido"
+          }
+        },
+        "summary": "Manejar callback de OAuth",
+        "tags": [
+          "OAuth"
+        ]
+      }
+    },
+    "/v1/auth/oauth/providers": {
+      "get": {
+        "description": "Retorna los providers de OAuth (Google, Apple, Facebook) conectados al usuario.",
+        "operationId": "OAuthController_getConnectedProviders_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Providers conectados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "google_connected": true,
+                    "apple_connected": false,
+                    "fb_connected": false
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener providers conectados",
+        "tags": [
+          "OAuth"
+        ]
+      }
+    },
+    "/v1/auth/oauth/{provider}": {
+      "delete": {
+        "description": "Desconecta un provider de OAuth (google, apple, fb) del usuario. Nota: Esto solo actualiza el flag en BD, no desvincula la cuenta en Supabase.",
+        "operationId": "OAuthController_disconnectProvider_v1",
+        "parameters": [
+          {
+            "name": "provider",
+            "required": true,
+            "in": "path",
+            "description": "Provider a desconectar",
+            "schema": {
+              "enum": [
+                "google",
+                "apple",
+                "fb"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Provider desconectado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "success": true,
+                    "message": "Provider desconectado exitosamente"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Provider inválido"
+          },
+          "401": {
+            "description": "No autenticado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Desconectar un provider",
+        "tags": [
+          "OAuth"
+        ]
+      }
+    },
     "/v1/users/{userId}": {
       "get": {
         "operationId": "UsersController_findOne_v1",
@@ -554,6 +875,180 @@
           }
         ],
         "summary": "Actualizar información personal del usuario",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/v1/users/{userId}/allergies": {
+      "put": {
+        "description": "Reemplaza el conjunto de alergias activas del usuario en users_allergies",
+        "operationId": "UsersController_updateAllergies_v1",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserAllergiesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Alergias actualizadas"
+          },
+          "400": {
+            "description": "Alergia inválida"
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Guardar alergias del usuario",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/v1/users/{userId}/diseases": {
+      "put": {
+        "description": "Reemplaza el conjunto de enfermedades activas del usuario en users_diseases",
+        "operationId": "UsersController_updateDiseases_v1",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDiseasesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Enfermedades actualizadas"
+          },
+          "400": {
+            "description": "Enfermedad inválida"
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Guardar enfermedades del usuario",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/v1/users/{userId}/allergies/{allergyId}": {
+      "delete": {
+        "description": "Desactiva (active=false) una alergia específica del usuario en users_allergies",
+        "operationId": "UsersController_removeAllergy_v1",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "allergyId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Alergia eliminada"
+          },
+          "404": {
+            "description": "Alergia no encontrada en el usuario"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar alergia del usuario (borrado lógico)",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/v1/users/{userId}/diseases/{diseaseId}": {
+      "delete": {
+        "description": "Desactiva (active=false) una enfermedad específica del usuario en users_diseases",
+        "operationId": "UsersController_removeDisease_v1",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "diseaseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Enfermedad eliminada"
+          },
+          "404": {
+            "description": "Enfermedad no encontrada en el usuario"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar enfermedad del usuario (borrado lógico)",
         "tags": [
           "users"
         ]
@@ -945,10 +1440,10 @@
         ],
         "responses": {
           "200": {
-            "description": "Representante encontrado"
+            "description": "Respuesta exitosa. Retorna representante o data=null cuando no existe"
           },
           "404": {
-            "description": "Representante no encontrado"
+            "description": "Usuario no encontrado"
           }
         },
         "security": [
@@ -1186,6 +1681,22 @@
         ]
       }
     },
+    "/v1/catalogs/relationship-types": {
+      "get": {
+        "description": "Lista tipos de relación activos para formularios (padre, madre, tutor, etc.)",
+        "operationId": "CatalogsController_getRelationshipTypes_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Lista de tipos de relación"
+          }
+        },
+        "summary": "Obtener tipos de relación",
+        "tags": [
+          "catalogs"
+        ]
+      }
+    },
     "/v1/catalogs/countries": {
       "get": {
         "description": "Lista todos los países activos",
@@ -1394,6 +1905,38 @@
         ]
       }
     },
+    "/v1/catalogs/allergies": {
+      "get": {
+        "description": "Lista alergias activas para selección en formularios",
+        "operationId": "CatalogsController_getAllergies_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Lista de alergias"
+          }
+        },
+        "summary": "Obtener catálogo de alergias",
+        "tags": [
+          "catalogs"
+        ]
+      }
+    },
+    "/v1/catalogs/diseases": {
+      "get": {
+        "description": "Lista enfermedades activas para selección en formularios",
+        "operationId": "CatalogsController_getDiseases_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Lista de enfermedades"
+          }
+        },
+        "summary": "Obtener catálogo de enfermedades",
+        "tags": [
+          "catalogs"
+        ]
+      }
+    },
     "/v1/clubs": {
       "get": {
         "description": "Obtiene la lista de clubs con filtros opcionales y paginación",
@@ -1560,7 +2103,7 @@
             "bearer": []
           }
         ],
-        "summary": "Actualizar club (requiere rol director o subdirector)",
+        "summary": "Actualizar club (requiere rol director o deputy director)",
         "tags": [
           "clubs"
         ]
@@ -1661,7 +2204,7 @@
             "bearer": []
           }
         ],
-        "summary": "Crear instancia de club (requiere director o subdirector)",
+        "summary": "Crear instancia de club (requiere director o deputy director)",
         "tags": [
           "clubs"
         ]
@@ -1767,7 +2310,7 @@
             "bearer": []
           }
         ],
-        "summary": "Actualizar instancia (requiere director, subdirector o secretario)",
+        "summary": "Actualizar instancia (requiere director, deputy director o secretary)",
         "tags": [
           "clubs"
         ]
@@ -1882,7 +2425,7 @@
             "bearer": []
           }
         ],
-        "summary": "Asignar rol a un miembro (requiere director, subdirector o secretario)",
+        "summary": "Asignar rol a un miembro (requiere director, deputy director o secretary)",
         "tags": [
           "clubs"
         ]
@@ -3080,6 +3623,2912 @@
           "finances"
         ]
       }
+    },
+    "/v1/camporees": {
+      "get": {
+        "description": "Obtiene todos los camporees disponibles",
+        "operationId": "CamporeesController_findAll_v1",
+        "parameters": [
+          {
+            "name": "active",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista paginada de camporees"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar camporees",
+        "tags": [
+          "camporees"
+        ]
+      },
+      "post": {
+        "description": "Crea un nuevo camporee (requiere rol de liderazgo)",
+        "operationId": "CamporeesController_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCamporeeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Camporee creado"
+          },
+          "403": {
+            "description": "Permisos insuficientes"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear camporee",
+        "tags": [
+          "camporees"
+        ]
+      }
+    },
+    "/v1/camporees/{camporeeId}": {
+      "get": {
+        "operationId": "CamporeesController_findOne_v1",
+        "parameters": [
+          {
+            "name": "camporeeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Camporee encontrado"
+          },
+          "404": {
+            "description": "Camporee no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener camporee por ID",
+        "tags": [
+          "camporees"
+        ]
+      },
+      "patch": {
+        "operationId": "CamporeesController_update_v1",
+        "parameters": [
+          {
+            "name": "camporeeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCamporeeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Camporee actualizado"
+          },
+          "404": {
+            "description": "Camporee no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar camporee",
+        "tags": [
+          "camporees"
+        ]
+      },
+      "delete": {
+        "operationId": "CamporeesController_remove_v1",
+        "parameters": [
+          {
+            "name": "camporeeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Camporee desactivado"
+          },
+          "404": {
+            "description": "Camporee no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Desactivar camporee",
+        "tags": [
+          "camporees"
+        ]
+      }
+    },
+    "/v1/camporees/{camporeeId}/register": {
+      "post": {
+        "description": "Registra un miembro en el camporee con validación de seguro",
+        "operationId": "CamporeesController_registerMember_v1",
+        "parameters": [
+          {
+            "name": "camporeeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterMemberDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Miembro registrado exitosamente"
+          },
+          "400": {
+            "description": "Error de validación"
+          },
+          "404": {
+            "description": "Camporee no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Registrar miembro en camporee",
+        "tags": [
+          "camporees"
+        ]
+      }
+    },
+    "/v1/camporees/{camporeeId}/members": {
+      "get": {
+        "description": "Obtiene la lista de miembros registrados en el camporee",
+        "operationId": "CamporeesController_getMembers_v1",
+        "parameters": [
+          {
+            "name": "camporeeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de miembros"
+          },
+          "404": {
+            "description": "Camporee no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar miembros del camporee",
+        "tags": [
+          "camporees"
+        ]
+      }
+    },
+    "/v1/camporees/{camporeeId}/members/{userId}": {
+      "delete": {
+        "description": "Desactiva el registro de un miembro en el camporee",
+        "operationId": "CamporeesController_removeMember_v1",
+        "parameters": [
+          {
+            "name": "camporeeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Miembro removido"
+          },
+          "404": {
+            "description": "Registro no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remover miembro del camporee",
+        "tags": [
+          "camporees"
+        ]
+      }
+    },
+    "/v1/notifications/send": {
+      "post": {
+        "operationId": "NotificationsController_sendToUser_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendNotificationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Send notification to specific user",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/v1/notifications/broadcast": {
+      "post": {
+        "operationId": "NotificationsController_broadcast_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BroadcastNotificationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Send notification to all users",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/v1/notifications/club/{instanceType}/{instanceId}": {
+      "post": {
+        "operationId": "NotificationsController_sendToClub_v1",
+        "parameters": [
+          {
+            "name": "instanceType",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "instanceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BroadcastNotificationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Send notification to club members",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/v1/fcm-tokens": {
+      "post": {
+        "operationId": "FcmTokensController_registerToken_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterFcmTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Register FCM token",
+        "tags": [
+          "FCM Tokens"
+        ]
+      },
+      "get": {
+        "operationId": "FcmTokensController_getMyTokens_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get current user FCM tokens",
+        "tags": [
+          "FCM Tokens"
+        ]
+      }
+    },
+    "/v1/fcm-tokens/{token}": {
+      "delete": {
+        "operationId": "FcmTokensController_unregisterToken_v1",
+        "parameters": [
+          {
+            "name": "token",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Unregister FCM token",
+        "tags": [
+          "FCM Tokens"
+        ]
+      }
+    },
+    "/v1/fcm-tokens/user/{userId}": {
+      "get": {
+        "operationId": "FcmTokensController_getUserTokens_v1",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get FCM tokens by user ID (owner/admin only)",
+        "tags": [
+          "FCM Tokens"
+        ]
+      }
+    },
+    "/v1/certifications/certifications": {
+      "get": {
+        "description": "Obtiene lista paginada de certificaciones activas con count de módulos",
+        "operationId": "CertificationsController_findAll_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Número de página (default: 1)",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Resultados por página (default: 50, max: 100)",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "example": 50,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de certificaciones"
+          },
+          "401": {
+            "description": "No autenticado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar todas las certificaciones disponibles",
+        "tags": [
+          "certifications"
+        ]
+      }
+    },
+    "/v1/certifications/certifications/{id}": {
+      "get": {
+        "description": "Obtiene información completa de una certificación incluyendo módulos y secciones",
+        "operationId": "CertificationsController_findOne_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID de la certificación",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalles de la certificación con módulos y secciones"
+          },
+          "404": {
+            "description": "Certificación no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener detalles de una certificación",
+        "tags": [
+          "certifications"
+        ]
+      }
+    },
+    "/v1/certifications/users/{userId}/certifications/enroll": {
+      "post": {
+        "description": "Permite a un Guía Mayor investido inscribirse en una certificación. Valida automáticamente elegibilidad.",
+        "operationId": "CertificationsController_enrollUser_v1",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "UUID del usuario",
+            "schema": {
+              "example": "uuid-123",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnrollCertificationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Inscripción creada exitosamente"
+          },
+          "403": {
+            "description": "Usuario no es Guía Mayor investido"
+          },
+          "404": {
+            "description": "Certificación no encontrada"
+          },
+          "409": {
+            "description": "Usuario ya inscrito en esta certificación"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Inscribirse en una certificación",
+        "tags": [
+          "certifications"
+        ]
+      }
+    },
+    "/v1/certifications/users/{userId}/certifications": {
+      "get": {
+        "description": "Obtiene todas las certificaciones en las que está inscrito el usuario con progreso",
+        "operationId": "CertificationsController_getUserCertifications_v1",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "UUID del usuario",
+            "schema": {
+              "example": "uuid-123",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de certificaciones del usuario con progreso"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar certificaciones del usuario",
+        "tags": [
+          "certifications"
+        ]
+      }
+    },
+    "/v1/certifications/users/{userId}/certifications/{certificationId}/progress": {
+      "get": {
+        "description": "Obtiene el progreso detallado por módulos y secciones de una certificación específica",
+        "operationId": "CertificationsController_getCertificationProgress_v1",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "UUID del usuario",
+            "schema": {
+              "example": "uuid-123",
+              "type": "string"
+            }
+          },
+          {
+            "name": "certificationId",
+            "required": true,
+            "in": "path",
+            "description": "ID de la certificación",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Progreso detallado de la certificación"
+          },
+          "404": {
+            "description": "Inscripción en certificación no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Ver progreso detallado de una certificación",
+        "tags": [
+          "certifications"
+        ]
+      },
+      "patch": {
+        "description": "Marca una sección como completa/incompleta. Auto-completa módulo y certificación si todas las secciones/módulos están completos.",
+        "operationId": "CertificationsController_updateProgress_v1",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "UUID del usuario",
+            "schema": {
+              "example": "uuid-123",
+              "type": "string"
+            }
+          },
+          {
+            "name": "certificationId",
+            "required": true,
+            "in": "path",
+            "description": "ID de la certificación",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProgressDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Progreso actualizado exitosamente"
+          },
+          "400": {
+            "description": "Módulo o sección inválidos para esta certificación"
+          },
+          "404": {
+            "description": "Inscripción en certificación no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar progreso de una sección",
+        "tags": [
+          "certifications"
+        ]
+      }
+    },
+    "/v1/certifications/users/{userId}/certifications/{certificationId}": {
+      "delete": {
+        "description": "Desactiva la inscripción del usuario en una certificación (soft delete)",
+        "operationId": "CertificationsController_deleteCertification_v1",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "UUID del usuario",
+            "schema": {
+              "example": "uuid-123",
+              "type": "string"
+            }
+          },
+          {
+            "name": "certificationId",
+            "required": true,
+            "in": "path",
+            "description": "ID de la certificación",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Inscripción eliminada exitosamente"
+          },
+          "404": {
+            "description": "Inscripción en certificación no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Abandonar una certificación",
+        "tags": [
+          "certifications"
+        ]
+      }
+    },
+    "/v1/folders/folders": {
+      "get": {
+        "description": "Obtiene lista paginada de templates de carpetas activos con count de módulos",
+        "operationId": "FoldersController_findAll_v1",
+        "parameters": [
+          {
+            "name": "club_type",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por tipo de club (1: Aventureros, 2: Conquistadores, 3: Guías Mayores)",
+            "schema": {
+              "example": 2,
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Número de página (default: 1)",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Resultados por página (default: 50, max: 100)",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "example": 50,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de templates de carpetas"
+          },
+          "401": {
+            "description": "No autenticado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar templates de carpetas disponibles",
+        "tags": [
+          "folders"
+        ]
+      }
+    },
+    "/v1/folders/folders/{id}": {
+      "get": {
+        "description": "Obtiene información completa de un template de carpeta incluyendo módulos y secciones con puntos",
+        "operationId": "FoldersController_findOne_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del template de carpeta",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalles del template con módulos y secciones"
+          },
+          "404": {
+            "description": "Template de carpeta no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener detalles de un template de carpeta",
+        "tags": [
+          "folders"
+        ]
+      }
+    },
+    "/v1/folders/users/{userId}/folders/{folderId}/enroll": {
+      "post": {
+        "description": "Asigna un template de carpeta a un usuario. Valida que el usuario pertenezca a un club del tipo requerido.",
+        "operationId": "FoldersController_enrollUser_v1",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "UUID del usuario",
+            "schema": {
+              "example": "uuid-123",
+              "type": "string"
+            }
+          },
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "description": "ID del template de carpeta",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Carpeta asignada exitosamente"
+          },
+          "400": {
+            "description": "Usuario no pertenece a un club del tipo requerido"
+          },
+          "404": {
+            "description": "Template de carpeta no encontrado"
+          },
+          "409": {
+            "description": "Usuario ya tiene una asignación activa para esta carpeta"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Inscribirse en una carpeta",
+        "tags": [
+          "folders"
+        ]
+      }
+    },
+    "/v1/folders/users/{userId}/folders": {
+      "get": {
+        "description": "Obtiene todas las carpetas asignadas al usuario con progreso y estado",
+        "operationId": "FoldersController_getUserFolders_v1",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "UUID del usuario",
+            "schema": {
+              "example": "uuid-123",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de carpetas del usuario con progreso"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar carpetas asignadas del usuario",
+        "tags": [
+          "folders"
+        ]
+      }
+    },
+    "/v1/folders/users/{userId}/folders/{folderId}/progress": {
+      "get": {
+        "description": "Obtiene el progreso detallado por módulos y secciones con evidencias",
+        "operationId": "FoldersController_getFolderProgress_v1",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "UUID del usuario",
+            "schema": {
+              "example": "uuid-123",
+              "type": "string"
+            }
+          },
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "description": "ID del template de carpeta",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Progreso detallado de la carpeta"
+          },
+          "404": {
+            "description": "Asignación de carpeta no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Ver progreso detallado de una carpeta",
+        "tags": [
+          "folders"
+        ]
+      }
+    },
+    "/v1/folders/users/{userId}/folders/{folderId}/modules/{moduleId}/sections/{sectionId}": {
+      "patch": {
+        "description": "Registra evidencias y puntos obtenidos en una sección. Auto-completa módulo y carpeta según criterios.",
+        "operationId": "FoldersController_updateSectionProgress_v1",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "UUID del usuario",
+            "schema": {
+              "example": "uuid-123",
+              "type": "string"
+            }
+          },
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "description": "ID del template de carpeta",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "moduleId",
+            "required": true,
+            "in": "path",
+            "description": "ID del módulo",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sectionId",
+            "required": true,
+            "in": "path",
+            "description": "ID de la sección",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSectionRecordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Progreso actualizado exitosamente"
+          },
+          "400": {
+            "description": "Puntos exceden el máximo o módulo/sección inválidos"
+          },
+          "404": {
+            "description": "Asignación de carpeta no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar progreso de una sección",
+        "tags": [
+          "folders"
+        ]
+      }
+    },
+    "/v1/folders/users/{userId}/folders/{folderId}": {
+      "delete": {
+        "description": "Desactiva la asignación de carpeta del usuario (soft delete)",
+        "operationId": "FoldersController_deleteAssignment_v1",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "UUID del usuario",
+            "schema": {
+              "example": "uuid-123",
+              "type": "string"
+            }
+          },
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "description": "ID del template de carpeta",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Asignación eliminada exitosamente"
+          },
+          "404": {
+            "description": "Asignación de carpeta no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Abandonar una carpeta",
+        "tags": [
+          "folders"
+        ]
+      }
+    },
+    "/v1/inventory/clubs/{clubId}/inventory": {
+      "get": {
+        "description": "Obtiene todos los items de inventario de una instancia específica de club (Aventureros, Conquistadores, o Guías Mayores)",
+        "operationId": "InventoryController_findAllByClub_v1",
+        "parameters": [
+          {
+            "name": "clubId",
+            "required": true,
+            "in": "path",
+            "description": "ID de la instancia del club",
+            "schema": {
+              "example": 5,
+              "type": "number"
+            }
+          },
+          {
+            "name": "instanceType",
+            "required": true,
+            "in": "query",
+            "description": "Tipo de instancia del club (adv: Aventureros, pathf: Conquistadores, mg: Guías Mayores)",
+            "schema": {
+              "example": "pathf",
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por ID de categoría",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de items del inventario con metadata"
+          },
+          "400": {
+            "description": "Tipo de instancia inválido"
+          },
+          "401": {
+            "description": "No autenticado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar items del inventario de un club",
+        "tags": [
+          "inventory"
+        ]
+      },
+      "post": {
+        "description": "Crea un nuevo item de inventario para una instancia específica de club. Requiere rol de Director, Deputy Director o Treasurer.",
+        "operationId": "InventoryController_create_v1",
+        "parameters": [
+          {
+            "name": "clubId",
+            "required": true,
+            "in": "path",
+            "description": "ID de la instancia del club",
+            "schema": {
+              "example": 5,
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Item creado exitosamente"
+          },
+          "400": {
+            "description": "Datos inválidos"
+          },
+          "403": {
+            "description": "No tiene permisos para agregar items"
+          },
+          "404": {
+            "description": "Club o categoría no encontrados"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Agregar nuevo item al inventario",
+        "tags": [
+          "inventory"
+        ]
+      }
+    },
+    "/v1/inventory/inventory/{id}": {
+      "get": {
+        "description": "Obtiene información detallada de un item específico incluyendo historial de cambios",
+        "operationId": "InventoryController_findOne_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del item de inventario",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalles del item con historial"
+          },
+          "404": {
+            "description": "Item no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener detalles de un item del inventario",
+        "tags": [
+          "inventory"
+        ]
+      },
+      "patch": {
+        "description": "Actualiza información de un item existente. Requiere rol de Director, Deputy Director o Treasurer.",
+        "operationId": "InventoryController_update_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del item de inventario",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Item actualizado exitosamente"
+          },
+          "403": {
+            "description": "No tiene permisos para actualizar items"
+          },
+          "404": {
+            "description": "Item no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar un item del inventario",
+        "tags": [
+          "inventory"
+        ]
+      },
+      "delete": {
+        "description": "Elimina un item del inventario (soft delete). Requiere rol de Director o Deputy Director.",
+        "operationId": "InventoryController_delete_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del item de inventario",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Item eliminado exitosamente"
+          },
+          "403": {
+            "description": "No tiene permisos para eliminar items"
+          },
+          "404": {
+            "description": "Item no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar un item del inventario",
+        "tags": [
+          "inventory"
+        ]
+      }
+    },
+    "/v1/inventory/catalogs/inventory-categories": {
+      "get": {
+        "description": "Obtiene todas las categorías disponibles para clasificar items de inventario",
+        "operationId": "InventoryController_findAllCategories_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Lista de categorías de inventario"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar categorías de inventario",
+        "tags": [
+          "inventory"
+        ]
+      }
+    },
+    "/v1/admin/rbac/permissions": {
+      "get": {
+        "operationId": "RbacController_listPermissions_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Lista de permisos"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar todos los permisos",
+        "tags": [
+          "rbac"
+        ]
+      },
+      "post": {
+        "operationId": "RbacController_createPermission_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePermissionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Permiso creado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear un nuevo permiso",
+        "tags": [
+          "rbac"
+        ]
+      }
+    },
+    "/v1/admin/rbac/permissions/{id}": {
+      "get": {
+        "operationId": "RbacController_getPermission_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle del permiso"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener un permiso por ID",
+        "tags": [
+          "rbac"
+        ]
+      },
+      "patch": {
+        "operationId": "RbacController_updatePermission_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePermissionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Permiso actualizado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar un permiso",
+        "tags": [
+          "rbac"
+        ]
+      },
+      "delete": {
+        "operationId": "RbacController_deletePermission_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Permiso desactivado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Desactivar un permiso",
+        "tags": [
+          "rbac"
+        ]
+      }
+    },
+    "/v1/admin/rbac/roles": {
+      "get": {
+        "operationId": "RbacController_listRoles_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Lista de roles con permisos"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar roles con sus permisos",
+        "tags": [
+          "rbac"
+        ]
+      }
+    },
+    "/v1/admin/rbac/roles/{id}": {
+      "get": {
+        "operationId": "RbacController_getRole_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rol con permisos"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener rol con sus permisos",
+        "tags": [
+          "rbac"
+        ]
+      }
+    },
+    "/v1/admin/rbac/roles/{id}/permissions": {
+      "post": {
+        "operationId": "RbacController_assignPermissions_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignPermissionsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Permisos asignados"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Asignar permisos a un rol",
+        "tags": [
+          "rbac"
+        ]
+      },
+      "put": {
+        "operationId": "RbacController_syncPermissions_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignPermissionsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Permisos sincronizados"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Sincronizar permisos de un rol (reemplaza todos)",
+        "tags": [
+          "rbac"
+        ]
+      }
+    },
+    "/v1/admin/rbac/roles/{id}/permissions/{permissionId}": {
+      "delete": {
+        "operationId": "RbacController_removePermission_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "permissionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Permiso removido del rol"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remover un permiso de un rol",
+        "tags": [
+          "rbac"
+        ]
+      }
+    },
+    "/v1/admin/countries": {
+      "get": {
+        "operationId": "AdminGeographyController_listCountries_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List countries for admin management",
+        "tags": [
+          "admin-geography"
+        ]
+      },
+      "post": {
+        "operationId": "AdminGeographyController_createCountry_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCountryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create country",
+        "tags": [
+          "admin-geography"
+        ]
+      }
+    },
+    "/v1/admin/countries/{countryId}": {
+      "patch": {
+        "operationId": "AdminGeographyController_updateCountry_v1",
+        "parameters": [
+          {
+            "name": "countryId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCountryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update country",
+        "tags": [
+          "admin-geography"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminGeographyController_deleteCountry_v1",
+        "parameters": [
+          {
+            "name": "countryId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Soft delete country",
+        "tags": [
+          "admin-geography"
+        ]
+      }
+    },
+    "/v1/admin/unions": {
+      "get": {
+        "operationId": "AdminGeographyController_listUnions_v1",
+        "parameters": [
+          {
+            "name": "countryId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List unions for admin management",
+        "tags": [
+          "admin-geography"
+        ]
+      },
+      "post": {
+        "operationId": "AdminGeographyController_createUnion_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUnionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create union",
+        "tags": [
+          "admin-geography"
+        ]
+      }
+    },
+    "/v1/admin/unions/{unionId}": {
+      "patch": {
+        "operationId": "AdminGeographyController_updateUnion_v1",
+        "parameters": [
+          {
+            "name": "unionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUnionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update union",
+        "tags": [
+          "admin-geography"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminGeographyController_deleteUnion_v1",
+        "parameters": [
+          {
+            "name": "unionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Soft delete union",
+        "tags": [
+          "admin-geography"
+        ]
+      }
+    },
+    "/v1/admin/local-fields": {
+      "get": {
+        "operationId": "AdminGeographyController_listLocalFields_v1",
+        "parameters": [
+          {
+            "name": "unionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List local fields for admin management",
+        "tags": [
+          "admin-geography"
+        ]
+      },
+      "post": {
+        "operationId": "AdminGeographyController_createLocalField_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLocalFieldDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create local field",
+        "tags": [
+          "admin-geography"
+        ]
+      }
+    },
+    "/v1/admin/local-fields/{localFieldId}": {
+      "patch": {
+        "operationId": "AdminGeographyController_updateLocalField_v1",
+        "parameters": [
+          {
+            "name": "localFieldId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLocalFieldDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update local field",
+        "tags": [
+          "admin-geography"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminGeographyController_deleteLocalField_v1",
+        "parameters": [
+          {
+            "name": "localFieldId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Soft delete local field",
+        "tags": [
+          "admin-geography"
+        ]
+      }
+    },
+    "/v1/admin/districts": {
+      "get": {
+        "operationId": "AdminGeographyController_listDistricts_v1",
+        "parameters": [
+          {
+            "name": "localFieldId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List districts for admin management",
+        "tags": [
+          "admin-geography"
+        ]
+      },
+      "post": {
+        "operationId": "AdminGeographyController_createDistrict_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDistrictDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create district",
+        "tags": [
+          "admin-geography"
+        ]
+      }
+    },
+    "/v1/admin/districts/{districtId}": {
+      "patch": {
+        "operationId": "AdminGeographyController_updateDistrict_v1",
+        "parameters": [
+          {
+            "name": "districtId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDistrictDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update district",
+        "tags": [
+          "admin-geography"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminGeographyController_deleteDistrict_v1",
+        "parameters": [
+          {
+            "name": "districtId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Soft delete district",
+        "tags": [
+          "admin-geography"
+        ]
+      }
+    },
+    "/v1/admin/churches": {
+      "get": {
+        "operationId": "AdminGeographyController_listChurches_v1",
+        "parameters": [
+          {
+            "name": "districtId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List churches for admin management",
+        "tags": [
+          "admin-geography"
+        ]
+      },
+      "post": {
+        "operationId": "AdminGeographyController_createChurch_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateChurchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create church",
+        "tags": [
+          "admin-geography"
+        ]
+      }
+    },
+    "/v1/admin/churches/{churchId}": {
+      "patch": {
+        "operationId": "AdminGeographyController_updateChurch_v1",
+        "parameters": [
+          {
+            "name": "churchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateChurchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update church",
+        "tags": [
+          "admin-geography"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminGeographyController_deleteChurch_v1",
+        "parameters": [
+          {
+            "name": "churchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Soft delete church",
+        "tags": [
+          "admin-geography"
+        ]
+      }
+    },
+    "/v1/admin/relationship-types": {
+      "get": {
+        "operationId": "AdminReferenceController_listRelationshipTypes_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List relationship types for admin management",
+        "tags": [
+          "admin-reference"
+        ]
+      },
+      "post": {
+        "operationId": "AdminReferenceController_createRelationshipType_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRelationshipTypeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create relationship type",
+        "tags": [
+          "admin-reference"
+        ]
+      }
+    },
+    "/v1/admin/relationship-types/{relationshipTypeId}": {
+      "patch": {
+        "operationId": "AdminReferenceController_updateRelationshipType_v1",
+        "parameters": [
+          {
+            "name": "relationshipTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRelationshipTypeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update relationship type",
+        "tags": [
+          "admin-reference"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminReferenceController_deleteRelationshipType_v1",
+        "parameters": [
+          {
+            "name": "relationshipTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Soft delete relationship type",
+        "tags": [
+          "admin-reference"
+        ]
+      }
+    },
+    "/v1/admin/allergies": {
+      "get": {
+        "operationId": "AdminReferenceController_listAllergies_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List allergies for admin management",
+        "tags": [
+          "admin-reference"
+        ]
+      },
+      "post": {
+        "operationId": "AdminReferenceController_createAllergy_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAllergyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create allergy",
+        "tags": [
+          "admin-reference"
+        ]
+      }
+    },
+    "/v1/admin/allergies/{allergyId}": {
+      "patch": {
+        "operationId": "AdminReferenceController_updateAllergy_v1",
+        "parameters": [
+          {
+            "name": "allergyId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAllergyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update allergy",
+        "tags": [
+          "admin-reference"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminReferenceController_deleteAllergy_v1",
+        "parameters": [
+          {
+            "name": "allergyId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Soft delete allergy",
+        "tags": [
+          "admin-reference"
+        ]
+      }
+    },
+    "/v1/admin/diseases": {
+      "get": {
+        "operationId": "AdminReferenceController_listDiseases_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List diseases for admin management",
+        "tags": [
+          "admin-reference"
+        ]
+      },
+      "post": {
+        "operationId": "AdminReferenceController_createDisease_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDiseaseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create disease",
+        "tags": [
+          "admin-reference"
+        ]
+      }
+    },
+    "/v1/admin/diseases/{diseaseId}": {
+      "patch": {
+        "operationId": "AdminReferenceController_updateDisease_v1",
+        "parameters": [
+          {
+            "name": "diseaseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDiseaseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update disease",
+        "tags": [
+          "admin-reference"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminReferenceController_deleteDisease_v1",
+        "parameters": [
+          {
+            "name": "diseaseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Soft delete disease",
+        "tags": [
+          "admin-reference"
+        ]
+      }
+    },
+    "/v1/admin/ecclesiastical-years": {
+      "get": {
+        "operationId": "AdminReferenceController_listEcclesiasticalYears_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List ecclesiastical years for admin management",
+        "tags": [
+          "admin-reference"
+        ]
+      },
+      "post": {
+        "operationId": "AdminReferenceController_createEcclesiasticalYear_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEcclesiasticalYearDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create ecclesiastical year",
+        "tags": [
+          "admin-reference"
+        ]
+      }
+    },
+    "/v1/admin/ecclesiastical-years/{yearId}": {
+      "patch": {
+        "operationId": "AdminReferenceController_updateEcclesiasticalYear_v1",
+        "parameters": [
+          {
+            "name": "yearId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEcclesiasticalYearDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update ecclesiastical year",
+        "tags": [
+          "admin-reference"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminReferenceController_deleteEcclesiasticalYear_v1",
+        "parameters": [
+          {
+            "name": "yearId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Soft delete ecclesiastical year",
+        "tags": [
+          "admin-reference"
+        ]
+      }
+    },
+    "/v1/admin/users": {
+      "get": {
+        "operationId": "AdminUsersController_listUsers_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Número de página (1-indexed)",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Cantidad de elementos por página",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Búsqueda por nombre/apellidos/email",
+            "schema": {
+              "example": "juan",
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por rol global",
+            "schema": {
+              "example": "admin",
+              "type": "string"
+            }
+          },
+          {
+            "name": "active",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por estado activo",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "unionId",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por unión (solo intersección con scope del actor)",
+            "schema": {
+              "example": 12,
+              "type": "number"
+            }
+          },
+          {
+            "name": "localFieldId",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por campo local (solo intersección con scope del actor)",
+            "schema": {
+              "example": 34,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar usuarios administrativos con alcance por rol (ALL/UNION/LOCAL_FIELD)",
+        "tags": [
+          "admin-users"
+        ]
+      }
+    },
+    "/v1/admin/users/{userId}": {
+      "get": {
+        "operationId": "AdminUsersController_getUserById_v1",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener detalle de usuario validando alcance por rol del actor",
+        "tags": [
+          "admin-users"
+        ]
+      }
     }
   },
   "info": {
@@ -3157,32 +6606,26 @@
         "properties": {
           "name": {
             "type": "string",
-            "maxLength": 50,
             "example": "Juan",
             "description": "Nombre del usuario"
           },
           "paternal_last_name": {
             "type": "string",
-            "maxLength": 50,
             "example": "García",
             "description": "Apellido paterno"
           },
           "maternal_last_name": {
             "type": "string",
-            "maxLength": 50,
             "example": "López",
             "description": "Apellido materno"
           },
           "email": {
             "type": "string",
-            "format": "email",
             "example": "juan.garcia@example.com",
             "description": "Correo electrónico"
           },
           "password": {
             "type": "string",
-            "minLength": 8,
-            "pattern": "/^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]/",
             "example": "Password123!",
             "description": "Contraseña segura (mínimo 8 caracteres, debe incluir mayúscula, minúscula, número y carácter especial)"
           }
@@ -3200,7 +6643,6 @@
         "properties": {
           "email": {
             "type": "string",
-            "format": "email",
             "example": "juan.garcia@example.com",
             "description": "Correo electrónico"
           },
@@ -3215,12 +6657,26 @@
           "password"
         ]
       },
+      "RefreshSessionDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "example": "v1.abc...",
+            "description": "Refresh token (camelCase)"
+          },
+          "refresh_token": {
+            "type": "string",
+            "example": "v1.abc...",
+            "description": "Refresh token (snake_case, compatibilidad)"
+          }
+        }
+      },
       "ResetPasswordRequestDto": {
         "type": "object",
         "properties": {
           "email": {
             "type": "string",
-            "format": "email",
             "example": "juan.garcia@example.com",
             "description": "Correo para recuperación"
           }
@@ -3239,8 +6695,6 @@
           },
           "code": {
             "type": "string",
-            "minLength": 6,
-            "maxLength": 6,
             "example": "123456",
             "description": "Código TOTP de 6 dígitos de tu app de autenticación"
           }
@@ -3263,16 +6717,26 @@
           "factorId"
         ]
       },
+      "OAuthInitiateDto": {
+        "type": "object",
+        "properties": {
+          "redirectUrl": {
+            "type": "string",
+            "description": "URL de redirección después de completar OAuth",
+            "example": "https://sacdia.app/auth/callback"
+          }
+        }
+      },
       "UpdateUserDto": {
         "type": "object",
         "properties": {
           "gender": {
             "type": "string",
+            "example": "M",
             "enum": [
               "M",
               "F"
-            ],
-            "example": "M"
+            ]
           },
           "birthday": {
             "type": "string",
@@ -3302,25 +6766,76 @@
               "O_NEGATIVE"
             ],
             "description": "Tipo de sangre"
+          },
+          "country_id": {
+            "type": "number",
+            "example": 1,
+            "description": "ID del país"
+          },
+          "union_id": {
+            "type": "number",
+            "example": 1,
+            "description": "ID de la unión"
+          },
+          "local_field_id": {
+            "type": "number",
+            "example": 1,
+            "description": "ID del campo local"
           }
         }
+      },
+      "UpdateUserAllergiesDto": {
+        "type": "object",
+        "properties": {
+          "allergy_ids": {
+            "example": [
+              1,
+              2
+            ],
+            "description": "Lista de IDs de alergias activas para el usuario",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "allergy_ids"
+        ]
+      },
+      "UpdateUserDiseasesDto": {
+        "type": "object",
+        "properties": {
+          "disease_ids": {
+            "example": [
+              10,
+              12
+            ],
+            "description": "Lista de IDs de enfermedades activas para el usuario",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "disease_ids"
+        ]
       },
       "CreateEmergencyContactDto": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string",
-            "maxLength": 100,
             "example": "María García López"
           },
-          "relationship_type": {
-            "type": "number",
-            "example": 1,
-            "description": "ID del tipo de relación (actualmente Int, pendiente migración a UUID)"
+          "relationship_type_id": {
+            "type": "string",
+            "example": "11111111-1111-1111-1111-111111111111",
+            "description": "UUID del tipo de relación"
           },
           "phone": {
             "type": "string",
-            "maxLength": 20,
             "example": "+52 55 1234 5678"
           },
           "primary": {
@@ -3331,7 +6846,7 @@
         },
         "required": [
           "name",
-          "relationship_type",
+          "relationship_type_id",
           "phone"
         ]
       },
@@ -3340,17 +6855,15 @@
         "properties": {
           "name": {
             "type": "string",
-            "maxLength": 100,
             "example": "María García López"
           },
-          "relationship_type": {
-            "type": "number",
-            "example": 1,
-            "description": "ID del tipo de relación (actualmente Int, pendiente migración a UUID)"
+          "relationship_type_id": {
+            "type": "string",
+            "example": "11111111-1111-1111-1111-111111111111",
+            "description": "UUID del tipo de relación"
           },
           "phone": {
             "type": "string",
-            "maxLength": 20,
             "example": "+52 55 1234 5678"
           },
           "primary": {
@@ -3365,32 +6878,26 @@
         "properties": {
           "representative_user_id": {
             "type": "string",
-            "format": "uuid",
             "description": "ID del usuario registrado que es el representante legal"
           },
           "name": {
             "type": "string",
-            "maxLength": 100,
             "description": "Nombre (requerido si no se proporciona representative_user_id)"
           },
           "paternal_last_name": {
             "type": "string",
-            "maxLength": 100,
             "description": "Apellido paterno (requerido si no se proporciona representative_user_id)"
           },
           "maternal_last_name": {
             "type": "string",
-            "maxLength": 100,
             "description": "Apellido materno"
           },
           "phone": {
             "type": "string",
-            "maxLength": 20,
             "description": "Teléfono (requerido si no se proporciona representative_user_id)"
           },
           "relationship_type_id": {
             "type": "string",
-            "format": "uuid",
             "description": "UUID del tipo de relación"
           }
         },
@@ -3403,32 +6910,26 @@
         "properties": {
           "representative_user_id": {
             "type": "string",
-            "format": "uuid",
             "description": "ID del usuario registrado que es el representante legal"
           },
           "name": {
             "type": "string",
-            "maxLength": 100,
             "description": "Nombre (requerido si no se proporciona representative_user_id)"
           },
           "paternal_last_name": {
             "type": "string",
-            "maxLength": 100,
             "description": "Apellido paterno (requerido si no se proporciona representative_user_id)"
           },
           "maternal_last_name": {
             "type": "string",
-            "maxLength": 100,
             "description": "Apellido materno"
           },
           "phone": {
             "type": "string",
-            "maxLength": 20,
             "description": "Teléfono (requerido si no se proporciona representative_user_id)"
           },
           "relationship_type_id": {
             "type": "string",
-            "format": "uuid",
             "description": "UUID del tipo de relación"
           }
         }
@@ -3453,12 +6954,12 @@
           },
           "club_type": {
             "type": "string",
+            "example": "adventurers",
             "enum": [
               "adventurers",
               "pathfinders",
               "master_guild"
             ],
-            "example": "adventurers",
             "description": "Tipo de club"
           },
           "club_instance_id": {
@@ -3486,7 +6987,6 @@
         "properties": {
           "name": {
             "type": "string",
-            "maxLength": 50,
             "example": "Club Central",
             "description": "Nombre del club"
           },
@@ -3515,18 +7015,11 @@
           },
           "coordinates": {
             "type": "object",
-            "properties": {
-              "lat": {
-                "type": "number"
-              },
-              "lng": {
-                "type": "number"
-              }
+            "example": {
+              "lat": 19.4326,
+              "lng": -99.1332
             },
-            "required": [
-              "lat",
-              "lng"
-            ]
+            "description": "Coordenadas del club"
           }
         },
         "required": [
@@ -3541,7 +7034,6 @@
         "properties": {
           "name": {
             "type": "string",
-            "maxLength": 50,
             "example": "Club Actualizado"
           },
           "description": {
@@ -3551,19 +7043,7 @@
             "type": "string"
           },
           "coordinates": {
-            "type": "object",
-            "properties": {
-              "lat": {
-                "type": "number"
-              },
-              "lng": {
-                "type": "number"
-              }
-            },
-            "required": [
-              "lat",
-              "lng"
-            ]
+            "type": "object"
           },
           "active": {
             "type": "boolean"
@@ -3574,12 +7054,12 @@
         "type": "object",
         "properties": {
           "type": {
+            "type": "string",
             "enum": [
               "adventurers",
               "pathfinders",
               "master_guilds"
             ],
-            "type": "string",
             "example": "pathfinders",
             "description": "Tipo de instancia a crear"
           },
@@ -3602,7 +7082,7 @@
             "description": "Días de reunión",
             "type": "array",
             "items": {
-              "type": "object"
+              "type": "string"
             }
           },
           "meeting_time": {
@@ -3614,7 +7094,7 @@
             "description": "Horarios de reunión",
             "type": "array",
             "items": {
-              "type": "object"
+              "type": "string"
             }
           }
         },
@@ -3634,13 +7114,13 @@
           "meeting_day": {
             "type": "array",
             "items": {
-              "type": "object"
+              "type": "string"
             }
           },
           "meeting_time": {
             "type": "array",
             "items": {
-              "type": "object"
+              "type": "string"
             }
           },
           "active": {
@@ -3653,21 +7133,19 @@
         "properties": {
           "user_id": {
             "type": "string",
-            "format": "uuid",
             "description": "ID del usuario"
           },
           "role_id": {
             "type": "string",
-            "format": "uuid",
             "description": "ID del rol a asignar"
           },
           "instance_type": {
+            "type": "string",
             "enum": [
               "adventurers",
               "pathfinders",
               "master_guilds"
             ],
-            "type": "string",
             "description": "Tipo de instancia de club"
           },
           "instance_id": {
@@ -3734,27 +7212,24 @@
         "properties": {
           "module_id": {
             "type": "number",
-            "description": "ID del módulo"
+            "description": "ID del módulo de la certificación",
+            "example": 1
           },
           "section_id": {
             "type": "number",
-            "description": "ID de la sección"
+            "description": "ID de la sección del módulo",
+            "example": 1
           },
-          "score": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100,
-            "description": "Puntaje obtenido (0-100)"
-          },
-          "evidences": {
-            "type": "object",
-            "description": "Evidencias en formato JSON (URLs, notas, etc.)"
+          "completed": {
+            "type": "boolean",
+            "description": "Estado de completado de la sección",
+            "example": true
           }
         },
         "required": [
           "module_id",
           "section_id",
-          "score"
+          "completed"
         ]
       },
       "StartHonorDto": {
@@ -3774,19 +7249,19 @@
             "description": "Honor validado por instructor"
           },
           "certificate": {
-            "type": "string",
-            "description": "URL del certificado"
+            "type": "object",
+            "description": "URL del certificado (pasar null o string vacío para limpiar)"
           },
           "images": {
-            "description": "URLs de imágenes de evidencia",
+            "description": "URLs de imágenes de evidencia (pasar null o array vacío para limpiar)",
             "type": "array",
             "items": {
               "type": "string"
             }
           },
           "document": {
-            "type": "string",
-            "description": "URL del documento adicional"
+            "type": "object",
+            "description": "URL del documento adicional (pasar null o string vacío para limpiar)"
           },
           "date": {
             "type": "string",
@@ -3811,14 +7286,10 @@
           },
           "lat": {
             "type": "number",
-            "minimum": -90,
-            "maximum": 90,
             "description": "Latitud del lugar"
           },
           "long": {
             "type": "number",
-            "minimum": -180,
-            "maximum": 180,
             "description": "Longitud del lugar"
           },
           "activity_time": {
@@ -3856,7 +7327,7 @@
             "description": "Clases invitadas (IDs)",
             "type": "array",
             "items": {
-              "type": "number"
+              "type": "string"
             }
           },
           "club_adv_id": {
@@ -3923,7 +7394,7 @@
           "classes": {
             "type": "array",
             "items": {
-              "type": "number"
+              "type": "string"
             }
           }
         }
@@ -3952,7 +7423,6 @@
           },
           "month": {
             "type": "number",
-            "minimum": 1,
             "description": "Mes del movimiento (1-12)"
           },
           "amount": {
@@ -4011,6 +7481,687 @@
           },
           "finance_date": {
             "type": "string"
+          }
+        }
+      },
+      "CreateCamporeeDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre del camporee",
+            "example": "Camporee de Primavera 2024"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción detallada del camporee",
+            "example": "Evento anual de primavera con actividades para todas las edades"
+          },
+          "start_date": {
+            "type": "string",
+            "description": "Fecha de inicio del camporee (formato ISO 8601)",
+            "example": "2024-05-15"
+          },
+          "end_date": {
+            "type": "string",
+            "description": "Fecha de finalización del camporee (formato ISO 8601)",
+            "example": "2024-05-17"
+          },
+          "local_field_id": {
+            "type": "number",
+            "description": "ID del campo local organizador",
+            "example": 1
+          },
+          "includes_adventurers": {
+            "type": "boolean",
+            "description": "Indica si incluye participantes de Aventureros",
+            "example": true
+          },
+          "includes_pathfinders": {
+            "type": "boolean",
+            "description": "Indica si incluye participantes de Conquistadores",
+            "example": true
+          },
+          "includes_master_guides": {
+            "type": "boolean",
+            "description": "Indica si incluye participantes de Guías Mayores",
+            "example": true
+          },
+          "local_camporee_place": {
+            "type": "string",
+            "description": "Lugar donde se realizará el camporee",
+            "example": "Centro Recreacional La Montaña, Bogotá"
+          },
+          "registration_cost": {
+            "type": "number",
+            "description": "Costo de inscripción al camporee (en moneda local)",
+            "example": 50000
+          }
+        },
+        "required": [
+          "name",
+          "start_date",
+          "end_date",
+          "local_field_id",
+          "includes_adventurers",
+          "includes_pathfinders",
+          "includes_master_guides",
+          "local_camporee_place"
+        ]
+      },
+      "UpdateCamporeeDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre del camporee",
+            "example": "Camporee de Primavera 2024"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción detallada del camporee",
+            "example": "Evento anual de primavera con actividades para todas las edades"
+          },
+          "start_date": {
+            "type": "string",
+            "description": "Fecha de inicio del camporee (formato ISO 8601)",
+            "example": "2024-05-15"
+          },
+          "end_date": {
+            "type": "string",
+            "description": "Fecha de finalización del camporee (formato ISO 8601)",
+            "example": "2024-05-17"
+          },
+          "local_field_id": {
+            "type": "number",
+            "description": "ID del campo local organizador",
+            "example": 1
+          },
+          "includes_adventurers": {
+            "type": "boolean",
+            "description": "Indica si incluye participantes de Aventureros",
+            "example": true
+          },
+          "includes_pathfinders": {
+            "type": "boolean",
+            "description": "Indica si incluye participantes de Conquistadores",
+            "example": true
+          },
+          "includes_master_guides": {
+            "type": "boolean",
+            "description": "Indica si incluye participantes de Guías Mayores",
+            "example": true
+          },
+          "local_camporee_place": {
+            "type": "string",
+            "description": "Lugar donde se realizará el camporee",
+            "example": "Centro Recreacional La Montaña, Bogotá"
+          },
+          "registration_cost": {
+            "type": "number",
+            "description": "Costo de inscripción al camporee (en moneda local)",
+            "example": 50000
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Estado activo del camporee",
+            "example": true
+          }
+        }
+      },
+      "RegisterMemberDto": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "ID del usuario a registrar",
+            "example": "user-uuid-here"
+          },
+          "camporee_type": {
+            "type": "string",
+            "description": "Tipo de camporee (local o unión)",
+            "example": "local",
+            "enum": [
+              "local",
+              "union"
+            ]
+          },
+          "club_name": {
+            "type": "string",
+            "description": "Nombre del club (requerido para registros de nivel unión)",
+            "example": "Club Conquistadores Central"
+          },
+          "insurance_id": {
+            "type": "number",
+            "description": "ID del seguro del miembro (referencia a member_insurances)",
+            "example": 123
+          }
+        },
+        "required": [
+          "user_id",
+          "camporee_type"
+        ]
+      },
+      "SendNotificationDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "BroadcastNotificationDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "RegisterFcmTokenDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "EnrollCertificationDto": {
+        "type": "object",
+        "properties": {
+          "certification_id": {
+            "type": "number",
+            "description": "ID de la certificación en la que inscribirse",
+            "example": 1
+          }
+        },
+        "required": [
+          "certification_id"
+        ]
+      },
+      "UpdateSectionRecordDto": {
+        "type": "object",
+        "properties": {
+          "points": {
+            "type": "number",
+            "description": "Puntos obtenidos en la sección (máximo definido en el template)",
+            "example": 10
+          },
+          "evidences": {
+            "type": "object",
+            "description": "Evidencias en formato JSON flexible",
+            "example": {
+              "photos": [
+                "url1.jpg",
+                "url2.jpg"
+              ],
+              "description": "Completó la actividad exitosamente",
+              "verified_by": "Director Juan Pérez",
+              "date": "2026-02-10"
+            }
+          }
+        },
+        "required": [
+          "points",
+          "evidences"
+        ]
+      },
+      "CreateItemDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre del item",
+            "example": "Carpas 4 personas"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción detallada del item",
+            "example": "Carpas marca Coleman para 4 personas"
+          },
+          "inventory_category_id": {
+            "type": "number",
+            "description": "ID de la categoría de inventario",
+            "example": 1
+          },
+          "amount": {
+            "type": "number",
+            "description": "Cantidad disponible",
+            "example": 8
+          },
+          "instanceType": {
+            "type": "string",
+            "description": "Tipo de instancia de club (adv, pathf, mg)",
+            "example": "pathf"
+          }
+        },
+        "required": [
+          "name",
+          "inventory_category_id",
+          "amount",
+          "instanceType"
+        ]
+      },
+      "UpdateItemDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre del item",
+            "example": "Carpas 4 personas"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción detallada del item",
+            "example": "Carpas marca Coleman para 4 personas"
+          },
+          "inventory_category_id": {
+            "type": "number",
+            "description": "ID de la categoría de inventario",
+            "example": 1
+          },
+          "amount": {
+            "type": "number",
+            "description": "Cantidad disponible",
+            "example": 8
+          }
+        }
+      },
+      "CreatePermissionDto": {
+        "type": "object",
+        "properties": {
+          "permission_name": {
+            "type": "string",
+            "example": "users:read",
+            "description": "Nombre del permiso (resource:action)"
+          },
+          "description": {
+            "type": "string",
+            "example": "Ver listado de usuarios"
+          }
+        },
+        "required": [
+          "permission_name"
+        ]
+      },
+      "UpdatePermissionDto": {
+        "type": "object",
+        "properties": {
+          "permission_name": {
+            "type": "string",
+            "example": "users:read_detail"
+          },
+          "description": {
+            "type": "string",
+            "example": "Ver detalle de un usuario"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "AssignPermissionsDto": {
+        "type": "object",
+        "properties": {
+          "permission_ids": {
+            "example": [
+              "uuid-1",
+              "uuid-2"
+            ],
+            "description": "Lista de permission_id a asignar al rol",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "permission_ids"
+        ]
+      },
+      "CreateCountryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "México"
+          },
+          "abbreviation": {
+            "type": "string",
+            "example": "MX"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "name",
+          "abbreviation"
+        ]
+      },
+      "UpdateCountryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "México"
+          },
+          "abbreviation": {
+            "type": "string",
+            "example": "MX"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "CreateUnionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Unión Mexicana del Norte"
+          },
+          "abbreviation": {
+            "type": "string",
+            "example": "UMN"
+          },
+          "country_id": {
+            "type": "number",
+            "example": 1
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "name",
+          "abbreviation",
+          "country_id"
+        ]
+      },
+      "UpdateUnionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Unión Mexicana del Norte"
+          },
+          "abbreviation": {
+            "type": "string",
+            "example": "UMN"
+          },
+          "country_id": {
+            "type": "number",
+            "example": 1
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "CreateLocalFieldDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Campo Norte"
+          },
+          "abbreviation": {
+            "type": "string",
+            "example": "CN"
+          },
+          "union_id": {
+            "type": "number",
+            "example": 1
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "name",
+          "abbreviation",
+          "union_id"
+        ]
+      },
+      "UpdateLocalFieldDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Campo Norte"
+          },
+          "abbreviation": {
+            "type": "string",
+            "example": "CN"
+          },
+          "union_id": {
+            "type": "number",
+            "example": 1
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "CreateDistrictDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Distrito Norte"
+          },
+          "local_field_id": {
+            "type": "number",
+            "example": 1
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "name",
+          "local_field_id"
+        ]
+      },
+      "UpdateDistrictDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Distrito Norte"
+          },
+          "local_field_id": {
+            "type": "number",
+            "example": 1
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "CreateChurchDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Iglesia Central"
+          },
+          "district_id": {
+            "type": "number",
+            "example": 1
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "name",
+          "district_id"
+        ]
+      },
+      "UpdateChurchDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Iglesia Central"
+          },
+          "district_id": {
+            "type": "number",
+            "example": 1
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "CreateRelationshipTypeDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Padre"
+          },
+          "description": {
+            "type": "string",
+            "example": "Relación padre-hijo"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateRelationshipTypeDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Padre"
+          },
+          "description": {
+            "type": "string",
+            "example": "Relación padre-hijo"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "CreateAllergyDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Polen"
+          },
+          "description": {
+            "type": "string",
+            "example": "Alergia estacional al polen"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateAllergyDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Polen"
+          },
+          "description": {
+            "type": "string",
+            "example": "Alergia estacional al polen"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "CreateDiseaseDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Asma"
+          },
+          "description": {
+            "type": "string",
+            "example": "Enfermedad respiratoria crónica"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateDiseaseDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Asma"
+          },
+          "description": {
+            "type": "string",
+            "example": "Enfermedad respiratoria crónica"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "CreateEcclesiasticalYearDto": {
+        "type": "object",
+        "properties": {
+          "start_date": {
+            "type": "string",
+            "example": "2026-01-01"
+          },
+          "end_date": {
+            "type": "string",
+            "example": "2026-12-31"
+          },
+          "active": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "start_date",
+          "end_date"
+        ]
+      },
+      "UpdateEcclesiasticalYearDto": {
+        "type": "object",
+        "properties": {
+          "start_date": {
+            "type": "string",
+            "example": "2026-01-01"
+          },
+          "end_date": {
+            "type": "string",
+            "example": "2026-12-31"
+          },
+          "active": {
+            "type": "boolean",
+            "example": false
           }
         }
       }

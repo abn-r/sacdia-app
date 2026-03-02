@@ -73,7 +73,7 @@ class AuthInterceptor extends QueuedInterceptor {
     handler.next(err);
   }
 
-  /// Intenta refrescar el token usando el refresh_token almacenado
+  /// Intenta refrescar el token usando el refresh token almacenado
   Future<bool> _tryRefreshToken() async {
     try {
       final refreshToken = await _secureStorage.read(key: AppConstants.refreshTokenKey);
@@ -85,7 +85,7 @@ class AuthInterceptor extends QueuedInterceptor {
 
       final response = await Dio().post(
         '${AppConstants.baseUrl}/auth/refresh',
-        data: {'refresh_token': refreshToken},
+        data: {'refreshToken': refreshToken},
         options: Options(
           headers: {
             'Content-Type': 'application/json',

@@ -10,12 +10,14 @@ import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/profile_providers.dart';
 import '../widgets/class_status_circles.dart';
 import '../widgets/info_section.dart';
+import '../widgets/profile_classes_section.dart';
 import '../widgets/profile_honors_section.dart';
 import '../widgets/setting_tile.dart';
 import 'edit_profile_view.dart';
@@ -191,6 +193,7 @@ class ProfileView extends ConsumerWidget {
               color: AppColors.primary,
               onRefresh: () async {
                 await ref.read(profileNotifierProvider.notifier).refresh();
+                ref.invalidate(userClassesProvider);
                 ref.invalidate(userHonorsProvider);
                 ref.invalidate(userHonorStatsProvider);
               },
@@ -199,20 +202,49 @@ class ProfileView extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // ── Gear icon row ──────────────────────────────────
+                    // ── App bar row (Instagram style) ──────────────────
                     Padding(
-                      padding: EdgeInsets.only(right: hPad, top: 8, bottom: 0),
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: IconButton(
-                          icon: HugeIcon(
-                            icon: HugeIcons.strokeRoundedSettings01,
-                            color: c.textSecondary,
-                            size: 22,
+                      padding: EdgeInsets.only(
+                        left: hPad,
+                        right: hPad / 2,
+                        top: 8,
+                        bottom: 4,
+                      ),
+                      child: Row(
+                        children: [
+                          const Spacer(),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              HugeIcon(
+                                icon: HugeIcons.strokeRoundedLockKey,
+                                color: c.text,
+                                size: 14,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                profile.fullName,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: c.text,
+                                  letterSpacing: -0.2,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
-                          onPressed: () => _showSettingsSheet(context, ref),
-                          tooltip: 'Ajustes',
-                        ),
+                          const Spacer(),
+                          IconButton(
+                            icon: HugeIcon(
+                              icon: HugeIcons.strokeRoundedMenu01,
+                              color: c.text,
+                              size: 24,
+                            ),
+                            onPressed: () => _showSettingsSheet(context, ref),
+                            tooltip: 'Ajustes',
+                          ),
+                        ],
                       ),
                     ),
 
@@ -350,7 +382,47 @@ class ProfileView extends ConsumerWidget {
                       ),
                     ),
 
-                    // ── 5. Especialidades ─────────────────────────────────
+                    // ── 5. Clases del Usuario ────────────────────────────
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: hPad),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          _SectionLabel(label: 'Mis Clases'),
+                          GestureDetector(
+                            onTap: () {
+                              ref.invalidate(userClassesProvider);
+                            },
+                            child: Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: c.surface,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: c.border,
+                                ),
+                              ),
+                              child: Center(
+                                child: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedRefresh,
+                                  color: c.textTertiary,
+                                  size: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    const ProfileClassesSection(),
+
+                    const SizedBox(height: 20),
+
+                    // ── 6. Especialidades ─────────────────────────────────
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: hPad),
                       child: Row(
@@ -487,12 +559,6 @@ class _ProfileHeaderCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ── Solid 6px accent strip ─────────────────────────────
-          Container(
-            height: 6,
-            color: AppColors.primary,
-          ),
-
           Padding(
             padding: EdgeInsets.fromLTRB(hPad, 24, hPad, 20),
             child: Column(
@@ -510,7 +576,7 @@ class _ProfileHeaderCard extends StatelessWidget {
                         children: [
                           // Name
                           Text(
-                            name,
+                            '$name perfil',
                             style: Theme.of(context)
                                 .textTheme
                                 .titleLarge

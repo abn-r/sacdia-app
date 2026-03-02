@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sacdia_app/features/activities/presentation/views/activities_list_view.dart';
 
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/views/forgot_password_view.dart';
@@ -153,7 +154,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => _buildPage(
               context,
               state,
-              const _PlaceholderScreen(title: 'Actividades'),
+              const ActivitiesListView(clubId: 1),
             ),
           ),
           GoRoute(

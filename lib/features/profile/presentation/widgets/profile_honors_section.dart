@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/features/honors/presentation/views/add_honor_view.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_category.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
@@ -84,6 +86,23 @@ class ProfileHonorsSection extends ConsumerWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
+                const SizedBox(height: 20),
+                SacButton.outline(
+                  text: 'Agregar especialidad',
+                  icon: HugeIcons.strokeRoundedAdd01,
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AddHonorView(),
+                      ),
+                    ).then((result) {
+                      if (result == true) {
+                        ref.invalidate(userHonorsProvider);
+                      }
+                    });
+                  },
+                ),
               ],
             ),
           );
@@ -135,14 +154,36 @@ class ProfileHonorsSection extends ConsumerWidget {
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: relevantCategories.map((category) {
-                  final honors = byCategory[category.id] ?? [];
-                  return _CategorySection(
-                    category: category,
-                    honors: honors,
-                    userHonorMap: userHonorMap,
-                  );
-                }).toList(),
+                children: [
+                  ...relevantCategories.map((category) {
+                    final honors = byCategory[category.id] ?? [];
+                    return _CategorySection(
+                      category: category,
+                      honors: honors,
+                      userHonorMap: userHonorMap,
+                    );
+                  }),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 16),
+                    child: SacButton.outline(
+                      text: 'Agregar especialidad',
+                      icon: HugeIcons.strokeRoundedAdd01,
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AddHonorView(),
+                          ),
+                        ).then((result) {
+                          if (result == true) {
+                            ref.invalidate(userHonorsProvider);
+                          }
+                        });
+                      },
+                    ),
+                  ),
+                ],
               );
             },
           ),

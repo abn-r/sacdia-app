@@ -405,7 +405,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         try {
           await _dio.post(
             '$_baseUrl/auth/logout',
-            data: {'refresh_token': refreshToken},
+            data: {'refreshToken': refreshToken},
             options: Options(headers: {'Authorization': 'Bearer $token'}),
           );
           AppLogger.i('Sesión invalidada en servidor', tag: _tag);

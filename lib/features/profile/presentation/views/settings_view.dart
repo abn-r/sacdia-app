@@ -8,6 +8,8 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../widgets/setting_tile.dart';
+import 'template_view.dart';
+import 'template_1_view.dart';
 
 /// Vista de configuración de la aplicación
 class SettingsView extends ConsumerStatefulWidget {
@@ -111,6 +113,43 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 subtitle: _getThemeName(themeMode),
                 iconColor: AppColors.primary,
                 onTap: _showThemeDialog,
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // ── DESARROLLO ───────────────────────────────────────────
+          _SectionHeader(title: 'DESARROLLO'),
+          _GroupContainer(
+            children: [
+              SettingTile(
+                icon: HugeIcons.strokeRoundedUserAccount,
+                title: 'Mockup: Pantalla de Perfil',
+                subtitle: 'Vista de diseño (datos de prueba)',
+                iconColor: AppColors.primary,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileScreen(),
+                    ),
+                  );
+                },
+              ),
+              _groupDivider(),
+              SettingTile(
+                icon: HugeIcons.strokeRoundedUserStar01,
+                title: 'Mockup: Información Personal',
+                subtitle: 'Alergias, enfermedades y contactos (datos de prueba)',
+                iconColor: AppColors.primary,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MockPersonalInfoScreen(),
+                    ),
+                  );
+                },
               ),
             ],
           ),
