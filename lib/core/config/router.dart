@@ -162,6 +162,62 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) =>
                 _buildPage(context, state, const ProfileView()),
           ),
+          GoRoute(
+            path: RouteNames.homeMembers,
+            pageBuilder: (context, state) => _buildPage(
+              context, state,
+              const _PlaceholderScreen(title: 'Miembros'),
+            ),
+          ),
+          GoRoute(
+            path: RouteNames.homeClub,
+            pageBuilder: (context, state) => _buildPage(
+              context, state,
+              const _PlaceholderScreen(title: 'Club'),
+            ),
+          ),
+          GoRoute(
+            path: RouteNames.homeEvidences,
+            pageBuilder: (context, state) => _buildPage(
+              context, state,
+              const _PlaceholderScreen(title: 'Carpeta de Evidencias'),
+            ),
+          ),
+          GoRoute(
+            path: RouteNames.homeFinances,
+            pageBuilder: (context, state) => _buildPage(
+              context, state,
+              const _PlaceholderScreen(title: 'Finanzas'),
+            ),
+          ),
+          GoRoute(
+            path: RouteNames.homeUnits,
+            pageBuilder: (context, state) => _buildPage(
+              context, state,
+              const _PlaceholderScreen(title: 'Unidades'),
+            ),
+          ),
+          GoRoute(
+            path: RouteNames.homeGroupedClass,
+            pageBuilder: (context, state) => _buildPage(
+              context, state,
+              const _PlaceholderScreen(title: 'Clase Agrupada'),
+            ),
+          ),
+          GoRoute(
+            path: RouteNames.homeInsurance,
+            pageBuilder: (context, state) => _buildPage(
+              context, state,
+              const _PlaceholderScreen(title: 'Seguros del Club'),
+            ),
+          ),
+          GoRoute(
+            path: RouteNames.homeInventory,
+            pageBuilder: (context, state) => _buildPage(
+              context, state,
+              const _PlaceholderScreen(title: 'Inventario'),
+            ),
+          ),
         ],
       ),
 
