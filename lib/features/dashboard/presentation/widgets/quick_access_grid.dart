@@ -23,7 +23,7 @@ class QuickAccessGrid extends StatelessWidget {
       route: RouteNames.homeClub,
     ),
     _QuickAccessItem(
-      label: 'Carpeta de\nEvidencias',
+      label: 'Carpeta de Evidencias',
       icon: HugeIcons.strokeRoundedFolder01,
       color: AppColors.accent,
       route: RouteNames.homeEvidences,
@@ -41,13 +41,13 @@ class QuickAccessGrid extends StatelessWidget {
       route: RouteNames.homeUnits,
     ),
     _QuickAccessItem(
-      label: 'Clase\nAgrupada',
+      label: 'Clase Agrupada',
       icon: HugeIcons.strokeRoundedBookOpen01,
       color: AppColors.primary,
       route: RouteNames.homeGroupedClass,
     ),
     _QuickAccessItem(
-      label: 'Seguros\ndel Club',
+      label: 'Seguros del Club',
       icon: HugeIcons.strokeRoundedShield01,
       color: AppColors.secondaryDark,
       route: RouteNames.homeInsurance,
@@ -94,6 +94,7 @@ class QuickAccessGrid extends StatelessWidget {
 
 class _QuickAccessItem {
   final String label;
+  // HugeIcon path data — internal format used by package:hugeicons
   final List<List<dynamic>> icon;
   final Color color;
   final String route;
@@ -109,6 +110,9 @@ class _QuickAccessItem {
 class _QuickAccessTile extends StatelessWidget {
   final _QuickAccessItem item;
 
+  // Shared BorderRadius to avoid repeated allocations on every build.
+  static final _kTileRadius = BorderRadius.circular(16);
+
   const _QuickAccessTile({required this.item});
 
   @override
@@ -117,13 +121,13 @@ class _QuickAccessTile extends StatelessWidget {
 
     return Material(
       color: c.surface,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: _kTileRadius,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: _kTileRadius,
         onTap: () => context.go(item.route),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: _kTileRadius,
             border: Border.all(color: c.border),
           ),
           padding: const EdgeInsets.all(14),
@@ -133,16 +137,15 @@ class _QuickAccessTile extends StatelessWidget {
               Container(
                 width: 48,
                 height: 48,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: item.color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Center(
-                  child: HugeIcon(
-                    icon: item.icon,
-                    size: 24,
-                    color: item.color,
-                  ),
+                child: HugeIcon(
+                  icon: item.icon,
+                  size: 24,
+                  color: item.color,
                 ),
               ),
               const SizedBox(height: 8),
