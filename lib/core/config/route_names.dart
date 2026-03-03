@@ -23,6 +23,16 @@ class RouteNames {
   static const String homeActivities = '/home/activities';
   static const String homeProfile = '/home/profile';
 
+  // Módulos de acceso rápido (dentro del shell)
+  static const String homeMembers = '/home/members';
+  static const String homeClub = '/home/club';
+  static const String homeEvidences = '/home/evidences';
+  static const String homeFinances = '/home/finances';
+  static const String homeUnits = '/home/units';
+  static const String homeGroupedClass = '/home/grouped-class';
+  static const String homeInsurance = '/home/insurance';
+  static const String homeInventory = '/home/inventory';
+
   // Helpers para paths con parámetros
   static String clubDetailPath(String clubId) => '/club/$clubId';
   static String classDetailPath(String classId) => '/class/$classId';
