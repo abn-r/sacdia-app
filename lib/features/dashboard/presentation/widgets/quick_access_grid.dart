@@ -58,6 +58,12 @@ class QuickAccessGrid extends StatelessWidget {
       color: AppColors.accent,
       route: RouteNames.homeInventory,
     ),
+    _QuickAccessItem(
+      label: 'Recursos',
+      icon: HugeIcons.strokeRoundedFiles01,
+      color: AppColors.sacBlack,
+      route: RouteNames.homeResources,
+    ),
   ];
 
   @override

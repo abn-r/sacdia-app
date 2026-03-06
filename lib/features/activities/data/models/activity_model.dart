@@ -4,46 +4,90 @@ import '../../domain/entities/activity.dart';
 /// Modelo de actividad para la capa de datos
 class ActivityModel extends Equatable {
   final int id;
-  final String title;
+  final String name;
   final String? description;
-  final DateTime date;
-  final String? location;
-  final String type;
-  final int clubId;
+  final String? activityTime;
+  final String activityPlace;
+  final String? image;
+  final int activityType;
+  final String? activityTypeName;
+  final int platform;
+  final bool active;
+  final int clubAdvId;
+  final int clubPathfId;
+  final int clubMgId;
+  final int clubTypeId;
+  final String? linkMeet;
+  final DateTime? createdAt;
 
   const ActivityModel({
     required this.id,
-    required this.title,
+    required this.name,
     this.description,
-    required this.date,
-    this.location,
-    required this.type,
-    required this.clubId,
+    this.activityTime,
+    required this.activityPlace,
+    this.image,
+    required this.activityType,
+    this.activityTypeName,
+    required this.platform,
+    required this.active,
+    required this.clubAdvId,
+    required this.clubPathfId,
+    required this.clubMgId,
+    required this.clubTypeId,
+    this.linkMeet,
+    this.createdAt,
   });
 
   /// Crea una instancia desde JSON
   factory ActivityModel.fromJson(Map<String, dynamic> json) {
+    final activityTypeNested = json['activity_types'] as Map<String, dynamic>?;
+    final activityTypeId = (json['activity_type_id'] as int?) ??
+        (json['activity_type'] as int?) ??
+        (activityTypeNested?['activity_type_id'] as int?) ??
+        1;
+
     return ActivityModel(
-      id: json['id'] as int,
-      title: json['title'] as String,
+      id: json['activity_id'] as int,
+      name: json['name'] as String,
       description: json['description'] as String?,
-      date: DateTime.parse(json['date'] as String),
-      location: json['location'] as String?,
-      type: json['type'] as String,
-      clubId: json['club_id'] as int,
+      activityTime: json['activity_time'] as String?,
+      activityPlace: (json['activity_place'] as String?) ?? '',
+      image: json['image'] as String?,
+      activityType: activityTypeId,
+      activityTypeName: activityTypeNested?['name'] as String?,
+      platform: (json['platform'] as int?) ?? 0,
+      active: (json['active'] as bool?) ?? false,
+      clubAdvId: (json['club_adv_id'] as int?) ?? 0,
+      clubPathfId: (json['club_pathf_id'] as int?) ?? 0,
+      clubMgId: (json['club_mg_id'] as int?) ?? 0,
+      clubTypeId: (json['club_type_id'] as int?) ?? 0,
+      linkMeet: json['link_meet'] as String?,
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'] as String)
+          : null,
     );
   }
 
   /// Convierte la instancia a JSON
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'title': title,
+      'activity_id': id,
+      'name': name,
       'description': description,
-      'date': date.toIso8601String(),
-      'location': location,
-      'type': type,
-      'club_id': clubId,
+      'activity_time': activityTime,
+      'activity_place': activityPlace,
+      'image': image,
+      'activity_type_id': activityType,
+      'activity_type_name': activityTypeName,
+      'platform': platform,
+      'active': active,
+      'club_adv_id': clubAdvId,
+      'club_pathf_id': clubPathfId,
+      'club_mg_id': clubMgId,
+      'club_type_id': clubTypeId,
+      'link_meet': linkMeet,
+      'created_at': createdAt?.toIso8601String(),
     };
   }
 
@@ -51,36 +95,41 @@ class ActivityModel extends Equatable {
   Activity toEntity() {
     return Activity(
       id: id,
-      title: title,
+      name: name,
       description: description,
-      date: date,
-      location: location,
-      type: type,
-      clubId: clubId,
-    );
-  }
-
-  /// Crea una copia con campos actualizados
-  ActivityModel copyWith({
-    int? id,
-    String? title,
-    String? description,
-    DateTime? date,
-    String? location,
-    String? type,
-    int? clubId,
-  }) {
-    return ActivityModel(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      description: description ?? this.description,
-      date: date ?? this.date,
-      location: location ?? this.location,
-      type: type ?? this.type,
-      clubId: clubId ?? this.clubId,
+      activityTime: activityTime,
+      activityPlace: activityPlace,
+      image: image,
+      activityType: activityType,
+      activityTypeName: activityTypeName,
+      platform: platform,
+      active: active,
+      clubAdvId: clubAdvId,
+      clubPathfId: clubPathfId,
+      clubMgId: clubMgId,
+      clubTypeId: clubTypeId,
+      linkMeet: linkMeet,
+      createdAt: createdAt,
     );
   }
 
   @override
-  List<Object?> get props => [id, title, description, date, location, type, clubId];
+  List<Object?> get props => [
+        id,
+        name,
+        description,
+        activityTime,
+        activityPlace,
+        image,
+        activityType,
+        activityTypeName,
+        platform,
+        active,
+        clubAdvId,
+        clubPathfId,
+        clubMgId,
+        clubTypeId,
+        linkMeet,
+        createdAt,
+      ];
 }

@@ -1,3 +1,5 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +10,8 @@ import 'core/auth/supabase_auth.dart';
 import 'core/config/router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
+import 'core/utils/app_logger.dart';
+import 'firebase_options.dart';
 import 'features/auth/presentation/providers/auth_providers.dart';
 import 'providers/storage_provider.dart';
 
@@ -25,6 +29,9 @@ Future<void> main() async {
   // Iniciamos Supabase
   await SupabaseAuth.initialize();
 
+  // Inicializamos Firebase y mostramos tokens de depuración (JWT + FCM)
+  await _initializeFirebaseAndPrintDebugTokens();
+
   // Verificar y limpiar posibles sesiones antiguas inválidas al iniciar
   await _checkAndCleanSessionAtStartup();
 
@@ -32,7 +39,8 @@ Future<void> main() async {
   final sharedPreferences = await SharedPreferences.getInstance();
 
   // Recuperar estado de cierre de sesión manual
-  final wasManuallyLoggedOut = sharedPreferences.getBool('user_manually_logged_out') ?? false;
+  final wasManuallyLoggedOut =
+      sharedPreferences.getBool('user_manually_logged_out') ?? false;
 
   // Ejecutamos la aplicación con la configuración inicial
   runApp(
@@ -48,6 +56,59 @@ Future<void> main() async {
   );
 }
 
+Future<void> _initializeFirebaseAndPrintDebugTokens() async {
+  const tag = 'FCMDebug';
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    AppLogger.i('Firebase initialized', tag: tag);
+  } catch (e) {
+    AppLogger.w(
+      'Firebase no pudo inicializarse. Verifica google-services.json (Android) y GoogleService-Info.plist (iOS).',
+      tag: tag,
+      error: e,
+    );
+    return;
+  }
+
+  try {
+    final settings = await FirebaseMessaging.instance.getNotificationSettings();
+    NotificationSettings effectiveSettings = settings;
+
+    if (settings.authorizationStatus == AuthorizationStatus.notDetermined) {
+      effectiveSettings = await FirebaseMessaging.instance.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
+
+    final fcmToken = await FirebaseMessaging.instance.getToken();
+
+    AppLogger.i(
+      'FCM permission: ${effectiveSettings.authorizationStatus.toString().split('.').last}',
+      tag: tag,
+    );
+    AppLogger.i('FCM_TOKEN: ${fcmToken ?? 'null'}', tag: tag);
+  } catch (e) {
+    AppLogger.w('No fue posible obtener FCM token', tag: tag, error: e);
+  }
+
+  final currentToken = SupabaseAuth.currentSession?.accessToken;
+  if (currentToken != null && currentToken.isNotEmpty) {
+    AppLogger.i('JWT_ACCESS_TOKEN: $currentToken', tag: tag);
+  }
+
+  SupabaseAuth.onAuthStateChange.listen((authState) {
+    final accessToken = authState.session?.accessToken;
+    if (accessToken != null && accessToken.isNotEmpty) {
+      AppLogger.i('JWT_ACCESS_TOKEN: $accessToken', tag: tag);
+    }
+  });
+}
+
 /// Método para verificar y limpiar sesiones inválidas o corruptas al inicio
 Future<void> _checkAndCleanSessionAtStartup() async {
   try {
@@ -59,7 +120,8 @@ Future<void> _checkAndCleanSessionAtStartup() async {
     final currentSession = client.auth.currentSession;
 
     // Si hay usuario pero la sesión es nula o expirada, forzar limpieza
-    if (currentUser != null && (currentSession == null || currentSession.isExpired)) {
+    if (currentUser != null &&
+        (currentSession == null || currentSession.isExpired)) {
       await SupabaseAuth.signOut();
 
       // Limpiar datos de SharedPreferences relacionados con autenticación
@@ -75,7 +137,6 @@ Future<void> _checkAndCleanSessionAtStartup() async {
     // Silenciar errores de verificación de sesión
   }
 }
-
 
 /// Unified scroll behavior — iOS-inspired bouncing physics on all platforms.
 class _AppScrollBehavior extends ScrollBehavior {

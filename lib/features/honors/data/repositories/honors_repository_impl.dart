@@ -4,8 +4,10 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
 import '../../domain/entities/honor.dart';
 import '../../domain/entities/honor_category.dart';
+import '../../domain/entities/honor_group.dart';
 import '../../domain/entities/user_honor.dart';
 import '../../domain/repositories/honors_repository.dart';
+import '../../domain/usecases/register_user_honor.dart';
 import '../datasources/honors_remote_data_source.dart';
 
 /// Implementación del repositorio de especialidades
@@ -168,6 +170,45 @@ class HonorsRepositoryImpl implements HonorsRepository {
     try {
       await remoteDataSource.deleteUserHonor(userId, honorId);
       return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserHonor>> registerUserHonor(
+    RegisterUserHonorParams params,
+  ) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+
+    try {
+      final model = await remoteDataSource.registerUserHonor(params);
+      return Right(model.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<HonorGroup>>> getHonorsGroupedByCategory() async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+
+    try {
+      final groupModels = await remoteDataSource.getHonorsGroupedByCategory();
+      final groups = groupModels.map((model) => model.toEntity()).toList();
+      return Right(groups);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on AuthException catch (e) {

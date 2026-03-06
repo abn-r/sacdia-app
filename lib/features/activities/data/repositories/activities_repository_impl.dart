@@ -6,6 +6,7 @@ import '../../domain/entities/activity.dart';
 import '../../domain/entities/attendance.dart';
 import '../../domain/repositories/activities_repository.dart';
 import '../datasources/activities_remote_data_source.dart';
+import '../models/create_activity_request.dart';
 
 /// Implementación del repositorio de actividades
 class ActivitiesRepositoryImpl implements ActivitiesRepository {
@@ -18,13 +19,21 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
   });
 
   @override
-  Future<Either<Failure, List<Activity>>> getClubActivities(int clubId) async {
+  Future<Either<Failure, List<Activity>>> getClubActivities(
+    int clubId, {
+    int? clubTypeId,
+    int? activityTypeId,
+  }) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure(message: 'No hay conexión a internet'));
     }
 
     try {
-      final activityModels = await remoteDataSource.getClubActivities(clubId);
+      final activityModels = await remoteDataSource.getClubActivities(
+        clubId,
+        clubTypeId: clubTypeId,
+        activityTypeId: activityTypeId,
+      );
       final activities = activityModels.map((model) => model.toEntity()).toList();
       return Right(activities);
     } on ServerException catch (e) {
@@ -76,14 +85,7 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
   @override
   Future<Either<Failure, Activity>> createActivity({
     required int clubId,
-    required String title,
-    String? description,
-    required int activityType,
-    required DateTime startDate,
-    required DateTime endDate,
-    String? location,
-    required String instanceType,
-    required int instanceId,
+    required CreateActivityRequest request,
   }) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure(message: 'No hay conexión a internet'));
@@ -92,14 +94,7 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
     try {
       final activityModel = await remoteDataSource.createActivity(
         clubId: clubId,
-        title: title,
-        description: description,
-        activityType: activityType,
-        startDate: startDate,
-        endDate: endDate,
-        location: location,
-        instanceType: instanceType,
-        instanceId: instanceId,
+        request: request,
       );
       return Right(activityModel.toEntity());
     } on ServerException catch (e) {

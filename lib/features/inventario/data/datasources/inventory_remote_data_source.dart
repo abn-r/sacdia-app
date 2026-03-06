@@ -1,0 +1,332 @@
+import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import '../../../../core/errors/exceptions.dart';
+import '../../../../core/utils/app_logger.dart';
+import '../../domain/entities/inventory_item.dart';
+import '../models/inventory_category_model.dart';
+import '../models/inventory_item_model.dart';
+
+abstract class InventoryRemoteDataSource {
+  Future<List<InventoryItemModel>> getItems({required int clubId});
+
+  Future<InventoryItemModel> getItem({required int itemId});
+
+  Future<InventoryItemModel> createItem({
+    required int clubId,
+    required String name,
+    required int categoryId,
+    required int quantity,
+    required ItemCondition condition,
+    String? description,
+    String? serialNumber,
+    DateTime? purchaseDate,
+    double? estimatedValue,
+    String? location,
+    String? assignedTo,
+    String? notes,
+  });
+
+  Future<InventoryItemModel> updateItem({
+    required int itemId,
+    String? name,
+    int? categoryId,
+    int? quantity,
+    ItemCondition? condition,
+    String? description,
+    String? serialNumber,
+    DateTime? purchaseDate,
+    double? estimatedValue,
+    String? location,
+    String? assignedTo,
+    String? notes,
+  });
+
+  Future<void> deleteItem({required int itemId});
+
+  Future<List<InventoryCategoryModel>> getCategories();
+}
+
+class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
+  final Dio _dio;
+  final String _baseUrl;
+  final FlutterSecureStorage _secureStorage;
+
+  static const _tag = 'InventoryDS';
+
+  InventoryRemoteDataSourceImpl({
+    required Dio dio,
+    required String baseUrl,
+  })  : _dio = dio,
+        _baseUrl = baseUrl,
+        _secureStorage = const FlutterSecureStorage();
+
+  Future<String> _getAuthToken() async {
+    final token = await _secureStorage.read(key: 'auth_token');
+    if (token == null) throw AuthException(message: 'No hay sesión activa');
+    return token;
+  }
+
+  Options _authOptions(String token) =>
+      Options(headers: {'Authorization': 'Bearer $token'});
+
+  // ── GET /inventory/catalogs/inventory-categories ──────────────────────────
+
+  @override
+  Future<List<InventoryCategoryModel>> getCategories() async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.get(
+        '$_baseUrl/inventory/catalogs/inventory-categories',
+        options: _authOptions(token),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = response.data;
+        final List<dynamic> rawList = body is List
+            ? body
+            : (body as Map<String, dynamic>)['data'] as List<dynamic>? ?? [];
+        return rawList
+            .map((e) =>
+                InventoryCategoryModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+
+      throw ServerException(
+        message: 'Error al obtener categorías de inventario',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getCategories', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /inventory/clubs/:clubId/inventory ────────────────────────────────
+
+  @override
+  Future<List<InventoryItemModel>> getItems({required int clubId}) async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.get(
+        '$_baseUrl/inventory/clubs/$clubId/inventory',
+        options: _authOptions(token),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = response.data;
+        final List<dynamic> rawList = body is List
+            ? body
+            : (body as Map<String, dynamic>)['data'] as List<dynamic>? ?? [];
+        return rawList
+            .map((e) =>
+                InventoryItemModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+
+      throw ServerException(
+        message: 'Error al obtener el inventario',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getItems', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /inventory/inventory/:id ──────────────────────────────────────────
+
+  @override
+  Future<InventoryItemModel> getItem({required int itemId}) async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.get(
+        '$_baseUrl/inventory/inventory/$itemId',
+        options: _authOptions(token),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = response.data as Map<String, dynamic>;
+        final json =
+            body.containsKey('data') ? body['data'] as Map<String, dynamic> : body;
+        return InventoryItemModel.fromJson(json);
+      }
+
+      throw ServerException(
+        message: 'Error al obtener el ítem',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getItem', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── POST /inventory/clubs/:clubId/inventory ───────────────────────────────
+
+  @override
+  Future<InventoryItemModel> createItem({
+    required int clubId,
+    required String name,
+    required int categoryId,
+    required int quantity,
+    required ItemCondition condition,
+    String? description,
+    String? serialNumber,
+    DateTime? purchaseDate,
+    double? estimatedValue,
+    String? location,
+    String? assignedTo,
+    String? notes,
+  }) async {
+    try {
+      final token = await _getAuthToken();
+      final body = <String, dynamic>{
+        'name': name,
+        'inventory_category_id': categoryId,
+        'quantity': quantity,
+        'condition': InventoryItemModel.conditionToString(condition),
+        if (description != null && description.isNotEmpty)
+          'description': description,
+        if (serialNumber != null && serialNumber.isNotEmpty)
+          'serial_number': serialNumber,
+        if (purchaseDate != null)
+          'purchase_date':
+              '${purchaseDate.year}-${purchaseDate.month.toString().padLeft(2, '0')}-${purchaseDate.day.toString().padLeft(2, '0')}',
+        if (estimatedValue != null) 'estimated_value': estimatedValue,
+        if (location != null && location.isNotEmpty) 'location': location,
+        if (assignedTo != null && assignedTo.isNotEmpty)
+          'assigned_to': assignedTo,
+        if (notes != null && notes.isNotEmpty) 'notes': notes,
+      };
+
+      final response = await _dio.post(
+        '$_baseUrl/inventory/clubs/$clubId/inventory',
+        data: body,
+        options: _authOptions(token),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final resp = response.data as Map<String, dynamic>;
+        final json =
+            resp.containsKey('data') ? resp['data'] as Map<String, dynamic> : resp;
+        return InventoryItemModel.fromJson(json);
+      }
+
+      throw ServerException(
+        message: 'Error al crear el ítem',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en createItem', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── PATCH /inventory/inventory/:id ────────────────────────────────────────
+
+  @override
+  Future<InventoryItemModel> updateItem({
+    required int itemId,
+    String? name,
+    int? categoryId,
+    int? quantity,
+    ItemCondition? condition,
+    String? description,
+    String? serialNumber,
+    DateTime? purchaseDate,
+    double? estimatedValue,
+    String? location,
+    String? assignedTo,
+    String? notes,
+  }) async {
+    try {
+      final token = await _getAuthToken();
+      final body = <String, dynamic>{
+        if (name != null) 'name': name,
+        if (categoryId != null) 'inventory_category_id': categoryId,
+        if (quantity != null) 'quantity': quantity,
+        if (condition != null)
+          'condition': InventoryItemModel.conditionToString(condition),
+        if (description != null) 'description': description,
+        if (serialNumber != null) 'serial_number': serialNumber,
+        if (purchaseDate != null)
+          'purchase_date':
+              '${purchaseDate.year}-${purchaseDate.month.toString().padLeft(2, '0')}-${purchaseDate.day.toString().padLeft(2, '0')}',
+        if (estimatedValue != null) 'estimated_value': estimatedValue,
+        if (location != null) 'location': location,
+        if (assignedTo != null) 'assigned_to': assignedTo,
+        if (notes != null) 'notes': notes,
+      };
+
+      final response = await _dio.patch(
+        '$_baseUrl/inventory/inventory/$itemId',
+        data: body,
+        options: _authOptions(token),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final resp = response.data as Map<String, dynamic>;
+        final json =
+            resp.containsKey('data') ? resp['data'] as Map<String, dynamic> : resp;
+        return InventoryItemModel.fromJson(json);
+      }
+
+      throw ServerException(
+        message: 'Error al actualizar el ítem',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en updateItem', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── DELETE /inventory/inventory/:id ───────────────────────────────────────
+
+  @override
+  Future<void> deleteItem({required int itemId}) async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.delete(
+        '$_baseUrl/inventory/inventory/$itemId',
+        options: _authOptions(token),
+      );
+
+      if (response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 204) {
+        return;
+      }
+
+      throw ServerException(
+        message: 'Error al eliminar el ítem',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en deleteItem', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── Error helper ──────────────────────────────────────────────────────────
+
+  Never _rethrow(Object e) {
+    if (e is DioException) {
+      final msg = _extractDioMessage(e);
+      throw ServerException(message: msg, code: e.response?.statusCode);
+    }
+    if (e is ServerException || e is AuthException) throw e;
+    throw ServerException(message: e.toString());
+  }
+
+  String _extractDioMessage(DioException e) {
+    try {
+      final data = e.response?.data;
+      if (data is Map) {
+        return (data['message'] ?? e.message ?? 'Error de conexión').toString();
+      }
+    } catch (_) {}
+    return e.message ?? 'Error de conexión';
+  }
+}

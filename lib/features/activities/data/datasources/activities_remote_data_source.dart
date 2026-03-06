@@ -4,21 +4,19 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/activity_model.dart';
 import '../models/attendance_model.dart';
+import '../models/create_activity_request.dart';
 
 /// Interfaz para la fuente de datos remota de actividades
 abstract class ActivitiesRemoteDataSource {
-  Future<List<ActivityModel>> getClubActivities(int clubId);
+  Future<List<ActivityModel>> getClubActivities(
+    int clubId, {
+    int? clubTypeId,
+    int? activityTypeId,
+  });
   Future<ActivityModel> getActivityById(int activityId);
   Future<ActivityModel> createActivity({
     required int clubId,
-    required String title,
-    String? description,
-    required int activityType,
-    required DateTime startDate,
-    required DateTime endDate,
-    String? location,
-    required String instanceType,
-    required int instanceId,
+    required CreateActivityRequest request,
   });
   Future<ActivityModel> updateActivity({
     required int activityId,
@@ -58,16 +56,26 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   }
 
   @override
-  Future<List<ActivityModel>> getClubActivities(int clubId) async {
+  Future<List<ActivityModel>> getClubActivities(
+    int clubId, {
+    int? clubTypeId,
+    int? activityTypeId,
+  }) async {
     try {
       final token = await _getAuthToken();
+      final queryParams = <String, dynamic>{'active': 'true'};
+      if (clubTypeId != null) queryParams['clubTypeId'] = clubTypeId;
+      if (activityTypeId != null) queryParams['activityTypeId'] = activityTypeId;
+
       final response = await _dio.get(
         '$_baseUrl/clubs/$clubId/activities',
+        queryParameters: queryParams,
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final List<dynamic> data = response.data as List<dynamic>;
+        final responseBody = response.data as Map<String, dynamic>;
+        final List<dynamic> data = responseBody['data'] as List<dynamic>;
         return data
             .map((json) => ActivityModel.fromJson(json as Map<String, dynamic>))
             .toList();
@@ -138,44 +146,37 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   @override
   Future<ActivityModel> createActivity({
     required int clubId,
-    required String title,
-    String? description,
-    required int activityType,
-    required DateTime startDate,
-    required DateTime endDate,
-    String? location,
-    required String instanceType,
-    required int instanceId,
+    required CreateActivityRequest request,
   }) async {
     try {
-      AppLogger.i('Creando actividad: $title', tag: _tag);
+      AppLogger.i('Creando actividad: ${request.name}', tag: _tag);
       final token = await _getAuthToken();
 
       final response = await _dio.post(
         '$_baseUrl/clubs/$clubId/activities',
-        data: {
-          'title': title,
-          'description': description,
-          'activity_type': activityType,
-          'start_date': startDate.toUtc().toIso8601String(),
-          'end_date': endDate.toUtc().toIso8601String(),
-          'location': location,
-          'instance_type': instanceType,
-          'instance_id': instanceId,
-        },
+        data: request.toJson(),
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return ActivityModel.fromJson(response.data as Map<String, dynamic>);
+        final responseData = response.data;
+        // El backend puede devolver { data: {...} } o directamente el objeto
+        final activityData = responseData is Map<String, dynamic> &&
+                responseData.containsKey('data')
+            ? responseData['data'] as Map<String, dynamic>
+            : responseData as Map<String, dynamic>;
+        return ActivityModel.fromJson(activityData);
       }
 
       throw ServerException(message: 'Error al crear actividad', code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en createActivity', tag: _tag, error: e);
       if (e is DioException) {
+        final message = e.response?.data is Map
+            ? (e.response!.data['message'] ?? e.message ?? 'Error de conexión')
+            : (e.message ?? 'Error de conexión');
         throw ServerException(
-          message: e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
+          message: message.toString(),
           code: e.response?.statusCode,
         );
       }

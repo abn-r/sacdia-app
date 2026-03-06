@@ -25,53 +25,51 @@ class ActivityDetailView extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ActivityDetailView> createState() =>
-      _ActivityDetailViewState();
+  ConsumerState<ActivityDetailView> createState() => _ActivityDetailViewState();
 }
 
 class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
   bool _hasRegistered = false;
 
-  Color _getTypeColor(String type) {
-    switch (type.toLowerCase()) {
-      case 'meeting':
+  Color _getTypeColor(int type) {
+    switch (type) {
+      case 1:
         return AppColors.primary;
-      case 'event':
+      case 2:
         return AppColors.accent;
-      case 'campout':
+      case 3:
         return AppColors.secondary;
-      case 'service':
-        return const Color(0xFF0EA5E9);
       default:
         return AppColors.primary;
     }
   }
 
-  dynamic _getTypeIcon(String type) {
-    switch (type.toLowerCase()) {
-      case 'meeting':
+  dynamic _getTypeIcon(int type) {
+    switch (type) {
+      case 1:
         return HugeIcons.strokeRoundedUserGroup;
-      case 'event':
+      case 2:
         return HugeIcons.strokeRoundedCalendar01;
-      case 'campout':
+      case 3:
         return HugeIcons.strokeRoundedCampfire;
-      case 'service':
-        return HugeIcons.strokeRoundedCharity;
       default:
         return HugeIcons.strokeRoundedCalendarAdd01;
     }
   }
 
-  String _getTypeText(String type) {
-    switch (type.toLowerCase()) {
-      case 'meeting':
-        return 'Reunión';
-      case 'event':
-        return 'Evento';
-      case 'campout':
-        return 'Campamento';
-      case 'service':
-        return 'Servicio';
+  String _getTypeText(int type, [String? typeName]) {
+    final normalizedName = typeName?.trim();
+    if (normalizedName != null && normalizedName.isNotEmpty) {
+      return normalizedName;
+    }
+
+    switch (type) {
+      case 1:
+        return 'Regular';
+      case 2:
+        return 'Especial';
+      case 3:
+        return 'Camporee';
       default:
         return 'Actividad';
     }
@@ -87,7 +85,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
       backgroundColor: context.sac.background,
       body: activityAsync.when(
         data: (activity) {
-          final typeColor = _getTypeColor(activity.type);
+          final typeColor = _getTypeColor(activity.activityType);
 
           return CustomScrollView(
             slivers: [
@@ -114,8 +112,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const SizedBox(height: 40),
-                          Icon(
-                            _getTypeIcon(activity.type),
+                          HugeIcon(
+                            icon: _getTypeIcon(activity.activityType),
                             size: 48,
                             color: Colors.white,
                           ),
@@ -123,7 +121,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 24),
                             child: Text(
-                              activity.title,
+                              activity.name,
                               style: Theme.of(context)
                                   .textTheme
                                   .titleLarge
@@ -143,7 +141,10 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              _getTypeText(activity.type),
+                              _getTypeText(
+                                activity.activityType,
+                                activity.activityTypeName,
+                              ),
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -165,29 +166,38 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ActivityInfoRow(
-                        icon: HugeIcons.strokeRoundedCalendar01,
-                        label: 'Fecha',
-                        value: DateFormat('EEEE, dd MMMM yyyy', 'es')
-                            .format(activity.date),
-                      ),
-                      ActivityInfoRow(
-                        icon: HugeIcons.strokeRoundedClock01,
-                        label: 'Hora',
-                        value: DateFormat('HH:mm').format(activity.date),
-                      ),
-                      if (activity.location != null)
+                      if (activity.createdAt != null)
                         ActivityInfoRow(
-                          icon: HugeIcons.strokeRoundedLocation01,
-                          label: 'Lugar',
-                          value: activity.location!,
+                          icon: HugeIcons.strokeRoundedCalendar01,
+                          label: 'Fecha',
+                          value: DateFormat('EEEE, dd MMMM yyyy', 'es')
+                              .format(activity.createdAt!),
+                        ),
+                      if (activity.activityTime != null)
+                        ActivityInfoRow(
+                          icon: HugeIcons.strokeRoundedClock01,
+                          label: 'Hora',
+                          value: activity.activityTime!,
+                        ),
+                      ActivityInfoRow(
+                        icon: HugeIcons.strokeRoundedLocation01,
+                        label: 'Lugar',
+                        value: activity.activityPlace,
+                      ),
+                      if (activity.linkMeet != null)
+                        ActivityInfoRow(
+                          icon: HugeIcons.strokeRoundedLink01,
+                          label: 'Link',
+                          value: activity.linkMeet!,
                         ),
                       if (activity.description != null) ...[
                         const SizedBox(height: 16),
                         Row(
                           children: [
-                            HugeIcon(icon: HugeIcons.strokeRoundedInformationCircle,
-                                size: 20, color: AppColors.primary),
+                            HugeIcon(
+                                icon: HugeIcons.strokeRoundedInformationCircle,
+                                size: 20,
+                                color: AppColors.primary),
                             const SizedBox(width: 8),
                             Text(
                               'Descripción',
@@ -259,8 +269,10 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                HugeIcon(icon: HugeIcons.strokeRoundedAlert02,
-                    size: 56, color: AppColors.error),
+                HugeIcon(
+                    icon: HugeIcons.strokeRoundedAlert02,
+                    size: 56,
+                    color: AppColors.error),
                 const SizedBox(height: 16),
                 Text('Error al cargar detalle',
                     style: Theme.of(context)
@@ -272,8 +284,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                   text: 'Reintentar',
                   icon: HugeIcons.strokeRoundedRefresh,
                   onPressed: () {
-                    ref.invalidate(
-                        activityDetailProvider(widget.activityId));
+                    ref.invalidate(activityDetailProvider(widget.activityId));
                   },
                 ),
               ],

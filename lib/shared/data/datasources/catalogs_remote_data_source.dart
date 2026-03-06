@@ -7,6 +7,7 @@ import '../../models/catalogs/catalogs.dart';
 /// Interfaz para la fuente de datos remota de catálogos del sistema
 abstract class CatalogsRemoteDataSource {
   Future<List<ClubTypeModel>> getClubTypes();
+  Future<List<ActivityTypeModel>> getActivityTypes();
   Future<List<DistrictModel>> getDistricts({int? localFieldId});
   Future<List<ChurchModel>> getChurches({int? districtId});
   Future<List<RoleModel>> getRoles({int? clubTypeId});
@@ -44,7 +45,38 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
       AppLogger.e('Error en getClubTypes', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
-          message: e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
+          message:
+              e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
+        );
+      }
+      if (e is AppException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<List<ActivityTypeModel>> getActivityTypes() async {
+    try {
+      final response = await _dio.get('$_baseUrl/catalogs/activity-types');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final List<dynamic> data = response.data as List<dynamic>;
+        return data
+            .map(
+              (json) => ActivityTypeModel.fromJson(
+                json as Map<String, dynamic>,
+              ),
+            )
+            .toList();
+      }
+
+      throw ServerException(message: 'Error al obtener tipos de actividad');
+    } catch (e) {
+      AppLogger.e('Error en getActivityTypes', tag: _tag, error: e);
+      if (e is DioException) {
+        throw ServerException(
+          message:
+              e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
         );
       }
       if (e is AppException) rethrow;
@@ -75,7 +107,8 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
       AppLogger.e('Error en getDistricts', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
-          message: e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
+          message:
+              e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
         );
       }
       if (e is AppException) rethrow;
@@ -106,7 +139,8 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
       AppLogger.e('Error en getChurches', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
-          message: e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
+          message:
+              e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
         );
       }
       if (e is AppException) rethrow;
@@ -137,7 +171,8 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
       AppLogger.e('Error en getRoles', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
-          message: e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
+          message:
+              e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
         );
       }
       if (e is AppException) rethrow;
@@ -146,7 +181,8 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
   }
 
   @override
-  Future<List<EcclesiasticalYearModel>> getEcclesiasticalYears({bool? active}) async {
+  Future<List<EcclesiasticalYearModel>> getEcclesiasticalYears(
+      {bool? active}) async {
     try {
       final queryParams = <String, dynamic>{};
       if (active != null) queryParams['active'] = active;
@@ -159,7 +195,8 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final List<dynamic> data = response.data as List<dynamic>;
         return data
-            .map((json) => EcclesiasticalYearModel.fromJson(json as Map<String, dynamic>))
+            .map((json) =>
+                EcclesiasticalYearModel.fromJson(json as Map<String, dynamic>))
             .toList();
       }
 
@@ -168,7 +205,8 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
       AppLogger.e('Error en getEcclesiasticalYears', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
-          message: e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
+          message:
+              e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
         );
       }
       if (e is AppException) rethrow;

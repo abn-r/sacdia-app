@@ -2,8 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../../domain/usecases/register_user_honor.dart';
 import '../models/honor_model.dart';
 import '../models/honor_category_model.dart';
+import '../models/honor_group_model.dart';
 import '../models/user_honor_model.dart';
 
 /// Interfaz para la fuente de datos remota de especialidades
@@ -16,6 +18,8 @@ abstract class HonorsRemoteDataSource {
   Future<UserHonorModel> enrollUserInHonor(String userId, int honorId);
   Future<UserHonorModel> updateUserHonor(String userId, int honorId, Map<String, dynamic> data);
   Future<void> deleteUserHonor(String userId, int honorId);
+  Future<UserHonorModel> registerUserHonor(RegisterUserHonorParams params);
+  Future<List<HonorGroupModel>> getHonorsGroupedByCategory();
 }
 
 /// Implementación de la fuente de datos remota de especialidades
@@ -243,6 +247,67 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       }
     } catch (e) {
       AppLogger.e('Error en deleteUserHonor', tag: _tag, error: e);
+      if (e is DioException) {
+        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<UserHonorModel> registerUserHonor(RegisterUserHonorParams params) async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.post(
+        '$_baseUrl/users/${params.userId}/honors',
+        data: params.toJson(),
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return UserHonorModel.fromJson(response.data as Map<String, dynamic>);
+      }
+
+      throw ServerException(
+        message: 'Error al registrar especialidad',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en registerUserHonor', tag: _tag, error: e);
+      if (e is DioException) {
+        throw ServerException(
+          message: e.message ?? 'Error de conexión',
+          code: e.response?.statusCode,
+        );
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<List<HonorGroupModel>> getHonorsGroupedByCategory() async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.get(
+        '$_baseUrl/honors/grouped-by-category',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final List<dynamic> data = response.data as List<dynamic>;
+        return data
+            .map((json) => HonorGroupModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+
+      throw ServerException(
+        message: 'Error al obtener especialidades agrupadas',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getHonorsGroupedByCategory', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
       }

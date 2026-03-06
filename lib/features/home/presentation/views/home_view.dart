@@ -14,6 +14,7 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../widgets/dashboard_card.dart';
 import '../widgets/recent_activity_list.dart';
+import '../widgets/resources_section.dart';
 
 class HomeView extends ConsumerWidget {
   const HomeView({super.key});
@@ -166,6 +167,8 @@ class HomeView extends ConsumerWidget {
                           ),
                         ),
                       ),
+                    const SizedBox(height: 28),
+                    const ResourcesSection(),
                   ],
                 ],
               ),

@@ -18,10 +18,16 @@ class DashboardRepositoryImpl implements DashboardRepository {
   });
 
   @override
-  Future<Either<Failure, DashboardSummary>> getDashboardData(String userId) async {
+  Future<Either<Failure, DashboardSummary>> getDashboardData(
+    String userId, {
+    Map<String, dynamic>? userMetadata,
+  }) async {
     if (await networkInfo.isConnected) {
       try {
-        final dashboardData = await remoteDataSource.getDashboardData(userId);
+        final dashboardData = await remoteDataSource.getDashboardData(
+          userId,
+          userMetadata: userMetadata,
+        );
         return Right(dashboardData);
       } on AuthException catch (e) {
         return Left(AuthFailure(message: e.message, code: e.code));

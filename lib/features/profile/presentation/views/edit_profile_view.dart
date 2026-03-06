@@ -132,31 +132,31 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
       backgroundColor: context.sac.surfaceVariant,
       // ── AppBar minimalista: sin color relleno, sólo título + back ──
       appBar: AppBar(
-        backgroundColor: AppColors.lightBackground,
-        foregroundColor: AppColors.lightText,
+        backgroundColor: context.sac.background,
+        foregroundColor: context.sac.text,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         centerTitle: true,
         leading: IconButton(
-          icon: const HugeIcon(
+          icon: HugeIcon(
             icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: AppColors.lightText,
+            color: context.sac.text,
             size: 22,
           ),
           onPressed: () => Navigator.pop(context),
           tooltip: 'Volver',
         ),
-        title: const Text(
+        title: Text(
           'Editar Perfil',
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 17,
-            color: AppColors.lightText,
+            color: context.sac.text,
           ),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: AppColors.lightBorder),
+          child: Container(height: 1, color: context.sac.border),
         ),
       ),
 
@@ -194,40 +194,44 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
                       icon: HugeIcons.strokeRoundedUser,
                       label: 'Nombre',
                     ),
-                    const SizedBox(height: 10),
-                    _FormCard(
+                    const SizedBox(height: 6),
+                    SacTextField(
+                      controller: _nameController,
+                      label: 'Nombre(s)',
+                      hint: 'Tu nombre',
+                      prefixIcon: HugeIcons.strokeRoundedUser,
+                      textCapitalization: TextCapitalization.words,
+                      textInputAction: TextInputAction.next,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'El nombre es requerido';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
                       children: [
-                        SacTextField(
-                          controller: _nameController,
-                          label: 'Nombre(s)',
-                          hint: 'Tu nombre',
-                          prefixIcon: HugeIcons.strokeRoundedUser,
-                          textCapitalization: TextCapitalization.words,
-                          textInputAction: TextInputAction.next,
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'El nombre es requerido';
-                            }
-                            return null;
-                          },
+                        Expanded(
+                          child: SacTextField(
+                            controller: _paternalSurnameController,
+                            label: 'Apellido Paterno',
+                            hint: 'Primer apellido',
+                            prefixIcon: HugeIcons.strokeRoundedUser,
+                            textCapitalization: TextCapitalization.words,
+                            textInputAction: TextInputAction.next,
+                          ),
                         ),
-                        _Divider(),
-                        SacTextField(
-                          controller: _paternalSurnameController,
-                          label: 'Apellido Paterno',
-                          hint: 'Primer apellido',
-                          prefixIcon: HugeIcons.strokeRoundedUser,
-                          textCapitalization: TextCapitalization.words,
-                          textInputAction: TextInputAction.next,
-                        ),
-                        _Divider(),
-                        SacTextField(
-                          controller: _maternalSurnameController,
-                          label: 'Apellido Materno',
-                          hint: 'Segundo apellido',
-                          prefixIcon: HugeIcons.strokeRoundedUser,
-                          textCapitalization: TextCapitalization.words,
-                          textInputAction: TextInputAction.next,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: SacTextField(
+                            controller: _maternalSurnameController,
+                            label: 'Apellido Materno',
+                            hint: 'Segundo apellido',
+                            prefixIcon: HugeIcons.strokeRoundedUser,
+                            textCapitalization: TextCapitalization.words,
+                            textInputAction: TextInputAction.next,
+                          ),
                         ),
                       ],
                     ),
@@ -502,20 +506,6 @@ class _FormCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: children,
       ),
-    );
-  }
-}
-
-/// Divisor fino entre campos dentro de una FormCard.
-class _Divider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Divider(
-      height: 1,
-      thickness: 1,
-      indent: 16,
-      endIndent: 16,
-      color: AppColors.lightBorderLight,
     );
   }
 }

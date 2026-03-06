@@ -2,7 +2,9 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../entities/honor.dart';
 import '../entities/honor_category.dart';
+import '../entities/honor_group.dart';
 import '../entities/user_honor.dart';
+import '../usecases/register_user_honor.dart';
 
 /// Repositorio de especialidades (interfaz del dominio)
 abstract class HonorsRepository {
@@ -37,4 +39,12 @@ abstract class HonorsRepository {
 
   /// Elimina la inscripción de un usuario en una especialidad
   Future<Either<Failure, void>> deleteUserHonor(String userId, int honorId);
+
+  /// Registra una especialidad completada con datos de evidencia
+  Future<Either<Failure, UserHonor>> registerUserHonor(
+    RegisterUserHonorParams params,
+  );
+
+  /// Obtiene las especialidades agrupadas por categoría
+  Future<Either<Failure, List<HonorGroup>>> getHonorsGroupedByCategory();
 }

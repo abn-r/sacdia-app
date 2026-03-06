@@ -71,62 +71,47 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     _checkInitialAuthState();
   }
 
-  /// Verificar el estado inicial de autenticación validando el token contra la API
+  /// Verifica el estado inicial de autenticación usando solo almacenamiento local.
+  /// No realiza llamadas de red — AuthNotifier.build() ya valida el token
+  /// contra la API mediante getCurrentUser(). Este método solo alimenta el
+  /// stream authStateChanges con un valor inicial sin generar tráfico HTTP.
   Future<void> _checkInitialAuthState() async {
     try {
       final token = await _secureStorage.read(key: 'auth_token');
-
-      if (token == null) {
-        AppLogger.i('Sin token local, usuario no autenticado', tag: _tag);
-        _authStateController.add(false);
-        return;
-      }
-
-      AppLogger.i('Token encontrado, validando con el servidor', tag: _tag);
-      final response = await _dio.get(
-        '$_baseUrl/auth/me',
-        options: Options(headers: {
-          'Authorization': 'Bearer $token',
-        }),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        AppLogger.i('Token válido, usuario autenticado', tag: _tag);
-        _authStateController.add(true);
-      } else if (response.statusCode == 401 || response.statusCode == 403) {
-        AppLogger.w(
-            'Token expirado/inválido (${response.statusCode}), limpiando sesión',
-            tag: _tag);
-        await _clearToken();
-      } else {
-        AppLogger.w(
-            'Error de servidor (${response.statusCode}), conservando token',
-            tag: _tag);
-      }
+      _authStateController.add(token != null);
     } catch (e) {
-      if (e is AuthException) {
-        AppLogger.w('AuthException en estado inicial, limpiando tokens',
-            tag: _tag, error: e);
-        await _clearToken();
-      } else {
-        AppLogger.w('Error de red al verificar estado inicial',
-            tag: _tag, error: e);
-        _authStateController.add(false);
-      }
+      AppLogger.w('Error al leer token local en estado inicial',
+          tag: _tag, error: e);
+      _authStateController.add(false);
     }
   }
 
-  Future<void> _saveToken(String token, {String? refreshToken}) async {
+  Future<void> _saveToken(
+    String token, {
+    String? refreshToken,
+    int? expiresAt,
+    String? tokenType,
+  }) async {
     await _secureStorage.write(key: 'auth_token', value: token);
     if (refreshToken != null) {
-      await _secureStorage.write(key: 'refresh_token', value: refreshToken);
+      await _secureStorage.write(
+          key: 'auth_refresh_token', value: refreshToken);
+    }
+    if (expiresAt != null) {
+      await _secureStorage.write(
+          key: 'auth_expires_at', value: expiresAt.toString());
+    }
+    if (tokenType != null) {
+      await _secureStorage.write(key: 'auth_token_type', value: tokenType);
     }
     _authStateController.add(true);
   }
 
   Future<void> _clearToken() async {
     await _secureStorage.delete(key: 'auth_token');
-    await _secureStorage.delete(key: 'refresh_token');
+    await _secureStorage.delete(key: 'auth_refresh_token');
+    await _secureStorage.delete(key: 'auth_expires_at');
+    await _secureStorage.delete(key: 'auth_token_type');
     _authStateController.add(false);
   }
 
@@ -311,7 +296,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final refreshToken = responseData['refreshToken'] as String?;
-      await _saveToken(token, refreshToken: refreshToken);
+      final expiresAt = responseData['expiresAt'] as int?;
+      final tokenType = responseData['tokenType'] as String?;
+      await _saveToken(
+        token,
+        refreshToken: refreshToken,
+        expiresAt: expiresAt,
+        tokenType: tokenType,
+      );
 
       final userData = responseData['user'] as Map<String, dynamic>?;
       final userId = userData?['id'] as String?;
@@ -392,32 +384,42 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<void> signOut() async {
+    AppLogger.i('Cerrando sesión', tag: _tag);
+
+    // Read tokens before clearing — needed to notify the server.
+    final token = await _secureStorage.read(key: 'auth_token');
+    final refreshToken = await _secureStorage.read(key: 'auth_refresh_token');
+
+    // Always clear local state first, regardless of network outcome.
+    await _clearToken();
+    await _clearAllPersistentData();
+
+    // Best-effort server invalidation: send whatever tokens we have.
+    // The backend responds 200 even with an expired access token (fail-safe).
     try {
-      AppLogger.i('Cerrando sesión', tag: _tag);
-
-      final token = await _secureStorage.read(key: 'auth_token');
-      final refreshToken = await _secureStorage.read(key: 'refresh_token');
-
-      await _clearToken();
-      await _clearAllPersistentData();
-
-      if (token != null && refreshToken != null) {
-        try {
-          await _dio.post(
-            '$_baseUrl/auth/logout',
-            data: {'refreshToken': refreshToken},
-            options: Options(headers: {'Authorization': 'Bearer $token'}),
-          );
-          AppLogger.i('Sesión invalidada en servidor', tag: _tag);
-        } catch (e) {
-          AppLogger.w('No se pudo invalidar sesión en servidor',
-              tag: _tag, error: e);
-        }
+      final headers = <String, dynamic>{};
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
       }
+
+      final body = <String, dynamic>{};
+      if (refreshToken != null && refreshToken.isNotEmpty) {
+        body['refreshToken'] = refreshToken;
+      }
+
+      await _dio.post(
+        '$_baseUrl/auth/logout',
+        data: body.isNotEmpty ? body : null,
+        options: Options(
+          headers: headers.isNotEmpty ? headers : null,
+          // Do not throw on non-2xx — any response means server acknowledged.
+          validateStatus: (status) => status != null,
+        ),
+      );
+      AppLogger.i('Logout notificado al servidor', tag: _tag);
     } catch (e) {
-      AppLogger.e('Error al cerrar sesión', tag: _tag, error: e);
-      await _clearToken();
-      throw AuthException(message: e.toString());
+      // Network error is acceptable; local state is already cleared.
+      AppLogger.w('Logout: no se pudo contactar el servidor', tag: _tag, error: e);
     }
   }
 
@@ -483,6 +485,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'auth-token',
         'auth-refresh-token',
         'auth-type',
+        // Legacy snake_case keys — remove during migration window.
+        'refresh_token',
       ];
 
       for (final key in keysToRemove) {

@@ -8,10 +8,10 @@ import 'package:sacdia_app/core/widgets/sac_card.dart';
 
 import '../../domain/entities/activity.dart';
 
-/// Card de actividad - Estilo "Scout Vibrante"
+/// Card de actividad - Estilo moderno inspirado en task management
 ///
-/// Date badge indigo a la izquierda, título, hora+ubicación,
-/// chip de tipo con color.
+/// Chip de tipo arriba, título prominente, metadata (fecha/hora/lugar)
+/// con íconos, botón de flecha circular a la derecha.
 class ActivityCard extends StatelessWidget {
   final Activity activity;
   final VoidCallback onTap;
@@ -22,28 +22,31 @@ class ActivityCard extends StatelessWidget {
     required this.onTap,
   });
 
-  String _getTypeText(String type) {
-    switch (type.toLowerCase()) {
-      case 'meeting':
-        return 'Reunión';
-      case 'event':
-        return 'Evento';
-      case 'campout':
-        return 'Campamento';
-      case 'service':
-        return 'Servicio';
+  String _getTypeText(int type, [String? typeName]) {
+    final normalizedName = typeName?.trim();
+    if (normalizedName != null && normalizedName.isNotEmpty) {
+      return normalizedName;
+    }
+
+    switch (type) {
+      case 1:
+        return 'Regular';
+      case 2:
+        return 'Especial';
+      case 3:
+        return 'Camporee';
       default:
         return 'Actividad';
     }
   }
 
-  SacBadgeVariant _getTypeBadgeVariant(String type) {
-    switch (type.toLowerCase()) {
-      case 'meeting':
+  SacBadgeVariant _getTypeBadgeVariant(int type) {
+    switch (type) {
+      case 1:
         return SacBadgeVariant.primary;
-      case 'event':
+      case 2:
         return SacBadgeVariant.accent;
-      case 'campout':
+      case 3:
         return SacBadgeVariant.secondary;
       default:
         return SacBadgeVariant.neutral;
@@ -52,103 +55,118 @@ class ActivityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+
     return SacCard(
       onTap: onTap,
-      margin: const EdgeInsets.only(bottom: 10),
-      child: Row(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      animate: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Date badge
-          Container(
-            width: 52,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.primaryLight,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  DateFormat('dd').format(activity.date),
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
-                    height: 1,
-                  ),
+          // Top row: type badge + arrow button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              SacBadge(
+                label: _getTypeText(
+                  activity.activityType,
+                  activity.activityTypeName,
                 ),
-                Text(
-                  DateFormat('MMM', 'es').format(activity.date).toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
+                variant: _getTypeBadgeVariant(activity.activityType),
+              ),
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowRight01,
+                    size: 16,
                     color: AppColors.primary,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const SizedBox(width: 14),
+          const SizedBox(height: 10),
 
-          // Activity info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  activity.title,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleSmall
-                      ?.copyWith(fontWeight: FontWeight.w600),
-                  overflow: TextOverflow.ellipsis,
+          // Title
+          Text(
+            activity.name,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  height: 1.3,
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text(
-                      DateFormat('HH:mm').format(activity.date),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: context.sac.textSecondary,
-                      ),
-                    ),
-                    if (activity.location != null) ...[
-                      Text(
-                        ' · ',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: context.sac.textTertiary,
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          activity.location!,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: context.sac.textSecondary,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 6),
-                SacBadge(
-                  label: _getTypeText(activity.type),
-                  variant: _getTypeBadgeVariant(activity.type),
-                ),
-              ],
-            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
+          const SizedBox(height: 12),
 
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowRight01,
-            color: context.sac.textTertiary,
-            size: 24,
+          // Metadata row
+          Wrap(
+            spacing: 14,
+            runSpacing: 6,
+            children: [
+              if (activity.createdAt != null)
+                _MetaItem(
+                  icon: HugeIcons.strokeRoundedCalendar01,
+                  label: DateFormat('d MMM yyyy', 'es')
+                      .format(activity.createdAt!),
+                  c: c,
+                ),
+              if (activity.activityTime != null)
+                _MetaItem(
+                  icon: HugeIcons.strokeRoundedClock01,
+                  label: activity.activityTime!,
+                  c: c,
+                ),
+              if (activity.activityPlace.isNotEmpty)
+                _MetaItem(
+                  icon: HugeIcons.strokeRoundedLocation01,
+                  label: activity.activityPlace,
+                  c: c,
+                ),
+            ],
           ),
         ],
       ),
+    );
+  }
+}
+
+class _MetaItem extends StatelessWidget {
+  // ignore: prefer_typing_uninitialized_variables
+  final dynamic icon;
+  final String label;
+  final SacColors c;
+
+  const _MetaItem({
+    required this.icon,
+    required this.label,
+    required this.c,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        HugeIcon(icon: icon, size: 13, color: c.textTertiary),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: c.textSecondary,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 }

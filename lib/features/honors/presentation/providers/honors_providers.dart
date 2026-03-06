@@ -6,11 +6,13 @@ import '../../data/datasources/honors_remote_data_source.dart';
 import '../../data/repositories/honors_repository_impl.dart';
 import '../../domain/entities/honor.dart';
 import '../../domain/entities/honor_category.dart';
+import '../../domain/entities/honor_group.dart';
 import '../../domain/entities/user_honor.dart';
 import '../../domain/repositories/honors_repository.dart';
 import '../../domain/usecases/get_honor_categories.dart';
 import '../../domain/usecases/get_honors.dart';
 import '../../domain/usecases/get_user_honors.dart';
+import '../../domain/usecases/register_user_honor.dart';
 import '../../domain/usecases/start_honor.dart';
 
 /// Provider para el data source remoto de especialidades
@@ -53,6 +55,11 @@ final getUserHonorsProvider = Provider<GetUserHonors>((ref) {
 /// Provider para el caso de uso de iniciar especialidad
 final startHonorProvider = Provider<StartHonor>((ref) {
   return StartHonor(ref.read(honorsRepositoryProvider));
+});
+
+/// Provider para el caso de uso de registrar especialidad completa
+final registerUserHonorProvider = Provider<RegisterUserHonor>((ref) {
+  return RegisterUserHonor(ref.read(honorsRepositoryProvider));
 });
 
 /// Provider para las categorías de especialidades
@@ -127,6 +134,16 @@ final userHonorStatsProvider =
   );
 });
 
+/// Provider para especialidades agrupadas por categoría
+final honorsGroupedByCategoryProvider = FutureProvider.autoDispose<List<HonorGroup>>((ref) async {
+  final repository = ref.read(honorsRepositoryProvider);
+  final result = await repository.getHonorsGroupedByCategory();
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (groups) => groups,
+  );
+});
+
 /// Notifier para manejar inscripciones en especialidades
 class HonorEnrollmentNotifier extends AsyncNotifier<UserHonor?> {
   @override
@@ -151,4 +168,91 @@ class HonorEnrollmentNotifier extends AsyncNotifier<UserHonor?> {
 final honorEnrollmentNotifierProvider =
     AsyncNotifierProvider<HonorEnrollmentNotifier, UserHonor?>(() {
   return HonorEnrollmentNotifier();
+});
+
+// ── Registration Notifier ────────────────────────────────────────────────────
+
+/// Estado del formulario de registro de especialidad
+enum HonorRegistrationStatus { idle, loading, success, error }
+
+class HonorRegistrationState {
+  final HonorRegistrationStatus status;
+  final UserHonor? result;
+  final String? errorMessage;
+
+  const HonorRegistrationState({
+    this.status = HonorRegistrationStatus.idle,
+    this.result,
+    this.errorMessage,
+  });
+
+  HonorRegistrationState copyWith({
+    HonorRegistrationStatus? status,
+    UserHonor? result,
+    String? errorMessage,
+  }) {
+    return HonorRegistrationState(
+      status: status ?? this.status,
+      result: result ?? this.result,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
+  }
+}
+
+/// Notifier para manejar el registro completo de especialidades
+class HonorRegistrationNotifier extends Notifier<HonorRegistrationState> {
+  @override
+  HonorRegistrationState build() => const HonorRegistrationState();
+
+  /// Registra la especialidad con los datos del formulario
+  Future<bool> register(RegisterUserHonorParams params) async {
+    state = state.copyWith(status: HonorRegistrationStatus.loading);
+
+    final result = await ref.read(registerUserHonorProvider)(params);
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          status: HonorRegistrationStatus.error,
+          errorMessage: failure.message,
+        );
+        return false;
+      },
+      (userHonor) {
+        state = state.copyWith(
+          status: HonorRegistrationStatus.success,
+          result: userHonor,
+        );
+        return true;
+      },
+    );
+  }
+
+  /// Resetea el estado del formulario
+  void reset() {
+    state = const HonorRegistrationState();
+  }
+}
+
+/// Provider para el notifier de registro de especialidades
+final honorRegistrationNotifierProvider =
+    NotifierProvider<HonorRegistrationNotifier, HonorRegistrationState>(() {
+  return HonorRegistrationNotifier();
+});
+
+/// Provider para verificar si el usuario ya tiene registrada una especialidad
+final userHonorForHonorProvider =
+    FutureProvider.autoDispose.family<UserHonor?, int>((ref, honorId) async {
+  final userHonorsAsync = ref.watch(userHonorsProvider);
+  return userHonorsAsync.when(
+    data: (honors) {
+      try {
+        return honors.firstWhere((h) => h.honorId == honorId);
+      } catch (_) {
+        return null;
+      }
+    },
+    loading: () => null,
+    error: (_, __) => null,
+  );
 });

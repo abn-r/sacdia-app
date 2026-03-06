@@ -173,7 +173,7 @@ class ProfileView extends ConsumerWidget {
     final c = context.sac;
 
     return Scaffold(
-      backgroundColor: c.surfaceVariant,
+      backgroundColor: c.background,
       body: SafeArea(
         child: profileState.when(
           data: (profile) {
@@ -223,7 +223,7 @@ class ProfileView extends ConsumerWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                profile.fullName,
+                                'Perfil de usuario',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -576,7 +576,7 @@ class _ProfileHeaderCard extends StatelessWidget {
                         children: [
                           // Name
                           Text(
-                            '$name perfil',
+                            name,
                             style: Theme.of(context)
                                 .textTheme
                                 .titleLarge
@@ -602,10 +602,19 @@ class _ProfileHeaderCard extends StatelessWidget {
                           ],
 
                           // Cargo / Role
-                          if (roleLabel != null) ...[
+                          // if (roleLabel != null) ...[
+                          //   _MetaRow(
+                          //     icon: HugeIcons.strokeRoundedLabel,
+                          //     text: roleLabel,
+                          //   ),
+                          //   const SizedBox(height: 6),
+                          // ],
+
+                          // Clase
+                          if (currentClass != null) ...[
                             _MetaRow(
-                              icon: HugeIcons.strokeRoundedLabel,
-                              text: roleLabel,
+                              icon: HugeIcons.strokeRoundedSchool,
+                              text: 'Clase: ' + currentClass!,
                             ),
                             const SizedBox(height: 6),
                           ],
@@ -614,7 +623,7 @@ class _ProfileHeaderCard extends StatelessWidget {
                           if (currentClass != null)
                             _MetaRow(
                               icon: HugeIcons.strokeRoundedSchool,
-                              text: currentClass!,
+                              text: 'Clase: ' + currentClass!,
                             ),
                         ],
                       ),

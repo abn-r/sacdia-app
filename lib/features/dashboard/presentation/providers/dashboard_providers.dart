@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../../providers/dio_provider.dart';
 import '../../data/datasources/dashboard_remote_data_source.dart';
 import '../../data/repositories/dashboard_repository_impl.dart';
 import '../../domain/entities/dashboard_summary.dart';
@@ -10,13 +9,7 @@ import '../../domain/usecases/get_dashboard_data.dart';
 
 /// Provider para la fuente de datos remota del dashboard
 final dashboardRemoteDataSourceProvider = Provider<DashboardRemoteDataSource>((ref) {
-  final dio = ref.read(dioProvider);
-  final baseUrl = ref.read(apiBaseUrlProvider);
-
-  return DashboardRemoteDataSourceImpl(
-    dio: dio,
-    baseUrl: baseUrl,
-  );
+  return const DashboardRemoteDataSourceImpl();
 });
 
 /// Provider para el repositorio del dashboard
@@ -48,7 +41,7 @@ class DashboardNotifier extends AsyncNotifier<DashboardSummary?> {
 
     // Obtener los datos del dashboard
     final result = await ref.read(getDashboardDataProvider)(
-      GetDashboardDataParams(userId: user.id),
+      GetDashboardDataParams(userId: user.id, userMetadata: user.metadata),
     );
 
     return result.fold(
@@ -72,7 +65,7 @@ class DashboardNotifier extends AsyncNotifier<DashboardSummary?> {
     }
 
     final result = await ref.read(getDashboardDataProvider)(
-      GetDashboardDataParams(userId: user.id),
+      GetDashboardDataParams(userId: user.id, userMetadata: user.metadata),
     );
 
     state = result.fold(

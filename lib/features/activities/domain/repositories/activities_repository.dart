@@ -1,27 +1,26 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
+import '../../data/models/create_activity_request.dart';
 import '../entities/activity.dart';
 import '../entities/attendance.dart';
 
 /// Repositorio de actividades (interfaz del dominio)
 abstract class ActivitiesRepository {
   /// Obtiene las actividades de un club
-  Future<Either<Failure, List<Activity>>> getClubActivities(int clubId);
+  Future<Either<Failure, List<Activity>>> getClubActivities(
+    int clubId, {
+    int? clubTypeId,
+    int? activityTypeId,
+  });
+
 
   /// Obtiene el detalle de una actividad
   Future<Either<Failure, Activity>> getActivityById(int activityId);
 
-  /// Crea una nueva actividad
+  /// Crea una nueva actividad en el club especificado
   Future<Either<Failure, Activity>> createActivity({
     required int clubId,
-    required String title,
-    String? description,
-    required int activityType,
-    required DateTime startDate,
-    required DateTime endDate,
-    String? location,
-    required String instanceType,
-    required int instanceId,
+    required CreateActivityRequest request,
   });
 
   /// Actualiza una actividad existente

@@ -8,7 +8,6 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
-import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
 import '../providers/personal_info_providers.dart';
 import 'emergency_contacts_view.dart';
 import 'legal_representative_view.dart';
@@ -496,7 +495,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
     final picked = await showDatePicker(
       context: context,
       initialDate: initialDate,
-      firstDate: minDate,
+      firstDate: minDate, 
       lastDate: maxDate,
       helpText: 'Selecciona tu fecha de nacimiento',
       cancelText: 'Cancelar',

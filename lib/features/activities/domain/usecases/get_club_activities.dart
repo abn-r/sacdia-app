@@ -12,13 +12,23 @@ class GetClubActivities implements UseCase<List<Activity>, GetClubActivitiesPara
 
   @override
   Future<Either<Failure, List<Activity>>> call(GetClubActivitiesParams params) async {
-    return await repository.getClubActivities(params.clubId);
+    return await repository.getClubActivities(
+      params.clubId,
+      clubTypeId: params.clubTypeId,
+      activityTypeId: params.activityTypeId,
+    );
   }
 }
 
 /// Parámetros para obtener las actividades de un club
 class GetClubActivitiesParams {
   final int clubId;
+  final int? clubTypeId;
+  final int? activityTypeId;
 
-  const GetClubActivitiesParams({required this.clubId});
+  const GetClubActivitiesParams({
+    required this.clubId,
+    this.clubTypeId,
+    this.activityTypeId,
+  });
 }

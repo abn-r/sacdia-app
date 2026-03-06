@@ -32,6 +32,7 @@ class RouteNames {
   static const String homeGroupedClass = '/home/grouped-class';
   static const String homeInsurance = '/home/insurance';
   static const String homeInventory = '/home/inventory';
+  static const String homeResources = '/home/resources';
 
   // Helpers para paths con parámetros
   static String clubDetailPath(String clubId) => '/club/$clubId';

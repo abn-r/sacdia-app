@@ -77,20 +77,20 @@ class BottomNavigationButtons extends StatelessWidget {
             ),
 
             // Skip option (only for step 1 - photo)
-            if (onSkip != null && currentStep == 1) ...[
-              const SizedBox(height: 4),
-              TextButton(
-                onPressed: isLoading ? null : onSkip,
-                child: Text(
-                  'Omitir por ahora',
-                  style: TextStyle(
-                    color: context.sac.textTertiary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
+            // if (onSkip != null && currentStep == 1) ...[
+            //   const SizedBox(height: 4),
+            //   TextButton(
+            //     onPressed: isLoading ? null : onSkip,
+            //     child: Text(
+            //       'Omitir por ahora',
+            //       style: TextStyle(
+            //         color: context.sac.textTertiary,
+            //         fontSize: 14,
+            //         fontWeight: FontWeight.w500,
+            //       ),
+            //     ),
+            //   ),
+            // ],
           ],
         ),
       ),

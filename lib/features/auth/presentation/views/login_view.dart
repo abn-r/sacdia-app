@@ -184,60 +184,60 @@ class _LoginViewState extends ConsumerState<LoginView> {
                       const SizedBox(height: 24),
 
                       // Divider "o continúa con"
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              height: 1,
-                              color: context.sac.border,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Text(
-                              'o continúa con',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color: AppColors.sacBlack,
-                                  ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Container(
-                              height: 1,
-                              color: context.sac.border,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
+                      // Row(
+                      //   children: [
+                      //     Expanded(
+                      //       child: Container(
+                      //         height: 1,
+                      //         color: context.sac.border,
+                      //       ),
+                      //     ),
+                      //     Padding(
+                      //       padding: const EdgeInsets.symmetric(horizontal: 16),
+                      //       child: Text(
+                      //         'o continúa con',
+                      //         style: Theme.of(context)
+                      //             .textTheme
+                      //             .bodySmall
+                      //             ?.copyWith(
+                      //               color: AppColors.sacBlack,
+                      //             ),
+                      //       ),
+                      //     ),
+                      //     Expanded(
+                      //       child: Container(
+                      //         height: 1,
+                      //         color: context.sac.border,
+                      //       ),
+                      //     ),
+                      //   ],
+                      // ),
+                      // const SizedBox(height: 24),
 
-                      // Botones OAuth — estilo glassmorphism
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _OAuthButton(
-                              onPressed: () {
-                                // TODO: Google OAuth
-                              },
-                              iconPath: 'assets/svg/google_logo.svg',
-                              label: 'Google',
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: _OAuthButton(
-                              onPressed: () {
-                                // TODO: Apple OAuth
-                              },
-                              iconPath: 'assets/svg/apple_logo.svg',
-                              label: 'Apple',
-                            ),
-                          ),
-                        ],
-                      ),
+                      // // Botones OAuth — estilo glassmorphism
+                      // Row(
+                      //   children: [
+                      //     Expanded(
+                      //       child: _OAuthButton(
+                      //         onPressed: () {
+                      //           // TODO: Google OAuth
+                      //         },
+                      //         iconPath: 'assets/svg/google_logo.svg',
+                      //         label: 'Google',
+                      //       ),
+                      //     ),
+                      //     const SizedBox(width: 14),
+                      //     Expanded(
+                      //       child: _OAuthButton(
+                      //         onPressed: () {
+                      //           // TODO: Apple OAuth
+                      //         },
+                      //         iconPath: 'assets/svg/apple_logo.svg',
+                      //         label: 'Apple',
+                      //       ),
+                      //     ),
+                      //   ],
+                      // ),
                       const SizedBox(height: 40),
 
                       // Link a registro

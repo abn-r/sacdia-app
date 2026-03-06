@@ -6,10 +6,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/honors/presentation/views/add_honor_view.dart';
-import 'package:sacdia_app/features/honors/domain/entities/honor.dart';
-import 'package:sacdia_app/features/honors/domain/entities/honor_category.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
-import 'package:sacdia_app/features/honors/domain/usecases/get_honors.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 
 /// Category color and icon map – mirrors the reference implementation but uses
@@ -39,18 +36,19 @@ const Map<String, IconData> _categoryIcons = {
 };
 
 /// Section of the profile view that shows the user's earned / in-progress
-/// specialities grouped by category in a 3-column grid.
+/// specialities grouped by category.
 ///
-/// Adapts the reference `_buildCategorySection` / `_buildHonorItem` logic to
-/// the Riverpod architecture used in the current app.
+/// Groups directly by [UserHonor.honorCategoryName] which is embedded in the
+/// GET /users/:userId/honors response — no separate catalog fetch required.
+/// This avoids the pagination bug where only the first page of the full honors
+/// catalog was cross-referenced, causing categories beyond the page limit to
+/// disappear.
 class ProfileHonorsSection extends ConsumerWidget {
   const ProfileHonorsSection({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userHonorsAsync = ref.watch(userHonorsProvider);
-    final categoriesAsync = ref.watch(honorCategoriesProvider);
-    final allHonorsAsync = ref.watch(honorsProvider(const GetHonorsParams()));
 
     return userHonorsAsync.when(
       loading: () => const Padding(
@@ -108,111 +106,72 @@ class ProfileHonorsSection extends ConsumerWidget {
           );
         }
 
-        return categoriesAsync.when(
-          loading: () => const Padding(
-            padding: EdgeInsets.symmetric(vertical: 32),
-            child: Center(child: SacLoading()),
-          ),
-          error: (_, __) => const SizedBox.shrink(),
-          data: (categories) => allHonorsAsync.when(
-            loading: () => const Padding(
-              padding: EdgeInsets.symmetric(vertical: 32),
-              child: Center(child: SacLoading()),
-            ),
-            error: (_, __) => const SizedBox.shrink(),
-            data: (allHonors) {
-              // Build enriched data: category → list of (honor, userHonor)
-              final userHonorMap = {for (final uh in userHonors) uh.honorId: uh};
-              final earnedHonorIds = userHonorMap.keys.toSet();
+        // Group userHonors by the category name embedded in the response.
+        final Map<String, List<UserHonor>> byCategory = {};
+        for (final uh in userHonors) {
+          final key = uh.honorCategoryName ?? 'Sin categoría';
+          byCategory.putIfAbsent(key, () => []).add(uh);
+        }
 
-              // Filter honors that belong to the user
-              final earnedHonors =
-                  allHonors.where((h) => earnedHonorIds.contains(h.id)).toList();
+        // Sort category names alphabetically A→Z.
+        final sortedEntries = byCategory.entries.toList()
+          ..sort((a, b) => a.key.compareTo(b.key));
 
-              // Group by categoryId
-              final Map<int, List<Honor>> byCategory = {};
-              for (final h in earnedHonors) {
-                byCategory.putIfAbsent(h.categoryId, () => []).add(h);
-              }
-
-              // Build ordered list matching categories
-              final relevantCategories = categories
-                  .where((cat) => byCategory.containsKey(cat.id))
-                  .toList();
-
-              if (relevantCategories.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Center(
-                    child: Text(
-                      'No hay especialidades disponibles',
-                      style: TextStyle(color: context.sac.textSecondary),
-                    ),
-                  ),
-                );
-              }
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ...relevantCategories.map((category) {
-                    final honors = byCategory[category.id] ?? [];
-                    return _CategorySection(
-                      category: category,
-                      honors: honors,
-                      userHonorMap: userHonorMap,
-                    );
-                  }),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 16),
-                    child: SacButton.outline(
-                      text: 'Agregar especialidad',
-                      icon: HugeIcons.strokeRoundedAdd01,
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const AddHonorView(),
-                          ),
-                        ).then((result) {
-                          if (result == true) {
-                            ref.invalidate(userHonorsProvider);
-                          }
-                        });
-                      },
-                    ),
-                  ),
-                ],
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ...sortedEntries.map((entry) {
+              return _CategorySection(
+                categoryName: entry.key,
+                userHonors: entry.value,
               );
-            },
-          ),
+            }),
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: SacButton.outline(
+                text: 'Agregar especialidad',
+                icon: HugeIcons.strokeRoundedAdd01,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const AddHonorView(),
+                    ),
+                  ).then((result) {
+                    if (result == true) {
+                      ref.invalidate(userHonorsProvider);
+                    }
+                  });
+                },
+              ),
+            ),
+          ],
         );
       },
     );
   }
 }
 
+// ── Category section ──────────────────────────────────────────────────────────
+
 class _CategorySection extends StatelessWidget {
-  final HonorCategory category;
-  final List<Honor> honors;
-  final Map<int, UserHonor> userHonorMap;
+  final String categoryName;
+  final List<UserHonor> userHonors;
 
   const _CategorySection({
-    required this.category,
-    required this.honors,
-    required this.userHonorMap,
+    required this.categoryName,
+    required this.userHonors,
   });
 
   @override
   Widget build(BuildContext context) {
     final categoryColor =
-        _categoryColors[category.name] ?? AppColors.sacBlack;
-    final categoryIcon = _categoryIcons[category.name] ?? Icons.star;
+        _categoryColors[categoryName] ?? AppColors.sacBlack;
+    final categoryIcon = _categoryIcons[categoryName] ?? Icons.star;
 
-    // Naturaleza has a white colour swatch – use dark text for contrast
-    final isNature = category.name == 'Naturaleza' ||
-        category.name == 'Estudio de la naturaleza';
+    final isNature = categoryName == 'Naturaleza' ||
+        categoryName == 'Estudio de la naturaleza';
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -257,19 +216,18 @@ class _CategorySection extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    category.name,
+                    categoryName,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 17,
-                      color:
-                          isNature ? AppColors.sacBlack : categoryColor,
+                      color: isNature ? AppColors.sacBlack : categoryColor,
                     ),
                   ),
                 ),
                 // Count badge
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: categoryColor.withAlpha(20),
                     borderRadius: BorderRadius.circular(20),
@@ -280,13 +238,11 @@ class _CategorySection extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    '${honors.length}',
+                    '${userHonors.length}',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: isNature
-                          ? AppColors.sacBlack
-                          : categoryColor,
+                      color: isNature ? AppColors.sacBlack : categoryColor,
                     ),
                   ),
                 ),
@@ -307,13 +263,10 @@ class _CategorySection extends StatelessWidget {
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
             ),
-            itemCount: honors.length,
+            itemCount: userHonors.length,
             itemBuilder: (context, index) {
-              final honor = honors[index];
-              final userHonor = userHonorMap[honor.id];
               return _HonorGridItem(
-                honor: honor,
-                userHonor: userHonor,
+                userHonor: userHonors[index],
                 categoryColor: categoryColor,
               );
             },
@@ -324,112 +277,79 @@ class _CategorySection extends StatelessWidget {
   }
 }
 
+// ── Honor grid item ───────────────────────────────────────────────────────────
+
 class _HonorGridItem extends StatelessWidget {
-  final Honor honor;
-  final UserHonor? userHonor;
+  final UserHonor userHonor;
   final Color categoryColor;
 
   const _HonorGridItem({
-    required this.honor,
     required this.userHonor,
     required this.categoryColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    final initials = honor.name
+    final name = userHonor.honorName ?? '';
+    final initials = name
         .split(' ')
         .take(2)
         .map((w) => w.isNotEmpty ? w[0].toUpperCase() : '')
         .join('');
 
-    final isCompleted = userHonor?.status.toLowerCase() == 'completed';
+    final isCompleted = userHonor.validate;
+    final imageUrl = userHonor.honorImageUrl;
 
     return Column(
       children: [
         Expanded(
-          child: GestureDetector(
-            onTap: () {
-              // TODO: navigate to honor detail when that view exists in the
-              // new architecture.
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(honor.name),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: honor.imageUrl != null && honor.imageUrl!.isNotEmpty
-                  ? Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.network(
-                          honor.imageUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) =>
-                              _InitialsBox(
-                            initials: initials,
-                            categoryColor: categoryColor,
-                          ),
-                        ),
-                        if (isCompleted)
-                          Positioned(
-                            top: 4,
-                            right: 4,
-                            child: Container(
-                              padding: const EdgeInsets.all(3),
-                              decoration: const BoxDecoration(
-                                color: AppColors.secondary,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.check,
-                                color: Colors.white,
-                                size: 10,
-                              ),
-                            ),
-                          ),
-                      ],
-                    )
-                  : Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        _InitialsBox(
+          child: AspectRatio(
+            aspectRatio: 1.0,
+            child: Stack(
+              children: [
+                imageUrl != null && imageUrl.isNotEmpty
+                    ? Image.network(
+                        imageUrl,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => _InitialsBox(
                           initials: initials,
                           categoryColor: categoryColor,
                         ),
-                        if (isCompleted)
-                          Positioned(
-                            top: 4,
-                            right: 4,
-                            child: Container(
-                              padding: const EdgeInsets.all(3),
-                              decoration: const BoxDecoration(
-                                color: AppColors.secondary,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.check,
-                                color: Colors.white,
-                                size: 10,
-                              ),
-                            ),
-                          ),
-                      ],
+                      )
+                    : _InitialsBox(
+                        initials: initials,
+                        categoryColor: categoryColor,
+                      ),
+                if (isCompleted)
+                  Positioned(
+                    top: 2,
+                    right: 2,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(
+                        color: AppColors.secondary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 10,
+                      ),
                     ),
+                  ),
+              ],
             ),
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 5),
         Text(
-          honor.name,
+          name,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w600,
             color: context.sac.text,
+            height: 1.2,
           ),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -438,6 +358,8 @@ class _HonorGridItem extends StatelessWidget {
     );
   }
 }
+
+// ── Initials fallback ─────────────────────────────────────────────────────────
 
 class _InitialsBox extends StatelessWidget {
   final String initials;
@@ -453,8 +375,8 @@ class _InitialsBox extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: categoryColor.withAlpha(20),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: categoryColor.withAlpha(50), width: 1),
+        shape: BoxShape.circle,
+        border: Border.all(color: categoryColor.withAlpha(60), width: 1.5),
       ),
       child: Center(
         child: Text(

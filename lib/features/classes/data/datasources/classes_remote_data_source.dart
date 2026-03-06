@@ -5,6 +5,8 @@ import '../../../../core/utils/app_logger.dart';
 import '../models/class_model.dart';
 import '../models/class_module_model.dart';
 import '../models/class_progress_model.dart';
+import '../models/class_with_progress_model.dart';
+import '../models/requirement_evidence_model.dart';
 
 /// Interfaz para la fuente de datos remota de clases progresivas
 abstract class ClassesRemoteDataSource {
@@ -13,10 +15,42 @@ abstract class ClassesRemoteDataSource {
   Future<List<ClassModuleModel>> getClassModules(int classId);
   Future<List<ClassModel>> getUserClasses(String userId);
   Future<ClassProgressModel> getUserClassProgress(String userId, int classId);
-  Future<ClassProgressModel> updateUserClassProgress(String userId, int classId, Map<String, dynamic> progressData);
+  Future<ClassProgressModel> updateUserClassProgress(
+      String userId, int classId, Map<String, dynamic> progressData);
+
+  // ── Nuevas operaciones para flujo de evidencias ────────────────────────────
+
+  /// Obtiene la clase con progreso detallado (modulos + requerimientos + evidencias).
+  Future<ClassWithProgressModel> getClassWithProgress(
+      String userId, int classId);
+
+  /// Envia un requerimiento a validacion.
+  Future<void> submitRequirement(
+      String userId, int classId, int requirementId);
+
+  /// Sube un archivo de evidencia a un requerimiento.
+  Future<RequirementEvidenceModel> uploadRequirementFile({
+    required String userId,
+    required int classId,
+    required int requirementId,
+    required String filePath,
+    required String fileName,
+    required String mimeType,
+  });
+
+  /// Elimina un archivo de evidencia de un requerimiento.
+  Future<void> deleteRequirementFile({
+    required String userId,
+    required int classId,
+    required int requirementId,
+    required String fileId,
+  });
 }
 
-/// Implementación de la fuente de datos remota de clases progresivas
+/// Implementacion de la fuente de datos remota de clases progresivas.
+///
+/// Utiliza Dio para llamadas REST al backend SACDIA.
+/// Auth token se lee desde [FlutterSecureStorage].
 class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
@@ -34,10 +68,34 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   Future<String> _getAuthToken() async {
     final token = await _secureStorage.read(key: 'auth_token');
     if (token == null) {
-      throw AuthException(message: 'No hay sesión activa');
+      throw AuthException(message: 'No hay sesion activa');
     }
     return token;
   }
+
+  Options _authOptions(String token) =>
+      Options(headers: {'Authorization': 'Bearer $token'});
+
+  Never _rethrow(Object e) {
+    if (e is DioException) {
+      final msg = _extractDioMessage(e);
+      throw ServerException(message: msg, code: e.response?.statusCode);
+    }
+    if (e is ServerException || e is AuthException) throw e;
+    throw ServerException(message: e.toString());
+  }
+
+  String _extractDioMessage(DioException e) {
+    try {
+      final data = e.response?.data;
+      if (data is Map) {
+        return (data['message'] ?? e.message ?? 'Error de conexion').toString();
+      }
+    } catch (_) {}
+    return e.message ?? 'Error de conexion';
+  }
+
+  // ── GET /classes ────────────────────────────────────────────────────────────
 
   @override
   Future<List<ClassModel>> getClasses({int? clubTypeId}) async {
@@ -47,7 +105,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
 
       final response = await _dio.get(
         '$_baseUrl/classes$queryParams',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
+        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -57,16 +115,15 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
             .toList();
       }
 
-      throw ServerException(message: 'Error al obtener clases', code: response.statusCode);
+      throw ServerException(
+          message: 'Error al obtener clases', code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getClasses', tag: _tag, error: e);
-      if (e is DioException) {
-        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
-      }
-      if (e is ServerException || e is AuthException) rethrow;
-      throw ServerException(message: e.toString());
+      _rethrow(e);
     }
   }
+
+  // ── GET /classes/:classId ───────────────────────────────────────────────────
 
   @override
   Future<ClassModel> getClassById(int classId) async {
@@ -74,23 +131,22 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl/classes/$classId',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
+        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return ClassModel.fromJson(response.data as Map<String, dynamic>);
       }
 
-      throw ServerException(message: 'Error al obtener clase', code: response.statusCode);
+      throw ServerException(
+          message: 'Error al obtener clase', code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getClassById', tag: _tag, error: e);
-      if (e is DioException) {
-        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
-      }
-      if (e is ServerException || e is AuthException) rethrow;
-      throw ServerException(message: e.toString());
+      _rethrow(e);
     }
   }
+
+  // ── GET /classes/:classId/modules ───────────────────────────────────────────
 
   @override
   Future<List<ClassModuleModel>> getClassModules(int classId) async {
@@ -98,26 +154,26 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl/classes/$classId/modules',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
+        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final List<dynamic> data = response.data as List<dynamic>;
         return data
-            .map((json) => ClassModuleModel.fromJson(json as Map<String, dynamic>))
+            .map((json) =>
+                ClassModuleModel.fromJson(json as Map<String, dynamic>))
             .toList();
       }
 
-      throw ServerException(message: 'Error al obtener módulos', code: response.statusCode);
+      throw ServerException(
+          message: 'Error al obtener modulos', code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getClassModules', tag: _tag, error: e);
-      if (e is DioException) {
-        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
-      }
-      if (e is ServerException || e is AuthException) rethrow;
-      throw ServerException(message: e.toString());
+      _rethrow(e);
     }
   }
+
+  // ── GET /users/:userId/classes ──────────────────────────────────────────────
 
   @override
   Future<List<ClassModel>> getUserClasses(String userId) async {
@@ -125,56 +181,55 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl/users/$userId/classes',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
+        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // Response is a list of enrollments: [{ classes: { class_id, name, ... }, ... }]
         final List<dynamic> data = response.data as List<dynamic>;
-        return data
-            .map((enrollment) {
-              final e = enrollment as Map<String, dynamic>;
-              // Extract nested 'classes' object; fallback to the enrollment itself
-              final classJson = (e['classes'] as Map<String, dynamic>?) ?? e;
-              return ClassModel.fromJson(classJson);
-            })
-            .toList();
+        return data.map((enrollment) {
+          final e = enrollment as Map<String, dynamic>;
+          // El backend retorna inscripciones: [{ classes: {...}, ... }]
+          final classJson = (e['classes'] as Map<String, dynamic>?) ?? e;
+          return ClassModel.fromJson(classJson);
+        }).toList();
       }
 
-      throw ServerException(message: 'Error al obtener clases del usuario', code: response.statusCode);
+      throw ServerException(
+          message: 'Error al obtener clases del usuario',
+          code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getUserClasses', tag: _tag, error: e);
-      if (e is DioException) {
-        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
-      }
-      if (e is ServerException || e is AuthException) rethrow;
-      throw ServerException(message: e.toString());
+      _rethrow(e);
     }
   }
 
+  // ── GET /users/:userId/classes/:classId/progress ────────────────────────────
+
   @override
-  Future<ClassProgressModel> getUserClassProgress(String userId, int classId) async {
+  Future<ClassProgressModel> getUserClassProgress(
+      String userId, int classId) async {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl/users/$userId/classes/$classId/progress',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
+        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return ClassProgressModel.fromJson(response.data as Map<String, dynamic>);
+        return ClassProgressModel.fromJson(
+            response.data as Map<String, dynamic>);
       }
 
-      throw ServerException(message: 'Error al obtener progreso de clase', code: response.statusCode);
+      throw ServerException(
+          message: 'Error al obtener progreso de clase',
+          code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getUserClassProgress', tag: _tag, error: e);
-      if (e is DioException) {
-        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
-      }
-      if (e is ServerException || e is AuthException) rethrow;
-      throw ServerException(message: e.toString());
+      _rethrow(e);
     }
   }
+
+  // ── PATCH /users/:userId/classes/:classId/progress ──────────────────────────
 
   @override
   Future<ClassProgressModel> updateUserClassProgress(
@@ -187,21 +242,207 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       final response = await _dio.patch(
         '$_baseUrl/users/$userId/classes/$classId/progress',
         data: progressData,
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
+        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return ClassProgressModel.fromJson(response.data as Map<String, dynamic>);
+        return ClassProgressModel.fromJson(
+            response.data as Map<String, dynamic>);
       }
 
-      throw ServerException(message: 'Error al actualizar progreso de clase', code: response.statusCode);
+      throw ServerException(
+          message: 'Error al actualizar progreso de clase',
+          code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en updateUserClassProgress', tag: _tag, error: e);
-      if (e is DioException) {
-        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /users/:userId/classes/:classId/progress (detallado) ───────────────
+  //
+  // El endpoint GET /users/:userId/classes/:classId/progress devuelve el
+  // progreso con modulos y secciones. El backend puede variar; construimos
+  // la respuesta combinando clase + modulos + progreso por seccion.
+  //
+  // Si el backend no retorna el detalle completo en un solo endpoint,
+  // combinamos las llamadas necesarias.
+
+  @override
+  Future<ClassWithProgressModel> getClassWithProgress(
+      String userId, int classId) async {
+    try {
+      final token = await _getAuthToken();
+
+      // Intentar obtener progreso detallado en un solo endpoint
+      final response = await _dio.get(
+        '$_baseUrl/users/$userId/classes/$classId/progress',
+        options: _authOptions(token),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = response.data as Map<String, dynamic>;
+
+        // Si el backend retorna los modulos embebidos, usar directamente
+        if (body.containsKey('modules')) {
+          return ClassWithProgressModel.fromJson(body);
+        }
+
+        // Si no, obtener la clase y los modulos por separado y combinar
+        final classResponse = await _dio.get(
+          '$_baseUrl/classes/$classId',
+          options: _authOptions(token),
+        );
+
+        final modulesResponse = await _dio.get(
+          '$_baseUrl/classes/$classId/modules',
+          options: _authOptions(token),
+        );
+
+        if (classResponse.statusCode == 200 &&
+            modulesResponse.statusCode == 200) {
+          final classJson = classResponse.data as Map<String, dynamic>;
+          final modulesJson =
+              modulesResponse.data as List<dynamic>;
+
+          // Construir JSON combinado
+          final combined = {
+            ...classJson,
+            'modules': modulesJson,
+          };
+
+          return ClassWithProgressModel.fromJson(combined);
+        }
       }
-      if (e is ServerException || e is AuthException) rethrow;
-      throw ServerException(message: e.toString());
+
+      throw ServerException(
+          message: 'Error al obtener clase con progreso',
+          code: response.statusCode);
+    } catch (e) {
+      AppLogger.e('Error en getClassWithProgress', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── POST /users/:userId/classes/:classId/progress (submit requirement) ──────
+  //
+  // Usamos el endpoint existente PATCH con status=enviado para el requerimiento.
+
+  @override
+  Future<void> submitRequirement(
+      String userId, int classId, int requirementId) async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.patch(
+        '$_baseUrl/users/$userId/classes/$classId/progress',
+        data: {
+          'section_id': requirementId,
+          'status': 'enviado',
+        },
+        options: _authOptions(token),
+      );
+
+      if (response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 204) {
+        return;
+      }
+
+      throw ServerException(
+          message: 'Error al enviar el requerimiento a validacion',
+          code: response.statusCode);
+    } catch (e) {
+      AppLogger.e('Error en submitRequirement', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── POST /users/:userId/classes/:classId/sections/:requirementId/files ──────
+
+  @override
+  Future<RequirementEvidenceModel> uploadRequirementFile({
+    required String userId,
+    required int classId,
+    required int requirementId,
+    required String filePath,
+    required String fileName,
+    required String mimeType,
+  }) async {
+    try {
+      final token = await _getAuthToken();
+
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          filePath,
+          filename: fileName,
+          contentType: DioMediaType.parse(mimeType),
+        ),
+      });
+
+      final response = await _dio.post(
+        '$_baseUrl/users/$userId/classes/$classId/sections/$requirementId/files',
+        data: formData,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'multipart/form-data',
+          },
+          sendTimeout: const Duration(minutes: 2),
+          receiveTimeout: const Duration(minutes: 2),
+        ),
+        onSendProgress: (sent, total) {
+          if (total > 0) {
+            AppLogger.d(
+              'Upload progress: ${(sent / total * 100).toStringAsFixed(1)}%',
+              tag: _tag,
+            );
+          }
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = response.data as Map<String, dynamic>;
+        final fileJson = body.containsKey('data')
+            ? body['data'] as Map<String, dynamic>
+            : body;
+        return RequirementEvidenceModel.fromJson(fileJson);
+      }
+
+      throw ServerException(
+          message: 'Error al subir el archivo', code: response.statusCode);
+    } catch (e) {
+      AppLogger.e('Error en uploadRequirementFile', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── DELETE /users/:userId/classes/:classId/sections/:requirementId/files/:fileId
+
+  @override
+  Future<void> deleteRequirementFile({
+    required String userId,
+    required int classId,
+    required int requirementId,
+    required String fileId,
+  }) async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.delete(
+        '$_baseUrl/users/$userId/classes/$classId/sections/$requirementId/files/$fileId',
+        options: _authOptions(token),
+      );
+
+      if (response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 204) {
+        return;
+      }
+
+      throw ServerException(
+          message: 'Error al eliminar el archivo', code: response.statusCode);
+    } catch (e) {
+      AppLogger.e('Error en deleteRequirementFile', tag: _tag, error: e);
+      _rethrow(e);
     }
   }
 }

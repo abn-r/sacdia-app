@@ -20,6 +20,13 @@ final clubTypesProvider = FutureProvider<List<ClubTypeModel>>((ref) async {
   return dataSource.getClubTypes();
 });
 
+/// Provider para obtener los tipos de actividad
+final activityTypesProvider =
+    FutureProvider<List<ActivityTypeModel>>((ref) async {
+  final dataSource = ref.watch(catalogsDataSourceProvider);
+  return dataSource.getActivityTypes();
+});
+
 /// Provider para obtener distritos (con filtro opcional)
 final districtsProvider =
     FutureProvider.family<List<DistrictModel>, int?>((ref, localFieldId) async {

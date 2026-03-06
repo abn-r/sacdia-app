@@ -120,23 +120,13 @@ class HonorProgressCard extends StatelessWidget {
                       variant: _badgeVariant,
                     ),
                     const SizedBox(width: 8),
-                    if (userHonor.completionDate != null)
-                      Text(
-                        DateFormat('dd/MM/yyyy')
-                            .format(userHonor.completionDate!),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: context.sac.textSecondary,
-                        ),
-                      )
-                    else if (userHonor.startDate != null)
-                      Text(
-                        'Desde ${DateFormat('dd/MM/yyyy').format(userHonor.startDate!)}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: context.sac.textSecondary,
-                        ),
+                    Text(
+                      DateFormat('dd/MM/yyyy').format(userHonor.date),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.sac.textSecondary,
                       ),
+                    ),
                   ],
                 ),
               ],

@@ -88,18 +88,15 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, void>> signOut() async {
-    if (await networkInfo.isConnected) {
-      try {
-        await remoteDataSource.signOut();
-        return const Right(null);
-      } on core_exceptions.AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    // Logout is fail-safe: always clear local session regardless of network
+    // state or server response. We still attempt the API call when online,
+    // but a network error must never block the user from logging out.
+    try {
+      await remoteDataSource.signOut();
+    } catch (_) {
+      // Swallow any exception — local state is already cleared inside signOut.
     }
+    return const Right(null);
   }
 
   @override

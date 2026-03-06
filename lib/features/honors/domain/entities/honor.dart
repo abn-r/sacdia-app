@@ -8,6 +8,11 @@ class Honor extends Equatable {
   final int categoryId;
   final String? imageUrl;
   final int? skillLevel;
+  final String? materialUrl;
+  final int approval;
+  final String? year;
+  final int clubTypeId;
+  final bool active;
 
   const Honor({
     required this.id,
@@ -16,8 +21,25 @@ class Honor extends Equatable {
     required this.categoryId,
     this.imageUrl,
     this.skillLevel,
+    this.materialUrl,
+    this.approval = 1,
+    this.year,
+    this.clubTypeId = 1,
+    this.active = true,
   });
 
   @override
-  List<Object?> get props => [id, name, description, categoryId, imageUrl, skillLevel];
+  List<Object?> get props => [
+        id,
+        name,
+        description,
+        categoryId,
+        imageUrl,
+        skillLevel,
+        materialUrl,
+        approval,
+        year,
+        clubTypeId,
+        active,
+      ];
 }

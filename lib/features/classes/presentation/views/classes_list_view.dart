@@ -10,11 +10,11 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import '../providers/classes_providers.dart';
 import '../widgets/class_card.dart';
-import 'class_detail_view.dart';
+import 'class_detail_with_progress_view.dart';
 
 /// Vista de lista de clases - Estilo "Scout Vibrante"
 ///
-/// Sin AppBar (tab del bottom nav), título inline,
+/// Sin AppBar (tab del bottom nav), titulo inline,
 /// ClassCards con SacProgressBar y badge "Clase actual".
 /// Items animan con stagger slide-up al cargar.
 class ClassesListView extends ConsumerWidget {
@@ -24,7 +24,6 @@ class ClassesListView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final classesAsync = ref.watch(userClassesProvider);
     final hPad = Responsive.horizontalPadding(context);
-
     final c = context.sac;
 
     return Scaffold(
@@ -60,11 +59,11 @@ class ClassesListView extends ConsumerWidget {
                 ref.invalidate(userClassesProvider);
               },
               child: ListView.builder(
-                padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 24),
-                itemCount: classes.length + 1, // +1 for header
+                padding:
+                    EdgeInsets.fromLTRB(hPad, 16, hPad, 24),
+                itemCount: classes.length + 1, // +1 para el header
                 itemBuilder: (context, index) {
                   if (index == 0) {
-                    // Header is item 0 — no stagger needed, shows instantly
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 20),
                       child: Row(
@@ -79,7 +78,8 @@ class ClassesListView extends ConsumerWidget {
                             style: Theme.of(context)
                                 .textTheme
                                 .headlineSmall
-                                ?.copyWith(fontWeight: FontWeight.w700),
+                                ?.copyWith(
+                                    fontWeight: FontWeight.w700),
                           ),
                         ],
                       ),
@@ -88,23 +88,25 @@ class ClassesListView extends ConsumerWidget {
 
                   final classIndex = index - 1;
                   final progressiveClass = classes[classIndex];
-                  // TODO: Obtener progreso real de la API
+                  // TODO: obtener progreso real del provider classWithProgress
                   const progress = 0.0;
 
                   return StaggeredListItem(
-                    // Offset index by 1 so first card starts at index 0 delay
                     index: classIndex,
-                    initialDelay: const Duration(milliseconds: 80),
-                    staggerDelay: const Duration(milliseconds: 65),
+                    initialDelay:
+                        const Duration(milliseconds: 80),
+                    staggerDelay:
+                        const Duration(milliseconds: 65),
                     child: ClassCard(
                       progressiveClass: progressiveClass,
                       progress: progress,
-                      isCurrent: classIndex == 0, // First class is current
+                      isCurrent: classIndex == 0,
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ClassDetailView(
+                            builder: (context) =>
+                                ClassDetailWithProgressView(
                               classId: progressiveClass.id,
                             ),
                           ),
@@ -137,7 +139,7 @@ class ClassesListView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    error.toString(),
+                    error.toString().replaceFirst('Exception: ', ''),
                     style: TextStyle(
                         fontSize: 14, color: c.textSecondary),
                     textAlign: TextAlign.center,

@@ -1,48 +1,160 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
+import 'package:sacdia_app/providers/catalogs_provider.dart';
+
+import '../../domain/entities/activity.dart';
 import '../providers/activities_providers.dart';
 import '../widgets/activity_card.dart';
 import 'activity_detail_view.dart';
+import 'create_activity_view.dart';
 
 /// Vista de lista de actividades - Estilo "Scout Vibrante"
 ///
-/// Chips horizontales de filtro por tipo, ActivityCards con
-/// date badge indigo, SacBadge de tipo.
+/// Strip horizontal de fechas, chips de filtro por tipo,
+/// ActivityCards rediseñadas con chip de tipo y metadata.
 class ActivitiesListView extends ConsumerStatefulWidget {
   final int clubId;
+
+  /// ID del tipo de club usado para filtrar actividades en el backend
+  /// (p.ej. 1 = Aventureros, 2 = Conquistadores, 3 = Guias Mayores).
+  final int? clubTypeId;
+
+  /// IDs de los clubes por tipo (Aventureros, Conquistadores, Guias Mayores).
+  /// Si no se pasan, se usara [clubId] como valor por defecto para los tres,
+  /// lo que es suficiente para que el backend acepte la solicitud de creacion.
+  final int? clubAdvId;
+  final int? clubPathfId;
+  final int? clubMgId;
 
   const ActivitiesListView({
     super.key,
     required this.clubId,
+    this.clubTypeId,
+    this.clubAdvId,
+    this.clubPathfId,
+    this.clubMgId,
   });
 
   @override
-  ConsumerState<ActivitiesListView> createState() =>
-      _ActivitiesListViewState();
+  ConsumerState<ActivitiesListView> createState() => _ActivitiesListViewState();
 }
 
 class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
-  String? _selectedFilter;
+  int? _selectedFilter;
+  DateTime? _selectedDate;
+  bool _isChronologicalView = false;
+  bool _shouldScrollToToday = false;
+  late final List<DateTime> _days;
+  late final ScrollController _dateScrollController;
+  late final ScrollController _chronoScrollController;
 
-  static const _filters = [
-    {'value': null, 'label': 'Todas'},
-    {'value': 'meeting', 'label': 'Reuniones'},
-    {'value': 'event', 'label': 'Eventos'},
-    {'value': 'campout', 'label': 'Campamentos'},
-    {'value': 'service', 'label': 'Servicios'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _days = _buildDays();
+    _dateScrollController = ScrollController();
+    _chronoScrollController = ScrollController();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToToday());
+  }
+
+  @override
+  void dispose() {
+    _dateScrollController.dispose();
+    _chronoScrollController.dispose();
+    super.dispose();
+  }
+
+  List<DateTime> _buildDays() {
+    final today = DateTime.now();
+    final start = today.subtract(const Duration(days: 7));
+    return List.generate(21, (i) => start.add(Duration(days: i)));
+  }
+
+  void _scrollToToday() {
+    if (!_dateScrollController.hasClients) return;
+    const itemWidth = 60.0;
+    const todayIndex = 7;
+    final offset = (todayIndex * itemWidth) - 80.0;
+    _dateScrollController.jumpTo(offset.clamp(0.0, double.infinity));
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  String _capitalizeFirst(String s) =>
+      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+
+  List<dynamic> _buildChronoItems(List<Activity> activities) {
+    final withDates = activities.where((a) => a.createdAt != null).toList()
+      ..sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
+    final noDates = activities.where((a) => a.createdAt == null).toList();
+
+    final items = <dynamic>[];
+    DateTime? lastDay;
+
+    for (final a in withDates) {
+      final day =
+          DateTime(a.createdAt!.year, a.createdAt!.month, a.createdAt!.day);
+      if (lastDay == null || !_isSameDay(day, lastDay)) {
+        items.add(day);
+        lastDay = day;
+      }
+      items.add(a);
+    }
+
+    if (noDates.isNotEmpty) {
+      items.add(null);
+      items.addAll(noDates);
+    }
+    return items;
+  }
+
+  double _estimateTodayOffset(List<dynamic> items) {
+    const headerH = 52.0;
+    const cardH = 156.0;
+    const topPad = 8.0;
+    double offset = topPad;
+    final today = DateTime.now();
+    for (final item in items) {
+      if (item is DateTime) {
+        if (_isSameDay(item, today)) break;
+        if (item.isAfter(today)) break;
+        offset += headerH;
+      } else if (item != null) {
+        offset += cardH;
+      }
+    }
+    return offset;
+  }
+
+  String _dayLabel(DateTime date) {
+    final today = DateTime.now();
+    if (_isSameDay(date, today)) return 'Hoy';
+    if (_isSameDay(date, today.subtract(const Duration(days: 1))))
+      return 'Ayer';
+    if (_isSameDay(date, today.add(const Duration(days: 1)))) return 'Mañana';
+    return _capitalizeFirst(DateFormat('EEEE, d MMM', 'es').format(date));
+  }
+
+  ClubActivitiesParams get _activitiesParams => ClubActivitiesParams(
+        clubId: widget.clubId,
+        clubTypeId: widget.clubTypeId,
+        activityTypeId: _selectedFilter,
+      );
 
   @override
   Widget build(BuildContext context) {
-    final activitiesAsync = ref.watch(clubActivitiesProvider(widget.clubId));
-
+    final activitiesAsync = ref.watch(clubActivitiesProvider(_activitiesParams));
+    final activityTypesAsync = ref.watch(activityTypesProvider);
     final c = context.sac;
+    final today = DateTime.now();
 
     return Scaffold(
       backgroundColor: c.background,
@@ -52,69 +164,283 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
           children: [
             // Header
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
               child: Row(
                 children: [
-                  HugeIcon(icon: HugeIcons.strokeRoundedCalendar01,
-                      size: 24, color: AppColors.primary),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Actividades',
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineSmall
-                        ?.copyWith(fontWeight: FontWeight.w700),
+                  Container(
+                    padding: const EdgeInsets.all(9),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedCalendar01,
+                      size: 22,
+                      color: AppColors.primary,
+                    ),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Filter chips
-            SizedBox(
-              height: 36,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: _filters.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final filter = _filters[index];
-                  final isSelected =
-                      _selectedFilter == filter['value'];
-
-                  return GestureDetector(
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Actividades',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                        Text(
+                          _capitalizeFirst(
+                            DateFormat('MMMM yyyy', 'es').format(today),
+                          ),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: c.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  GestureDetector(
                     onTap: () {
-                      setState(() {
-                        _selectedFilter = filter['value'];
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CreateActivityView(
+                            clubId: widget.clubId,
+                            clubAdvId: widget.clubAdvId ?? widget.clubId,
+                            clubPathfId: widget.clubPathfId ?? widget.clubId,
+                            clubMgId: widget.clubMgId ?? widget.clubId,
+                          ),
+                        ),
+                      ).then((created) {
+                        // Si la actividad fue creada, refrescar la lista
+                        if (created == true && mounted) {
+                          ref.invalidate(clubActivitiesProvider);
+                        }
                       });
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.all(9),
                       decoration: BoxDecoration(
-                        color: isSelected
+                        color: c.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: c.border,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedCalendarAdd01,
+                            size: 20,
+                            color: c.textSecondary,
+                          ),
+                          const SizedBox(width: 5),
+                          Text('Agregar')
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _isChronologicalView = !_isChronologicalView;
+                        if (_isChronologicalView) _shouldScrollToToday = true;
+                      });
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.all(9),
+                      decoration: BoxDecoration(
+                        color: _isChronologicalView
                             ? AppColors.primary
                             : c.surface,
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isSelected
+                          color: _isChronologicalView
                               ? AppColors.primary
                               : c.border,
                         ),
+                        boxShadow: _isChronologicalView
+                            ? [
+                                BoxShadow(
+                                  color: AppColors.primary.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
+                                )
+                              ]
+                            : null,
                       ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        filter['label'] as String,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: isSelected
-                              ? Colors.white
-                              : c.textSecondary,
-                        ),
+                      child: HugeIcon(
+                        icon: _isChronologicalView
+                            ? HugeIcons.strokeRoundedCalendar01
+                            : HugeIcons.strokeRoundedListView,
+                        size: 20,
+                        color: _isChronologicalView
+                            ? Colors.white
+                            : c.textSecondary,
                       ),
                     ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Date strip (solo en vista de tarjetas)
+            ClipRect(
+              child: AnimatedSize(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                child: _isChronologicalView
+                    ? const SizedBox(height: 0)
+                    : Column(
+                        children: [
+                          SizedBox(
+                            height: 76,
+                            child: ListView.builder(
+                              controller: _dateScrollController,
+                              scrollDirection: Axis.horizontal,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              itemCount: _days.length,
+                              itemBuilder: (context, index) {
+                                final day = _days[index];
+                                final isToday = _isSameDay(day, today);
+                                final isSelected = _selectedDate != null &&
+                                    _isSameDay(day, _selectedDate!);
+
+                                return GestureDetector(
+                                  onTap: () => setState(() {
+                                    _selectedDate = isSelected ? null : day;
+                                  }),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    width: 52,
+                                    margin: const EdgeInsets.symmetric(
+                                        horizontal: 4, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? AppColors.primary
+                                          : isToday
+                                              ? AppColors.primaryLight
+                                              : c.surface,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: isToday && !isSelected
+                                            ? AppColors.primary
+                                                .withOpacity(0.35)
+                                            : Colors.transparent,
+                                        width: 1.5,
+                                      ),
+                                      boxShadow: isSelected
+                                          ? [
+                                              BoxShadow(
+                                                color: AppColors.primary
+                                                    .withOpacity(0.28),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 3),
+                                              )
+                                            ]
+                                          : null,
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          DateFormat('EEE', 'es')
+                                              .format(day)
+                                              .substring(0, 2)
+                                              .toUpperCase(),
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                            color: isSelected
+                                                ? Colors.white.withOpacity(0.8)
+                                                : c.textTertiary,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          DateFormat('d').format(day),
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w700,
+                                            height: 1,
+                                            color: isSelected
+                                                ? Colors.white
+                                                : isToday
+                                                    ? AppColors.primary
+                                                    : c.text,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                        ],
+                      ),
+              ),
+            ),
+
+            // Filter chips - cargados dinámicamente desde el catálogo
+            SizedBox(
+              height: 36,
+              child: activityTypesAsync.when(
+                loading: () => ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: 4,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) => _FilterChipSkeleton(c: c),
+                ),
+                error: (_, __) => ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  children: [
+                    _ActivityFilterChip(
+                      label: 'Todas',
+                      isSelected: _selectedFilter == null,
+                      c: c,
+                      onTap: () => setState(() => _selectedFilter = null),
+                    ),
+                  ],
+                ),
+                data: (types) {
+                  final chips = <Widget>[
+                    _ActivityFilterChip(
+                      label: 'Todas',
+                      isSelected: _selectedFilter == null,
+                      c: c,
+                      onTap: () => setState(() => _selectedFilter = null),
+                    ),
+                    ...types.map(
+                      (t) => _ActivityFilterChip(
+                        label: t.name,
+                        isSelected: _selectedFilter == t.activityTypeId,
+                        c: c,
+                        onTap: () => setState(
+                            () => _selectedFilter = t.activityTypeId),
+                      ),
+                    ),
+                  ];
+                  return ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    itemCount: chips.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    itemBuilder: (_, i) => chips[i],
                   );
                 },
               ),
@@ -125,24 +451,38 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
             Expanded(
               child: activitiesAsync.when(
                 data: (activities) {
-                  final filtered = _selectedFilter != null
-                      ? activities
-                          .where((a) => a.type == _selectedFilter)
-                          .toList()
-                      : activities;
+                  // El filtro por tipo de actividad se aplica en el servidor.
+                  // Aquí solo aplicamos el filtro local de fecha.
+                  var filtered = List.of(activities);
+
+                  if (!_isChronologicalView && _selectedDate != null) {
+                    filtered = filtered
+                        .where((a) =>
+                            a.createdAt != null &&
+                            _isSameDay(a.createdAt!, _selectedDate!))
+                        .toList();
+                  }
+
+                  late final Widget content;
 
                   if (filtered.isEmpty) {
-                    return Center(
+                    content = Center(
+                      key: ValueKey('empty-$_isChronologicalView'),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          HugeIcon(icon: HugeIcons.strokeRoundedCalendar04,
-                              size: 56, color: c.textTertiary),
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedCalendar04,
+                            size: 56,
+                            color: c.textTertiary,
+                          ),
                           const SizedBox(height: 12),
                           Text(
-                            _selectedFilter != null
-                                ? 'No hay actividades de este tipo'
-                                : 'No hay actividades disponibles',
+                            !_isChronologicalView && _selectedDate != null
+                                ? 'No hay actividades este día'
+                                : _selectedFilter != null
+                                    ? 'No hay actividades de este tipo'
+                                    : 'No hay actividades disponibles',
                             style: TextStyle(
                               fontSize: 16,
                               color: c.textSecondary,
@@ -151,34 +491,114 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                         ],
                       ),
                     );
+                  } else if (_isChronologicalView) {
+                    // ── Vista cronológica ─────────────────────────────
+                    final chronoItems = _buildChronoItems(filtered);
+
+                    if (_shouldScrollToToday) {
+                      _shouldScrollToToday = false;
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (_chronoScrollController.hasClients) {
+                          final offset = _estimateTodayOffset(chronoItems);
+                          _chronoScrollController.animateTo(
+                            offset.clamp(
+                                0.0,
+                                _chronoScrollController
+                                    .position.maxScrollExtent),
+                            duration: const Duration(milliseconds: 450),
+                            curve: Curves.easeOut,
+                          );
+                        }
+                      });
+                    }
+
+                    content = RefreshIndicator(
+                      key: const ValueKey('chrono'),
+                      color: AppColors.primary,
+                      onRefresh: () async {
+                        ref.invalidate(clubActivitiesProvider);
+                      },
+                      child: ListView.builder(
+                        controller: _chronoScrollController,
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                        itemCount: chronoItems.length,
+                        itemBuilder: (context, index) {
+                          final item = chronoItems[index];
+                          if (item is DateTime) {
+                            return _DayHeaderItem(
+                              label: _dayLabel(item),
+                              isToday: _isSameDay(item, today),
+                            );
+                          }
+                          if (item == null) {
+                            return const _DayHeaderItem(
+                              label: 'Sin fecha',
+                              isToday: false,
+                            );
+                          }
+                          final activity = item as Activity;
+                          return ActivityCard(
+                            activity: activity,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ActivityDetailView(
+                                    activityId: activity.id,
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    );
+                  } else {
+                    // ── Vista de tarjetas (default) ───────────────────
+                    content = RefreshIndicator(
+                      key: const ValueKey('card'),
+                      color: AppColors.primary,
+                      onRefresh: () async {
+                        ref.invalidate(clubActivitiesProvider);
+                      },
+                      child: ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                        itemCount: filtered.length,
+                        itemBuilder: (context, index) {
+                          final activity = filtered[index];
+                          return ActivityCard(
+                            activity: activity,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ActivityDetailView(
+                                    activityId: activity.id,
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    );
                   }
 
-                  return RefreshIndicator(
-                    color: AppColors.primary,
-                    onRefresh: () async {
-                      ref.invalidate(
-                          clubActivitiesProvider(widget.clubId));
-                    },
-                    child: ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                      itemCount: filtered.length,
-                      itemBuilder: (context, index) {
-                        final activity = filtered[index];
-                        return ActivityCard(
-                          activity: activity,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ActivityDetailView(
-                                  activityId: activity.id,
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
+                  return AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 320),
+                    switchInCurve: Curves.easeOut,
+                    switchOutCurve: Curves.easeIn,
+                    transitionBuilder: (child, animation) => FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0.04, 0),
+                          end: Offset.zero,
+                        ).animate(animation),
+                        child: child,
+                      ),
                     ),
+                    child: content,
                   );
                 },
                 loading: () => const Center(child: SacLoading()),
@@ -188,8 +608,11 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        HugeIcon(icon: HugeIcons.strokeRoundedAlert02,
-                            size: 56, color: AppColors.error),
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedAlert02,
+                          size: 56,
+                          color: AppColors.error,
+                        ),
                         const SizedBox(height: 16),
                         Text(
                           'Error al cargar actividades',
@@ -203,8 +626,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                           text: 'Reintentar',
                           icon: HugeIcons.strokeRoundedRefresh,
                           onPressed: () {
-                            ref.invalidate(
-                                clubActivitiesProvider(widget.clubId));
+                            ref.invalidate(clubActivitiesProvider);
                           },
                         ),
                       ],
@@ -215,6 +637,157 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
             ),
           ],
         ),
+      ),
+
+      // Botón flotante dentro del body para evitar que sea recortado por el widget padre
+      // bottomNavigationBar: Padding(
+      //   padding: const EdgeInsets.fromLTRB(0, 0, 16, 16),
+      //   child: Row(
+      //     mainAxisAlignment: MainAxisAlignment.end,
+      //     children: [
+      //       FloatingActionButton.extended(
+      //         heroTag: 'fab_nueva_actividad',
+      //         onPressed: () {
+      //           Navigator.push(
+      //             context,
+      //             MaterialPageRoute(
+      //               builder: (context) => CreateActivityView(
+      //                 clubId: widget.clubId,
+      //                 clubAdvId: widget.clubAdvId ?? widget.clubId,
+      //                 clubPathfId: widget.clubPathfId ?? widget.clubId,
+      //                 clubMgId: widget.clubMgId ?? widget.clubId,
+      //               ),
+      //             ),
+      //           ).then((created) {
+      //             // Si la actividad fue creada, refrescar la lista
+      //             if (created == true && mounted) {
+      //               ref.invalidate(clubActivitiesProvider);
+      //             }
+      //           });
+      //         },
+      //         backgroundColor: AppColors.primary,
+      //         foregroundColor: Colors.white,
+      //         elevation: 4,
+      //         icon: const Icon(Icons.add_rounded, size: 22),
+      //         label: const Text(
+      //           'Nueva Actividad',
+      //           style: TextStyle(fontWeight: FontWeight.w600),
+      //         ),
+      //       ),
+      //     ],
+      //   ),
+      // ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Filter chip helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ActivityFilterChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final SacColors c;
+  final VoidCallback onTap;
+
+  const _ActivityFilterChip({
+    required this.label,
+    required this.isSelected,
+    required this.c,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : c.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : c.border,
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: isSelected ? Colors.white : c.textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FilterChipSkeleton extends StatelessWidget {
+  final SacColors c;
+
+  const _FilterChipSkeleton({required this.c});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 72,
+      height: 36,
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: c.border),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _DayHeaderItem extends StatelessWidget {
+  final String label;
+  final bool isToday;
+
+  const _DayHeaderItem({required this.label, required this.isToday});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Padding(
+      padding: const EdgeInsets.only(top: 20, bottom: 8),
+      child: Row(
+        children: [
+          if (isToday)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            )
+          else
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: c.textSecondary,
+              ),
+            ),
+          const SizedBox(width: 10),
+          Expanded(child: Divider(color: c.divider, height: 1)),
+        ],
       ),
     );
   }

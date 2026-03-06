@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/classes/domain/entities/progressive_class.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
 import 'package:sacdia_app/features/classes/presentation/views/class_detail_view.dart';
+import 'package:sacdia_app/features/classes/presentation/views/classes_list_view.dart';
 
 /// Map class names to their brand colours (same palette as ClassStatusCircles).
 const Map<String, Color> _classColors = {
@@ -69,6 +71,19 @@ class ProfileClassesSection extends ConsumerWidget {
                     color: context.sac.textSecondary,
                   ),
                   textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                SacButton.outline(
+                  text: 'Ver clases disponibles',
+                  icon: HugeIcons.strokeRoundedAdd01,
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ClassesListView(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

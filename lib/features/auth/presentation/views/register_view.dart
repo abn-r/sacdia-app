@@ -145,23 +145,25 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                       // Back button
                       Align(
                         alignment: Alignment.centerLeft,
-                        child: IconButton(
-                          onPressed: () => context.pop(),
-                          icon: HugeIcon(
-                            icon: HugeIcons.strokeRoundedArrowLeft01,
-                            color: context.sac.text,
-                          ),
-                          style: IconButton.styleFrom(
-                            backgroundColor: context.sac.background,
-                          ),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              onPressed: () => context.pop(),
+                              icon: HugeIcon(
+                                icon: HugeIcons.strokeRoundedArrowLeft01,
+                                color: context.sac.text,
+                              ),
+                              style: IconButton.styleFrom(
+                                backgroundColor: context.sac.background,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Text(
+                              'Crear cuenta',
+                              style: titleStyle,
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Title — smaller on very small phones
-                      Text(
-                        'Crear cuenta',
-                        style: titleStyle,
                       ),
                       const SizedBox(height: 32),
 

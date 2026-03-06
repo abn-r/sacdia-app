@@ -4,6 +4,13 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/features/activities/presentation/views/activities_list_view.dart';
+import 'package:sacdia_app/features/carpeta_evidencias/presentation/views/evidence_folder_view.dart';
+import 'package:sacdia_app/features/club/presentation/providers/club_providers.dart';
+import 'package:sacdia_app/features/club/presentation/views/club_view.dart';
+import 'package:sacdia_app/features/finanzas/presentation/views/finanzas_view.dart';
+import 'package:sacdia_app/features/home/presentation/widgets/resources_section.dart';
+import 'package:sacdia_app/features/inventario/presentation/views/inventario_view.dart';
+import 'package:sacdia_app/features/seguros/presentation/views/seguros_view.dart';
 
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/views/forgot_password_view.dart';
@@ -13,6 +20,8 @@ import '../../features/auth/presentation/views/splash_view.dart';
 import '../../features/post_registration/presentation/views/post_registration_shell.dart';
 import '../../features/dashboard/presentation/views/dashboard_view.dart';
 import '../../features/classes/presentation/views/classes_list_view.dart';
+import '../../features/classes/presentation/views/class_detail_with_progress_view.dart';
+import '../../features/miembros/presentation/views/miembros_view.dart';
 import '../../features/profile/presentation/views/profile_view.dart';
 import '../utils/responsive.dart';
 import 'route_names.dart';
@@ -166,28 +175,28 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: RouteNames.homeMembers,
             pageBuilder: (context, state) => _buildPage(
               context, state,
-              const _PlaceholderScreen(title: 'Miembros'),
+              const MiembrosView(),
             ),
           ),
           GoRoute(
             path: RouteNames.homeClub,
             pageBuilder: (context, state) => _buildPage(
               context, state,
-              const _PlaceholderScreen(title: 'Club'),
+              const ClubView(),
             ),
           ),
           GoRoute(
             path: RouteNames.homeEvidences,
             pageBuilder: (context, state) => _buildPage(
               context, state,
-              const _PlaceholderScreen(title: 'Carpeta de Evidencias'),
+              const _EvidenceFolderShell(),
             ),
           ),
           GoRoute(
             path: RouteNames.homeFinances,
             pageBuilder: (context, state) => _buildPage(
               context, state,
-              const _PlaceholderScreen(title: 'Finanzas'),
+              const FinanzasView(),
             ),
           ),
           GoRoute(
@@ -201,21 +210,28 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: RouteNames.homeGroupedClass,
             pageBuilder: (context, state) => _buildPage(
               context, state,
-              const _PlaceholderScreen(title: 'Clase Agrupada'),
+              const ClassesListView(),
             ),
           ),
           GoRoute(
             path: RouteNames.homeInsurance,
             pageBuilder: (context, state) => _buildPage(
               context, state,
-              const _PlaceholderScreen(title: 'Seguros del Club'),
+              const SegurosView(),
             ),
           ),
           GoRoute(
             path: RouteNames.homeInventory,
             pageBuilder: (context, state) => _buildPage(
               context, state,
-              const _PlaceholderScreen(title: 'Inventario'),
+              const InventarioView(),
+            ),
+          ),
+          GoRoute(
+            path: RouteNames.homeResources,
+            pageBuilder: (context, state) => _buildPage(
+              context, state,
+              const ResourcesSection(),
             ),
           ),
         ],
@@ -235,9 +251,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.classDetail,
         pageBuilder: (context, state) {
-          final classId = state.pathParameters['classId']!;
+          final classIdStr = state.pathParameters['classId']!;
+          final classId = int.tryParse(classIdStr) ?? 0;
           return _buildPage(
-              context, state, _PlaceholderScreen(title: 'Clase: $classId'));
+            context,
+            state,
+            ClassDetailWithProgressView(classId: classId),
+          );
         },
       ),
 
@@ -388,6 +408,54 @@ class _MainShell extends StatelessWidget {
             )
             .toList(),
       ),
+    );
+  }
+}
+
+/// Shell que obtiene el clubInstanceId del contexto activo y pasa a [EvidenceFolderView].
+///
+/// Si el contexto aún no está disponible muestra un loading.
+/// Si no hay instancia activa muestra un mensaje de error con instrucción.
+class _EvidenceFolderShell extends ConsumerWidget {
+  const _EvidenceFolderShell();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final clubInstanceAsync = ref.watch(currentClubInstanceProvider);
+
+    return clubInstanceAsync.when(
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, _) => Scaffold(
+        appBar: AppBar(title: const Text('Carpeta de Evidencias')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Text(
+              'No se pudo cargar el contexto del club.\n${e.toString().replaceFirst("Exception: ", "")}',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+      data: (instance) {
+        if (instance == null) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Carpeta de Evidencias')),
+            body: const Center(
+              child: Padding(
+                padding: EdgeInsets.all(32),
+                child: Text(
+                  'No hay un club activo seleccionado. Por favor selecciona un club desde tu perfil.',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          );
+        }
+        return EvidenceFolderView(clubInstanceId: instance.id.toString());
+      },
     );
   }
 }

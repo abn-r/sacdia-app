@@ -1,0 +1,55 @@
+import 'package:dartz/dartz.dart';
+
+import '../../../../core/errors/failures.dart';
+import '../entities/finance_category.dart';
+import '../entities/finance_month.dart';
+import '../entities/finance_summary.dart';
+import '../entities/transaction.dart';
+
+/// Contrato de acceso a datos financieros del club.
+abstract class FinancesRepository {
+  /// Devuelve el listado de movimientos paginados del club.
+  ///
+  /// Filtra por [year]/[month] cuando se proporcionen.
+  Future<Either<Failure, FinanceMonth>> getFinances({
+    required int clubId,
+    required int year,
+    required int month,
+  });
+
+  /// Devuelve el resumen financiero global del club.
+  Future<Either<Failure, FinanceSummary>> getSummary({required int clubId});
+
+  /// Devuelve un movimiento por su ID.
+  Future<Either<Failure, FinanceTransaction>> getTransaction({
+    required int financeId,
+  });
+
+  /// Crea un nuevo movimiento financiero.
+  Future<Either<Failure, FinanceTransaction>> createTransaction({
+    required int clubId,
+    required int categoryId,
+    required double amount,
+    required String description,
+    required DateTime date,
+    required int year,
+    required int month,
+    String? notes,
+  });
+
+  /// Actualiza un movimiento existente.
+  Future<Either<Failure, FinanceTransaction>> updateTransaction({
+    required int financeId,
+    int? categoryId,
+    double? amount,
+    String? description,
+    DateTime? date,
+    String? notes,
+  });
+
+  /// Desactiva (soft-delete) un movimiento.
+  Future<Either<Failure, void>> deleteTransaction({required int financeId});
+
+  /// Devuelve las categorías disponibles.
+  Future<Either<Failure, List<FinanceCategory>>> getCategories();
+}

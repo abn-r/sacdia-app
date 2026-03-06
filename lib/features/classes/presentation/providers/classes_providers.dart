@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../data/datasources/classes_remote_data_source.dart';
@@ -6,56 +8,78 @@ import '../../data/repositories/classes_repository_impl.dart';
 import '../../domain/entities/progressive_class.dart';
 import '../../domain/entities/class_module.dart';
 import '../../domain/entities/class_progress.dart';
+import '../../domain/entities/class_with_progress.dart';
 import '../../domain/repositories/classes_repository.dart';
 import '../../domain/usecases/get_user_classes.dart';
 import '../../domain/usecases/get_class_detail.dart';
 import '../../domain/usecases/get_class_modules.dart';
 import '../../domain/usecases/update_class_progress.dart';
+import '../../domain/usecases/get_class_with_progress.dart';
+import '../../domain/usecases/submit_requirement.dart';
+import '../../domain/usecases/upload_requirement_file.dart';
+import '../../domain/usecases/delete_requirement_file.dart';
+
+// ── Infrastructure providers ──────────────────────────────────────────────────
 
 /// Provider para el data source remoto de clases
-final classesRemoteDataSourceProvider = Provider<ClassesRemoteDataSource>((ref) {
-  final dio = ref.read(dioProvider);
-  final baseUrl = ref.read(apiBaseUrlProvider);
-
+final classesRemoteDataSourceProvider =
+    Provider<ClassesRemoteDataSource>((ref) {
   return ClassesRemoteDataSourceImpl(
-    dio: dio,
-    baseUrl: baseUrl,
+    dio: ref.read(dioProvider),
+    baseUrl: ref.read(apiBaseUrlProvider),
   );
 });
 
 /// Provider para el repositorio de clases
 final classesRepositoryProvider = Provider<ClassesRepository>((ref) {
-  final remoteDataSource = ref.read(classesRemoteDataSourceProvider);
-  final networkInfo = ref.read(networkInfoProvider);
-
   return ClassesRepositoryImpl(
-    remoteDataSource: remoteDataSource,
-    networkInfo: networkInfo,
+    remoteDataSource: ref.read(classesRemoteDataSourceProvider),
+    networkInfo: ref.read(networkInfoProvider),
   );
 });
 
-/// Provider para el caso de uso de obtener clases de usuario
+// ── Use case providers ────────────────────────────────────────────────────────
+
 final getUserClassesProvider = Provider<GetUserClasses>((ref) {
   return GetUserClasses(ref.read(classesRepositoryProvider));
 });
 
-/// Provider para el caso de uso de obtener detalle de clase
 final getClassDetailProvider = Provider<GetClassDetail>((ref) {
   return GetClassDetail(ref.read(classesRepositoryProvider));
 });
 
-/// Provider para el caso de uso de obtener módulos de clase
 final getClassModulesProvider = Provider<GetClassModules>((ref) {
   return GetClassModules(ref.read(classesRepositoryProvider));
 });
 
-/// Provider para el caso de uso de actualizar progreso de clase
 final updateClassProgressProvider = Provider<UpdateClassProgress>((ref) {
   return UpdateClassProgress(ref.read(classesRepositoryProvider));
 });
 
-/// Provider para las clases de un usuario
-final userClassesProvider = FutureProvider.autoDispose<List<ProgressiveClass>>((ref) async {
+final getClassWithProgressUseCaseProvider =
+    Provider<GetClassWithProgress>((ref) {
+  return GetClassWithProgress(ref.read(classesRepositoryProvider));
+});
+
+final submitRequirementUseCaseProvider = Provider<SubmitRequirement>((ref) {
+  return SubmitRequirement(ref.read(classesRepositoryProvider));
+});
+
+final uploadRequirementFileUseCaseProvider =
+    Provider<UploadRequirementFile>((ref) {
+  return UploadRequirementFile(ref.read(classesRepositoryProvider));
+});
+
+final deleteRequirementFileUseCaseProvider =
+    Provider<DeleteRequirementFile>((ref) {
+  return DeleteRequirementFile(ref.read(classesRepositoryProvider));
+});
+
+// ── Data providers ────────────────────────────────────────────────────────────
+
+/// Provider para las clases de un usuario.
+final userClassesProvider =
+    FutureProvider.autoDispose<List<ProgressiveClass>>((ref) async {
   final authState = ref.watch(authNotifierProvider);
   final userId = authState.value?.id;
 
@@ -72,9 +96,10 @@ final userClassesProvider = FutureProvider.autoDispose<List<ProgressiveClass>>((
   );
 });
 
-/// Provider para el detalle de una clase específica
+/// Provider para el detalle de una clase especifica.
 final classDetailProvider =
-    FutureProvider.autoDispose.family<ProgressiveClass, int>((ref, classId) async {
+    FutureProvider.autoDispose.family<ProgressiveClass, int>(
+        (ref, classId) async {
   final getClassDetail = ref.read(getClassDetailProvider);
   final result = await getClassDetail(GetClassDetailParams(classId: classId));
 
@@ -84,11 +109,13 @@ final classDetailProvider =
   );
 });
 
-/// Provider para los módulos de una clase específica
+/// Provider para los modulos de una clase especifica.
 final classModulesProvider =
-    FutureProvider.autoDispose.family<List<ClassModule>, int>((ref, classId) async {
+    FutureProvider.autoDispose.family<List<ClassModule>, int>(
+        (ref, classId) async {
   final getClassModules = ref.read(getClassModulesProvider);
-  final result = await getClassModules(GetClassModulesParams(classId: classId));
+  final result =
+      await getClassModules(GetClassModulesParams(classId: classId));
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -96,12 +123,215 @@ final classModulesProvider =
   );
 });
 
+/// Provider para la clase con progreso detallado.
+///
+/// autoDispose para liberar memoria al salir de la pantalla.
+final classWithProgressProvider = FutureProvider.autoDispose
+    .family<ClassWithProgress, int>((ref, classId) async {
+  final authState = ref.watch(authNotifierProvider);
+  final userId = authState.value?.id;
+
+  if (userId == null) {
+    throw Exception('Usuario no autenticado');
+  }
+
+  final useCase = ref.read(getClassWithProgressUseCaseProvider);
+  final result = await useCase(
+    GetClassWithProgressParams(userId: userId, classId: classId),
+  );
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (classWithProgress) => classWithProgress,
+  );
+});
+
+// ── Requirement operations state ──────────────────────────────────────────────
+
+/// Estado para operaciones de requerimiento (submit, upload, delete).
+class RequirementOperationState {
+  final bool isLoading;
+  final String? errorMessage;
+  final bool success;
+
+  const RequirementOperationState({
+    this.isLoading = false,
+    this.errorMessage,
+    this.success = false,
+  });
+
+  RequirementOperationState copyWith({
+    bool? isLoading,
+    String? errorMessage,
+    bool? success,
+  }) {
+    return RequirementOperationState(
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage,
+      success: success ?? this.success,
+    );
+  }
+}
+
+/// Notifier para gestionar el estado de un requerimiento activo.
+///
+/// Maneja operaciones de subida de archivos, eliminacion y envio a validacion.
+/// Al completar con exito cualquier mutacion, invalida [classWithProgressProvider]
+/// para refrescar datos frescos del backend.
+class RequirementNotifier
+    extends StateNotifier<RequirementOperationState> {
+  final SubmitRequirement _submitRequirement;
+  final UploadRequirementFile _uploadFile;
+  final DeleteRequirementFile _deleteFile;
+  final Ref _ref;
+  final String _userId;
+  final int _classId;
+
+  RequirementNotifier({
+    required SubmitRequirement submitRequirement,
+    required UploadRequirementFile uploadFile,
+    required DeleteRequirementFile deleteFile,
+    required Ref ref,
+    required String userId,
+    required int classId,
+  })  : _submitRequirement = submitRequirement,
+        _uploadFile = uploadFile,
+        _deleteFile = deleteFile,
+        _ref = ref,
+        _userId = userId,
+        _classId = classId,
+        super(const RequirementOperationState());
+
+  /// Envia un requerimiento a validacion (pendiente -> enviado).
+  Future<bool> submit(int requirementId) async {
+    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+
+    final result = await _submitRequirement(
+      SubmitRequirementParams(
+        userId: _userId,
+        classId: _classId,
+        requirementId: requirementId,
+      ),
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+        return false;
+      },
+      (_) {
+        state = state.copyWith(isLoading: false, success: true);
+        _ref.invalidate(classWithProgressProvider(_classId));
+        return true;
+      },
+    );
+  }
+
+  /// Sube un archivo de evidencia al requerimiento indicado.
+  ///
+  /// [pickedFile] proviene de [ImagePicker] o [FilePicker].
+  Future<bool> uploadFile({
+    required int requirementId,
+    required XFile pickedFile,
+    required String mimeType,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+
+    final result = await _uploadFile(
+      UploadRequirementFileParams(
+        userId: _userId,
+        classId: _classId,
+        requirementId: requirementId,
+        filePath: pickedFile.path,
+        fileName: pickedFile.name,
+        mimeType: mimeType,
+      ),
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+        return false;
+      },
+      (_) {
+        state = state.copyWith(isLoading: false, success: true);
+        _ref.invalidate(classWithProgressProvider(_classId));
+        return true;
+      },
+    );
+  }
+
+  /// Elimina un archivo de evidencia.
+  Future<bool> deleteFile({
+    required int requirementId,
+    required String fileId,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+
+    final result = await _deleteFile(
+      DeleteRequirementFileParams(
+        userId: _userId,
+        classId: _classId,
+        requirementId: requirementId,
+        fileId: fileId,
+      ),
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+        return false;
+      },
+      (_) {
+        state = state.copyWith(isLoading: false, success: true);
+        _ref.invalidate(classWithProgressProvider(_classId));
+        return true;
+      },
+    );
+  }
+
+  /// Limpia el estado de error / exito.
+  void reset() => state = const RequirementOperationState();
+}
+
+/// Provider para el notifier de operaciones de requerimiento.
+///
+/// Es un family por [classId] para que cada clase tenga su propio estado.
+/// Resuelve el userId internamente desde el authNotifier.
+final requirementNotifierProvider = StateNotifierProvider.autoDispose
+    .family<RequirementNotifier, RequirementOperationState, int>(
+  (ref, classId) {
+    final authState = ref.watch(authNotifierProvider);
+    final userId = authState.value?.id ?? '';
+
+    return RequirementNotifier(
+      submitRequirement: ref.read(submitRequirementUseCaseProvider),
+      uploadFile: ref.read(uploadRequirementFileUseCaseProvider),
+      deleteFile: ref.read(deleteRequirementFileUseCaseProvider),
+      ref: ref,
+      userId: userId,
+      classId: classId,
+    );
+  },
+);
+
+// ── Class progress notifier (legacy) ──────────────────────────────────────────
+
 /// Notifier para manejar actualizaciones de progreso
 class ClassProgressNotifier extends AsyncNotifier<ClassProgress?> {
   @override
   Future<ClassProgress?> build() async => null;
 
-  /// Actualizar progreso de una sección
+  /// Actualizar progreso de una seccion
   Future<void> updateProgress(
     String userId,
     int classId,
