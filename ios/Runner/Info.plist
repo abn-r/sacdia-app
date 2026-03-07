@@ -4,6 +4,13 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<!-- Permisos de camara y galeria requeridos por image_picker -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>SACDIA necesita acceso a tu galeria para seleccionar una imagen para la actividad.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>SACDIA necesita acceso a la camara para tomar una foto para la actividad.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>SACDIA necesita permiso para guardar imagenes en tu galeria.</string>
 	<!-- Permisos de ubicación requeridos por google_maps_flutter y geocoding -->
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>SACDIA necesita acceso a tu ubicacion para mostrar el mapa y seleccionar el lugar de la actividad.</string>

@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -9,6 +12,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dropdown_field.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/providers/catalogs_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../data/models/create_activity_request.dart';
 import '../providers/activities_providers.dart';
@@ -46,6 +50,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
   // Controladores de texto
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
+  // _imageController is kept for internal sync with the uploaded URL
   final _imageController = TextEditingController();
   final _timeController = TextEditingController(text: '09:00');
   final _linkMeetController = TextEditingController();
@@ -59,6 +64,10 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
   int? _selectedClubTypeId;
   int _selectedPlatform = 0; // 0 = Presencial, 1 = Virtual
   int _selectedActivityType = 1; // 1 = Regular, 2 = Especial, 3 = Camporee
+
+  // Image upload state
+  String? _uploadedImageUrl;
+  bool _isUploadingImage = false;
 
   @override
   void dispose() {
@@ -116,6 +125,63 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
     }
   }
 
+  Future<void> _pickAndUploadImage(ImageSource source) async {
+    // 1. Pick image
+    final picker = ImagePicker();
+    final XFile? picked = await picker.pickImage(
+      source: source,
+      imageQuality: 75,
+      maxWidth: 1200,
+      maxHeight: 1200,
+    );
+    if (picked == null || !mounted) return;
+
+    // 2. Set loading state
+    setState(() => _isUploadingImage = true);
+
+    try {
+      // 3. Upload to Supabase Storage
+      final supabase = Supabase.instance.client;
+      final bytes = await File(picked.path).readAsBytes();
+      final ext = picked.path.split('.').last.toLowerCase();
+      final fileName = 'activity_${DateTime.now().millisecondsSinceEpoch}.$ext';
+      final path = 'activities/$fileName';
+
+      await supabase.storage
+          .from('activities-images')
+          .uploadBinary(
+            path,
+            bytes,
+            fileOptions: FileOptions(contentType: 'image/$ext'),
+          );
+
+      final url =
+          supabase.storage.from('activities-images').getPublicUrl(path);
+
+      if (mounted) {
+        setState(() {
+          _uploadedImageUrl = url;
+          _imageController.text = url;
+          _isUploadingImage = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isUploadingImage = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Error al subir la imagen. Intenta nuevamente.'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _handleSave() async {
     // Marcar ubicación como tocada para mostrar error si falta
     setState(() => _locationTouched = true);
@@ -133,6 +199,12 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
       return;
     }
 
+    // Para actividades virtuales se requiere imagen
+    if (_selectedPlatform == 1 && _uploadedImageUrl == null) {
+      _showError('Selecciona una imagen para la actividad virtual');
+      return;
+    }
+
     final request = CreateActivityRequest(
       name: _nameController.text.trim(),
       description: _descriptionController.text.trim().isEmpty
@@ -145,7 +217,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
           ? '09:00'
           : _timeController.text.trim(),
       activityPlace: _selectedLocation!.name,
-      image: _imageController.text.trim(),
+      image: _uploadedImageUrl,
       platform: _selectedPlatform,
       activityTypeId: _selectedActivityType,
       linkMeet: _linkMeetController.text.trim().isEmpty
@@ -277,30 +349,6 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
             ),
           ],
         ),
-        // actions: [
-        //   if (isLoading)
-        //     const Padding(
-        //       padding: EdgeInsets.all(16),
-        //       child: SizedBox(
-        //         width: 20,
-        //         height: 20,
-        //         child: CircularProgressIndicator(
-        //           strokeWidth: 2,
-        //           color: AppColors.primary,
-        //         ),
-        //       ),
-        //     )
-        //   else
-        //     IconButton(
-        //       icon: HugeIcon(
-        //         icon: HugeIcons.strokeRoundedTick02,
-        //         color: AppColors.primary,
-        //         size: 24,
-        //       ),
-        //       onPressed: _handleSave,
-        //       tooltip: 'Guardar',
-        //     ),
-        // ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(height: 1, color: c.border),
@@ -435,39 +483,16 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
             ),
             const SizedBox(height: 24),
 
-            // ── Sección: Imagen y plataforma ──────────────────────────
+            // ── Sección: Modalidad ────────────────────────────────────
             _SectionHeader(
-              icon: HugeIcons.strokeRoundedImage01,
-              label: 'Imagen y plataforma',
+              icon: HugeIcons.strokeRoundedComputerVideoCall,
+              label: 'Modalidad',
             ),
             const SizedBox(height: 12),
 
-            // URL de imagen *
-            SacTextField(
-              controller: _imageController,
-              label: 'URL de imagen *',
-              hint: 'https://cdn.example.com/imagen.jpg',
-              prefixIcon: HugeIcons.strokeRoundedLink01,
-              keyboardType: TextInputType.url,
-              enabled: !isLoading,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'La imagen es requerida';
-                }
-                final uri = Uri.tryParse(value.trim());
-                if (uri == null ||
-                    (!uri.scheme.startsWith('http') &&
-                        !uri.scheme.startsWith('https'))) {
-                  return 'Ingresa una URL valida';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Plataforma (presencial / virtual)
+            // Plataforma (presencial / virtual) — always visible
             _SegmentedSelector<int>(
-              label: 'Modalidad',
+              label: 'Tipo de actividad',
               value: _selectedPlatform,
               options: const [
                 _SegmentOption(value: 0, label: 'Presencial'),
@@ -475,17 +500,25 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
               ],
               onChanged: isLoading
                   ? null
-                  : (v) => setState(() => _selectedPlatform = v),
+                  : (v) => setState(() {
+                        _selectedPlatform = v;
+                        // Reset image when switching to presencial
+                        if (v == 0) {
+                          _uploadedImageUrl = null;
+                          _imageController.clear();
+                        }
+                      }),
             ),
             const SizedBox(height: 16),
 
-            // Link de videoconferencia (solo cuando es virtual)
+            // Virtual-only fields (animated in/out)
             AnimatedSize(
               duration: const Duration(milliseconds: 250),
               curve: Curves.easeInOut,
               child: _selectedPlatform == 1
                   ? Column(
                       children: [
+                        // Link videoconferencia
                         SacTextField(
                           controller: _linkMeetController,
                           label: 'Link de videoconferencia',
@@ -493,6 +526,17 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
                           prefixIcon: HugeIcons.strokeRoundedComputerVideoCall,
                           keyboardType: TextInputType.url,
                           enabled: !isLoading,
+                        ),
+                        const SizedBox(height: 16),
+                        // Image picker
+                        _ActivityImagePicker(
+                          imageUrl: _uploadedImageUrl,
+                          isUploading: _isUploadingImage,
+                          enabled: !isLoading,
+                          onPickGallery: () =>
+                              _pickAndUploadImage(ImageSource.gallery),
+                          onPickCamera: () =>
+                              _pickAndUploadImage(ImageSource.camera),
                         ),
                         const SizedBox(height: 16),
                       ],
@@ -511,6 +555,344 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
             ),
             const SizedBox(height: 32),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Widget de selección y previsualización de imagen
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ActivityImagePicker extends StatelessWidget {
+  final String? imageUrl;
+  final bool isUploading;
+  final bool enabled;
+  final VoidCallback onPickGallery;
+  final VoidCallback onPickCamera;
+
+  const _ActivityImagePicker({
+    required this.imageUrl,
+    required this.isUploading,
+    required this.enabled,
+    required this.onPickGallery,
+    required this.onPickCamera,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Label
+        Text(
+          'Imagen de la actividad',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 6),
+
+        // Container body
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: enabled ? c.surface : c.surfaceVariant,
+            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+            border: Border.all(
+              color: imageUrl != null
+                  ? AppColors.primary.withValues(alpha: 0.4)
+                  : c.border,
+              width: imageUrl != null ? 1.5 : 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                offset: const Offset(0, 3),
+                blurRadius: 20,
+              ),
+            ],
+          ),
+          child: isUploading
+              ? _UploadingBody()
+              : imageUrl != null
+                  ? _PreviewBody(
+                      imageUrl: imageUrl!,
+                      enabled: enabled,
+                      onPickGallery: onPickGallery,
+                      onPickCamera: onPickCamera,
+                    )
+                  : _PickerBody(
+                      enabled: enabled,
+                      onPickGallery: onPickGallery,
+                      onPickCamera: onPickCamera,
+                    ),
+        ),
+      ],
+    );
+  }
+}
+
+class _UploadingBody extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const LinearProgressIndicator(
+            color: AppColors.primary,
+            backgroundColor: AppColors.primaryLight,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Subiendo imagen...',
+            style: TextStyle(
+              fontSize: 13,
+              color: c.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PickerBody extends StatelessWidget {
+  final bool enabled;
+  final VoidCallback onPickGallery;
+  final VoidCallback onPickCamera;
+
+  const _PickerBody({
+    required this.enabled,
+    required this.onPickGallery,
+    required this.onPickCamera,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Expanded(
+            child: _ImageSourceButton(
+              icon: HugeIcons.strokeRoundedImage01,
+              label: 'Galeria',
+              enabled: enabled,
+              onTap: onPickGallery,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _ImageSourceButton(
+              icon: HugeIcons.strokeRoundedCamera01,
+              label: 'Camara',
+              enabled: enabled,
+              onTap: onPickCamera,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ImageSourceButton extends StatelessWidget {
+  final dynamic icon;
+  final String label;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  const _ImageSourceButton({
+    required this.icon,
+    required this.label,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.primaryLight,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: AppColors.primary.withValues(alpha: 0.25),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            HugeIcon(
+              icon: icon,
+              size: 24,
+              color: AppColors.primary,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PreviewBody extends StatelessWidget {
+  final String imageUrl;
+  final bool enabled;
+  final VoidCallback onPickGallery;
+  final VoidCallback onPickCamera;
+
+  const _PreviewBody({
+    required this.imageUrl,
+    required this.enabled,
+    required this.onPickGallery,
+    required this.onPickCamera,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Thumbnail with re-pick overlay
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  imageUrl,
+                  height: 120,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    height: 120,
+                    color: AppColors.primaryLight,
+                    child: const Center(
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedImage01,
+                        size: 32,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // Re-pick button (top-right corner)
+              if (enabled)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: _RepickMenu(
+                    onPickGallery: onPickGallery,
+                    onPickCamera: onPickCamera,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Success text
+          Row(
+            children: [
+              const Icon(
+                Icons.check_circle_rounded,
+                size: 16,
+                color: AppColors.secondary,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Imagen cargada correctamente',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.secondary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RepickMenu extends StatelessWidget {
+  final VoidCallback onPickGallery;
+  final VoidCallback onPickCamera;
+
+  const _RepickMenu({
+    required this.onPickGallery,
+    required this.onPickCamera,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<String>(
+      onSelected: (value) {
+        if (value == 'gallery') onPickGallery();
+        if (value == 'camera') onPickCamera();
+      },
+      itemBuilder: (_) => const [
+        PopupMenuItem(
+          value: 'gallery',
+          child: Row(
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedImage01,
+                size: 18,
+                color: AppColors.primary,
+              ),
+              SizedBox(width: 10),
+              Text('Galeria'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'camera',
+          child: Row(
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedCamera01,
+                size: 18,
+                color: AppColors.primary,
+              ),
+              SizedBox(width: 10),
+              Text('Camara'),
+            ],
+          ),
+        ),
+      ],
+      child: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.55),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const HugeIcon(
+          icon: HugeIcons.strokeRoundedEdit02,
+          size: 16,
+          color: Colors.white,
         ),
       ),
     );

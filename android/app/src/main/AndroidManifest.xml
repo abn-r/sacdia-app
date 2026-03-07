@@ -7,7 +7,8 @@
     <application
         android:label="sacdia_app"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:hardwareAccelerated="true">
         <!-- Google Maps API Key -->
         <!-- TODO: Reemplaza el valor con tu API Key real de Google Cloud Console -->
         <!-- Activa "Maps SDK for Android" y "Geocoding API" para esta key -->

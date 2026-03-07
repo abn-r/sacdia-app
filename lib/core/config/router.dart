@@ -210,7 +210,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: RouteNames.homeGroupedClass,
             pageBuilder: (context, state) => _buildPage(
               context, state,
-              const ClassesListView(),
+              ClassDetailWithProgressView(classId: 1), //ClassesListView(),  
             ),
           ),
           GoRoute(

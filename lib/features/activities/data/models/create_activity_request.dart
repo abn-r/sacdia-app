@@ -10,7 +10,7 @@ class CreateActivityRequest {
   final double long;
   final String activityTime;
   final String activityPlace;
-  final String image;
+  final String? image;
   final int platform;
   final int activityTypeId;
   final String? linkMeet;
@@ -28,7 +28,7 @@ class CreateActivityRequest {
     required this.long,
     this.activityTime = '09:00',
     required this.activityPlace,
-    required this.image,
+    this.image,
     this.platform = 0,
     this.activityTypeId = 1,
     this.linkMeet,
@@ -48,7 +48,6 @@ class CreateActivityRequest {
       'long': long,
       'activity_time': activityTime,
       'activity_place': activityPlace,
-      'image': image,
       'platform': platform,
       'activity_type_id': activityTypeId,
       'club_adv_id': clubAdvId,
@@ -56,6 +55,7 @@ class CreateActivityRequest {
       'club_mg_id': clubMgId,
     };
 
+    if (image != null && image!.isNotEmpty) json['image'] = image;
     if (description != null) json['description'] = description;
     if (linkMeet != null) json['link_meet'] = linkMeet;
     if (additionalData != null) json['additional_data'] = additionalData;

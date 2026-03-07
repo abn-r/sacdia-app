@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:sacdia_app/core/constants/maps_constants.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -29,11 +31,29 @@ class LocationPickerResult {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Modelo privado para resultados de Nominatim
+// ─────────────────────────────────────────────────────────────────────────────
 
-/// Pantalla de selección de ubicación con Google Maps.
+/// Resultado de la API de Nominatim con coordenadas y nombre del lugar.
+class _NominatimPlace {
+  final double lat;
+  final double lon;
+  final String displayName;
+
+  const _NominatimPlace({
+    required this.lat,
+    required this.lon,
+    required this.displayName,
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Pantalla de selección de ubicación con flutter_map (CartoDB Voyager tiles).
 ///
 /// Muestra un mapa a pantalla completa con:
-/// - Barra de búsqueda en la parte superior (geocodificación de texto)
+/// - Barra de búsqueda en la parte superior con autocompletado en tiempo real
+///   usando la API de Nominatim (OpenStreetMap).
 /// - Pin central que sigue el movimiento de la cámara
 /// - Tarjeta inferior con la dirección resuelta y botón de confirmación
 ///
@@ -46,10 +66,7 @@ class LocationPickerResult {
 /// if (result != null) { ... }
 /// ```
 ///
-/// NOTA: Requiere que la API Key de Google Maps esté configurada en:
-///   - Android: AndroidManifest.xml → com.google.android.geo.API_KEY
-///   - iOS: AppDelegate.swift → GMSServices.provideAPIKey(...)
-/// Ver [MapsConstants] para instrucciones detalladas.
+/// No requiere API Key de ningún proveedor.
 class LocationPickerView extends StatefulWidget {
   /// Ubicación inicial del mapa. Si es null, usa la ubicación por defecto
   /// definida en [MapsConstants] (Ciudad de México).
@@ -61,9 +78,10 @@ class LocationPickerView extends StatefulWidget {
   State<LocationPickerView> createState() => _LocationPickerViewState();
 }
 
-class _LocationPickerViewState extends State<LocationPickerView> {
+class _LocationPickerViewState extends State<LocationPickerView>
+    with TickerProviderStateMixin {
   // ── Controladores ─────────────────────────────────────────────────────────
-  final Completer<GoogleMapController> _mapController = Completer();
+  late final MapController _mapController;
 
   // ── Estado ────────────────────────────────────────────────────────────────
   late LatLng _currentCenter;
@@ -79,6 +97,7 @@ class _LocationPickerViewState extends State<LocationPickerView> {
   @override
   void initState() {
     super.initState();
+    _mapController = MapController();
     _currentCenter = widget.initialLocation ??
         const LatLng(MapsConstants.defaultLat, MapsConstants.defaultLong);
     // Resolver dirección de la ubicación inicial
@@ -88,6 +107,7 @@ class _LocationPickerViewState extends State<LocationPickerView> {
   @override
   void dispose() {
     _geocodeDebounce?.cancel();
+    _mapController.dispose();
     super.dispose();
   }
 
@@ -139,7 +159,7 @@ class _LocationPickerViewState extends State<LocationPickerView> {
         }
       }
     } catch (_) {
-      // Si geocoding falla (sin internet, key inválida, etc.), mostrar coords
+      // Si geocoding falla (sin internet, etc.), mostrar coords
       if (mounted) {
         setState(() {
           _resolvedAddress =
@@ -150,41 +170,60 @@ class _LocationPickerViewState extends State<LocationPickerView> {
     }
   }
 
-  /// Geocodificación directa: convierte texto en coordenadas.
-  Future<LatLng?> _geocodeAddress(String address) async {
-    try {
-      final locations = await locationFromAddress(address);
-      if (locations.isNotEmpty) {
-        return LatLng(locations.first.latitude, locations.first.longitude);
-      }
-    } catch (_) {
-      // Geocoding falló — devuelve null para indicarlo al llamador
-    }
-    return null;
-  }
-
   // ── Handlers del mapa ─────────────────────────────────────────────────────
 
-  void _onCameraMove(CameraPosition position) {
-    _currentCenter = position.target;
-    // Cancelar cualquier resolución pendiente mientras el usuario sigue arrastrando
-    _geocodeDebounce?.cancel();
+  void _onPositionChanged(MapCamera camera, bool hasGesture) {
+    _currentCenter = camera.center;
+
+    if (hasGesture) {
+      // Cancelar cualquier resolución pendiente mientras el usuario arrastra
+      _geocodeDebounce?.cancel();
+      // Esperar 600 ms de quietud antes de llamar a geocoding
+      _geocodeDebounce = Timer(const Duration(milliseconds: 600), () {
+        _resolveAddressForLatLng(_currentCenter);
+      });
+    }
   }
 
-  void _onCameraIdle() {
-    // Esperar 600 ms de quietud antes de llamar a geocoding
-    _geocodeDebounce = Timer(const Duration(milliseconds: 600), () {
-      _resolveAddressForLatLng(_currentCenter);
-    });
-  }
-
-  Future<void> _animateTo(LatLng target, {double zoom = MapsConstants.searchResultZoom}) async {
-    final controller = await _mapController.future;
-    await controller.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(target: target, zoom: zoom),
-      ),
+  void _animateTo(LatLng target, {double zoom = MapsConstants.searchResultZoom}) {
+    final latTween = Tween<double>(
+      begin: _mapController.camera.center.latitude,
+      end: target.latitude,
     );
+    final lngTween = Tween<double>(
+      begin: _mapController.camera.center.longitude,
+      end: target.longitude,
+    );
+    final zoomTween = Tween<double>(
+      begin: _mapController.camera.zoom,
+      end: zoom,
+    );
+
+    final controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    final animation = CurvedAnimation(
+      parent: controller,
+      curve: Curves.easeInOut,
+    );
+
+    controller.addListener(() {
+      _mapController.move(
+        LatLng(latTween.evaluate(animation), lngTween.evaluate(animation)),
+        zoomTween.evaluate(animation),
+      );
+    });
+
+    animation.addStatusListener((status) {
+      if (status == AnimationStatus.completed ||
+          status == AnimationStatus.dismissed) {
+        controller.dispose();
+      }
+    });
+
+    controller.forward();
   }
 
   void _onConfirm() {
@@ -200,31 +239,17 @@ class _LocationPickerViewState extends State<LocationPickerView> {
   // ── Búsqueda ──────────────────────────────────────────────────────────────
 
   Future<void> _openSearch() async {
-    final query = await showSearch<String?>(
+    final place = await showSearch<_NominatimPlace?>(
       context: context,
       delegate: _LocationSearchDelegate(),
     );
 
-    if (query == null || query.trim().isEmpty || !mounted) return;
+    if (place == null || !mounted) return;
 
-    final latLng = await _geocodeAddress(query.trim());
-    if (latLng == null) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('No se encontró esa dirección. Intenta ser más específico.'),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
-      return;
-    }
-
+    final latLng = LatLng(place.lat, place.lon);
     _currentCenter = latLng;
-    await _animateTo(latLng);
+    _animateTo(latLng);
+    // Resolver dirección local para la tarjeta inferior (más limpio que display_name)
     _resolveAddressForLatLng(latLng);
   }
 
@@ -239,25 +264,41 @@ class _LocationPickerViewState extends State<LocationPickerView> {
         body: Stack(
           children: [
             // ── Mapa a pantalla completa ──────────────────────────────
-            GoogleMap(
-              initialCameraPosition: CameraPosition(
-                target: _currentCenter,
-                zoom: MapsConstants.defaultZoom,
+            FlutterMap(
+              mapController: _mapController,
+              options: MapOptions(
+                initialCenter: _currentCenter,
+                initialZoom: MapsConstants.defaultZoom,
+                onPositionChanged: _onPositionChanged,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.all,
+                ),
               ),
-              onMapCreated: (controller) {
-                _mapController.complete(controller);
-              },
-              onCameraMove: _onCameraMove,
-              onCameraIdle: _onCameraIdle,
-              myLocationButtonEnabled: false,
-              myLocationEnabled: false,
-              zoomControlsEnabled: false,
-              compassEnabled: false,
-              mapToolbarEnabled: false,
+              children: [
+                TileLayer(
+                  urlTemplate:
+                      'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+                  userAgentPackageName: 'com.sacdia.app',
+                  maxNativeZoom: 19,
+                  maxZoom: 22,
+                  additionalOptions: const {
+                    'r': '@2x',
+                  },
+                ),
+                RichAttributionWidget(
+                  attributions: [
+                    TextSourceAttribution('CartoDB', onTap: () {}),
+                    TextSourceAttribution(
+                      '© OpenStreetMap contributors',
+                      onTap: () {},
+                    ),
+                  ],
+                ),
+              ],
             ),
 
             // ── Pin central (fijo en el centro de la pantalla) ────────
-            _CenterPin(),
+            const _CenterPin(),
 
             // ── AppBar flotante ───────────────────────────────────────
             Positioned(
@@ -382,16 +423,6 @@ class _CenterPin extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Sombra del pin
-          Container(
-            width: 10,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.25),
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          const SizedBox(height: 2),
           // Cuerpo del pin
           Container(
             decoration: BoxDecoration(
@@ -409,6 +440,15 @@ class _CenterPin extends StatelessWidget {
               Icons.location_pin,
               color: Colors.white,
               size: 42,
+            ),
+          ),
+          // Sombra del pin
+          Container(
+            width: 10,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(10),
             ),
           ),
         ],
@@ -659,20 +699,117 @@ class _ShimmerLineState extends State<_ShimmerLine>
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Delegado de búsqueda
+// Delegado de búsqueda con autocompletado Nominatim
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Delegado para el buscador de lugares usando [showSearch].
+/// Delegado para el buscador de lugares con sugerencias en tiempo real via
+/// la API pública de Nominatim (OpenStreetMap).
 ///
-/// Devuelve la cadena que el usuario ingresó (sin hacer geocoding aquí —
-/// la geocodificación la hace [_LocationPickerViewState._openSearch]).
-class _LocationSearchDelegate extends SearchDelegate<String?> {
+/// Devuelve un [_NominatimPlace] con coordenadas y nombre del lugar
+/// seleccionado, evitando una segunda llamada de geocodificación.
+class _LocationSearchDelegate extends SearchDelegate<_NominatimPlace?> {
   _LocationSearchDelegate()
       : super(
           searchFieldLabel: 'Buscar dirección o lugar...',
           keyboardType: TextInputType.streetAddress,
           textInputAction: TextInputAction.search,
         );
+
+  // ── Nominatim ─────────────────────────────────────────────────────────────
+
+  static final Dio _dio = Dio(
+    BaseOptions(
+      baseUrl: 'https://nominatim.openstreetmap.org',
+      connectTimeout: const Duration(seconds: 5),
+      receiveTimeout: const Duration(seconds: 5),
+      headers: {
+        'User-Agent': 'SACDIA App/1.0 (contact@sacdia.org)',
+        'Accept-Language': 'es',
+      },
+    ),
+  );
+
+  // Estado interno del delegado
+  List<_NominatimPlace> _results = [];
+  bool _isLoading = false;
+  bool _hasError = false;
+  Timer? _debounce;
+  String _lastQuery = '';
+
+  /// Llama a Nominatim y actualiza resultados. Debounced 400ms.
+  void _scheduleSearch(String q, void Function(void Function()) refresh) {
+    _debounce?.cancel();
+    if (q.trim().isEmpty) {
+      refresh(() {
+        _results = [];
+        _isLoading = false;
+        _hasError = false;
+      });
+      return;
+    }
+
+    refresh(() {
+      _isLoading = true;
+      _hasError = false;
+    });
+
+    _debounce = Timer(const Duration(milliseconds: 400), () async {
+      if (q != _lastQuery) {
+        _lastQuery = q;
+        try {
+          final response = await _dio.get<List<dynamic>>(
+            '/search',
+            queryParameters: {
+              'q': q.trim(),
+              'format': 'json',
+              'limit': 5,
+              'addressdetails': 1,
+              'accept-language': 'es',
+            },
+          );
+
+          final data = response.data ?? [];
+          final places = data.map((item) {
+            final map = item as Map<String, dynamic>;
+            return _NominatimPlace(
+              lat: double.parse(map['lat'] as String),
+              lon: double.parse(map['lon'] as String),
+              displayName: map['display_name'] as String,
+            );
+          }).toList();
+
+          refresh(() {
+            _results = places;
+            _isLoading = false;
+            _hasError = false;
+          });
+        } catch (_) {
+          refresh(() {
+            _results = [];
+            _isLoading = false;
+            _hasError = true;
+          });
+        }
+      }
+    });
+  }
+
+  // ── Helpers de formato ────────────────────────────────────────────────────
+
+  /// Título: primeras 2 partes del display_name separadas por coma.
+  String _placeTitle(String displayName) {
+    final parts = displayName.split(', ');
+    return parts.take(2).join(', ');
+  }
+
+  /// Subtítulo: partes restantes (desde la tercera en adelante).
+  String _placeSubtitle(String displayName) {
+    final parts = displayName.split(', ');
+    if (parts.length <= 2) return '';
+    return parts.skip(2).join(', ');
+  }
+
+  // ── SearchDelegate overrides ───────────────────────────────────────────────
 
   @override
   List<Widget> buildActions(BuildContext context) {
@@ -684,7 +821,13 @@ class _LocationSearchDelegate extends SearchDelegate<String?> {
             size: 20,
             color: context.sac.textSecondary,
           ),
-          onPressed: () => query = '',
+          onPressed: () {
+            query = '';
+            _debounce?.cancel();
+            _results = [];
+            _isLoading = false;
+            _hasError = false;
+          },
         ),
     ];
   }
@@ -697,17 +840,17 @@ class _LocationSearchDelegate extends SearchDelegate<String?> {
         size: 20,
         color: context.sac.text,
       ),
-      onPressed: () => close(context, null),
+      onPressed: () {
+        _debounce?.cancel();
+        close(context, null);
+      },
     );
   }
 
   @override
   Widget buildResults(BuildContext context) {
-    // Al confirmar la búsqueda, devolver la cadena al llamador
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      close(context, query.trim());
-    });
-    return const SizedBox.shrink();
+    // Cuando el usuario presiona "buscar" en el teclado, mostrar sugerencias
+    return buildSuggestions(context);
   }
 
   @override
@@ -718,36 +861,104 @@ class _LocationSearchDelegate extends SearchDelegate<String?> {
       return _SearchEmptyHint(c: c);
     }
 
-    // Mostrar una sugerencia simple: buscar tal cual el texto ingresado
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: AppColors.primaryLight,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: HugeIcon(
-          icon: HugeIcons.strokeRoundedSearch01,
-          size: 18,
-          color: AppColors.primary,
-        ),
-      ),
-      title: Text(
-        'Buscar "$query"',
-        style: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: c.text,
-        ),
-      ),
-      subtitle: Text(
-        'Toca para buscar esta dirección en el mapa',
-        style: TextStyle(fontSize: 12, color: c.textSecondary),
-      ),
-      onTap: () => close(context, query.trim()),
+    return StatefulBuilder(
+      builder: (context, setState) {
+        // Iniciar búsqueda cuando el query cambia
+        if (query != _lastQuery || _isLoading == false && _results.isEmpty && !_hasError) {
+          _scheduleSearch(query, (fn) {
+            // Llamar setState del StatefulBuilder para refrescar la UI
+            if (context.mounted) setState(fn);
+          });
+        }
+
+        if (_isLoading) {
+          return Center(
+            child: CircularProgressIndicator(
+              color: AppColors.primary,
+              strokeWidth: 2.5,
+            ),
+          );
+        }
+
+        if (_hasError) {
+          return _SearchStatusMessage(
+            icon: HugeIcons.strokeRoundedWifiError01,
+            title: 'Error de conexión',
+            subtitle: 'Verifica tu internet e intenta de nuevo.',
+            c: c,
+          );
+        }
+
+        if (_results.isEmpty) {
+          return _SearchStatusMessage(
+            icon: HugeIcons.strokeRoundedLocation01,
+            title: 'No se encontraron resultados',
+            subtitle: 'Intenta con otro nombre o dirección.',
+            c: c,
+          );
+        }
+
+        return ListView.separated(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          itemCount: _results.length,
+          separatorBuilder: (_, __) => Divider(
+            height: 1,
+            indent: 68,
+            color: c.border.withValues(alpha: 0.5),
+          ),
+          itemBuilder: (context, index) {
+            final place = _results[index];
+            final title = _placeTitle(place.displayName);
+            final subtitle = _placeSubtitle(place.displayName);
+
+            return ListTile(
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedLocation01,
+                  size: 18,
+                  color: AppColors.primary,
+                ),
+              ),
+              title: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: c.text,
+                ),
+              ),
+              subtitle: subtitle.isNotEmpty
+                  ? Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12, color: c.textSecondary),
+                    )
+                  : null,
+              onTap: () {
+                _debounce?.cancel();
+                close(context, place);
+              },
+            );
+          },
+        );
+      },
     );
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Widgets de estado para la búsqueda
+// ─────────────────────────────────────────────────────────────────────────────
 
 /// Pantalla de ayuda cuando la búsqueda está vacía.
 class _SearchEmptyHint extends StatelessWidget {
@@ -802,6 +1013,67 @@ class _SearchEmptyHint extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               color: c.textTertiary,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Mensaje genérico de estado (sin resultados / error de red).
+class _SearchStatusMessage extends StatelessWidget {
+  final dynamic icon;
+  final String title;
+  final String subtitle;
+  final SacColors c;
+
+  const _SearchStatusMessage({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.c,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: HugeIcon(
+                icon: icon,
+                size: 28,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: c.text,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              color: c.textSecondary,
               height: 1.4,
             ),
           ),
