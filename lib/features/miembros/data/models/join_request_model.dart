@@ -3,7 +3,7 @@ import '../../domain/entities/join_request.dart';
 /// Modelo de datos de una solicitud de ingreso al club
 class JoinRequestModel extends JoinRequest {
   const JoinRequestModel({
-    required super.id,
+    required super.assignmentId,
     required super.userId,
     required super.name,
     super.paternalSurname,
@@ -20,8 +20,7 @@ class JoinRequestModel extends JoinRequest {
     final user = json['user'] as Map<String, dynamic>? ?? json;
 
     JoinRequestStatus status;
-    final rawStatus =
-        (json['status'] as String? ?? 'pending').toLowerCase();
+    final rawStatus = (json['status'] as String? ?? 'pending').toLowerCase();
     switch (rawStatus) {
       case 'approved':
         status = JoinRequestStatus.approved;
@@ -34,10 +33,13 @@ class JoinRequestModel extends JoinRequest {
         status = JoinRequestStatus.pending;
     }
 
+    final assignmentId = json['assignment_id']?.toString() ??
+        json['club_role_assignment_id']?.toString() ??
+        json['id']?.toString() ??
+        '';
+
     return JoinRequestModel(
-      id: json['id'] is int
-          ? json['id'] as int
-          : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      assignmentId: assignmentId,
       userId: user['user_id'] as String? ??
           user['id'] as String? ??
           json['user_id'] as String? ??

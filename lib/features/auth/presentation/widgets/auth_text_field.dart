@@ -11,14 +11,14 @@ class AuthTextField extends StatefulWidget {
   final String? Function(String?)? validator;
 
   const AuthTextField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.hintText,
     required this.icon,
     this.obscureText = false,
     this.keyboardType = TextInputType.text,
     this.validator,
-  }) : super(key: key);
+  });
 
   @override
   State<AuthTextField> createState() => _AuthTextFieldState();
@@ -41,7 +41,9 @@ class _AuthTextFieldState extends State<AuthTextField> {
         suffixIcon: widget.obscureText
             ? IconButton(
                 icon: HugeIcon(
-                  icon: _showPassword ? HugeIcons.strokeRoundedViewOff : HugeIcons.strokeRoundedViewOffSlash,
+                  icon: _showPassword
+                      ? HugeIcons.strokeRoundedViewOff
+                      : HugeIcons.strokeRoundedViewOffSlash,
                   color: Colors.grey,
                   size: 20,
                 ),

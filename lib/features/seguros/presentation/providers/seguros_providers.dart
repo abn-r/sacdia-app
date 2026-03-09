@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../providers/dio_provider.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../miembros/presentation/providers/miembros_providers.dart';
 import '../../data/datasources/seguros_remote_data_source.dart';
@@ -31,8 +32,7 @@ final segurosRepositoryProvider = Provider<SegurosRepository>((ref) {
 
 // ── Use cases ───────────────────────────────────────────────────────────────────
 
-final getMembersInsuranceUseCaseProvider =
-    Provider<GetMembersInsurance>((ref) {
+final getMembersInsuranceUseCaseProvider = Provider<GetMembersInsurance>((ref) {
   return GetMembersInsurance(ref.read(segurosRepositoryProvider));
 });
 
@@ -55,17 +55,18 @@ const _segurosEditorRoles = {
 };
 
 /// Devuelve true si el usuario puede crear/editar seguros.
-final canManageSegurosProvider =
-    FutureProvider.autoDispose<bool>((ref) async {
+final canManageSegurosProvider = FutureProvider.autoDispose<bool>((ref) async {
   final authState = await ref.watch(authNotifierProvider.future);
   if (authState == null) return false;
 
-  final metadata = authState.metadata;
-  if (metadata == null) return false;
-
-  final rawRoles = metadata['roles'] as List<dynamic>? ?? [];
-  final roles = rawRoles.map((r) => r.toString().toLowerCase()).toSet();
-  return roles.intersection(_segurosEditorRoles).isNotEmpty;
+  return canByPermissionOrLegacyRole(
+    authState,
+    requiredPermissions: const {
+      'users:update',
+      'club_roles:assign',
+    },
+    legacyRoles: _segurosEditorRoles,
+  );
 });
 
 // ── Members insurance list ──────────────────────────────────────────────────────
@@ -149,8 +150,7 @@ class SegurosFilters {
   }
 
   bool get hasActiveFilters =>
-      searchQuery.isNotEmpty ||
-      statusFilter != InsuranceStatusFilter.todos;
+      searchQuery.isNotEmpty || statusFilter != InsuranceStatusFilter.todos;
 
   List<MemberInsurance> applyTo(List<MemberInsurance> items) {
     var result = items.where((mi) {
@@ -225,20 +225,17 @@ class SegurosSummary {
     required this.sinSeguro,
   });
 
-  double get coveragePercent =>
-      total == 0 ? 0 : (asegurados / total * 100);
+  double get coveragePercent => total == 0 ? 0 : (asegurados / total * 100);
 }
 
-final segurosSummaryProvider =
-    Provider.autoDispose<SegurosSummary?>((ref) {
+final segurosSummaryProvider = Provider.autoDispose<SegurosSummary?>((ref) {
   final itemsAsync = ref.watch(membersInsuranceProvider);
   return itemsAsync.valueOrNull?.let((items) {
     return SegurosSummary(
       total: items.length,
       asegurados:
           items.where((i) => i.status == InsuranceStatus.asegurado).length,
-      vencidos:
-          items.where((i) => i.status == InsuranceStatus.vencido).length,
+      vencidos: items.where((i) => i.status == InsuranceStatus.vencido).length,
       sinSeguro:
           items.where((i) => i.status == InsuranceStatus.sinSeguro).length,
     );
@@ -315,8 +312,7 @@ class InsuranceFormNotifier extends StateNotifier<InsuranceFormState> {
     double? coverageAmount,
     int? existingInsuranceId,
   }) async {
-    state = state.copyWith(
-        isLoading: true, clearError: true, success: false);
+    state = state.copyWith(isLoading: true, clearError: true, success: false);
 
     final file = state.selectedFile;
     final String? mimeType = file != null ? _mimeFromPath(file.path) : null;
@@ -338,8 +334,8 @@ class InsuranceFormNotifier extends StateNotifier<InsuranceFormState> {
 
       return result.fold(
         (failure) {
-          state = state.copyWith(
-              isLoading: false, errorMessage: failure.message);
+          state =
+              state.copyWith(isLoading: false, errorMessage: failure.message);
           return false;
         },
         (_) {
@@ -365,8 +361,8 @@ class InsuranceFormNotifier extends StateNotifier<InsuranceFormState> {
 
       return result.fold(
         (failure) {
-          state = state.copyWith(
-              isLoading: false, errorMessage: failure.message);
+          state =
+              state.copyWith(isLoading: false, errorMessage: failure.message);
           return false;
         },
         (_) {

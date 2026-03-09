@@ -1,6 +1,5 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -272,65 +271,6 @@ class _LoginViewState extends ConsumerState<LoginView> {
                 ),
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Widget privado para botones de OAuth con estilo glassmorphism.
-/// Fondo semitransparente, bordes suaves y tipografía consistente.
-class _OAuthButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  final String iconPath;
-  final String label;
-
-  const _OAuthButton({
-    required this.onPressed,
-    required this.iconPath,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(14),
-        splashColor: Colors.white.withValues(alpha: 0.15),
-        highlightColor: Colors.white.withValues(alpha: 0.08),
-        child: Ink(
-          decoration: BoxDecoration(
-            // Fondo glassmorphism — blanco semitransparente
-            color: Colors.white.withValues(alpha: 0.18),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.4),
-              width: 1.5,
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SvgPicture.asset(
-                iconPath,
-                width: 22,
-                height: 22,
-              ),
-              const SizedBox(width: 10),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: AppColors.sacBlack,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.2,
-                ),
-              ),
-            ],
           ),
         ),
       ),

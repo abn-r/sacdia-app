@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/datasources/miembros_remote_data_source.dart';
 import '../../data/repositories/miembros_repository_impl.dart';
 import '../../domain/entities/club_member.dart';
@@ -10,6 +10,9 @@ import '../../domain/repositories/miembros_repository.dart';
 import '../../domain/usecases/assign_club_role.dart';
 import '../../domain/usecases/get_club_members.dart';
 import '../../domain/usecases/get_join_requests.dart';
+
+const bool kRbacLegacyContextFallbackEnabled =
+    bool.fromEnvironment('RBAC_LEGACY_FALLBACK_ENABLED', defaultValue: false);
 
 // ── Infrastructure providers ──────────────────────────────────────────────────
 
@@ -60,30 +63,62 @@ class ClubContext {
   });
 }
 
+String _normalizeInstanceType(String value) {
+  switch (value.toLowerCase()) {
+    case 'conquistadores':
+      return 'pathfinders';
+    case 'aventureros':
+      return 'adventurers';
+    case 'guias_mayores':
+    case 'guías_mayores':
+      return 'master_guilds';
+    default:
+      return value;
+  }
+}
+
 /// Provider del contexto del club activo.
-/// El clubId / instanceId se obtienen desde el perfil del usuario autenticado.
-/// Para la iteración inicial se usan valores derivados de la sesión.
+/// Fuente oficial: authorization.active_assignment + authorization.grants.club_assignments.
+/// Mantiene fallback legacy temporal hacia metadata.club.
 final clubContextProvider = FutureProvider<ClubContext?>((ref) async {
   final authState = await ref.watch(authNotifierProvider.future);
   if (authState == null) return null;
 
-  // El contexto del club viene en el metadata del usuario o en el perfil.
-  // Por ahora leemos desde el metadata del UserEntity.
+  final activeGrant = authState.authorization?.activeGrant;
+  if (activeGrant != null &&
+      activeGrant.clubId != null &&
+      activeGrant.instanceId != null &&
+      activeGrant.instanceType != null) {
+    return ClubContext(
+      clubId: activeGrant.clubId!,
+      instanceType: _normalizeInstanceType(activeGrant.instanceType!),
+      instanceId: activeGrant.instanceId!,
+    );
+  }
+
+  if (!kRbacLegacyContextFallbackEnabled) return null;
+
   final metadata = authState.metadata;
   if (metadata == null) return null;
 
   final clubData = metadata['club'] as Map<String, dynamic>?;
   final clubId = clubData?['club_id'];
   final instanceId = clubData?['instance_id'] ?? clubData?['id'];
-  final instanceType = clubData?['club_type'] as String? ?? 'conquistadores';
+  final instanceType = clubData?['club_type'] as String? ?? 'pathfinders';
 
   if (clubId == null || instanceId == null) return null;
 
+  final parsedClubId = clubId is int ? clubId : int.tryParse(clubId.toString());
+  final parsedInstanceId =
+      instanceId is int ? instanceId : int.tryParse(instanceId.toString());
+
+  if (parsedClubId == null || parsedClubId <= 0) return null;
+  if (parsedInstanceId == null || parsedInstanceId <= 0) return null;
+
   return ClubContext(
-    clubId: clubId is int ? clubId : int.tryParse(clubId.toString()) ?? 0,
-    instanceType: instanceType,
-    instanceId:
-        instanceId is int ? instanceId : int.tryParse(instanceId.toString()) ?? 0,
+    clubId: parsedClubId,
+    instanceType: _normalizeInstanceType(instanceType),
+    instanceId: parsedInstanceId,
   );
 });
 
@@ -176,8 +211,7 @@ class JoinRequestFilters {
   }) {
     return JoinRequestFilters(
       searchQuery: searchQuery ?? this.searchQuery,
-      statusFilter:
-          clearStatus ? null : (statusFilter ?? this.statusFilter),
+      statusFilter: clearStatus ? null : (statusFilter ?? this.statusFilter),
     );
   }
 
@@ -335,9 +369,9 @@ class MiembrosNotifier extends Notifier<MiembrosState> {
   }
 
   /// Aprueba una solicitud de ingreso
-  Future<bool> approveRequest(int requestId, ClubContext context) async {
+  Future<bool> approveRequest(String assignmentId, ClubContext context) async {
     final repo = ref.read(miembrosRepositoryProvider);
-    final result = await repo.approveJoinRequest(requestId);
+    final result = await repo.approveJoinRequest(assignmentId);
     return result.fold(
       (failure) => false,
       (_) {
@@ -348,9 +382,9 @@ class MiembrosNotifier extends Notifier<MiembrosState> {
   }
 
   /// Rechaza una solicitud de ingreso
-  Future<bool> rejectRequest(int requestId, ClubContext context) async {
+  Future<bool> rejectRequest(String assignmentId, ClubContext context) async {
     final repo = ref.read(miembrosRepositoryProvider);
-    final result = await repo.rejectJoinRequest(requestId);
+    final result = await repo.rejectJoinRequest(assignmentId);
     return result.fold(
       (failure) => false,
       (_) {
@@ -423,8 +457,7 @@ final availableRolesProvider = Provider<List<String>>((ref) {
 });
 
 /// Miembros agrupados por clase progresiva
-final membersByClassProvider =
-    Provider<Map<String, List<ClubMember>>>((ref) {
+final membersByClassProvider = Provider<Map<String, List<ClubMember>>>((ref) {
   final members = ref.watch(filteredMembersProvider);
   final grouped = <String, List<ClubMember>>{};
 
@@ -435,12 +468,13 @@ final membersByClassProvider =
 
   // Ordenar los grupos por nombre de clase
   final ordered = <String, List<ClubMember>>{};
-  final sortedKeys = grouped.keys.toList()..sort((a, b) {
-    // "Sin clase" siempre al final
-    if (a == 'Sin clase') return 1;
-    if (b == 'Sin clase') return -1;
-    return _classOrder(a).compareTo(_classOrder(b));
-  });
+  final sortedKeys = grouped.keys.toList()
+    ..sort((a, b) {
+      // "Sin clase" siempre al final
+      if (a == 'Sin clase') return 1;
+      if (b == 'Sin clase') return -1;
+      return _classOrder(a).compareTo(_classOrder(b));
+    });
   for (final key in sortedKeys) {
     ordered[key] = grouped[key]!;
   }

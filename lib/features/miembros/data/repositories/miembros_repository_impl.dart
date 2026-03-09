@@ -87,12 +87,12 @@ class MiembrosRepositoryImpl implements MiembrosRepository {
 
   @override
   Future<Either<Failure, JoinRequest>> approveJoinRequest(
-      int requestId) async {
+      String assignmentId) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No hay conexión a internet'));
     }
     try {
-      final request = await remoteDataSource.approveJoinRequest(requestId);
+      final request = await remoteDataSource.approveJoinRequest(assignmentId);
       return Right(request);
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));
@@ -105,12 +105,12 @@ class MiembrosRepositoryImpl implements MiembrosRepository {
 
   @override
   Future<Either<Failure, JoinRequest>> rejectJoinRequest(
-      int requestId) async {
+      String assignmentId) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No hay conexión a internet'));
     }
     try {
-      final request = await remoteDataSource.rejectJoinRequest(requestId);
+      final request = await remoteDataSource.rejectJoinRequest(assignmentId);
       return Right(request);
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));
@@ -151,7 +151,7 @@ class MiembrosRepositoryImpl implements MiembrosRepository {
   }
 
   @override
-  Future<Either<Failure, bool>> removeClubRole(int assignmentId) async {
+  Future<Either<Failure, bool>> removeClubRole(String assignmentId) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No hay conexión a internet'));
     }

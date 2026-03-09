@@ -60,6 +60,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'AuthDS';
+  bool _attemptedContextAutoActivation = false;
 
   AuthRemoteDataSourceImpl({
     required Dio dio,
@@ -179,6 +180,28 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
+  Future<bool> _activateAuthorizationContext(
+    String token,
+    String assignmentId,
+  ) async {
+    try {
+      final response = await _dio.patch(
+        '$_baseUrl/auth/me/context',
+        data: {'assignment_id': assignmentId},
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } on DioException catch (e) {
+      AppLogger.w(
+        'No se pudo activar contexto RBAC canonico',
+        tag: _tag,
+        error: e,
+      );
+      return false;
+    }
+  }
+
   @override
   Stream<bool> get authStateChanges => _authStateController.stream;
 
@@ -245,10 +268,52 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
         await _persistCompletionCache(postRegisterComplete);
 
-        return UserModel.fromCustomApi(
+        final user = UserModel.fromCustomApi(
           userData,
           postRegisterComplete: postRegisterComplete,
         );
+
+        if (user.authorization?.hasCanonicalPermissions ?? false) {
+          AppLogger.i('rbac_canonical_used', tag: _tag);
+        } else if ((user.metadata?['permissions']) is List ||
+            (user.metadata?['roles']) is List) {
+          AppLogger.w('rbac_legacy_fallback_used', tag: _tag);
+        }
+
+        final hasActiveAssignment =
+            (user.authorization?.activeAssignmentId?.trim().isNotEmpty ??
+                false);
+
+        String? fallbackAssignmentId;
+        if (!hasActiveAssignment) {
+          for (final grant in user.authorization?.clubAssignments ?? const []) {
+            final candidate = grant.assignmentId?.trim();
+            if (candidate != null && candidate.isNotEmpty) {
+              fallbackAssignmentId = candidate;
+              break;
+            }
+          }
+        }
+
+        if (!_attemptedContextAutoActivation &&
+            !hasActiveAssignment &&
+            fallbackAssignmentId != null) {
+          _attemptedContextAutoActivation = true;
+          final contextActivated = await _activateAuthorizationContext(
+            token,
+            fallbackAssignmentId,
+          );
+
+          if (contextActivated) {
+            final refreshedUser = await getCurrentUser();
+            _attemptedContextAutoActivation = false;
+            return refreshedUser;
+          }
+
+          _attemptedContextAutoActivation = false;
+        }
+
+        return user;
       }
 
       if (response.statusCode == 401 || response.statusCode == 403) {
@@ -419,7 +484,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       AppLogger.i('Logout notificado al servidor', tag: _tag);
     } catch (e) {
       // Network error is acceptable; local state is already cleared.
-      AppLogger.w('Logout: no se pudo contactar el servidor', tag: _tag, error: e);
+      AppLogger.w('Logout: no se pudo contactar el servidor',
+          tag: _tag, error: e);
     }
   }
 

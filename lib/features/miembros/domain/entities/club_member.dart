@@ -14,7 +14,7 @@ class ClubMember extends Equatable {
 
   /// Rol del miembro dentro del club (cargo)
   final String? clubRole;
-  final int? clubRoleAssignmentId;
+  final String? clubRoleAssignmentId;
 
   /// Clase progresiva actual
   final String? currentClass;

@@ -24,10 +24,10 @@ abstract class MiembrosRepository {
   });
 
   /// Aprueba una solicitud de ingreso
-  Future<Either<Failure, JoinRequest>> approveJoinRequest(int requestId);
+  Future<Either<Failure, JoinRequest>> approveJoinRequest(String assignmentId);
 
   /// Rechaza una solicitud de ingreso
-  Future<Either<Failure, JoinRequest>> rejectJoinRequest(int requestId);
+  Future<Either<Failure, JoinRequest>> rejectJoinRequest(String assignmentId);
 
   /// Asigna un rol de club a un miembro
   Future<Either<Failure, bool>> assignClubRole({
@@ -39,5 +39,5 @@ abstract class MiembrosRepository {
   });
 
   /// Remueve un rol de club de un miembro
-  Future<Either<Failure, bool>> removeClubRole(int assignmentId);
+  Future<Either<Failure, bool>> removeClubRole(String assignmentId);
 }

@@ -27,16 +27,18 @@ class ClubMemberModel extends ClubMember {
   /// GET /api/v1/clubs/:clubId/instances/:type/:instanceId/members
   factory ClubMemberModel.fromJson(Map<String, dynamic> json) {
     // El campo user puede venir anidado o plano
-    final user = json['user'] as Map<String, dynamic>? ?? json;
+    final user = json['user'] as Map<String, dynamic>? ??
+        json['users'] as Map<String, dynamic>? ??
+        json;
 
     // Clase actual del miembro
-    final currentClassData =
-        json['current_class'] as Map<String, dynamic>? ??
-            user['current_class'] as Map<String, dynamic>?;
+    final currentClassData = json['current_class'] as Map<String, dynamic>? ??
+        user['current_class'] as Map<String, dynamic>?;
 
     // Rol asignado en el club
     final roleData = json['club_role'] as Map<String, dynamic>? ??
-        json['role'] as Map<String, dynamic>?;
+        json['role'] as Map<String, dynamic>? ??
+        json['roles'] as Map<String, dynamic>?;
     final roleString = json['role'] is String ? json['role'] as String : null;
 
     // Fecha de nacimiento
@@ -56,23 +58,22 @@ class ClubMemberModel extends ClubMember {
       avatar: user['user_image'] as String? ?? user['avatar'] as String?,
       email: user['email'] as String?,
       phone: user['phone'] as String?,
-      birthDate:
-          birthdayRaw != null ? DateTime.tryParse(birthdayRaw) : null,
+      birthDate: birthdayRaw != null ? DateTime.tryParse(birthdayRaw) : null,
       gender: user['gender'] as String?,
       clubRole: roleData?['name'] as String? ??
+          roleData?['role_name'] as String? ??
           roleData?['role'] as String? ??
           roleString ??
           json['club_role_name'] as String?,
-      clubRoleAssignmentId: json['id'] is int
-          ? json['id'] as int
-          : int.tryParse(json['id']?.toString() ?? ''),
+      clubRoleAssignmentId: json['assignment_id']?.toString() ??
+          json['club_role_assignment_id']?.toString() ??
+          json['id']?.toString(),
       currentClass: currentClassData?['name'] as String?,
       currentClassId: currentClassData?['id'] is int
           ? currentClassData!['id'] as int
           : int.tryParse(currentClassData?['id']?.toString() ?? ''),
-      isEnrolled: json['is_enrolled'] as bool? ??
-          json['enrolled'] as bool? ??
-          true,
+      isEnrolled:
+          json['is_enrolled'] as bool? ?? json['enrolled'] as bool? ?? true,
       instanceType: json['instance_type'] as String?,
       instanceId: json['instance_id'] is int
           ? json['instance_id'] as int
@@ -92,6 +93,7 @@ class ClubMemberModel extends ClubMember {
       'birth_date': birthDate?.toIso8601String(),
       'gender': gender,
       'club_role': clubRole,
+      'assignment_id': clubRoleAssignmentId,
       'current_class': currentClass,
       'is_enrolled': isEnrolled,
     };

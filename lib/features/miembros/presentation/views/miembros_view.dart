@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 
 import '../../domain/entities/club_member.dart';
@@ -63,14 +64,14 @@ class _MiembrosViewState extends ConsumerState<MiembrosView>
     final authState = ref.read(authNotifierProvider);
     final user = authState.valueOrNull;
     if (user == null) return false;
-    final metadata = user.metadata;
-    if (metadata == null) return false;
-    final roles = metadata['roles'] as List<dynamic>?;
-    if (roles == null) return false;
-    return roles.any((r) =>
-        r == 'director' ||
-        r == 'deputy_director' ||
-        r == 'secretary');
+    return canByPermissionOrLegacyRole(
+      user,
+      requiredPermissions: const {
+        'club_roles:assign',
+        'club_roles:revoke',
+      },
+      legacyRoles: const {'director', 'deputy_director', 'secretary'},
+    );
   }
 
   @override
@@ -273,11 +274,9 @@ class _MembersTab extends ConsumerWidget {
                               .read(miembrosNotifierProvider.notifier)
                               .loadMembers(clubContext),
                           child: ListView(
-                            padding: EdgeInsets.fromLTRB(
-                                hPad, 4, hPad, 24),
+                            padding: EdgeInsets.fromLTRB(hPad, 4, hPad, 24),
                             children: [
-                              for (final entry
-                                  in membersByClass.entries) ...[
+                              for (final entry in membersByClass.entries) ...[
                                 // Class group header
                                 _ClassGroupHeader(
                                     label: entry.key,
@@ -285,28 +284,28 @@ class _MembersTab extends ConsumerWidget {
                                 const SizedBox(height: 8),
                                 // Member cards
                                 ...entry.value.asMap().entries.map(
-                                  (e) => StaggeredListItem(
-                                    index: e.key,
-                                    initialDelay:
-                                        const Duration(milliseconds: 30),
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(
-                                          bottom: 10),
-                                      child: MemberCard(
-                                        member: e.value,
-                                        onTap: () => _openMemberProfile(
-                                            context, e.value),
-                                        onAssignRole: isDirector
-                                            ? () => _openRoleAssignment(
-                                                  context,
-                                                  ref,
-                                                  e.value,
-                                                )
-                                            : null,
+                                      (e) => StaggeredListItem(
+                                        index: e.key,
+                                        initialDelay:
+                                            const Duration(milliseconds: 30),
+                                        child: Padding(
+                                          padding:
+                                              const EdgeInsets.only(bottom: 10),
+                                          child: MemberCard(
+                                            member: e.value,
+                                            onTap: () => _openMemberProfile(
+                                                context, e.value),
+                                            onAssignRole: isDirector
+                                                ? () => _openRoleAssignment(
+                                                      context,
+                                                      ref,
+                                                      e.value,
+                                                    )
+                                                : null,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ),
                                 const SizedBox(height: 8),
                               ],
                             ],
@@ -393,8 +392,7 @@ class _JoinRequestsTab extends ConsumerWidget {
                       ? _EmptyState(
                           icon: HugeIcons.strokeRoundedUserAdd01,
                           title: 'Sin solicitudes',
-                          subtitle:
-                              'No hay solicitudes de ingreso pendientes.',
+                          subtitle: 'No hay solicitudes de ingreso pendientes.',
                         )
                       : RefreshIndicator(
                           color: AppColors.primary,
@@ -402,8 +400,7 @@ class _JoinRequestsTab extends ConsumerWidget {
                               .read(miembrosNotifierProvider.notifier)
                               .loadJoinRequests(clubContext),
                           child: ListView.separated(
-                            padding: EdgeInsets.fromLTRB(
-                                hPad, 4, hPad, 24),
+                            padding: EdgeInsets.fromLTRB(hPad, 4, hPad, 24),
                             itemCount: filteredRequests.length,
                             separatorBuilder: (_, __) =>
                                 const SizedBox(height: 10),
@@ -411,23 +408,22 @@ class _JoinRequestsTab extends ConsumerWidget {
                               final request = filteredRequests[index];
                               return StaggeredListItem(
                                 index: index,
-                                initialDelay:
-                                    const Duration(milliseconds: 30),
+                                initialDelay: const Duration(milliseconds: 30),
                                 child: JoinRequestCard(
                                   request: request,
-                                  onTap: () => _openRequestProfile(
-                                      context, request),
+                                  onTap: () =>
+                                      _openRequestProfile(context, request),
                                   onApprove: isDirector &&
                                           request.status ==
                                               JoinRequestStatus.pending
-                                      ? () => _approveRequest(
-                                          context, ref, request)
+                                      ? () =>
+                                          _approveRequest(context, ref, request)
                                       : null,
                                   onReject: isDirector &&
                                           request.status ==
                                               JoinRequestStatus.pending
-                                      ? () => _rejectRequest(
-                                          context, ref, request)
+                                      ? () =>
+                                          _rejectRequest(context, ref, request)
                                       : null,
                                 ),
                               );
@@ -468,7 +464,7 @@ class _JoinRequestsTab extends ConsumerWidget {
   ) async {
     final success = await ref
         .read(miembrosNotifierProvider.notifier)
-        .approveRequest(request.id, clubContext);
+        .approveRequest(request.assignmentId, clubContext);
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -491,7 +487,7 @@ class _JoinRequestsTab extends ConsumerWidget {
   ) async {
     final success = await ref
         .read(miembrosNotifierProvider.notifier)
-        .rejectRequest(request.id, clubContext);
+        .rejectRequest(request.assignmentId, clubContext);
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -562,8 +558,7 @@ class _ClassGroupHeader extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
             color: AppColors.primary.withValues(alpha: 0.10),
             borderRadius: BorderRadius.circular(10),
@@ -733,8 +728,7 @@ class _JoinRequestSearchBar extends StatefulWidget {
   });
 
   @override
-  State<_JoinRequestSearchBar> createState() =>
-      _JoinRequestSearchBarState();
+  State<_JoinRequestSearchBar> createState() => _JoinRequestSearchBarState();
 }
 
 class _JoinRequestSearchBarState extends State<_JoinRequestSearchBar> {
@@ -743,8 +737,7 @@ class _JoinRequestSearchBarState extends State<_JoinRequestSearchBar> {
   @override
   void initState() {
     super.initState();
-    _controller =
-        TextEditingController(text: widget.filters.searchQuery);
+    _controller = TextEditingController(text: widget.filters.searchQuery);
   }
 
   @override
@@ -770,22 +763,20 @@ class _JoinRequestSearchBarState extends State<_JoinRequestSearchBar> {
           child: TextField(
             controller: _controller,
             onChanged: (value) {
-              widget.onFiltersChanged(
-                  filters.copyWith(searchQuery: value));
+              widget.onFiltersChanged(filters.copyWith(searchQuery: value));
             },
             style: TextStyle(fontSize: 14, color: c.text),
             decoration: InputDecoration(
               hintText: 'Buscar solicitante...',
-              hintStyle:
-                  TextStyle(color: c.textTertiary, fontSize: 14),
+              hintStyle: TextStyle(color: c.textTertiary, fontSize: 14),
               prefixIcon: HugeIcon(
                 icon: HugeIcons.strokeRoundedSearch01,
                 color: c.textTertiary,
                 size: 20,
               ),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 4, vertical: 14),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 4, vertical: 14),
             ),
           ),
         ),
@@ -800,32 +791,29 @@ class _JoinRequestSearchBarState extends State<_JoinRequestSearchBar> {
               _StatusFilterChip(
                 label: 'Todos',
                 isActive: filters.statusFilter == null,
-                onTap: () => widget.onFiltersChanged(
-                    filters.copyWith(clearStatus: true)),
+                onTap: () => widget
+                    .onFiltersChanged(filters.copyWith(clearStatus: true)),
               ),
               const SizedBox(width: 6),
               _StatusFilterChip(
                 label: 'Pendientes',
-                isActive:
-                    filters.statusFilter == JoinRequestStatus.pending,
-                onTap: () => widget.onFiltersChanged(filters.copyWith(
-                    statusFilter: JoinRequestStatus.pending)),
+                isActive: filters.statusFilter == JoinRequestStatus.pending,
+                onTap: () => widget.onFiltersChanged(
+                    filters.copyWith(statusFilter: JoinRequestStatus.pending)),
               ),
               const SizedBox(width: 6),
               _StatusFilterChip(
                 label: 'Aprobadas',
-                isActive:
-                    filters.statusFilter == JoinRequestStatus.approved,
-                onTap: () => widget.onFiltersChanged(filters.copyWith(
-                    statusFilter: JoinRequestStatus.approved)),
+                isActive: filters.statusFilter == JoinRequestStatus.approved,
+                onTap: () => widget.onFiltersChanged(
+                    filters.copyWith(statusFilter: JoinRequestStatus.approved)),
               ),
               const SizedBox(width: 6),
               _StatusFilterChip(
                 label: 'Rechazadas',
-                isActive:
-                    filters.statusFilter == JoinRequestStatus.rejected,
-                onTap: () => widget.onFiltersChanged(filters.copyWith(
-                    statusFilter: JoinRequestStatus.rejected)),
+                isActive: filters.statusFilter == JoinRequestStatus.rejected,
+                onTap: () => widget.onFiltersChanged(
+                    filters.copyWith(statusFilter: JoinRequestStatus.rejected)),
               ),
             ],
           ),
@@ -852,8 +840,7 @@ class _StatusFilterChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: isActive
               ? AppColors.primary.withValues(alpha: 0.12)
@@ -867,8 +854,7 @@ class _StatusFilterChip extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 12,
-            fontWeight:
-                isActive ? FontWeight.w600 : FontWeight.w500,
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
             color: isActive ? AppColors.primary : c.textSecondary,
           ),
         ),

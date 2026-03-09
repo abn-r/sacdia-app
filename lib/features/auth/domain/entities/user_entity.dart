@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'authorization_snapshot.dart';
+
 /// Entidad de usuario para la capa de dominio
 class UserEntity extends Equatable {
   final String id;
@@ -7,6 +9,7 @@ class UserEntity extends Equatable {
   final String? name;
   final String? avatar;
   final Map<String, dynamic>? metadata;
+  final AuthorizationSnapshot? authorization;
   final DateTime? lastSignInAt;
   final DateTime? createdAt;
   final bool postRegisterComplete;
@@ -17,6 +20,7 @@ class UserEntity extends Equatable {
     this.name,
     this.avatar,
     this.metadata,
+    this.authorization,
     this.lastSignInAt,
     this.createdAt,
     this.postRegisterComplete = false,
@@ -29,6 +33,7 @@ class UserEntity extends Equatable {
         name,
         avatar,
         metadata,
+        authorization,
         lastSignInAt,
         createdAt,
         postRegisterComplete,

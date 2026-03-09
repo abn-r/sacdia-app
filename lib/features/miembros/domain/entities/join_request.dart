@@ -23,7 +23,7 @@ extension JoinRequestStatusLabel on JoinRequestStatus {
 
 /// Entidad que representa una solicitud de ingreso al club
 class JoinRequest extends Equatable {
-  final int id;
+  final String assignmentId;
   final String userId;
   final String name;
   final String? paternalSurname;
@@ -35,7 +35,7 @@ class JoinRequest extends Equatable {
   final DateTime? resolvedAt;
 
   const JoinRequest({
-    required this.id,
+    required this.assignmentId,
     required this.userId,
     required this.name,
     this.paternalSurname,
@@ -66,7 +66,7 @@ class JoinRequest extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
+        assignmentId,
         userId,
         name,
         paternalSurname,

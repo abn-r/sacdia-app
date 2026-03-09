@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../miembros/presentation/providers/miembros_providers.dart';
 import '../../data/datasources/finances_remote_data_source.dart';
@@ -147,8 +148,7 @@ final financeSummaryProvider =
   if (clubId == null) return null;
 
   final useCase = ref.read(getFinanceSummaryUseCaseProvider);
-  final result =
-      await useCase(GetFinanceSummaryParams(clubId: clubId));
+  final result = await useCase(GetFinanceSummaryParams(clubId: clubId));
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -171,19 +171,27 @@ final financeCategoriesProvider =
 // ── Permission helper ──────────────────────────────────────────────────────────
 
 /// Roles autorizados para crear/editar movimientos financieros.
-const _financeEditorRoles = {'director', 'subdirector', 'treasurer', 'tesorero'};
+const _financeEditorRoles = {
+  'director',
+  'subdirector',
+  'treasurer',
+  'tesorero'
+};
 
 /// Devuelve true si el usuario puede gestionar transacciones.
 final canManageFinancesProvider = FutureProvider.autoDispose<bool>((ref) async {
   final authState = await ref.watch(authNotifierProvider.future);
   if (authState == null) return false;
 
-  final metadata = authState.metadata;
-  if (metadata == null) return false;
-
-  final rawRoles = metadata['roles'] as List<dynamic>? ?? [];
-  final roles = rawRoles.map((r) => r.toString().toLowerCase()).toSet();
-  return roles.intersection(_financeEditorRoles).isNotEmpty;
+  return canByPermissionOrLegacyRole(
+    authState,
+    requiredPermissions: const {
+      'finances:create',
+      'finances:update',
+      'finances:delete',
+    },
+    legacyRoles: _financeEditorRoles,
+  );
 });
 
 // ── Transaction operation state ────────────────────────────────────────────────
@@ -251,8 +259,8 @@ class TransactionFormNotifier extends StateNotifier<TransactionFormState> {
 
       return result.fold(
         (failure) {
-          state = state.copyWith(
-              isLoading: false, errorMessage: failure.message);
+          state =
+              state.copyWith(isLoading: false, errorMessage: failure.message);
           return false;
         },
         (_) {
@@ -277,8 +285,8 @@ class TransactionFormNotifier extends StateNotifier<TransactionFormState> {
 
       return result.fold(
         (failure) {
-          state = state.copyWith(
-              isLoading: false, errorMessage: failure.message);
+          state =
+              state.copyWith(isLoading: false, errorMessage: failure.message);
           return false;
         },
         (_) {

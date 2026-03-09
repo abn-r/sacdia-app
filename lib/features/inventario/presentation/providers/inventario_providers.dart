@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../miembros/presentation/providers/miembros_providers.dart';
 import '../../data/datasources/inventory_remote_data_source.dart';
@@ -42,18 +43,15 @@ final getInventoryItemUseCaseProvider = Provider<GetInventoryItem>((ref) {
   return GetInventoryItem(ref.read(inventoryRepositoryProvider));
 });
 
-final createInventoryItemUseCaseProvider =
-    Provider<CreateInventoryItem>((ref) {
+final createInventoryItemUseCaseProvider = Provider<CreateInventoryItem>((ref) {
   return CreateInventoryItem(ref.read(inventoryRepositoryProvider));
 });
 
-final updateInventoryItemUseCaseProvider =
-    Provider<UpdateInventoryItem>((ref) {
+final updateInventoryItemUseCaseProvider = Provider<UpdateInventoryItem>((ref) {
   return UpdateInventoryItem(ref.read(inventoryRepositoryProvider));
 });
 
-final deleteInventoryItemUseCaseProvider =
-    Provider<DeleteInventoryItem>((ref) {
+final deleteInventoryItemUseCaseProvider = Provider<DeleteInventoryItem>((ref) {
   return DeleteInventoryItem(ref.read(inventoryRepositoryProvider));
 });
 
@@ -88,12 +86,15 @@ final canManageInventoryProvider =
   final authState = await ref.watch(authNotifierProvider.future);
   if (authState == null) return false;
 
-  final metadata = authState.metadata;
-  if (metadata == null) return false;
-
-  final rawRoles = metadata['roles'] as List<dynamic>? ?? [];
-  final roles = rawRoles.map((r) => r.toString().toLowerCase()).toSet();
-  return roles.intersection(_inventoryEditorRoles).isNotEmpty;
+  return canByPermissionOrLegacyRole(
+    authState,
+    requiredPermissions: const {
+      'inventory:create',
+      'inventory:update',
+      'inventory:delete',
+    },
+    legacyRoles: _inventoryEditorRoles,
+  );
 });
 
 // ── Categories ──────────────────────────────────────────────────────────────────
@@ -232,8 +233,8 @@ enum InventorySortOrder {
   }
 }
 
-final inventoryFiltersProvider =
-    StateProvider.autoDispose<InventoryFilters>((ref) => const InventoryFilters());
+final inventoryFiltersProvider = StateProvider.autoDispose<InventoryFilters>(
+    (ref) => const InventoryFilters());
 
 final filteredInventoryItemsProvider =
     Provider.autoDispose<AsyncValue<List<InventoryItem>>>((ref) {
@@ -261,15 +262,13 @@ class InventorySummary {
   });
 }
 
-final inventorySummaryProvider =
-    Provider.autoDispose<InventorySummary?>((ref) {
+final inventorySummaryProvider = Provider.autoDispose<InventorySummary?>((ref) {
   final itemsAsync = ref.watch(inventoryItemsProvider);
   return itemsAsync.valueOrNull.map((items) {
     return InventorySummary(
       totalItems: items.length,
       totalValue: items.fold(0.0, (sum, i) => sum + (i.estimatedValue ?? 0)),
-      buenoCount:
-          items.where((i) => i.condition == ItemCondition.bueno).length,
+      buenoCount: items.where((i) => i.condition == ItemCondition.bueno).length,
       regularCount:
           items.where((i) => i.condition == ItemCondition.regular).length,
       maloCount: items.where((i) => i.condition == ItemCondition.malo).length,
@@ -307,8 +306,7 @@ class InventoryItemFormState {
   }
 }
 
-class InventoryItemFormNotifier
-    extends StateNotifier<InventoryItemFormState> {
+class InventoryItemFormNotifier extends StateNotifier<InventoryItemFormState> {
   final CreateInventoryItem _create;
   final UpdateInventoryItem _update;
   final Ref _ref;
@@ -357,8 +355,8 @@ class InventoryItemFormNotifier
 
       return result.fold(
         (failure) {
-          state = state.copyWith(
-              isLoading: false, errorMessage: failure.message);
+          state =
+              state.copyWith(isLoading: false, errorMessage: failure.message);
           return false;
         },
         (_) {
@@ -385,8 +383,8 @@ class InventoryItemFormNotifier
 
       return result.fold(
         (failure) {
-          state = state.copyWith(
-              isLoading: false, errorMessage: failure.message);
+          state =
+              state.copyWith(isLoading: false, errorMessage: failure.message);
           return false;
         },
         (_) {
@@ -424,8 +422,7 @@ class InventoryDeleteState {
   });
 }
 
-class InventoryDeleteNotifier
-    extends StateNotifier<InventoryDeleteState> {
+class InventoryDeleteNotifier extends StateNotifier<InventoryDeleteState> {
   final DeleteInventoryItem _delete;
   final Ref _ref;
 
@@ -439,8 +436,7 @@ class InventoryDeleteNotifier
   Future<bool> deleteItem(int itemId) async {
     state = const InventoryDeleteState(isLoading: true);
 
-    final result =
-        await _delete(DeleteInventoryItemParams(itemId: itemId));
+    final result = await _delete(DeleteInventoryItemParams(itemId: itemId));
 
     return result.fold(
       (failure) {

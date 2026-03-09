@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../miembros/presentation/providers/miembros_providers.dart';
 import '../../data/datasources/club_remote_data_source.dart';
@@ -49,14 +50,15 @@ final canEditClubProvider = FutureProvider<bool>((ref) async {
   final authState = await ref.watch(authNotifierProvider.future);
   if (authState == null) return false;
 
-  final metadata = authState.metadata;
-  if (metadata == null) return false;
-
-  final rawRoles = metadata['roles'] as List<dynamic>?;
-  if (rawRoles == null || rawRoles.isEmpty) return false;
-
-  final roles = rawRoles.map((r) => r.toString().toLowerCase()).toSet();
-  return roles.intersection(_editableRoles).isNotEmpty;
+  return canByPermissionOrLegacyRole(
+    authState,
+    requiredPermissions: const {
+      'clubs:update',
+      'club_instances:update',
+      'clubs_instances:update',
+    },
+    legacyRoles: _editableRoles,
+  );
 });
 
 // ── Club instance provider (read) ─────────────────────────────────────────────
@@ -115,8 +117,7 @@ class UpdateClubState {
 class UpdateClubNotifier extends StateNotifier<UpdateClubState> {
   final UpdateClubInstance _updateClubInstance;
 
-  UpdateClubNotifier(this._updateClubInstance)
-      : super(const UpdateClubState());
+  UpdateClubNotifier(this._updateClubInstance) : super(const UpdateClubState());
 
   /// Guarda los cambios de la instancia de club.
   Future<bool> save({

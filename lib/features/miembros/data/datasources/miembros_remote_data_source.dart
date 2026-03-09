@@ -5,6 +5,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/club_member_model.dart';
 import '../models/join_request_model.dart';
+import '../../domain/entities/join_request.dart';
 
 /// Interfaz de la fuente de datos remota para miembros
 abstract class MiembrosRemoteDataSource {
@@ -26,10 +27,10 @@ abstract class MiembrosRemoteDataSource {
   });
 
   /// Aprueba una solicitud de ingreso
-  Future<JoinRequestModel> approveJoinRequest(int requestId);
+  Future<JoinRequestModel> approveJoinRequest(String assignmentId);
 
   /// Rechaza una solicitud de ingreso
-  Future<JoinRequestModel> rejectJoinRequest(int requestId);
+  Future<JoinRequestModel> rejectJoinRequest(String assignmentId);
 
   /// Asigna un rol a un miembro en una instancia del club
   Future<bool> assignClubRole({
@@ -41,7 +42,7 @@ abstract class MiembrosRemoteDataSource {
   });
 
   /// Remueve una asignación de rol
-  Future<bool> removeClubRole(int assignmentId);
+  Future<bool> removeClubRole(String assignmentId);
 }
 
 /// Implementación de la fuente de datos remota para miembros
@@ -94,6 +95,74 @@ class MiembrosRemoteDataSourceImpl implements MiembrosRemoteDataSource {
       return responseData;
     }
     return {};
+  }
+
+  String _normalizeRoleKey(String value) {
+    return value.trim().toLowerCase().replaceAll(RegExp(r'[\s-]+'), '_');
+  }
+
+  List<String> _roleLookupCandidates(String role) {
+    final normalized = _normalizeRoleKey(role);
+    const aliases = <String, List<String>>{
+      'deputy_director': ['subdirector'],
+      'subdirector': ['deputy_director'],
+      'secretary': ['secretario'],
+      'treasurer': ['tesorero'],
+      'counselor': ['consejero'],
+      'member': ['miembro'],
+    };
+
+    final values = <String>{normalized, ...(aliases[normalized] ?? const [])};
+    return values.toList();
+  }
+
+  final Map<String, String> _clubRoleIdsByName = {};
+
+  Future<String?> _resolveClubRoleId(String role, String token) async {
+    for (final candidate in _roleLookupCandidates(role)) {
+      final cached = _clubRoleIdsByName[candidate];
+      if (cached != null && cached.isNotEmpty) {
+        return cached;
+      }
+    }
+
+    try {
+      final response = await _dio.get(
+        '$_baseUrl/catalogs/roles',
+        queryParameters: const {'category': 'CLUB'},
+        options: Options(headers: _authHeaders(token)),
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        return null;
+      }
+
+      final roles = _unwrapList(response.data);
+      for (final roleRecord in roles) {
+        final roleName = roleRecord['role_name']?.toString();
+        final roleId = roleRecord['role_id']?.toString();
+
+        if (roleName == null || roleId == null || roleId.isEmpty) {
+          continue;
+        }
+
+        final normalizedName = _normalizeRoleKey(roleName);
+        _clubRoleIdsByName[normalizedName] = roleId;
+      }
+    } on DioException catch (e) {
+      AppLogger.w('No se pudo resolver role_id desde /catalogs/roles',
+          tag: _tag, error: e);
+      return null;
+    }
+
+    for (final candidate in _roleLookupCandidates(role)) {
+      final resolved = _clubRoleIdsByName[candidate];
+      if (resolved != null && resolved.isNotEmpty) {
+        return resolved;
+      }
+    }
+
+    return null;
   }
 
   @override
@@ -156,8 +225,8 @@ class MiembrosRemoteDataSourceImpl implements MiembrosRemoteDataSource {
     } on DioException catch (e) {
       AppLogger.e('Error al obtener detalle del miembro', tag: _tag, error: e);
       throw ServerException(
-        message:
-            e.response?.data?['message'] ?? 'Error al obtener detalle del miembro',
+        message: e.response?.data?['message'] ??
+            'Error al obtener detalle del miembro',
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -199,19 +268,17 @@ class MiembrosRemoteDataSourceImpl implements MiembrosRemoteDataSource {
       // Filtrar sólo registros con status pending si la API los incluye todos
       return list
           .map((json) => JoinRequestModel.fromJson(json))
-          .where((r) => r.status == _pendingStatus())
+          .where((r) => r.status == JoinRequestStatus.pending)
           .toList();
     } on DioException catch (e) {
       // Si es 404 u otro error de recurso no encontrado, retornar lista vacía
-      if (e.response?.statusCode == 404 ||
-          e.response?.statusCode == 400) {
+      if (e.response?.statusCode == 404 || e.response?.statusCode == 400) {
         AppLogger.w('Endpoint de solicitudes no disponible', tag: _tag);
         return [];
       }
       AppLogger.e('Error al obtener solicitudes', tag: _tag, error: e);
       throw ServerException(
-        message:
-            e.response?.data?['message'] ?? 'Error al obtener solicitudes',
+        message: e.response?.data?['message'] ?? 'Error al obtener solicitudes',
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -221,19 +288,14 @@ class MiembrosRemoteDataSourceImpl implements MiembrosRemoteDataSource {
     }
   }
 
-  // Helper para evitar import de la entidad en el data source
-  dynamic _pendingStatus() {
-    return null; // Se filtra en el use case o repositorio si es necesario
-  }
-
   @override
-  Future<JoinRequestModel> approveJoinRequest(int requestId) async {
+  Future<JoinRequestModel> approveJoinRequest(String assignmentId) async {
     try {
       final token = await _getToken();
       if (token == null) throw AuthException(message: 'No hay sesión activa');
 
       final response = await _dio.patch(
-        '$_baseUrl/club-roles/$requestId',
+        '$_baseUrl/club-roles/$assignmentId',
         data: {'status': 'approved'},
         options: Options(headers: _authHeaders(token)),
       );
@@ -260,13 +322,13 @@ class MiembrosRemoteDataSourceImpl implements MiembrosRemoteDataSource {
   }
 
   @override
-  Future<JoinRequestModel> rejectJoinRequest(int requestId) async {
+  Future<JoinRequestModel> rejectJoinRequest(String assignmentId) async {
     try {
       final token = await _getToken();
       if (token == null) throw AuthException(message: 'No hay sesión activa');
 
       final response = await _dio.patch(
-        '$_baseUrl/club-roles/$requestId',
+        '$_baseUrl/club-roles/$assignmentId',
         data: {'status': 'rejected'},
         options: Options(headers: _authHeaders(token)),
       );
@@ -283,8 +345,7 @@ class MiembrosRemoteDataSourceImpl implements MiembrosRemoteDataSource {
     } on DioException catch (e) {
       AppLogger.e('Error al rechazar solicitud', tag: _tag, error: e);
       throw ServerException(
-        message:
-            e.response?.data?['message'] ?? 'Error al rechazar solicitud',
+        message: e.response?.data?['message'] ?? 'Error al rechazar solicitud',
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -305,12 +366,25 @@ class MiembrosRemoteDataSourceImpl implements MiembrosRemoteDataSource {
       final token = await _getToken();
       if (token == null) throw AuthException(message: 'No hay sesión activa');
 
+      final roleId = await _resolveClubRoleId(role, token);
+      final payload = <String, dynamic>{
+        'user_id': userId,
+        'instance_type': instanceType,
+        'instance_id': instanceId,
+        'start_date': DateTime.now().toIso8601String(),
+      };
+
+      if (roleId == null || roleId.isEmpty) {
+        throw ServerException(
+          message: 'No se pudo resolver role_id para la asignacion canonica',
+        );
+      }
+
+      payload['role_id'] = roleId;
+
       final response = await _dio.post(
         '$_baseUrl/clubs/$clubId/instances/$instanceType/$instanceId/roles',
-        data: {
-          'user_id': userId,
-          'role': role,
-        },
+        data: payload,
         options: Options(headers: _authHeaders(token)),
       );
 
@@ -328,7 +402,7 @@ class MiembrosRemoteDataSourceImpl implements MiembrosRemoteDataSource {
   }
 
   @override
-  Future<bool> removeClubRole(int assignmentId) async {
+  Future<bool> removeClubRole(String assignmentId) async {
     try {
       final token = await _getToken();
       if (token == null) throw AuthException(message: 'No hay sesión activa');
