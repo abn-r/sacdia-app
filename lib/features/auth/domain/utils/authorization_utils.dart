@@ -39,6 +39,27 @@ Set<String> _extractLegacyRoles(UserEntity user) {
   return <String>{};
 }
 
+Set<String> extractUserRoles(UserEntity? user) {
+  if (user == null) {
+    return <String>{};
+  }
+
+  final resolvedRoles = user.authorization?.resolvedRoleNames ?? <String>{};
+  if (resolvedRoles.isNotEmpty) {
+    return resolvedRoles;
+  }
+
+  if (!kRbacLegacyFallbackEnabled) {
+    return <String>{};
+  }
+
+  final legacyRoles = _extractLegacyRoles(user);
+  if (legacyRoles.isNotEmpty) {
+    _logLegacyFallbackEvent();
+  }
+  return legacyRoles;
+}
+
 void _logCanonicalEvent() {
   if (_canonicalEventLogged) return;
   _canonicalEventLogged = true;
@@ -101,11 +122,11 @@ bool canByPermissionOrLegacyRole(
     return true;
   }
 
-  if (!kRbacLegacyFallbackEnabled || user == null || legacyRoles.isEmpty) {
+  if (user == null || legacyRoles.isEmpty) {
     return false;
   }
 
-  final roles = _extractLegacyRoles(user);
+  final roles = extractUserRoles(user);
   if (roles.isEmpty) {
     return false;
   }
@@ -119,4 +140,37 @@ bool canByPermissionOrLegacyRole(
   }
 
   return intersects;
+}
+
+bool isUserOwner(UserEntity? user, String targetUserId) {
+  final normalizedTarget = targetUserId.trim();
+  if (user == null || normalizedTarget.isEmpty) {
+    return false;
+  }
+
+  return user.id.trim() == normalizedTarget;
+}
+
+bool canViewAdministrativeCompletionForUser(
+  UserEntity? user, {
+  required String targetUserId,
+}) {
+  return isUserOwner(user, targetUserId) ||
+      hasAnyPermission(user, const {'users:read_detail', 'users:update'});
+}
+
+bool canManageAdministrativeCompletionForUser(
+  UserEntity? user, {
+  required String targetUserId,
+}) {
+  return isUserOwner(user, targetUserId) ||
+      hasAnyPermission(user, const {'users:update'});
+}
+
+bool canAccessSensitiveUserDataForUser(
+  UserEntity? user, {
+  required String targetUserId,
+}) {
+  return isUserOwner(user, targetUserId) ||
+      hasAnyPermission(user, const {'users:read_detail'});
 }
