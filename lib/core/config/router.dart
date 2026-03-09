@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/features/activities/presentation/views/activities_list_view.dart';
 import 'package:sacdia_app/features/carpeta_evidencias/presentation/views/evidence_folder_view.dart';
 import 'package:sacdia_app/features/club/presentation/providers/club_providers.dart';
@@ -11,6 +13,7 @@ import 'package:sacdia_app/features/finanzas/presentation/views/finanzas_view.da
 import 'package:sacdia_app/features/home/presentation/widgets/resources_section.dart';
 import 'package:sacdia_app/features/inventario/presentation/views/inventario_view.dart';
 import 'package:sacdia_app/features/seguros/presentation/views/seguros_view.dart';
+import 'package:sacdia_app/features/units/presentation/views/units_list_view.dart';
 
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/views/forgot_password_view.dart';
@@ -203,7 +206,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: RouteNames.homeUnits,
             pageBuilder: (context, state) => _buildPage(
               context, state,
-              const _PlaceholderScreen(title: 'Unidades'),
+              const UnitsListView(),
             ),
           ),
           GoRoute(
@@ -424,8 +427,13 @@ class _EvidenceFolderShell extends ConsumerWidget {
     final clubInstanceAsync = ref.watch(currentClubInstanceProvider);
 
     return clubInstanceAsync.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      loading: () => Scaffold(
+        body: Center(
+          child: LoadingAnimationWidget.stretchedDots(
+            color: AppColors.primary,
+            size: 50,
+          ),
+        ),
       ),
       error: (e, _) => Scaffold(
         appBar: AppBar(title: const Text('Carpeta de Evidencias')),

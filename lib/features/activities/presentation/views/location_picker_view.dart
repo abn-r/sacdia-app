@@ -7,6 +7,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sacdia_app/core/constants/maps_constants.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -873,9 +874,9 @@ class _LocationSearchDelegate extends SearchDelegate<_NominatimPlace?> {
 
         if (_isLoading) {
           return Center(
-            child: CircularProgressIndicator(
+            child: LoadingAnimationWidget.stretchedDots(
               color: AppColors.primary,
-              strokeWidth: 2.5,
+              size: 50,
             ),
           );
         }

@@ -130,7 +130,7 @@ class _QuickAccessTile extends StatelessWidget {
       borderRadius: _kTileRadius,
       child: InkWell(
         borderRadius: _kTileRadius,
-        onTap: () => context.go(item.route),
+        onTap: () => context.push(item.route),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: _kTileRadius,

@@ -1,26 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 
-/// SACDIA loading indicator — [CircularProgressIndicator] styled with
-/// [AppColors.primary] on all platforms (unified iOS-inspired experience).
+/// SACDIA loading indicator — animated stretched dots styled with
+/// [AppColors.primary] on all platforms.
 class SacLoading extends StatelessWidget {
   final Color? color;
-  final double? strokeWidth;
 
-  const SacLoading({super.key, this.color, this.strokeWidth});
+  const SacLoading({super.key, this.color});
 
   @override
   Widget build(BuildContext context) {
-    return CircularProgressIndicator(
-      color: color ?? AppColors.sacBlack,
-      strokeWidth: strokeWidth ?? 4.0,
+    return LoadingAnimationWidget.stretchedDots(
+      color: color ?? AppColors.primary,
+      size: 50,
     );
   }
 }
 
 /// Compact SACDIA loading indicator — use inside buttons or small spaces.
-///
-/// Uses [CircularProgressIndicator] with [strokeWidth] 2.0 on all platforms.
 class SacLoadingSmall extends StatelessWidget {
   final Color? color;
 
@@ -28,9 +26,9 @@ class SacLoadingSmall extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CircularProgressIndicator(
-      color: color ?? AppColors.sacBlack,
-      strokeWidth: 2.0,
+    return LoadingAnimationWidget.stretchedDots(
+      color: color ?? AppColors.primary,
+      size: 30,
     );
   }
 }

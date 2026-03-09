@@ -99,35 +99,36 @@ class AppColors {
 
   // ═══════════════════════════════════════════════════════════
   // SUPERFICIES Y FONDOS - DARK MODE
+  // True Black / OLED-optimized — sin undertone azul
   // ═══════════════════════════════════════════════════════════
 
-  /// Fondo principal dark
-  static const Color darkBackground = Color(0xFF0F172A);
+  /// Fondo principal dark — negro puro OLED
+  static const Color darkBackground = Color(0xFF000000);
 
-  /// Cards, modales dark
-  static const Color darkSurface = Color(0xFF1E293B);
+  /// Cards, modales dark — elevación 1dp sobre negro
+  static const Color darkSurface = Color(0xFF1A1A1A);
 
-  /// Secciones alternas dark
-  static const Color darkSurfaceVariant = Color(0xFF334155);
+  /// Secciones alternas dark — elevación 2dp
+  static const Color darkSurfaceVariant = Color(0xFF252525);
 
-  /// Bordes dark
-  static const Color darkBorder = Color(0xFF475569);
+  /// Bordes dark — sutil, neutral
+  static const Color darkBorder = Color(0xFF303030);
 
   /// Divider dark (alias)
-  static const Color darkDivider = Color(0xFF475569);
+  static const Color darkDivider = Color(0xFF303030);
 
   // ═══════════════════════════════════════════════════════════
   // TEXTO - DARK MODE
   // ═══════════════════════════════════════════════════════════
 
-  /// Texto principal dark
-  static const Color darkText = Color(0xFFF8FAFC);
+  /// Texto principal dark — blanco suave, no puro (menos fatiga visual)
+  static const Color darkText = Color(0xFFF2F2F2);
 
-  /// Texto secundario dark
-  static const Color darkTextSecondary = Color(0xFF94A3B8);
+  /// Texto secundario dark — gris neutro, sin tinte azul
+  static const Color darkTextSecondary = Color(0xFF8C8C8C);
 
-  /// Texto terciario dark
-  static const Color darkTextTertiary = Color(0xFF64748B);
+  /// Texto terciario dark — gris más oscuro para hints/metadata
+  static const Color darkTextTertiary = Color(0xFF5C5C5C);
 
   // ═══════════════════════════════════════════════════════════
   // COLORES DE ESTADO (alias semánticos)
