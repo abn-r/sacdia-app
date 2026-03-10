@@ -99,5 +99,79 @@ void main() {
         isTrue,
       );
     });
+
+    test('allows fine-grained sensitive family reads with legacy fallback', () {
+      final fineGrained = buildUser(
+        id: 'actor',
+        permissions: const ['health:read', 'emergency_contacts:read'],
+      );
+      final legacy = buildUser(
+        id: 'actor',
+        permissions: const ['users:read_detail'],
+      );
+
+      expect(
+        canReadSensitiveUserFamilyForUser(
+          fineGrained,
+          targetUserId: 'target',
+          family: SensitiveUserFamily.health,
+        ),
+        isTrue,
+      );
+      expect(
+        canReadSensitiveUserFamilyForUser(
+          fineGrained,
+          targetUserId: 'target',
+          family: SensitiveUserFamily.emergencyContacts,
+        ),
+        isTrue,
+      );
+      expect(
+        canReadSensitiveUserFamilyForUser(
+          legacy,
+          targetUserId: 'target',
+          family: SensitiveUserFamily.legalRepresentative,
+        ),
+        isTrue,
+      );
+    });
+
+    test(
+        'allows fine-grained updates without treating users:update as sensitive read',
+        () {
+      final updater = buildUser(
+        id: 'actor',
+        permissions: const ['users:update'],
+      );
+      final fineGrained = buildUser(
+        id: 'actor',
+        permissions: const ['legal_representative:update'],
+      );
+
+      expect(
+        canUpdateSensitiveUserFamilyForUser(
+          updater,
+          targetUserId: 'target',
+          family: SensitiveUserFamily.postRegistration,
+        ),
+        isTrue,
+      );
+      expect(
+        canReadSensitiveUserFamilyForUser(
+          updater,
+          targetUserId: 'target',
+          family: SensitiveUserFamily.postRegistration,
+        ),
+        isFalse,
+      );
+      expect(
+        canUpdateSensitiveUserFamilyForUser(
+          fineGrained,
+          targetUserId: 'target',
+          family: SensitiveUserFamily.legalRepresentative,
+        ),
+        isTrue,
+      );
+    });
   });
 }

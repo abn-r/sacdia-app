@@ -7,6 +7,46 @@ const bool kRbacLegacyFallbackEnabled =
 bool _canonicalEventLogged = false;
 bool _legacyFallbackEventLogged = false;
 
+enum SensitiveUserFamily {
+  health,
+  emergencyContacts,
+  legalRepresentative,
+  postRegistration,
+}
+
+const Map<SensitiveUserFamily, Set<String>> _sensitiveFamilyReadPermissions = {
+  SensitiveUserFamily.health: {'health:read', 'users:read_detail'},
+  SensitiveUserFamily.emergencyContacts: {
+    'emergency_contacts:read',
+    'users:read_detail',
+  },
+  SensitiveUserFamily.legalRepresentative: {
+    'legal_representative:read',
+    'users:read_detail',
+  },
+  SensitiveUserFamily.postRegistration: {
+    'post_registration:read',
+    'users:read_detail',
+  },
+};
+
+const Map<SensitiveUserFamily, Set<String>> _sensitiveFamilyUpdatePermissions =
+    {
+  SensitiveUserFamily.health: {'health:update', 'users:update'},
+  SensitiveUserFamily.emergencyContacts: {
+    'emergency_contacts:update',
+    'users:update',
+  },
+  SensitiveUserFamily.legalRepresentative: {
+    'legal_representative:update',
+    'users:update',
+  },
+  SensitiveUserFamily.postRegistration: {
+    'post_registration:update',
+    'users:update',
+  },
+};
+
 Set<String> _normalizePermissions(Iterable<dynamic> values) {
   return values
       .map((value) => value?.toString().trim().toLowerCase())
@@ -156,15 +196,41 @@ bool canViewAdministrativeCompletionForUser(
   required String targetUserId,
 }) {
   return isUserOwner(user, targetUserId) ||
-      hasAnyPermission(user, const {'users:read_detail', 'users:update'});
+      hasAnyPermission(user, {
+        ..._sensitiveFamilyReadPermissions[
+            SensitiveUserFamily.postRegistration]!,
+        ..._sensitiveFamilyUpdatePermissions[
+            SensitiveUserFamily.postRegistration]!,
+      });
 }
 
 bool canManageAdministrativeCompletionForUser(
   UserEntity? user, {
   required String targetUserId,
 }) {
+  return canUpdateSensitiveUserFamilyForUser(
+    user,
+    targetUserId: targetUserId,
+    family: SensitiveUserFamily.postRegistration,
+  );
+}
+
+bool canReadSensitiveUserFamilyForUser(
+  UserEntity? user, {
+  required String targetUserId,
+  required SensitiveUserFamily family,
+}) {
   return isUserOwner(user, targetUserId) ||
-      hasAnyPermission(user, const {'users:update'});
+      hasAnyPermission(user, _sensitiveFamilyReadPermissions[family]!);
+}
+
+bool canUpdateSensitiveUserFamilyForUser(
+  UserEntity? user, {
+  required String targetUserId,
+  required SensitiveUserFamily family,
+}) {
+  return isUserOwner(user, targetUserId) ||
+      hasAnyPermission(user, _sensitiveFamilyUpdatePermissions[family]!);
 }
 
 bool canAccessSensitiveUserDataForUser(
