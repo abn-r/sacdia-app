@@ -874,7 +874,7 @@ class _LocationSearchDelegate extends SearchDelegate<_NominatimPlace?> {
 
         if (_isLoading) {
           return Center(
-            child: LoadingAnimationWidget.stretchedDots(
+            child: LoadingAnimationWidget.inkDrop(
               color: AppColors.primary,
               size: 50,
             ),

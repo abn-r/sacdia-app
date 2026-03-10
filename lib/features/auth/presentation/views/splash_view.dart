@@ -104,7 +104,7 @@ class _SplashViewState extends ConsumerState<SplashView>
                         ),
                   ),
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 20),
 
                 // Loading indicator
                 FadeTransition(
