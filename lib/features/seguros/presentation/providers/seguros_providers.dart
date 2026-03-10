@@ -62,7 +62,6 @@ final canManageSegurosProvider = FutureProvider.autoDispose<bool>((ref) async {
   return canByPermissionOrLegacyRole(
     authState,
     requiredPermissions: const {
-      'users:update',
       'club_roles:assign',
     },
     legacyRoles: _segurosEditorRoles,

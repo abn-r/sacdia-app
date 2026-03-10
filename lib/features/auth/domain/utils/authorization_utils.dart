@@ -7,6 +7,46 @@ const bool kRbacLegacyFallbackEnabled =
 bool _canonicalEventLogged = false;
 bool _legacyFallbackEventLogged = false;
 
+enum SensitiveUserFamily {
+  health,
+  emergencyContacts,
+  legalRepresentative,
+  postRegistration,
+}
+
+const Map<SensitiveUserFamily, Set<String>> _sensitiveFamilyReadPermissions = {
+  SensitiveUserFamily.health: {'health:read', 'users:read_detail'},
+  SensitiveUserFamily.emergencyContacts: {
+    'emergency_contacts:read',
+    'users:read_detail',
+  },
+  SensitiveUserFamily.legalRepresentative: {
+    'legal_representative:read',
+    'users:read_detail',
+  },
+  SensitiveUserFamily.postRegistration: {
+    'post_registration:read',
+    'users:read_detail',
+  },
+};
+
+const Map<SensitiveUserFamily, Set<String>> _sensitiveFamilyUpdatePermissions =
+    {
+  SensitiveUserFamily.health: {'health:update', 'users:update'},
+  SensitiveUserFamily.emergencyContacts: {
+    'emergency_contacts:update',
+    'users:update',
+  },
+  SensitiveUserFamily.legalRepresentative: {
+    'legal_representative:update',
+    'users:update',
+  },
+  SensitiveUserFamily.postRegistration: {
+    'post_registration:update',
+    'users:update',
+  },
+};
+
 Set<String> _normalizePermissions(Iterable<dynamic> values) {
   return values
       .map((value) => value?.toString().trim().toLowerCase())
@@ -37,6 +77,27 @@ Set<String> _extractLegacyRoles(UserEntity user) {
   }
 
   return <String>{};
+}
+
+Set<String> extractUserRoles(UserEntity? user) {
+  if (user == null) {
+    return <String>{};
+  }
+
+  final resolvedRoles = user.authorization?.resolvedRoleNames ?? <String>{};
+  if (resolvedRoles.isNotEmpty) {
+    return resolvedRoles;
+  }
+
+  if (!kRbacLegacyFallbackEnabled) {
+    return <String>{};
+  }
+
+  final legacyRoles = _extractLegacyRoles(user);
+  if (legacyRoles.isNotEmpty) {
+    _logLegacyFallbackEvent();
+  }
+  return legacyRoles;
 }
 
 void _logCanonicalEvent() {
@@ -101,11 +162,11 @@ bool canByPermissionOrLegacyRole(
     return true;
   }
 
-  if (!kRbacLegacyFallbackEnabled || user == null || legacyRoles.isEmpty) {
+  if (user == null || legacyRoles.isEmpty) {
     return false;
   }
 
-  final roles = _extractLegacyRoles(user);
+  final roles = extractUserRoles(user);
   if (roles.isEmpty) {
     return false;
   }
@@ -119,4 +180,63 @@ bool canByPermissionOrLegacyRole(
   }
 
   return intersects;
+}
+
+bool isUserOwner(UserEntity? user, String targetUserId) {
+  final normalizedTarget = targetUserId.trim();
+  if (user == null || normalizedTarget.isEmpty) {
+    return false;
+  }
+
+  return user.id.trim() == normalizedTarget;
+}
+
+bool canViewAdministrativeCompletionForUser(
+  UserEntity? user, {
+  required String targetUserId,
+}) {
+  return isUserOwner(user, targetUserId) ||
+      hasAnyPermission(user, {
+        ..._sensitiveFamilyReadPermissions[
+            SensitiveUserFamily.postRegistration]!,
+        ..._sensitiveFamilyUpdatePermissions[
+            SensitiveUserFamily.postRegistration]!,
+      });
+}
+
+bool canManageAdministrativeCompletionForUser(
+  UserEntity? user, {
+  required String targetUserId,
+}) {
+  return canUpdateSensitiveUserFamilyForUser(
+    user,
+    targetUserId: targetUserId,
+    family: SensitiveUserFamily.postRegistration,
+  );
+}
+
+bool canReadSensitiveUserFamilyForUser(
+  UserEntity? user, {
+  required String targetUserId,
+  required SensitiveUserFamily family,
+}) {
+  return isUserOwner(user, targetUserId) ||
+      hasAnyPermission(user, _sensitiveFamilyReadPermissions[family]!);
+}
+
+bool canUpdateSensitiveUserFamilyForUser(
+  UserEntity? user, {
+  required String targetUserId,
+  required SensitiveUserFamily family,
+}) {
+  return isUserOwner(user, targetUserId) ||
+      hasAnyPermission(user, _sensitiveFamilyUpdatePermissions[family]!);
+}
+
+bool canAccessSensitiveUserDataForUser(
+  UserEntity? user, {
+  required String targetUserId,
+}) {
+  return isUserOwner(user, targetUserId) ||
+      hasAnyPermission(user, const {'users:read_detail'});
 }

@@ -6,6 +6,8 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
+import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
+import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/post_registration_providers.dart';
 import '../widgets/bottom_navigation_buttons.dart';
@@ -15,6 +17,25 @@ import 'personal_info_step_view.dart';
 import 'photo_step_view.dart';
 import '../providers/club_selection_providers.dart';
 import '../providers/personal_info_providers.dart';
+
+bool canReadSensitiveStep2Data(String targetUserId, UserEntity? user) {
+  return canAccessSensitiveUserDataForUser(user, targetUserId: targetUserId) ||
+      canReadSensitiveUserFamilyForUser(
+        user,
+        targetUserId: targetUserId,
+        family: SensitiveUserFamily.emergencyContacts,
+      ) ||
+      canReadSensitiveUserFamilyForUser(
+        user,
+        targetUserId: targetUserId,
+        family: SensitiveUserFamily.legalRepresentative,
+      ) ||
+      canReadSensitiveUserFamilyForUser(
+        user,
+        targetUserId: targetUserId,
+        family: SensitiveUserFamily.health,
+      );
+}
 
 /// Shell del post-registro - Estilo "Scout Vibrante"
 ///
@@ -118,9 +139,21 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
   }
 
   Future<void> _completeStep2() async {
+    final authState = ref.read(authNotifierProvider);
+    final user = authState.valueOrNull;
+    final userId = user?.id;
+    if (userId == null) return;
+
+    final canReadSensitiveData = canReadSensitiveStep2Data(userId, user);
+
     try {
-      final saveInfo = ref.read(savePersonalInfoProvider);
-      await saveInfo();
+      if (canReadSensitiveData) {
+        final saveInfo = ref.read(savePersonalInfoProvider);
+        await saveInfo();
+      } else {
+        final dataSource = ref.read(personalInfoDataSourceProvider);
+        await dataSource.completeStep2(userId);
+      }
       if (mounted) _goToStep(3);
     } catch (e) {
       if (!mounted) return;
@@ -215,9 +248,18 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
   @override
   Widget build(BuildContext context) {
     final currentStep = ref.watch(currentStepProvider);
+    final authUser = ref.watch(authNotifierProvider).valueOrNull;
     final selectedPhoto = ref.watch(selectedPhotoPathProvider);
     final isUploading = ref.watch(isUploadingPhotoProvider);
     final hPad = Responsive.horizontalPadding(context);
+    final targetUserId = authUser?.id ?? '';
+    final canReadStep2SensitiveData =
+        canReadSensitiveStep2Data(targetUserId, authUser);
+    final canManageStep2AdministrativeCompletion =
+        canManageAdministrativeCompletionForUser(
+      authUser,
+      targetUserId: targetUserId,
+    );
 
     bool canContinue = false;
     switch (currentStep) {
@@ -225,7 +267,9 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
         canContinue = selectedPhoto != null && !isUploading;
         break;
       case 2:
-        canContinue = ref.watch(canCompleteStep2Provider);
+        canContinue = canReadStep2SensitiveData
+            ? ref.watch(canCompleteStep2Provider)
+            : canManageStep2AdministrativeCompletion;
         break;
       case 3:
         final canComplete3 = ref.watch(canCompleteStep3Provider);
@@ -309,10 +353,15 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
               child: PageView(
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
-                children: const [
-                  PhotoStepView(),
-                  PersonalInfoStepView(),
-                  ClubSelectionStepView(),
+                children: [
+                  const PhotoStepView(),
+                  PersonalInfoStepView(
+                    canReadSensitiveData: canReadStep2SensitiveData,
+                    canManageAdministrativeCompletion:
+                        canManageStep2AdministrativeCompletion,
+                    targetUserId: targetUserId,
+                  ),
+                  const ClubSelectionStepView(),
                 ],
               ),
             ),

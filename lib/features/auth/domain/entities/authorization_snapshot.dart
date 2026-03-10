@@ -53,6 +53,27 @@ class AuthorizationSnapshot extends Equatable {
 
   bool get hasCanonicalPermissions => effectivePermissions.isNotEmpty;
 
+  Set<String> get resolvedRoleNames {
+    final roles = <String>{};
+
+    void addRole(String? roleName) {
+      final normalized = roleName?.trim().toLowerCase();
+      if (normalized != null && normalized.isNotEmpty) {
+        roles.add(normalized);
+      }
+    }
+
+    for (final grant in globalGrants) {
+      addRole(grant.roleName);
+    }
+
+    for (final grant in clubAssignments) {
+      addRole(grant.roleName);
+    }
+
+    return roles;
+  }
+
   @override
   List<Object?> get props => [
         effectivePermissions,

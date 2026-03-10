@@ -8,6 +8,8 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import '../providers/personal_info_providers.dart';
 import 'emergency_contacts_view.dart';
 import 'legal_representative_view.dart';
@@ -20,7 +22,16 @@ import 'diseases_selection_view.dart';
 /// date pickers limpios. Indicador de progreso de secciones completadas.
 /// Title uses responsive font size for small phones.
 class PersonalInfoStepView extends ConsumerStatefulWidget {
-  const PersonalInfoStepView({super.key});
+  const PersonalInfoStepView({
+    super.key,
+    required this.canReadSensitiveData,
+    required this.canManageAdministrativeCompletion,
+    required this.targetUserId,
+  });
+
+  final bool canReadSensitiveData;
+  final bool canManageAdministrativeCompletion;
+  final String targetUserId;
 
   @override
   ConsumerState<PersonalInfoStepView> createState() =>
@@ -30,25 +41,9 @@ class PersonalInfoStepView extends ConsumerStatefulWidget {
 class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
   final _formKey = GlobalKey<FormState>();
 
-  int get _completedSections {
-    final formState = ref.read(personalInfoFormProvider);
-    final contacts = ref.read(emergencyContactsProvider);
-    int count = 0;
-
-    // Section 1: basic data
-    if (formState.gender != null && formState.birthdate != null) count++;
-    // Section 2: emergency contacts
-    if (contacts.hasValue && (contacts.value?.isNotEmpty ?? false)) count++;
-    // Section 3: medical info is optional, count if viewed
-    final allergies = ref.read(selectedAllergiesProvider);
-    final diseases = ref.read(selectedDiseasesProvider);
-    if (allergies.isNotEmpty || diseases.isNotEmpty) count++;
-
-    return count;
-  }
-
   @override
   Widget build(BuildContext context) {
+    final authUser = ref.watch(authNotifierProvider).valueOrNull;
     final formState = ref.watch(personalInfoFormProvider);
     final contactsAsync = ref.watch(emergencyContactsProvider);
     final legalRepAsync = ref.watch(legalRepresentativeProvider);
@@ -57,6 +52,21 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
     final selectedAllergies = ref.watch(selectedAllergiesProvider);
     final selectedDiseases = ref.watch(selectedDiseasesProvider);
     final canComplete = ref.watch(canCompleteStep2Provider);
+    final canReadEmergencyContacts = canReadSensitiveUserFamilyForUser(
+      authUser,
+      targetUserId: widget.targetUserId,
+      family: SensitiveUserFamily.emergencyContacts,
+    );
+    final canReadLegalRepresentative = canReadSensitiveUserFamilyForUser(
+      authUser,
+      targetUserId: widget.targetUserId,
+      family: SensitiveUserFamily.legalRepresentative,
+    );
+    final canReadHealth = canReadSensitiveUserFamilyForUser(
+      authUser,
+      targetUserId: widget.targetUserId,
+      family: SensitiveUserFamily.health,
+    );
 
     // Responsive title style — smaller on very small phones
     final titleStyle = Responsive.isSmallPhone(context)
@@ -86,6 +96,36 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
           ),
           const SizedBox(height: 24),
 
+          if (!widget.canReadSensitiveData &&
+              widget.canManageAdministrativeCompletion) ...[
+            SacCard(
+              backgroundColor: AppColors.accentLight,
+              borderColor: AppColors.accent.withValues(alpha: 0.3),
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedInformationCircle,
+                    size: 18,
+                    color: AppColors.accentDark,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Tu acceso actual solo permite completion administrativa mínima. Los datos sensibles del usuario no se muestran.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.accentDark,
+                        height: 1.3,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+
           // Progress indicator
           /*SacProgressBar(
             progress: _completedSections / 3,
@@ -94,161 +134,307 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
           ),
           const SizedBox(height: 24), */
 
-          // === Section 1: Basic Data ===
-          _SectionHeader(
-            icon: HugeIcons.strokeRoundedUser,
-            title: 'Datos básicos',
-            isCompleted:
-                formState.gender != null && formState.birthdate != null,
-          ),
-          const SizedBox(height: 12),
-
-          // Gender chips
-          Text(
-            'Género',
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: context.sac.textSecondary,
+          if (widget.canReadSensitiveData) ...[
+            // === Section 1: Basic Data ===
+            _SectionHeader(
+              icon: HugeIcons.strokeRoundedUser,
+              title: 'Datos básicos',
+              isCompleted:
+                  formState.gender != null && formState.birthdate != null,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Género',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: context.sac.textSecondary,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                _GenderChip(
+                  label: 'Masculino',
+                  icon: HugeIcons.strokeRoundedUser,
+                  isSelected: formState.gender == 'M',
+                  onTap: () {
+                    ref.read(personalInfoFormProvider.notifier).state =
+                        formState.copyWith(gender: 'M');
+                  },
                 ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _GenderChip(
-                label: 'Masculino',
-                icon: HugeIcons.strokeRoundedUser,
-                isSelected: formState.gender == 'M',
-                onTap: () {
+                const SizedBox(width: 12),
+                _GenderChip(
+                  label: 'Femenino',
+                  icon: HugeIcons.strokeRoundedUser,
+                  isSelected: formState.gender == 'F',
+                  onTap: () {
+                    ref.read(personalInfoFormProvider.notifier).state =
+                        formState.copyWith(gender: 'F');
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            _DatePickerCard(
+              label: 'Fecha de nacimiento',
+              icon: HugeIcons.strokeRoundedBirthdayCake,
+              date: formState.birthdate,
+              onTap: () => _selectBirthdate(context),
+            ),
+            const SizedBox(height: 16),
+            SacCard(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: SwitchListTile(
+                title: const Text(
+                  '¿Estás bautizado?',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                value: formState.baptized,
+                activeTrackColor: AppColors.primaryLight,
+                thumbColor: WidgetStatePropertyAll(AppColors.primary),
+                contentPadding: EdgeInsets.zero,
+                onChanged: (value) {
                   ref.read(personalInfoFormProvider.notifier).state =
-                      formState.copyWith(gender: 'M');
+                      formState.copyWith(
+                    baptized: value,
+                    baptismDate: value ? formState.baptismDate : null,
+                  );
                 },
               ),
-              const SizedBox(width: 12),
-              _GenderChip(
-                label: 'Femenino',
-                icon: HugeIcons.strokeRoundedUser,
-                isSelected: formState.gender == 'F',
-                onTap: () {
-                  ref.read(personalInfoFormProvider.notifier).state =
-                      formState.copyWith(gender: 'F');
-                },
+            ),
+            if (formState.baptized) ...[
+              const SizedBox(height: 12),
+              _DatePickerCard(
+                label: 'Fecha de bautismo',
+                icon: HugeIcons.strokeRoundedBlood,
+                date: formState.baptismDate,
+                onTap: () => _selectBaptismDate(context),
               ),
             ],
-          ),
-          const SizedBox(height: 20),
+            const SizedBox(height: 28),
+          ],
 
-          // Birthdate
-          _DatePickerCard(
-            label: 'Fecha de nacimiento',
-            icon: HugeIcons.strokeRoundedBirthdayCake,
-            date: formState.birthdate,
-            onTap: () => _selectBirthdate(context),
-          ),
-          const SizedBox(height: 16),
-
-          // Baptized toggle
-          SacCard(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: SwitchListTile(
-              title: const Text(
-                '¿Estás bautizado?',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
+          if (canReadEmergencyContacts) ...[
+            // === Section 2: Emergency Contacts ===
+            _SectionHeader(
+              icon: HugeIcons.strokeRoundedCall02,
+              title: 'Contactos de emergencia',
+              isCompleted: contactsAsync.hasValue &&
+                  (contactsAsync.value?.isNotEmpty ?? false),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Registra al menos un contacto de emergencia',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: context.sac.textTertiary,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            contactsAsync.when(
+              loading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: SacLoadingSmall(),
                 ),
               ),
-              value: formState.baptized,
-              activeTrackColor: AppColors.primaryLight,
-              thumbColor: WidgetStatePropertyAll(AppColors.primary),
-              contentPadding: EdgeInsets.zero,
-              onChanged: (value) {
-                ref.read(personalInfoFormProvider.notifier).state =
-                    formState.copyWith(
-                  baptized: value,
-                  baptismDate: value ? formState.baptismDate : null,
+              error: (error, _) => _ErrorCard(message: 'Error: $error'),
+              data: (contacts) => SacCard(
+                onTap: () => _navigateToEmergencyContacts(),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: contacts.isEmpty
+                            ? context.sac.surfaceVariant
+                            : AppColors.primaryLight,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedContactBook,
+                        size: 20,
+                        color: contacts.isEmpty
+                            ? context.sac.textTertiary
+                            : AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            contacts.isEmpty
+                                ? 'Sin contactos registrados'
+                                : '${contacts.length} contacto(s)',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          if (contacts.isEmpty)
+                            const Text(
+                              'Requerido: al menos 1',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.accent,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowRight01,
+                      color: context.sac.textTertiary,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+
+          if (canReadLegalRepresentative)
+            requiresLegalRepAsync.when(
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+              data: (required) {
+                if (!required) return const SizedBox.shrink();
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _SectionHeader(
+                      icon: HugeIcons.strokeRoundedUserGroup,
+                      title: 'Representante legal',
+                      isCompleted:
+                          legalRepAsync.hasValue && legalRepAsync.value != null,
+                    ),
+                    const SizedBox(height: 8),
+                    SacCard(
+                      backgroundColor: AppColors.accentLight,
+                      borderColor: AppColors.accent.withValues(alpha: 0.3),
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          HugeIcon(
+                              icon: HugeIcons.strokeRoundedInformationCircle,
+                              size: 18,
+                              color: AppColors.accentDark),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Eres menor de 18 años, necesitas registrar un representante legal.',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.accentDark,
+                                height: 1.3,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    legalRepAsync.when(
+                      loading: () => const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: SacLoadingSmall(),
+                        ),
+                      ),
+                      error: (error, _) => _ErrorCard(message: 'Error: $error'),
+                      data: (rep) => SacCard(
+                        onTap: () => _navigateToLegalRepresentative(),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: rep != null
+                                    ? AppColors.primaryLight
+                                    : context.sac.surfaceVariant,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: HugeIcon(
+                                icon: HugeIcons.strokeRoundedUserGroup,
+                                size: 20,
+                                color: rep != null
+                                    ? AppColors.primary
+                                    : context.sac.textTertiary,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                rep != null
+                                    ? rep.fullName
+                                    : 'Sin representante registrado',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            HugeIcon(
+                              icon: HugeIcons.strokeRoundedArrowRight01,
+                              color: context.sac.textTertiary,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                 );
               },
             ),
-          ),
 
-          if (formState.baptized) ...[
+          if (canReadHealth) ...[
+            // === Section 3: Medical Info ===
+            _SectionHeader(
+              icon: HugeIcons.strokeRoundedFirstAidKit,
+              title: 'Información médica',
+              subtitle: 'Opcional',
+              isCompleted:
+                  selectedAllergies.isNotEmpty || selectedDiseases.isNotEmpty,
+            ),
             const SizedBox(height: 12),
-            _DatePickerCard(
-              label: 'Fecha de bautismo',
-              icon: HugeIcons.strokeRoundedBlood,
-              date: formState.baptismDate,
-              onTap: () => _selectBaptismDate(context),
-            ),
-          ],
-          const SizedBox(height: 28),
-
-          // === Section 2: Emergency Contacts ===
-          _SectionHeader(
-            icon: HugeIcons.strokeRoundedCall02,
-            title: 'Contactos de emergencia',
-            isCompleted: contactsAsync.hasValue &&
-                (contactsAsync.value?.isNotEmpty ?? false),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Registra al menos un contacto de emergencia',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: context.sac.textTertiary,
-                ),
-          ),
-          const SizedBox(height: 12),
-
-          contactsAsync.when(
-            loading: () => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: SacLoadingSmall(),
-              ),
-            ),
-            error: (error, _) => _ErrorCard(message: 'Error: $error'),
-            data: (contacts) => SacCard(
-              onTap: () => _navigateToEmergencyContacts(),
+            SacCard(
+              onTap: () => _navigateToAllergiesSelection(),
               child: Row(
                 children: [
                   Container(
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: contacts.isEmpty
-                          ? context.sac.surfaceVariant
-                          : AppColors.primaryLight,
+                      color: selectedAllergies.isNotEmpty
+                          ? AppColors.errorLight
+                          : context.sac.surfaceVariant,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedContactBook,
+                      icon: HugeIcons.strokeRoundedBandage,
                       size: 20,
-                      color: contacts.isEmpty
-                          ? context.sac.textTertiary
-                          : AppColors.primary,
+                      color: selectedAllergies.isNotEmpty
+                          ? AppColors.error
+                          : context.sac.textTertiary,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          contacts.isEmpty
-                              ? 'Sin contactos registrados'
-                              : '${contacts.length} contacto(s)',
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        if (contacts.isEmpty)
-                          const Text(
-                            'Requerido: al menos 1',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.accent,
-                            ),
-                          ),
-                      ],
+                    child: Text(
+                      selectedAllergies.isEmpty
+                          ? 'Alergias'
+                          : '${selectedAllergies.length} alergia(s)',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                   HugeIcon(
@@ -258,204 +444,52 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 24),
-
-          // === Legal Representative (conditional) ===
-          requiresLegalRepAsync.when(
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
-            data: (required) {
-              if (!required) return const SizedBox.shrink();
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(height: 12),
+            SacCard(
+              onTap: () => _navigateToDiseasesSelection(),
+              child: Row(
                 children: [
-                  _SectionHeader(
-                    icon: HugeIcons.strokeRoundedUserGroup,
-                    title: 'Representante legal',
-                    isCompleted:
-                        legalRepAsync.hasValue && legalRepAsync.value != null,
-                  ),
-                  const SizedBox(height: 8),
-                  SacCard(
-                    backgroundColor: AppColors.accentLight,
-                    borderColor: AppColors.accent.withValues(alpha: 0.3),
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        HugeIcon(
-                            icon: HugeIcons.strokeRoundedInformationCircle,
-                            size: 18,
-                            color: AppColors.accentDark),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Eres menor de 18 años, necesitas registrar un representante legal.',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppColors.accentDark,
-                              height: 1.3,
-                            ),
-                          ),
-                        ),
-                      ],
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: selectedDiseases.isNotEmpty
+                          ? AppColors.accentLight
+                          : context.sac.surfaceVariant,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedStethoscope,
+                      size: 20,
+                      color: selectedDiseases.isNotEmpty
+                          ? AppColors.accent
+                          : context.sac.textTertiary,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  legalRepAsync.when(
-                    loading: () => const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: SacLoadingSmall(),
-                      ),
-                    ),
-                    error: (error, _) => _ErrorCard(message: 'Error: $error'),
-                    data: (rep) => SacCard(
-                      onTap: () => _navigateToLegalRepresentative(),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: rep != null
-                                  ? AppColors.primaryLight
-                                  : context.sac.surfaceVariant,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: HugeIcon(
-                              icon: HugeIcons.strokeRoundedUserGroup,
-                              size: 20,
-                              color: rep != null
-                                  ? AppColors.primary
-                                  : context.sac.textTertiary,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              rep != null
-                                  ? rep.fullName
-                                  : 'Sin representante registrado',
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedArrowRight01,
-                            color: context.sac.textTertiary,
-                          ),
-                        ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      selectedDiseases.isEmpty
+                          ? 'Enfermedades'
+                          : '${selectedDiseases.length} enfermedad(es)',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowRight01,
+                    color: context.sac.textTertiary,
+                  ),
                 ],
-              );
-            },
-          ),
-
-          // === Section 3: Medical Info ===
-          _SectionHeader(
-            icon: HugeIcons.strokeRoundedFirstAidKit,
-            title: 'Información médica',
-            subtitle: 'Opcional',
-            isCompleted:
-                selectedAllergies.isNotEmpty || selectedDiseases.isNotEmpty,
-          ),
-          const SizedBox(height: 12),
-
-          // Allergies
-          SacCard(
-            onTap: () => _navigateToAllergiesSelection(),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: selectedAllergies.isNotEmpty
-                        ? AppColors.errorLight
-                        : context.sac.surfaceVariant,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedBandage,
-                    size: 20,
-                    color: selectedAllergies.isNotEmpty
-                        ? AppColors.error
-                        : context.sac.textTertiary,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    selectedAllergies.isEmpty
-                        ? 'Alergias'
-                        : '${selectedAllergies.length} alergia(s)',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowRight01,
-                  color: context.sac.textTertiary,
-                ),
-              ],
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-
-          // Diseases
-          SacCard(
-            onTap: () => _navigateToDiseasesSelection(),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: selectedDiseases.isNotEmpty
-                        ? AppColors.accentLight
-                        : context.sac.surfaceVariant,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedStethoscope,
-                    size: 20,
-                    color: selectedDiseases.isNotEmpty
-                        ? AppColors.accent
-                        : context.sac.textTertiary,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    selectedDiseases.isEmpty
-                        ? 'Enfermedades'
-                        : '${selectedDiseases.length} enfermedad(es)',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowRight01,
-                  color: context.sac.textTertiary,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
+          ],
 
           // Warning if incomplete
-          if (!canComplete)
+          if (widget.canReadSensitiveData && !canComplete)
             SacCard(
               backgroundColor: AppColors.accentLight,
               borderColor: AppColors.accent.withValues(alpha: 0.3),
@@ -495,7 +529,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
     final picked = await showDatePicker(
       context: context,
       initialDate: initialDate,
-      firstDate: minDate, 
+      firstDate: minDate,
       lastDate: maxDate,
       helpText: 'Selecciona tu fecha de nacimiento',
       cancelText: 'Cancelar',
@@ -651,9 +685,8 @@ class _GenderChip extends StatelessWidget {
               buildIcon(
                 icon,
                 size: 20,
-                color: isSelected
-                    ? AppColors.primary
-                    : context.sac.textSecondary,
+                color:
+                    isSelected ? AppColors.primary : context.sac.textSecondary,
               ),
               const SizedBox(width: 8),
               Text(
@@ -706,9 +739,8 @@ class _DatePickerCard extends StatelessWidget {
             child: buildIcon(
               icon,
               size: 20,
-              color: date != null
-                  ? AppColors.primary
-                  : context.sac.textTertiary,
+              color:
+                  date != null ? AppColors.primary : context.sac.textTertiary,
             ),
           ),
           const SizedBox(width: 12),
