@@ -1,6 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -14,6 +12,7 @@ import '../../domain/usecases/get_current_user.dart';
 import '../../domain/usecases/sign_in.dart';
 import '../../domain/usecases/sign_out.dart';
 import '../../domain/usecases/sign_up.dart';
+import '../../domain/usecases/switch_context.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../providers/dio_provider.dart';
@@ -58,6 +57,11 @@ final signOutProvider = Provider<SignOut>((ref) {
   return SignOut(ref.read(authRepositoryProvider));
 });
 
+/// Provider para el caso de uso de cambio de contexto
+final switchContextProvider = Provider<SwitchContext>((ref) {
+  return SwitchContext(ref.read(authRepositoryProvider));
+});
+
 /// Flag global para rastrear manualmente el estado de autenticación
 final isUserLoggedOutProvider = StateProvider<bool>((ref) => false);
 
@@ -69,7 +73,7 @@ final authStateProvider = StreamProvider<bool>((ref) {
     return Stream.value(false);
   }
 
-  return ref.read(authRepositoryProvider).authStateChanges;
+  return ref.watch(authRepositoryProvider).authStateChanges;
 });
 
 /// Notifier para manejar la autenticación y sus estados
@@ -146,15 +150,14 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   /// restauración offline. El flag post_register_complete se escribe en ambos
   /// almacenes para que el datasource pueda leerlo como fallback en /auth/me.
   void _cacheUser(UserEntity user) {
-    SharedPreferences.getInstance().then((prefs) {
-      prefs.setString('cached_user_id', user.id);
-      prefs.setString('cached_user_email', user.email);
-      if (user.name != null) prefs.setString('cached_user_name', user.name!);
-      prefs.setBool('cached_post_register_complete', user.postRegisterComplete);
-    });
-    const FlutterSecureStorage().write(
-      key: 'cached_post_register_complete',
-      value: user.postRegisterComplete.toString(),
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setString('cached_user_id', user.id);
+    prefs.setString('cached_user_email', user.email);
+    if (user.name != null) prefs.setString('cached_user_name', user.name!);
+    prefs.setBool('cached_post_register_complete', user.postRegisterComplete);
+    ref.read(secureStorageProvider).write(
+      'cached_post_register_complete',
+      user.postRegisterComplete.toString(),
     );
   }
 
@@ -178,9 +181,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       (user) {
         AppLogger.i('Login exitoso: ${user.email}', tag: _tag);
         ref.read(isUserLoggedOutProvider.notifier).state = false;
-        SharedPreferences.getInstance().then((prefs) {
-          prefs.setBool('user_manually_logged_out', false);
-        });
+        ref.read(sharedPreferencesProvider).setBool('user_manually_logged_out', false);
         _cacheUser(user);
         return AsyncValue.data(user);
       },
@@ -243,6 +244,51 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     _cacheUser(updatedUser);
   }
 
+  /// Cambia el contexto activo de autorización y refresca el estado del usuario.
+  ///
+  /// Llama al use case SwitchContext, y en caso de éxito vuelve a llamar
+  /// getCurrentUser() para propagar el nuevo contexto a todo el árbol de providers.
+  /// Retorna true si el cambio fue exitoso, false en caso contrario.
+  Future<bool> switchContext(String assignmentId) async {
+    AppLogger.i('Cambiando contexto a $assignmentId', tag: _tag);
+
+    final result = await ref.read(switchContextProvider)(
+      SwitchContextParams(assignmentId: assignmentId),
+    );
+
+    // Extract success/failure synchronously before doing any async work.
+    final switchFailed = result.isLeft();
+    if (switchFailed) {
+      result.fold(
+        (failure) => AppLogger.w(
+          'Error al cambiar contexto: ${failure.message}',
+          tag: _tag,
+        ),
+        (_) {},
+      );
+      return false;
+    }
+
+    // Switch succeeded — refresh the full user so downstream providers
+    // (clubContextProvider, dashboardNotifierProvider, etc.) re-evaluate.
+    AppLogger.i('Contexto cambiado. Refrescando usuario...', tag: _tag);
+    final refreshResult = await ref.read(getCurrentUserProvider)(NoParams());
+    refreshResult.fold(
+      (failure) => AppLogger.w(
+        'Error al refrescar usuario tras cambio de contexto: ${failure.message}',
+        tag: _tag,
+      ),
+      (user) {
+        if (user != null) {
+          _cacheUser(user);
+          state = AsyncValue.data(user);
+        }
+      },
+    );
+
+    return true;
+  }
+
   /// Cerrar sesión
   Future<bool> signOut() async {
     state = const AsyncValue.loading();
@@ -261,16 +307,13 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       (_) {
         state = const AsyncValue.data(null);
 
-        SharedPreferences.getInstance().then((prefs) {
-          prefs.setBool('user_manually_logged_out', true);
-          prefs.remove('cached_user_id');
-          prefs.remove('cached_user_email');
-          prefs.remove('cached_user_name');
-          prefs.remove('cached_post_register_complete');
-        });
-        const FlutterSecureStorage().delete(
-          key: 'cached_post_register_complete',
-        );
+        final prefs = ref.read(sharedPreferencesProvider);
+        prefs.setBool('user_manually_logged_out', true);
+        prefs.remove('cached_user_id');
+        prefs.remove('cached_user_email');
+        prefs.remove('cached_user_name');
+        prefs.remove('cached_post_register_complete');
+        ref.read(secureStorageProvider).delete('cached_post_register_complete');
 
         return true;
       },

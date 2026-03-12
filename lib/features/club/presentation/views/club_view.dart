@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -115,13 +116,12 @@ class _ClubViewState extends ConsumerState<ClubView> {
   Future<void> _openLocationPicker() async {
     final result = await Navigator.push<LocationPickerResult>(
       context,
-      MaterialPageRoute(
+      SacSlideUpRoute(
         builder: (_) => LocationPickerView(
           initialLocation: _selectedLocation != null
               ? LatLng(_selectedLocation!.lat, _selectedLocation!.long)
               : null,
         ),
-        fullscreenDialog: true,
       ),
     );
 

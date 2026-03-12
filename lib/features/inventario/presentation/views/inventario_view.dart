@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/animations/page_transitions.dart';
+import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_loading.dart';
@@ -139,7 +141,7 @@ class _InventarioViewState extends ConsumerState<InventarioView> {
   void _openDetail(BuildContext context, InventoryItem item) {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (_) => InventoryItemDetailView(item: item),
       ),
     );
@@ -211,9 +213,12 @@ class _InventoryBody extends StatelessWidget {
         if (items.isEmpty)
           _EmptyState(canAdd: canManage && !filters.hasActiveFilters, onAddTap: onAddTap)
         else
-          ...items.map((item) => InventoryItemCard(
-                item: item,
-                onTap: () => onItemTap(item),
+          ...items.asMap().entries.map((entry) => StaggeredListItem(
+                index: entry.key,
+                child: InventoryItemCard(
+                  item: entry.value,
+                  onTap: () => onItemTap(entry.value),
+                ),
               )),
 
         const SizedBox(height: 80), // FAB clearance

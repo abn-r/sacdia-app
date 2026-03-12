@@ -50,6 +50,10 @@ abstract class AuthRemoteDataSource {
 
   /// Verifica si hay un token guardado localmente (sin llamar al API)
   Future<bool> hasLocalToken();
+
+  /// Cambia el contexto activo de autorización del usuario.
+  /// Llama a PATCH /auth/me/context con el assignment_id indicado.
+  Future<void> switchContext(String assignmentId);
 }
 
 /// Implementación de la fuente de datos remota con Dio para API personalizada
@@ -597,6 +601,26 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error al verificar token local', tag: _tag, error: e);
       return false;
+    }
+  }
+
+  @override
+  Future<void> switchContext(String assignmentId) async {
+    final token = await _secureStorage.read(key: 'auth_token');
+    if (token == null) {
+      throw AuthException(message: 'No hay sesión activa');
+    }
+
+    final response = await _dio.patch(
+      '$_baseUrl/auth/me/context',
+      data: {'assignment_id': assignmentId},
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw AuthException(
+        message: response.data?['message'] ?? 'Error al cambiar contexto',
+      );
     }
   }
 

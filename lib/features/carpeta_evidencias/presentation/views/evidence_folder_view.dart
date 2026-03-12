@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/animations/page_transitions.dart';
+import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -131,9 +133,12 @@ class _FolderBody extends StatelessWidget {
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final section = folder.sections[index];
-                return SectionCard(
-                  section: section,
-                  onTap: () => _openSectionDetail(context, section),
+                return StaggeredListItem(
+                  index: index,
+                  child: SectionCard(
+                    section: section,
+                    onTap: () => _openSectionDetail(context, section),
+                  ),
                 );
               },
               childCount: folder.sections.length,
@@ -153,7 +158,7 @@ class _FolderBody extends StatelessWidget {
   void _openSectionDetail(BuildContext context, EvidenceSection section) {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (_) => EvidenceSectionDetailView(
           section: section,
           folderIsOpen: folder.isOpen,

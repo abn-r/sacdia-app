@@ -45,4 +45,7 @@ abstract class AuthRepository {
 
   /// Verifica si hay un token guardado localmente (sin llamar al API)
   Future<bool> hasLocalToken();
+
+  /// Cambia el contexto activo de autorización del usuario.
+  Future<Either<Failure, void>> switchContext(String assignmentId);
 }

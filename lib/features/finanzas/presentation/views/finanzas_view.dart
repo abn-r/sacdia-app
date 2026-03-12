@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/animations/page_transitions.dart';
+import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_loading.dart';
@@ -179,10 +181,13 @@ class _FinanceBody extends ConsumerWidget {
         if (financeMonth == null || financeMonth!.transactions.isEmpty)
           _EmptyTransactions()
         else
-          ...financeMonth!.transactions.map(
-            (t) => TransactionTile(
-              transaction: t,
-              onTap: () => _openDetail(context, t),
+          ...financeMonth!.transactions.asMap().entries.map(
+            (entry) => StaggeredListItem(
+              index: entry.key,
+              child: TransactionTile(
+                transaction: entry.value,
+                onTap: () => _openDetail(context, entry.value),
+              ),
             ),
           ),
 
@@ -194,7 +199,7 @@ class _FinanceBody extends ConsumerWidget {
   void _openDetail(BuildContext context, FinanceTransaction t) {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (_) => TransactionDetailView(transaction: t),
       ),
     );

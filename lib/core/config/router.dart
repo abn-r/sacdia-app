@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,18 +25,35 @@ import '../../features/classes/presentation/views/classes_list_view.dart';
 import '../../features/classes/presentation/views/class_detail_with_progress_view.dart';
 import '../../features/miembros/presentation/views/miembros_view.dart';
 import '../../features/profile/presentation/views/profile_view.dart';
+import '../animations/page_transitions.dart';
 import '../utils/responsive.dart';
 import 'route_names.dart';
 
-/// Returns a [CupertinoPage] for use with GoRouter [pageBuilder].
-///
-/// Unified iOS-style slide-from-right transition on all platforms.
-Page<void> _buildPage(
+/// Shared-axis slide for standard forward/back navigation.
+Page<void> _sharedAxisBuild(
   BuildContext context,
   GoRouterState state,
   Widget child,
 ) {
-  return CupertinoPage<void>(child: child, key: state.pageKey);
+  return sharedAxisPage<void>(key: state.pageKey, child: child);
+}
+
+/// Cross-fade for bottom-nav tab switching (no directional cue needed).
+Page<void> _fadeThroughBuild(
+  BuildContext context,
+  GoRouterState state,
+  Widget child,
+) {
+  return fadeThroughPage<void>(key: state.pageKey, child: child);
+}
+
+/// Slide-up for modal-style pages.
+Page<void> _slideUpBuild(
+  BuildContext context,
+  GoRouterState state,
+  Widget child,
+) {
+  return slideUpPage<void>(key: state.pageKey, child: child);
 }
 
 /// Provider principal del router de la aplicación.
@@ -116,35 +132,35 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.splash,
         pageBuilder: (context, state) =>
-            _buildPage(context, state, const SplashView()),
+            _sharedAxisBuild(context, state, const SplashView()),
       ),
 
       // Login
       GoRoute(
         path: RouteNames.login,
         pageBuilder: (context, state) =>
-            _buildPage(context, state, const LoginView()),
+            _sharedAxisBuild(context, state, const LoginView()),
       ),
 
       // Registro
       GoRoute(
         path: RouteNames.register,
         pageBuilder: (context, state) =>
-            _buildPage(context, state, const RegisterView()),
+            _sharedAxisBuild(context, state, const RegisterView()),
       ),
 
       // Recuperar contraseña
       GoRoute(
         path: RouteNames.forgotPassword,
         pageBuilder: (context, state) =>
-            _buildPage(context, state, const ForgotPasswordView()),
+            _sharedAxisBuild(context, state, const ForgotPasswordView()),
       ),
 
       // Post-registro
       GoRoute(
         path: RouteNames.postRegistration,
         pageBuilder: (context, state) =>
-            _buildPage(context, state, const PostRegistrationShell()),
+            _slideUpBuild(context, state, const PostRegistrationShell()),
       ),
 
       // Shell con navegación adaptativa (bottom bar en phones, rail en tablets)
@@ -154,16 +170,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RouteNames.homeDashboard,
             pageBuilder: (context, state) =>
-                _buildPage(context, state, const DashboardView()),
+                _fadeThroughBuild(context, state, const DashboardView()),
           ),
           GoRoute(
             path: RouteNames.homeClasses,
             pageBuilder: (context, state) =>
-                _buildPage(context, state, const ClassesListView()),
+                _fadeThroughBuild(context, state, const ClassesListView()),
           ),
           GoRoute(
             path: RouteNames.homeActivities,
-            pageBuilder: (context, state) => _buildPage(
+            pageBuilder: (context, state) => _fadeThroughBuild(
               context,
               state,
               const ActivitiesListView(clubId: 1),
@@ -172,67 +188,67 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RouteNames.homeProfile,
             pageBuilder: (context, state) =>
-                _buildPage(context, state, const ProfileView()),
+                _fadeThroughBuild(context, state, const ProfileView()),
           ),
           GoRoute(
             path: RouteNames.homeMembers,
-            pageBuilder: (context, state) => _buildPage(
+            pageBuilder: (context, state) => _fadeThroughBuild(
               context, state,
               const MiembrosView(),
             ),
           ),
           GoRoute(
             path: RouteNames.homeClub,
-            pageBuilder: (context, state) => _buildPage(
+            pageBuilder: (context, state) => _fadeThroughBuild(
               context, state,
               const ClubView(),
             ),
           ),
           GoRoute(
             path: RouteNames.homeEvidences,
-            pageBuilder: (context, state) => _buildPage(
+            pageBuilder: (context, state) => _fadeThroughBuild(
               context, state,
               const _EvidenceFolderShell(),
             ),
           ),
           GoRoute(
             path: RouteNames.homeFinances,
-            pageBuilder: (context, state) => _buildPage(
+            pageBuilder: (context, state) => _fadeThroughBuild(
               context, state,
               const FinanzasView(),
             ),
           ),
           GoRoute(
             path: RouteNames.homeUnits,
-            pageBuilder: (context, state) => _buildPage(
+            pageBuilder: (context, state) => _fadeThroughBuild(
               context, state,
               const UnitsListView(),
             ),
           ),
           GoRoute(
             path: RouteNames.homeGroupedClass,
-            pageBuilder: (context, state) => _buildPage(
+            pageBuilder: (context, state) => _fadeThroughBuild(
               context, state,
-              ClassDetailWithProgressView(classId: 1), //ClassesListView(),  
+              ClassDetailWithProgressView(classId: 1), //ClassesListView(),
             ),
           ),
           GoRoute(
             path: RouteNames.homeInsurance,
-            pageBuilder: (context, state) => _buildPage(
+            pageBuilder: (context, state) => _fadeThroughBuild(
               context, state,
               const SegurosView(),
             ),
           ),
           GoRoute(
             path: RouteNames.homeInventory,
-            pageBuilder: (context, state) => _buildPage(
+            pageBuilder: (context, state) => _fadeThroughBuild(
               context, state,
               const InventarioView(),
             ),
           ),
           GoRoute(
             path: RouteNames.homeResources,
-            pageBuilder: (context, state) => _buildPage(
+            pageBuilder: (context, state) => _fadeThroughBuild(
               context, state,
               const ResourcesSection(),
             ),
@@ -245,7 +261,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RouteNames.clubDetail,
         pageBuilder: (context, state) {
           final clubId = state.pathParameters['clubId']!;
-          return _buildPage(
+          return _sharedAxisBuild(
               context, state, _PlaceholderScreen(title: 'Club: $clubId'));
         },
       ),
@@ -256,7 +272,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) {
           final classIdStr = state.pathParameters['classId']!;
           final classId = int.tryParse(classIdStr) ?? 0;
-          return _buildPage(
+          return _sharedAxisBuild(
             context,
             state,
             ClassDetailWithProgressView(classId: classId),
@@ -269,7 +285,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RouteNames.honorDetail,
         pageBuilder: (context, state) {
           final honorId = state.pathParameters['honorId']!;
-          return _buildPage(
+          return _sharedAxisBuild(
               context, state, _PlaceholderScreen(title: 'Honor: $honorId'));
         },
       ),

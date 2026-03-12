@@ -169,6 +169,22 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, void>> switchContext(String assignmentId) async {
+    if (await networkInfo.isConnected) {
+      try {
+        await remoteDataSource.switchContext(assignmentId);
+        return const Right(null);
+      } on core_exceptions.AuthException catch (e) {
+        return Left(AuthFailure(message: e.message, code: e.code));
+      } catch (e) {
+        return Left(ServerFailure(message: e.toString()));
+      }
+    } else {
+      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+  }
+
+  @override
   Future<Either<Failure, bool>> getCompletionStatus() async {
     if (await networkInfo.isConnected) {
       try {

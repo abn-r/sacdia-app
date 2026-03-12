@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/animations/page_transitions.dart';
+import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_loading.dart';
@@ -134,7 +136,7 @@ class _SegurosViewState extends ConsumerState<SegurosView> {
       // Asegurado o vencido: abre el detalle
       Navigator.push(
         context,
-        MaterialPageRoute(
+        SacSharedAxisRoute(
           builder: (_) => InsuranceDetailView(insurance: mi),
         ),
       );
@@ -218,10 +220,13 @@ class _SegurosBody extends StatelessWidget {
             canManage: canManage,
           )
         else
-          ...items.map((mi) => MemberInsuranceCard(
-                insurance: mi,
-                canManage: canManage,
-                onTap: () => onItemTap(mi),
+          ...items.asMap().entries.map((entry) => StaggeredListItem(
+                index: entry.key,
+                child: MemberInsuranceCard(
+                  insurance: entry.value,
+                  canManage: canManage,
+                  onTap: () => onItemTap(entry.value),
+                ),
               )),
 
         const SizedBox(height: 80), // FAB clearance

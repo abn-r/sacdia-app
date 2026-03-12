@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/animations/page_transitions.dart';
+import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -132,9 +134,12 @@ class _ClassBody extends StatelessWidget {
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
                   final module = classWithProgress.modules[index];
-                  return _ModuleSection(
-                    module: module,
-                    classId: classId,
+                  return StaggeredListItem(
+                    index: index,
+                    child: _ModuleSection(
+                      module: module,
+                      classId: classId,
+                    ),
                   );
                 },
                 childCount: classWithProgress.modules.length,
@@ -615,7 +620,7 @@ class _ModuleSectionState extends State<_ModuleSection> {
       BuildContext context, ClassRequirement requirement) {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      SacSharedAxisRoute(
         builder: (_) => RequirementDetailView(
           requirement: requirement,
           classId: widget.classId,

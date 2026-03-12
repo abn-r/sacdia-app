@@ -114,10 +114,9 @@ class UpdateClubState {
 }
 
 /// Notifier para gestionar la actualización de la instancia de club.
-class UpdateClubNotifier extends StateNotifier<UpdateClubState> {
-  final UpdateClubInstance _updateClubInstance;
-
-  UpdateClubNotifier(this._updateClubInstance) : super(const UpdateClubState());
+class UpdateClubNotifier extends AutoDisposeNotifier<UpdateClubState> {
+  @override
+  UpdateClubState build() => const UpdateClubState();
 
   /// Guarda los cambios de la instancia de club.
   Future<bool> save({
@@ -135,7 +134,8 @@ class UpdateClubNotifier extends StateNotifier<UpdateClubState> {
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
-    final result = await _updateClubInstance(
+    final useCase = ref.read(updateClubInstanceUseCaseProvider);
+    final result = await useCase(
       UpdateClubInstanceParams(
         clubId: clubId,
         instanceType: instanceType,
@@ -175,9 +175,6 @@ class UpdateClubNotifier extends StateNotifier<UpdateClubState> {
 
 /// Provider del notifier de actualización de club.
 final updateClubNotifierProvider =
-    StateNotifierProvider.autoDispose<UpdateClubNotifier, UpdateClubState>(
-  (ref) {
-    final useCase = ref.read(updateClubInstanceUseCaseProvider);
-    return UpdateClubNotifier(useCase);
-  },
+    NotifierProvider.autoDispose<UpdateClubNotifier, UpdateClubState>(
+  UpdateClubNotifier.new,
 );

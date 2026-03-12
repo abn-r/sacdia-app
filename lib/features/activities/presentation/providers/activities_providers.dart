@@ -178,11 +178,9 @@ class CreateActivityState {
 }
 
 /// Notifier para manejar la creación de actividades
-class CreateActivityNotifier extends StateNotifier<CreateActivityState> {
-  final CreateActivity _createActivity;
-
-  CreateActivityNotifier(this._createActivity)
-      : super(const CreateActivityState());
+class CreateActivityNotifier extends AutoDisposeNotifier<CreateActivityState> {
+  @override
+  CreateActivityState build() => const CreateActivityState();
 
   /// Crea una nueva actividad y actualiza el estado
   Future<bool> create({
@@ -191,7 +189,7 @@ class CreateActivityNotifier extends StateNotifier<CreateActivityState> {
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
-    final result = await _createActivity(
+    final result = await ref.read(createActivityUseCaseProvider)(
       CreateActivityParams(clubId: clubId, request: request),
     );
 
@@ -215,9 +213,6 @@ class CreateActivityNotifier extends StateNotifier<CreateActivityState> {
 
 /// Provider para el notifier de creación de actividad
 final createActivityNotifierProvider =
-    StateNotifierProvider.autoDispose<CreateActivityNotifier, CreateActivityState>(
-  (ref) {
-    final useCase = ref.read(createActivityUseCaseProvider);
-    return CreateActivityNotifier(useCase);
-  },
+    NotifierProvider.autoDispose<CreateActivityNotifier, CreateActivityState>(
+  CreateActivityNotifier.new,
 );

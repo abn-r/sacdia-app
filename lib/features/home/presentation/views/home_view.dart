@@ -12,6 +12,7 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
+import '../widgets/club_context_card.dart';
 import '../widgets/dashboard_card.dart';
 import '../widgets/recent_activity_list.dart';
 import '../widgets/resources_section.dart';
@@ -119,6 +120,8 @@ class HomeView extends ConsumerWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 16),
+                  const ClubContextCard(),
                   const SizedBox(height: 24),
                   if (dashboard != null) ...[
                     DashboardCard(

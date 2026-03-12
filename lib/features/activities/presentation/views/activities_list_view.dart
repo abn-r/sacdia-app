@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
+import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -208,7 +210,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
+                        SacSlideUpRoute(
                           builder: (context) => CreateActivityView(
                             clubId: widget.clubId,
                             clubAdvId: widget.clubAdvId ?? widget.clubId,
@@ -537,18 +539,21 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                             );
                           }
                           final activity = item as Activity;
-                          return ActivityCard(
-                            activity: activity,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ActivityDetailView(
-                                    activityId: activity.id,
+                          return StaggeredListItem(
+                            index: index,
+                            child: ActivityCard(
+                              activity: activity,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  SacSharedAxisRoute(
+                                    builder: (context) => ActivityDetailView(
+                                      activityId: activity.id,
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
+                                );
+                              },
+                            ),
                           );
                         },
                       ),
@@ -566,18 +571,21 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                         itemCount: filtered.length,
                         itemBuilder: (context, index) {
                           final activity = filtered[index];
-                          return ActivityCard(
-                            activity: activity,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ActivityDetailView(
-                                    activityId: activity.id,
+                          return StaggeredListItem(
+                            index: index,
+                            child: ActivityCard(
+                              activity: activity,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  SacSharedAxisRoute(
+                                    builder: (context) => ActivityDetailView(
+                                      activityId: activity.id,
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
+                                );
+                              },
+                            ),
                           );
                         },
                       ),

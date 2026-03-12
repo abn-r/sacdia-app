@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
@@ -42,7 +43,7 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
     final notifier = ref.read(unitsNotifierProvider.notifier);
     notifier.selectUnit(unit);
 
-    final route = MaterialPageRoute<void>(
+    final route = SacSharedAxisRoute<void>(
       builder: (_) => UnitDetailView(unit: unit),
     );
 
