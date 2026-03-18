@@ -8,24 +8,18 @@ abstract class ClubRepository {
   /// Obtiene el detalle del club contenedor por su UUID.
   Future<Either<Failure, ClubInfo>> getClub(String clubId);
 
-  /// Obtiene la instancia de club por tipo.
-  ///
-  /// [clubId] – UUID del club contenedor.
-  /// [instanceType] – slug: 'adventurers' | 'pathfinders' | 'master_guild'.
-  /// [instanceId] – ID numérico de la instancia.
-  Future<Either<Failure, ClubInstance>> getClubInstance({
+  /// Obtiene la sección de club por ID.
+  Future<Either<Failure, ClubSection>> getClubSection({
     required String clubId,
-    required String instanceType,
-    required int instanceId,
+    required int sectionId,
   });
 
-  /// Actualiza la instancia de club.
+  /// Actualiza la sección de club.
   ///
   /// Solo los campos no-null son enviados al backend (PATCH semántico).
-  Future<Either<Failure, ClubInstance>> updateClubInstance({
+  Future<Either<Failure, ClubSection>> updateClubSection({
     required String clubId,
-    required String instanceType,
-    required int instanceId,
+    required int sectionId,
     String? name,
     String? phone,
     String? email,

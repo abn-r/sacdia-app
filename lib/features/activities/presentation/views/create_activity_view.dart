@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -26,18 +27,13 @@ class CreateActivityView extends ConsumerStatefulWidget {
   /// ID del club al que pertenece la actividad.
   final int clubId;
 
-  /// IDs de los clubes por tipo (Aventureros, Conquistadores, Guías Mayores).
-  /// Son requeridos por el backend para asociar la actividad.
-  final int clubAdvId;
-  final int clubPathfId;
-  final int clubMgId;
+  /// ID de la sección del club (club_sections) a la que pertenece la actividad.
+  final int clubSectionId;
 
   const CreateActivityView({
     super.key,
     required this.clubId,
-    required this.clubAdvId,
-    required this.clubPathfId,
-    required this.clubMgId,
+    required this.clubSectionId,
   });
 
   @override
@@ -223,9 +219,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
       linkMeet: _linkMeetController.text.trim().isEmpty
           ? null
           : _linkMeetController.text.trim(),
-      clubAdvId: widget.clubAdvId,
-      clubPathfId: widget.clubPathfId,
-      clubMgId: widget.clubMgId,
+      clubSectionId: widget.clubSectionId,
     );
 
     final notifier = ref.read(createActivityNotifierProvider.notifier);
@@ -612,7 +606,7 @@ class _ActivityImagePicker extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
+                color: context.sac.shadow,
                 offset: const Offset(0, 3),
                 blurRadius: 20,
               ),
@@ -781,12 +775,12 @@ class _PreviewBody extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  imageUrl,
+                child: CachedNetworkImage(
+                  imageUrl: imageUrl,
                   height: 120,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+                  errorWidget: (_, __, ___) => Container(
                     height: 120,
                     color: AppColors.primaryLight,
                     child: const Center(
@@ -991,7 +985,7 @@ class _SegmentedSelector<T> extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.06),
+                        color: context.sac.shadow,
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -1067,7 +1061,7 @@ class _LocationPickerField extends StatelessWidget {
               color: enabled ? c.surface : c.surfaceVariant,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
+                  color: c.shadow,
                   offset: const Offset(0, 3),
                   blurRadius: 20,
                 ),

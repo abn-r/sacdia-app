@@ -61,7 +61,6 @@ class QuickAccessGrid extends StatelessWidget {
     _QuickAccessItem(
       label: 'Recursos',
       icon: HugeIcons.strokeRoundedFiles01,
-      color: AppColors.sacBlack,
       route: RouteNames.homeResources,
     ),
   ];
@@ -102,13 +101,14 @@ class _QuickAccessItem {
   final String label;
   // HugeIcon path data — internal format used by package:hugeicons
   final List<List<dynamic>> icon;
-  final Color color;
+  // Null means "follow theme text color" — resolved at render time via context.sac.text
+  final Color? color;
   final String route;
 
   const _QuickAccessItem({
     required this.label,
     required this.icon,
-    required this.color,
+    this.color,
     required this.route,
   });
 }
@@ -124,6 +124,7 @@ class _QuickAccessTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final effectiveColor = item.color ?? c.text;
 
     return Material(
       color: c.surface,
@@ -145,13 +146,13 @@ class _QuickAccessTile extends StatelessWidget {
                 height: 48,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: item.color.withValues(alpha: 0.12),
+                  color: effectiveColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: HugeIcon(
                   icon: item.icon,
                   size: 24,
-                  color: item.color,
+                  color: effectiveColor,
                 ),
               ),
               const SizedBox(height: 8),

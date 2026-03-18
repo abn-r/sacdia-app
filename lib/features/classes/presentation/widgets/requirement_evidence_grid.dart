@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
@@ -130,7 +131,7 @@ class _FileCell extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
+                      color: context.sac.shadow,
                       blurRadius: 4,
                       offset: const Offset(0, 1),
                     ),
@@ -156,21 +157,17 @@ class _ImageThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.network(
-      url,
+    return CachedNetworkImage(
+      imageUrl: url,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => const _FallbackIcon(),
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
+      errorWidget: (_, __, ___) => const _FallbackIcon(),
+      progressIndicatorBuilder: (context, url, downloadProgress) {
         return Container(
           color: AppColors.primaryLight,
           child: Center(
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              value: loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded /
-                      loadingProgress.expectedTotalBytes!
-                  : null,
+              value: downloadProgress.progress,
               color: AppColors.primary,
             ),
           ),

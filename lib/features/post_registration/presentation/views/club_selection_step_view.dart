@@ -106,7 +106,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                   ref.read(selectedUnionProvider.notifier).state = null;
                   ref.read(selectedLocalFieldProvider.notifier).state = null;
                   ref.read(selectedClubProvider.notifier).state = null;
-                  ref.read(selectedClubInstanceProvider.notifier).state = null;
+                  ref.read(selectedClubSectionProvider.notifier).state = null;
                   ref.read(selectedClassProvider.notifier).state = null;
                 }
               },
@@ -142,7 +142,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                       ref.read(selectedLocalFieldProvider.notifier).state =
                           null;
                       ref.read(selectedClubProvider.notifier).state = null;
-                      ref.read(selectedClubInstanceProvider.notifier).state =
+                      ref.read(selectedClubSectionProvider.notifier).state =
                           null;
                       ref.read(selectedClassProvider.notifier).state = null;
                     }
@@ -179,7 +179,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                       ref.read(selectedLocalFieldProvider.notifier).state =
                           localField.id;
                       ref.read(selectedClubProvider.notifier).state = null;
-                      ref.read(selectedClubInstanceProvider.notifier).state =
+                      ref.read(selectedClubSectionProvider.notifier).state =
                           null;
                       ref.read(selectedClassProvider.notifier).state = null;
                     }
@@ -230,10 +230,9 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                   onChanged: (club) {
                     if (club != null) {
                       ref.read(selectedClubProvider.notifier).state = club.id;
-                      // Resetear tipo de club y clase al cambiar de club
-                      ref.read(selectedClubInstanceProvider.notifier).state =
-                          null;
-                      ref.read(selectedClubTypeSlugProvider.notifier).state =
+                      // Resetear instancia y clase al cambiar de club
+                      // (selectedClubTypeSlugProvider se deriva automáticamente)
+                      ref.read(selectedClubSectionProvider.notifier).state =
                           null;
                       ref.read(selectedClassProvider.notifier).state = null;
                     }
@@ -273,7 +272,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
           ],
 
           // Class
-          if (ref.watch(selectedClubInstanceProvider) != null) ...[
+          if (ref.watch(selectedClubSectionProvider) != null) ...[
             Row(
               children: [
                 HugeIcon(

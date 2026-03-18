@@ -37,7 +37,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
   void _showThemeDialog() {
     showDialog<void>(
       context: context,
-      barrierColor: Colors.black54,
+      barrierColor: context.sac.barrierColor,
       barrierDismissible: true,
       builder: (context) => _ThemePickerDialog(
         currentMode: ref.read(themeNotifierProvider),
@@ -239,7 +239,7 @@ class _ThemePickerDialog extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
+                color: context.sac.shadow,
                 blurRadius: 24,
                 offset: const Offset(0, 8),
               ),

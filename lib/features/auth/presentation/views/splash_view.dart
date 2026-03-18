@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 /// Vista de Splash Screen - Estilo "Scout Vibrante"
@@ -55,7 +55,7 @@ class _SplashViewState extends ConsumerState<SplashView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.sac.background,
       body: SizedBox(
         width: double.infinity,
         height: double.infinity,
@@ -75,7 +75,7 @@ class _SplashViewState extends ConsumerState<SplashView>
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.sacBlack.withValues(alpha: 0.15),
+                            color: context.sac.shadow,
                             blurRadius: 30,
                             spreadRadius: 10,
                             offset: const Offset(0, 0),
@@ -98,7 +98,7 @@ class _SplashViewState extends ConsumerState<SplashView>
                   child: Text(
                     'SACDIA',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: AppColors.sacBlack,
+                          color: context.sac.text,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 2,
                         ),
@@ -122,7 +122,7 @@ class _SplashViewState extends ConsumerState<SplashView>
                 child: Text(
                   'by Sarza Roja',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: AppColors.sacBlack, fontWeight: FontWeight.w500),
+                      color: context.sac.textTertiary, fontWeight: FontWeight.w500),
                 ),
               ),
             ),

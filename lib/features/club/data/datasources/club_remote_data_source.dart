@@ -10,18 +10,16 @@ abstract class ClubRemoteDataSource {
   /// Obtiene el club contenedor.
   Future<ClubInfoModel> getClub(String clubId);
 
-  /// Obtiene la instancia de club por tipo e ID.
-  Future<ClubInstanceModel> getClubInstance({
+  /// Obtiene la sección de club por ID.
+  Future<ClubSectionModel> getClubSection({
     required String clubId,
-    required String instanceType,
-    required int instanceId,
+    required int sectionId,
   });
 
-  /// Actualiza una instancia de club (PATCH).
-  Future<ClubInstanceModel> updateClubInstance({
+  /// Actualiza una sección de club (PATCH).
+  Future<ClubSectionModel> updateClubSection({
     required String clubId,
-    required String instanceType,
-    required int instanceId,
+    required int sectionId,
     Map<String, dynamic>? data,
   });
 }
@@ -104,76 +102,71 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
   }
 
   @override
-  Future<ClubInstanceModel> getClubInstance({
+  Future<ClubSectionModel> getClubSection({
     required String clubId,
-    required String instanceType,
-    required int instanceId,
+    required int sectionId,
   }) async {
     try {
-      AppLogger.i(
-        'Obteniendo instancia: $instanceType/$instanceId del club $clubId',
-        tag: _tag,
-      );
+      AppLogger.i('Obteniendo sección: $sectionId del club $clubId', tag: _tag);
       final token = await _getAuthToken();
 
       final response = await _dio.get(
-        '$_baseUrl/clubs/$clubId/instances/$instanceType/$instanceId',
+        '$_baseUrl/clubs/$clubId/sections/$sectionId',
         options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final json = _unwrapMap(response.data);
-        return ClubInstanceModel.fromJson(json, knownInstanceType: instanceType);
+        return ClubSectionModel.fromJson(json);
       }
 
       throw ServerException(
-        message: 'Error al obtener instancia del club',
+        message: 'Error al obtener sección del club',
         code: response.statusCode,
       );
     } on DioException catch (e) {
-      AppLogger.e('DioException en getClubInstance', tag: _tag, error: e);
+      AppLogger.e('DioException en getClubSection', tag: _tag, error: e);
       throw ServerException(
         message: e.response?.data?['message'] ?? e.message ?? 'Error de red',
         code: e.response?.statusCode,
       );
     } catch (e) {
       if (e is AuthException || e is ServerException) rethrow;
-      AppLogger.e('Error inesperado en getClubInstance', tag: _tag, error: e);
+      AppLogger.e('Error inesperado en getClubSection', tag: _tag, error: e);
       throw ServerException(message: e.toString());
     }
   }
 
   @override
-  Future<ClubInstanceModel> updateClubInstance({
+  Future<ClubSectionModel> updateClubSection({
     required String clubId,
-    required String instanceType,
-    required int instanceId,
+    required int sectionId,
     Map<String, dynamic>? data,
   }) async {
     try {
       AppLogger.i(
-        'Actualizando instancia: $instanceType/$instanceId del club $clubId',
+        'Actualizando sección: $sectionId del club $clubId',
         tag: _tag,
       );
       final token = await _getAuthToken();
 
       final response = await _dio.patch(
-        '$_baseUrl/clubs/$clubId/instances/$instanceType/$instanceId',
+        '$_baseUrl/clubs/$clubId/sections/$sectionId',
         data: data ?? {},
         options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final json = _unwrapMap(response.data);
-        return ClubInstanceModel.fromJson(json, knownInstanceType: instanceType);
+        return ClubSectionModel.fromJson(json);
       }
 
       throw ServerException(
-        message: 'Error al actualizar instancia del club',
+        message: 'Error al actualizar sección del club',
         code: response.statusCode,
       );
     } on DioException catch (e) {
-      AppLogger.e('DioException en updateClubInstance', tag: _tag, error: e);
+      AppLogger.e('DioException en updateClubSection', tag: _tag, error: e);
       final msg = e.response?.data is Map
           ? (e.response!.data['message'] ?? e.message ?? 'Error de red')
           : (e.message ?? 'Error de red');
@@ -183,7 +176,7 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
       );
     } catch (e) {
       if (e is AuthException || e is ServerException) rethrow;
-      AppLogger.e('Error inesperado en updateClubInstance', tag: _tag, error: e);
+      AppLogger.e('Error inesperado en updateClubSection', tag: _tag, error: e);
       throw ServerException(message: e.toString());
     }
   }

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -221,13 +222,12 @@ class _HeroAppBar extends StatelessWidget {
             // Honor image
             if (honor.imageUrl != null && honor.imageUrl!.isNotEmpty)
               Positioned.fill(
-                child: Opacity(
-                  opacity: 0.12,
-                  child: Image.network(
-                    honor.imageUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                  ),
+                child: CachedNetworkImage(
+                  imageUrl: honor.imageUrl!,
+                  fit: BoxFit.cover,
+                  color: Colors.white.withValues(alpha: 0.12),
+                  colorBlendMode: BlendMode.modulate,
+                  errorWidget: (_, __, ___) => const SizedBox.shrink(),
                 ),
               ),
             // Content
@@ -253,10 +253,10 @@ class _HeroAppBar extends StatelessWidget {
                               honor.imageUrl!.isNotEmpty
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(22),
-                              child: Image.network(
-                                honor.imageUrl!,
+                              child: CachedNetworkImage(
+                                imageUrl: honor.imageUrl!,
                                 fit: BoxFit.contain,
-                                errorBuilder: (_, __, ___) => HugeIcon(
+                                errorWidget: (_, __, ___) => HugeIcon(
                                   icon: HugeIcons.strokeRoundedAward01,
                                   size: 48,
                                   color: Colors.white,
@@ -321,7 +321,7 @@ class _InfoChipsRow extends StatelessWidget {
         if (honor.year != null && honor.year!.isNotEmpty)
           _InfoChip(
             label: honor.year!,
-            color: AppColors.lightTextSecondary,
+            color: context.sac.textSecondary,
             icon: HugeIcons.strokeRoundedCalendar03,
           ),
       ],

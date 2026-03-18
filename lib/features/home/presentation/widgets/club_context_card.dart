@@ -10,20 +10,9 @@ import '../../../../core/utils/role_utils.dart';
 import '../../../../core/widgets/sac_card.dart';
 import '../../../auth/domain/entities/authorization_snapshot.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../club/presentation/providers/club_providers.dart';
 
-/// Mapa canónico de slugs de tipo de instancia a nombres en español.
-const _instanceTypeNames = {
-  'adventurers': 'Aventureros',
-  'pathfinders': 'Conquistadores',
-  'master_guild': 'Guías Mayores',
-};
-
-String _instanceTypeName(String? type) {
-  if (type == null || type.isEmpty) return 'Club';
-  return _instanceTypeNames[type.toLowerCase()] ?? type;
-}
-
-/// Card que muestra el club/instancia activo y permite cambiar de contexto.
+/// Card que muestra el club/sección activo y permite cambiar de contexto.
 ///
 /// Solo se renderiza cuando el usuario tiene al menos un assignment en su
 /// AuthorizationSnapshot. Si tiene un único assignment, el tap abre el sheet
@@ -49,14 +38,17 @@ class _ClubContextCardState extends ConsumerState<ClubContextCard> {
     if (assignments.isEmpty) return const SizedBox.shrink();
 
     final activeGrant = authorization?.activeGrant;
-    final activeInstanceName = _instanceTypeName(activeGrant?.instanceType);
     final activeRoleName = RoleUtils.translate(activeGrant?.roleName);
+
+    // Try to get the club type name from the section data
+    final sectionAsync = ref.watch(currentClubSectionProvider);
+    final clubTypeName = sectionAsync.valueOrNull?.clubTypeName ?? 'Club';
 
     final c = context.sac;
 
     return SacCard(
       accentColor: AppColors.primary,
-      onTap: _isSwitching ? null : () => _showInstancePicker(context, authorization!),
+      onTap: _isSwitching ? null : () => _showSectionPicker(context, authorization!),
       child: Row(
         children: [
           Container(
@@ -80,7 +72,7 @@ class _ClubContextCardState extends ConsumerState<ClubContextCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  activeInstanceName,
+                  clubTypeName,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -122,7 +114,7 @@ class _ClubContextCardState extends ConsumerState<ClubContextCard> {
     );
   }
 
-  Future<void> _showInstancePicker(
+  Future<void> _showSectionPicker(
     BuildContext context,
     AuthorizationSnapshot authorization,
   ) async {
@@ -134,7 +126,6 @@ class _ClubContextCardState extends ConsumerState<ClubContextCard> {
     String? selectedAssignmentId;
 
     final actions = displayAssignments.map((grant) {
-      final instanceName = _instanceTypeName(grant.instanceType);
       final roleName = RoleUtils.translate(grant.roleName);
       final isActive = grant.assignmentId == activeAssignmentId;
 
@@ -147,7 +138,7 @@ class _ClubContextCardState extends ConsumerState<ClubContextCard> {
           children: [
             Expanded(
               child: Text(
-                '$instanceName — $roleName',
+                roleName,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,

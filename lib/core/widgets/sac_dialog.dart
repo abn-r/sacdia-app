@@ -46,7 +46,7 @@ class SacDialog extends StatelessWidget {
   }) {
     return showDialog<bool>(
       context: context,
-      barrierColor: Colors.black54,
+      barrierColor: context.sac.barrierColor,
       barrierDismissible: true,
       builder: (context) => SacDialog(
         title: title,
@@ -71,16 +71,13 @@ class SacDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.darkSurface : Colors.white;
-
     return Dialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
       child: _AnimatedDialogContent(
         child: Container(
           decoration: BoxDecoration(
-            color: bgColor,
+            color: context.sac.surface,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(

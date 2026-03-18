@@ -35,7 +35,7 @@ class RequirementCard extends StatelessWidget {
           border: Border.all(color: c.border),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: c.shadow,
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -160,7 +160,9 @@ class RequirementCard extends StatelessWidget {
                     if (requirement.submittedByName != null)
                       _TraceRow(
                         icon: HugeIcons.strokeRoundedSent,
-                        color: const Color(0xFF1D4ED8),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.statusInfoTextDark
+                            : AppColors.statusInfoText,
                         text:
                             'Enviado por ${requirement.submittedByName}${requirement.submittedAt != null ? " · ${dateFormat.format(requirement.submittedAt!)}" : ""}',
                         context: context,
@@ -219,10 +221,11 @@ class _HonorBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = completed ? AppColors.secondary : AppColors.sacBlue;
     final bgColor = completed
         ? AppColors.secondaryLight
-        : const Color(0xFFEFF6FF);
+        : (isDark ? AppColors.statusInfoBgDark : AppColors.statusInfoBgLight);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),

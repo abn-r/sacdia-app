@@ -235,7 +235,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                               .register(widget.activityId, userId);
 
                           if (!mounted) return;
-                          if (attendanceState.hasError) return;
+                          final result = ref.read(attendanceNotifierProvider);
+                          if (result.hasError) return;
 
                           setState(() {
                             _hasRegistered = true;

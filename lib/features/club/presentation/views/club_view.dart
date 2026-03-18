@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
@@ -45,8 +46,8 @@ class _ClubViewState extends ConsumerState<ClubView> {
   bool _isEditing = false;
   bool _hasUnsavedChanges = false;
 
-  // Snapshot de la instancia cargada (para comparar cambios)
-  ClubInstance? _loadedInstance;
+  // Snapshot de la sección cargada (para comparar cambios)
+  ClubSection? _loadedSection;
 
   @override
   void dispose() {
@@ -60,20 +61,20 @@ class _ClubViewState extends ConsumerState<ClubView> {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  /// Rellena los controladores con los datos de la instancia.
-  void _populateFields(ClubInstance instance) {
-    _loadedInstance = instance;
-    _nameController.text = instance.name ?? '';
-    _phoneController.text = instance.phone ?? '';
-    _emailController.text = instance.email ?? '';
-    _websiteController.text = instance.website ?? '';
-    _logoUrlController.text = instance.logoUrl ?? '';
+  /// Rellena los controladores con los datos de la sección.
+  void _populateFields(ClubSection section) {
+    _loadedSection = section;
+    _nameController.text = section.name ?? '';
+    _phoneController.text = section.phone ?? '';
+    _emailController.text = section.email ?? '';
+    _websiteController.text = section.website ?? '';
+    _logoUrlController.text = section.logoUrl ?? '';
 
-    if (instance.lat != null && instance.long != null) {
+    if (section.lat != null && section.long != null) {
       _selectedLocation = LocationPickerResult(
-        name: instance.address ?? '',
-        lat: instance.lat!,
-        long: instance.long!,
+        name: section.address ?? '',
+        lat: section.lat!,
+        long: section.long!,
       );
     } else {
       _selectedLocation = null;
@@ -133,15 +134,14 @@ class _ClubViewState extends ConsumerState<ClubView> {
     }
   }
 
-  Future<void> _handleSave(ClubInstance instance) async {
+  Future<void> _handleSave(ClubSection section) async {
     if (!_formKey.currentState!.validate()) return;
 
     final notifier = ref.read(updateClubNotifierProvider.notifier);
 
     final success = await notifier.save(
-      clubId: instance.mainClubId,
-      instanceType: instance.instanceType,
-      instanceId: instance.id,
+      clubId: section.mainClubId,
+      sectionId: section.id,
       name: _nameController.text.trim().isEmpty
           ? null
           : _nameController.text.trim(),
@@ -171,14 +171,14 @@ class _ClubViewState extends ConsumerState<ClubView> {
       });
 
       // Actualizar con los datos devueltos por el servidor
-      final updatedInstance =
-          ref.read(updateClubNotifierProvider).updatedInstance;
-      if (updatedInstance != null) {
-        _populateFields(updatedInstance);
+      final updatedSection =
+          ref.read(updateClubNotifierProvider).updatedSection;
+      if (updatedSection != null) {
+        _populateFields(updatedSection);
       }
 
       // Invalidar el provider de la instancia para refrescar en el próximo acceso
-      ref.invalidate(currentClubInstanceProvider);
+      ref.invalidate(currentClubSectionProvider);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -203,7 +203,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
     });
 
     // Restaurar valores originales
-    if (_loadedInstance != null) _populateFields(_loadedInstance!);
+    if (_loadedSection != null) _populateFields(_loadedSection!);
   }
 
   void _showError(String message) {
@@ -224,7 +224,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final instanceAsync = ref.watch(currentClubInstanceProvider);
+    final sectionAsync = ref.watch(currentClubSectionProvider);
     final canEditAsync = ref.watch(canEditClubProvider);
     final updateState = ref.watch(updateClubNotifierProvider);
     final isUpdating = updateState.isLoading;
@@ -251,27 +251,27 @@ class _ClubViewState extends ConsumerState<ClubView> {
       },
       child: Scaffold(
         backgroundColor: c.background,
-        appBar: _buildAppBar(context, c, canEditAsync, instanceAsync, isUpdating),
-        body: instanceAsync.when(
+        appBar: _buildAppBar(context, c, canEditAsync, sectionAsync, isUpdating),
+        body: sectionAsync.when(
           loading: () => const Center(child: SacLoading()),
           error: (error, _) => _ErrorBody(
             message: error.toString(),
-            onRetry: () => ref.invalidate(currentClubInstanceProvider),
+            onRetry: () => ref.invalidate(currentClubSectionProvider),
           ),
-          data: (instance) {
-            if (instance == null) {
+          data: (section) {
+            if (section == null) {
               return _EmptyBody(c: c);
             }
 
             // Poblar campos la primera vez que llegan los datos
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (_loadedInstance == null ||
-                  _loadedInstance!.id != instance.id) {
-                _populateFields(instance);
+              if (_loadedSection == null ||
+                  _loadedSection!.id != section.id) {
+                _populateFields(section);
               }
             });
 
-            return _buildBody(context, c, instance, isUpdating);
+            return _buildBody(context, c, section, isUpdating);
           },
         ),
       ),
@@ -282,7 +282,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
     BuildContext context,
     SacColors c,
     AsyncValue<bool> canEditAsync,
-    AsyncValue<ClubInstance?> instanceAsync,
+    AsyncValue<ClubSection?> sectionAsync,
     bool isUpdating,
   ) {
     final canEdit = canEditAsync.valueOrNull ?? false;
@@ -331,9 +331,9 @@ class _ClubViewState extends ConsumerState<ClubView> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              if (instanceAsync.valueOrNull?.instanceTypeName != null)
+              if (sectionAsync.valueOrNull?.clubTypeName != null)
                 Text(
-                  instanceAsync.valueOrNull!.instanceTypeName,
+                  sectionAsync.valueOrNull!.clubTypeName,
                   style: TextStyle(
                     color: c.textSecondary,
                     fontSize: 12,
@@ -377,7 +377,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
   Widget _buildBody(
     BuildContext context,
     SacColors c,
-    ClubInstance instance,
+    ClubSection section,
     bool isUpdating,
   ) {
     return Form(
@@ -406,16 +406,16 @@ class _ClubViewState extends ConsumerState<ClubView> {
               : _InfoRow(
                   icon: HugeIcons.strokeRoundedBuilding01,
                   label: 'Nombre',
-                  value: instance.name ?? '—',
+                  value: section.name ?? '—',
                 ),
 
           const SizedBox(height: 16),
 
-          // Tipo de instancia (solo lectura)
+          // Tipo de sección (solo lectura)
           _InfoRow(
             icon: HugeIcons.strokeRoundedUserGroup,
             label: 'Tipo de club',
-            value: instance.instanceTypeName,
+            value: section.clubTypeName,
           ),
 
           const SizedBox(height: 24),
@@ -436,10 +436,10 @@ class _ClubViewState extends ConsumerState<ClubView> {
               : _InfoRow(
                   icon: HugeIcons.strokeRoundedLocation01,
                   label: 'Dirección',
-                  value: instance.address ?? '—',
-                  subValue: (instance.lat != null && instance.long != null)
-                      ? '${instance.lat!.toStringAsFixed(5)}, '
-                          '${instance.long!.toStringAsFixed(5)}'
+                  value: section.address ?? '—',
+                  subValue: (section.lat != null && section.long != null)
+                      ? '${section.lat!.toStringAsFixed(5)}, '
+                          '${section.long!.toStringAsFixed(5)}'
                       : null,
                 ),
 
@@ -466,7 +466,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
               : _InfoRow(
                   icon: HugeIcons.strokeRoundedCall,
                   label: 'Teléfono',
-                  value: instance.phone ?? '—',
+                  value: section.phone ?? '—',
                 ),
 
           const SizedBox(height: 16),
@@ -494,7 +494,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
               : _InfoRow(
                   icon: HugeIcons.strokeRoundedMail01,
                   label: 'Correo electrónico',
-                  value: instance.email ?? '—',
+                  value: section.email ?? '—',
                 ),
 
           const SizedBox(height: 16),
@@ -521,7 +521,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
               : _InfoRow(
                   icon: HugeIcons.strokeRoundedGlobe02,
                   label: 'Sitio web',
-                  value: instance.website ?? '—',
+                  value: section.website ?? '—',
                 ),
 
           const SizedBox(height: 24),
@@ -551,13 +551,13 @@ class _ClubViewState extends ConsumerState<ClubView> {
               },
             ),
             const SizedBox(height: 24),
-          ] else if (instance.logoUrl != null) ...[
+          ] else if (section.logoUrl != null) ...[
             _SectionHeader(
               icon: HugeIcons.strokeRoundedImage01,
               label: 'Logo del club',
             ),
             const SizedBox(height: 12),
-            _LogoPreview(logoUrl: instance.logoUrl!),
+            _LogoPreview(logoUrl: section.logoUrl!),
             const SizedBox(height: 24),
           ],
 
@@ -568,7 +568,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
               icon: HugeIcons.strokeRoundedTick02,
               isLoading: isUpdating,
               isEnabled: !isUpdating,
-              onPressed: () => _handleSave(instance),
+              onPressed: () => _handleSave(section),
             ),
             const SizedBox(height: 12),
             SacButton.outline(
@@ -649,7 +649,7 @@ class _InfoRow extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: context.sac.shadow,
             blurRadius: 12,
             offset: const Offset(0, 2),
           ),
@@ -739,7 +739,7 @@ class _LocationPickerField extends StatelessWidget {
               color: enabled ? c.surface : c.surfaceVariant,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
+                  color: context.sac.shadow,
                   offset: const Offset(0, 3),
                   blurRadius: 20,
                 ),
@@ -831,17 +831,17 @@ class _LogoPreview extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
+              color: context.sac.shadow,
               blurRadius: 16,
               offset: const Offset(0, 4),
             ),
           ],
         ),
         clipBehavior: Clip.antiAlias,
-        child: Image.network(
-          logoUrl,
+        child: CachedNetworkImage(
+          imageUrl: logoUrl,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Center(
+          errorWidget: (_, __, ___) => Center(
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedImage01,
               size: 36,

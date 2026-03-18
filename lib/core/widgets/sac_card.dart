@@ -93,11 +93,11 @@ class _SacCardState extends State<SacCard>
         color: defaultBg,
         borderRadius: radius,
         border: Border.all(color: widget.borderColor ?? defaultBorder, width: 1),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color(0x08000000),
+            color: c.shadow,
             blurRadius: 8,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),

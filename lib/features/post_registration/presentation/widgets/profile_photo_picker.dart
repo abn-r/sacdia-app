@@ -92,11 +92,10 @@ class ProfilePhotoPicker extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: AppColors.primary,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3),
+                        border: Border.all(color: context.sac.surface, width: 3),
                         boxShadow: [
                           BoxShadow(
-                            // Reemplazado withOpacity (deprecado) por withValues para compatibilidad con Impeller
-                            color: Colors.black.withValues(alpha: 0.15),
+                            color: context.sac.shadow,
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),

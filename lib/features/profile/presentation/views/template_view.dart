@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 // ─── Colores mock ────────────────────────────────────────────────────────────
 const Color sacRed = Color(0xFFCC0000);
@@ -116,9 +117,9 @@ class _MockStatusCircle extends StatelessWidget {
           height: 44,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: active ? color : Colors.grey[200],
+            color: active ? color : context.sac.surfaceVariant,
             border: Border.all(
-              color: active ? color : Colors.grey[400]!,
+              color: active ? color : context.sac.textTertiary,
               width: 2,
             ),
           ),
@@ -128,7 +129,7 @@ class _MockStatusCircle extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: active ? Colors.white : Colors.grey[500],
+                color: active ? Colors.white : context.sac.textTertiary,
               ),
             ),
           ),
@@ -138,7 +139,7 @@ class _MockStatusCircle extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 10,
-            color: active ? color : Colors.grey[500],
+            color: active ? color : context.sac.textTertiary,
             fontWeight: active ? FontWeight.bold : FontWeight.normal,
           ),
         ),
@@ -202,11 +203,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const SizedBox(height: 4),
                           Text(
                             'Rol Activo: Líder de Club',
-                            style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                            style: TextStyle(fontSize: 16, color: context.sac.textSecondary),
                           ),
                           Text(
                             'Club: Club Renacer Guatemala (2025)',
-                            style: TextStyle(fontSize: 14, color: Colors.grey[800]),
+                            style: TextStyle(fontSize: 14, color: context.sac.text),
                           ),
                           const SizedBox(height: 4),
                         ],
@@ -224,7 +225,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       child: CircleAvatar(
                         radius: 50,
-                        backgroundColor: Colors.grey[200],
+                        backgroundColor: context.sac.surfaceVariant,
                         child: const Icon(Icons.person, size: 60, color: sacGrey),
                       ),
                     ),
@@ -248,12 +249,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12.0, vertical: 4.0),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: context.sac.surface,
                         borderRadius: BorderRadius.circular(8.0),
                         border: Border.all(color: sacGrey, width: 1),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.1),
+                            color: context.sac.border.withAlpha(26),
                             spreadRadius: 1,
                             blurRadius: 3,
                             offset: const Offset(0, 1),
@@ -398,7 +399,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             'Actualizado: Hace 5 min',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey[600],
+                              color: context.sac.textSecondary,
                             ),
                           ),
                         ),

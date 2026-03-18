@@ -24,20 +24,21 @@ class DioClient {
     dio.interceptors.addAll([
       LoggerInterceptor(),
       ErrorInterceptor(),
-      // Retry interceptor
-      RetryInterceptor(
-        dio: dio,
-        retries: 3,
-        retryDelays: [
-          const Duration(seconds: 1),
-          const Duration(seconds: 2),
-          const Duration(seconds: 3),
-        ],
-      ),
       // AuthInterceptor al final: en onError Dio procesa en orden inverso,
       // por lo que este interceptor actúa PRIMERO ante un 401,
       // intentando refresh antes de que ErrorInterceptor lance AuthException.
       AuthInterceptor(dio: dio),
+      // RetryInterceptor después de AuthInterceptor para que los reintentos
+      // incluyan los headers de autenticación actualizados.
+      RetryInterceptor(
+        dio: dio,
+        retries: 3,
+        retryDelays: const [
+          Duration(milliseconds: 500),
+          Duration(milliseconds: 1500),
+          Duration(milliseconds: 3000),
+        ],
+      ),
     ]);
 
     return dio;

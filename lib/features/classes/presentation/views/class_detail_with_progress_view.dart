@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -201,10 +202,10 @@ class _ClassHeaderCard extends StatelessWidget {
                 child: classWithProgress.imageUrl != null
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(14),
-                        child: Image.network(
-                          classWithProgress.imageUrl!,
+                        child: CachedNetworkImage(
+                          imageUrl: classWithProgress.imageUrl!,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => HugeIcon(
+                          errorWidget: (_, __, ___) => HugeIcon(
                             icon: HugeIcons.strokeRoundedSchool,
                             size: 28,
                             color: Colors.white,
@@ -397,7 +398,9 @@ class _ProgressSummaryRow extends StatelessWidget {
             count: submitted,
             label: 'Enviados',
             color: AppColors.sacBlue,
-            bgColor: const Color(0xFFEFF6FF),
+            bgColor: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.statusInfoBgDark
+                : AppColors.statusInfoBgLight,
             context: context,
           ),
           const SizedBox(width: 8),
@@ -597,18 +600,21 @@ class _ModuleSectionState extends State<_ModuleSection> {
                 ),
               )
             else
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
+              Padding(
                 padding: const EdgeInsets.only(top: 4, bottom: 4),
-                itemCount: widget.module.requirements.length,
-                itemBuilder: (context, i) {
-                  final requirement = widget.module.requirements[i];
-                  return RequirementCard(
-                    requirement: requirement,
-                    onTap: () => _openRequirementDetail(context, requirement),
-                  );
-                },
+                child: Column(
+                  // shrinkWrap replaced: requirements per module are a small,
+                  // fixed-count list inside a bounded Column — no virtualization
+                  // needed; Column avoids the O(n²) layout cost of shrinkWrap.
+                  mainAxisSize: MainAxisSize.min,
+                  children: widget.module.requirements.map((requirement) {
+                    return RequirementCard(
+                      requirement: requirement,
+                      onTap: () =>
+                          _openRequirementDetail(context, requirement),
+                    );
+                  }).toList(),
+                ),
               ),
           ],
         ],

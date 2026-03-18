@@ -139,6 +139,22 @@ class AppColors {
   static const Color info = Color(0xFF2EA0DA);
 
   // ═══════════════════════════════════════════════════════════
+  // STATUS BADGE — "enviado/sent" — dark-mode aware
+  // ═══════════════════════════════════════════════════════════
+
+  /// Fondo del badge "enviado" en light mode
+  static const Color statusInfoBgLight = Color(0xFFEFF6FF);
+
+  /// Fondo del badge "enviado" en dark mode
+  static const Color statusInfoBgDark = Color(0xFF1E293B);
+
+  /// Texto/ícono del badge "enviado" en light mode
+  static const Color statusInfoText = Color(0xFF1D4ED8);
+
+  /// Texto/ícono del badge "enviado" en dark mode
+  static const Color statusInfoTextDark = Color(0xFF60A5FA);
+
+  // ═══════════════════════════════════════════════════════════
   // COLORES DE MARCA SACDIA (legacy, mantener para branding)
   // ═══════════════════════════════════════════════════════════
 

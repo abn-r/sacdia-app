@@ -227,7 +227,7 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
+                      color: context.sac.shadow,
                       offset: const Offset(0, 3),
                       blurRadius: 20,
                     ),

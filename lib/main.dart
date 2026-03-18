@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
@@ -20,23 +21,20 @@ Future<void> main() async {
   // Aseguramos que las dependencias de Flutter estén inicializadas
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Configuramos la orientación preferida de la aplicación
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
+  // Paralelizamos operaciones independientes: orientación, Supabase y SharedPreferences
+  final results = await Future.wait([
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]),
+    SupabaseAuth.initialize(),
+    SharedPreferences.getInstance(),
   ]);
 
-  // Iniciamos Supabase
-  await SupabaseAuth.initialize();
+  final sharedPreferences = results[2] as SharedPreferences;
 
-  // Inicializamos Firebase y mostramos tokens de depuración (JWT + FCM)
+  // Firebase depende de Supabase (accede al estado de auth) — se ejecuta después
   await _initializeFirebaseAndPrintDebugTokens();
-
-  // Verificar y limpiar posibles sesiones antiguas inválidas al iniciar
-  await _checkAndCleanSessionAtStartup();
-
-  // Inicializamos SharedPreferences para almacenamiento local
-  final sharedPreferences = await SharedPreferences.getInstance();
 
   // Recuperar estado de cierre de sesión manual
   final wasManuallyLoggedOut =
@@ -54,6 +52,11 @@ Future<void> main() async {
       child: const MyApp(),
     ),
   );
+
+  // La verificación de sesión no necesita bloquear el primer frame
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _checkAndCleanSessionAtStartup();
+  });
 }
 
 Future<void> _initializeFirebaseAndPrintDebugTokens() async {
@@ -63,13 +66,15 @@ Future<void> _initializeFirebaseAndPrintDebugTokens() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    AppLogger.i('Firebase initialized', tag: tag);
+    if (kDebugMode) AppLogger.i('Firebase initialized', tag: tag);
   } catch (e) {
-    AppLogger.w(
-      'Firebase no pudo inicializarse. Verifica google-services.json (Android) y GoogleService-Info.plist (iOS).',
-      tag: tag,
-      error: e,
-    );
+    if (kDebugMode) {
+      AppLogger.w(
+        'Firebase no pudo inicializarse. Verifica google-services.json (Android) y GoogleService-Info.plist (iOS).',
+        tag: tag,
+        error: e,
+      );
+    }
     return;
   }
 
@@ -85,28 +90,33 @@ Future<void> _initializeFirebaseAndPrintDebugTokens() async {
       );
     }
 
-    final fcmToken = await FirebaseMessaging.instance.getToken();
-
-    AppLogger.i(
-      'FCM permission: ${effectiveSettings.authorizationStatus.toString().split('.').last}',
-      tag: tag,
-    );
-    AppLogger.i('FCM_TOKEN: ${fcmToken ?? 'null'}', tag: tag);
-  } catch (e) {
-    AppLogger.w('No fue posible obtener FCM token', tag: tag, error: e);
-  }
-
-  final currentToken = SupabaseAuth.currentSession?.accessToken;
-  if (currentToken != null && currentToken.isNotEmpty) {
-    AppLogger.i('JWT_ACCESS_TOKEN: $currentToken', tag: tag);
-  }
-
-  SupabaseAuth.onAuthStateChange.listen((authState) {
-    final accessToken = authState.session?.accessToken;
-    if (accessToken != null && accessToken.isNotEmpty) {
-      AppLogger.i('JWT_ACCESS_TOKEN: $accessToken', tag: tag);
+    if (kDebugMode) {
+      final fcmToken = await FirebaseMessaging.instance.getToken();
+      AppLogger.i(
+        'FCM permission: ${effectiveSettings.authorizationStatus.toString().split('.').last}',
+        tag: tag,
+      );
+      AppLogger.i('FCM_TOKEN: ${fcmToken ?? 'null'}', tag: tag);
     }
-  });
+  } catch (e) {
+    if (kDebugMode) {
+      AppLogger.w('No fue posible obtener FCM token', tag: tag, error: e);
+    }
+  }
+
+  if (kDebugMode) {
+    final currentToken = SupabaseAuth.currentSession?.accessToken;
+    if (currentToken != null && currentToken.isNotEmpty) {
+      AppLogger.i('JWT_ACCESS_TOKEN: $currentToken', tag: tag);
+    }
+
+    SupabaseAuth.onAuthStateChange.listen((authState) {
+      final accessToken = authState.session?.accessToken;
+      if (accessToken != null && accessToken.isNotEmpty) {
+        AppLogger.i('JWT_ACCESS_TOKEN: $accessToken', tag: tag);
+      }
+    });
+  }
 }
 
 /// Método para verificar y limpiar sesiones inválidas o corruptas al inicio
@@ -156,6 +166,20 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeNotifierProvider);
     final router = ref.watch(routerProvider);
+
+    // Adaptar iconos del status bar al tema actual
+    final isDark = themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system &&
+            MediaQuery.platformBrightnessOf(context) == Brightness.dark);
+    SystemChrome.setSystemUIOverlayStyle(
+      isDark
+          ? SystemUiOverlayStyle.light.copyWith(
+              statusBarColor: Colors.transparent,
+            )
+          : SystemUiOverlayStyle.dark.copyWith(
+              statusBarColor: Colors.transparent,
+            ),
+    );
 
     return ScrollConfiguration(
       behavior: _AppScrollBehavior(),

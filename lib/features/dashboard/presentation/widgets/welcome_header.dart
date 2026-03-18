@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -75,10 +76,10 @@ class WelcomeHeader extends StatelessWidget {
               ),
               child: ClipOval(
                 child: userAvatar != null
-                    ? Image.network(
-                        userAvatar!,
+                    ? CachedNetworkImage(
+                        imageUrl: userAvatar!,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _AvatarFallback(
+                        errorWidget: (_, __, ___) => _AvatarFallback(
                           initial: firstName,
                         ),
                       )

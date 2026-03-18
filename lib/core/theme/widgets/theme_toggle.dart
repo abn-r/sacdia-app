@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../constants/app_constants.dart';
+import '../sac_colors.dart';
 import '../theme_provider.dart';
 
 /// Widget para cambiar entre tema claro y oscuro
@@ -35,7 +36,7 @@ class ThemeToggle extends ConsumerWidget {
           children: [
             HugeIcon(
               icon: isDarkMode ? HugeIcons.strokeRoundedSun01 : HugeIcons.strokeRoundedMoon,
-              color: color ?? Colors.black,
+              color: color ?? context.sac.text,
               size: 24,
             ),
             if (showText) ...[

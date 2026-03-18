@@ -32,16 +32,18 @@ final getDashboardDataProvider = Provider<GetDashboardData>((ref) {
 class DashboardNotifier extends AsyncNotifier<DashboardSummary?> {
   @override
   Future<DashboardSummary?> build() async {
-    // Obtener el usuario actual
-    final user = await ref.watch(authNotifierProvider.future);
+    // Solo reaccionar a cambios en el ID del usuario (evita cascadas por cambios de metadata).
+    final userId = await ref.watch(
+      authNotifierProvider.selectAsync((user) => user?.id),
+    );
+    if (userId == null) return null;
 
-    if (user == null) {
-      return null;
-    }
+    // Leer el usuario completo sin suscripción para obtener metadata.
+    final user = await ref.read(authNotifierProvider.future);
 
     // Obtener los datos del dashboard
     final result = await ref.read(getDashboardDataProvider)(
-      GetDashboardDataParams(userId: user.id, userMetadata: user.metadata),
+      GetDashboardDataParams(userId: user!.id, userMetadata: user.metadata),
     );
 
     return result.fold(

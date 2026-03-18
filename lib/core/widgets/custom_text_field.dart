@@ -104,7 +104,7 @@ class CustomTextFieldState extends State<CustomTextField> {
               color: context.sac.surface,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: context.sac.shadow,
                   offset: const Offset(0, 4.2),
                   blurRadius: 38.4,
                 ),
