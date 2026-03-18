@@ -1,29 +1,12 @@
 import '../../domain/entities/club_info.dart';
 
-/// Mapa de slugs de tipo de instancia a nombres legibles en español.
-const _instanceTypeNames = {
+/// Mapa de club_type slugs a nombres legibles en español.
+/// Fallback para cuando club_type.name no viene del API.
+const _clubTypeDisplayNames = {
   'adventurers': 'Aventureros',
   'pathfinders': 'Conquistadores',
   'master_guild': 'Guías Mayores',
 };
-
-/// Mapa de slugs a la clave que usa el backend en la URL del endpoint.
-/// GET /api/v1/clubs/:clubId/instances/:type/:instanceId
-const _instanceTypeSlugs = {
-  'adventurers': 'adventurers',
-  'pathfinders': 'pathfinders',
-  'master_guild': 'master_guild',
-  // Aliases por si el backend usa otros valores
-  'conquistadores': 'pathfinders',
-  'aventureros': 'adventurers',
-  'guias_mayores': 'master_guild',
-};
-
-/// Normaliza un slug de tipo de instancia al formato canónico del backend.
-String normalizeInstanceType(String raw) {
-  final lower = raw.toLowerCase().replaceAll(' ', '_');
-  return _instanceTypeSlugs[lower] ?? lower;
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ClubInfoModel
@@ -56,19 +39,19 @@ class ClubInfoModel extends ClubInfo {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ClubInstanceModel
+// ClubSectionModel
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Modelo de datos para una instancia de club.
+/// Modelo de datos para una sección de club.
 ///
 /// Mapea la respuesta de:
-///   GET /api/v1/clubs/:clubId/instances/:type/:instanceId
-class ClubInstanceModel extends ClubInstance {
-  const ClubInstanceModel({
+///   GET /api/v1/clubs/:clubId/sections/:sectionId
+class ClubSectionModel extends ClubSection {
+  const ClubSectionModel({
     required super.id,
     required super.mainClubId,
-    required super.instanceType,
-    required super.instanceTypeName,
+    required super.clubTypeId,
+    required super.clubTypeName,
     super.name,
     super.phone,
     super.email,
@@ -80,37 +63,33 @@ class ClubInstanceModel extends ClubInstance {
     required super.active,
   });
 
-  factory ClubInstanceModel.fromJson(
-    Map<String, dynamic> json, {
-    String? knownInstanceType,
-  }) {
-    // El backend puede devolver el ID como int o string
-    final rawId = json['id'] ?? json['club_instance_id'] ?? json['instance_id'];
+  factory ClubSectionModel.fromJson(Map<String, dynamic> json) {
+    final rawId = json['club_section_id'] ?? json['id'];
     final id = rawId is int ? rawId : int.tryParse(rawId.toString()) ?? 0;
 
-    // ID del club contenedor
     final mainClubId =
         (json['main_club_id'] ?? json['club_id'] ?? '').toString();
 
-    // Determinar el tipo de instancia
-    final typeRaw = knownInstanceType ??
-        json['club_type'] as String? ??
-        json['instance_type'] as String? ??
-        json['type'] as String? ??
-        '';
-    final instanceType = normalizeInstanceType(typeRaw);
-    final instanceTypeName =
-        _instanceTypeNames[instanceType] ?? typeRaw;
+    // club_type_id is the discriminator
+    final rawClubTypeId = json['club_type_id'];
+    final clubTypeId = rawClubTypeId is int
+        ? rawClubTypeId
+        : (int.tryParse(rawClubTypeId?.toString() ?? '') ?? 0);
 
-    // Coordenadas
+    // Determine display name from nested club_type or slug fallback
+    final clubTypeNested = json['club_type'] as Map<String, dynamic>?;
+    final clubTypeName = clubTypeNested?['name'] as String? ??
+        _clubTypeDisplayNames[clubTypeNested?['slug']] ??
+        '';
+
     final lat = _parseDouble(json['lat'] ?? json['latitude']);
     final long = _parseDouble(json['long'] ?? json['longitude'] ?? json['lng']);
 
-    return ClubInstanceModel(
+    return ClubSectionModel(
       id: id,
       mainClubId: mainClubId,
-      instanceType: instanceType,
-      instanceTypeName: instanceTypeName,
+      clubTypeId: clubTypeId,
+      clubTypeName: clubTypeName,
       name: json['name'] as String?,
       phone: json['phone'] as String?,
       email: json['email'] as String?,
@@ -125,9 +104,9 @@ class ClubInstanceModel extends ClubInstance {
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{
-      'id': id,
+      'club_section_id': id,
       'main_club_id': mainClubId,
-      'instance_type': instanceType,
+      'club_type_id': clubTypeId,
       'active': active,
     };
     if (name != null) map['name'] = name;

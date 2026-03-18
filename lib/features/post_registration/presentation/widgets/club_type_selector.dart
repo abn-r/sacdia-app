@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 
-import '../../data/models/club_instance_model.dart';
+import '../../data/models/club_section_model.dart';
 import '../providers/club_selection_providers.dart';
 
 /// Widget para mostrar el selector de tipo de club con recomendación por edad
@@ -15,13 +15,13 @@ class ClubTypeSelector extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final clubInstancesAsync = ref.watch(clubInstancesProvider);
-    final selectedInstanceId = ref.watch(selectedClubInstanceProvider);
+    final clubSectionsAsync = ref.watch(clubSectionsProvider);
+    final selectedSectionId = ref.watch(selectedClubSectionProvider);
     final userAge = ref.watch(userAgeProvider);
 
-    return clubInstancesAsync.when(
-      data: (instances) {
-        if (instances.isEmpty) {
+    return clubSectionsAsync.when(
+      data: (sections) {
+        if (sections.isEmpty) {
           // Caso edge: el club existe pero no tiene instancias activas
           return Container(
             padding: const EdgeInsets.all(16),
@@ -71,19 +71,18 @@ class ClubTypeSelector extends ConsumerWidget {
             const SizedBox(height: 12),
 
             // Opciones de tipo de club
-            ...instances.map((instance) {
-              final isSelected = selectedInstanceId == instance.id;
-              final isRecommended = _isRecommendedForAge(instance, userAge);
+            ...sections.map((section) {
+              final isSelected = selectedSectionId == section.id;
+              final isRecommended = _isRecommendedForAge(section, userAge);
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: InkWell(
                   onTap: () {
-                    // Actualizar instancia seleccionada y su slug en paralelo
-                    ref.read(selectedClubInstanceProvider.notifier).state =
-                        instance.id;
-                    ref.read(selectedClubTypeSlugProvider.notifier).state =
-                        instance.clubTypeSlug;
+                    // Actualizar instancia seleccionada
+                    // (selectedClubTypeSlugProvider se deriva automáticamente)
+                    ref.read(selectedClubSectionProvider.notifier).state =
+                        section.id;
                     // Limpiar clase al cambiar tipo de club
                     ref.read(selectedClassProvider.notifier).state = null;
                   },
@@ -113,7 +112,7 @@ class ClubTypeSelector extends ConsumerWidget {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            instance.displayName,
+                            section.displayName,
                             style:
                                 Theme.of(context).textTheme.bodyLarge?.copyWith(
                                       fontWeight: isSelected
@@ -215,19 +214,19 @@ class ClubTypeSelector extends ConsumerWidget {
     );
   }
 
-  bool _isRecommendedForAge(ClubInstanceModel instance, int? age) {
+  bool _isRecommendedForAge(ClubSectionModel section, int? age) {
     if (age == null) return false;
 
-    if (instance.clubTypeSlug == 'adventurers' ||
-        (instance.clubTypeName?.toLowerCase().contains('aventurero') ??
+    if (section.clubTypeSlug == 'adventurers' ||
+        (section.clubTypeName?.toLowerCase().contains('aventurero') ??
             false)) {
       return age >= 4 && age <= 9;
-    } else if (instance.clubTypeSlug == 'pathfinders' ||
-        (instance.clubTypeName?.toLowerCase().contains('conquistador') ??
+    } else if (section.clubTypeSlug == 'pathfinders' ||
+        (section.clubTypeName?.toLowerCase().contains('conquistador') ??
             false)) {
       return age >= 10 && age <= 15;
-    } else if (instance.clubTypeSlug == 'master_guild' ||
-        (instance.clubTypeName?.toLowerCase().contains('guía') ?? false)) {
+    } else if (section.clubTypeSlug == 'master_guild' ||
+        (section.clubTypeName?.toLowerCase().contains('guía') ?? false)) {
       return age >= 16;
     }
 

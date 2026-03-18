@@ -45,16 +45,15 @@ final updateUserProfileProvider = Provider<UpdateUserProfile>((ref) {
 class ProfileNotifier extends AsyncNotifier<UserDetail?> {
   @override
   Future<UserDetail?> build() async {
-    // Obtener el usuario actual
-    final user = await ref.watch(authNotifierProvider.future);
-
-    if (user == null) {
-      return null;
-    }
+    // Solo reaccionar a cambios en el ID del usuario (evita cascadas por cambios de metadata).
+    final userId = await ref.watch(
+      authNotifierProvider.selectAsync((user) => user?.id),
+    );
+    if (userId == null) return null;
 
     // Obtener el perfil completo del usuario
     final result = await ref.read(getUserProfileProvider)(
-      GetUserProfileParams(userId: user.id),
+      GetUserProfileParams(userId: userId),
     );
 
     return result.fold(

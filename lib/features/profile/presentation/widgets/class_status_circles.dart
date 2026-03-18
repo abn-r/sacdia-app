@@ -68,7 +68,7 @@ class ClassStatusCircles extends ConsumerWidget {
               shape: BoxShape.circle,
               color: isGuiaMayor
                   ? AppColors.colorGuiaMayor
-                  : Colors.grey.withAlpha(60),
+                  : context.sac.border.withAlpha(60),
             ),
             child: Center(
               child: Image.asset(
@@ -152,7 +152,7 @@ class _ClassCircle extends StatelessWidget {
             decoration: BoxDecoration(
               color: isActive
                   ? activeColor
-                  : Colors.grey.withAlpha(60),
+                  : context.sac.border.withAlpha(60),
               shape: BoxShape.circle,
             ),
             child: Center(

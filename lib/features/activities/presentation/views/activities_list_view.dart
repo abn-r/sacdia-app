@@ -28,20 +28,14 @@ class ActivitiesListView extends ConsumerStatefulWidget {
   /// (p.ej. 1 = Aventureros, 2 = Conquistadores, 3 = Guias Mayores).
   final int? clubTypeId;
 
-  /// IDs de los clubes por tipo (Aventureros, Conquistadores, Guias Mayores).
-  /// Si no se pasan, se usara [clubId] como valor por defecto para los tres,
-  /// lo que es suficiente para que el backend acepte la solicitud de creacion.
-  final int? clubAdvId;
-  final int? clubPathfId;
-  final int? clubMgId;
+  /// ID de la sección del club (club_sections).
+  final int? clubSectionId;
 
   const ActivitiesListView({
     super.key,
     required this.clubId,
     this.clubTypeId,
-    this.clubAdvId,
-    this.clubPathfId,
-    this.clubMgId,
+    this.clubSectionId,
   });
 
   @override
@@ -213,9 +207,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                         SacSlideUpRoute(
                           builder: (context) => CreateActivityView(
                             clubId: widget.clubId,
-                            clubAdvId: widget.clubAdvId ?? widget.clubId,
-                            clubPathfId: widget.clubPathfId ?? widget.clubId,
-                            clubMgId: widget.clubMgId ?? widget.clubId,
+                            clubSectionId: widget.clubSectionId ?? 0,
                           ),
                         ),
                       ).then((created) {
@@ -661,9 +653,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
       //             MaterialPageRoute(
       //               builder: (context) => CreateActivityView(
       //                 clubId: widget.clubId,
-      //                 clubAdvId: widget.clubAdvId ?? widget.clubId,
-      //                 clubPathfId: widget.clubPathfId ?? widget.clubId,
-      //                 clubMgId: widget.clubMgId ?? widget.clubId,
+      //                 clubSectionId: widget.clubSectionId ?? 0,
       //               ),
       //             ),
       //           ).then((created) {

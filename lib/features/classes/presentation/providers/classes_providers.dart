@@ -179,34 +179,23 @@ class RequirementOperationState {
 /// Al completar con exito cualquier mutacion, invalida [classWithProgressProvider]
 /// para refrescar datos frescos del backend.
 class RequirementNotifier
-    extends StateNotifier<RequirementOperationState> {
-  final SubmitRequirement _submitRequirement;
-  final UploadRequirementFile _uploadFile;
-  final DeleteRequirementFile _deleteFile;
-  final Ref _ref;
-  final String _userId;
-  final int _classId;
+    extends AutoDisposeFamilyNotifier<RequirementOperationState, int> {
+  @override
+  RequirementOperationState build(int classId) =>
+      const RequirementOperationState();
 
-  RequirementNotifier({
-    required SubmitRequirement submitRequirement,
-    required UploadRequirementFile uploadFile,
-    required DeleteRequirementFile deleteFile,
-    required Ref ref,
-    required String userId,
-    required int classId,
-  })  : _submitRequirement = submitRequirement,
-        _uploadFile = uploadFile,
-        _deleteFile = deleteFile,
-        _ref = ref,
-        _userId = userId,
-        _classId = classId,
-        super(const RequirementOperationState());
+  String get _userId {
+    final authState = ref.read(authNotifierProvider);
+    return authState.value?.id ?? '';
+  }
+
+  int get _classId => arg;
 
   /// Envia un requerimiento a validacion (pendiente -> enviado).
   Future<bool> submit(int requirementId) async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result = await _submitRequirement(
+    final result = await ref.read(submitRequirementUseCaseProvider)(
       SubmitRequirementParams(
         userId: _userId,
         classId: _classId,
@@ -224,7 +213,7 @@ class RequirementNotifier
       },
       (_) {
         state = state.copyWith(isLoading: false, success: true);
-        _ref.invalidate(classWithProgressProvider(_classId));
+        ref.invalidate(classWithProgressProvider(_classId));
         return true;
       },
     );
@@ -240,7 +229,7 @@ class RequirementNotifier
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result = await _uploadFile(
+    final result = await ref.read(uploadRequirementFileUseCaseProvider)(
       UploadRequirementFileParams(
         userId: _userId,
         classId: _classId,
@@ -261,7 +250,7 @@ class RequirementNotifier
       },
       (_) {
         state = state.copyWith(isLoading: false, success: true);
-        _ref.invalidate(classWithProgressProvider(_classId));
+        ref.invalidate(classWithProgressProvider(_classId));
         return true;
       },
     );
@@ -274,7 +263,7 @@ class RequirementNotifier
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result = await _deleteFile(
+    final result = await ref.read(deleteRequirementFileUseCaseProvider)(
       DeleteRequirementFileParams(
         userId: _userId,
         classId: _classId,
@@ -293,7 +282,7 @@ class RequirementNotifier
       },
       (_) {
         state = state.copyWith(isLoading: false, success: true);
-        _ref.invalidate(classWithProgressProvider(_classId));
+        ref.invalidate(classWithProgressProvider(_classId));
         return true;
       },
     );
@@ -307,21 +296,9 @@ class RequirementNotifier
 ///
 /// Es un family por [classId] para que cada clase tenga su propio estado.
 /// Resuelve el userId internamente desde el authNotifier.
-final requirementNotifierProvider = StateNotifierProvider.autoDispose
+final requirementNotifierProvider = NotifierProvider.autoDispose
     .family<RequirementNotifier, RequirementOperationState, int>(
-  (ref, classId) {
-    final authState = ref.watch(authNotifierProvider);
-    final userId = authState.value?.id ?? '';
-
-    return RequirementNotifier(
-      submitRequirement: ref.read(submitRequirementUseCaseProvider),
-      uploadFile: ref.read(uploadRequirementFileUseCaseProvider),
-      deleteFile: ref.read(deleteRequirementFileUseCaseProvider),
-      ref: ref,
-      userId: userId,
-      classId: classId,
-    );
-  },
+  RequirementNotifier.new,
 );
 
 // ── Class progress notifier (legacy) ──────────────────────────────────────────

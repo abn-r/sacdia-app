@@ -7,7 +7,7 @@ import '../../data/models/country_model.dart';
 import '../../data/models/union_model.dart';
 import '../../data/models/local_field_model.dart';
 import '../../data/models/club_model.dart';
-import '../../data/models/club_instance_model.dart';
+import '../../data/models/club_section_model.dart';
 import '../../data/models/class_model.dart';
 
 /// Provider para la fuente de datos remota de selección de club
@@ -61,30 +61,30 @@ final clubsProvider = FutureProvider<List<ClubModel>>((ref) async {
   return dataSource.getClubsByLocalField(localFieldId);
 });
 
-/// Provider para obtener las instancias (tipos) del club seleccionado
-final clubInstancesProvider =
-    FutureProvider<List<ClubInstanceModel>>((ref) async {
+/// Provider para obtener las secciones (tipos) del club seleccionado
+final clubSectionsProvider =
+    FutureProvider<List<ClubSectionModel>>((ref) async {
   final clubId = ref.watch(selectedClubProvider);
   if (clubId == null) return [];
 
   final dataSource = ref.read(clubSelectionDataSourceProvider);
-  return dataSource.getClubInstances(clubId);
+  return dataSource.getClubSections(clubId);
 });
 
 /// Provider para obtener las clases del tipo de club seleccionado
 final classesProvider = FutureProvider<List<ClassModel>>((ref) async {
-  final clubInstanceId = ref.watch(selectedClubInstanceProvider);
-  if (clubInstanceId == null) return [];
+  final clubSectionId = ref.watch(selectedClubSectionProvider);
+  if (clubSectionId == null) return [];
 
-  // Obtener el clubTypeId de la instancia seleccionada
-  final instancesAsync = ref.watch(clubInstancesProvider);
-  final clubTypeId = instancesAsync.maybeWhen(
-    data: (instances) {
-      final instance = instances.firstWhere(
-        (i) => i.id == clubInstanceId,
-        orElse: () => instances.first,
+  // Obtener el clubTypeId de la sección seleccionada
+  final sectionsAsync = ref.watch(clubSectionsProvider);
+  final clubTypeId = sectionsAsync.maybeWhen(
+    data: (sections) {
+      final section = sections.firstWhere(
+        (s) => s.id == clubSectionId,
+        orElse: () => sections.first,
       );
-      return instance.clubTypeId;
+      return section.clubTypeId;
     },
     orElse: () => null,
   );
@@ -145,62 +145,62 @@ final selectedClubProvider = StateProvider<int?>((ref) {
   return null;
 });
 
-/// Provider para la instancia de club seleccionada.
+/// Provider para la sección de club seleccionada.
 /// Auto-selecciona considerando:
-///   1. Única instancia disponible → se selecciona directamente.
-///   2. Múltiples instancias + edad conocida → pre-selección por rango etario.
+///   1. Única sección disponible → se selecciona directamente.
+///   2. Múltiples secciones + edad conocida → pre-selección por rango etario.
 ///   3. Sin datos o edad desconocida → null.
-final selectedClubInstanceProvider = StateProvider<int?>((ref) {
-  final instances = ref.watch(clubInstancesProvider).valueOrNull;
-  if (instances == null || instances.isEmpty) return null;
+final selectedClubSectionProvider = StateProvider<int?>((ref) {
+  final sections = ref.watch(clubSectionsProvider).valueOrNull;
+  if (sections == null || sections.isEmpty) return null;
 
-  if (instances.length == 1) return instances.first.id;
+  if (sections.length == 1) return sections.first.id;
 
   final age = ref.watch(userAgeProvider);
   if (age == null) return null;
 
-  ClubInstanceModel? recommended;
+  ClubSectionModel? recommended;
   if (age >= 4 && age <= 9) {
-    recommended = instances.firstWhere(
-      (instance) =>
-          instance.clubTypeSlug == 'adventurers' ||
-          (instance.clubTypeName?.toLowerCase().contains('aventurero') ?? false),
-      orElse: () => instances.first,
+    recommended = sections.firstWhere(
+      (section) =>
+          section.clubTypeSlug == 'adventurers' ||
+          (section.clubTypeName?.toLowerCase().contains('aventurero') ?? false),
+      orElse: () => sections.first,
     );
   } else if (age >= 10 && age <= 15) {
-    recommended = instances.firstWhere(
-      (instance) =>
-          instance.clubTypeSlug == 'pathfinders' ||
-          (instance.clubTypeName?.toLowerCase().contains('conquistador') ??
+    recommended = sections.firstWhere(
+      (section) =>
+          section.clubTypeSlug == 'pathfinders' ||
+          (section.clubTypeName?.toLowerCase().contains('conquistador') ??
               false),
-      orElse: () => instances.first,
+      orElse: () => sections.first,
     );
   } else if (age >= 16) {
-    recommended = instances.firstWhere(
-      (instance) =>
-          instance.clubTypeSlug == 'master_guild' ||
-          (instance.clubTypeName?.toLowerCase().contains('guía') ?? false),
-      orElse: () => instances.first,
+    recommended = sections.firstWhere(
+      (section) =>
+          section.clubTypeSlug == 'master_guild' ||
+          (section.clubTypeName?.toLowerCase().contains('guía') ?? false),
+      orElse: () => sections.first,
     );
   }
 
   return recommended?.id;
 });
 
-/// Provider para el slug del tipo de club de la instancia seleccionada.
+/// Provider para el slug del tipo de club de la sección seleccionada.
 /// Valores posibles: 'adventurers' | 'pathfinders' | 'master_guild' | null.
 ///
-/// Derivado automáticamente de [selectedClubInstanceProvider] y
-/// [clubInstancesProvider] — no requiere escritura manual.
+/// Derivado automáticamente de [selectedClubSectionProvider] y
+/// [clubSectionsProvider] — no requiere escritura manual.
 final selectedClubTypeSlugProvider = Provider<String?>((ref) {
-  final selectedId = ref.watch(selectedClubInstanceProvider);
+  final selectedId = ref.watch(selectedClubSectionProvider);
   if (selectedId == null) return null;
 
-  final instances = ref.watch(clubInstancesProvider).valueOrNull;
-  if (instances == null || instances.isEmpty) return null;
+  final sections = ref.watch(clubSectionsProvider).valueOrNull;
+  if (sections == null || sections.isEmpty) return null;
 
-  final instance = instances.where((i) => i.id == selectedId).firstOrNull;
-  return instance?.clubTypeSlug;
+  final section = sections.where((s) => s.id == selectedId).firstOrNull;
+  return section?.clubTypeSlug;
 });
 
 /// Provider para la clase seleccionada.
@@ -236,14 +236,14 @@ final canCompleteStep3Provider = Provider<bool>((ref) {
   final country = ref.watch(selectedCountryProvider);
   final union = ref.watch(selectedUnionProvider);
   final localField = ref.watch(selectedLocalFieldProvider);
-  final clubInstance = ref.watch(selectedClubInstanceProvider);
+  final clubSection = ref.watch(selectedClubSectionProvider);
   final classId = ref.watch(selectedClassProvider);
   final clubTypeSlug = ref.watch(selectedClubTypeSlugProvider);
 
   return country != null &&
       union != null &&
       localField != null &&
-      clubInstance != null &&
+      clubSection != null &&
       classId != null &&
       clubTypeSlug != null;
 });

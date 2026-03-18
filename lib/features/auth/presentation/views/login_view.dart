@@ -134,10 +134,10 @@ class _LoginViewState extends ConsumerState<LoginView> {
                         child: TextButton(
                           onPressed: () =>
                               context.push(RouteNames.forgotPassword),
-                          child: const Text(
+                          child: Text(
                             '¿Olvidaste tu contraseña?',
                             style: TextStyle(
-                                color: AppColors.sacBlack,
+                                color: context.sac.text,
                                 fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -248,13 +248,13 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                 .textTheme
                                 .bodyMedium
                                 ?.copyWith(
-                                  color: AppColors.sacBlack,
+                                  color: context.sac.text,
                                 ),
                             children: [
                               TextSpan(
                                 text: 'Regístrate',
-                                style: const TextStyle(
-                                  color: AppColors.sacBlack,
+                                style: TextStyle(
+                                  color: context.sac.text,
                                   fontWeight: FontWeight.bold,
                                 ),
                                 recognizer: TapGestureRecognizer()

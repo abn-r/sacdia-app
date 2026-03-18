@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -308,10 +309,10 @@ class _HonorGridItem extends StatelessWidget {
             child: Stack(
               children: [
                 imageUrl != null && imageUrl.isNotEmpty
-                    ? Image.network(
-                        imageUrl,
+                    ? CachedNetworkImage(
+                        imageUrl: imageUrl,
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => _InitialsBox(
+                        errorWidget: (_, __, ___) => _InitialsBox(
                           initials: initials,
                           categoryColor: categoryColor,
                         ),

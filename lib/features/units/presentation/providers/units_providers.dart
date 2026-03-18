@@ -90,11 +90,9 @@ class UnitsState {
 /// Gestiona el estado del feature de unidades.
 ///
 /// Usa mock data hasta que se integre la API real.
-class UnitsNotifier extends StateNotifier<UnitsState> {
-  UnitsNotifier()
-      : super(UnitsState(
-          units: _mockUnits,
-        ));
+class UnitsNotifier extends Notifier<UnitsState> {
+  @override
+  UnitsState build() => UnitsState(units: _mockUnits);
 
   /// Selecciona una unidad y carga sus miembros con puntos iniciales en 0.
   void selectUnit(Unit unit) {
@@ -161,6 +159,6 @@ class UnitsNotifier extends StateNotifier<UnitsState> {
 
 /// Provider principal para el feature de unidades.
 final unitsNotifierProvider =
-    StateNotifierProvider<UnitsNotifier, UnitsState>((ref) {
-  return UnitsNotifier();
-});
+    NotifierProvider<UnitsNotifier, UnitsState>(
+  UnitsNotifier.new,
+);

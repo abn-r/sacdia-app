@@ -21,22 +21,22 @@ class ClubInfo extends Equatable {
   List<Object?> get props => [id, name, active];
 }
 
-/// Entidad de dominio para una instancia de club
+/// Entidad de dominio para una sección de club
 /// (Aventureros, Conquistadores o Guías Mayores).
-class ClubInstance extends Equatable {
-  /// ID numérico de la instancia.
+class ClubSection extends Equatable {
+  /// ID numérico de la sección (club_section_id).
   final int id;
 
   /// ID del club contenedor (UUID).
   final String mainClubId;
 
-  /// Slug del tipo de instancia: 'adventurers' | 'pathfinders' | 'master_guild'
-  final String instanceType;
+  /// club_type_id del tipo de sección.
+  final int clubTypeId;
 
   /// Nombre legible del tipo (ej: 'Conquistadores').
-  final String instanceTypeName;
+  final String clubTypeName;
 
-  /// Nombre propio de la instancia.
+  /// Nombre propio de la sección.
   final String? name;
 
   /// Teléfono de contacto.
@@ -60,14 +60,14 @@ class ClubInstance extends Equatable {
   /// Longitud de la ubicación.
   final double? long;
 
-  /// ¿Instancia activa?
+  /// ¿Sección activa?
   final bool active;
 
-  const ClubInstance({
+  const ClubSection({
     required this.id,
     required this.mainClubId,
-    required this.instanceType,
-    required this.instanceTypeName,
+    required this.clubTypeId,
+    required this.clubTypeName,
     this.name,
     this.phone,
     this.email,
@@ -81,18 +81,7 @@ class ClubInstance extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        mainClubId,
-        instanceType,
-        instanceTypeName,
-        name,
-        phone,
-        email,
-        website,
-        logoUrl,
-        address,
-        lat,
-        long,
-        active,
+        id, mainClubId, clubTypeId, clubTypeName,
+        name, phone, email, website, logoUrl, address, lat, long, active,
       ];
 }

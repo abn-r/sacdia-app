@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -228,10 +229,10 @@ class _ClassGridItem extends StatelessWidget {
                   ? Stack(
                       fit: StackFit.expand,
                       children: [
-                        Image.network(
-                          progressiveClass.imageUrl!,
+                        CachedNetworkImage(
+                          imageUrl: progressiveClass.imageUrl!,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _ClassInitialsBox(
+                          errorWidget: (_, __, ___) => _ClassInitialsBox(
                             initials: initials,
                             classColor: classColor,
                             classIcon: classIcon,

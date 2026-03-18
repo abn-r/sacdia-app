@@ -94,8 +94,14 @@ class MyHonorsView extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  loading: () => const SizedBox(height: 60),
-                  error: (_, __) => const SizedBox(),
+                  loading: () => const SizedBox(height: 60, child: Center(child: SacLoading())),
+                  error: (_, __) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    child: Text(
+                      'No se pudieron cargar las estadísticas',
+                      style: TextStyle(color: AppColors.error, fontSize: 12),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -114,11 +120,11 @@ class MyHonorsView extends ConsumerWidget {
                     indicator: BoxDecoration(
                       color: context.sac.surface,
                       borderRadius: BorderRadius.circular(10),
-                      boxShadow: const [
+                      boxShadow: [
                         BoxShadow(
-                          color: Color(0x10000000),
+                          color: context.sac.shadow,
                           blurRadius: 4,
-                          offset: Offset(0, 1),
+                          offset: const Offset(0, 1),
                         ),
                       ],
                     ),
@@ -206,8 +212,31 @@ class MyHonorsView extends ConsumerWidget {
                         );
                       },
                       loading: () => const Center(child: SacLoading()),
-                      error: (error, _) =>
-                          Center(child: Text('Error: $error')),
+                      error: (error, _) => Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.error_outline,
+                                  color: AppColors.error, size: 48),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'No se pudieron cargar las especialidades',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 15),
+                              ),
+                              const SizedBox(height: 12),
+                              TextButton.icon(
+                                onPressed: () =>
+                                    ref.invalidate(userHonorsProvider),
+                                icon: const Icon(Icons.refresh),
+                                label: const Text('Reintentar'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     );
                   },
                   loading: () => const Center(child: SacLoading()),
@@ -289,9 +318,7 @@ class MyHonorsView extends ConsumerWidget {
             child: HonorProgressCard(
               userHonor: userHonor,
               honorName: honor.name,
-              onTap: () {
-                // Navigate to detail
-              },
+              onTap: null,
             ),
           );
         },

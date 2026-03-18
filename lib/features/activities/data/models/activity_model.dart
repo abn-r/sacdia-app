@@ -13,9 +13,7 @@ class ActivityModel extends Equatable {
   final String? activityTypeName;
   final int platform;
   final bool active;
-  final int clubAdvId;
-  final int clubPathfId;
-  final int clubMgId;
+  final int clubSectionId;
   final int clubTypeId;
   final String? linkMeet;
   final DateTime? createdAt;
@@ -31,9 +29,7 @@ class ActivityModel extends Equatable {
     this.activityTypeName,
     required this.platform,
     required this.active,
-    required this.clubAdvId,
-    required this.clubPathfId,
-    required this.clubMgId,
+    required this.clubSectionId,
     required this.clubTypeId,
     this.linkMeet,
     this.createdAt,
@@ -58,9 +54,7 @@ class ActivityModel extends Equatable {
       activityTypeName: activityTypeNested?['name'] as String?,
       platform: (json['platform'] as int?) ?? 0,
       active: (json['active'] as bool?) ?? false,
-      clubAdvId: (json['club_adv_id'] as int?) ?? 0,
-      clubPathfId: (json['club_pathf_id'] as int?) ?? 0,
-      clubMgId: (json['club_mg_id'] as int?) ?? 0,
+      clubSectionId: (json['club_section_id'] as int?) ?? 0,
       clubTypeId: (json['club_type_id'] as int?) ?? 0,
       linkMeet: json['link_meet'] as String?,
       createdAt: json['created_at'] != null
@@ -82,9 +76,7 @@ class ActivityModel extends Equatable {
       'activity_type_name': activityTypeName,
       'platform': platform,
       'active': active,
-      'club_adv_id': clubAdvId,
-      'club_pathf_id': clubPathfId,
-      'club_mg_id': clubMgId,
+      'club_section_id': clubSectionId,
       'club_type_id': clubTypeId,
       'link_meet': linkMeet,
       'created_at': createdAt?.toIso8601String(),
@@ -104,9 +96,7 @@ class ActivityModel extends Equatable {
       activityTypeName: activityTypeName,
       platform: platform,
       active: active,
-      clubAdvId: clubAdvId,
-      clubPathfId: clubPathfId,
-      clubMgId: clubMgId,
+      clubSectionId: clubSectionId,
       clubTypeId: clubTypeId,
       linkMeet: linkMeet,
       createdAt: createdAt,
@@ -125,9 +115,7 @@ class ActivityModel extends Equatable {
         activityTypeName,
         platform,
         active,
-        clubAdvId,
-        clubPathfId,
-        clubMgId,
+        clubSectionId,
         clubTypeId,
         linkMeet,
         createdAt,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Widget reutilizable para campos de texto en vistas de autenticación
 class AuthTextField extends StatefulWidget {
@@ -35,7 +36,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
         hintText: widget.hintText,
         prefixIcon: HugeIcon(
           icon: widget.icon,
-          color: Colors.grey,
+          color: context.sac.textTertiary,
           size: 24,
         ),
         suffixIcon: widget.obscureText
@@ -44,7 +45,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
                   icon: _showPassword
                       ? HugeIcons.strokeRoundedViewOff
                       : HugeIcons.strokeRoundedViewOffSlash,
-                  color: Colors.grey,
+                  color: context.sac.textTertiary,
                   size: 20,
                 ),
                 onPressed: () {

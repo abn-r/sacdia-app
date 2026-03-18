@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -292,11 +293,11 @@ class _AddHonorViewState extends ConsumerState<AddHonorView> {
           margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Color(0x08000000),
+                color: context.sac.shadow,
                 blurRadius: 8,
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
               ),
             ],
           ),
@@ -464,11 +465,11 @@ class _AddHonorViewState extends ConsumerState<AddHonorView> {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Color(0x08000000),
+                color: context.sac.shadow,
                 blurRadius: 8,
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
               ),
             ],
           ),
@@ -738,10 +739,10 @@ class _HonorSelectItemState extends State<_HonorSelectItem>
                 aspectRatio: 1.0,
                 child: widget.honor.imageUrl != null &&
                         widget.honor.imageUrl!.isNotEmpty
-                    ? Image.network(
-                        widget.honor.imageUrl!,
+                    ? CachedNetworkImage(
+                        imageUrl: widget.honor.imageUrl!,
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => _InitialsBox(
+                        errorWidget: (_, __, ___) => _InitialsBox(
                           initials: initials,
                           categoryColor: widget.categoryColor,
                         ),

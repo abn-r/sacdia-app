@@ -8,7 +8,7 @@ import '../../domain/entities/class_requirement.dart';
 ///
 /// Tres variantes visuales:
 /// - pendiente  -> amarillo / naranja
-/// - enviado    -> azul
+/// - enviado    -> azul (dark-mode aware)
 /// - validado   -> verde
 class RequirementStatusBadge extends StatelessWidget {
   final RequirementStatus status;
@@ -17,24 +17,30 @@ class RequirementStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final bgColor = _bgColor(isDark);
+    final borderColor = _borderColor(isDark);
+    final textColor = _textColor(isDark);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: _bgColor,
+        color: bgColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _borderColor, width: 1),
+        border: Border.all(color: borderColor, width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          HugeIcon(icon: _icon, size: 13, color: _textColor),
+          HugeIcon(icon: _icon, size: 13, color: textColor),
           const SizedBox(width: 5),
           Text(
             _label,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: _textColor,
+              color: textColor,
             ),
           ),
         ],
@@ -53,18 +59,18 @@ class RequirementStatusBadge extends StatelessWidget {
     }
   }
 
-  Color get _bgColor {
+  Color _bgColor(bool isDark) {
     switch (status) {
       case RequirementStatus.pendiente:
         return AppColors.accentLight;
       case RequirementStatus.enviado:
-        return const Color(0xFFEFF6FF);
+        return isDark ? AppColors.statusInfoBgDark : AppColors.statusInfoBgLight;
       case RequirementStatus.validado:
         return AppColors.secondaryLight;
     }
   }
 
-  Color get _borderColor {
+  Color _borderColor(bool isDark) {
     switch (status) {
       case RequirementStatus.pendiente:
         return AppColors.accent.withValues(alpha: 0.4);
@@ -75,12 +81,12 @@ class RequirementStatusBadge extends StatelessWidget {
     }
   }
 
-  Color get _textColor {
+  Color _textColor(bool isDark) {
     switch (status) {
       case RequirementStatus.pendiente:
         return AppColors.accentDark;
       case RequirementStatus.enviado:
-        return const Color(0xFF1D4ED8);
+        return isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
       case RequirementStatus.validado:
         return AppColors.secondaryDark;
     }

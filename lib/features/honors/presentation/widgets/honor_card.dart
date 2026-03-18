@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -38,10 +39,10 @@ class HonorCard extends StatelessWidget {
             child: honor.imageUrl != null
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      honor.imageUrl!,
+                    child: CachedNetworkImage(
+                      imageUrl: honor.imageUrl!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => HugeIcon(
+                      errorWidget: (_, __, ___) => HugeIcon(
                         icon: HugeIcons.strokeRoundedAward01,
                         color: AppColors.accent,
                         size: 24,

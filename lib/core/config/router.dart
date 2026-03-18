@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,13 +6,13 @@ import 'package:go_router/go_router.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/features/activities/presentation/views/activities_list_view.dart';
-import 'package:sacdia_app/features/carpeta_evidencias/presentation/views/evidence_folder_view.dart';
+import 'package:sacdia_app/features/evidence_folder/presentation/views/evidence_folder_view.dart';
 import 'package:sacdia_app/features/club/presentation/providers/club_providers.dart';
 import 'package:sacdia_app/features/club/presentation/views/club_view.dart';
-import 'package:sacdia_app/features/finanzas/presentation/views/finanzas_view.dart';
+import 'package:sacdia_app/features/finances/presentation/views/finances_view.dart';
 import 'package:sacdia_app/features/home/presentation/widgets/resources_section.dart';
-import 'package:sacdia_app/features/inventario/presentation/views/inventario_view.dart';
-import 'package:sacdia_app/features/seguros/presentation/views/seguros_view.dart';
+import 'package:sacdia_app/features/inventory/presentation/views/inventory_view.dart';
+import 'package:sacdia_app/features/insurance/presentation/views/insurance_view.dart';
 import 'package:sacdia_app/features/units/presentation/views/units_list_view.dart';
 
 import '../../features/auth/presentation/providers/auth_providers.dart';
@@ -23,7 +24,7 @@ import '../../features/post_registration/presentation/views/post_registration_sh
 import '../../features/dashboard/presentation/views/dashboard_view.dart';
 import '../../features/classes/presentation/views/classes_list_view.dart';
 import '../../features/classes/presentation/views/class_detail_with_progress_view.dart';
-import '../../features/miembros/presentation/views/miembros_view.dart';
+import '../../features/members/presentation/views/members_view.dart';
 import '../../features/profile/presentation/views/profile_view.dart';
 import '../animations/page_transitions.dart';
 import '../utils/responsive.dart';
@@ -66,7 +67,7 @@ Page<void> _slideUpBuild(
 final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
     initialLocation: RouteNames.splash,
-    debugLogDiagnostics: true,
+    debugLogDiagnostics: kDebugMode,
     redirect: (context, state) {
       // Read the current auth state snapshot without watching it here —
       // watching would cause the Provider to rebuild and recreate the router.
@@ -194,7 +195,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: RouteNames.homeMembers,
             pageBuilder: (context, state) => _fadeThroughBuild(
               context, state,
-              const MiembrosView(),
+              const MembersView(),
             ),
           ),
           GoRoute(
@@ -215,7 +216,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: RouteNames.homeFinances,
             pageBuilder: (context, state) => _fadeThroughBuild(
               context, state,
-              const FinanzasView(),
+              const FinancesView(),
             ),
           ),
           GoRoute(
@@ -236,14 +237,14 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: RouteNames.homeInsurance,
             pageBuilder: (context, state) => _fadeThroughBuild(
               context, state,
-              const SegurosView(),
+              const InsuranceView(),
             ),
           ),
           GoRoute(
             path: RouteNames.homeInventory,
             pageBuilder: (context, state) => _fadeThroughBuild(
               context, state,
-              const InventarioView(),
+              const InventoryView(),
             ),
           ),
           GoRoute(
@@ -431,18 +432,18 @@ class _MainShell extends StatelessWidget {
   }
 }
 
-/// Shell que obtiene el clubInstanceId del contexto activo y pasa a [EvidenceFolderView].
+/// Shell que obtiene el clubSectionId del contexto activo y pasa a [EvidenceFolderView].
 ///
 /// Si el contexto aún no está disponible muestra un loading.
-/// Si no hay instancia activa muestra un mensaje de error con instrucción.
+/// Si no hay sección activa muestra un mensaje de error con instrucción.
 class _EvidenceFolderShell extends ConsumerWidget {
   const _EvidenceFolderShell();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final clubInstanceAsync = ref.watch(currentClubInstanceProvider);
+    final clubSectionAsync = ref.watch(currentClubSectionProvider);
 
-    return clubInstanceAsync.when(
+    return clubSectionAsync.when(
       loading: () => Scaffold(
         body: Center(
           child: LoadingAnimationWidget.stretchedDots(
@@ -463,8 +464,8 @@ class _EvidenceFolderShell extends ConsumerWidget {
           ),
         ),
       ),
-      data: (instance) {
-        if (instance == null) {
+      data: (section) {
+        if (section == null) {
           return Scaffold(
             appBar: AppBar(title: const Text('Carpeta de Evidencias')),
             body: const Center(
@@ -478,7 +479,7 @@ class _EvidenceFolderShell extends ConsumerWidget {
             ),
           );
         }
-        return EvidenceFolderView(clubInstanceId: instance.id.toString());
+        return EvidenceFolderView(clubSectionId: section.id.toString());
       },
     );
   }

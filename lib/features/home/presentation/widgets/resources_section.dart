@@ -462,11 +462,11 @@ class _FileCard extends StatelessWidget {
         color: c.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border, width: 1),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color(0x08000000),
+            color: c.shadow,
             blurRadius: 8,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -570,11 +570,11 @@ class _CategoryCard extends StatelessWidget {
         color: c.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(color: c.border, width: 1),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color(0x08000000),
+            color: c.shadow,
             blurRadius: 8,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),

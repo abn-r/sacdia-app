@@ -16,13 +16,13 @@ import '../../domain/entities/user_honor.dart';
 class HonorProgressCard extends StatelessWidget {
   final UserHonor userHonor;
   final String honorName;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const HonorProgressCard({
     super.key,
     required this.userHonor,
     required this.honorName,
-    required this.onTap,
+    this.onTap,
   });
 
   SacBadgeVariant get _badgeVariant {

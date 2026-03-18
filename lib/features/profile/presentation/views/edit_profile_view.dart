@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -334,7 +335,7 @@ class _AvatarHeader extends StatelessWidget {
     const double radius = 48.0;
 
     return Container(
-      color: AppColors.lightBackground,
+      color: context.sac.background,
       padding: const EdgeInsets.symmetric(vertical: 28),
       child: Column(
         children: [
@@ -363,7 +364,7 @@ class _AvatarHeader extends StatelessWidget {
                     radius: radius,
                     backgroundColor: AppColors.primarySurface,
                     backgroundImage:
-                        avatar != null ? NetworkImage(avatar!) : null,
+                        avatar != null ? CachedNetworkImageProvider(avatar!) : null,
                     child: avatar == null
                         ? Text(
                             name.isNotEmpty ? name[0].toUpperCase() : 'U',
@@ -387,7 +388,7 @@ class _AvatarHeader extends StatelessWidget {
                       color: AppColors.primary,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: AppColors.lightBackground,
+                        color: context.sac.background,
                         width: 2,
                       ),
                     ),
@@ -410,10 +411,10 @@ class _AvatarHeader extends StatelessWidget {
           if (name.isNotEmpty)
             Text(
               name,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppColors.lightText,
+                color: context.sac.text,
                 letterSpacing: -0.3,
               ),
               textAlign: TextAlign.center,
@@ -468,10 +469,10 @@ class _SectionHeader extends StatelessWidget {
         const SizedBox(width: 8),
         Text(
           label.toUpperCase(),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w700,
-            color: AppColors.lightTextSecondary,
+            color: context.sac.textSecondary,
             letterSpacing: 0.8,
           ),
         ),
@@ -490,9 +491,9 @@ class _FormCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.lightBackground,
+        color: context.sac.background,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.lightBorder, width: 1),
+        border: Border.all(color: context.sac.border, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
