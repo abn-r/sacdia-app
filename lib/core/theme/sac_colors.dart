@@ -53,4 +53,17 @@ class SacColors {
 
   Color get textTertiary =>
       _isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary;
+
+  // ── Elevation / Shadow ────────────────────────────────────────
+  Color get shadow => _isDark
+      ? Colors.white.withValues(alpha: 0.04)
+      : Colors.black.withValues(alpha: 0.08);
+
+  // ── On-surface ────────────────────────────────────────────────
+  Color get onPrimary => Colors.white;
+
+  // ── Overlays ──────────────────────────────────────────────────
+  Color get barrierColor => _isDark
+      ? Colors.black.withValues(alpha: 0.7)
+      : Colors.black.withValues(alpha: 0.5);
 }

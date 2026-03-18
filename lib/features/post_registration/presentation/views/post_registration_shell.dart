@@ -54,6 +54,7 @@ class PostRegistrationShell extends ConsumerStatefulWidget {
 
 class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
   final PageController _pageController = PageController();
+  bool _isCompletingStep = false;
 
   @override
   void initState() {
@@ -106,6 +107,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
   }
 
   Future<void> _onContinue() async {
+    if (_isCompletingStep) return;
     final currentStep = ref.read(currentStepProvider);
 
     if (currentStep == 1) {
@@ -122,20 +124,25 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     final userId = authState.valueOrNull?.id;
     if (userId == null) return;
 
-    final repository = ref.read(postRegistrationRepositoryProvider);
-    final result = await repository.completeStep1(userId);
+    setState(() => _isCompletingStep = true);
+    try {
+      final repository = ref.read(postRegistrationRepositoryProvider);
+      final result = await repository.completeStep1(userId);
 
-    result.fold(
-      (failure) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(failure.message)),
-        );
-      },
-      (_) {
-        if (mounted) _goToStep(2);
-      },
-    );
+      result.fold(
+        (failure) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(failure.message)),
+          );
+        },
+        (_) {
+          if (mounted) _goToStep(2);
+        },
+      );
+    } finally {
+      if (mounted) setState(() => _isCompletingStep = false);
+    }
   }
 
   Future<void> _completeStep2() async {
@@ -146,10 +153,10 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
 
     final canReadSensitiveData = canReadSensitiveStep2Data(userId, user);
 
+    setState(() => _isCompletingStep = true);
     try {
       if (canReadSensitiveData) {
-        final saveInfo = ref.read(savePersonalInfoProvider);
-        await saveInfo();
+        await ref.read(savePersonalInfoProvider.notifier).save();
       } else {
         final dataSource = ref.read(personalInfoDataSourceProvider);
         await dataSource.completeStep2(userId);
@@ -158,8 +165,14 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+        const SnackBar(
+          content: Text(
+            'No se pudo completar este paso. Por favor intentá de nuevo.',
+          ),
+        ),
       );
+    } finally {
+      if (mounted) setState(() => _isCompletingStep = false);
     }
   }
 
@@ -178,7 +191,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
         unionId: ref.read(selectedUnionProvider)!,
         localFieldId: ref.read(selectedLocalFieldProvider)!,
         clubTypeSlug: ref.read(selectedClubTypeSlugProvider)!,
-        clubInstanceId: ref.read(selectedClubInstanceProvider)!,
+        clubSectionId: ref.read(selectedClubSectionProvider)!,
         classId: ref.read(selectedClassProvider)!,
       );
     } on Exception catch (e) {
@@ -251,6 +264,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     final authUser = ref.watch(authNotifierProvider).valueOrNull;
     final selectedPhoto = ref.watch(selectedPhotoPathProvider);
     final isUploading = ref.watch(isUploadingPhotoProvider);
+    final isSavingStep3 = ref.watch(isSavingStep3Provider);
     final hPad = Responsive.horizontalPadding(context);
     final targetUserId = authUser?.id ?? '';
     final canReadStep2SensitiveData =
@@ -273,8 +287,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
         break;
       case 3:
         final canComplete3 = ref.watch(canCompleteStep3Provider);
-        final isSaving3 = ref.watch(isSavingStep3Provider);
-        canContinue = canComplete3 && !isSaving3;
+        canContinue = canComplete3 && !isSavingStep3;
         break;
     }
 
@@ -374,7 +387,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
         currentStep: currentStep,
         totalSteps: 3,
         canContinue: canContinue,
-        isLoading: isUploading,
+        isLoading: isUploading || isSavingStep3 || _isCompletingStep,
         onBack: _onBack,
         onContinue: _onContinue,
         onSkip: currentStep == 1 ? _onSkipPhoto : null,

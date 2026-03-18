@@ -392,42 +392,55 @@ final canCompleteStep2Provider = Provider<bool>((ref) {
   return true;
 });
 
-/// Provider para guardar información personal
-final savePersonalInfoProvider = Provider<Future<void> Function()>((ref) {
-  return () async {
+/// Notifier para guardar información personal con loading/error state
+class SavePersonalInfoNotifier extends AsyncNotifier<void> {
+  @override
+  Future<void> build() async {}
+
+  Future<void> save() async {
     const tag = 'PersonalInfo';
-    final authState = ref.read(authNotifierProvider);
-    final userId = authState.valueOrNull?.id;
+    state = const AsyncValue.loading();
 
-    if (userId == null) throw Exception('Usuario no autenticado');
+    state = await AsyncValue.guard(() async {
+      final authState = ref.read(authNotifierProvider);
+      final userId = authState.valueOrNull?.id;
 
-    final formState = ref.read(personalInfoFormProvider);
-    final dataSource = ref.read(personalInfoDataSourceProvider);
+      if (userId == null) throw Exception('Usuario no autenticado');
 
-    AppLogger.d(
-      'savePersonalInfo userId=$userId gender=${formState.gender} baptized=${formState.baptized}',
-      tag: tag,
-    );
+      final formState = ref.read(personalInfoFormProvider);
+      final dataSource = ref.read(personalInfoDataSourceProvider);
 
-    await dataSource.updatePersonalInfo(
-      userId,
-      gender: formState.gender,
-      birthdate: formState.birthdate?.toUtc().toIso8601String(),
-      baptized: formState.baptized,
-      baptismDate: formState.baptismDate?.toUtc().toIso8601String(),
-    );
+      AppLogger.d(
+        'savePersonalInfo userId=$userId gender=${formState.gender} baptized=${formState.baptized}',
+        tag: tag,
+      );
 
-    final selectedAllergies = ref.read(selectedAllergiesProvider);
-    if (selectedAllergies.isNotEmpty) {
-      await dataSource.saveUserAllergies(userId, selectedAllergies);
-    }
+      await dataSource.updatePersonalInfo(
+        userId,
+        gender: formState.gender,
+        birthdate: formState.birthdate?.toUtc().toIso8601String(),
+        baptized: formState.baptized,
+        baptismDate: formState.baptismDate?.toUtc().toIso8601String(),
+      );
 
-    final selectedDiseases = ref.read(selectedDiseasesProvider);
-    if (selectedDiseases.isNotEmpty) {
-      await dataSource.saveUserDiseases(userId, selectedDiseases);
-    }
+      final selectedAllergies = ref.read(selectedAllergiesProvider);
+      if (selectedAllergies.isNotEmpty) {
+        await dataSource.saveUserAllergies(userId, selectedAllergies);
+      }
 
-    await dataSource.completeStep2(userId);
-    AppLogger.i('Paso 2 completado', tag: tag);
-  };
-});
+      final selectedDiseases = ref.read(selectedDiseasesProvider);
+      if (selectedDiseases.isNotEmpty) {
+        await dataSource.saveUserDiseases(userId, selectedDiseases);
+      }
+
+      await dataSource.completeStep2(userId);
+      AppLogger.i('Paso 2 completado', tag: tag);
+    });
+  }
+}
+
+/// Provider para guardar información personal
+final savePersonalInfoProvider =
+    AsyncNotifierProvider<SavePersonalInfoNotifier, void>(
+  SavePersonalInfoNotifier.new,
+);

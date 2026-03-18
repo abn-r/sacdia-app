@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 // ─── Colores mock ─────────────────────────────────────────────────────────────
 const Color _sacRed = Color(0xFFCC0000);
@@ -129,17 +131,18 @@ class MockPersonalInfoScreen extends StatelessWidget {
 
               // ── Contenido principal ───────────────────────────────────────
               Container(
-                decoration: const BoxDecoration(color: Colors.white),
+                decoration: BoxDecoration(color: context.sac.background),
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Información básica
-                    _buildSectionTitle('Información Básica', Icons.person),
+                    _buildSectionTitle(context, 'Información Básica', Icons.person),
                     Row(
                       children: [
                         Expanded(
                           child: _buildInfoCard(
+                            context: context,
                             icon: Icons.transgender,
                             title: 'Género',
                             value: 'Masculino',
@@ -148,6 +151,7 @@ class MockPersonalInfoScreen extends StatelessWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: _buildInfoCard(
+                            context: context,
                             icon: Icons.cake,
                             title: 'Fecha de Nacimiento',
                             value: '15/04/2008',
@@ -159,6 +163,7 @@ class MockPersonalInfoScreen extends StatelessWidget {
                       children: [
                         Expanded(
                           child: _buildInfoCard(
+                            context: context,
                             icon: Icons.bloodtype,
                             title: 'Tipo de Sangre',
                             value: 'O+',
@@ -167,6 +172,7 @@ class MockPersonalInfoScreen extends StatelessWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: _buildInfoCard(
+                            context: context,
                             icon: Icons.church,
                             title: 'Bautizado',
                             value: 'Sí',
@@ -178,8 +184,9 @@ class MockPersonalInfoScreen extends StatelessWidget {
                     const SizedBox(height: 24),
 
                     // Información del club
-                    _buildSectionTitle('Información del Club', Icons.groups),
+                    _buildSectionTitle(context, 'Información del Club', Icons.groups),
                     _buildInfoCard(
+                      context: context,
                       icon: Icons.people,
                       title: 'Club',
                       value: 'Club Renacer Guatemala',
@@ -188,6 +195,7 @@ class MockPersonalInfoScreen extends StatelessWidget {
                       children: [
                         Expanded(
                           child: _buildInfoCard(
+                            context: context,
                             icon: Icons.work,
                             title: 'Rol',
                             value: 'Explorador',
@@ -196,6 +204,7 @@ class MockPersonalInfoScreen extends StatelessWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: _buildInfoCard(
+                            context: context,
                             icon: Icons.school,
                             title: 'Clase',
                             value: 'Orientador Avanzado',
@@ -207,10 +216,11 @@ class MockPersonalInfoScreen extends StatelessWidget {
                     const SizedBox(height: 24),
 
                     // Información médica
-                    _buildSectionTitle('Información Médica', Icons.medical_services),
+                    _buildSectionTitle(context, 'Información Médica', Icons.medical_services),
 
                     // Enfermedades → navega a MockDiseasesScreen
                     _buildInfoCard(
+                      context: context,
                       icon: Icons.medical_information,
                       title: 'Enfermedades',
                       value: '${_mockDiseases.length} enfermedades activas',
@@ -222,6 +232,7 @@ class MockPersonalInfoScreen extends StatelessWidget {
                     ),
 
                     _buildInfoCard(
+                      context: context,
                       icon: Icons.health_and_safety,
                       title: 'Medicamentos',
                       value: 'Ninguno registrado',
@@ -231,6 +242,7 @@ class MockPersonalInfoScreen extends StatelessWidget {
 
                     // Alergias → navega a MockAllergiesScreen
                     _buildInfoCard(
+                      context: context,
                       icon: Icons.no_food,
                       title: 'Alergias',
                       value: '${_mockAllergies.length} alergias registradas',
@@ -244,7 +256,7 @@ class MockPersonalInfoScreen extends StatelessWidget {
                     const SizedBox(height: 24),
 
                     // Contactos de emergencia
-                    _buildSectionTitle('Contactos de Emergencia', Icons.emergency),
+                    _buildSectionTitle(context, 'Contactos de Emergencia', Icons.emergency),
                     const _MockEmergencyContactsWidget(),
 
                     const SizedBox(height: 30),
@@ -258,7 +270,7 @@ class MockPersonalInfoScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title, IconData icon) {
+  Widget _buildSectionTitle(BuildContext context, String title, IconData icon) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -279,6 +291,7 @@ class MockPersonalInfoScreen extends StatelessWidget {
   }
 
   Widget _buildInfoCard({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String value,
@@ -288,7 +301,7 @@ class MockPersonalInfoScreen extends StatelessWidget {
     return Card(
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 12),
-      color: Colors.grey[100],
+      color: context.sac.surfaceVariant,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -303,7 +316,7 @@ class MockPersonalInfoScreen extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    style: TextStyle(fontSize: 12, color: context.sac.textSecondary),
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
@@ -429,7 +442,7 @@ class _MockAllergiesScreenState extends State<MockAllergiesScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Debes seleccionar o ingresar una alergia'),
-                      backgroundColor: Colors.red,
+                      backgroundColor: AppColors.error,
                     ),
                   );
                 }
@@ -461,7 +474,7 @@ class _MockAllergiesScreenState extends State<MockAllergiesScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Alergia eliminada correctamente'),
-                  backgroundColor: Colors.green,
+                  backgroundColor: AppColors.secondary,
                 ),
               );
             },
@@ -500,16 +513,16 @@ class _MockAllergiesScreenState extends State<MockAllergiesScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.health_and_safety_outlined, size: 80, color: Colors.grey[400]),
+          Icon(Icons.health_and_safety_outlined, size: 80, color: context.sac.textTertiary),
           const SizedBox(height: 16),
           Text(
             'No tienes alergias registradas',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[700]),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: context.sac.textSecondary),
           ),
           const SizedBox(height: 8),
           Text(
             'Agrega tus alergias para que el equipo médico esté informado',
-            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            style: TextStyle(fontSize: 14, color: context.sac.textSecondary),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -595,9 +608,9 @@ class _MockDiseasesScreenState extends State<MockDiseasesScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheetState) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          decoration: BoxDecoration(
+            color: ctx.sac.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           padding: EdgeInsets.only(
             top: 20,
@@ -614,9 +627,9 @@ class _MockDiseasesScreenState extends State<MockDiseasesScreen> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Selecciona las enfermedades que padeces para que el equipo médico esté informado.',
-                style: TextStyle(fontSize: 13, color: Colors.grey),
+                style: TextStyle(fontSize: 13, color: ctx.sac.textTertiary),
               ),
               const SizedBox(height: 16),
               SizedBox(
@@ -657,7 +670,7 @@ class _MockDiseasesScreenState extends State<MockDiseasesScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Enfermedades guardadas correctamente'),
-                        backgroundColor: Colors.green,
+                        backgroundColor: AppColors.secondary,
                       ),
                     );
                   }
@@ -688,7 +701,7 @@ class _MockDiseasesScreenState extends State<MockDiseasesScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey[100],
+                color: context.sac.surfaceVariant,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -719,7 +732,7 @@ class _MockDiseasesScreenState extends State<MockDiseasesScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Enfermedad "${disease.name}" eliminada correctamente'),
-                  backgroundColor: Colors.green,
+                  backgroundColor: AppColors.secondary,
                 ),
               );
             },
@@ -761,16 +774,16 @@ class _MockDiseasesScreenState extends State<MockDiseasesScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.medical_information_outlined, size: 80, color: Colors.grey[400]),
+          Icon(Icons.medical_information_outlined, size: 80, color: context.sac.textTertiary),
           const SizedBox(height: 16),
           Text(
             'No tienes enfermedades registradas',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[700]),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: context.sac.textSecondary),
           ),
           const SizedBox(height: 8),
           Text(
             'Agrega tus enfermedades para que el equipo médico esté informado',
-            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            style: TextStyle(fontSize: 14, color: context.sac.textSecondary),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -827,14 +840,14 @@ class _MockDiseasesScreenState extends State<MockDiseasesScreen> {
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       disease.description!,
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      style: TextStyle(fontSize: 14, color: context.sac.textSecondary),
                     ),
                   ),
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
                     'Registrada: ${_formatDate(disease.createdAt)}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                    style: TextStyle(fontSize: 12, color: context.sac.textTertiary),
                   ),
                 ),
               ],
@@ -887,7 +900,7 @@ class _MockEmergencyContactsWidgetState extends State<_MockEmergencyContactsWidg
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: context.sac.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -902,7 +915,7 @@ class _MockEmergencyContactsWidgetState extends State<_MockEmergencyContactsWidg
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('¡Contacto de emergencia añadido exitosamente!'),
-                backgroundColor: Colors.green,
+                backgroundColor: AppColors.secondary,
                 duration: Duration(seconds: 2),
               ),
             );
@@ -946,18 +959,18 @@ class _MockEmergencyContactsWidgetState extends State<_MockEmergencyContactsWidg
           Card(
             elevation: 0,
             margin: const EdgeInsets.only(bottom: 12),
-            color: Colors.grey[100],
+            color: context.sac.surfaceVariant,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: const Padding(
-              padding: EdgeInsets.all(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.contact_emergency_outlined, size: 40, color: Colors.grey),
-                  SizedBox(height: 8),
+                  Icon(Icons.contact_emergency_outlined, size: 40, color: context.sac.textTertiary),
+                  const SizedBox(height: 8),
                   Text(
                     'No se han registrado contactos de emergencia aún.',
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                    style: TextStyle(color: context.sac.textTertiary, fontSize: 14),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -989,7 +1002,7 @@ class _MockEmergencyContactsWidgetState extends State<_MockEmergencyContactsWidg
     return Card(
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 12),
-      color: Colors.grey[100],
+      color: context.sac.surfaceVariant,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -1016,7 +1029,7 @@ class _MockEmergencyContactsWidgetState extends State<_MockEmergencyContactsWidg
                   const SizedBox(height: 2),
                   Text(
                     contact.relationship,
-                    style: TextStyle(color: Colors.grey[700], fontSize: 14),
+                    style: TextStyle(color: context.sac.textSecondary, fontSize: 14),
                   ),
                   const SizedBox(height: 2),
                   Row(
@@ -1142,11 +1155,11 @@ class _MockEmergencyContactModalState extends State<_MockEmergencyContactModal> 
                       const SizedBox(height: 6),
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: context.sac.surface,
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: context.sac.shadow,
                               offset: const Offset(0, 4),
                               blurRadius: 12,
                             ),

@@ -7,7 +7,7 @@ import '../models/country_model.dart';
 import '../models/union_model.dart';
 import '../models/local_field_model.dart';
 import '../models/club_model.dart';
-import '../models/club_instance_model.dart';
+import '../models/club_section_model.dart';
 import '../models/class_model.dart';
 
 /// Interfaz para la fuente de datos remota de selección de club
@@ -16,7 +16,7 @@ abstract class ClubSelectionRemoteDataSource {
   Future<List<UnionModel>> getUnionsByCountry(int countryId);
   Future<List<LocalFieldModel>> getLocalFieldsByUnion(int unionId);
   Future<List<ClubModel>> getClubsByLocalField(int localFieldId);
-  Future<List<ClubInstanceModel>> getClubInstances(int clubId);
+  Future<List<ClubSectionModel>> getClubSections(int clubId);
   Future<List<ClassModel>> getClassesByClubType(int clubTypeId);
   Future<void> completeStep3({
     required String userId,
@@ -24,7 +24,7 @@ abstract class ClubSelectionRemoteDataSource {
     required int unionId,
     required int localFieldId,
     required String clubTypeSlug,
-    required int clubInstanceId,
+    required int clubSectionId,
     required int classId,
   });
 }
@@ -156,46 +156,36 @@ class ClubSelectionRemoteDataSourceImpl
   }
 
   @override
-  Future<List<ClubInstanceModel>> getClubInstances(int clubId) async {
+  Future<List<ClubSectionModel>> getClubSections(int clubId) async {
     try {
       final options = await _authOptions();
       final response = await _dio.get(
-        '$_baseUrl/clubs/$clubId/instances',
+        '$_baseUrl/clubs/$clubId/sections',
         options: options,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final Map<String, dynamic> buckets =
-            response.data as Map<String, dynamic>;
-        final List<ClubInstanceModel> result = [];
+        final dynamic responseData = response.data;
+        final List<dynamic> items;
 
-        const bucketConfig = {
-          'adventurers': ('adventurers', 'club_adv_id'),
-          'pathfinders': ('pathfinders', 'club_pathf_id'),
-          'master_guilds': ('master_guild', 'club_mg_id'),
-        };
-
-        for (final entry in buckets.entries) {
-          final config = bucketConfig[entry.key];
-          if (config == null) continue;
-
-          final slug = config.$1;
-          final idKey = config.$2;
-          final items = entry.value as List<dynamic>;
-
-          for (final item in items) {
-            final json = item as Map<String, dynamic>;
-            if (json['active'] == false) continue;
-            result.add(ClubInstanceModel.fromJsonWithSlug(json, slug, idKey));
-          }
+        if (responseData is List) {
+          items = responseData;
+        } else if (responseData is Map<String, dynamic>) {
+          items = responseData['data'] as List<dynamic>? ?? [];
+        } else {
+          items = [];
         }
 
-        return result;
+        return items
+            .map((json) =>
+                ClubSectionModel.fromJson(json as Map<String, dynamic>))
+            .where((section) => section.id > 0)
+            .toList();
       }
 
-      throw ServerException(message: 'Error al obtener tipos de club');
+      throw ServerException(message: 'Error al obtener secciones de club');
     } catch (e) {
-      AppLogger.e('Error en getClubInstances', tag: _tag, error: e);
+      AppLogger.e('Error en getClubSections', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(message: e.message ?? 'Error de conexión');
       }
@@ -238,7 +228,7 @@ class ClubSelectionRemoteDataSourceImpl
     required int unionId,
     required int localFieldId,
     required String clubTypeSlug,
-    required int clubInstanceId,
+    required int clubSectionId,
     required int classId,
   }) async {
     try {
@@ -250,7 +240,7 @@ class ClubSelectionRemoteDataSourceImpl
           'union_id': unionId,
           'local_field_id': localFieldId,
           'club_type': clubTypeSlug,
-          'club_instance_id': clubInstanceId,
+          'club_section_id': clubSectionId,
           'class_id': classId,
         },
         options: options,

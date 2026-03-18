@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -51,10 +52,10 @@ class ClassCard extends StatelessWidget {
                 child: progressiveClass.imageUrl != null
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          progressiveClass.imageUrl!,
+                        child: CachedNetworkImage(
+                          imageUrl: progressiveClass.imageUrl!,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => HugeIcon(
+                          errorWidget: (_, __, ___) => HugeIcon(
                             icon: HugeIcons.strokeRoundedSchool,
                             color: AppColors.primary,
                             size: 24,

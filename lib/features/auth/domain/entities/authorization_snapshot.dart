@@ -5,16 +5,14 @@ class AuthorizationGrant extends Equatable {
   final String? roleName;
   final List<String> permissions;
   final int? clubId;
-  final String? instanceType;
-  final int? instanceId;
+  final int? sectionId;
 
   const AuthorizationGrant({
     this.assignmentId,
     this.roleName,
     this.permissions = const [],
     this.clubId,
-    this.instanceType,
-    this.instanceId,
+    this.sectionId,
   });
 
   @override
@@ -23,8 +21,7 @@ class AuthorizationGrant extends Equatable {
         roleName,
         permissions,
         clubId,
-        instanceType,
-        instanceId,
+        sectionId,
       ];
 }
 

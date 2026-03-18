@@ -40,13 +40,12 @@ class ClubRepositoryImpl implements ClubRepository {
     }
   }
 
-  // ── getClubInstance ───────────────────────────────────────────────────────
+  // ── getClubSection ────────────────────────────────────────────────────────
 
   @override
-  Future<Either<Failure, ClubInstance>> getClubInstance({
+  Future<Either<Failure, ClubSection>> getClubSection({
     required String clubId,
-    required String instanceType,
-    required int instanceId,
+    required int sectionId,
   }) async {
     if (!await _networkInfo.isConnected) {
       return const Left(
@@ -55,10 +54,9 @@ class ClubRepositoryImpl implements ClubRepository {
     }
 
     try {
-      final model = await _remoteDataSource.getClubInstance(
+      final model = await _remoteDataSource.getClubSection(
         clubId: clubId,
-        instanceType: instanceType,
-        instanceId: instanceId,
+        sectionId: sectionId,
       );
       return Right(model);
     } on AuthException catch (e) {
@@ -70,13 +68,12 @@ class ClubRepositoryImpl implements ClubRepository {
     }
   }
 
-  // ── updateClubInstance ────────────────────────────────────────────────────
+  // ── updateClubSection ─────────────────────────────────────────────────────
 
   @override
-  Future<Either<Failure, ClubInstance>> updateClubInstance({
+  Future<Either<Failure, ClubSection>> updateClubSection({
     required String clubId,
-    required String instanceType,
-    required int instanceId,
+    required int sectionId,
     String? name,
     String? phone,
     String? email,
@@ -104,10 +101,9 @@ class ClubRepositoryImpl implements ClubRepository {
     if (long != null) data['long'] = long;
 
     try {
-      final model = await _remoteDataSource.updateClubInstance(
+      final model = await _remoteDataSource.updateClubSection(
         clubId: clubId,
-        instanceType: instanceType,
-        instanceId: instanceId,
+        sectionId: sectionId,
         data: data,
       );
       return Right(model);

@@ -16,9 +16,7 @@ class CreateActivityRequest {
   final String? linkMeet;
   final String? additionalData;
   final List<int>? classes;
-  final int clubAdvId;
-  final int clubPathfId;
-  final int clubMgId;
+  final int clubSectionId;
 
   const CreateActivityRequest({
     required this.name,
@@ -34,9 +32,7 @@ class CreateActivityRequest {
     this.linkMeet,
     this.additionalData,
     this.classes,
-    required this.clubAdvId,
-    required this.clubPathfId,
-    required this.clubMgId,
+    required this.clubSectionId,
   });
 
   /// Convierte la solicitud a JSON para enviar al backend
@@ -50,9 +46,7 @@ class CreateActivityRequest {
       'activity_place': activityPlace,
       'platform': platform,
       'activity_type_id': activityTypeId,
-      'club_adv_id': clubAdvId,
-      'club_pathf_id': clubPathfId,
-      'club_mg_id': clubMgId,
+      'club_section_id': clubSectionId,
     };
 
     if (image != null && image!.isNotEmpty) json['image'] = image;

@@ -96,7 +96,13 @@ class UserModel extends UserEntity {
     }
 
     final instance = value['instance'];
+    final section = value['section'];
     final club = value['club'];
+
+    // Support both new 'section' key and legacy 'instance' key
+    final sectionData = section is Map<String, dynamic>
+        ? section
+        : (instance is Map<String, dynamic> ? instance : null);
 
     return AuthorizationGrant(
       assignmentId: value['assignment_id']?.toString(),
@@ -105,11 +111,11 @@ class UserModel extends UserEntity {
       clubId: club is Map<String, dynamic>
           ? int.tryParse(club['club_id']?.toString() ?? '')
           : null,
-      instanceType: instance is Map<String, dynamic>
-          ? instance['type']?.toString()
-          : null,
-      instanceId: instance is Map<String, dynamic>
-          ? int.tryParse(instance['instance_id']?.toString() ?? '')
+      sectionId: sectionData != null
+          ? int.tryParse(
+              (sectionData['club_section_id'] ?? sectionData['instance_id'])
+                      ?.toString() ??
+                  '')
           : null,
     );
   }
@@ -160,9 +166,8 @@ class UserModel extends UserEntity {
           'role_name': grant.roleName,
           'permissions': grant.permissions,
           'club': grant.clubId == null ? null : {'club_id': grant.clubId},
-          'instance': {
-            'type': grant.instanceType,
-            'instance_id': grant.instanceId,
+          'section': {
+            'club_section_id': grant.sectionId,
           }
         };
 

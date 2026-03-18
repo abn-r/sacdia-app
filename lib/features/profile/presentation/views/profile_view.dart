@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -655,7 +656,7 @@ class _ProfileHeaderCard extends StatelessWidget {
                             radius: avatarRadius,
                             backgroundColor: AppColors.primarySurface,
                             backgroundImage: avatar != null
-                                ? NetworkImage(avatar!)
+                                ? CachedNetworkImageProvider(avatar!)
                                 : null,
                             child: avatar == null
                                 ? Text(
@@ -689,8 +690,7 @@ class _ProfileHeaderCard extends StatelessWidget {
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color:
-                                          Colors.black.withValues(alpha: 0.08),
+                                      color: context.sac.shadow,
                                       blurRadius: 4,
                                       offset: const Offset(0, 2),
                                     ),

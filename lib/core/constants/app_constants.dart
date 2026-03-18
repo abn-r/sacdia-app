@@ -19,9 +19,9 @@ class AppConstants {
   }
 
   // Timeouts (en segundos)
-  static const int connectTimeout = 30;
-  static const int receiveTimeout = 30;
-  static const int sendTimeout = 30;
+  static const int connectTimeout = 10;
+  static const int receiveTimeout = 15;
+  static const int sendTimeout = 15;
 
   // Almacenamiento local
   static const String tokenKey = 'auth_token';

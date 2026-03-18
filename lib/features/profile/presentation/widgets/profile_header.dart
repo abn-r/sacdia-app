@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
@@ -53,7 +54,7 @@ class ProfileHeader extends StatelessWidget {
                   // Fondo muy sutil cuando no hay foto
                   backgroundColor: AppColors.primarySurface,
                   backgroundImage:
-                      avatar != null ? NetworkImage(avatar!) : null,
+                      avatar != null ? CachedNetworkImageProvider(avatar!) : null,
                   child: avatar == null
                       ? Text(
                           name.isNotEmpty ? name[0].toUpperCase() : 'U',
@@ -84,7 +85,7 @@ class ProfileHeader extends StatelessWidget {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
+                            color: context.sac.shadow,
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),

@@ -634,10 +634,12 @@ class _LinkedHonorSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isCompleted = requirement.linkedHonorCompleted ?? false;
     final color = isCompleted ? AppColors.secondary : AppColors.sacBlue;
-    final bgColor =
-        isCompleted ? AppColors.secondaryLight : const Color(0xFFEFF6FF);
+    final bgColor = isCompleted
+        ? AppColors.secondaryLight
+        : (isDark ? AppColors.statusInfoBgDark : AppColors.statusInfoBgLight);
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -783,7 +785,7 @@ class _BottomActionBar extends StatelessWidget {
         border: Border(top: BorderSide(color: c.border)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: c.shadow,
             blurRadius: 12,
             offset: const Offset(0, -4),
           ),

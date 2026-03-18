@@ -382,7 +382,7 @@ class _FloatingAppBar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
+                      color: c.shadow,
                       blurRadius: 12,
                       offset: const Offset(0, 3),
                     ),
@@ -486,7 +486,7 @@ class _LocationBottomCard extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
+            color: c.shadow,
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -633,7 +633,7 @@ class _MapIconButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
+                color: c.shadow,
                 blurRadius: 12,
                 offset: const Offset(0, 3),
               ),
