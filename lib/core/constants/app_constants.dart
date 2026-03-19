@@ -4,7 +4,9 @@ class AppConstants {
 
   // API
   static const String apiBaseUrlDefineKey = 'API_BASE_URL';
-  static const String defaultBaseUrl = 'http://192.168.1.14:3000/api/v1';
+  // IMPORTANT: default must use HTTPS for production.
+  // For local development, override via --dart-define=API_BASE_URL=http://192.168.x.x:3000/api/v1
+  static const String defaultBaseUrl = 'https://api.sacdia.com/api/v1';
   static final String baseUrl = resolveBaseUrl();
 
   static String resolveBaseUrl({String? override}) {
