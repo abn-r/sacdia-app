@@ -40,6 +40,13 @@ class RouteNames {
   static const String certificationProgress =
       '/certification/:certificationId/progress/:enrollmentId';
 
+  // Camporees
+  static const String homeCamporees = '/home/camporees';
+  static const String camporeeDetail = '/camporee/:camporeeId';
+  static const String camporeeMembers = '/camporee/:camporeeId/members';
+  static const String camporeeRegisterMember =
+      '/camporee/:camporeeId/register';
+
   // Investidura
   static const String investiturePendingList = '/investiture/pending';
   static const String investitureHistory =
@@ -56,4 +63,12 @@ class RouteNames {
       '/certification/$certificationId/progress/$enrollmentId';
   static String investitureHistoryPath(String enrollmentId) =>
       '/investiture/enrollment/$enrollmentId/history';
+
+  // Camporees helpers
+  static String camporeeDetailPath(String camporeeId) =>
+      '/camporee/$camporeeId';
+  static String camporeeMembersPath(String camporeeId) =>
+      '/camporee/$camporeeId/members';
+  static String camporeeRegisterMemberPath(String camporeeId) =>
+      '/camporee/$camporeeId/register';
 }

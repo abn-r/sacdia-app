@@ -1,0 +1,237 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../providers/dio_provider.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../data/datasources/camporees_remote_data_source.dart';
+import '../../data/repositories/camporees_repository_impl.dart';
+import '../../domain/entities/camporee.dart';
+import '../../domain/entities/camporee_member.dart';
+import '../../domain/repositories/camporees_repository.dart';
+
+// ── Infrastructure providers ──────────────────────────────────────────────────
+
+/// Provider para el data source remoto de camporees
+final camporeesRemoteDataSourceProvider =
+    Provider<CamporeesRemoteDataSource>((ref) {
+  return CamporeesRemoteDataSourceImpl(
+    dio: ref.read(dioProvider),
+    baseUrl: ref.read(apiBaseUrlProvider),
+  );
+});
+
+/// Provider para el repositorio de camporees
+final camporeesRepositoryProvider =
+    Provider<CamporeesRepository>((ref) {
+  return CamporeesRepositoryImpl(
+    remoteDataSource: ref.read(camporeesRemoteDataSourceProvider),
+    networkInfo: ref.read(networkInfoProvider),
+  );
+});
+
+// ── Data providers ────────────────────────────────────────────────────────────
+
+/// Provider para la lista de camporees activos.
+final camporeesProvider =
+    FutureProvider.autoDispose<List<Camporee>>((ref) async {
+  final repository = ref.read(camporeesRepositoryProvider);
+  final result = await repository.getCamporees(active: true);
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (camporees) => camporees,
+  );
+});
+
+/// Provider para el detalle de un camporee específico.
+///
+/// Family por [camporeeId].
+final camporeeDetailProvider =
+    FutureProvider.autoDispose.family<Camporee, int>(
+        (ref, camporeeId) async {
+  final repository = ref.read(camporeesRepositoryProvider);
+  final result = await repository.getCamporeeDetail(camporeeId);
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (camporee) => camporee,
+  );
+});
+
+/// Provider para los miembros inscritos en un camporee.
+///
+/// Family por [camporeeId].
+final camporeeMembersProvider =
+    FutureProvider.autoDispose.family<List<CamporeeMember>, int>(
+        (ref, camporeeId) async {
+  final repository = ref.read(camporeesRepositoryProvider);
+  final result = await repository.getCamporeeMembers(camporeeId);
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (members) => members,
+  );
+});
+
+// ── Mutation notifiers ────────────────────────────────────────────────────────
+
+/// Estado para operaciones de registro de miembros en camporees.
+class CamporeeRegistrationState {
+  final bool isLoading;
+  final String? errorMessage;
+  final bool isInsuranceError;
+  final bool success;
+
+  const CamporeeRegistrationState({
+    this.isLoading = false,
+    this.errorMessage,
+    this.isInsuranceError = false,
+    this.success = false,
+  });
+
+  CamporeeRegistrationState copyWith({
+    bool? isLoading,
+    String? errorMessage,
+    bool? isInsuranceError,
+    bool? success,
+  }) {
+    return CamporeeRegistrationState(
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage,
+      isInsuranceError: isInsuranceError ?? this.isInsuranceError,
+      success: success ?? this.success,
+    );
+  }
+}
+
+/// Notifier para manejar el registro de miembros en camporees.
+///
+/// Family por [camporeeId].
+class CamporeeRegistrationNotifier
+    extends AutoDisposeFamilyNotifier<CamporeeRegistrationState, int> {
+  @override
+  CamporeeRegistrationState build(int camporeeId) =>
+      const CamporeeRegistrationState();
+
+  int get _camporeeId => arg;
+
+  /// Registra un miembro en el camporee.
+  Future<bool> register({
+    required String userId,
+    required String camporeeType,
+    String? clubName,
+    int? insuranceId,
+  }) async {
+    state = state.copyWith(
+        isLoading: true, errorMessage: null, isInsuranceError: false, success: false);
+
+    final result = await ref.read(camporeesRepositoryProvider).registerMember(
+          _camporeeId,
+          userId: userId,
+          camporeeType: camporeeType,
+          clubName: clubName,
+          insuranceId: insuranceId,
+        );
+
+    return result.fold(
+      (failure) {
+        final isInsuranceError = failure.code == 403 ||
+            (failure.message.toLowerCase().contains('seguro') ||
+                failure.message.toLowerCase().contains('insurance'));
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+          isInsuranceError: isInsuranceError,
+        );
+        return false;
+      },
+      (_) {
+        state = state.copyWith(isLoading: false, success: true);
+        ref.invalidate(camporeeMembersProvider(_camporeeId));
+        ref.invalidate(camporeeDetailProvider(_camporeeId));
+        return true;
+      },
+    );
+  }
+
+  /// Limpia el estado de error / éxito.
+  void reset() => state = const CamporeeRegistrationState();
+}
+
+/// Provider para el notifier de registro en camporees.
+///
+/// Family por [camporeeId].
+final camporeeRegistrationNotifierProvider = NotifierProvider.autoDispose
+    .family<CamporeeRegistrationNotifier, CamporeeRegistrationState, int>(
+  CamporeeRegistrationNotifier.new,
+);
+
+/// Estado para operaciones de remoción de miembros de camporees.
+class CamporeeRemoveMemberState {
+  final bool isLoading;
+  final String? errorMessage;
+  final bool success;
+
+  const CamporeeRemoveMemberState({
+    this.isLoading = false,
+    this.errorMessage,
+    this.success = false,
+  });
+
+  CamporeeRemoveMemberState copyWith({
+    bool? isLoading,
+    String? errorMessage,
+    bool? success,
+  }) {
+    return CamporeeRemoveMemberState(
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage,
+      success: success ?? this.success,
+    );
+  }
+}
+
+/// Notifier para remover miembros de un camporee.
+///
+/// Family por [camporeeId].
+class CamporeeRemoveMemberNotifier
+    extends AutoDisposeFamilyNotifier<CamporeeRemoveMemberState, int> {
+  @override
+  CamporeeRemoveMemberState build(int camporeeId) =>
+      const CamporeeRemoveMemberState();
+
+  int get _camporeeId => arg;
+
+  /// Remueve un miembro del camporee.
+  Future<bool> remove(String userId) async {
+    state = state.copyWith(
+        isLoading: true, errorMessage: null, success: false);
+
+    final result = await ref
+        .read(camporeesRepositoryProvider)
+        .removeMember(_camporeeId, userId);
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+        return false;
+      },
+      (_) {
+        state = state.copyWith(isLoading: false, success: true);
+        ref.invalidate(camporeeMembersProvider(_camporeeId));
+        return true;
+      },
+    );
+  }
+
+  void reset() => state = const CamporeeRemoveMemberState();
+}
+
+/// Provider para el notifier de remoción de miembros.
+///
+/// Family por [camporeeId].
+final camporeeRemoveMemberNotifierProvider = NotifierProvider.autoDispose
+    .family<CamporeeRemoveMemberNotifier, CamporeeRemoveMemberState, int>(
+  CamporeeRemoveMemberNotifier.new,
+);

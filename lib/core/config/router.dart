@@ -18,6 +18,10 @@ import 'package:sacdia_app/features/finances/presentation/views/finances_view.da
 import 'package:sacdia_app/features/home/presentation/widgets/resources_section.dart';
 import 'package:sacdia_app/features/inventory/presentation/views/inventory_view.dart';
 import 'package:sacdia_app/features/insurance/presentation/views/insurance_view.dart';
+import 'package:sacdia_app/features/camporees/presentation/views/camporees_list_view.dart';
+import 'package:sacdia_app/features/camporees/presentation/views/camporee_detail_view.dart';
+import 'package:sacdia_app/features/camporees/presentation/views/camporee_members_view.dart';
+import 'package:sacdia_app/features/camporees/presentation/views/camporee_register_member_view.dart';
 import 'package:sacdia_app/features/units/presentation/views/units_list_view.dart';
 
 import '../../features/auth/presentation/providers/auth_providers.dart';
@@ -267,6 +271,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               const CertificationsListView(),
             ),
           ),
+          GoRoute(
+            path: RouteNames.homeCamporees,
+            pageBuilder: (context, state) => _fadeThroughBuild(
+              context,
+              state,
+              const CamporeesListView(),
+            ),
+          ),
         ],
       ),
 
@@ -359,6 +371,53 @@ final routerProvider = Provider<GoRouter>((ref) {
             context,
             state,
             InvestitureHistoryView(enrollmentId: enrollmentId),
+          );
+        },
+      ),
+
+      // Detalle de camporee
+      GoRoute(
+        path: RouteNames.camporeeDetail,
+        pageBuilder: (context, state) {
+          final camporeeIdStr = state.pathParameters['camporeeId']!;
+          final camporeeId = int.tryParse(camporeeIdStr) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            CamporeeDetailView(camporeeId: camporeeId),
+          );
+        },
+      ),
+
+      // Miembros de un camporee
+      GoRoute(
+        path: RouteNames.camporeeMembers,
+        pageBuilder: (context, state) {
+          final camporeeIdStr = state.pathParameters['camporeeId']!;
+          final camporeeId = int.tryParse(camporeeIdStr) ?? 0;
+          final camporeeName =
+              state.uri.queryParameters['name'] ?? 'Camporee';
+          return _sharedAxisBuild(
+            context,
+            state,
+            CamporeeMembersView(
+              camporeeId: camporeeId,
+              camporeeName: camporeeName,
+            ),
+          );
+        },
+      ),
+
+      // Registrar miembro en camporee
+      GoRoute(
+        path: RouteNames.camporeeRegisterMember,
+        pageBuilder: (context, state) {
+          final camporeeIdStr = state.pathParameters['camporeeId']!;
+          final camporeeId = int.tryParse(camporeeIdStr) ?? 0;
+          return _slideUpBuild(
+            context,
+            state,
+            CamporeeRegisterMemberView(camporeeId: camporeeId),
           );
         },
       ),
