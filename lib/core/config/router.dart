@@ -183,7 +183,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => _fadeThroughBuild(
               context,
               state,
-              const ActivitiesListView(clubId: 1),
+              const ActivitiesListView(),
             ),
           ),
           GoRoute(

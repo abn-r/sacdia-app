@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import 'package:sacdia_app/providers/catalogs_provider.dart';
+import '../../../members/presentation/providers/members_providers.dart';
 
 import '../../domain/entities/activity.dart';
 import '../providers/activities_providers.dart';
@@ -21,19 +22,24 @@ import 'create_activity_view.dart';
 ///
 /// Strip horizontal de fechas, chips de filtro por tipo,
 /// ActivityCards rediseñadas con chip de tipo y metadata.
+///
+/// Cuando no se provee [clubId] explícitamente, la vista lo resuelve desde
+/// [clubContextProvider] usando el contexto activo del usuario autenticado.
 class ActivitiesListView extends ConsumerStatefulWidget {
-  final int clubId;
+  /// ID del club. Si es null, se resuelve desde [clubContextProvider].
+  final int? clubId;
 
   /// ID del tipo de club usado para filtrar actividades en el backend
   /// (p.ej. 1 = Aventureros, 2 = Conquistadores, 3 = Guias Mayores).
   final int? clubTypeId;
 
   /// ID de la sección del club (club_sections).
+  /// Si es null y clubId también es null, se resuelve desde [clubContextProvider].
   final int? clubSectionId;
 
   const ActivitiesListView({
     super.key,
-    required this.clubId,
+    this.clubId,
     this.clubTypeId,
     this.clubSectionId,
   });
@@ -139,15 +145,20 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
     return _capitalizeFirst(DateFormat('EEEE, d MMM', 'es').format(date));
   }
 
-  ClubActivitiesParams get _activitiesParams => ClubActivitiesParams(
-        clubId: widget.clubId,
-        clubTypeId: widget.clubTypeId,
-        activityTypeId: _selectedFilter,
-      );
-
   @override
   Widget build(BuildContext context) {
-    final activitiesAsync = ref.watch(clubActivitiesProvider(_activitiesParams));
+    final clubCtxAsync = ref.watch(clubContextProvider);
+    final resolvedClubId = widget.clubId ?? clubCtxAsync.valueOrNull?.clubId;
+    final resolvedSectionId =
+        widget.clubSectionId ?? clubCtxAsync.valueOrNull?.sectionId;
+
+    final activitiesAsync = resolvedClubId != null
+        ? ref.watch(clubActivitiesProvider(ClubActivitiesParams(
+            clubId: resolvedClubId,
+            clubTypeId: widget.clubTypeId,
+            activityTypeId: _selectedFilter,
+          )))
+        : const AsyncValue<List<Activity>>.loading();
     final activityTypesAsync = ref.watch(activityTypesProvider);
     final c = context.sac;
     final today = DateTime.now();
@@ -206,8 +217,8 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                         context,
                         SacSlideUpRoute(
                           builder: (context) => CreateActivityView(
-                            clubId: widget.clubId,
-                            clubSectionId: widget.clubSectionId ?? 0,
+                            clubId: resolvedClubId ?? 0,
+                            clubSectionId: resolvedSectionId ?? 0,
                           ),
                         ),
                       ).then((created) {
