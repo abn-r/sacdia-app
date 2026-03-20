@@ -8,9 +8,11 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../domain/entities/activity.dart';
 import '../providers/activities_providers.dart';
 import '../widgets/attendance_button.dart';
 import '../widgets/activity_info_row.dart';
+import 'edit_activity_view.dart';
 
 /// Vista de detalle de actividad - Estilo "Scout Vibrante"
 ///
@@ -75,11 +77,88 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     }
   }
 
+  Future<void> _navigateToEdit(Activity activity) async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditActivityView(activity: activity),
+      ),
+    );
+
+    if (result == true && mounted) {
+      ref.invalidate(activityDetailProvider(widget.activityId));
+    }
+  }
+
+  Future<void> _confirmDelete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Eliminar actividad'),
+        content: const Text(
+          '¿Estás seguro que querés eliminar esta actividad? Esta acción no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    final success = await ref
+        .read(deleteActivityNotifierProvider.notifier)
+        .delete(widget.activityId);
+
+    if (!mounted) return;
+
+    if (success) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: const Text('Actividad eliminada correctamente'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      navigator.pop();
+    } else {
+      final deleteState = ref.read(deleteActivityNotifierProvider);
+      final errorMsg = deleteState.hasError
+          ? deleteState.error?.toString() ?? 'Error al eliminar'
+          : 'Error al eliminar';
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(errorMsg),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final activityAsync = ref.watch(activityDetailProvider(widget.activityId));
     final authState = ref.watch(authNotifierProvider);
     final attendanceState = ref.watch(attendanceNotifierProvider);
+    final deleteState = ref.watch(deleteActivityNotifierProvider);
 
     return Scaffold(
       backgroundColor: context.sac.background,
@@ -95,6 +174,40 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                 pinned: true,
                 backgroundColor: typeColor,
                 foregroundColor: Colors.white,
+                actions: [
+                  IconButton(
+                    icon: const HugeIcon(
+                      icon: HugeIcons.strokeRoundedEdit02,
+                      size: 22,
+                      color: Colors.white,
+                    ),
+                    tooltip: 'Editar actividad',
+                    onPressed: deleteState.isLoading
+                        ? null
+                        : () => _navigateToEdit(activity),
+                  ),
+                  IconButton(
+                    icon: deleteState.isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const HugeIcon(
+                            icon: HugeIcons.strokeRoundedDelete02,
+                            size: 22,
+                            color: Colors.white,
+                          ),
+                    tooltip: 'Eliminar actividad',
+                    onPressed: deleteState.isLoading
+                        ? null
+                        : _confirmDelete,
+                  ),
+                  const SizedBox(width: 4),
+                ],
                 flexibleSpace: FlexibleSpaceBar(
                   background: Container(
                     decoration: BoxDecoration(
@@ -230,6 +343,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                           final userId = authState.value?.id;
                           if (userId == null) return;
 
+                          final messenger = ScaffoldMessenger.of(context);
+
                           await ref
                               .read(attendanceNotifierProvider.notifier)
                               .register(widget.activityId, userId);
@@ -242,7 +357,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                             _hasRegistered = true;
                           });
 
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          messenger.showSnackBar(
                             SnackBar(
                               content: const Text(
                                   'Asistencia registrada exitosamente'),
