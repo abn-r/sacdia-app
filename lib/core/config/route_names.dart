@@ -40,6 +40,11 @@ class RouteNames {
   static const String certificationProgress =
       '/certification/:certificationId/progress/:enrollmentId';
 
+  // Investidura
+  static const String investiturePendingList = '/investiture/pending';
+  static const String investitureHistory =
+      '/investiture/enrollment/:enrollmentId/history';
+
   // Helpers para paths con parámetros
   static String clubDetailPath(String clubId) => '/club/$clubId';
   static String classDetailPath(String classId) => '/class/$classId';
@@ -49,4 +54,6 @@ class RouteNames {
   static String certificationProgressPath(
           String certificationId, String enrollmentId) =>
       '/certification/$certificationId/progress/$enrollmentId';
+  static String investitureHistoryPath(String enrollmentId) =>
+      '/investiture/enrollment/$enrollmentId/history';
 }

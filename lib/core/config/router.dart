@@ -9,6 +9,8 @@ import 'package:sacdia_app/features/activities/presentation/views/activities_lis
 import 'package:sacdia_app/features/certifications/presentation/views/certifications_list_view.dart';
 import 'package:sacdia_app/features/certifications/presentation/views/certification_detail_view.dart';
 import 'package:sacdia_app/features/certifications/presentation/views/certification_progress_view.dart';
+import 'package:sacdia_app/features/investiture/presentation/views/investiture_pending_list_view.dart';
+import 'package:sacdia_app/features/investiture/presentation/views/investiture_history_view.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/views/evidence_folder_view.dart';
 import 'package:sacdia_app/features/club/presentation/providers/club_providers.dart';
 import 'package:sacdia_app/features/club/presentation/views/club_view.dart';
@@ -333,6 +335,30 @@ final routerProvider = Provider<GoRouter>((ref) {
               enrollmentId: enrollmentId,
               certificationId: certificationId,
             ),
+          );
+        },
+      ),
+
+      // Lista de investiduras pendientes (coordinador/admin)
+      GoRoute(
+        path: RouteNames.investiturePendingList,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          const InvestiturePendingListView(),
+        ),
+      ),
+
+      // Historial de investidura de un enrollment
+      GoRoute(
+        path: RouteNames.investitureHistory,
+        pageBuilder: (context, state) {
+          final enrollmentIdStr = state.pathParameters['enrollmentId']!;
+          final enrollmentId = int.tryParse(enrollmentIdStr) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            InvestitureHistoryView(enrollmentId: enrollmentId),
           );
         },
       ),
