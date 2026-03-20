@@ -33,9 +33,20 @@ class RouteNames {
   static const String homeInsurance = '/home/insurance';
   static const String homeInventory = '/home/inventory';
   static const String homeResources = '/home/resources';
+  static const String homeCertifications = '/home/certifications';
+
+  // Rutas de detalle fuera del shell
+  static const String certificationDetail = '/certification/:certificationId';
+  static const String certificationProgress =
+      '/certification/:certificationId/progress/:enrollmentId';
 
   // Helpers para paths con parámetros
   static String clubDetailPath(String clubId) => '/club/$clubId';
   static String classDetailPath(String classId) => '/class/$classId';
   static String honorDetailPath(String honorId) => '/honor/$honorId';
+  static String certificationDetailPath(String certificationId) =>
+      '/certification/$certificationId';
+  static String certificationProgressPath(
+          String certificationId, String enrollmentId) =>
+      '/certification/$certificationId/progress/$enrollmentId';
 }

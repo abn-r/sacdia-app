@@ -6,6 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/features/activities/presentation/views/activities_list_view.dart';
+import 'package:sacdia_app/features/certifications/presentation/views/certifications_list_view.dart';
+import 'package:sacdia_app/features/certifications/presentation/views/certification_detail_view.dart';
+import 'package:sacdia_app/features/certifications/presentation/views/certification_progress_view.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/views/evidence_folder_view.dart';
 import 'package:sacdia_app/features/club/presentation/providers/club_providers.dart';
 import 'package:sacdia_app/features/club/presentation/views/club_view.dart';
@@ -254,6 +257,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               const ResourcesSection(),
             ),
           ),
+          GoRoute(
+            path: RouteNames.homeCertifications,
+            pageBuilder: (context, state) => _fadeThroughBuild(
+              context,
+              state,
+              const CertificationsListView(),
+            ),
+          ),
         ],
       ),
 
@@ -288,6 +299,41 @@ final routerProvider = Provider<GoRouter>((ref) {
           final honorId = state.pathParameters['honorId']!;
           return _sharedAxisBuild(
               context, state, _PlaceholderScreen(title: 'Honor: $honorId'));
+        },
+      ),
+
+      // Detalle de certificación
+      GoRoute(
+        path: RouteNames.certificationDetail,
+        pageBuilder: (context, state) {
+          final certificationIdStr =
+              state.pathParameters['certificationId']!;
+          final certificationId = int.tryParse(certificationIdStr) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            CertificationDetailView(certificationId: certificationId),
+          );
+        },
+      ),
+
+      // Progreso de certificación
+      GoRoute(
+        path: RouteNames.certificationProgress,
+        pageBuilder: (context, state) {
+          final certificationIdStr =
+              state.pathParameters['certificationId']!;
+          final enrollmentIdStr = state.pathParameters['enrollmentId']!;
+          final certificationId = int.tryParse(certificationIdStr) ?? 0;
+          final enrollmentId = int.tryParse(enrollmentIdStr) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            CertificationProgressView(
+              enrollmentId: enrollmentId,
+              certificationId: certificationId,
+            ),
+          );
         },
       ),
     ],
