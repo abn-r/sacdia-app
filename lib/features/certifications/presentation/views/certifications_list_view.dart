@@ -234,7 +234,8 @@ class CertificationsListView extends ConsumerWidget {
 
     try {
       await ref
-          .read(enrollCertificationProvider(certification.certificationId).future);
+          .read(certificationEnrollmentNotifierProvider(certification.certificationId).notifier)
+          .enroll();
       ref.invalidate(userCertificationsProvider);
 
       if (context.mounted) {
@@ -273,7 +274,6 @@ class CertificationsListView extends ConsumerWidget {
 class _EligibilityBanner extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.sac;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),

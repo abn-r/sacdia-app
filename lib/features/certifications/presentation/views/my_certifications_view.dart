@@ -301,7 +301,8 @@ class MyCertificationsView extends ConsumerWidget {
 
     try {
       await ref
-          .read(unenrollCertificationProvider(uc.enrollmentId).future);
+          .read(certificationEnrollmentNotifierProvider(uc.certificationId).notifier)
+          .unenroll();
       ref.invalidate(userCertificationsProvider);
 
       if (context.mounted) {

@@ -47,6 +47,7 @@ class CertificationProgressView extends ConsumerWidget {
           data: (progress) => _ProgressBody(
             progress: progress,
             enrollmentId: enrollmentId,
+            certificationId: certificationId,
           ),
         ),
       ),
@@ -59,10 +60,12 @@ class CertificationProgressView extends ConsumerWidget {
 class _ProgressBody extends ConsumerWidget {
   final CertificationProgress progress;
   final int enrollmentId;
+  final int certificationId;
 
   const _ProgressBody({
     required this.progress,
     required this.enrollmentId,
+    required this.certificationId,
   });
 
   @override
@@ -138,7 +141,7 @@ class _ProgressBody extends ConsumerWidget {
                     index: index,
                     child: _ModuleProgressSection(
                       module: module,
-                      enrollmentId: enrollmentId,
+                      certificationId: certificationId,
                     ),
                   );
                 },
@@ -260,11 +263,11 @@ class _GlobalProgressCard extends StatelessWidget {
 
 class _ModuleProgressSection extends ConsumerStatefulWidget {
   final ModuleProgress module;
-  final int enrollmentId;
+  final int certificationId;
 
   const _ModuleProgressSection({
     required this.module,
-    required this.enrollmentId,
+    required this.certificationId,
   });
 
   @override
@@ -397,7 +400,8 @@ class _ModuleProgressSectionState
                   children: module.sections.map((section) {
                     return _SectionCheckTile(
                       section: section,
-                      enrollmentId: widget.enrollmentId,
+                      certificationId: widget.certificationId,
+                      moduleId: widget.module.moduleId,
                     );
                   }).toList(),
                 ),
@@ -413,11 +417,13 @@ class _ModuleProgressSectionState
 
 class _SectionCheckTile extends ConsumerStatefulWidget {
   final SectionProgress section;
-  final int enrollmentId;
+  final int certificationId;
+  final int moduleId;
 
   const _SectionCheckTile({
     required this.section,
-    required this.enrollmentId,
+    required this.certificationId,
+    required this.moduleId,
   });
 
   @override
@@ -434,16 +440,13 @@ class _SectionCheckTileState extends ConsumerState<_SectionCheckTile> {
 
     try {
       await ref
-          .read(
-            toggleSectionProgressProvider(
-              (
-                enrollmentId: widget.enrollmentId,
-                sectionId: widget.section.sectionId,
-                completed: !widget.section.completed,
-              ),
-            ).future,
+          .read(sectionProgressNotifierProvider(widget.certificationId).notifier)
+          .updateSection(
+            moduleId: widget.moduleId,
+            sectionId: widget.section.sectionId,
+            completed: !widget.section.completed,
           );
-      ref.invalidate(certificationProgressProvider(widget.enrollmentId));
+      ref.invalidate(certificationProgressProvider(widget.certificationId));
       ref.invalidate(userCertificationsProvider);
     } catch (e) {
       if (mounted) {

@@ -445,7 +445,8 @@ class _NotEnrolledCTA extends ConsumerWidget {
 
     try {
       await ref
-          .read(enrollCertificationProvider(certificationId).future);
+          .read(certificationEnrollmentNotifierProvider(certificationId).notifier)
+          .enroll();
       ref.invalidate(userCertificationsProvider);
 
       if (context.mounted) {
