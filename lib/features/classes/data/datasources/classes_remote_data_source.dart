@@ -358,6 +358,15 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   }
 
   // ── POST /users/:userId/classes/:classId/sections/:requirementId/files ──────
+  //
+  // BACKEND GAP: Este endpoint NO existe en el backend actual.
+  // El controlador `ClassesController` (src/classes/classes.controller.ts)
+  // no expone rutas de carga de archivos para requerimientos de clase.
+  // La logica de evidencias por archivo en clases progresivas se maneja
+  // a traves del modulo `evidence-folder` (club-sections/:id/evidence-folder).
+  //
+  // TODO: Implementar en backend: POST /users/:userId/classes/:classId/sections/:requirementId/files
+  // o redirigir el flujo de evidencias de clases al modulo evidence-folder.
 
   @override
   Future<RequirementEvidenceModel> uploadRequirementFile({
@@ -368,55 +377,25 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     required String fileName,
     required String mimeType,
   }) async {
-    try {
-      final token = await _getAuthToken();
-
-      final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(
-          filePath,
-          filename: fileName,
-          contentType: DioMediaType.parse(mimeType),
-        ),
-      });
-
-      final response = await _dio.post(
-        '$_baseUrl/users/$userId/classes/$classId/sections/$requirementId/files',
-        data: formData,
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Content-Type': 'multipart/form-data',
-          },
-          sendTimeout: const Duration(minutes: 2),
-          receiveTimeout: const Duration(minutes: 2),
-        ),
-        onSendProgress: (sent, total) {
-          if (total > 0) {
-            AppLogger.d(
-              'Upload progress: ${(sent / total * 100).toStringAsFixed(1)}%',
-              tag: _tag,
-            );
-          }
-        },
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final body = response.data as Map<String, dynamic>;
-        final fileJson = body.containsKey('data')
-            ? body['data'] as Map<String, dynamic>
-            : body;
-        return RequirementEvidenceModel.fromJson(fileJson);
-      }
-
-      throw ServerException(
-          message: 'Error al subir el archivo', code: response.statusCode);
-    } catch (e) {
-      AppLogger.e('Error en uploadRequirementFile', tag: _tag, error: e);
-      _rethrow(e);
-    }
+    AppLogger.w(
+      'uploadRequirementFile: endpoint no implementado en backend. '
+      'POST /users/$userId/classes/$classId/sections/$requirementId/files no existe.',
+      tag: _tag,
+    );
+    throw ServerException(
+      message:
+          'La subida de archivos para requerimientos de clase aun no esta disponible. '
+          'Usa la carpeta de evidencias del club.',
+      code: 501,
+    );
   }
 
   // ── DELETE /users/:userId/classes/:classId/sections/:requirementId/files/:fileId
+  //
+  // BACKEND GAP: Este endpoint NO existe en el backend actual.
+  // Ver comentario en uploadRequirementFile arriba.
+  //
+  // TODO: Implementar en backend: DELETE /users/:userId/classes/:classId/sections/:requirementId/files/:fileId
 
   @override
   Future<void> deleteRequirementFile({
@@ -425,24 +404,16 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     required int requirementId,
     required String fileId,
   }) async {
-    try {
-      final token = await _getAuthToken();
-      final response = await _dio.delete(
-        '$_baseUrl/users/$userId/classes/$classId/sections/$requirementId/files/$fileId',
-        options: _authOptions(token),
-      );
-
-      if (response.statusCode == 200 ||
-          response.statusCode == 201 ||
-          response.statusCode == 204) {
-        return;
-      }
-
-      throw ServerException(
-          message: 'Error al eliminar el archivo', code: response.statusCode);
-    } catch (e) {
-      AppLogger.e('Error en deleteRequirementFile', tag: _tag, error: e);
-      _rethrow(e);
-    }
+    AppLogger.w(
+      'deleteRequirementFile: endpoint no implementado en backend. '
+      'DELETE /users/$userId/classes/$classId/sections/$requirementId/files/$fileId no existe.',
+      tag: _tag,
+    );
+    throw ServerException(
+      message:
+          'La eliminacion de archivos de requerimientos de clase aun no esta disponible. '
+          'Usa la carpeta de evidencias del club.',
+      code: 501,
+    );
   }
 }

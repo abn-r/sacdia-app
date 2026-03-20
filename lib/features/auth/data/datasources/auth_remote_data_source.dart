@@ -583,13 +583,52 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<UserModel> signInWithGoogle() async {
-    // TODO: Implementar cuando el backend OAuth esté listo
+    // TODO(oauth-google): Implementar OAuth con Google vía supabase_flutter.
+    //
+    // El flujo correcto para móvil es:
+    //   1. Configurar un URL scheme en AndroidManifest.xml / Info.plist
+    //      (ej. "io.sacdia.app://auth/callback") y registrarlo en Supabase
+    //      Dashboard → Auth → URL Configuration → Redirect URLs.
+    //   2. Llamar: await Supabase.instance.client.auth.signInWithOAuth(
+    //        OAuthProvider.google,
+    //        redirectTo: 'io.sacdia.app://auth/callback',
+    //      );
+    //      Esto abre el navegador del sistema. Cuando el usuario autoriza,
+    //      Supabase redirige al scheme de la app con access_token en la URL.
+    //   3. Interceptar el deep link en el router (GoRouter / AppLinks) y
+    //      extraer el access_token + refresh_token de la URL de retorno.
+    //   4. POST ese access_token a GET /auth/oauth/callback?access_token=...
+    //      para que el backend valide, cree/resuelva el usuario y devuelva
+    //      el JWT interno de SACDIA.
+    //   5. Llamar _saveToken() con el JWT recibido y construir UserModel.
+    //
+    // Prerequisitos bloqueantes:
+    //   - URL scheme configurado en ios/Runner/Info.plist y android/app/src/main/AndroidManifest.xml
+    //   - Deep link handler en lib/core/config/router.dart
+    //   - Google OAuth habilitado en Supabase Dashboard
+    //
+    // Ver: https://supabase.com/docs/guides/auth/social-login/auth-google?platform=flutter
     throw AuthException(message: 'OAuth con Google no disponible aún');
   }
 
   @override
   Future<UserModel> signInWithApple() async {
-    // TODO: Implementar cuando el backend OAuth esté listo
+    // TODO(oauth-apple): Implementar OAuth con Apple vía supabase_flutter.
+    //
+    // El flujo es idéntico al de Google (ver signInWithGoogle arriba) pero:
+    //   - Provider: OAuthProvider.apple
+    //   - Requiere Apple Developer Program membership y configurar
+    //     "Sign In with Apple" capability en Xcode.
+    //   - Apple exige un dominio verificado como redirectTo en producción;
+    //     en desarrollo se puede usar el URL scheme de la app.
+    //   - En Android también funciona vía browser (no nativo), usar mismo
+    //     URL scheme que Google.
+    //
+    // Prerequisitos bloqueantes (además de los de Google):
+    //   - Apple Developer: Services ID + Key configurados
+    //   - Supabase Dashboard: Apple provider habilitado con Client ID y Secret
+    //
+    // Ver: https://supabase.com/docs/guides/auth/social-login/auth-apple?platform=flutter
     throw AuthException(message: 'OAuth con Apple no disponible aún');
   }
 
@@ -632,15 +671,16 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw AuthException(message: 'No hay sesión activa');
       }
 
-      final response = await _dio.post(
-        '$_baseUrl/auth/pr-check',
+      final response = await _dio.get(
+        '$_baseUrl/auth/profile/completion-status',
         options: Options(headers: {
           'Authorization': 'Bearer $token',
         }),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return response.data['complete'] as bool? ?? false;
+      if (response.statusCode == 200) {
+        final data = response.data['data'] as Map<String, dynamic>?;
+        return data?['complete'] as bool? ?? false;
       }
 
       return false;
