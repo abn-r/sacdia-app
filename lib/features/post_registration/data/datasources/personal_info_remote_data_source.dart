@@ -19,8 +19,8 @@ abstract class PersonalInfoRemoteDataSource {
 
   Future<List<EmergencyContactModel>> getEmergencyContacts(String userId);
   Future<EmergencyContactModel> addEmergencyContact(String userId, EmergencyContactModel contact);
-  Future<EmergencyContactModel> updateEmergencyContact(int contactId, EmergencyContactModel contact);
-  Future<void> deleteEmergencyContact(int contactId);
+  Future<EmergencyContactModel> updateEmergencyContact(String userId, int contactId, EmergencyContactModel contact);
+  Future<void> deleteEmergencyContact(String userId, int contactId);
   Future<List<RelationshipTypeModel>> getRelationshipTypes();
   Future<bool> checkLegalRepresentativeRequired(String userId);
   Future<LegalRepresentativeModel> createLegalRepresentative(String userId, LegalRepresentativeModel representative);
@@ -154,13 +154,14 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
 
   @override
   Future<EmergencyContactModel> updateEmergencyContact(
+    String userId,
     int contactId,
     EmergencyContactModel contact,
   ) async {
     try {
       final headers = await _getHeaders();
       final response = await dio.patch(
-        '$_baseUrl/emergency-contacts/$contactId',
+        '$_baseUrl/users/$userId/emergency-contacts/$contactId',
         data: contact.toJson(),
         options: Options(headers: headers),
       );
@@ -176,11 +177,11 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
   }
 
   @override
-  Future<void> deleteEmergencyContact(int contactId) async {
+  Future<void> deleteEmergencyContact(String userId, int contactId) async {
     try {
       final headers = await _getHeaders();
       await dio.delete(
-        '$_baseUrl/emergency-contacts/$contactId',
+        '$_baseUrl/users/$userId/emergency-contacts/$contactId',
         options: Options(headers: headers),
       );
     } on DioException catch (e) {

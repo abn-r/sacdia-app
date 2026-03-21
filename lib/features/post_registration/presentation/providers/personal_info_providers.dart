@@ -264,7 +264,7 @@ class EmergencyContactsNotifier
       if (userId == null) throw Exception('Usuario no autenticado');
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
-      await dataSource.updateEmergencyContact(contactId, contact);
+      await dataSource.updateEmergencyContact(userId, contactId, contact);
 
       return await dataSource.getEmergencyContacts(userId);
     });
@@ -281,7 +281,7 @@ class EmergencyContactsNotifier
       if (userId == null) throw Exception('Usuario no autenticado');
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
-      await dataSource.deleteEmergencyContact(contactId);
+      await dataSource.deleteEmergencyContact(userId, contactId);
 
       return await dataSource.getEmergencyContacts(userId);
     });

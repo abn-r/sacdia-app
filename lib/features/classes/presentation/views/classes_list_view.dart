@@ -88,8 +88,6 @@ class ClassesListView extends ConsumerWidget {
 
                   final classIndex = index - 1;
                   final progressiveClass = classes[classIndex];
-                  // TODO: obtener progreso real del provider classWithProgress
-                  const progress = 0.0;
 
                   return StaggeredListItem(
                     index: classIndex,
@@ -97,19 +95,29 @@ class ClassesListView extends ConsumerWidget {
                         const Duration(milliseconds: 80),
                     staggerDelay:
                         const Duration(milliseconds: 65),
-                    child: ClassCard(
-                      progressiveClass: progressiveClass,
-                      progress: progress,
-                      isCurrent: classIndex == 0,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ClassDetailWithProgressView(
-                              classId: progressiveClass.id,
-                            ),
-                          ),
+                    child: Consumer(
+                      builder: (context, progressRef, _) {
+                        final progressAsync = progressRef
+                            .watch(classWithProgressProvider(progressiveClass.id));
+                        final progress = progressAsync.whenOrNull(
+                              data: (cwp) => cwp.completionRatio,
+                            ) ??
+                            0.0;
+                        return ClassCard(
+                          progressiveClass: progressiveClass,
+                          progress: progress,
+                          isCurrent: classIndex == 0,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ClassDetailWithProgressView(
+                                  classId: progressiveClass.id,
+                                ),
+                              ),
+                            );
+                          },
                         );
                       },
                     ),

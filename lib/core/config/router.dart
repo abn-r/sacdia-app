@@ -31,6 +31,7 @@ import '../../features/auth/presentation/views/register_view.dart';
 import '../../features/auth/presentation/views/splash_view.dart';
 import '../../features/post_registration/presentation/views/post_registration_shell.dart';
 import '../../features/dashboard/presentation/views/dashboard_view.dart';
+import '../../features/classes/presentation/providers/classes_providers.dart';
 import '../../features/classes/presentation/views/classes_list_view.dart';
 import '../../features/classes/presentation/views/class_detail_with_progress_view.dart';
 import '../../features/members/presentation/views/members_view.dart';
@@ -239,7 +240,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: RouteNames.homeGroupedClass,
             pageBuilder: (context, state) => _fadeThroughBuild(
               context, state,
-              ClassDetailWithProgressView(classId: 1), //ClassesListView(),
+              const _ActiveClassDetailShell(),
             ),
           ),
           GoRoute(
@@ -611,6 +612,63 @@ class _EvidenceFolderShell extends ConsumerWidget {
           );
         }
         return EvidenceFolderView(clubSectionId: section.id.toString());
+      },
+    );
+  }
+}
+
+/// Shell que resuelve la clase activa del usuario y pasa su ID a
+/// [ClassDetailWithProgressView].
+///
+/// Sigue el mismo patrón que [_EvidenceFolderShell]: observa un provider
+/// asíncrono y muestra loading / error / data según el estado.
+///
+/// Si el usuario no tiene ninguna clase inscripta muestra un mensaje informativo
+/// en lugar de la vista de detalle.
+class _ActiveClassDetailShell extends ConsumerWidget {
+  const _ActiveClassDetailShell();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final classesAsync = ref.watch(userClassesProvider);
+
+    return classesAsync.when(
+      loading: () => Scaffold(
+        body: Center(
+          child: LoadingAnimationWidget.stretchedDots(
+            color: AppColors.primary,
+            size: 50,
+          ),
+        ),
+      ),
+      error: (e, _) => Scaffold(
+        appBar: AppBar(title: const Text('Mi Clase')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Text(
+              'No se pudo cargar la clase.\n${e.toString().replaceFirst("Exception: ", "")}',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+      data: (classes) {
+        if (classes.isEmpty) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Mi Clase')),
+            body: const Center(
+              child: Padding(
+                padding: EdgeInsets.all(32),
+                child: Text(
+                  'No tenés ninguna clase asignada. Inscribite en un club para comenzar.',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          );
+        }
+        return ClassDetailWithProgressView(classId: classes.first.id);
       },
     );
   }
