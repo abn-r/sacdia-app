@@ -65,6 +65,21 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<!-- Habilita deep links via Flutter (requerido por supabase_flutter para OAuth callbacks) -->
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
+	<!-- URL scheme para OAuth callbacks: io.sacdia.app://auth/callback -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>io.sacdia.app</string>
+			</array>
+		</dict>
+	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

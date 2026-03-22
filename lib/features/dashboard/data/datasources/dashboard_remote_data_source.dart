@@ -1,62 +1,89 @@
+import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/dashboard_summary_model.dart';
 
 /// Interfaz para la fuente de datos remota del dashboard
 abstract class DashboardRemoteDataSource {
-  /// Obtiene los datos del dashboard para un usuario
-  Future<DashboardSummaryModel> getDashboardData(
-    String userId, {
-    Map<String, dynamic>? userMetadata,
-  });
+  /// Obtiene el resumen del dashboard del usuario autenticado
+  Future<DashboardSummaryModel> getDashboardSummary();
 }
 
 /// Implementación de la fuente de datos remota del dashboard
+///
+/// Endpoint: GET /api/v1/dashboard/summary
 class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
+  final Dio _dio;
+  final String _baseUrl;
+  final FlutterSecureStorage _secureStorage;
+
   static const _tag = 'DashboardDS';
 
-  const DashboardRemoteDataSourceImpl();
+  DashboardRemoteDataSourceImpl({
+    required Dio dio,
+    required String baseUrl,
+  })  : _dio = dio,
+        _baseUrl = baseUrl,
+        _secureStorage = const FlutterSecureStorage();
+
+  Future<String> _getAuthToken() async {
+    final token = await _secureStorage.read(key: 'auth_token');
+    if (token == null) throw AuthException(message: 'No hay sesión activa');
+    return token;
+  }
+
+  Options _authOptions(String token) =>
+      Options(headers: {'Authorization': 'Bearer $token'});
 
   @override
-  Future<DashboardSummaryModel> getDashboardData(
-    String userId, {
-    Map<String, dynamic>? userMetadata,
-  }) async {
+  Future<DashboardSummaryModel> getDashboardSummary() async {
     try {
-      final userData = userMetadata ?? {};
+      final token = await _getAuthToken();
+      final response = await _dio.get(
+        '$_baseUrl/dashboard/summary',
+        options: _authOptions(token),
+      );
 
-      final firstName = (userData['name'] as String?) ?? '';
-      final paternalLn = (userData['paternal_last_name'] as String?) ?? '';
-      final maternalLn = (userData['maternal_last_name'] as String?) ?? '';
-      final fullName = [firstName, paternalLn, maternalLn]
-          .where((s) => s.isNotEmpty)
-          .join(' ');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = response.data;
+        final json = body is Map<String, dynamic>
+            ? (body.containsKey('data')
+                ? body['data'] as Map<String, dynamic>
+                : body)
+            : body as Map<String, dynamic>;
+        return DashboardSummaryModel.fromJson(json);
+      }
 
-      final rawRoles = userData['roles'] as List<dynamic>?;
-      final firstRole = rawRoles?.isNotEmpty == true
-          ? rawRoles!.first as String?
-          : null;
-
-      final clubData = userData['club'] as Map<String, dynamic>?;
-
-      final dashboardData = {
-        'user_name': fullName.isNotEmpty ? fullName : 'Usuario',
-        'user_avatar': userData['user_image'] as String?,
-        'club_name': clubData?['club_name'] as String?,
-        'club_type': clubData?['club_type'] as String?,
-        'user_role': firstRole,
-        'current_class_name': null,
-        'class_progress': 0.0,
-        'honors_completed': 0,
-        'honors_in_progress': 0,
-        'upcoming_activities': <Map<String, dynamic>>[],
-      };
-
-      return DashboardSummaryModel.fromJson(dashboardData);
+      throw ServerException(
+        message: 'Error al obtener el resumen del dashboard',
+        code: response.statusCode,
+      );
     } catch (e) {
-      if (e is AuthException || e is ServerException) rethrow;
-      AppLogger.e('Error inesperado en dashboard', tag: _tag, error: e);
-      throw ServerException(message: e.toString());
+      AppLogger.e('Error en getDashboardSummary', tag: _tag, error: e);
+      _rethrow(e);
     }
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────────
+
+  Never _rethrow(Object e) {
+    if (e is DioException) {
+      final msg = _extractDioMessage(e);
+      throw ServerException(message: msg, code: e.response?.statusCode);
+    }
+    if (e is ServerException || e is AuthException) throw e;
+    throw ServerException(message: e.toString());
+  }
+
+  String _extractDioMessage(DioException e) {
+    try {
+      final data = e.response?.data;
+      if (data is Map) {
+        return (data['message'] ?? e.message ?? 'Error de conexión').toString();
+      }
+    } catch (_) {}
+    return e.message ?? 'Error de conexión';
   }
 }

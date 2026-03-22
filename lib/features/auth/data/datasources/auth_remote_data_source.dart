@@ -55,6 +55,15 @@ abstract class AuthRemoteDataSource {
   /// Cambia el contexto activo de autorización del usuario.
   /// Llama a PATCH /auth/me/context con el assignment_id indicado.
   Future<void> switchContext(String assignmentId);
+
+  /// Intercambia el [supabaseAccessToken] (recibido en el deep link OAuth) por
+  /// el JWT interno de SACDIA.
+  ///
+  /// Llama a `GET /auth/oauth/callback?access_token=<token>` en el backend,
+  /// que valida el token de Supabase y devuelve las credenciales de SACDIA.
+  /// Internamente invoca [_saveToken] para persistir la sesión y emitir
+  /// el evento correspondiente en [authStateChanges].
+  Future<UserModel> handleOAuthCallback(String supabaseAccessToken);
 }
 
 /// Implementación de la fuente de datos remota con Dio para API personalizada
@@ -663,6 +672,71 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       throw AuthException(
         message: 'Error al iniciar sesión con Apple. Intenta de nuevo.',
       );
+    }
+  }
+
+  // ── OAuth Callback ────────────────────────────────────────────────────────────
+  //
+  // Llamado desde AuthNotifier cuando Supabase dispara onAuthStateChange con
+  // evento signedIn después de un flujo OAuth.  El backend valida el access
+  // token de Supabase y devuelve las credenciales internas de SACDIA.
+
+  @override
+  Future<UserModel> handleOAuthCallback(String supabaseAccessToken) async {
+    try {
+      AppLogger.i('Procesando OAuth callback con backend SACDIA', tag: _tag);
+
+      final response = await _dio.get(
+        '$_baseUrl/auth/oauth/callback',
+        queryParameters: {'access_token': supabaseAccessToken},
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw AuthException(
+          message: response.data?['message'] ?? 'Error en OAuth callback',
+        );
+      }
+
+      final responseData = response.data['data'] as Map<String, dynamic>?;
+      if (responseData == null) {
+        throw AuthException(message: 'Respuesta del servidor inválida');
+      }
+
+      final token = responseData['accessToken'] as String?;
+      if (token == null) {
+        throw AuthException(message: 'No se recibió token de autenticación');
+      }
+
+      await _saveToken(
+        token,
+        refreshToken: responseData['refreshToken'] as String?,
+        expiresAt: responseData['expiresAt'] as int?,
+        tokenType: responseData['tokenType'] as String?,
+      );
+
+      final userData = responseData['user'] as Map<String, dynamic>?;
+      final userId = userData?['id'] as String?;
+      if (userId == null) {
+        throw AuthException(message: 'No se recibió ID de usuario');
+      }
+
+      final needsPostRegistration =
+          responseData['needsPostRegistration'] as bool? ?? true;
+
+      AppLogger.i('OAuth callback procesado exitosamente', tag: _tag);
+      return UserModel(
+        id: userId,
+        email: userData?['email'] as String? ?? '',
+        name: userData?['name'] as String? ?? '',
+        postRegisterComplete: !needsPostRegistration,
+      );
+    } catch (e) {
+      AppLogger.e('Error en OAuth callback', tag: _tag, error: e);
+      if (e is DioException) {
+        throw AuthException(message: e.message ?? 'Error de conexión');
+      }
+      if (e is AuthException) rethrow;
+      throw AuthException(message: e.toString());
     }
   }
 

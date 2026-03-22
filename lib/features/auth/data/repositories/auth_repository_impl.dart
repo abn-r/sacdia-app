@@ -168,6 +168,26 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, UserEntity>> handleOAuthCallback(
+    String supabaseAccessToken,
+  ) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final user = await remoteDataSource.handleOAuthCallback(
+          supabaseAccessToken,
+        );
+        return Right(user);
+      } on core_exceptions.AuthException catch (e) {
+        return Left(AuthFailure(message: e.message, code: e.code));
+      } catch (e) {
+        return Left(ServerFailure(message: e.toString()));
+      }
+    } else {
+      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+  }
+
+  @override
   Future<bool> hasLocalToken() async {
     return remoteDataSource.hasLocalToken();
   }
