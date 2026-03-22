@@ -9,8 +9,8 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/member_insurance.dart';
 import '../providers/insurance_providers.dart';
-import '../widgets/member_insurance_card.dart';
 import '../widgets/insurance_summary_header.dart';
+import '../widgets/member_insurance_card.dart';
 import 'insurance_detail_view.dart';
 import 'insurance_form_sheet.dart';
 
@@ -158,7 +158,7 @@ class _InsuranceViewState extends ConsumerState<InsuranceView> {
 
 // ── Main body ──────────────────────────────────────────────────────────────────
 
-class _InsuranceBody extends StatelessWidget {
+class _InsuranceBody extends ConsumerWidget {
   final List<MemberInsurance> items;
   final InsuranceSummary? summary;
   final InsuranceFilters filters;
@@ -182,7 +182,9 @@ class _InsuranceBody extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final expiringAsync = ref.watch(expiringInsuranceProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -191,6 +193,13 @@ class _InsuranceBody extends StatelessWidget {
           InsuranceSummaryHeader(summary: summary!)
         else
           const SizedBox(height: 8),
+
+        // Expiring insurance alert banner
+        expiringAsync.whenOrNull(
+          data: (expiring) => expiring.isNotEmpty
+              ? _ExpiringBanner(count: expiring.length)
+              : null,
+        ) ?? const SizedBox.shrink(),
 
         // Search bar
         _SearchBar(
@@ -231,6 +240,50 @@ class _InsuranceBody extends StatelessWidget {
 
         const SizedBox(height: 80), // FAB clearance
       ],
+    );
+  }
+}
+
+// ── Expiring banner ────────────────────────────────────────────────────────────
+
+/// Banner de alerta que se muestra cuando hay seguros por vencer en los
+/// próximos 30 días. Solo visible cuando el backend devuelve al menos uno.
+class _ExpiringBanner extends StatelessWidget {
+  final int count;
+
+  const _ExpiringBanner({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF3CD),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFFCA28).withValues(alpha: 0.6)),
+      ),
+      child: Row(
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedAlert02,
+            size: 20,
+            color: const Color(0xFFB45309),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              '$count seguro${count > 1 ? 's' : ''} '
+              '${count > 1 ? 'vencen' : 'vence'} en los próximos 30 días',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF92400E),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
