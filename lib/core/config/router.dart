@@ -578,7 +578,7 @@ class _EvidenceFolderShell extends ConsumerWidget {
     return clubSectionAsync.when(
       loading: () => Scaffold(
         body: Center(
-          child: LoadingAnimationWidget.stretchedDots(
+          child: LoadingAnimationWidget.inkDrop(
             color: AppColors.primary,
             size: 50,
           ),
