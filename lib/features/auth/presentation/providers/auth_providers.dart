@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -95,6 +96,53 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   @override
   Future<UserEntity?> build() async {
     final repository = ref.read(authRepositoryProvider);
+
+    // ── Supabase onAuthStateChange → OAuth callback handler ───────────────────
+    //
+    // supabase_flutter ≥ 2.x con FlutterDeepLinkingEnabled=true (iOS) y el
+    // intent-filter correcto (Android) recibe automáticamente el deep link
+    // `io.sacdia.app://auth/callback`, llama a getSessionFromUrl() internamente
+    // y dispara este stream con evento signedIn.
+    //
+    // Cuando eso ocurre, intercambiamos el access_token de Supabase por el JWT
+    // interno de SACDIA usando el endpoint /auth/oauth/callback del backend.
+    //
+    // ref.onDispose cancela la suscripción si el notifier es destruido.
+    final supabaseAuthSub = supabase.Supabase.instance.client.auth
+        .onAuthStateChange
+        .listen((authState) async {
+      if (authState.event == supabase.AuthChangeEvent.signedIn) {
+        final accessToken = authState.session?.accessToken;
+        if (accessToken == null) return;
+
+        // Evitar procesar si ya tenemos una sesión SACDIA válida
+        // (login por email/password también dispara signedIn).
+        // Solo actuar si el estado actual es null (post-OAuth redirect).
+        if (state.valueOrNull != null) return;
+
+        AppLogger.i('Supabase signedIn detectado — procesando OAuth callback',
+            tag: _tag);
+
+        final result = await repository.handleOAuthCallback(accessToken);
+        result.fold(
+          (failure) {
+            AppLogger.e(
+              'Error al procesar OAuth callback: ${failure.message}',
+              tag: _tag,
+            );
+            state = AsyncValue.error(failure.message, StackTrace.current);
+          },
+          (user) {
+            AppLogger.i('OAuth completado: ${user.email}', tag: _tag);
+            ref.read(isUserLoggedOutProvider.notifier).state = false;
+            _cacheUser(user);
+            state = AsyncValue.data(user);
+          },
+        );
+      }
+    });
+
+    ref.onDispose(supabaseAuthSub.cancel);
 
     AppLogger.i('Verificando token local', tag: _tag);
     final hasToken = await repository.hasLocalToken();

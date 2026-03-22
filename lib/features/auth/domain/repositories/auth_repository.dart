@@ -48,4 +48,14 @@ abstract class AuthRepository {
 
   /// Cambia el contexto activo de autorización del usuario.
   Future<Either<Failure, void>> switchContext(String assignmentId);
+
+  /// Intercambia el access_token de Supabase (recibido por deep link OAuth)
+  /// por el JWT interno de SACDIA y persiste la sesión.
+  ///
+  /// Llamar cuando Supabase dispara [onAuthStateChange] con evento signedIn
+  /// después de un flujo OAuth. El backend en `/auth/oauth/callback` valida
+  /// el token de Supabase y devuelve el JWT de SACDIA.
+  Future<Either<Failure, UserEntity>> handleOAuthCallback(
+    String supabaseAccessToken,
+  );
 }
