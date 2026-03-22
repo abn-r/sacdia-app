@@ -46,6 +46,11 @@ abstract class InsuranceRemoteDataSource {
     String? evidenceFileName,
     String? evidenceMimeType,
   });
+
+  /// Obtiene seguros que vencen pronto (en los próximos [days] días).
+  ///
+  /// Endpoint: GET /api/v1/insurance/expiring?days=30
+  Future<List<MemberInsuranceModel>> getExpiringInsurance({int days = 30});
 }
 
 /// Implementación de la fuente de datos remota para seguros.
@@ -324,6 +329,41 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
       );
     } catch (e) {
       AppLogger.e('Error en updateInsurance', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /api/v1/insurance/expiring ────────────────────────────────────────────
+
+  @override
+  Future<List<MemberInsuranceModel>> getExpiringInsurance({
+    int days = 30,
+  }) async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.get(
+        '$_baseUrl/insurance/expiring',
+        queryParameters: {'days': days},
+        options: _authOptions(token),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = response.data;
+        final List<dynamic> rawList = body is List
+            ? body
+            : (body as Map<String, dynamic>)['data'] as List<dynamic>? ?? [];
+        return rawList
+            .map((e) =>
+                MemberInsuranceModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+
+      throw ServerException(
+        message: 'Error al obtener seguros por vencer',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getExpiringInsurance', tag: _tag, error: e);
       _rethrow(e);
     }
   }

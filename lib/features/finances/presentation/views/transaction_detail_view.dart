@@ -37,7 +37,15 @@ class TransactionDetailView extends ConsumerWidget {
         surfaceTintColor: Colors.transparent,
         title: const Text('Detalle del Movimiento'),
         actions: [
-          if (canEdit)
+          if (canEdit) ...[
+            IconButton(
+              onPressed: () => _confirmDelete(context, ref),
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedDelete01,
+                size: 20,
+                color: AppColors.error,
+              ),
+            ),
             IconButton(
               onPressed: () => _openEditSheet(context),
               icon: HugeIcon(
@@ -46,6 +54,7 @@ class TransactionDetailView extends ConsumerWidget {
                 color: AppColors.primary,
               ),
             ),
+          ],
         ],
       ),
       body: SingleChildScrollView(
@@ -143,6 +152,53 @@ class TransactionDetailView extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       builder: (_) => AddTransactionSheet(existing: transaction),
     );
+  }
+
+  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Eliminar movimiento'),
+        content: const Text(
+          '¿Estás seguro de que querés eliminar este movimiento? Esta acción no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.error,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    final notifier = ref.read(transactionFormNotifierProvider.notifier);
+    final success = await notifier.delete(financeId: transaction.id);
+
+    if (!context.mounted) return;
+
+    if (success) {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Movimiento eliminado')),
+      );
+    } else {
+      final error = ref.read(transactionFormNotifierProvider).errorMessage;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error ?? 'No se pudo eliminar el movimiento'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
   Widget _divider() => const Divider(height: 1, thickness: 0.5);

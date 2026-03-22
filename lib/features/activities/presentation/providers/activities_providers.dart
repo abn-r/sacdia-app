@@ -216,3 +216,119 @@ final createActivityNotifierProvider =
     NotifierProvider.autoDispose<CreateActivityNotifier, CreateActivityState>(
   CreateActivityNotifier.new,
 );
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DELETE ACTIVITY
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Notifier para manejar la eliminación de actividades
+class DeleteActivityNotifier extends AutoDisposeAsyncNotifier<void> {
+  @override
+  Future<void> build() async {}
+
+  /// Elimina una actividad por su ID
+  Future<bool> delete(int activityId) async {
+    state = const AsyncValue.loading();
+
+    final repository = ref.read(activitiesRepositoryProvider);
+    final result = await repository.deleteActivity(activityId);
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (_) {
+        state = const AsyncValue.data(null);
+        // Invalidar la lista de actividades para que se recargue
+        ref.invalidate(clubActivitiesProvider);
+        return true;
+      },
+    );
+  }
+}
+
+/// Provider para el notifier de eliminación de actividad
+final deleteActivityNotifierProvider =
+    AsyncNotifierProvider.autoDispose<DeleteActivityNotifier, void>(
+  DeleteActivityNotifier.new,
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UPDATE ACTIVITY
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Estado para la operación de actualización de actividad
+class UpdateActivityState {
+  final bool isLoading;
+  final Activity? updatedActivity;
+  final String? errorMessage;
+
+  const UpdateActivityState({
+    this.isLoading = false,
+    this.updatedActivity,
+    this.errorMessage,
+  });
+
+  UpdateActivityState copyWith({
+    bool? isLoading,
+    Activity? updatedActivity,
+    String? errorMessage,
+  }) {
+    return UpdateActivityState(
+      isLoading: isLoading ?? this.isLoading,
+      updatedActivity: updatedActivity ?? this.updatedActivity,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
+  }
+}
+
+/// Notifier para manejar la actualización de actividades
+class UpdateActivityNotifier
+    extends AutoDisposeNotifier<UpdateActivityState> {
+  @override
+  UpdateActivityState build() => const UpdateActivityState();
+
+  /// Actualiza una actividad existente
+  Future<bool> update({
+    required int activityId,
+    String? title,
+    String? description,
+    String? location,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+
+    final repository = ref.read(activitiesRepositoryProvider);
+    final result = await repository.updateActivity(
+      activityId: activityId,
+      title: title,
+      description: description,
+      location: location,
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
+        return false;
+      },
+      (activity) {
+        state = state.copyWith(isLoading: false, updatedActivity: activity);
+        // Invalidar los providers para que se recarguen con datos frescos
+        ref.invalidate(clubActivitiesProvider);
+        ref.invalidate(activityDetailProvider(activityId));
+        return true;
+      },
+    );
+  }
+
+  /// Limpia el estado para reutilizar el notifier
+  void reset() {
+    state = const UpdateActivityState();
+  }
+}
+
+/// Provider para el notifier de actualización de actividad
+final updateActivityNotifierProvider =
+    NotifierProvider.autoDispose<UpdateActivityNotifier, UpdateActivityState>(
+  UpdateActivityNotifier.new,
+);

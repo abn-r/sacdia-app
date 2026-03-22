@@ -6,6 +6,11 @@ import 'package:go_router/go_router.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/features/activities/presentation/views/activities_list_view.dart';
+import 'package:sacdia_app/features/certifications/presentation/views/certifications_list_view.dart';
+import 'package:sacdia_app/features/certifications/presentation/views/certification_detail_view.dart';
+import 'package:sacdia_app/features/certifications/presentation/views/certification_progress_view.dart';
+import 'package:sacdia_app/features/investiture/presentation/views/investiture_pending_list_view.dart';
+import 'package:sacdia_app/features/investiture/presentation/views/investiture_history_view.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/views/evidence_folder_view.dart';
 import 'package:sacdia_app/features/club/presentation/providers/club_providers.dart';
 import 'package:sacdia_app/features/club/presentation/views/club_view.dart';
@@ -13,6 +18,10 @@ import 'package:sacdia_app/features/finances/presentation/views/finances_view.da
 import 'package:sacdia_app/features/home/presentation/widgets/resources_section.dart';
 import 'package:sacdia_app/features/inventory/presentation/views/inventory_view.dart';
 import 'package:sacdia_app/features/insurance/presentation/views/insurance_view.dart';
+import 'package:sacdia_app/features/camporees/presentation/views/camporees_list_view.dart';
+import 'package:sacdia_app/features/camporees/presentation/views/camporee_detail_view.dart';
+import 'package:sacdia_app/features/camporees/presentation/views/camporee_members_view.dart';
+import 'package:sacdia_app/features/camporees/presentation/views/camporee_register_member_view.dart';
 import 'package:sacdia_app/features/units/presentation/views/units_list_view.dart';
 
 import '../../features/auth/presentation/providers/auth_providers.dart';
@@ -22,6 +31,7 @@ import '../../features/auth/presentation/views/register_view.dart';
 import '../../features/auth/presentation/views/splash_view.dart';
 import '../../features/post_registration/presentation/views/post_registration_shell.dart';
 import '../../features/dashboard/presentation/views/dashboard_view.dart';
+import '../../features/classes/presentation/providers/classes_providers.dart';
 import '../../features/classes/presentation/views/classes_list_view.dart';
 import '../../features/classes/presentation/views/class_detail_with_progress_view.dart';
 import '../../features/members/presentation/views/members_view.dart';
@@ -183,7 +193,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => _fadeThroughBuild(
               context,
               state,
-              const ActivitiesListView(clubId: 1),
+              const ActivitiesListView(),
             ),
           ),
           GoRoute(
@@ -230,7 +240,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: RouteNames.homeGroupedClass,
             pageBuilder: (context, state) => _fadeThroughBuild(
               context, state,
-              ClassDetailWithProgressView(classId: 1), //ClassesListView(),
+              const _ActiveClassDetailShell(),
             ),
           ),
           GoRoute(
@@ -252,6 +262,22 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => _fadeThroughBuild(
               context, state,
               const ResourcesSection(),
+            ),
+          ),
+          GoRoute(
+            path: RouteNames.homeCertifications,
+            pageBuilder: (context, state) => _fadeThroughBuild(
+              context,
+              state,
+              const CertificationsListView(),
+            ),
+          ),
+          GoRoute(
+            path: RouteNames.homeCamporees,
+            pageBuilder: (context, state) => _fadeThroughBuild(
+              context,
+              state,
+              const CamporeesListView(),
             ),
           ),
         ],
@@ -288,6 +314,112 @@ final routerProvider = Provider<GoRouter>((ref) {
           final honorId = state.pathParameters['honorId']!;
           return _sharedAxisBuild(
               context, state, _PlaceholderScreen(title: 'Honor: $honorId'));
+        },
+      ),
+
+      // Detalle de certificación
+      GoRoute(
+        path: RouteNames.certificationDetail,
+        pageBuilder: (context, state) {
+          final certificationIdStr =
+              state.pathParameters['certificationId']!;
+          final certificationId = int.tryParse(certificationIdStr) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            CertificationDetailView(certificationId: certificationId),
+          );
+        },
+      ),
+
+      // Progreso de certificación
+      GoRoute(
+        path: RouteNames.certificationProgress,
+        pageBuilder: (context, state) {
+          final certificationIdStr =
+              state.pathParameters['certificationId']!;
+          final enrollmentIdStr = state.pathParameters['enrollmentId']!;
+          final certificationId = int.tryParse(certificationIdStr) ?? 0;
+          final enrollmentId = int.tryParse(enrollmentIdStr) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            CertificationProgressView(
+              enrollmentId: enrollmentId,
+              certificationId: certificationId,
+            ),
+          );
+        },
+      ),
+
+      // Lista de investiduras pendientes (coordinador/admin)
+      GoRoute(
+        path: RouteNames.investiturePendingList,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          const InvestiturePendingListView(),
+        ),
+      ),
+
+      // Historial de investidura de un enrollment
+      GoRoute(
+        path: RouteNames.investitureHistory,
+        pageBuilder: (context, state) {
+          final enrollmentIdStr = state.pathParameters['enrollmentId']!;
+          final enrollmentId = int.tryParse(enrollmentIdStr) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            InvestitureHistoryView(enrollmentId: enrollmentId),
+          );
+        },
+      ),
+
+      // Detalle de camporee
+      GoRoute(
+        path: RouteNames.camporeeDetail,
+        pageBuilder: (context, state) {
+          final camporeeIdStr = state.pathParameters['camporeeId']!;
+          final camporeeId = int.tryParse(camporeeIdStr) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            CamporeeDetailView(camporeeId: camporeeId),
+          );
+        },
+      ),
+
+      // Miembros de un camporee
+      GoRoute(
+        path: RouteNames.camporeeMembers,
+        pageBuilder: (context, state) {
+          final camporeeIdStr = state.pathParameters['camporeeId']!;
+          final camporeeId = int.tryParse(camporeeIdStr) ?? 0;
+          final camporeeName =
+              state.uri.queryParameters['name'] ?? 'Camporee';
+          return _sharedAxisBuild(
+            context,
+            state,
+            CamporeeMembersView(
+              camporeeId: camporeeId,
+              camporeeName: camporeeName,
+            ),
+          );
+        },
+      ),
+
+      // Registrar miembro en camporee
+      GoRoute(
+        path: RouteNames.camporeeRegisterMember,
+        pageBuilder: (context, state) {
+          final camporeeIdStr = state.pathParameters['camporeeId']!;
+          final camporeeId = int.tryParse(camporeeIdStr) ?? 0;
+          return _slideUpBuild(
+            context,
+            state,
+            CamporeeRegisterMemberView(camporeeId: camporeeId),
+          );
         },
       ),
     ],
@@ -446,7 +578,7 @@ class _EvidenceFolderShell extends ConsumerWidget {
     return clubSectionAsync.when(
       loading: () => Scaffold(
         body: Center(
-          child: LoadingAnimationWidget.stretchedDots(
+          child: LoadingAnimationWidget.inkDrop(
             color: AppColors.primary,
             size: 50,
           ),
@@ -480,6 +612,63 @@ class _EvidenceFolderShell extends ConsumerWidget {
           );
         }
         return EvidenceFolderView(clubSectionId: section.id.toString());
+      },
+    );
+  }
+}
+
+/// Shell que resuelve la clase activa del usuario y pasa su ID a
+/// [ClassDetailWithProgressView].
+///
+/// Sigue el mismo patrón que [_EvidenceFolderShell]: observa un provider
+/// asíncrono y muestra loading / error / data según el estado.
+///
+/// Si el usuario no tiene ninguna clase inscripta muestra un mensaje informativo
+/// en lugar de la vista de detalle.
+class _ActiveClassDetailShell extends ConsumerWidget {
+  const _ActiveClassDetailShell();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final classesAsync = ref.watch(userClassesProvider);
+
+    return classesAsync.when(
+      loading: () => Scaffold(
+        body: Center(
+          child: LoadingAnimationWidget.stretchedDots(
+            color: AppColors.primary,
+            size: 50,
+          ),
+        ),
+      ),
+      error: (e, _) => Scaffold(
+        appBar: AppBar(title: const Text('Mi Clase')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Text(
+              'No se pudo cargar la clase.\n${e.toString().replaceFirst("Exception: ", "")}',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+      data: (classes) {
+        if (classes.isEmpty) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Mi Clase')),
+            body: const Center(
+              child: Padding(
+                padding: EdgeInsets.all(32),
+                child: Text(
+                  'No tenés ninguna clase asignada. Inscribite en un club para comenzar.',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          );
+        }
+        return ClassDetailWithProgressView(classId: classes.first.id);
       },
     );
   }

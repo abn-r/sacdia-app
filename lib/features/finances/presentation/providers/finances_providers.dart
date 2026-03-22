@@ -13,6 +13,7 @@ import '../../domain/entities/finance_summary.dart';
 import '../../domain/entities/transaction.dart';
 import '../../domain/repositories/finances_repository.dart';
 import '../../domain/usecases/create_transaction.dart';
+import '../../domain/usecases/delete_transaction.dart';
 import '../../domain/usecases/get_categories.dart';
 import '../../domain/usecases/get_finance_summary.dart';
 import '../../domain/usecases/get_finances.dart';
@@ -56,6 +57,10 @@ final createTransactionUseCaseProvider = Provider<CreateTransaction>((ref) {
 
 final updateTransactionUseCaseProvider = Provider<UpdateTransaction>((ref) {
   return UpdateTransaction(ref.read(financesRepositoryProvider));
+});
+
+final deleteTransactionUseCaseProvider = Provider<DeleteTransaction>((ref) {
+  return DeleteTransaction(ref.read(financesRepositoryProvider));
 });
 
 // ── Selected month navigation state ───────────────────────────────────────────
@@ -291,6 +296,27 @@ class TransactionFormNotifier extends AutoDisposeNotifier<TransactionFormState> 
         },
       );
     }
+  }
+
+  Future<bool> delete({required int financeId}) async {
+    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+
+    final result = await ref.read(deleteTransactionUseCaseProvider)(
+      financeId: financeId,
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
+        return false;
+      },
+      (_) {
+        state = state.copyWith(isLoading: false, success: true);
+        ref.invalidate(financeMonthProvider);
+        ref.invalidate(financeSummaryProvider);
+        return true;
+      },
+    );
   }
 
   void reset() => state = const TransactionFormState();

@@ -58,3 +58,18 @@ class ValidationException extends AppException {
     super.stackTrace,
   });
 }
+
+/// Señal (no un error real) que indica que el flujo OAuth fue iniciado
+/// correctamente. El resultado de la autenticación llegará de forma
+/// asíncrona a través del deep link y [authStateChanges].
+class OAuthFlowInitiatedException extends AppException {
+  /// Nombre del proveedor OAuth ("Google", "Apple", etc.).
+  final String provider;
+
+  OAuthFlowInitiatedException({required this.provider})
+      : super(
+          message:
+              'Redirigiendo a $provider para autenticación. '
+              'Regresa a la app tras completar el proceso.',
+        );
+}

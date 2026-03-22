@@ -10,6 +10,8 @@ import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/usecases/get_current_user.dart';
 import '../../domain/usecases/sign_in.dart';
+import '../../domain/usecases/sign_in_with_apple.dart';
+import '../../domain/usecases/sign_in_with_google.dart';
 import '../../domain/usecases/sign_out.dart';
 import '../../domain/usecases/sign_up.dart';
 import '../../domain/usecases/switch_context.dart';
@@ -60,6 +62,16 @@ final signOutProvider = Provider<SignOut>((ref) {
 /// Provider para el caso de uso de cambio de contexto
 final switchContextProvider = Provider<SwitchContext>((ref) {
   return SwitchContext(ref.read(authRepositoryProvider));
+});
+
+/// Provider para el caso de uso de OAuth con Google
+final signInWithGoogleProvider = Provider<SignInWithGoogle>((ref) {
+  return SignInWithGoogle(ref.read(authRepositoryProvider));
+});
+
+/// Provider para el caso de uso de OAuth con Apple
+final signInWithAppleProvider = Provider<SignInWithApple>((ref) {
+  return SignInWithApple(ref.read(authRepositoryProvider));
 });
 
 /// Flag global para rastrear manualmente el estado de autenticación
@@ -244,6 +256,67 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     _cacheUser(updatedUser);
   }
 
+  /// Inicia el flujo OAuth con Google.
+  ///
+  /// Abre el navegador del sistema. El resultado llega de forma asíncrona
+  /// a través del deep link. Retorna true si el navegador fue lanzado,
+  /// false si hubo un error real (no el flujo normal de redirect).
+  Future<OAuthLaunchResult> signInWithGoogle() async {
+    AppLogger.i('OAuth Google iniciado', tag: _tag);
+    state = const AsyncValue.loading();
+
+    final result = await ref.read(signInWithGoogleProvider)(NoParams());
+
+    return result.fold(
+      (failure) {
+        if (failure is OAuthFlowInitiatedFailure) {
+          // El navegador fue lanzado. Resetear loading sin error.
+          state = const AsyncValue.data(null);
+          return OAuthLaunchResult.launched;
+        }
+        final errorMessage =
+            failure is AuthFailure ? failure.message : 'Error al iniciar con Google';
+        AppLogger.w('OAuth Google error: $errorMessage', tag: _tag);
+        state = AsyncValue.error(errorMessage, StackTrace.current);
+        return OAuthLaunchResult.failed;
+      },
+      (user) {
+        _cacheUser(user);
+        state = AsyncValue.data(user);
+        return OAuthLaunchResult.launched;
+      },
+    );
+  }
+
+  /// Inicia el flujo OAuth con Apple.
+  ///
+  /// Misma semántica que [signInWithGoogle].
+  Future<OAuthLaunchResult> signInWithApple() async {
+    AppLogger.i('OAuth Apple iniciado', tag: _tag);
+    state = const AsyncValue.loading();
+
+    final result = await ref.read(signInWithAppleProvider)(NoParams());
+
+    return result.fold(
+      (failure) {
+        if (failure is OAuthFlowInitiatedFailure) {
+          state = const AsyncValue.data(null);
+          return OAuthLaunchResult.launched;
+        }
+        final errorMessage =
+            failure is AuthFailure ? failure.message : 'Error al iniciar con Apple';
+        AppLogger.w('OAuth Apple error: $errorMessage', tag: _tag);
+        state = AsyncValue.error(errorMessage, StackTrace.current);
+        return OAuthLaunchResult.failed;
+      },
+      (user) {
+        _cacheUser(user);
+        state = AsyncValue.data(user);
+        return OAuthLaunchResult.launched;
+      },
+    );
+  }
+
   /// Cambia el contexto activo de autorización y refresca el estado del usuario.
   ///
   /// Llama al use case SwitchContext, y en caso de éxito vuelve a llamar
@@ -331,3 +404,12 @@ final authNotifierProvider =
     AsyncNotifierProvider<AuthNotifier, UserEntity?>(() {
   return AuthNotifier();
 });
+
+/// Resultado de intentar lanzar un flujo OAuth.
+enum OAuthLaunchResult {
+  /// El navegador fue abierto y el flujo está en curso.
+  launched,
+
+  /// Ocurrió un error antes de poder abrir el navegador.
+  failed,
+}

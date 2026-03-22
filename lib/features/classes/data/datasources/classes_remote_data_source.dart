@@ -357,7 +357,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     }
   }
 
-  // ── POST /users/:userId/classes/:classId/sections/:requirementId/files ──────
+  // ── POST /users/:userId/classes/:classId/sections/:sectionId/files ──────────
 
   @override
   Future<RequirementEvidenceModel> uploadRequirementFile({
@@ -409,14 +409,16 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al subir el archivo', code: response.statusCode);
+        message: 'Error al subir el archivo de evidencia',
+        code: response.statusCode,
+      );
     } catch (e) {
       AppLogger.e('Error en uploadRequirementFile', tag: _tag, error: e);
       _rethrow(e);
     }
   }
 
-  // ── DELETE /users/:userId/classes/:classId/sections/:requirementId/files/:fileId
+  // ── DELETE /users/:userId/classes/:classId/sections/:sectionId/files/:fileId
 
   @override
   Future<void> deleteRequirementFile({
@@ -439,7 +441,9 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al eliminar el archivo', code: response.statusCode);
+        message: 'Error al eliminar el archivo de evidencia',
+        code: response.statusCode,
+      );
     } catch (e) {
       AppLogger.e('Error en deleteRequirementFile', tag: _tag, error: e);
       _rethrow(e);

@@ -33,9 +33,42 @@ class RouteNames {
   static const String homeInsurance = '/home/insurance';
   static const String homeInventory = '/home/inventory';
   static const String homeResources = '/home/resources';
+  static const String homeCertifications = '/home/certifications';
+
+  // Rutas de detalle fuera del shell
+  static const String certificationDetail = '/certification/:certificationId';
+  static const String certificationProgress =
+      '/certification/:certificationId/progress/:enrollmentId';
+
+  // Camporees
+  static const String homeCamporees = '/home/camporees';
+  static const String camporeeDetail = '/camporee/:camporeeId';
+  static const String camporeeMembers = '/camporee/:camporeeId/members';
+  static const String camporeeRegisterMember =
+      '/camporee/:camporeeId/register';
+
+  // Investidura
+  static const String investiturePendingList = '/investiture/pending';
+  static const String investitureHistory =
+      '/investiture/enrollment/:enrollmentId/history';
 
   // Helpers para paths con parámetros
   static String clubDetailPath(String clubId) => '/club/$clubId';
   static String classDetailPath(String classId) => '/class/$classId';
   static String honorDetailPath(String honorId) => '/honor/$honorId';
+  static String certificationDetailPath(String certificationId) =>
+      '/certification/$certificationId';
+  static String certificationProgressPath(
+          String certificationId, String enrollmentId) =>
+      '/certification/$certificationId/progress/$enrollmentId';
+  static String investitureHistoryPath(String enrollmentId) =>
+      '/investiture/enrollment/$enrollmentId/history';
+
+  // Camporees helpers
+  static String camporeeDetailPath(String camporeeId) =>
+      '/camporee/$camporeeId';
+  static String camporeeMembersPath(String camporeeId) =>
+      '/camporee/$camporeeId/members';
+  static String camporeeRegisterMemberPath(String camporeeId) =>
+      '/camporee/$camporeeId/register';
 }
