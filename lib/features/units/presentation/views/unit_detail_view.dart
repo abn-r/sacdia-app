@@ -104,26 +104,29 @@ class UnitDetailView extends ConsumerWidget {
   }
 
   void _handleSave(BuildContext context, UnitsNotifier notifier) {
-    final saved = notifier.saveSession();
-    if (!saved) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Debes asignar puntos a todos los miembros o a ninguno',
+    // saveSession es async — envolvemos en unawaited para mantener VoidCallback.
+    notifier.saveSession().then((saved) {
+      if (!context.mounted) return;
+      if (!saved) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Debes asignar puntos a todos los miembros o a ninguno',
+            ),
+            behavior: SnackBarBehavior.floating,
           ),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } else {
-      HapticFeedback.mediumImpact();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Puntos del dia guardados correctamente'),
-          backgroundColor: AppColors.secondary,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
+        );
+      } else {
+        HapticFeedback.mediumImpact();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Puntos del dia guardados correctamente'),
+            backgroundColor: AppColors.secondary,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    });
   }
 }
 
