@@ -168,13 +168,15 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, UserEntity>> handleOAuthCallback(
-    String supabaseAccessToken,
-  ) async {
+  Future<Either<Failure, UserEntity>> handleOAuthCallback({
+    required String sessionToken,
+    required String provider,
+  }) async {
     if (await networkInfo.isConnected) {
       try {
         final user = await remoteDataSource.handleOAuthCallback(
-          supabaseAccessToken,
+          sessionToken: sessionToken,
+          provider: provider,
         );
         return Right(user);
       } on core_exceptions.AuthException catch (e) {

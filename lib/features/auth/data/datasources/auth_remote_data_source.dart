@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -56,14 +56,14 @@ abstract class AuthRemoteDataSource {
   /// Llama a PATCH /auth/me/context con el assignment_id indicado.
   Future<void> switchContext(String assignmentId);
 
-  /// Intercambia el [supabaseAccessToken] (recibido en el deep link OAuth) por
-  /// el JWT interno de SACDIA.
+  /// Procesa el callback OAuth enviando el session token opaco de Better Auth
+  /// al backend, que devuelve el JWT HS256 interno de SACDIA.
   ///
-  /// Llama a `GET /auth/oauth/callback?access_token=<token>` en el backend,
-  /// que valida el token de Supabase y devuelve las credenciales de SACDIA.
-  /// Internamente invoca [_saveToken] para persistir la sesión y emitir
-  /// el evento correspondiente en [authStateChanges].
-  Future<UserModel> handleOAuthCallback(String supabaseAccessToken);
+  /// Llama a `POST /auth/oauth/callback` con `{ session_token, provider }`.
+  Future<UserModel> handleOAuthCallback({
+    required String sessionToken,
+    required String provider,
+  });
 }
 
 /// Implementación de la fuente de datos remota con Dio para API personalizada
@@ -593,34 +593,33 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   // ── OAuth ─────────────────────────────────────────────────────────────────────
   //
-  // El flujo OAuth en móvil es redirect-based, no síncrono:
-  //   1. signInWithOAuth() abre el navegador del sistema.
-  //   2. El usuario autoriza y Supabase redirige al URL scheme de la app
-  //      (ej. "io.sacdia.app://auth/callback") con access_token en la URL.
-  //   3. El router intercepta el deep link → extrae el token → llama a
-  //      GET /auth/oauth/callback?access_token=... en el backend → recibe
-  //      el JWT interno de SACDIA → _saveToken() → AuthNotifier se refresca.
+  // Flujo OAuth con Better Auth / Option C:
+  //   1. App llama GET /auth/oauth/{provider} → backend devuelve redirect URL.
+  //   2. App abre la URL en el navegador del sistema via url_launcher.
+  //   3. Usuario autoriza → Better Auth redirige a io.sacdia.app://auth/callback
+  //      con `session_token` (BA opaque token) y `provider` como query params.
+  //   4. Router intercepta el deep link → llama a AuthNotifier.processOAuthDeepLink.
+  //   5. AuthNotifier llama a handleOAuthCallback → POST /auth/oauth/callback
+  //      → backend devuelve JWT HS256 de SACDIA.
   //
   // Prerequisitos de configuración (fuera de este archivo):
   //   - ios/Runner/Info.plist: CFBundleURLSchemes → "io.sacdia.app"
   //   - android/app/src/main/AndroidManifest.xml: intent-filter con scheme
-  //   - Supabase Dashboard → Auth → URL Configuration → Redirect URLs:
-  //       io.sacdia.app://auth/callback
-  //   - Google OAuth habilitado en Supabase Dashboard
-  //   - Apple: Services ID + Key + "Sign In with Apple" capability en Xcode
-  //
-  // Referencia: https://supabase.com/docs/guides/auth/social-login?platform=flutter
-
-  static const _oauthRedirectUrl = 'io.sacdia.app://auth/callback';
+  //   - Better Auth config: redirectURLs incluye io.sacdia.app://auth/callback
 
   @override
   Future<UserModel> signInWithGoogle() async {
     try {
       AppLogger.i('Iniciando OAuth con Google', tag: _tag);
-      final launched = await Supabase.instance.client.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: _oauthRedirectUrl,
-        authScreenLaunchMode: LaunchMode.platformDefault,
+
+      // 1. Obtener el redirect URL del backend
+      final response = await _dio.get('$_baseUrl/auth/oauth/google');
+      final redirectUrl = _extractOAuthUrl(response, 'Google');
+
+      // 2. Abrir en navegador del sistema
+      final launched = await launchUrl(
+        Uri.parse(redirectUrl),
+        mode: LaunchMode.platformDefault,
       );
 
       if (!launched) {
@@ -630,9 +629,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       // El resultado llega de forma asíncrona a través del deep link.
-      // El caller (AuthNotifier) debe escuchar authStateChanges o manejar el
-      // callback desde el router. Lanzamos una excepción especializada para
-      // indicar que el flujo fue iniciado y no falló.
       throw OAuthFlowInitiatedException(provider: 'Google');
     } on OAuthFlowInitiatedException {
       rethrow;
@@ -650,10 +646,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<UserModel> signInWithApple() async {
     try {
       AppLogger.i('Iniciando OAuth con Apple', tag: _tag);
-      final launched = await Supabase.instance.client.auth.signInWithOAuth(
-        OAuthProvider.apple,
-        redirectTo: _oauthRedirectUrl,
-        authScreenLaunchMode: LaunchMode.platformDefault,
+
+      // 1. Obtener el redirect URL del backend
+      final response = await _dio.get('$_baseUrl/auth/oauth/apple');
+      final redirectUrl = _extractOAuthUrl(response, 'Apple');
+
+      // 2. Abrir en navegador del sistema
+      final launched = await launchUrl(
+        Uri.parse(redirectUrl),
+        mode: LaunchMode.platformDefault,
       );
 
       if (!launched) {
@@ -675,20 +676,45 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
+  /// Extrae el redirect URL del response del endpoint GET /auth/oauth/{provider}.
+  String _extractOAuthUrl(dynamic response, String provider) {
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw AuthException(
+        message: response.data?['message'] ?? 'Error al obtener URL de $provider',
+      );
+    }
+    final data = response.data;
+    final url = (data is Map<String, dynamic>)
+        ? (data['url'] as String? ?? data['data']?['url'] as String?)
+        : null;
+    if (url == null || url.isEmpty) {
+      throw AuthException(message: 'Backend no devolvió URL para OAuth de $provider');
+    }
+    return url;
+  }
+
   // ── OAuth Callback ────────────────────────────────────────────────────────────
   //
-  // Llamado desde AuthNotifier cuando Supabase dispara onAuthStateChange con
-  // evento signedIn después de un flujo OAuth.  El backend valida el access
-  // token de Supabase y devuelve las credenciales internas de SACDIA.
+  // Llamado desde AuthNotifier.processOAuthDeepLink cuando el router intercepta
+  // io.sacdia.app://auth/callback?session_token=...&provider=...
+  //
+  // El backend recibe el session_token opaco de Better Auth, lo valida,
+  // y devuelve el JWT HS256 interno de SACDIA.
 
   @override
-  Future<UserModel> handleOAuthCallback(String supabaseAccessToken) async {
+  Future<UserModel> handleOAuthCallback({
+    required String sessionToken,
+    required String provider,
+  }) async {
     try {
       AppLogger.i('Procesando OAuth callback con backend SACDIA', tag: _tag);
 
-      final response = await _dio.get(
+      final response = await _dio.post(
         '$_baseUrl/auth/oauth/callback',
-        queryParameters: {'access_token': supabaseAccessToken},
+        data: {
+          'session_token': sessionToken,
+          'provider': provider,
+        },
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {

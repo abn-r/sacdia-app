@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -97,52 +96,17 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   Future<UserEntity?> build() async {
     final repository = ref.read(authRepositoryProvider);
 
-    // ── Supabase onAuthStateChange → OAuth callback handler ───────────────────
+    // ── OAuth deep-link callback handler ──────────────────────────────────────
     //
-    // supabase_flutter ≥ 2.x con FlutterDeepLinkingEnabled=true (iOS) y el
-    // intent-filter correcto (Android) recibe automáticamente el deep link
-    // `io.sacdia.app://auth/callback`, llama a getSessionFromUrl() internamente
-    // y dispara este stream con evento signedIn.
+    // Con Better Auth / Option C el flujo OAuth es:
+    //   1. App llama GET /auth/oauth/{provider} → obtiene redirect URL.
+    //   2. App abre URL en sistema browser.
+    //   3. Backend autentica y redirige a io.sacdia.app://auth/callback
+    //      con `session_token` y `provider` como query params.
+    //   4. El router intercepta el deep link y llama a
+    //      AuthNotifier.processOAuthDeepLink(sessionToken, provider).
     //
-    // Cuando eso ocurre, intercambiamos el access_token de Supabase por el JWT
-    // interno de SACDIA usando el endpoint /auth/oauth/callback del backend.
-    //
-    // ref.onDispose cancela la suscripción si el notifier es destruido.
-    final supabaseAuthSub = supabase.Supabase.instance.client.auth
-        .onAuthStateChange
-        .listen((authState) async {
-      if (authState.event == supabase.AuthChangeEvent.signedIn) {
-        final accessToken = authState.session?.accessToken;
-        if (accessToken == null) return;
-
-        // Evitar procesar si ya tenemos una sesión SACDIA válida
-        // (login por email/password también dispara signedIn).
-        // Solo actuar si el estado actual es null (post-OAuth redirect).
-        if (state.valueOrNull != null) return;
-
-        AppLogger.i('Supabase signedIn detectado — procesando OAuth callback',
-            tag: _tag);
-
-        final result = await repository.handleOAuthCallback(accessToken);
-        result.fold(
-          (failure) {
-            AppLogger.e(
-              'Error al procesar OAuth callback: ${failure.message}',
-              tag: _tag,
-            );
-            state = AsyncValue.error(failure.message, StackTrace.current);
-          },
-          (user) {
-            AppLogger.i('OAuth completado: ${user.email}', tag: _tag);
-            ref.read(isUserLoggedOutProvider.notifier).state = false;
-            _cacheUser(user);
-            state = AsyncValue.data(user);
-          },
-        );
-      }
-    });
-
-    ref.onDispose(supabaseAuthSub.cancel);
+    // No hay listener de Supabase aquí — el deep link lo maneja el router.
 
     AppLogger.i('Verificando token local', tag: _tag);
     final hasToken = await repository.hasLocalToken();
@@ -302,6 +266,47 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     );
     state = AsyncValue.data(updatedUser);
     _cacheUser(updatedUser);
+  }
+
+  /// Procesa el callback OAuth recibido por deep link.
+  ///
+  /// Llamar desde el router cuando se intercepta
+  /// `io.sacdia.app://auth/callback?session_token=...&provider=...`.
+  ///
+  /// Internamente llama a [AuthRepository.handleOAuthCallback] que envía
+  /// `POST /auth/oauth/callback` al backend y recibe el JWT HS256 de SACDIA.
+  Future<void> processOAuthDeepLink({
+    required String sessionToken,
+    required String provider,
+  }) async {
+    AppLogger.i('OAuth deep link recibido — provider: $provider', tag: _tag);
+
+    if (state.valueOrNull != null) {
+      AppLogger.i('Ya hay sesión activa, ignorando deep link', tag: _tag);
+      return;
+    }
+
+    final repository = ref.read(authRepositoryProvider);
+    final result = await repository.handleOAuthCallback(
+      sessionToken: sessionToken,
+      provider: provider,
+    );
+
+    result.fold(
+      (failure) {
+        AppLogger.e(
+          'Error al procesar OAuth callback: ${failure.message}',
+          tag: _tag,
+        );
+        state = AsyncValue.error(failure.message, StackTrace.current);
+      },
+      (user) {
+        AppLogger.i('OAuth completado: ${user.email}', tag: _tag);
+        ref.read(isUserLoggedOutProvider.notifier).state = false;
+        _cacheUser(user);
+        state = AsyncValue.data(user);
+      },
+    );
   }
 
   /// Inicia el flujo OAuth con Google.

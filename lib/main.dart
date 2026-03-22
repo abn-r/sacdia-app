@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'core/auth/supabase_auth.dart';
 import 'core/config/router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
@@ -21,19 +20,18 @@ Future<void> main() async {
   // Aseguramos que las dependencias de Flutter estén inicializadas
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Paralelizamos operaciones independientes: orientación, Supabase y SharedPreferences
+  // Paralelizamos operaciones independientes: orientación y SharedPreferences
   final results = await Future.wait([
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]),
-    SupabaseAuth.initialize(),
     SharedPreferences.getInstance(),
   ]);
 
-  final sharedPreferences = results[2] as SharedPreferences;
+  final sharedPreferences = results[1] as SharedPreferences;
 
-  // Firebase depende de Supabase (accede al estado de auth) — se ejecuta después
+  // Firebase se inicializa después de orientación y prefs
   await _initializeFirebaseAndPrintDebugTokens();
 
   // Recuperar estado de cierre de sesión manual
@@ -105,42 +103,24 @@ Future<void> _initializeFirebaseAndPrintDebugTokens() async {
   }
 
   if (kDebugMode) {
-    final currentToken = SupabaseAuth.currentSession?.accessToken;
-    if (currentToken != null && currentToken.isNotEmpty) {
-      AppLogger.i('JWT_ACCESS_TOKEN: $currentToken', tag: tag);
-    }
-
-    SupabaseAuth.onAuthStateChange.listen((authState) {
-      final accessToken = authState.session?.accessToken;
-      if (accessToken != null && accessToken.isNotEmpty) {
-        AppLogger.i('JWT_ACCESS_TOKEN: $accessToken', tag: tag);
-      }
-    });
+    AppLogger.i('Firebase initialized — JWT debug tokens available via AppAuthService', tag: tag);
   }
 }
 
-/// Método para verificar y limpiar sesiones inválidas o corruptas al inicio
+/// Verifica y limpia sesiones inválidas o corruptas al inicio.
+///
+/// Con Better Auth / Option C no hay cliente Supabase. Simplemente
+/// verificamos si el access token almacenado localmente existe. La
+/// validación real contra el servidor ocurre en [AuthNotifier.build()]
+/// mediante GET /auth/me.
 Future<void> _checkAndCleanSessionAtStartup() async {
   try {
-    // Obtener el cliente de Supabase
-    final client = SupabaseAuth.client;
-
-    // Verificar si hay una sesión actual
-    final currentUser = client.auth.currentUser;
-    final currentSession = client.auth.currentSession;
-
-    // Si hay usuario pero la sesión es nula o expirada, forzar limpieza
-    if (currentUser != null &&
-        (currentSession == null || currentSession.isExpired)) {
-      await SupabaseAuth.signOut();
-
-      // Limpiar datos de SharedPreferences relacionados con autenticación
-      final prefs = await SharedPreferences.getInstance();
-      final keys = prefs.getKeys();
-      for (final key in keys) {
-        if (key.contains('supabase') || key.contains('auth')) {
-          await prefs.remove(key);
-        }
+    final prefs = await SharedPreferences.getInstance();
+    final keys = prefs.getKeys();
+    for (final key in keys) {
+      // Eliminar residuos de sesiones Supabase previas
+      if (key.contains('supabase')) {
+        await prefs.remove(key);
       }
     }
   } catch (e) {

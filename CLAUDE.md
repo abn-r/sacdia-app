@@ -41,8 +41,8 @@ lib/
 - **Architecture**: Clean Architecture
 - **State**: Riverpod
 - **HTTP**: Dio
-- **Storage**: Hive (local) + Supabase Storage
-- **Auth**: Supabase Auth
+- **Storage**: Hive (local) + Cloudflare R2 (via backend signed URLs)
+- **Auth**: AppAuthService — JWT HS256 via backend API (Better Auth, Wave 3)
 - **Push**: Firebase Cloud Messaging
 
 ## Particularidades
@@ -60,15 +60,13 @@ lib/
 flutter_riverpod    # State management
 dio                 # HTTP client
 hive                # Local storage
-supabase_flutter    # Supabase client
+# supabase_flutter removed in Wave 3 — auth is now handled via backend API
 ```
 
 ## Variables de Entorno
 
 Configurar en `lib/core/constants/env.dart`:
 
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
 - `API_BASE_URL`
 - `FCM_SENDER_ID`
 

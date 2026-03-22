@@ -23,9 +23,9 @@ dependencies:
   # Gestión de estado
   flutter_riverpod: ^2.6.1
 
-  # Autenticación
-  supabase_flutter: ^2.9.1
-  
+  # Autenticación (OAuth PKCE — Better Auth)
+  flutter_appauth: ^8.0.1
+
   # HTTP Client
   dio: ^5.8.0+1
   connectivity_plus: ^6.1.4

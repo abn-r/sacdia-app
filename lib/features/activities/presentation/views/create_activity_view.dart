@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,8 +11,6 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dropdown_field.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/providers/catalogs_provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../../data/models/create_activity_request.dart';
 import '../providers/activities_providers.dart';
 import 'location_picker_view.dart';
@@ -136,30 +132,19 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
     setState(() => _isUploadingImage = true);
 
     try {
-      // 3. Upload to Supabase Storage
-      final supabase = Supabase.instance.client;
-      final bytes = await File(picked.path).readAsBytes();
-      final ext = picked.path.split('.').last.toLowerCase();
-      final fileName = 'activity_${DateTime.now().millisecondsSinceEpoch}.$ext';
-      final path = 'activities/$fileName';
-
-      await supabase.storage
-          .from('activities-images')
-          .uploadBinary(
-            path,
-            bytes,
-            fileOptions: FileOptions(contentType: 'image/$ext'),
-          );
-
-      final url =
-          supabase.storage.from('activities-images').getPublicUrl(path);
-
+      // TODO(W3): Upload image via backend signed URL (Cloudflare R2).
+      // Con la migración Wave 3 el storage pasó de Supabase Storage a
+      // Cloudflare R2. Implementar llamando a:
+      //   POST /storage/upload/activities → devuelve { url, key }
+      // Por ahora dejamos el campo vacío y mostramos un mensaje informativo.
       if (mounted) {
-        setState(() {
-          _uploadedImageUrl = url;
-          _imageController.text = url;
-          _isUploadingImage = false;
-        });
+        setState(() => _isUploadingImage = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Carga de imágenes temporalmente deshabilitada (Wave 3 migration).'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
