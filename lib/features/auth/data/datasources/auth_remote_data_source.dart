@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -581,55 +582,88 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
+  // ── OAuth ─────────────────────────────────────────────────────────────────────
+  //
+  // El flujo OAuth en móvil es redirect-based, no síncrono:
+  //   1. signInWithOAuth() abre el navegador del sistema.
+  //   2. El usuario autoriza y Supabase redirige al URL scheme de la app
+  //      (ej. "io.sacdia.app://auth/callback") con access_token en la URL.
+  //   3. El router intercepta el deep link → extrae el token → llama a
+  //      GET /auth/oauth/callback?access_token=... en el backend → recibe
+  //      el JWT interno de SACDIA → _saveToken() → AuthNotifier se refresca.
+  //
+  // Prerequisitos de configuración (fuera de este archivo):
+  //   - ios/Runner/Info.plist: CFBundleURLSchemes → "io.sacdia.app"
+  //   - android/app/src/main/AndroidManifest.xml: intent-filter con scheme
+  //   - Supabase Dashboard → Auth → URL Configuration → Redirect URLs:
+  //       io.sacdia.app://auth/callback
+  //   - Google OAuth habilitado en Supabase Dashboard
+  //   - Apple: Services ID + Key + "Sign In with Apple" capability en Xcode
+  //
+  // Referencia: https://supabase.com/docs/guides/auth/social-login?platform=flutter
+
+  static const _oauthRedirectUrl = 'io.sacdia.app://auth/callback';
+
   @override
   Future<UserModel> signInWithGoogle() async {
-    // TODO(oauth-google): Implementar OAuth con Google vía supabase_flutter.
-    //
-    // El flujo correcto para móvil es:
-    //   1. Configurar un URL scheme en AndroidManifest.xml / Info.plist
-    //      (ej. "io.sacdia.app://auth/callback") y registrarlo en Supabase
-    //      Dashboard → Auth → URL Configuration → Redirect URLs.
-    //   2. Llamar: await Supabase.instance.client.auth.signInWithOAuth(
-    //        OAuthProvider.google,
-    //        redirectTo: 'io.sacdia.app://auth/callback',
-    //      );
-    //      Esto abre el navegador del sistema. Cuando el usuario autoriza,
-    //      Supabase redirige al scheme de la app con access_token en la URL.
-    //   3. Interceptar el deep link en el router (GoRouter / AppLinks) y
-    //      extraer el access_token + refresh_token de la URL de retorno.
-    //   4. POST ese access_token a GET /auth/oauth/callback?access_token=...
-    //      para que el backend valide, cree/resuelva el usuario y devuelva
-    //      el JWT interno de SACDIA.
-    //   5. Llamar _saveToken() con el JWT recibido y construir UserModel.
-    //
-    // Prerequisitos bloqueantes:
-    //   - URL scheme configurado en ios/Runner/Info.plist y android/app/src/main/AndroidManifest.xml
-    //   - Deep link handler en lib/core/config/router.dart
-    //   - Google OAuth habilitado en Supabase Dashboard
-    //
-    // Ver: https://supabase.com/docs/guides/auth/social-login/auth-google?platform=flutter
-    throw AuthException(message: 'OAuth con Google no disponible aún');
+    try {
+      AppLogger.i('Iniciando OAuth con Google', tag: _tag);
+      final launched = await Supabase.instance.client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: _oauthRedirectUrl,
+        authScreenLaunchMode: LaunchMode.platformDefault,
+      );
+
+      if (!launched) {
+        throw AuthException(
+          message: 'No se pudo abrir el navegador para autenticación con Google',
+        );
+      }
+
+      // El resultado llega de forma asíncrona a través del deep link.
+      // El caller (AuthNotifier) debe escuchar authStateChanges o manejar el
+      // callback desde el router. Lanzamos una excepción especializada para
+      // indicar que el flujo fue iniciado y no falló.
+      throw OAuthFlowInitiatedException(provider: 'Google');
+    } on OAuthFlowInitiatedException {
+      rethrow;
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      AppLogger.e('Error iniciando OAuth Google', tag: _tag, error: e);
+      throw AuthException(
+        message: 'Error al iniciar sesión con Google. Intenta de nuevo.',
+      );
+    }
   }
 
   @override
   Future<UserModel> signInWithApple() async {
-    // TODO(oauth-apple): Implementar OAuth con Apple vía supabase_flutter.
-    //
-    // El flujo es idéntico al de Google (ver signInWithGoogle arriba) pero:
-    //   - Provider: OAuthProvider.apple
-    //   - Requiere Apple Developer Program membership y configurar
-    //     "Sign In with Apple" capability en Xcode.
-    //   - Apple exige un dominio verificado como redirectTo en producción;
-    //     en desarrollo se puede usar el URL scheme de la app.
-    //   - En Android también funciona vía browser (no nativo), usar mismo
-    //     URL scheme que Google.
-    //
-    // Prerequisitos bloqueantes (además de los de Google):
-    //   - Apple Developer: Services ID + Key configurados
-    //   - Supabase Dashboard: Apple provider habilitado con Client ID y Secret
-    //
-    // Ver: https://supabase.com/docs/guides/auth/social-login/auth-apple?platform=flutter
-    throw AuthException(message: 'OAuth con Apple no disponible aún');
+    try {
+      AppLogger.i('Iniciando OAuth con Apple', tag: _tag);
+      final launched = await Supabase.instance.client.auth.signInWithOAuth(
+        OAuthProvider.apple,
+        redirectTo: _oauthRedirectUrl,
+        authScreenLaunchMode: LaunchMode.platformDefault,
+      );
+
+      if (!launched) {
+        throw AuthException(
+          message: 'No se pudo abrir el navegador para autenticación con Apple',
+        );
+      }
+
+      throw OAuthFlowInitiatedException(provider: 'Apple');
+    } on OAuthFlowInitiatedException {
+      rethrow;
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      AppLogger.e('Error iniciando OAuth Apple', tag: _tag, error: e);
+      throw AuthException(
+        message: 'Error al iniciar sesión con Apple. Intenta de nuevo.',
+      );
+    }
   }
 
   @override

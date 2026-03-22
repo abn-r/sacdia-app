@@ -81,3 +81,20 @@ class UnexpectedFailure extends Failure {
     super.stackTrace,
   });
 }
+
+/// Señal (no un error real) que indica que el flujo OAuth fue iniciado.
+/// La UI debe mostrar un estado informativo, no un error.
+class OAuthFlowInitiatedFailure extends Failure {
+  /// Nombre del proveedor OAuth ("Google", "Apple", etc.).
+  final String provider;
+
+  const OAuthFlowInitiatedFailure({
+    required this.provider,
+  }) : super(
+          message:
+              'Redirigiendo a $provider. Completa el proceso en el navegador.',
+        );
+
+  @override
+  List<Object?> get props => [...super.props, provider];
+}
