@@ -17,6 +17,7 @@ import '../../domain/usecases/sign_up.dart';
 import '../../domain/usecases/switch_context.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/notifications/push_notification_provider.dart';
 import '../../../../providers/dio_provider.dart';
 
 /// Provider para la URL base de la API
@@ -133,6 +134,9 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
           if (cachedId != null && cachedEmail != null) {
             AppLogger.i('Sesión restaurada desde caché: $cachedEmail',
                 tag: _tag);
+            // Session restored from cache — initialize FCM so token is
+            // registered even when the backend was temporarily unreachable.
+            ref.read(pushNotificationServiceProvider).initialize();
             return UserEntity(
               id: cachedId,
               email: cachedEmail,
@@ -151,12 +155,15 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         if (user != null) {
           AppLogger.i('Usuario autenticado: ${user.email}', tag: _tag);
           _cacheUser(user);
+          // User already authenticated on startup — register FCM token.
+          ref.read(pushNotificationServiceProvider).initialize();
           return user;
         }
         AppLogger.w('Servidor respondió sin usuario, intentando caché',
             tag: _tag);
         if (cachedId != null && cachedEmail != null) {
           AppLogger.i('Sesión restaurada desde caché: $cachedEmail', tag: _tag);
+          ref.read(pushNotificationServiceProvider).initialize();
           return UserEntity(
             id: cachedId,
             email: cachedEmail,
@@ -216,6 +223,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         ref.read(isUserLoggedOutProvider.notifier).state = false;
         ref.read(sharedPreferencesProvider).setBool('user_manually_logged_out', false);
         _cacheUser(user);
+        // Register FCM token after successful login (fire-and-forget).
+        ref.read(pushNotificationServiceProvider).initialize();
         return AsyncValue.data(user);
       },
     );
@@ -314,6 +323,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         ref.read(isUserLoggedOutProvider.notifier).state = false;
         _cacheUser(user);
         state = AsyncValue.data(user);
+        // Register FCM token after OAuth login (fire-and-forget).
+        ref.read(pushNotificationServiceProvider).initialize();
       },
     );
   }
@@ -429,6 +440,10 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     state = const AsyncValue.loading();
 
     ref.read(isUserLoggedOutProvider.notifier).state = true;
+
+    // Unregister FCM token before clearing auth tokens so the Dio interceptor
+    // can still attach the Bearer header for the DELETE request.
+    await ref.read(pushNotificationServiceProvider).unregisterToken();
 
     final result = await ref.read(signOutProvider)(NoParams());
 

@@ -14,7 +14,9 @@ import 'package:sacdia_app/features/investiture/presentation/views/investiture_p
 import 'package:sacdia_app/features/investiture/presentation/views/investiture_history_view.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/views/evidence_folder_view.dart';
 import 'package:sacdia_app/features/club/presentation/providers/club_providers.dart';
+import 'package:sacdia_app/features/club/presentation/views/club_detail_view.dart';
 import 'package:sacdia_app/features/club/presentation/views/club_view.dart';
+import 'package:sacdia_app/features/honors/presentation/views/honor_detail_view.dart';
 import 'package:sacdia_app/features/finances/presentation/views/finances_view.dart';
 import 'package:sacdia_app/features/home/presentation/widgets/resources_section.dart';
 import 'package:sacdia_app/features/inventory/presentation/views/inventory_view.dart';
@@ -26,6 +28,7 @@ import 'package:sacdia_app/features/camporees/presentation/views/camporee_regist
 import 'package:sacdia_app/features/units/presentation/views/units_list_view.dart';
 
 import '../../features/auth/presentation/providers/auth_providers.dart';
+import '../notifications/push_notification_provider.dart';
 import '../../features/auth/presentation/views/forgot_password_view.dart';
 import '../../features/auth/presentation/views/login_view.dart';
 import '../../features/auth/presentation/views/register_view.dart';
@@ -77,6 +80,7 @@ Page<void> _slideUpBuild(
 /// stem from constructing a new GoRouter mid-navigation.
 final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
+    navigatorKey: pushNavigatorKey,
     initialLocation: RouteNames.splash,
     debugLogDiagnostics: kDebugMode,
     redirect: (context, state) {
@@ -296,7 +300,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) {
           final clubId = state.pathParameters['clubId']!;
           return _sharedAxisBuild(
-              context, state, _PlaceholderScreen(title: 'Club: $clubId'));
+              context, state, ClubDetailView(clubId: clubId));
         },
       ),
 
@@ -318,9 +322,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.honorDetail,
         pageBuilder: (context, state) {
-          final honorId = state.pathParameters['honorId']!;
+          final honorIdStr = state.pathParameters['honorId']!;
+          final honorId = int.tryParse(honorIdStr) ?? 0;
           return _sharedAxisBuild(
-              context, state, _PlaceholderScreen(title: 'Honor: $honorId'));
+              context, state, HonorDetailView(honorId: honorId));
         },
       ),
 
@@ -705,26 +710,6 @@ class _ActiveClassDetailShell extends ConsumerWidget {
         }
         return ClassDetailWithProgressView(classId: classes.first.id);
       },
-    );
-  }
-}
-
-/// Pantalla placeholder para features aún no implementados
-class _PlaceholderScreen extends StatelessWidget {
-  final String title;
-
-  const _PlaceholderScreen({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-      ),
     );
   }
 }

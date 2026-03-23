@@ -8,6 +8,7 @@ import '../../data/datasources/club_remote_data_source.dart';
 import '../../data/repositories/club_repository_impl.dart';
 import '../../domain/entities/club_info.dart';
 import '../../domain/repositories/club_repository.dart';
+import '../../domain/usecases/get_club_info.dart';
 import '../../domain/usecases/get_club_section.dart';
 import '../../domain/usecases/update_club_section.dart';
 
@@ -30,8 +31,25 @@ final clubRepositoryProvider = Provider<ClubRepository>((ref) {
 
 // ── Use case providers ────────────────────────────────────────────────────────
 
+final getClubInfoUseCaseProvider = Provider<GetClubInfo>((ref) {
+  return GetClubInfo(ref.read(clubRepositoryProvider));
+});
+
 final getClubSectionUseCaseProvider = Provider<GetClubSection>((ref) {
   return GetClubSection(ref.read(clubRepositoryProvider));
+});
+
+// ── Club info by ID (for detail view) ────────────────────────────────────────
+
+/// Obtiene la información básica del club contenedor por su UUID.
+final clubInfoProvider =
+    FutureProvider.autoDispose.family<ClubInfo, String>((ref, clubId) async {
+  final useCase = ref.read(getClubInfoUseCaseProvider);
+  final result = await useCase(GetClubInfoParams(clubId: clubId));
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (club) => club,
+  );
 });
 
 final updateClubSectionUseCaseProvider = Provider<UpdateClubSection>((ref) {
