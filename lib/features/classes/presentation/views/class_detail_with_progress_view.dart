@@ -556,19 +556,36 @@ class _ModuleSectionState extends State<_ModuleSection> {
                               ),
                         ),
                         const SizedBox(height: 4),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: widget.module.completionRatio,
-                            minHeight: 4,
-                            backgroundColor:
-                                c.borderLight,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              isComplete
-                                  ? AppColors.secondary
-                                  : AppColors.primary,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: LinearProgressIndicator(
+                                  value: widget.module.completionRatio
+                                      .clamp(0.0, 1.0),
+                                  minHeight: 4,
+                                  backgroundColor: c.borderLight,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    isComplete
+                                        ? AppColors.secondary
+                                        : AppColors.primary,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${(widget.module.completionRatio.clamp(0.0, 1.0) * 100).round()}%',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: isComplete
+                                    ? AppColors.secondary
+                                    : AppColors.primary,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
