@@ -1,72 +1,134 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 
-/// Grid 2×4 de acceso rápido a los módulos principales del sistema.
-class QuickAccessGrid extends StatelessWidget {
+class _QuickAccessItemConfig {
+  final String label;
+  final List<List<dynamic>> icon;
+  final Color? color;
+  final String route;
+  final Set<String> requiredPermissions;
+  final Set<String> legacyRoles;
+
+  const _QuickAccessItemConfig({
+    required this.label,
+    required this.icon,
+    this.color,
+    required this.route,
+    this.requiredPermissions = const {},
+    this.legacyRoles = const {},
+  });
+}
+
+const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
+  _QuickAccessItemConfig(
+    label: 'Miembros',
+    icon: HugeIcons.strokeRoundedUserGroup,
+    color: AppColors.primary,
+    route: RouteNames.homeMembers,
+    requiredPermissions: {'clubs:read'},
+    legacyRoles: {'director', 'subdirector', 'secretario', 'consejero'},
+  ),
+  _QuickAccessItemConfig(
+    label: 'Club',
+    icon: HugeIcons.strokeRoundedBuilding01,
+    color: AppColors.secondary,
+    route: RouteNames.homeClub,
+    requiredPermissions: {'clubs:read'},
+    legacyRoles: {'director', 'subdirector', 'secretario'},
+  ),
+  _QuickAccessItemConfig(
+    label: 'Carpeta de Evidencias',
+    icon: HugeIcons.strokeRoundedFolder01,
+    color: AppColors.accent,
+    route: RouteNames.homeEvidences,
+    requiredPermissions: {'users:read_detail'},
+  ),
+  _QuickAccessItemConfig(
+    label: 'Finanzas',
+    icon: HugeIcons.strokeRoundedCreditCard,
+    color: AppColors.info,
+    route: RouteNames.homeFinances,
+    requiredPermissions: {'finances:read'},
+    legacyRoles: {'director', 'tesorero'},
+  ),
+  _QuickAccessItemConfig(
+    label: 'Unidades',
+    icon: HugeIcons.strokeRoundedCompass01,
+    color: AppColors.secondary,
+    route: RouteNames.homeUnits,
+    requiredPermissions: {'units:read'},
+    legacyRoles: {'director', 'subdirector', 'consejero'},
+  ),
+  _QuickAccessItemConfig(
+    label: 'Clase Agrupada',
+    icon: HugeIcons.strokeRoundedBookOpen01,
+    color: AppColors.primary,
+    route: RouteNames.homeGroupedClass,
+    requiredPermissions: {'classes:read'},
+    legacyRoles: {'conquistador', 'aventurero', 'guia_mayor'},
+  ),
+  _QuickAccessItemConfig(
+    label: 'Seguros del Club',
+    icon: HugeIcons.strokeRoundedShield01,
+    color: AppColors.secondaryDark,
+    route: RouteNames.homeInsurance,
+    requiredPermissions: {'clubs:read'},
+    legacyRoles: {'director', 'subdirector', 'secretario'},
+  ),
+  _QuickAccessItemConfig(
+    label: 'Inventario',
+    icon: HugeIcons.strokeRoundedPackage,
+    color: AppColors.accent,
+    route: RouteNames.homeInventory,
+    requiredPermissions: {'inventory:read'},
+    legacyRoles: {'director', 'subdirector'},
+  ),
+  _QuickAccessItemConfig(
+    label: 'Recursos',
+    icon: HugeIcons.strokeRoundedFiles01,
+    route: RouteNames.homeResources,
+  ),
+];
+
+/// Grid 2xN de acceso rápido a los módulos principales del sistema.
+///
+/// Watches [authNotifierProvider] scoped to the authorization sub-state so
+/// the grid rebuilds reactively when permissions change (e.g. context switch).
+class QuickAccessGrid extends ConsumerWidget {
   const QuickAccessGrid({super.key});
 
-  static const List<_QuickAccessItem> _items = [
-    _QuickAccessItem(
-      label: 'Miembros',
-      icon: HugeIcons.strokeRoundedUserGroup,
-      color: AppColors.primary,
-      route: RouteNames.homeMembers,
-    ),
-    _QuickAccessItem(
-      label: 'Club',
-      icon: HugeIcons.strokeRoundedBuilding01,
-      color: AppColors.secondary,
-      route: RouteNames.homeClub,
-    ),
-    _QuickAccessItem(
-      label: 'Carpeta de Evidencias',
-      icon: HugeIcons.strokeRoundedFolder01,
-      color: AppColors.accent,
-      route: RouteNames.homeEvidences,
-    ),
-    _QuickAccessItem(
-      label: 'Finanzas',
-      icon: HugeIcons.strokeRoundedCreditCard,
-      color: AppColors.info,
-      route: RouteNames.homeFinances,
-    ),
-    _QuickAccessItem(
-      label: 'Unidades',
-      icon: HugeIcons.strokeRoundedCompass01,
-      color: AppColors.secondary,
-      route: RouteNames.homeUnits,
-    ),
-    _QuickAccessItem(
-      label: 'Clase Agrupada',
-      icon: HugeIcons.strokeRoundedBookOpen01,
-      color: AppColors.primary,
-      route: RouteNames.homeGroupedClass,
-    ),
-    _QuickAccessItem(
-      label: 'Seguros del Club',
-      icon: HugeIcons.strokeRoundedShield01,
-      color: AppColors.secondaryDark,
-      route: RouteNames.homeInsurance,
-    ),
-    _QuickAccessItem(
-      label: 'Inventario',
-      icon: HugeIcons.strokeRoundedPackage,
-      color: AppColors.accent,
-      route: RouteNames.homeInventory,
-    ),
-    _QuickAccessItem(
-      label: 'Recursos',
-      icon: HugeIcons.strokeRoundedFiles01,
-      route: RouteNames.homeResources,
-    ),
-  ];
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(
+      authNotifierProvider.select((v) => v.valueOrNull),
+    );
+    final authorization = user?.authorization;
+
+    final List<_QuickAccessItemConfig> filteredItems;
+    if (authorization == null) {
+      filteredItems = const [];
+    } else {
+      filteredItems = _quickAccessItemsConfig.where((item) {
+        if (item.requiredPermissions.isEmpty) return true;
+        return canByPermissionOrLegacyRole(
+          user,
+          requiredPermissions: item.requiredPermissions,
+          legacyRoles: item.legacyRoles,
+        );
+      }).toList();
+    }
+
+    if (filteredItems.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -86,9 +148,9 @@ class QuickAccessGrid extends StatelessWidget {
             crossAxisSpacing: 12,
             childAspectRatio: 1.2,
           ),
-          itemCount: _items.length,
+          itemCount: filteredItems.length,
           itemBuilder: (context, index) {
-            final item = _items[index];
+            final item = filteredItems[index];
             return _QuickAccessTile(item: item);
           },
         ),
@@ -97,24 +159,8 @@ class QuickAccessGrid extends StatelessWidget {
   }
 }
 
-class _QuickAccessItem {
-  final String label;
-  // HugeIcon path data — internal format used by package:hugeicons
-  final List<List<dynamic>> icon;
-  // Null means "follow theme text color" — resolved at render time via context.sac.text
-  final Color? color;
-  final String route;
-
-  const _QuickAccessItem({
-    required this.label,
-    required this.icon,
-    this.color,
-    required this.route,
-  });
-}
-
 class _QuickAccessTile extends StatelessWidget {
-  final _QuickAccessItem item;
+  final _QuickAccessItemConfig item;
 
   // Shared BorderRadius to avoid repeated allocations on every build.
   static final _kTileRadius = BorderRadius.circular(16);

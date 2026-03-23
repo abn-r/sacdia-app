@@ -27,6 +27,9 @@ import 'package:sacdia_app/features/camporees/presentation/views/camporee_member
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_register_member_view.dart';
 import 'package:sacdia_app/features/units/presentation/views/units_list_view.dart';
 
+import '../../features/auth/domain/entities/authorization_snapshot.dart';
+import '../../features/auth/domain/entities/user_entity.dart';
+import '../../features/auth/domain/utils/authorization_utils.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../notifications/push_notification_provider.dart';
 import '../../features/auth/presentation/views/forgot_password_view.dart';
@@ -478,75 +481,114 @@ final routerProvider = Provider<GoRouter>((ref) {
 
 // ── Navigation destination data ───────────────────────────────────────────────
 
-class _NavItem {
+class _NavItemConfig {
   final String route;
   final List<List<dynamic>> icon;
   final String label;
+  final Set<String> requiredPermissions;
+  final Set<String> legacyRoles;
 
-  const _NavItem({
+  const _NavItemConfig({
     required this.route,
     required this.icon,
     required this.label,
+    this.requiredPermissions = const {},
+    this.legacyRoles = const {},
   });
 }
 
-final List<_NavItem> _navItems = [
-  _NavItem(
+const List<_NavItemConfig> _navItemsConfig = [
+  _NavItemConfig(
     route: RouteNames.homeDashboard,
     icon: HugeIcons.strokeRoundedHome01,
     label: 'Inicio',
   ),
-  _NavItem(
+  _NavItemConfig(
     route: RouteNames.homeClasses,
     icon: HugeIcons.strokeRoundedSchool,
     label: 'Clases',
+    requiredPermissions: {'classes:read'},
+    legacyRoles: {'conquistador', 'aventurero', 'guia_mayor'},
   ),
-  _NavItem(
+  _NavItemConfig(
     route: RouteNames.homeActivities,
     icon: HugeIcons.strokeRoundedCalendar01,
     label: 'Actividades',
+    requiredPermissions: {'activities:read'},
+    legacyRoles: {'conquistador', 'aventurero', 'guia_mayor'},
   ),
-  _NavItem(
+  _NavItemConfig(
     route: RouteNames.homeProfile,
     icon: HugeIcons.strokeRoundedUser,
     label: 'Perfil',
   ),
 ];
 
+List<_NavItemConfig> _filterNavItems(
+  List<_NavItemConfig> items,
+  UserEntity? user,
+  AuthorizationSnapshot? authorization,
+) {
+  if (authorization == null) return items;
+
+  return items.where((item) {
+    if (item.requiredPermissions.isEmpty) return true;
+    return canByPermissionOrLegacyRole(
+      user,
+      requiredPermissions: item.requiredPermissions,
+      legacyRoles: item.legacyRoles,
+    );
+  }).toList();
+}
+
+int _resolveCurrentIndex(
+  BuildContext context,
+  List<_NavItemConfig> items,
+) {
+  final location = GoRouterState.of(context).matchedLocation;
+  final idx = items.indexWhere(
+    (item) => location.startsWith(item.route),
+  );
+  return idx.clamp(0, items.length - 1);
+}
+
+void _navigateToIndex(
+  BuildContext context,
+  int index,
+  List<_NavItemConfig> items,
+) {
+  if (index < items.length) {
+    context.go(items[index].route);
+  }
+}
+
 // ── Main shell — adaptive navigation ─────────────────────────────────────────
 
 /// Shell principal con navegación adaptativa:
 /// - Phones (< 600dp): Material 3 NavigationBar en la parte inferior.
 /// - Tablets / landscape (>= 600dp): NavigationRail a la izquierda.
-class _MainShell extends StatelessWidget {
+///
+/// Watches [authNotifierProvider] scoped to the authorization sub-state so
+/// the tab list rebuilds reactively when permissions change (e.g. context switch).
+class _MainShell extends ConsumerWidget {
   final Widget child;
 
   const _MainShell({required this.child});
 
-  int _currentIndex(BuildContext context) {
-    final location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith(RouteNames.homeClasses)) return 1;
-    if (location.startsWith(RouteNames.homeActivities)) return 2;
-    if (location.startsWith(RouteNames.homeProfile)) return 3;
-    return 0;
-  }
-
-  void _navigate(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        context.go(RouteNames.homeDashboard);
-      case 1:
-        context.go(RouteNames.homeClasses);
-      case 2:
-        context.go(RouteNames.homeActivities);
-      case 3:
-        context.go(RouteNames.homeProfile);
-    }
-  }
-
   @override
-  Widget build(BuildContext context) {
-    final selectedIndex = _currentIndex(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(
+      authNotifierProvider.select((v) => v.valueOrNull),
+    );
+    final authorization = user?.authorization;
+
+    final filteredItems = _filterNavItems(
+      _navItemsConfig,
+      user,
+      authorization,
+    );
+
+    final selectedIndex = _resolveCurrentIndex(context, filteredItems);
     final useRail = Responsive.isTablet(context);
 
     if (useRail) {
@@ -556,10 +598,11 @@ class _MainShell extends StatelessWidget {
           children: [
             NavigationRail(
               selectedIndex: selectedIndex,
-              onDestinationSelected: (index) => _navigate(context, index),
+              onDestinationSelected: (index) =>
+                  _navigateToIndex(context, index, filteredItems),
               labelType: NavigationRailLabelType.all,
               useIndicator: true,
-              destinations: _navItems
+              destinations: filteredItems
                   .map(
                     (item) => NavigationRailDestination(
                       icon: HugeIcon(
@@ -589,8 +632,9 @@ class _MainShell extends StatelessWidget {
       body: child,
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
-        onDestinationSelected: (index) => _navigate(context, index),
-        destinations: _navItems
+        onDestinationSelected: (index) =>
+            _navigateToIndex(context, index, filteredItems),
+        destinations: filteredItems
             .map(
               (item) => NavigationDestination(
                 icon: HugeIcon(icon: item.icon),
