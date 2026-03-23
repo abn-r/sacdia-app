@@ -2,10 +2,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/app_logger.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -13,6 +16,7 @@ import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
+import 'package:sacdia_app/features/post_registration/presentation/providers/post_registration_providers.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/profile_providers.dart';
@@ -163,11 +167,120 @@ class _SettingsSheet extends StatelessWidget {
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 
-class ProfileView extends ConsumerWidget {
+class ProfileView extends ConsumerStatefulWidget {
   const ProfileView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileView> createState() => _ProfileViewState();
+}
+
+class _ProfileViewState extends ConsumerState<ProfileView> {
+  static const _tag = 'ProfileView';
+  bool _isUploadingPhoto = false;
+
+  Future<void> _changePhoto() async {
+    final user = ref.read(authNotifierProvider).valueOrNull;
+    if (user == null) return;
+
+    try {
+      final XFile? photo = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 70,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      );
+
+      if (photo == null) return;
+
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: photo.path,
+        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+        compressQuality: 70,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Recortar foto',
+            toolbarColor: AppColors.primary,
+            toolbarWidgetColor: Colors.white,
+            lockAspectRatio: true,
+            hideBottomControls: false,
+          ),
+          IOSUiSettings(
+            title: 'Recortar foto',
+            aspectRatioLockEnabled: true,
+            resetAspectRatioEnabled: false,
+          ),
+        ],
+      );
+
+      if (croppedFile == null) return;
+
+      setState(() => _isUploadingPhoto = true);
+
+      try {
+        final result = await ref
+            .read(postRegistrationRepositoryProvider)
+            .uploadProfilePicture(
+              userId: user.id,
+              filePath: croppedFile.path,
+            );
+
+        result.fold(
+          (failure) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('No se pudo subir la foto. Intentá de nuevo.'),
+                  backgroundColor: AppColors.error,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+            }
+          },
+          (_) {
+            if (mounted) {
+              ref.invalidate(profileNotifierProvider);
+              ref.invalidate(authNotifierProvider);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('Foto actualizada correctamente'),
+                  backgroundColor: AppColors.secondary,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+            }
+          },
+        );
+      } finally {
+        if (mounted) {
+          setState(() => _isUploadingPhoto = false);
+        }
+      }
+    } catch (e) {
+      AppLogger.e('Error al cambiar foto de perfil', tag: _tag, error: e);
+      if (mounted) {
+        setState(() => _isUploadingPhoto = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('No se pudo subir la foto. Intentá de nuevo.'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final profileState = ref.watch(profileNotifierProvider);
     final hPad = Responsive.horizontalPadding(context);
 
@@ -259,17 +372,8 @@ class ProfileView extends ConsumerWidget {
                         roles: profile.roles,
                         clubName: profile.clubName,
                         currentClass: profile.currentClass,
-                        onEditPhoto: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: const Text('Cambio de foto próximamente'),
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                          );
-                        },
+                        isUploadingPhoto: _isUploadingPhoto,
+                        onEditPhoto: _isUploadingPhoto ? null : _changePhoto,
                         onEditProfile: () {
                           Navigator.push(
                             context,
@@ -531,6 +635,7 @@ class _ProfileHeaderCard extends StatelessWidget {
   final List<String> roles;
   final String? clubName;
   final String? currentClass;
+  final bool isUploadingPhoto;
   final VoidCallback? onEditPhoto;
   final VoidCallback? onEditProfile;
 
@@ -540,6 +645,7 @@ class _ProfileHeaderCard extends StatelessWidget {
     this.avatar,
     this.clubName,
     this.currentClass,
+    this.isUploadingPhoto = false,
     this.onEditPhoto,
     this.onEditProfile,
   });
@@ -633,51 +739,75 @@ class _ProfileHeaderCard extends StatelessWidget {
                     const SizedBox(width: 16),
 
                     // ── Right: circular avatar with camera button ──
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.primaryLight,
-                              width: 3,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color:
-                                    AppColors.primary.withValues(alpha: 0.15),
-                                blurRadius: 16,
-                                offset: const Offset(0, 4),
+                    GestureDetector(
+                      onTap: onEditPhoto,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.primaryLight,
+                                width: 3,
                               ),
-                            ],
-                          ),
-                          child: CircleAvatar(
-                            radius: avatarRadius,
-                            backgroundColor: AppColors.primarySurface,
-                            backgroundImage: avatar != null
-                                ? CachedNetworkImageProvider(avatar!)
-                                : null,
-                            child: avatar == null
-                                ? Text(
-                                    name.isNotEmpty
-                                        ? name[0].toUpperCase()
-                                        : 'U',
-                                    style: const TextStyle(
-                                      fontSize: fallbackFontSize,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.primary,
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      AppColors.primary.withValues(alpha: 0.15),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                CircleAvatar(
+                                  radius: avatarRadius,
+                                  backgroundColor: AppColors.primarySurface,
+                                  backgroundImage: avatar != null
+                                      ? CachedNetworkImageProvider(avatar!)
+                                      : null,
+                                  child: avatar == null
+                                      ? Text(
+                                          name.isNotEmpty
+                                              ? name[0].toUpperCase()
+                                              : 'U',
+                                          style: const TextStyle(
+                                            fontSize: fallbackFontSize,
+                                            fontWeight: FontWeight.w700,
+                                            color: AppColors.primary,
+                                          ),
+                                        )
+                                      : null,
+                                ),
+                                if (isUploadingPhoto)
+                                  Container(
+                                    width: avatarRadius * 2,
+                                    height: avatarRadius * 2,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Color(0x80000000),
                                     ),
-                                  )
-                                : null,
+                                    child: const Center(
+                                      child: SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
-                        ),
-                        if (onEditPhoto != null)
-                          Positioned(
-                            bottom: 2,
-                            right: 2,
-                            child: GestureDetector(
-                              onTap: onEditPhoto,
+                          if (!isUploadingPhoto)
+                            Positioned(
+                              bottom: 2,
+                              right: 2,
                               child: Container(
                                 width: 28,
                                 height: 28,
@@ -705,8 +835,8 @@ class _ProfileHeaderCard extends StatelessWidget {
                                 ),
                               ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
