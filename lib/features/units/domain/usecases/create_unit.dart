@@ -1,4 +1,4 @@
-import 'package:dartz/dartz.dart';
+import 'package:dartz/dartz.dart' hide Unit;
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';

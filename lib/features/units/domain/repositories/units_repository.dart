@@ -1,4 +1,4 @@
-import 'package:dartz/dartz.dart';
+import 'package:dartz/dartz.dart' hide Unit;
 
 import '../../../../core/errors/failures.dart';
 import '../entities/unit.dart';
