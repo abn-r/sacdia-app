@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -168,16 +169,22 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               SettingTile(
                 icon: HugeIcons.strokeRoundedSecurityCheck,
                 title: 'Política de privacidad',
-                onTap: () {
-                  // TODO: Abrir política de privacidad
+                onTap: () async {
+                  await launchUrl(
+                    Uri.parse('https://sacdia.com/privacy'),
+                    mode: LaunchMode.externalApplication,
+                  );
                 },
               ),
               _groupDivider(),
               SettingTile(
                 icon: HugeIcons.strokeRoundedLegalDocument01,
                 title: 'Términos y condiciones',
-                onTap: () {
-                  // TODO: Abrir términos y condiciones
+                onTap: () async {
+                  await launchUrl(
+                    Uri.parse('https://sacdia.com/terms'),
+                    mode: LaunchMode.externalApplication,
+                  );
                 },
               ),
             ],

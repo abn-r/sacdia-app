@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -30,6 +32,9 @@ abstract class ActivitiesRemoteDataSource {
   Future<void> deleteActivity(int activityId);
   Future<List<AttendanceModel>> getActivityAttendance(int activityId);
   Future<int> registerAttendance(int activityId, List<String> userIds);
+
+  /// Sube una imagen para la actividad y devuelve la URL firmada resultante.
+  Future<String> uploadActivityImage(int activityId, File imageFile);
 }
 
 /// Implementación de la fuente de datos remota de actividades
@@ -283,6 +288,54 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
       if (e is DioException) {
         throw ServerException(
           message: e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
+          code: e.response?.statusCode,
+        );
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<String> uploadActivityImage(int activityId, File imageFile) async {
+    try {
+      AppLogger.i('Subiendo imagen para actividad: $activityId', tag: _tag);
+      final token = await _getAuthToken();
+
+      final fileName = imageFile.path.split('/').last;
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          imageFile.path,
+          filename: fileName,
+        ),
+      });
+
+      final response = await _dio.post(
+        '$_baseUrl/activities/$activityId/image',
+        data: formData,
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = response.data as Map<String, dynamic>;
+        final data = responseData['data'] as Map<String, dynamic>;
+        final url = data['url'] as String;
+        AppLogger.i('Imagen subida exitosamente para actividad: $activityId', tag: _tag);
+        return url;
+      }
+
+      throw ServerException(
+        message: 'Error al subir imagen de actividad',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en uploadActivityImage', tag: _tag, error: e);
+      if (e is DioException) {
+        final message = e.response?.data is Map
+            ? (e.response!.data['message'] ?? e.message ?? 'Error de conexión')
+            : (e.message ?? 'Error de conexión');
+        throw ServerException(
+          message: message.toString(),
           code: e.response?.statusCode,
         );
       }

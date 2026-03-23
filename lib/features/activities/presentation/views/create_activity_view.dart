@@ -1,4 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -57,8 +58,8 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
   int _selectedPlatform = 0; // 0 = Presencial, 1 = Virtual
   int _selectedActivityType = 1; // 1 = Regular, 2 = Especial, 3 = Camporee
 
-  // Image upload state
-  String? _uploadedImageUrl;
+  // Image state: file picked locally (upload happens after activity creation)
+  XFile? _pickedImageFile;
   bool _isUploadingImage = false;
 
   @override
@@ -118,7 +119,6 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
   }
 
   Future<void> _pickAndUploadImage(ImageSource source) async {
-    // 1. Pick image
     final picker = ImagePicker();
     final XFile? picked = await picker.pickImage(
       source: source,
@@ -128,39 +128,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
     );
     if (picked == null || !mounted) return;
 
-    // 2. Set loading state
-    setState(() => _isUploadingImage = true);
-
-    try {
-      // TODO(W3): Upload image via backend signed URL (Cloudflare R2).
-      // Con la migración Wave 3 el storage pasó de Supabase Storage a
-      // Cloudflare R2. Implementar llamando a:
-      //   POST /storage/upload/activities → devuelve { url, key }
-      // Por ahora dejamos el campo vacío y mostramos un mensaje informativo.
-      if (mounted) {
-        setState(() => _isUploadingImage = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Carga de imágenes temporalmente deshabilitada (Wave 3 migration).'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isUploadingImage = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Error al subir la imagen. Intenta nuevamente.'),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
-      }
-    }
+    setState(() => _pickedImageFile = picked);
   }
 
   Future<void> _handleSave() async {
@@ -181,7 +149,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
     }
 
     // Para actividades virtuales se requiere imagen
-    if (_selectedPlatform == 1 && _uploadedImageUrl == null) {
+    if (_selectedPlatform == 1 && _pickedImageFile == null) {
       _showError('Selecciona una imagen para la actividad virtual');
       return;
     }
@@ -198,7 +166,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
           ? '09:00'
           : _timeController.text.trim(),
       activityPlace: _selectedLocation!.name,
-      image: _uploadedImageUrl,
+      image: null, // set after upload
       platform: _selectedPlatform,
       activityTypeId: _selectedActivityType,
       linkMeet: _linkMeetController.text.trim().isEmpty
@@ -214,25 +182,61 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
     );
 
     if (!mounted) return;
+    if (!success) return; // error shown via notifier state
 
-    if (success) {
-      // Invalidar la lista de actividades para que se recargue
-      ref.invalidate(clubActivitiesProvider);
+    final createdActivity = ref.read(createActivityNotifierProvider).createdActivity;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Actividad creada correctamente'),
-          backgroundColor: AppColors.secondary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+    // Upload image if one was picked
+    if (_pickedImageFile != null && createdActivity != null) {
+      setState(() => _isUploadingImage = true);
+
+      final repository = ref.read(activitiesRepositoryProvider);
+      final uploadResult = await repository.uploadActivityImage(
+        createdActivity.id,
+        File(_pickedImageFile!.path),
       );
 
-      Navigator.of(context).pop(true);
+      if (mounted) setState(() => _isUploadingImage = false);
+
+      if (!mounted) return;
+
+      uploadResult.fold(
+        (failure) {
+          // Activity was created — just warn about the image
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Actividad creada, pero hubo un error al subir la imagen: ${failure.message}',
+              ),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        },
+        (_) {}, // success — no extra feedback needed
+      );
     }
-    // El error se muestra via el estado del notifier (ver build)
+
+    if (!mounted) return;
+
+    // Invalidar la lista de actividades para que se recargue
+    ref.invalidate(clubActivitiesProvider);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Actividad creada correctamente'),
+        backgroundColor: AppColors.secondary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+
+    Navigator.of(context).pop(true);
   }
 
   void _showError(String message) {
@@ -255,7 +259,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
     final createState = ref.watch(createActivityNotifierProvider);
     final activityTypesAsync = ref.watch(activityTypesProvider);
     final c = context.sac;
-    final isLoading = createState.isLoading;
+    final isLoading = createState.isLoading || _isUploadingImage;
     final activityTypeItems = activityTypesAsync.maybeWhen(
       data: (activityTypes) => activityTypes
           .map(
@@ -483,7 +487,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
                         _selectedPlatform = v;
                         // Reset image when switching to presencial
                         if (v == 0) {
-                          _uploadedImageUrl = null;
+                          _pickedImageFile = null;
                           _imageController.clear();
                         }
                       }),
@@ -509,7 +513,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
                         const SizedBox(height: 16),
                         // Image picker
                         _ActivityImagePicker(
-                          imageUrl: _uploadedImageUrl,
+                          localImagePath: _pickedImageFile?.path,
                           isUploading: _isUploadingImage,
                           enabled: !isLoading,
                           onPickGallery: () =>
@@ -545,14 +549,14 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _ActivityImagePicker extends StatelessWidget {
-  final String? imageUrl;
+  final String? localImagePath;
   final bool isUploading;
   final bool enabled;
   final VoidCallback onPickGallery;
   final VoidCallback onPickCamera;
 
   const _ActivityImagePicker({
-    required this.imageUrl,
+    required this.localImagePath,
     required this.isUploading,
     required this.enabled,
     required this.onPickGallery,
@@ -584,10 +588,10 @@ class _ActivityImagePicker extends StatelessWidget {
             color: enabled ? c.surface : c.surfaceVariant,
             borderRadius: BorderRadius.circular(AppTheme.radiusSM),
             border: Border.all(
-              color: imageUrl != null
+              color: localImagePath != null
                   ? AppColors.primary.withValues(alpha: 0.4)
                   : c.border,
-              width: imageUrl != null ? 1.5 : 1.0,
+              width: localImagePath != null ? 1.5 : 1.0,
             ),
             boxShadow: [
               BoxShadow(
@@ -599,9 +603,9 @@ class _ActivityImagePicker extends StatelessWidget {
           ),
           child: isUploading
               ? _UploadingBody()
-              : imageUrl != null
+              : localImagePath != null
                   ? _PreviewBody(
-                      imageUrl: imageUrl!,
+                      localImagePath: localImagePath!,
                       enabled: enabled,
                       onPickGallery: onPickGallery,
                       onPickCamera: onPickCamera,
@@ -736,13 +740,13 @@ class _ImageSourceButton extends StatelessWidget {
 }
 
 class _PreviewBody extends StatelessWidget {
-  final String imageUrl;
+  final String localImagePath;
   final bool enabled;
   final VoidCallback onPickGallery;
   final VoidCallback onPickCamera;
 
   const _PreviewBody({
-    required this.imageUrl,
+    required this.localImagePath,
     required this.enabled,
     required this.onPickGallery,
     required this.onPickCamera,
@@ -760,12 +764,12 @@ class _PreviewBody extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: CachedNetworkImage(
-                  imageUrl: imageUrl,
+                child: Image.file(
+                  File(localImagePath),
                   height: 120,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  errorWidget: (_, __, ___) => Container(
+                  errorBuilder: (_, __, ___) => Container(
                     height: 120,
                     color: AppColors.primaryLight,
                     child: const Center(

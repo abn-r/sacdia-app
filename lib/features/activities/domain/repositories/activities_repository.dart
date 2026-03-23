@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../../data/models/create_activity_request.dart';
@@ -44,5 +46,11 @@ abstract class ActivitiesRepository {
   Future<Either<Failure, int>> registerAttendance(
     int activityId,
     List<String> userIds,
+  );
+
+  /// Sube una imagen para la actividad y devuelve la URL firmada resultante.
+  Future<Either<Failure, String>> uploadActivityImage(
+    int activityId,
+    File imageFile,
   );
 }

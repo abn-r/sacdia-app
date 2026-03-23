@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -173,6 +175,27 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
         userIds,
       );
       return Right(recordedCount);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> uploadActivityImage(
+    int activityId,
+    File imageFile,
+  ) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+
+    try {
+      final url = await remoteDataSource.uploadActivityImage(activityId, imageFile);
+      return Right(url);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on AuthException catch (e) {
