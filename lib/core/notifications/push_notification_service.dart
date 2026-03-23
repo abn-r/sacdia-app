@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -63,15 +65,9 @@ class PushNotificationService {
     // 1. Request permission (required on iOS; Android 13+ also needs it).
     await _requestPermission();
 
-    // 2. Get current token and register with backend.
-    final token = await FirebaseMessaging.instance.getToken();
-    if (token != null) {
-      await _registerTokenWithBackend(token);
-    } else {
-      AppLogger.w('FCM token no disponible aún', tag: _tag);
-    }
-
-    // 3. Listen for token refresh (e.g. after app reinstall or token rotation).
+    // 3. Listen for token refresh BEFORE attempting getToken() so that even
+    //    if the APNS token isn't ready yet we catch the token once it arrives
+    //    (e.g. after app reinstall, token rotation, or late APNS delivery).
     FirebaseMessaging.instance.onTokenRefresh.listen(
       (newToken) async {
         AppLogger.i('Token FCM rotado, re-registrando', tag: _tag);
@@ -81,6 +77,16 @@ class PushNotificationService {
         AppLogger.w('Error en onTokenRefresh', tag: _tag, error: e);
       },
     );
+
+    // 2. Get current token and register with backend.
+    //    On iOS, the APNS token is resolved asynchronously by the OS and may
+    //    not be available immediately after permission is granted.  Calling
+    //    getToken() while APNS is unresolved throws
+    //    [firebase_messaging/apns-token-not-set], crashing the app.
+    //    Strategy: wait for APNS with a short retry loop; if it never arrives
+    //    within the deadline, log a warning and skip — onTokenRefresh above
+    //    will deliver the token later without any extra work.
+    await _getFcmTokenSafely();
 
     // 4. Handle messages arriving while app is in the foreground.
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
@@ -135,6 +141,95 @@ class PushNotificationService {
   }
 
   // ── Private helpers ────────────────────────────────────────────────────────
+
+  /// Obtains the FCM token in a crash-safe way.
+  ///
+  /// On iOS, Firebase requires the APNS token to be registered with the OS
+  /// before it can mint an FCM token.  That handshake is asynchronous and can
+  /// lag several seconds after the permission prompt, especially on first
+  /// launch or after reinstall.  Calling [FirebaseMessaging.getToken] too
+  /// early throws `[firebase_messaging/apns-token-not-set]`.
+  ///
+  /// This method:
+  ///  1. On iOS only — polls [getAPNSToken] up to [_apnsMaxRetries] times
+  ///     with [_apnsRetryDelay] between attempts.
+  ///  2. Wraps [getToken] in a try-catch on all platforms.
+  ///  3. Returns without throwing if the APNS token never arrives — the
+  ///     [onTokenRefresh] listener registered in [initialize] will deliver the
+  ///     token asynchronously when the OS is ready.
+  static const int _apnsMaxRetries = 5;
+  static const Duration _apnsRetryDelay = Duration(seconds: 2);
+
+  /// Returns true when the app is running inside the iOS Simulator.
+  ///
+  /// The Simulator never delivers an APNS token — this is an Apple OS
+  /// limitation that cannot be worked around. Detecting it early avoids
+  /// the full retry wait on every dev launch.
+  ///
+  /// Detection strategy: `SIMULATOR_DEVICE_NAME` is always set in the
+  /// process environment when running inside Xcode Simulator, and is
+  /// never present on real hardware or Android.
+  bool get _isIOSSimulator =>
+      Platform.isIOS &&
+      Platform.environment.containsKey('SIMULATOR_DEVICE_NAME');
+
+  Future<void> _getFcmTokenSafely() async {
+    if (Platform.isIOS) {
+      // iOS Simulator never provides an APNS token — bail out immediately
+      // so we don't waste 10 s on every dev launch.
+      if (_isIOSSimulator) {
+        AppLogger.i(
+          'Push notifications no disponibles en iOS Simulator. '
+          'Usa un dispositivo físico para probar FCM.',
+          tag: _tag,
+        );
+        return;
+      }
+
+      String? apnsToken;
+      for (var attempt = 1; attempt <= _apnsMaxRetries; attempt++) {
+        apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+        if (apnsToken != null) {
+          AppLogger.i(
+            'APNS token disponible (intento $attempt)',
+            tag: _tag,
+          );
+          break;
+        }
+        AppLogger.w(
+          'APNS token no disponible aún (intento $attempt/$_apnsMaxRetries), '
+          'reintentando en ${_apnsRetryDelay.inSeconds}s…',
+          tag: _tag,
+        );
+        await Future<void>.delayed(_apnsRetryDelay);
+      }
+
+      if (apnsToken == null) {
+        AppLogger.w(
+          'APNS token no llegó tras $_apnsMaxRetries intentos. '
+          'El token FCM se registrará vía onTokenRefresh cuando el OS esté listo.',
+          tag: _tag,
+        );
+        return;
+      }
+    }
+
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token != null) {
+        await _registerTokenWithBackend(token);
+      } else {
+        AppLogger.w('FCM token no disponible aún', tag: _tag);
+      }
+    } catch (e) {
+      // Non-fatal: onTokenRefresh will deliver the token when the OS is ready.
+      AppLogger.w(
+        'No se pudo obtener el token FCM ahora — se registrará vía onTokenRefresh.',
+        tag: _tag,
+        error: e,
+      );
+    }
+  }
 
   Future<void> _requestPermission() async {
     final settings = await FirebaseMessaging.instance.getNotificationSettings();
