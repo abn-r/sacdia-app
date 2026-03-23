@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/app_logger.dart';
 import 'package:sacdia_app/features/activities/presentation/views/activities_list_view.dart';
 import 'package:sacdia_app/features/certifications/presentation/views/certifications_list_view.dart';
 import 'package:sacdia_app/features/certifications/presentation/views/certification_detail_view.dart';
@@ -93,14 +94,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         RouteNames.login,
         RouteNames.register,
         RouteNames.forgotPassword,
+        RouteNames.authCallback,
       ];
 
       final isPublicRoute = publicRoutes.contains(currentPath);
 
       // Mientras el AuthNotifier está resolviendo el estado inicial,
       // quedarse en splash para que no haya redirects prematuros.
+      // Excepción: /auth/callback debe permanecer para procesar el token OAuth.
       if (isLoading) {
-        return currentPath == RouteNames.splash ? null : RouteNames.splash;
+        if (currentPath == RouteNames.splash ||
+            currentPath == RouteNames.authCallback) {
+          return null;
+        }
+        return RouteNames.splash;
       }
 
       // Splash es transitorio: una vez que la carga terminó, siempre salir.
@@ -422,6 +429,34 @@ final routerProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+
+      // OAuth callback deep link — io.sacdia.app://auth/callback?session_token=...&provider=...
+      //
+      // GoRouter intercepts the deep link automatically because:
+      //   - iOS: FlutterDeepLinkingEnabled = true in Info.plist
+      //   - Android: intent-filter with scheme io.sacdia.app in AndroidManifest.xml
+      //
+      // The route extracts session_token and provider from query params, calls
+      // AuthNotifier.processOAuthDeepLink, and shows a loading screen while
+      // the token exchange with the backend completes. The redirect callback
+      // above handles the subsequent navigation once auth state updates.
+      GoRoute(
+        path: RouteNames.authCallback,
+        pageBuilder: (context, state) {
+          final sessionToken =
+              state.uri.queryParameters['session_token'] ?? '';
+          final provider =
+              state.uri.queryParameters['provider'] ?? '';
+          return _sharedAxisBuild(
+            context,
+            state,
+            _OAuthCallbackScreen(
+              sessionToken: sessionToken,
+              provider: provider,
+            ),
+          );
+        },
+      ),
     ],
   );
 
@@ -688,6 +723,92 @@ class _PlaceholderScreen extends StatelessWidget {
         child: Text(
           title,
           style: Theme.of(context).textTheme.headlineMedium,
+        ),
+      ),
+    );
+  }
+}
+
+/// Pantalla de procesamiento del callback OAuth.
+///
+/// Muestra un loading mientras llama a [AuthNotifier.processOAuthDeepLink].
+/// Al completar (éxito o fallo) navega a splash para que el redirect
+/// normal tome el control y lleve al usuario a home o login.
+///
+/// El flujo completo:
+///   io.sacdia.app://auth/callback?session_token=xxx&provider=google
+///   → GoRouter intercepta → _OAuthCallbackScreen construida con params
+///   → llama processOAuthDeepLink → auth state actualizado
+///   → router.refresh() llama al redirect → navega a home o login
+class _OAuthCallbackScreen extends ConsumerStatefulWidget {
+  final String sessionToken;
+  final String provider;
+
+  const _OAuthCallbackScreen({
+    required this.sessionToken,
+    required this.provider,
+  });
+
+  @override
+  ConsumerState<_OAuthCallbackScreen> createState() =>
+      _OAuthCallbackScreenState();
+}
+
+class _OAuthCallbackScreenState extends ConsumerState<_OAuthCallbackScreen> {
+  static const _tag = 'OAuthCallbackScreen';
+
+  @override
+  void initState() {
+    super.initState();
+    // Diferir la llamada hasta después del primer frame para evitar
+    // modificar el árbol de providers durante el build del router.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _processCallback());
+  }
+
+  Future<void> _processCallback() async {
+    if (widget.sessionToken.isEmpty || widget.provider.isEmpty) {
+      AppLogger.w(
+        'OAuth callback recibido con parámetros vacíos — '
+        'session_token="${widget.sessionToken}" provider="${widget.provider}"',
+        tag: _tag,
+      );
+      // Navegar a login para que el usuario vea el error en contexto.
+      if (mounted) context.go(RouteNames.login);
+      return;
+    }
+
+    AppLogger.i(
+      'Procesando OAuth callback — provider: ${widget.provider}',
+      tag: _tag,
+    );
+
+    await ref.read(authNotifierProvider.notifier).processOAuthDeepLink(
+          sessionToken: widget.sessionToken,
+          provider: widget.provider,
+        );
+
+    // El authNotifierProvider.notifier ya actualiza el estado. El listener
+    // en routerProvider llama router.refresh() que ejecuta el redirect.
+    // No es necesario navegar manualmente aquí.
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            LoadingAnimationWidget.inkDrop(
+              color: AppColors.primary,
+              size: 50,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Completando inicio de sesión...',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+          ],
         ),
       ),
     );

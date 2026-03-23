@@ -47,6 +47,9 @@ class RouteNames {
   static const String camporeeRegisterMember =
       '/camporee/:camporeeId/register';
 
+  // OAuth callback deep link (io.sacdia.app://auth/callback)
+  static const String authCallback = '/auth/callback';
+
   // Investidura
   static const String investiturePendingList = '/investiture/pending';
   static const String investitureHistory =
