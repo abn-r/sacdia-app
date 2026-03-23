@@ -6,6 +6,16 @@ import 'package:flutter/foundation.dart'
 ///
 /// Nota: este archivo reemplaza temporalmente la generación automática de
 /// FlutterFire CLI para evitar errores de inicialización durante setup local.
+///
+/// SECURITY NOTE — Firebase API keys are PUBLIC identifiers, not secrets.
+/// They are required in the compiled app binary and cannot be hidden.
+/// Security is enforced through:
+///   1. Firebase Security Rules (Firestore / Storage / RTDB)
+///   2. API key restrictions in Google Cloud Console:
+///      - Android key: restrict to SHA-1 fingerprint(s) of the app
+///      - iOS key: restrict to the iOS bundle ID (com.sacdia.app)
+///   3. Firebase App Check (recommended for production)
+/// See: https://firebase.google.com/docs/projects/api-keys
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {

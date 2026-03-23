@@ -116,6 +116,13 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       return null;
     }
 
+    // Pre-read PII from SecureStorage before the fold (read is async).
+    final secureStorage = ref.read(secureStorageProvider);
+    final cachedId = await secureStorage.read('cached_user_id');
+    final cachedEmail = await secureStorage.read('cached_user_email');
+    final cachedName = await secureStorage.read('cached_user_name');
+    final prefs = ref.read(sharedPreferencesProvider);
+
     AppLogger.i('Token encontrado, validando con /auth/me', tag: _tag);
     final result = await ref.read(getCurrentUserProvider)(NoParams());
 
@@ -123,16 +130,13 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       (failure) {
         if (failure is NetworkFailure || failure is ServerFailure) {
           AppLogger.w('Sin conectividad, intentando caché', tag: _tag);
-          final prefs = ref.read(sharedPreferencesProvider);
-          final cachedId = prefs.getString('cached_user_id');
-          final cachedEmail = prefs.getString('cached_user_email');
           if (cachedId != null && cachedEmail != null) {
             AppLogger.i('Sesión restaurada desde caché: $cachedEmail',
                 tag: _tag);
             return UserEntity(
               id: cachedId,
               email: cachedEmail,
-              name: prefs.getString('cached_user_name'),
+              name: cachedName,
               postRegisterComplete:
                   prefs.getBool('cached_post_register_complete') ?? false,
             );
@@ -151,15 +155,12 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         }
         AppLogger.w('Servidor respondió sin usuario, intentando caché',
             tag: _tag);
-        final prefs = ref.read(sharedPreferencesProvider);
-        final cachedId = prefs.getString('cached_user_id');
-        final cachedEmail = prefs.getString('cached_user_email');
         if (cachedId != null && cachedEmail != null) {
           AppLogger.i('Sesión restaurada desde caché: $cachedEmail', tag: _tag);
           return UserEntity(
             id: cachedId,
             email: cachedEmail,
-            name: prefs.getString('cached_user_name'),
+            name: cachedName,
             postRegisterComplete:
                 prefs.getBool('cached_post_register_complete') ?? false,
           );
@@ -170,19 +171,27 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     );
   }
 
-  /// Persiste los datos del usuario en SharedPreferences y SecureStorage para
-  /// restauración offline. El flag post_register_complete se escribe en ambos
-  /// almacenes para que el datasource pueda leerlo como fallback en /auth/me.
+  /// Persiste los datos del usuario para restauración offline.
+  ///
+  /// PII (id, email, name) se almacena en SecureStorage (cifrado en reposo).
+  /// El flag post_register_complete se escribe en SharedPreferences (no PII)
+  /// y también en SecureStorage para que el datasource lo lea como fallback
+  /// en /auth/me.
   void _cacheUser(UserEntity user) {
-    final prefs = ref.read(sharedPreferencesProvider);
-    prefs.setString('cached_user_id', user.id);
-    prefs.setString('cached_user_email', user.email);
-    if (user.name != null) prefs.setString('cached_user_name', user.name!);
-    prefs.setBool('cached_post_register_complete', user.postRegisterComplete);
-    ref.read(secureStorageProvider).write(
+    final secureStorage = ref.read(secureStorageProvider);
+    // Fire-and-forget: cache writes are best-effort for offline restoration.
+    secureStorage.write('cached_user_id', user.id);
+    secureStorage.write('cached_user_email', user.email);
+    if (user.name != null) {
+      secureStorage.write('cached_user_name', user.name!);
+    }
+    secureStorage.write(
       'cached_post_register_complete',
       user.postRegisterComplete.toString(),
     );
+    // Keep non-PII flag in SharedPreferences for synchronous router reads.
+    ref.read(sharedPreferencesProvider)
+        .setBool('cached_post_register_complete', user.postRegisterComplete);
   }
 
   /// Iniciar sesión con email y contraseña
@@ -435,11 +444,14 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
         final prefs = ref.read(sharedPreferencesProvider);
         prefs.setBool('user_manually_logged_out', true);
-        prefs.remove('cached_user_id');
-        prefs.remove('cached_user_email');
-        prefs.remove('cached_user_name');
         prefs.remove('cached_post_register_complete');
-        ref.read(secureStorageProvider).delete('cached_post_register_complete');
+
+        // PII is stored in SecureStorage — clear all cached PII on sign-out.
+        final secureStorage = ref.read(secureStorageProvider);
+        secureStorage.delete('cached_user_id');
+        secureStorage.delete('cached_user_email');
+        secureStorage.delete('cached_user_name');
+        secureStorage.delete('cached_post_register_complete');
 
         return true;
       },

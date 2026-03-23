@@ -33,8 +33,18 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // SECURITY: Currently signed with debug keys for local `flutter run --release`.
+            // DO NOT ship to Play Store with debug signing keys.
+            // Before publishing, generate a release keystore and reference it here:
+            //   keytool -genkey -v -keystore sacdia-release.keystore \
+            //     -alias sacdia -keyalg RSA -keysize 2048 -validity 10000
+            // Then create android/key.properties:
+            //   storePassword=<password>
+            //   keyPassword=<password>
+            //   keyAlias=sacdia
+            //   storeFile=<path-to-keystore>
+            // And replace signingConfigs.debug with a release signingConfig that
+            // reads from key.properties (never commit key.properties to git).
             signingConfig = signingConfigs.debug
         }
     }

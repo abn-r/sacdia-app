@@ -105,10 +105,32 @@ class AppAuthService {
     AppLogger.i('Tokens eliminados', tag: _tag);
   }
 
-  /// Devuelve `true` si existe un access token almacenado (no valida expiración).
+  /// Devuelve `true` si el token de acceso ha expirado o no existe.
+  ///
+  /// La expiración se evalúa comparando la marca de tiempo Unix (segundos)
+  /// almacenada en [AppConstants.expiresAtKey] con el tiempo actual.
+  Future<bool> isTokenExpired() async {
+    try {
+      final expiresAtStr =
+          await _secureStorage.read(key: AppConstants.expiresAtKey);
+      if (expiresAtStr == null) return true;
+      final expiresAt = int.tryParse(expiresAtStr) ?? 0;
+      return DateTime.now().millisecondsSinceEpoch ~/ 1000 >= expiresAt;
+    } catch (e) {
+      AppLogger.e('Error al verificar expiración del token', tag: _tag, error: e);
+      return true;
+    }
+  }
+
+  /// Devuelve `true` si existe un access token almacenado Y no ha expirado.
   Future<bool> isLoggedIn() async {
     final token = await getStoredAccessToken();
-    return token != null && token.isNotEmpty;
+    if (token == null || token.isEmpty) return false;
+    final expired = await isTokenExpired();
+    if (expired) {
+      AppLogger.w('Token encontrado pero expirado', tag: _tag);
+    }
+    return !expired;
   }
 
   // ── OAuth ───────────────────────────────────────────────────────────────────

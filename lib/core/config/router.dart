@@ -766,10 +766,15 @@ class _OAuthCallbackScreenState extends ConsumerState<_OAuthCallbackScreen> {
   }
 
   Future<void> _processCallback() async {
-    if (widget.sessionToken.isEmpty || widget.provider.isEmpty) {
+    const validProviders = ['google', 'apple'];
+
+    if (widget.sessionToken.isEmpty ||
+        widget.provider.isEmpty ||
+        !validProviders.contains(widget.provider.toLowerCase())) {
       AppLogger.w(
-        'OAuth callback recibido con parámetros vacíos — '
-        'session_token="${widget.sessionToken}" provider="${widget.provider}"',
+        'OAuth callback recibido con parámetros inválidos — '
+        'session_token="${widget.sessionToken.isEmpty ? "(vacío)" : "(presente)"}" '
+        'provider="${widget.provider}"',
         tag: _tag,
       );
       // Navegar a login para que el usuario vea el error en contexto.

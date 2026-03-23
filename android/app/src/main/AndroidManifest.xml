@@ -8,10 +8,15 @@
         android:label="sacdia_app"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:hardwareAccelerated="true">
+        android:hardwareAccelerated="true"
+        android:allowBackup="false">
         <!-- Google Maps API Key -->
-        <!-- TODO: Reemplaza el valor con tu API Key real de Google Cloud Console -->
-        <!-- Activa "Maps SDK for Android" y "Geocoding API" para esta key -->
+        <!-- SECURITY NOTE: This is a PUBLIC key required in the manifest.
+             Restrict it in Google Cloud Console → APIs & Services → Credentials:
+               - Application restrictions: "Android apps"
+               - Add SHA-1 fingerprint(s) for debug and release keystores
+               - Add package name: com.sacdia.app
+             See: https://developers.google.com/maps/api-security-best-practices -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyCg2AIgPaE1rsCdmzNnAWPYmtVQ0jQu6oY"/>
@@ -37,6 +42,11 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             <!-- Deep link para OAuth callbacks: io.sacdia.app://auth/callback -->
+            <!-- TODO: Change autoVerify to "true" once the backend domain hosts
+                 .well-known/assetlinks.json with the app's SHA-256 certificate.
+                 Without that file, setting autoVerify="true" will silently fail
+                 and the system will fall back to treating this as an unverified link.
+                 See: https://developer.android.com/training/app-links/verify-android-applinks -->
             <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
