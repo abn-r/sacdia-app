@@ -31,6 +31,12 @@ abstract class ClassesRepository {
     Map<String, dynamic> progressData,
   );
 
+  // ── Inscripcion en clases anteriores ─────────────────────────────────────
+
+  /// Inscribe al usuario en una clase para el año eclesiastico indicado.
+  Future<Either<Failure, void>> enrollUser(
+      String userId, int classId, int ecclesiasticalYearId);
+
   // ── Nuevas operaciones para el flujo de evidencias ────────────────────────
 
   /// Obtiene la clase con progreso detallado por modulos y requerimientos.

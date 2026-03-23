@@ -7,8 +7,10 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 
 import '../providers/classes_providers.dart';
+import '../sheets/enroll_previous_class_sheet.dart';
 import '../widgets/class_card.dart';
 import 'class_detail_with_progress_view.dart';
 
@@ -26,8 +28,35 @@ class ClassesListView extends ConsumerWidget {
     final hPad = Responsive.horizontalPadding(context);
     final c = context.sac;
 
+    final authState = ref.watch(authNotifierProvider);
+    final hasActiveClub =
+        authState.value?.authorization?.activeGrant?.sectionId != null;
+
     return Scaffold(
       backgroundColor: c.background,
+      floatingActionButton: hasActiveClub
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: c.surface,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  builder: (_) => const EnrollPreviousClassSheet(),
+                );
+              },
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              icon: const Icon(Icons.add_rounded),
+              label: const Text(
+                'Inscribir clase',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+            )
+          : null,
       body: SafeArea(
         child: classesAsync.when(
           data: (classes) {

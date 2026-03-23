@@ -18,6 +18,11 @@ abstract class ClassesRemoteDataSource {
   Future<ClassProgressModel> updateUserClassProgress(
       String userId, int classId, Map<String, dynamic> progressData);
 
+  // ── Inscripción en clases anteriores ─────────────────────────────────────
+
+  /// Inscribe al usuario en una clase para el año eclesiástico dado.
+  Future<void> enrollUser(String userId, int classId, int yearId);
+
   // ── Nuevas operaciones para flujo de evidencias ────────────────────────────
 
   /// Obtiene la clase con progreso detallado (modulos + requerimientos + evidencias).
@@ -95,6 +100,37 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     return e.message ?? 'Error de conexion';
   }
 
+  // ── POST /users/:userId/classes/enroll ──────────────────────────────────────
+
+  @override
+  Future<void> enrollUser(String userId, int classId, int yearId) async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.post(
+        '$_baseUrl/users/$userId/classes/enroll',
+        data: {
+          'class_id': classId,
+          'ecclesiastical_year_id': yearId,
+        },
+        options: _authOptions(token),
+      );
+
+      if (response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 204) {
+        return;
+      }
+
+      throw ServerException(
+        message: 'Error al inscribir en la clase',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en enrollUser', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
   // ── GET /classes ────────────────────────────────────────────────────────────
 
   @override
@@ -109,8 +145,13 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final List<dynamic> data = response.data as List<dynamic>;
-        return data
+        final body = response.data;
+        // El endpoint GET /classes retorna un resultado paginado: { data: [...], meta: {...} }
+        // Soportamos también respuesta plana (List) por retrocompatibilidad.
+        final List<dynamic> items = body is Map
+            ? (body['data'] as List<dynamic>? ?? [])
+            : (body as List<dynamic>);
+        return items
             .map((json) => ClassModel.fromJson(json as Map<String, dynamic>))
             .toList();
       }

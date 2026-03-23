@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../../providers/catalogs_provider.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../data/datasources/classes_remote_data_source.dart';
 import '../../data/repositories/classes_repository_impl.dart';
@@ -18,6 +19,7 @@ import '../../domain/usecases/get_class_with_progress.dart';
 import '../../domain/usecases/submit_requirement.dart';
 import '../../domain/usecases/upload_requirement_file.dart';
 import '../../domain/usecases/delete_requirement_file.dart';
+import '../../domain/usecases/enroll_previous_class.dart';
 
 // ── Infrastructure providers ──────────────────────────────────────────────────
 
@@ -75,6 +77,11 @@ final deleteRequirementFileUseCaseProvider =
   return DeleteRequirementFile(ref.read(classesRepositoryProvider));
 });
 
+final enrollPreviousClassUseCaseProvider =
+    Provider<EnrollPreviousClass>((ref) {
+  return EnrollPreviousClass(ref.read(classesRepositoryProvider));
+});
+
 // ── Data providers ────────────────────────────────────────────────────────────
 
 /// Provider para las clases de un usuario.
@@ -95,6 +102,24 @@ final userClassesProvider =
     (classes) => classes,
   );
 });
+
+/// Provider para listar clases del catálogo filtradas por tipo de club.
+///
+/// Usado en [EnrollPreviousClassSheet] para mostrar las clases disponibles
+/// según el tipo de club del usuario activo.
+final classesByClubTypeProvider =
+    FutureProvider.autoDispose.family<List<ProgressiveClass>, int>(
+        (ref, clubTypeId) async {
+  final dataSource = ref.read(classesRemoteDataSourceProvider);
+  final models = await dataSource.getClasses(clubTypeId: clubTypeId);
+  return models.map((m) => m.toEntity()).toList();
+});
+
+/// Provider que expone el año eclesiástico actual para la feature de clases.
+///
+/// Alias de [currentEcclesiasticalYearProvider] para evitar importar
+/// catalogs_provider directamente en los widgets de clases.
+final currentEccYearProvider = currentEcclesiasticalYearProvider;
 
 /// Provider para el detalle de una clase especifica.
 final classDetailProvider =
