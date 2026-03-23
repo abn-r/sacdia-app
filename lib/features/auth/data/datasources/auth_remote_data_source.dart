@@ -435,11 +435,29 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
 
-      final userData = response.data['user'] as Map<String, dynamic>?;
-      final userId = userData?['id'] as String?;
+      // Backend returns { success: true, userId: "uuid", message: "..." }
+      // OR { data: { user: {...}, accessToken, refreshToken } } depending on endpoint version
+      final responseBody = response.data as Map<String, dynamic>;
+      final userData = responseBody['user'] as Map<String, dynamic>?;
+      final userId = userData?['id'] as String?
+          ?? responseBody['userId'] as String?
+          ?? (responseBody['data'] as Map<String, dynamic>?)?['user']?['id'] as String?;
 
       if (userId == null) {
         throw AuthException(message: 'No se recibió ID de usuario');
+      }
+
+      // If the response includes tokens (auto-login after register), persist them
+      final data = responseBody['data'] as Map<String, dynamic>?;
+      final accessToken = data?['accessToken'] as String?;
+      final refreshToken = data?['refreshToken'] as String?;
+      if (accessToken != null && accessToken.isNotEmpty) {
+        await _saveToken(
+          accessToken,
+          refreshToken: refreshToken,
+          expiresAt: data?['expiresAt'] as int?,
+          tokenType: data?['tokenType'] as String?,
+        );
       }
 
       AppLogger.i('Usuario registrado: $userId', tag: _tag);
