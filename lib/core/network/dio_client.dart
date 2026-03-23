@@ -33,11 +33,11 @@ class DioClient {
     // después de refrescar el token en caso de 401
     dio.interceptors.addAll([
       LoggerInterceptor(),
-      ErrorInterceptor(),
-      // AuthInterceptor al final: en onError Dio procesa en orden inverso,
-      // por lo que este interceptor actúa PRIMERO ante un 401,
-      // intentando refresh antes de que ErrorInterceptor lance AuthException.
+      // AuthInterceptor ANTES de ErrorInterceptor: Dio procesa onError en
+      // orden forward (0→1→2→3), así AuthInterceptor intercepta el 401 y
+      // refresca el token antes de que ErrorInterceptor lance AuthException.
       AuthInterceptor(dio: dio),
+      ErrorInterceptor(),
       // RetryInterceptor después de AuthInterceptor para que los reintentos
       // incluyan los headers de autenticación actualizados.
       RetryInterceptor(
