@@ -74,7 +74,7 @@ class _EnrollPreviousClassSheetState
     );
   }
 
-  Widget _buildHeader(BuildContext context, SacColorScheme c) {
+  Widget _buildHeader(BuildContext context, SacColors c) {
     return Row(
       children: [
         Container(
@@ -126,7 +126,7 @@ class _EnrollPreviousClassSheetState
 
   Widget _buildYearInfo(
     BuildContext context,
-    SacColorScheme c,
+    SacColors c,
     AsyncValue<EcclesiasticalYearModel?> yearAsync,
   ) {
     return yearAsync.when(
@@ -218,7 +218,7 @@ class _EnrollPreviousClassSheetState
 
   Widget _buildClassList(
     BuildContext context,
-    SacColorScheme c,
+    SacColors c,
     AsyncValue<List<ProgressiveClass>> classesAsync,
     AsyncValue<EcclesiasticalYearModel?> yearAsync,
   ) {
@@ -393,9 +393,8 @@ class _EnrollPreviousClassSheetState
               icon: HugeIcons.strokeRoundedSchool,
               isLoading: _isSubmitting,
               isEnabled: canSubmit,
-              fullWidth: true,
               onPressed: canSubmit
-                  ? () => _submit(context, year!)
+                  ? () => _submit(context, year)
                   : null,
             ),
           ],
@@ -404,7 +403,7 @@ class _EnrollPreviousClassSheetState
     );
   }
 
-  Widget _buildNoClubMessage(BuildContext context, SacColorScheme c) {
+  Widget _buildNoClubMessage(BuildContext context, SacColors c) {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(32),
