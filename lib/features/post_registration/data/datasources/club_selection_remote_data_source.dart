@@ -23,7 +23,6 @@ abstract class ClubSelectionRemoteDataSource {
     required int countryId,
     required int unionId,
     required int localFieldId,
-    required String clubTypeSlug,
     required int clubSectionId,
     required int classId,
   });
@@ -227,7 +226,6 @@ class ClubSelectionRemoteDataSourceImpl
     required int countryId,
     required int unionId,
     required int localFieldId,
-    required String clubTypeSlug,
     required int clubSectionId,
     required int classId,
   }) async {
@@ -239,7 +237,6 @@ class ClubSelectionRemoteDataSourceImpl
           'country_id': countryId,
           'union_id': unionId,
           'local_field_id': localFieldId,
-          'club_type': clubTypeSlug,
           'club_section_id': clubSectionId,
           'class_id': classId,
         },

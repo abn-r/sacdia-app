@@ -21,10 +21,25 @@ class ClubSectionModel extends Equatable {
   });
 
   /// Parsea un item desde la respuesta de GET /clubs/:clubId/sections
+  ///
+  /// El backend devuelve el nombre del tipo de club anidado en
+  /// `club_types.name`, no como campo plano `club_type_name`.
+  /// También usa `main_club_id` en vez de `club_id`.
   factory ClubSectionModel.fromJson(Map<String, dynamic> json) {
     final rawId = json['club_section_id'] ?? json['id'];
     final rawClubTypeId = json['club_type_id'];
-    final rawClubId = json['club_id'];
+    final rawClubId = json['main_club_id'] ?? json['club_id'];
+
+    // El nombre viene anidado en club_types.name o como campo plano
+    final clubTypes = json['club_types'] as Map<String, dynamic>?;
+    final clubTypeName =
+        json['club_type_name'] as String? ?? clubTypes?['name'] as String?;
+
+    // Derivar slug del nombre si no viene explícito
+    final explicitSlug = json['club_type_slug'] as String? ?? '';
+    final slug = explicitSlug.isNotEmpty
+        ? explicitSlug
+        : _slugFromName(clubTypeName);
 
     return ClubSectionModel(
       id: rawId is int ? rawId : (int.tryParse(rawId?.toString() ?? '') ?? 0),
@@ -34,9 +49,27 @@ class ClubSectionModel extends Equatable {
       clubId: rawClubId is int
           ? rawClubId
           : (int.tryParse(rawClubId?.toString() ?? '') ?? 0),
-      clubTypeSlug: json['club_type_slug'] as String? ?? '',
-      clubTypeName: json['club_type_name'] as String?,
+      clubTypeSlug: slug,
+      clubTypeName: clubTypeName,
     );
+  }
+
+  /// Deriva el slug canónico a partir del nombre legible del tipo de club.
+  static String _slugFromName(String? name) {
+    if (name == null || name.isEmpty) return '';
+    final lower = name.toLowerCase();
+    if (lower.contains('aventurero') || lower.contains('adventurer')) {
+      return 'adventurers';
+    }
+    if (lower.contains('conquistador') || lower.contains('pathfinder')) {
+      return 'pathfinders';
+    }
+    if (lower.contains('guía') ||
+        lower.contains('guia') ||
+        lower.contains('master')) {
+      return 'master_guild';
+    }
+    return '';
   }
 
   /// Convierte la sección a JSON
