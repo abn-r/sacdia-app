@@ -139,6 +139,24 @@ class ClassesRepositoryImpl implements ClassesRepository {
     }
   }
 
+  // ── Inscripcion en clases anteriores ─────────────────────────────────────────
+
+  @override
+  Future<Either<Failure, void>> enrollUser(
+      String userId, int classId, int ecclesiasticalYearId) async {
+    if (!await _isConnected) return _networkFailure();
+    try {
+      await remoteDataSource.enrollUser(userId, classId, ecclesiasticalYearId);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
   // ── Nuevas operaciones para flujo de evidencias ───────────────────────────────
 
   @override
