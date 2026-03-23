@@ -5,7 +5,7 @@ class AppConstants {
   // API
   static const String apiBaseUrlDefineKey = 'API_BASE_URL';
   // For local development, override via --dart-define=API_BASE_URL=http://192.168.100.7:3000/api/v1
-  static const String defaultBaseUrl = 'https://sacdia-backend.onrender.com/api/v1';
+  static const String defaultBaseUrl = 'http://localhost:3000/api/v1'; // 'https://sacdia-backend.onrender.com/api/v1';
   static final String baseUrl = resolveBaseUrl();
 
   static String resolveBaseUrl({String? override}) {
