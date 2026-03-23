@@ -35,6 +35,9 @@ class RouteNames {
   static const String homeResources = '/home/resources';
   static const String homeCertifications = '/home/certifications';
 
+  // Información médica del usuario (detalle fuera del shell)
+  static const String homeMedicalInfo = '/home/medical-info';
+
   // Rutas de detalle fuera del shell
   static const String certificationDetail = '/certification/:certificationId';
   static const String certificationProgress =

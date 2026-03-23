@@ -43,6 +43,7 @@ import '../../features/classes/presentation/views/classes_list_view.dart';
 import '../../features/classes/presentation/views/class_detail_with_progress_view.dart';
 import '../../features/members/presentation/views/members_view.dart';
 import '../../features/profile/presentation/views/profile_view.dart';
+import '../../features/profile/presentation/views/medical_info_view.dart';
 import '../animations/page_transitions.dart';
 import '../utils/responsive.dart';
 import 'route_names.dart';
@@ -295,6 +296,13 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           ),
         ],
+      ),
+
+      // Información médica del usuario
+      GoRoute(
+        path: RouteNames.homeMedicalInfo,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const MedicalInfoView()),
       ),
 
       // Detalle de club

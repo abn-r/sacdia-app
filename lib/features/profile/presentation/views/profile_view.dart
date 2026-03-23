@@ -26,6 +26,7 @@ import '../widgets/profile_classes_section.dart';
 import '../widgets/profile_honors_section.dart';
 import '../widgets/setting_tile.dart';
 import 'edit_profile_view.dart';
+import 'medical_info_view.dart';
 import 'settings_view.dart';
 
 // ─── Settings sheet helpers ──────────────────────────────────────────────────
@@ -95,6 +96,27 @@ class _SettingsSheet extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (_) => const EditProfileView(),
+                        ),
+                      );
+                    },
+                  ),
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    indent: 60,
+                    color: c.borderLight,
+                  ),
+                  SettingTile(
+                    icon: HugeIcons.strokeRoundedFirstAidKit,
+                    title: 'Información Médica',
+                    subtitle: 'Alergias, enfermedades y contactos',
+                    iconColor: AppColors.error,
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const MedicalInfoView(),
                         ),
                       );
                     },
