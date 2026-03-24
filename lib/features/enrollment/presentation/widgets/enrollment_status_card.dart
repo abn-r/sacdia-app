@@ -213,7 +213,7 @@ class _ActiveCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          enrollment.address,
+                          enrollment.address ?? '',
                           style: TextStyle(
                             fontSize: 12,
                             color:

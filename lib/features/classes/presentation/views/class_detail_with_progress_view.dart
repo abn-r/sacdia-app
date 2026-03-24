@@ -16,6 +16,8 @@ import '../../domain/entities/class_with_progress.dart';
 import '../providers/classes_providers.dart';
 import '../widgets/requirement_card.dart';
 import 'requirement_detail_view.dart';
+import '../../../validation/presentation/widgets/validation_section.dart';
+import '../../../validation/domain/entities/validation.dart';
 
 /// Vista de clase progresiva con progreso detallado.
 ///
@@ -148,6 +150,17 @@ class _ClassBody extends StatelessWidget {
                 childCount: classWithProgress.modules.length,
               ),
             ),
+
+          // Validation section
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: ValidationSection(
+                entityType: ValidationEntityType.classProgress,
+                entityId: classId,
+              ),
+            ),
+          ),
 
           const SliverToBoxAdapter(child: SizedBox(height: 32)),
         ],

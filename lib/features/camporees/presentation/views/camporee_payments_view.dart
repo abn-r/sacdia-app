@@ -324,7 +324,7 @@ class _PaymentCard extends StatelessWidget {
             Row(
               children: [
                 HugeIcon(
-                  icon: HugeIcons.strokeRoundedHashtag,
+                  icon: HugeIcons.strokeRoundedTag01,
                   color: c.textTertiary,
                   size: 14,
                 ),
@@ -624,7 +624,7 @@ class _CamporeePaymentFormSheetState
                   decoration: _inputDecoration(
                     hintText: 'Número de comprobante o referencia',
                     context: context,
-                    prefixIcon: HugeIcons.strokeRoundedHashtag,
+                    prefixIcon: HugeIcons.strokeRoundedTag01,
                   ),
                 ),
                 const SizedBox(height: 16),

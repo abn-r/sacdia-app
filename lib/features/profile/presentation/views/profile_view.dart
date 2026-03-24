@@ -19,6 +19,7 @@ import 'package:sacdia_app/features/honors/presentation/providers/honors_provide
 import 'package:sacdia_app/features/post_registration/presentation/providers/post_registration_providers.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../validation/presentation/widgets/eligibility_banner.dart';
 import '../providers/profile_providers.dart';
 import '../widgets/class_status_circles.dart';
 import '../widgets/info_section.dart';
@@ -325,6 +326,10 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               );
             }
 
+            final authUser = ref.watch(
+              authNotifierProvider.select((v) => v.valueOrNull),
+            );
+
             return RefreshIndicator(
               color: AppColors.primary,
               onRefresh: () async {
@@ -486,7 +491,13 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                             const SizedBox(height: 20),
                           ],
 
-                          // ── 4. Clases Progresivas ─────────────────────────
+                          // ── 4. Elegibilidad para investidura ─────────────
+                          if (authUser != null) ...[
+                            EligibilityBanner(userId: authUser.id),
+                            const SizedBox(height: 20),
+                          ],
+
+                          // ── 5. Clases Progresivas ─────────────────────────
                           _SectionLabel(label: 'Clases Progresivas'),
                           const SizedBox(height: 8),
                           Container(

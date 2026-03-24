@@ -16,6 +16,7 @@ import '../widgets/quick_stats_card.dart';
 import '../widgets/quick_access_grid.dart';
 import '../widgets/upcoming_activities_card.dart';
 import '../widgets/welcome_header.dart';
+import '../../../enrollment/presentation/widgets/enrollment_status_card.dart';
 
 /// Vista principal del dashboard - Estilo "Scout Vibrante"
 class DashboardView extends ConsumerWidget {
@@ -85,6 +86,10 @@ class DashboardView extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 8),
+
+                          // Enrollment status banner
+                          const EnrollmentStatusCard(),
+                          const SizedBox(height: 16),
 
                           // Club info
                           ClubInfoCard(

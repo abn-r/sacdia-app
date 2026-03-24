@@ -16,6 +16,8 @@ import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../validation/domain/entities/validation.dart';
+import '../../../validation/presentation/widgets/validation_section.dart';
 import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor.dart';
 import '../../domain/usecases/get_honors.dart';
@@ -176,6 +178,18 @@ class _HonorDetailContent extends ConsumerWidget {
                         : _RegistrationSection(honor: honor),
                     loading: () => const Center(child: SacLoading()),
                     error: (_, __) => _RegistrationSection(honor: honor),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Divider before validation section
+                  Divider(color: context.sac.border, thickness: 1),
+                  const SizedBox(height: 24),
+
+                  // Validation section
+                  ValidationSection(
+                    entityType: ValidationEntityType.honor,
+                    entityId: honorId,
                   ),
                 ],
               ),
