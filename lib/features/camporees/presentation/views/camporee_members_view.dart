@@ -393,10 +393,12 @@ class _MemberTile extends StatelessWidget {
               color: AppColors.primaryLight,
               shape: BoxShape.circle,
             ),
-            child: HugeIcon(
-              icon: HugeIcons.strokeRoundedUser,
-              size: 20,
-              color: AppColors.primary,
+            child: Center(
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedUser,
+                size: 20,
+                color: AppColors.primary,
+              ),
             ),
           ),
           const SizedBox(width: 12),

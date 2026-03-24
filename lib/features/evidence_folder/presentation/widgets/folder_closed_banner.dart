@@ -32,10 +32,12 @@ class FolderClosedBanner extends StatelessWidget {
               color: AppColors.accent.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: HugeIcon(
-              icon: HugeIcons.strokeRoundedLocked,
-              size: 22,
-              color: AppColors.accentDark,
+            child: Center(
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedLocked,
+                size: 22,
+                color: AppColors.accentDark,
+              ),
             ),
           ),
           const SizedBox(width: 12),

@@ -97,10 +97,12 @@ class _DetailBody extends ConsumerWidget {
                           color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: HugeIcon(
-                          icon: HugeIcons.strokeRoundedCertificate01,
-                          size: 30,
-                          color: Colors.white,
+                        child: Center(
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedCertificate01,
+                            size: 30,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),

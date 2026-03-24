@@ -401,10 +401,12 @@ class _RequirementDetailViewState
                   color: AppColors.primaryLight,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedCamera01,
-                  size: 22,
-                  color: AppColors.primary,
+                child: Center(
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedCamera01,
+                    size: 22,
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
               title: const Text('Camara'),
@@ -418,10 +420,12 @@ class _RequirementDetailViewState
                   color: AppColors.primaryLight,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedImage01,
-                  size: 22,
-                  color: AppColors.primary,
+                child: Center(
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedImage01,
+                    size: 22,
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
               title: const Text('Galeria'),
@@ -658,12 +662,14 @@ class _LinkedHonorSection extends StatelessWidget {
               color: color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: HugeIcon(
-              icon: isCompleted
-                  ? HugeIcons.strokeRoundedCheckmarkCircle01
-                  : HugeIcons.strokeRoundedAward01,
-              size: 22,
-              color: color,
+            child: Center(
+              child: HugeIcon(
+                icon: isCompleted
+                    ? HugeIcons.strokeRoundedCheckmarkCircle01
+                    : HugeIcons.strokeRoundedAward01,
+                size: 22,
+                color: color,
+              ),
             ),
           ),
           const SizedBox(width: 12),

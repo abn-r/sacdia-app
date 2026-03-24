@@ -595,10 +595,12 @@ class _CategoryCard extends StatelessWidget {
                     color: category.color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   ),
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedFolder02,
-                    size: 22,
-                    color: category.color,
+                  child: Center(
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedFolder02,
+                      size: 22,
+                      color: category.color,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),

@@ -33,10 +33,12 @@ class HonorCategoryCard extends StatelessWidget {
               color: AppColors.accentLight,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: HugeIcon(
-              icon: HugeIcons.strokeRoundedAward01,
-              size: 28,
-              color: AppColors.accent,
+            child: Center(
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedAward01,
+                size: 28,
+                color: AppColors.accent,
+              ),
             ),
           ),
           const SizedBox(height: 12),

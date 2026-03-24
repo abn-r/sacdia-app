@@ -33,10 +33,12 @@ class ContactCard extends StatelessWidget {
                 color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: HugeIcon(
-                icon: HugeIcons.strokeRoundedUser,
-                color: Theme.of(context).primaryColor,
-                size: 28,
+              child: Center(
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedUser,
+                  color: Theme.of(context).primaryColor,
+                  size: 28,
+                ),
               ),
             ),
             const SizedBox(width: 16),

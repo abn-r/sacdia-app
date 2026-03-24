@@ -55,17 +55,21 @@ class ClassCard extends StatelessWidget {
                         child: CachedNetworkImage(
                           imageUrl: progressiveClass.imageUrl!,
                           fit: BoxFit.cover,
-                          errorWidget: (_, __, ___) => HugeIcon(
-                            icon: HugeIcons.strokeRoundedSchool,
-                            color: AppColors.primary,
-                            size: 24,
+                          errorWidget: (_, __, ___) => Center(
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedSchool,
+                              color: AppColors.primary,
+                              size: 24,
+                            ),
                           ),
                         ),
                       )
-                    : HugeIcon(
-                        icon: HugeIcons.strokeRoundedSchool,
-                        color: AppColors.primary,
-                        size: 24,
+                    : Center(
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedSchool,
+                          color: AppColors.primary,
+                          size: 24,
+                        ),
                       ),
               ),
               const SizedBox(width: 14),

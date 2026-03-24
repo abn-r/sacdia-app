@@ -93,12 +93,14 @@ class StatusTimeline extends StatelessWidget {
                       width: 2,
                     ),
                   ),
-                  child: HugeIcon(
-                    icon: step.icon,
-                    size: 16,
-                    color: step.isCompleted || step.isActive
-                        ? Colors.white
-                        : c.textTertiary,
+                  child: Center(
+                    child: HugeIcon(
+                      icon: step.icon,
+                      size: 16,
+                      color: step.isCompleted || step.isActive
+                          ? Colors.white
+                          : c.textTertiary,
+                    ),
                   ),
                 ),
                 if (!isLast)

@@ -91,10 +91,12 @@ class ProfileHeader extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: HugeIcon(
-                        icon: HugeIcons.strokeRoundedCamera01,
-                        color: c.textSecondary,
-                        size: 16,
+                      child: Center(
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedCamera01,
+                          color: c.textSecondary,
+                          size: 16,
+                        ),
                       ),
                     ),
                   ),

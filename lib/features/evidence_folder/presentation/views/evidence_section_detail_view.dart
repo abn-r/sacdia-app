@@ -391,10 +391,12 @@ class _EvidenceSectionDetailViewState
                   color: AppColors.primaryLight,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedCamera01,
-                  size: 22,
-                  color: AppColors.primary,
+                child: Center(
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedCamera01,
+                    size: 22,
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
               title: const Text('Cámara'),
@@ -409,10 +411,12 @@ class _EvidenceSectionDetailViewState
                   color: AppColors.primaryLight,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedImage01,
-                  size: 22,
-                  color: AppColors.primary,
+                child: Center(
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedImage01,
+                    size: 22,
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
               title: const Text('Galería'),

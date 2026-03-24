@@ -253,12 +253,14 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                             : AppColors.primaryLight,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: HugeIcon(
-                        icon: HugeIcons.strokeRoundedContactBook,
-                        size: 20,
-                        color: contacts.isEmpty
-                            ? context.sac.textTertiary
-                            : AppColors.primary,
+                      child: Center(
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedContactBook,
+                          size: 20,
+                          color: contacts.isEmpty
+                              ? context.sac.textTertiary
+                              : AppColors.primary,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -360,12 +362,14 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                                     : context.sac.surfaceVariant,
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: HugeIcon(
-                                icon: HugeIcons.strokeRoundedUserGroup,
-                                size: 20,
-                                color: rep != null
-                                    ? AppColors.primary
-                                    : context.sac.textTertiary,
+                              child: Center(
+                                child: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedUserGroup,
+                                  size: 20,
+                                  color: rep != null
+                                      ? AppColors.primary
+                                      : context.sac.textTertiary,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -417,12 +421,14 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                           : context.sac.surfaceVariant,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedBandage,
-                      size: 20,
-                      color: selectedAllergies.isNotEmpty
-                          ? AppColors.error
-                          : context.sac.textTertiary,
+                    child: Center(
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedBandage,
+                        size: 20,
+                        color: selectedAllergies.isNotEmpty
+                            ? AppColors.error
+                            : context.sac.textTertiary,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -458,12 +464,14 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                           : context.sac.surfaceVariant,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedStethoscope,
-                      size: 20,
-                      color: selectedDiseases.isNotEmpty
-                          ? AppColors.accent
-                          : context.sac.textTertiary,
+                    child: Center(
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedStethoscope,
+                        size: 20,
+                        color: selectedDiseases.isNotEmpty
+                            ? AppColors.accent
+                            : context.sac.textTertiary,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -639,10 +647,13 @@ class _SectionHeader extends StatelessWidget {
               shape: BoxShape.circle,
               color: AppColors.secondary,
             ),
-            child: HugeIcon(
+            child: Center(
+              child: HugeIcon(
                 icon: HugeIcons.strokeRoundedTick02,
                 size: 14,
-                color: Colors.white),
+                color: Colors.white,
+              ),
+            ),
           ),
       ],
     );

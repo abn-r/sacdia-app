@@ -39,10 +39,12 @@ class RecentActivityList extends StatelessWidget {
                     color: AppColors.primaryLight,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedClock05,
-                    size: 18,
-                    color: AppColors.primary,
+                  child: Center(
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedClock05,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),

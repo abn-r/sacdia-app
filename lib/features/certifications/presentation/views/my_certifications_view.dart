@@ -392,12 +392,14 @@ class _UserCertificationCard extends StatelessWidget {
                         : AppColors.primaryLight,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: HugeIcon(
-                    icon: isComplete
-                        ? HugeIcons.strokeRoundedCheckmarkCircle01
-                        : HugeIcons.strokeRoundedCertificate01,
-                    size: 22,
-                    color: isComplete ? AppColors.secondary : AppColors.primary,
+                  child: Center(
+                    child: HugeIcon(
+                      icon: isComplete
+                          ? HugeIcons.strokeRoundedCheckmarkCircle01
+                          : HugeIcons.strokeRoundedCertificate01,
+                      size: 22,
+                      color: isComplete ? AppColors.secondary : AppColors.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),

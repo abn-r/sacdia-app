@@ -163,7 +163,9 @@ class _TimelineEntry extends StatelessWidget {
                     shape: BoxShape.circle,
                     border: Border.all(color: color, width: 2),
                   ),
-                  child: HugeIcon(icon: _icon, size: 16, color: color),
+                  child: Center(
+                    child: HugeIcon(icon: _icon, size: 16, color: color),
+                  ),
                 ),
                 // Línea conectora
                 if (!isLast)

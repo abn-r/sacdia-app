@@ -607,7 +607,9 @@ class _SectionHeader extends StatelessWidget {
             color: AppColors.primaryLight,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: HugeIcon(icon: icon, size: 16, color: AppColors.primary),
+          child: Center(
+            child: HugeIcon(icon: icon, size: 16, color: AppColors.primary),
+          ),
         ),
         const SizedBox(width: 10),
         Text(

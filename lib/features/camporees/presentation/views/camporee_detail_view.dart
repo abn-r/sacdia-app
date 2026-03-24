@@ -96,10 +96,12 @@ class _DetailBody extends ConsumerWidget {
                           color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: HugeIcon(
-                          icon: HugeIcons.strokeRoundedAward01,
-                          size: 30,
-                          color: Colors.white,
+                        child: Center(
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedAward01,
+                            size: 30,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -468,10 +470,12 @@ class _MemberPreviewTile extends StatelessWidget {
               color: AppColors.primaryLight,
               shape: BoxShape.circle,
             ),
-            child: HugeIcon(
-              icon: HugeIcons.strokeRoundedUser,
-              size: 18,
-              color: AppColors.primary,
+            child: Center(
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedUser,
+                size: 18,
+                color: AppColors.primary,
+              ),
             ),
           ),
           const SizedBox(width: 10),

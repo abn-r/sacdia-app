@@ -59,10 +59,12 @@ class RequirementCard extends StatelessWidget {
                           .withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: HugeIcon(
-                      icon: _typeIcon(requirement.type),
-                      size: 18,
-                      color: _typeColor(requirement.type),
+                    child: Center(
+                      child: HugeIcon(
+                        icon: _typeIcon(requirement.type),
+                        size: 18,
+                        color: _typeColor(requirement.type),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),

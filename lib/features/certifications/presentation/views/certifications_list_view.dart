@@ -356,10 +356,12 @@ class _CertificationCard extends StatelessWidget {
                     color: AppColors.primaryLight,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedCertificate01,
-                    size: 22,
-                    color: AppColors.primary,
+                  child: Center(
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedCertificate01,
+                      size: 22,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),

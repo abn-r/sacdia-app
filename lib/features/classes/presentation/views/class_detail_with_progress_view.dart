@@ -101,13 +101,15 @@ class _ClassBody extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header card con progreso
-                _ClassHeaderCard(classWithProgress: classWithProgress),
+                // Class identity section — clean, no card wrapper
+                _ClassIdentitySection(classWithProgress: classWithProgress),
 
-                // Resumen de requerimientos
-                _ProgressSummaryRow(classWithProgress: classWithProgress),
+                const SizedBox(height: 12),
 
-                const SizedBox(height: 8),
+                // Progress card — Apple Health style
+                _ProgressCard(classWithProgress: classWithProgress),
+
+                const SizedBox(height: 16),
 
                 // Modulos header
                 Padding(
@@ -154,159 +156,82 @@ class _ClassBody extends StatelessWidget {
   }
 }
 
-// ── Header card ────────────────────────────────────────────────────────────────
+// ── Class identity section ─────────────────────────────────────────────────────
 
-class _ClassHeaderCard extends StatelessWidget {
+class _ClassIdentitySection extends StatelessWidget {
   final ClassWithProgress classWithProgress;
 
-  const _ClassHeaderCard({required this.classWithProgress});
+  const _ClassIdentitySection({required this.classWithProgress});
 
   @override
   Widget build(BuildContext context) {
-    final percentage = classWithProgress.completionPercent;
+    final c = context.sac;
     final classColor = _classColor(classWithProgress.name);
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [classColor, classColor.withValues(alpha: 0.75)],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: classColor.withValues(alpha: 0.3),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Nombre + icono
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Icono o imagen de la clase
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: classWithProgress.imageUrl != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
-                        child: CachedNetworkImage(
-                          imageUrl: classWithProgress.imageUrl!,
-                          fit: BoxFit.cover,
-                          errorWidget: (_, __, ___) => HugeIcon(
-                            icon: HugeIcons.strokeRoundedSchool,
-                            size: 28,
-                            color: Colors.white,
-                          ),
+          // Icon container — tinted with class color
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: classColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: classWithProgress.imageUrl != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: CachedNetworkImage(
+                      imageUrl: classWithProgress.imageUrl!,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) => Center(
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedSchool,
+                          size: 26,
+                          color: classColor,
                         ),
-                      )
-                    : HugeIcon(
-                        icon: HugeIcons.strokeRoundedSchool,
-                        size: 28,
-                        color: Colors.white,
                       ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      classWithProgress.name,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                          ),
                     ),
-                    if (classWithProgress.description != null &&
-                        classWithProgress.description!.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        classWithProgress.description!,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white.withValues(alpha: 0.75),
+                  )
+                : Center(
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedSchool,
+                      size: 26,
+                      color: classColor,
+                    ),
+                  ),
+          ),
+          const SizedBox(width: 14),
+          // Class name and description
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  classWithProgress.name,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: c.text,
+                      ),
+                ),
+                if (classWithProgress.description != null &&
+                    classWithProgress.description!.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    classWithProgress.description!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: c.textSecondary,
                           height: 1.4,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-
-          // Progreso global
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Progreso general',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white.withValues(alpha: 0.8),
-                ),
-              ),
-              Text(
-                '$percentage%',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          SacProgressBar(
-            progress: classWithProgress.completionRatio,
-            height: 8,
-            trackColor: Colors.white.withValues(alpha: 0.25),
-            useGradient: false,
-            color: Colors.white,
-            showShimmer: false,
-          ),
-          const SizedBox(height: 14),
-
-          // Stats row
-          Row(
-            children: [
-              _HeaderStat(
-                icon: HugeIcons.strokeRoundedStar,
-                value:
-                    '${classWithProgress.earnedPoints} / ${classWithProgress.totalPoints}',
-                label: 'pts',
-                iconColor: AppColors.accent,
-              ),
-              const SizedBox(width: 20),
-              _HeaderStat(
-                icon: HugeIcons.strokeRoundedCheckList,
-                value:
-                    '${classWithProgress.completedRequirements} / ${classWithProgress.totalRequirements}',
-                label: 'requerimientos',
-                iconColor: Colors.white,
-              ),
-            ],
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
           ),
         ],
       ),
@@ -336,80 +261,126 @@ class _ClassHeaderCard extends StatelessWidget {
   }
 }
 
-class _HeaderStat extends StatelessWidget {
-  final List<List<dynamic>> icon;
-  final String value;
-  final String label;
-  final Color iconColor;
+// ── Progress card ──────────────────────────────────────────────────────────────
 
-  const _HeaderStat({
-    required this.icon,
-    required this.value,
-    required this.label,
-    required this.iconColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        HugeIcon(icon: icon, size: 14, color: iconColor),
-        const SizedBox(width: 5),
-        Text(
-          '$value $label',
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ── Resumen de progreso ─────────────────────────────────────────────────────────
-
-class _ProgressSummaryRow extends StatelessWidget {
+class _ProgressCard extends StatelessWidget {
   final ClassWithProgress classWithProgress;
 
-  const _ProgressSummaryRow({required this.classWithProgress});
+  const _ProgressCard({required this.classWithProgress});
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+    final percentage = classWithProgress.completionPercent;
     final total = classWithProgress.totalRequirements;
     final validated = classWithProgress.completedRequirements;
     final submitted = classWithProgress.submittedRequirements;
     final pending = total - validated - submitted;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: c.border),
+        boxShadow: [
+          BoxShadow(
+            color: c.shadow,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _SummaryChip(
-            count: pending,
-            label: 'Pendientes',
-            color: AppColors.accent,
-            bgColor: AppColors.accentLight,
-            context: context,
+          // Progress label + percentage
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Progreso general',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: c.textSecondary,
+                    ),
+              ),
+              Text(
+                '$percentage%',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: c.text,
+                    ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          _SummaryChip(
-            count: submitted,
-            label: 'Enviados',
-            color: AppColors.sacBlue,
-            bgColor: Theme.of(context).brightness == Brightness.dark
-                ? AppColors.statusInfoBgDark
-                : AppColors.statusInfoBgLight,
-            context: context,
+
+          const SizedBox(height: 10),
+
+          // Progress bar — default gradient
+          SacProgressBar(
+            progress: classWithProgress.completionRatio,
+            height: 8,
           ),
-          const SizedBox(width: 8),
-          _SummaryChip(
-            count: validated,
-            label: 'Validados',
-            color: AppColors.secondary,
-            bgColor: AppColors.secondaryLight,
-            context: context,
+
+          const SizedBox(height: 16),
+
+          // Stat pills row
+          Row(
+            children: [
+              _StatPill(
+                icon: HugeIcons.strokeRoundedStar,
+                iconColor: AppColors.accent,
+                value: '${classWithProgress.earnedPoints}/${classWithProgress.totalPoints}',
+                label: 'puntos',
+                context: context,
+              ),
+              const SizedBox(width: 16),
+              _StatPill(
+                icon: HugeIcons.strokeRoundedCheckList,
+                iconColor: AppColors.secondary,
+                value: '${classWithProgress.completedRequirements}/${classWithProgress.totalRequirements}',
+                label: 'requisitos',
+                context: context,
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          Divider(height: 1, color: c.borderLight),
+
+          const SizedBox(height: 12),
+
+          // Count indicators row
+          Row(
+            children: [
+              Expanded(
+                child: _CountIndicator(
+                  dotColor: AppColors.accent,
+                  count: pending,
+                  label: 'Pendientes',
+                  context: context,
+                ),
+              ),
+              Expanded(
+                child: _CountIndicator(
+                  dotColor: AppColors.sacBlue,
+                  count: submitted,
+                  label: 'Enviados',
+                  context: context,
+                ),
+              ),
+              Expanded(
+                child: _CountIndicator(
+                  dotColor: AppColors.secondary,
+                  count: validated,
+                  label: 'Validados',
+                  context: context,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -417,52 +388,86 @@ class _ProgressSummaryRow extends StatelessWidget {
   }
 }
 
-class _SummaryChip extends StatelessWidget {
-  final int count;
+// ── Stat pill ──────────────────────────────────────────────────────────────────
+
+class _StatPill extends StatelessWidget {
+  final List<List<dynamic>> icon;
+  final Color iconColor;
+  final String value;
   final String label;
-  final Color color;
-  final Color bgColor;
   final BuildContext context;
 
-  const _SummaryChip({
-    required this.count,
+  const _StatPill({
+    required this.icon,
+    required this.iconColor,
+    required this.value,
     required this.label,
-    required this.color,
-    required this.bgColor,
     required this.context,
   });
 
   @override
   Widget build(BuildContext _) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
-        ),
-        child: Column(
-          children: [
-            Text(
-              '$count',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: color,
-              ),
-            ),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        HugeIcon(icon: icon, size: 14, color: iconColor),
+        const SizedBox(width: 5),
+        Text(
+          '$value $label',
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: color,
+                color: context.sac.textSecondary,
               ),
-            ),
-          ],
         ),
-      ),
+      ],
+    );
+  }
+}
+
+// ── Count indicator ────────────────────────────────────────────────────────────
+
+class _CountIndicator extends StatelessWidget {
+  final Color dotColor;
+  final int count;
+  final String label;
+  final BuildContext context;
+
+  const _CountIndicator({
+    required this.dotColor,
+    required this.count,
+    required this.label,
+    required this.context,
+  });
+
+  @override
+  Widget build(BuildContext _) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: dotColor,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '$count',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: context.sac.text,
+              ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: context.sac.textSecondary,
+              ),
+        ),
+      ],
     );
   }
 }
@@ -522,10 +527,12 @@ class _ModuleSectionState extends State<_ModuleSection> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: isComplete
-                        ? HugeIcon(
-                            icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                            size: 20,
-                            color: Colors.white,
+                        ? Center(
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                              size: 20,
+                              color: Colors.white,
+                            ),
                           )
                         : Center(
                             child: Text(
@@ -658,20 +665,31 @@ class _ModuleSectionState extends State<_ModuleSection> {
 class _EmptyModules extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+
     return Padding(
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 48),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           HugeIcon(
             icon: HugeIcons.strokeRoundedSchool,
-            size: 56,
-            color: context.sac.textTertiary,
+            size: 48,
+            color: c.textTertiary,
           ),
           const SizedBox(height: 12),
           Text(
-            'No hay modulos disponibles para esta clase.',
+            'Sin módulos aún',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: context.sac.textSecondary,
+                  fontWeight: FontWeight.w600,
+                  color: c.textSecondary,
+                ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Los módulos aparecerán cuando estén disponibles para esta clase.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: c.textTertiary,
                 ),
             textAlign: TextAlign.center,
           ),

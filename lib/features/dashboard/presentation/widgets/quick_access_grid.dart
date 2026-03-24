@@ -195,10 +195,12 @@ class _QuickAccessTile extends StatelessWidget {
                   color: effectiveColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: HugeIcon(
-                  icon: item.icon,
-                  size: 24,
-                  color: effectiveColor,
+                child: Center(
+                  child: HugeIcon(
+                    icon: item.icon,
+                    size: 24,
+                    color: effectiveColor,
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
