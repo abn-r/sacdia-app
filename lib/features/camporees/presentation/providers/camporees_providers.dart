@@ -5,6 +5,7 @@ import '../../data/datasources/camporees_remote_data_source.dart';
 import '../../data/repositories/camporees_repository_impl.dart';
 import '../../domain/entities/camporee.dart';
 import '../../domain/entities/camporee_member.dart';
+import '../../domain/entities/camporee_payment.dart';
 import '../../domain/repositories/camporees_repository.dart';
 
 // ── Infrastructure providers ──────────────────────────────────────────────────
@@ -234,4 +235,206 @@ class CamporeeRemoveMemberNotifier
 final camporeeRemoveMemberNotifierProvider = NotifierProvider.autoDispose
     .family<CamporeeRemoveMemberNotifier, CamporeeRemoveMemberState, int>(
   CamporeeRemoveMemberNotifier.new,
+);
+
+// ── Payment providers ─────────────────────────────────────────────────────────
+
+/// Parámetros para el provider de pagos de un miembro en un camporee.
+class CamporeePaymentParams {
+  final int camporeeId;
+  final String memberId;
+
+  const CamporeePaymentParams({
+    required this.camporeeId,
+    required this.memberId,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      other is CamporeePaymentParams &&
+      other.camporeeId == camporeeId &&
+      other.memberId == memberId;
+
+  @override
+  int get hashCode => Object.hash(camporeeId, memberId);
+}
+
+/// Provider para los pagos de un miembro en un camporee.
+final camporeeMemberPaymentsProvider = FutureProvider.autoDispose
+    .family<List<CamporeePayment>, CamporeePaymentParams>(
+        (ref, params) async {
+  final repo = ref.read(camporeesRepositoryProvider);
+  final result = await repo.getMemberPayments(
+    params.camporeeId,
+    params.memberId,
+  );
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (payments) => payments,
+  );
+});
+
+/// Provider para todos los pagos de un camporee.
+final camporeeAllPaymentsProvider =
+    FutureProvider.autoDispose.family<List<CamporeePayment>, int>(
+        (ref, camporeeId) async {
+  final repo = ref.read(camporeesRepositoryProvider);
+  final result = await repo.getCamporeePayments(camporeeId);
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (payments) => payments,
+  );
+});
+
+/// Provider para los clubes inscriptos en un camporee.
+final camporeeEnrolledClubsProvider =
+    FutureProvider.autoDispose.family<List<CamporeeEnrolledClub>, int>(
+        (ref, camporeeId) async {
+  final repo = ref.read(camporeesRepositoryProvider);
+  final result = await repo.getEnrolledClubs(camporeeId);
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (clubs) => clubs,
+  );
+});
+
+// ── Create Payment notifier ───────────────────────────────────────────────────
+
+class CreateCamporeePaymentState {
+  final bool isLoading;
+  final String? errorMessage;
+  final bool success;
+
+  const CreateCamporeePaymentState({
+    this.isLoading = false,
+    this.errorMessage,
+    this.success = false,
+  });
+
+  CreateCamporeePaymentState copyWith({
+    bool? isLoading,
+    String? errorMessage,
+    bool? success,
+  }) {
+    return CreateCamporeePaymentState(
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage,
+      success: success ?? this.success,
+    );
+  }
+}
+
+class CreateCamporeePaymentNotifier extends AutoDisposeFamilyNotifier<
+    CreateCamporeePaymentState, CamporeePaymentParams> {
+  @override
+  CreateCamporeePaymentState build(CamporeePaymentParams arg) =>
+      const CreateCamporeePaymentState();
+
+  Future<bool> create({
+    required double amount,
+    required String paymentType,
+    String? reference,
+    DateTime? paymentDate,
+    String? notes,
+  }) async {
+    state = state.copyWith(
+        isLoading: true, errorMessage: null, success: false);
+
+    final result = await ref.read(camporeesRepositoryProvider).createPayment(
+          arg.camporeeId,
+          arg.memberId,
+          amount: amount,
+          paymentType: paymentType,
+          reference: reference,
+          paymentDate: paymentDate,
+          notes: notes,
+        );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+            isLoading: false, errorMessage: failure.message);
+        return false;
+      },
+      (_) {
+        state = state.copyWith(isLoading: false, success: true);
+        ref.invalidate(camporeeMemberPaymentsProvider(arg));
+        ref.invalidate(camporeeAllPaymentsProvider(arg.camporeeId));
+        return true;
+      },
+    );
+  }
+
+  void reset() => state = const CreateCamporeePaymentState();
+}
+
+final createCamporeePaymentProvider = NotifierProvider.autoDispose.family<
+    CreateCamporeePaymentNotifier,
+    CreateCamporeePaymentState,
+    CamporeePaymentParams>(
+  CreateCamporeePaymentNotifier.new,
+);
+
+// ── Enroll Club notifier ──────────────────────────────────────────────────────
+
+class EnrollClubState {
+  final bool isLoading;
+  final String? errorMessage;
+  final bool success;
+
+  const EnrollClubState({
+    this.isLoading = false,
+    this.errorMessage,
+    this.success = false,
+  });
+
+  EnrollClubState copyWith({
+    bool? isLoading,
+    String? errorMessage,
+    bool? success,
+  }) {
+    return EnrollClubState(
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage,
+      success: success ?? this.success,
+    );
+  }
+}
+
+class EnrollClubNotifier
+    extends AutoDisposeFamilyNotifier<EnrollClubState, int> {
+  @override
+  EnrollClubState build(int camporeeId) => const EnrollClubState();
+
+  int get _camporeeId => arg;
+
+  Future<bool> enroll({required int clubSectionId}) async {
+    state = state.copyWith(
+        isLoading: true, errorMessage: null, success: false);
+
+    final result = await ref.read(camporeesRepositoryProvider).enrollClub(
+          _camporeeId,
+          clubSectionId: clubSectionId,
+        );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+            isLoading: false, errorMessage: failure.message);
+        return false;
+      },
+      (_) {
+        state = state.copyWith(isLoading: false, success: true);
+        ref.invalidate(camporeeEnrolledClubsProvider(_camporeeId));
+        return true;
+      },
+    );
+  }
+
+  void reset() => state = const EnrollClubState();
+}
+
+final enrollClubNotifierProvider = NotifierProvider.autoDispose
+    .family<EnrollClubNotifier, EnrollClubState, int>(
+  EnrollClubNotifier.new,
 );

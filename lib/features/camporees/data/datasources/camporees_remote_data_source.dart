@@ -4,6 +4,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/camporee_model.dart';
 import '../models/camporee_member_model.dart';
+import '../models/camporee_payment_model.dart';
 
 /// Interfaz para la fuente de datos remota de camporees
 abstract class CamporeesRemoteDataSource {
@@ -32,6 +33,42 @@ abstract class CamporeesRemoteDataSource {
   /// Remueve un miembro de un camporee.
   /// DELETE /api/v1/camporees/:camporeeId/members/:userId
   Future<void> removeMember(int camporeeId, String userId);
+
+  // ── Payments ────────────────────────────────────────────────────────────────
+
+  /// Inscribe un club en un camporee.
+  /// POST /api/v1/camporees/:camporeeId/clubs
+  Future<CamporeeEnrolledClubModel> enrollClub(
+    int camporeeId, {
+    required int clubSectionId,
+  });
+
+  /// Obtiene los clubes inscriptos en un camporee.
+  /// GET /api/v1/camporees/:camporeeId/clubs
+  Future<List<CamporeeEnrolledClubModel>> getEnrolledClubs(int camporeeId);
+
+  /// Crea un pago para un miembro en un camporee.
+  /// POST /api/v1/camporees/:camporeeId/members/:memberId/payments
+  Future<CamporeePaymentModel> createPayment(
+    int camporeeId,
+    String memberId, {
+    required double amount,
+    required String paymentType,
+    String? reference,
+    DateTime? paymentDate,
+    String? notes,
+  });
+
+  /// Obtiene los pagos de un miembro en un camporee.
+  /// GET /api/v1/camporees/:camporeeId/members/:memberId/payments
+  Future<List<CamporeePaymentModel>> getMemberPayments(
+    int camporeeId,
+    String memberId,
+  );
+
+  /// Obtiene todos los pagos de un camporee.
+  /// GET /api/v1/camporees/:camporeeId/payments
+  Future<List<CamporeePaymentModel>> getCamporeePayments(int camporeeId);
 }
 
 /// Implementación de la fuente de datos remota de camporees.
@@ -250,6 +287,198 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en removeMember', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── POST /api/v1/camporees/:camporeeId/clubs ──────────────────────────────
+
+  @override
+  Future<CamporeeEnrolledClubModel> enrollClub(
+    int camporeeId, {
+    required int clubSectionId,
+  }) async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.post(
+        '$_baseUrl/camporees/$camporeeId/clubs',
+        data: {'club_section_id': clubSectionId},
+        options: _authOptions(token),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return CamporeeEnrolledClubModel.fromJson(
+            response.data as Map<String, dynamic>);
+      }
+
+      throw ServerException(
+          message: 'Error al inscribir club en el camporee',
+          code: response.statusCode);
+    } catch (e) {
+      AppLogger.e('Error en enrollClub', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /api/v1/camporees/:camporeeId/clubs ───────────────────────────────
+
+  @override
+  Future<List<CamporeeEnrolledClubModel>> getEnrolledClubs(
+      int camporeeId) async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.get(
+        '$_baseUrl/camporees/$camporeeId/clubs',
+        options: _authOptions(token),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = response.data;
+        List<dynamic> data;
+
+        if (responseData is Map && responseData.containsKey('data')) {
+          data = responseData['data'] as List<dynamic>;
+        } else if (responseData is List) {
+          data = responseData;
+        } else {
+          data = [];
+        }
+
+        return data
+            .map((json) => CamporeeEnrolledClubModel.fromJson(
+                json as Map<String, dynamic>))
+            .toList();
+      }
+
+      throw ServerException(
+          message: 'Error al obtener clubes inscriptos',
+          code: response.statusCode);
+    } catch (e) {
+      AppLogger.e('Error en getEnrolledClubs', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── POST /api/v1/camporees/:camporeeId/members/:memberId/payments ─────────
+
+  @override
+  Future<CamporeePaymentModel> createPayment(
+    int camporeeId,
+    String memberId, {
+    required double amount,
+    required String paymentType,
+    String? reference,
+    DateTime? paymentDate,
+    String? notes,
+  }) async {
+    try {
+      final token = await _getAuthToken();
+      final body = <String, dynamic>{
+        'amount': amount,
+        'payment_type': paymentType,
+      };
+      if (reference != null) body['reference'] = reference;
+      if (paymentDate != null) {
+        body['payment_date'] = paymentDate.toIso8601String();
+      }
+      if (notes != null) body['notes'] = notes;
+
+      final response = await _dio.post(
+        '$_baseUrl/camporees/$camporeeId/members/$memberId/payments',
+        data: body,
+        options: _authOptions(token),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return CamporeePaymentModel.fromJson(
+            response.data as Map<String, dynamic>);
+      }
+
+      throw ServerException(
+          message: 'Error al registrar pago',
+          code: response.statusCode);
+    } catch (e) {
+      AppLogger.e('Error en createPayment', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /api/v1/camporees/:camporeeId/members/:memberId/payments ──────────
+
+  @override
+  Future<List<CamporeePaymentModel>> getMemberPayments(
+    int camporeeId,
+    String memberId,
+  ) async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.get(
+        '$_baseUrl/camporees/$camporeeId/members/$memberId/payments',
+        options: _authOptions(token),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = response.data;
+        List<dynamic> data;
+
+        if (responseData is Map && responseData.containsKey('data')) {
+          data = responseData['data'] as List<dynamic>;
+        } else if (responseData is List) {
+          data = responseData;
+        } else {
+          data = [];
+        }
+
+        return data
+            .map((json) =>
+                CamporeePaymentModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+
+      throw ServerException(
+          message: 'Error al obtener pagos del miembro',
+          code: response.statusCode);
+    } catch (e) {
+      AppLogger.e('Error en getMemberPayments', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /api/v1/camporees/:camporeeId/payments ────────────────────────────
+
+  @override
+  Future<List<CamporeePaymentModel>> getCamporeePayments(
+      int camporeeId) async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.get(
+        '$_baseUrl/camporees/$camporeeId/payments',
+        options: _authOptions(token),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = response.data;
+        List<dynamic> data;
+
+        if (responseData is Map && responseData.containsKey('data')) {
+          data = responseData['data'] as List<dynamic>;
+        } else if (responseData is List) {
+          data = responseData;
+        } else {
+          data = [];
+        }
+
+        return data
+            .map((json) =>
+                CamporeePaymentModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+
+      throw ServerException(
+          message: 'Error al obtener pagos del camporee',
+          code: response.statusCode);
+    } catch (e) {
+      AppLogger.e('Error en getCamporeePayments', tag: _tag, error: e);
       _rethrow(e);
     }
   }

@@ -28,6 +28,12 @@ import 'package:sacdia_app/features/camporees/presentation/views/camporee_regist
 import 'package:sacdia_app/features/transfers/presentation/views/transfer_request_detail_view.dart';
 import 'package:sacdia_app/features/transfers/presentation/views/transfer_requests_view.dart';
 import 'package:sacdia_app/features/units/presentation/views/units_list_view.dart';
+import 'package:sacdia_app/features/camporees/presentation/views/camporee_payments_view.dart';
+import 'package:sacdia_app/features/camporees/presentation/views/camporee_enroll_club_view.dart';
+import 'package:sacdia_app/features/annual_folders/presentation/views/annual_folder_view.dart';
+import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_reports_list_view.dart';
+import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_report_detail_view.dart';
+import 'package:sacdia_app/features/role_assignments/presentation/views/role_assignments_view.dart';
 
 import '../../features/auth/domain/entities/authorization_snapshot.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
@@ -470,6 +476,96 @@ final routerProvider = Provider<GoRouter>((ref) {
             CamporeeRegisterMemberView(camporeeId: camporeeId),
           );
         },
+      ),
+
+      // Pagos de un miembro en un camporee
+      GoRoute(
+        path: RouteNames.camporeePayments,
+        pageBuilder: (context, state) {
+          final camporeeId =
+              int.tryParse(state.pathParameters['camporeeId']!) ?? 0;
+          final memberId = state.pathParameters['memberId']!;
+          final memberName = state.uri.queryParameters['name'];
+          return _sharedAxisBuild(
+            context,
+            state,
+            CamporeePaymentsView(
+              camporeeId: camporeeId,
+              memberId: memberId,
+              memberName: memberName,
+            ),
+          );
+        },
+      ),
+
+      // Inscribir club en camporee
+      GoRoute(
+        path: RouteNames.camporeeEnrollClub,
+        pageBuilder: (context, state) {
+          final camporeeId =
+              int.tryParse(state.pathParameters['camporeeId']!) ?? 0;
+          final camporeeName = state.uri.queryParameters['name'];
+          return _sharedAxisBuild(
+            context,
+            state,
+            CamporeeEnrollClubView(
+              camporeeId: camporeeId,
+              camporeeName: camporeeName,
+            ),
+          );
+        },
+      ),
+
+      // Carpeta anual de un enrollment
+      GoRoute(
+        path: RouteNames.annualFolder,
+        pageBuilder: (context, state) {
+          final enrollmentId =
+              int.tryParse(state.pathParameters['enrollmentId']!) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            AnnualFolderView(enrollmentId: enrollmentId),
+          );
+        },
+      ),
+
+      // Lista de informes mensuales de un enrollment
+      GoRoute(
+        path: RouteNames.monthlyReports,
+        pageBuilder: (context, state) {
+          final enrollmentId =
+              int.tryParse(state.pathParameters['enrollmentId']!) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            MonthlyReportsListView(enrollmentId: enrollmentId),
+          );
+        },
+      ),
+
+      // Detalle de informe mensual
+      GoRoute(
+        path: RouteNames.monthlyReportDetail,
+        pageBuilder: (context, state) {
+          final reportId =
+              int.tryParse(state.pathParameters['reportId']!) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            MonthlyReportDetailView(reportId: reportId),
+          );
+        },
+      ),
+
+      // Asignaciones de rol
+      GoRoute(
+        path: RouteNames.roleAssignments,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          const RoleAssignmentsView(),
+        ),
       ),
 
       // OAuth callback deep link — io.sacdia.app://auth/callback?session_token=...&provider=...

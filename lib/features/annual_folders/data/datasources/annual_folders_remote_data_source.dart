@@ -1,0 +1,193 @@
+import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../../core/errors/exceptions.dart';
+import '../../../../core/utils/app_logger.dart';
+import '../models/annual_folder_model.dart';
+
+/// Interfaz para el data source remoto de carpetas anuales
+abstract class AnnualFoldersRemoteDataSource {
+  Future<AnnualFolderModel> getFolderByEnrollment(int enrollmentId);
+
+  Future<FolderEvidenceModel> uploadEvidence(
+    int folderId, {
+    required int sectionId,
+    required String fileUrl,
+    required String fileName,
+    String? notes,
+  });
+
+  Future<void> deleteEvidence(int evidenceId);
+
+  Future<AnnualFolderModel> submitFolder(int folderId);
+}
+
+/// Implementación del data source remoto de carpetas anuales
+class AnnualFoldersRemoteDataSourceImpl
+    implements AnnualFoldersRemoteDataSource {
+  final Dio _dio;
+  final String _baseUrl;
+  final FlutterSecureStorage _secureStorage;
+
+  static const _tag = 'AnnualFoldersDS';
+
+  AnnualFoldersRemoteDataSourceImpl({
+    required Dio dio,
+    required String baseUrl,
+  })  : _dio = dio,
+        _baseUrl = baseUrl,
+        _secureStorage = const FlutterSecureStorage();
+
+  Future<String> _getAuthToken() async {
+    final token = await _secureStorage.read(key: 'auth_token');
+    if (token == null) throw AuthException(message: 'No hay sesion activa');
+    return token;
+  }
+
+  Options _authOptions(String token) =>
+      Options(headers: {'Authorization': 'Bearer $token'});
+
+  Never _rethrow(Object e) {
+    if (e is DioException) {
+      final msg = _extractDioMessage(e);
+      throw ServerException(message: msg, code: e.response?.statusCode);
+    }
+    if (e is ServerException || e is AuthException) throw e;
+    throw ServerException(message: e.toString());
+  }
+
+  String _extractDioMessage(DioException e) {
+    try {
+      final data = e.response?.data;
+      if (data is Map) {
+        final msg = data['message'];
+        if (msg is List) return msg.join(', ');
+        return (msg ?? e.message ?? 'Error de conexion').toString();
+      }
+    } catch (_) {}
+    return e.message ?? 'Error de conexion';
+  }
+
+  // ── GET /api/v1/annual-folders/enrollment/:enrollmentId ──────────────────
+
+  @override
+  Future<AnnualFolderModel> getFolderByEnrollment(int enrollmentId) async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.get(
+        '$_baseUrl/annual-folders/enrollment/$enrollmentId',
+        options: _authOptions(token),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = response.data;
+        final json = data is Map && data.containsKey('data')
+            ? data['data'] as Map<String, dynamic>
+            : data as Map<String, dynamic>;
+        return AnnualFolderModel.fromJson(json);
+      }
+
+      throw ServerException(
+          message: 'Error al obtener la carpeta anual',
+          code: response.statusCode);
+    } catch (e) {
+      AppLogger.e('Error en getFolderByEnrollment', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── POST /api/v1/annual-folders/:folderId/evidences ──────────────────────
+
+  @override
+  Future<FolderEvidenceModel> uploadEvidence(
+    int folderId, {
+    required int sectionId,
+    required String fileUrl,
+    required String fileName,
+    String? notes,
+  }) async {
+    try {
+      final token = await _getAuthToken();
+      final body = <String, dynamic>{
+        'section_id': sectionId,
+        'file_url': fileUrl,
+        'file_name': fileName,
+      };
+      if (notes != null) body['notes'] = notes;
+
+      final response = await _dio.post(
+        '$_baseUrl/annual-folders/$folderId/evidences',
+        data: body,
+        options: _authOptions(token),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = response.data;
+        final json = data is Map && data.containsKey('data')
+            ? data['data'] as Map<String, dynamic>
+            : data as Map<String, dynamic>;
+        return FolderEvidenceModel.fromJson(json);
+      }
+
+      throw ServerException(
+          message: 'Error al subir evidencia',
+          code: response.statusCode);
+    } catch (e) {
+      AppLogger.e('Error en uploadEvidence', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── DELETE /api/v1/annual-folders/evidences/:evidenceId ──────────────────
+
+  @override
+  Future<void> deleteEvidence(int evidenceId) async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.delete(
+        '$_baseUrl/annual-folders/evidences/$evidenceId',
+        options: _authOptions(token),
+      );
+
+      if (response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 204) {
+        return;
+      }
+
+      throw ServerException(
+          message: 'Error al eliminar evidencia',
+          code: response.statusCode);
+    } catch (e) {
+      AppLogger.e('Error en deleteEvidence', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── POST /api/v1/annual-folders/:folderId/submit ─────────────────────────
+
+  @override
+  Future<AnnualFolderModel> submitFolder(int folderId) async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.post(
+        '$_baseUrl/annual-folders/$folderId/submit',
+        options: _authOptions(token),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = response.data;
+        final json = data is Map && data.containsKey('data')
+            ? data['data'] as Map<String, dynamic>
+            : data as Map<String, dynamic>;
+        return AnnualFolderModel.fromJson(json);
+      }
+
+      throw ServerException(
+          message: 'Error al enviar la carpeta',
+          code: response.statusCode);
+    } catch (e) {
+      AppLogger.e('Error en submitFolder', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+}

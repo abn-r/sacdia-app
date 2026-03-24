@@ -4,6 +4,7 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
 import '../../domain/entities/camporee.dart';
 import '../../domain/entities/camporee_member.dart';
+import '../../domain/entities/camporee_payment.dart';
 import '../../domain/repositories/camporees_repository.dart';
 import '../datasources/camporees_remote_data_source.dart';
 
@@ -115,6 +116,111 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
     try {
       await remoteDataSource.removeMember(camporeeId, userId);
       return const Right(null);
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  // ── Payments ────────────────────────────────────────────────────────────────
+
+  @override
+  Future<Either<Failure, CamporeeEnrolledClub>> enrollClub(
+    int camporeeId, {
+    required int clubSectionId,
+  }) async {
+    if (!await _isConnected) return _networkFailure();
+    try {
+      final model = await remoteDataSource.enrollClub(
+        camporeeId,
+        clubSectionId: clubSectionId,
+      );
+      return Right(model.toEntity());
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<CamporeeEnrolledClub>>> getEnrolledClubs(
+      int camporeeId) async {
+    if (!await _isConnected) return _networkFailure();
+    try {
+      final models = await remoteDataSource.getEnrolledClubs(camporeeId);
+      return Right(models.map((m) => m.toEntity()).toList());
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, CamporeePayment>> createPayment(
+    int camporeeId,
+    String memberId, {
+    required double amount,
+    required String paymentType,
+    String? reference,
+    DateTime? paymentDate,
+    String? notes,
+  }) async {
+    if (!await _isConnected) return _networkFailure();
+    try {
+      final model = await remoteDataSource.createPayment(
+        camporeeId,
+        memberId,
+        amount: amount,
+        paymentType: paymentType,
+        reference: reference,
+        paymentDate: paymentDate,
+        notes: notes,
+      );
+      return Right(model.toEntity());
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<CamporeePayment>>> getMemberPayments(
+    int camporeeId,
+    String memberId,
+  ) async {
+    if (!await _isConnected) return _networkFailure();
+    try {
+      final models =
+          await remoteDataSource.getMemberPayments(camporeeId, memberId);
+      return Right(models.map((m) => m.toEntity()).toList());
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<CamporeePayment>>> getCamporeePayments(
+      int camporeeId) async {
+    if (!await _isConnected) return _networkFailure();
+    try {
+      final models = await remoteDataSource.getCamporeePayments(camporeeId);
+      return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return _serverFailure(e);
     } on AuthException catch (e) {

@@ -85,4 +85,33 @@ class RouteNames {
   // Traslados helpers
   static String transferRequestDetail(int requestId) =>
       '/transfer/$requestId';
+
+  // Carpetas anuales
+  static const String annualFolder = '/annual-folder/:enrollmentId';
+
+  static String annualFolderPath(int enrollmentId) =>
+      '/annual-folder/$enrollmentId';
+
+  // Informes mensuales
+  static const String monthlyReports = '/monthly-reports/:enrollmentId';
+  static const String monthlyReportDetail = '/monthly-report/:reportId';
+
+  static String monthlyReportsPath(int enrollmentId) =>
+      '/monthly-reports/$enrollmentId';
+  static String monthlyReportDetailPath(int reportId) =>
+      '/monthly-report/$reportId';
+
+  // Asignaciones de rol
+  static const String roleAssignments = '/role-assignments';
+
+  // Pagos de camporee (miembro)
+  static const String camporeePayments =
+      '/camporee/:camporeeId/member/:memberId/payments';
+  static const String camporeeEnrollClub =
+      '/camporee/:camporeeId/enroll-club';
+
+  static String camporeePaymentsPath(int camporeeId, String memberId) =>
+      '/camporee/$camporeeId/member/$memberId/payments';
+  static String camporeeEnrollClubPath(int camporeeId) =>
+      '/camporee/$camporeeId/enroll-club';
 }
