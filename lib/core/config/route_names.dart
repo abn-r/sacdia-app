@@ -50,6 +50,10 @@ class RouteNames {
   static const String camporeeRegisterMember =
       '/camporee/:camporeeId/register';
 
+  // Traslados
+  static const String transferRequests = '/transfers';
+  static const String transferRequestDetailRoute = '/transfer/:requestId';
+
   // OAuth callback deep link (io.sacdia.app://auth/callback)
   static const String authCallback = '/auth/callback';
 
@@ -77,4 +81,8 @@ class RouteNames {
       '/camporee/$camporeeId/members';
   static String camporeeRegisterMemberPath(String camporeeId) =>
       '/camporee/$camporeeId/register';
+
+  // Traslados helpers
+  static String transferRequestDetail(int requestId) =>
+      '/transfer/$requestId';
 }

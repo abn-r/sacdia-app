@@ -25,6 +25,8 @@ import 'package:sacdia_app/features/camporees/presentation/views/camporees_list_
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_detail_view.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_members_view.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_register_member_view.dart';
+import 'package:sacdia_app/features/transfers/presentation/views/transfer_request_detail_view.dart';
+import 'package:sacdia_app/features/transfers/presentation/views/transfer_requests_view.dart';
 import 'package:sacdia_app/features/units/presentation/views/units_list_view.dart';
 
 import '../../features/auth/domain/entities/authorization_snapshot.dart';
@@ -428,6 +430,30 @@ final routerProvider = Provider<GoRouter>((ref) {
               camporeeId: camporeeId,
               camporeeName: camporeeName,
             ),
+          );
+        },
+      ),
+
+      // Lista de solicitudes de traslado
+      GoRoute(
+        path: RouteNames.transferRequests,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          const TransferRequestsView(),
+        ),
+      ),
+
+      // Detalle de solicitud de traslado
+      GoRoute(
+        path: RouteNames.transferRequestDetailRoute,
+        pageBuilder: (context, state) {
+          final requestIdStr = state.pathParameters['requestId']!;
+          final requestId = int.tryParse(requestIdStr) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            TransferRequestDetailView(requestId: requestId),
           );
         },
       ),
