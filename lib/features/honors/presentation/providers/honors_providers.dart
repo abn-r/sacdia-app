@@ -256,3 +256,55 @@ final userHonorForHonorProvider =
     error: (_, __) => null,
   );
 });
+
+// ── Search & filter providers ─────────────────────────────────────────────
+
+/// Search query for the catalog view. Debounce is handled in the UI.
+final searchQueryProvider = StateProvider.autoDispose<String>((ref) => '');
+
+/// Currently selected category ID for catalog filtering. null = "Todas".
+final selectedCategoryProvider = StateProvider.autoDispose<int?>((ref) => null);
+
+/// All honors filtered by search query and selected category.
+/// Used by the redesigned honors_catalog_view.
+final filteredHonorsProvider =
+    FutureProvider.autoDispose<List<Honor>>((ref) async {
+  final query = ref.watch(searchQueryProvider).toLowerCase();
+  final categoryId = ref.watch(selectedCategoryProvider);
+
+  // Fetch all honors (no filter params = get all)
+  final getHonors = ref.read(getHonorsProvider);
+  final result = await getHonors(GetHonorsParams(categoryId: categoryId));
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (honors) {
+      if (query.length < 2) return honors;
+      return honors
+          .where((h) => h.name.toLowerCase().contains(query))
+          .toList();
+    },
+  );
+});
+
+/// Combines catalog honors with user honors to determine display status.
+/// Returns a list of tuples: (Honor, UserHonor?) for rendering cards.
+final honorsWithStatusProvider =
+    FutureProvider.autoDispose<List<({Honor honor, UserHonor? userHonor})>>(
+        (ref) async {
+  final honorsAsync = await ref.watch(filteredHonorsProvider.future);
+  final userHonorsAsync = ref.watch(userHonorsProvider);
+
+  final userHonors = userHonorsAsync.maybeWhen(
+    data: (list) => list,
+    orElse: () => <UserHonor>[],
+  );
+
+  return honorsAsync.map((honor) {
+    final uh = userHonors.cast<UserHonor?>().firstWhere(
+          (u) => u!.honorId == honor.id,
+          orElse: () => null,
+        );
+    return (honor: honor, userHonor: uh);
+  }).toList();
+});
