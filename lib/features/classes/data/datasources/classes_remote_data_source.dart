@@ -229,8 +229,19 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
         final List<dynamic> data = response.data as List<dynamic>;
         return data.map((enrollment) {
           final e = enrollment as Map<String, dynamic>;
-          // El backend retorna inscripciones: [{ classes: {...}, ... }]
-          final classJson = (e['classes'] as Map<String, dynamic>?) ?? e;
+          // El backend retorna inscripciones:
+          // [{ enrollment_id, investiture_status, overall_progress, classes: {...} }]
+          // Mezclamos los campos de enrollment sobre el JSON de clase para que
+          // ClassModel.fromJson los reciba en un único mapa plano.
+          final classJson =
+              Map<String, dynamic>.from(
+                  (e['classes'] as Map<String, dynamic>?) ?? e);
+          if (e.containsKey('investiture_status')) {
+            classJson['investiture_status'] = e['investiture_status'];
+          }
+          if (e.containsKey('overall_progress')) {
+            classJson['overall_progress'] = e['overall_progress'];
+          }
           return ClassModel.fromJson(classJson);
         }).toList();
       }

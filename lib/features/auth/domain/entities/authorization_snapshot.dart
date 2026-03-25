@@ -7,13 +7,37 @@ class AuthorizationGrant extends Equatable {
   final int? clubId;
   final int? sectionId;
 
+  /// Membership status: 'pending', 'active', 'rejected', 'expired'.
+  final String? status;
+
+  /// When the membership request expires (only relevant for pending status).
+  final DateTime? expiresAt;
+
+  /// Reason for rejection (only present when status is 'rejected').
+  final String? rejectionReason;
+
   const AuthorizationGrant({
     this.assignmentId,
     this.roleName,
     this.permissions = const [],
     this.clubId,
     this.sectionId,
+    this.status,
+    this.expiresAt,
+    this.rejectionReason,
   });
+
+  /// Whether this assignment is in a usable (active) state.
+  bool get isActive => status == null || status == 'active';
+
+  /// Whether this assignment is pending approval.
+  bool get isPending => status == 'pending';
+
+  /// Whether this assignment was rejected.
+  bool get isRejected => status == 'rejected';
+
+  /// Whether this assignment has expired.
+  bool get isExpired => status == 'expired';
 
   @override
   List<Object?> get props => [
@@ -22,6 +46,9 @@ class AuthorizationGrant extends Equatable {
         permissions,
         clubId,
         sectionId,
+        status,
+        expiresAt,
+        rejectionReason,
       ];
 }
 
@@ -49,6 +76,22 @@ class AuthorizationSnapshot extends Equatable {
   }
 
   bool get hasCanonicalPermissions => effectivePermissions.isNotEmpty;
+
+  /// Returns the membership status of the active grant, or null if no active grant.
+  String? get activeMembershipStatus => activeGrant?.status;
+
+  /// Whether the active assignment is pending approval.
+  bool get isActivePending => activeGrant?.isPending ?? false;
+
+  /// Whether the active assignment was rejected.
+  bool get isActiveRejected => activeGrant?.isRejected ?? false;
+
+  /// Whether the active assignment has expired.
+  bool get isActiveExpired => activeGrant?.isExpired ?? false;
+
+  /// Whether the active assignment is in a non-active state (pending/rejected/expired).
+  bool get hasRestrictedAccess =>
+      isActivePending || isActiveRejected || isActiveExpired;
 
   Set<String> get resolvedRoleNames {
     final roles = <String>{};

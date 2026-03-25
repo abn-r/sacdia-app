@@ -156,7 +156,7 @@ class RequirementCard extends StatelessWidget {
                             ? AppColors.statusInfoTextDark
                             : AppColors.statusInfoText,
                         text:
-                            'Enviado por ${requirement.submittedByName}${requirement.submittedAt != null ? " · ${dateFormat.format(requirement.submittedAt!)}" : ""}',
+                            'Enviado por ${requirement.submittedByName}${requirement.submittedAt != null ? " · ${dateFormat.format(requirement.submittedAt!.toLocal())}" : ""}',
                         context: context,
                       ),
                     if (requirement.validatedByName != null) ...[
@@ -166,7 +166,7 @@ class RequirementCard extends StatelessWidget {
                         icon: HugeIcons.strokeRoundedCheckmarkCircle01,
                         color: AppColors.secondary,
                         text:
-                            'Validado por ${requirement.validatedByName}${requirement.validatedAt != null ? " · ${dateFormat.format(requirement.validatedAt!)}" : ""}',
+                            'Validado por ${requirement.validatedByName}${requirement.validatedAt != null ? " · ${dateFormat.format(requirement.validatedAt!.toLocal())}" : ""}',
                         context: context,
                       ),
                     ],

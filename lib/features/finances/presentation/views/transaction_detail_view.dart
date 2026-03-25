@@ -86,7 +86,7 @@ class TransactionDetailView extends ConsumerWidget {
                   icon: HugeIcons.strokeRoundedCalendar01,
                   label: 'Fecha',
                   value: DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es')
-                      .format(transaction.date),
+                      .format(transaction.date.toLocal()),
                 ),
                 if (transaction.notes != null &&
                     transaction.notes!.isNotEmpty) ...[
@@ -115,7 +115,7 @@ class TransactionDetailView extends ConsumerWidget {
                 _DetailRow(
                   icon: HugeIcons.strokeRoundedClock01,
                   label: 'Fecha de registro',
-                  value: DateFormat('dd/MM/yyyy HH:mm').format(transaction.registeredAt),
+                  value: DateFormat('dd/MM/yyyy HH:mm').format(transaction.registeredAt.toLocal()),
                 ),
                 if (transaction.modifiedByName != null) ...[
                   _divider(),
@@ -130,7 +130,7 @@ class TransactionDetailView extends ConsumerWidget {
                       icon: HugeIcons.strokeRoundedClock01,
                       label: 'Fecha de modificación',
                       value: DateFormat('dd/MM/yyyy HH:mm')
-                          .format(transaction.modifiedAt!),
+                          .format(transaction.modifiedAt!.toLocal()),
                     ),
                   ],
                 ],

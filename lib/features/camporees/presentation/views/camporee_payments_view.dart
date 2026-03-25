@@ -300,7 +300,7 @@ class _PaymentCard extends StatelessWidget {
                     ),
                     if (payment.paymentDate != null)
                       Text(
-                        dateFmt.format(payment.paymentDate!),
+                        dateFmt.format(payment.paymentDate!.toLocal()),
                         style: TextStyle(
                           fontSize: 12,
                           color: c.textTertiary,

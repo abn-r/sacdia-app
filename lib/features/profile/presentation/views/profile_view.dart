@@ -6,6 +6,8 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/app_logger.dart';
@@ -513,7 +515,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                               horizontal: 8,
                               vertical: 16,
                             ),
-                            child: const ClassStatusCircles(),
+                            child: ClassStatusCircles(clubType: profile.clubType),
                           ),
                           const SizedBox(height: 20),
                         ],
@@ -568,30 +570,60 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           _SectionLabel(label: 'Especialidades'),
-                          GestureDetector(
-                            onTap: () {
-                              ref.invalidate(userHonorsProvider);
-                              ref.invalidate(userHonorStatsProvider);
-                              ref.invalidate(honorCategoriesProvider);
-                            },
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: c.surface,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: c.border,
+                          Row(
+                            children: [
+                              // Add honor button
+                              GestureDetector(
+                                onTap: () {
+                                  context.go(RouteNames.homeHonors);
+                                },
+                                child: Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.sacBlue.withAlpha(20),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: AppColors.sacBlue.withAlpha(40),
+                                    ),
+                                  ),
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.add_rounded,
+                                      color: AppColors.sacBlue,
+                                      size: 18,
+                                    ),
+                                  ),
                                 ),
                               ),
-                              child: Center(
-                                child: HugeIcon(
-                                  icon: HugeIcons.strokeRoundedRefresh,
-                                  color: c.textTertiary,
-                                  size: 16,
+                              const SizedBox(width: 8),
+                              // Refresh button
+                              GestureDetector(
+                                onTap: () {
+                                  ref.invalidate(userHonorsProvider);
+                                  ref.invalidate(userHonorStatsProvider);
+                                  ref.invalidate(honorCategoriesProvider);
+                                },
+                                child: Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: c.surface,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: c.border,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: HugeIcon(
+                                      icon: HugeIcons.strokeRoundedRefresh,
+                                      color: c.textTertiary,
+                                      size: 16,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
                         ],
                       ),

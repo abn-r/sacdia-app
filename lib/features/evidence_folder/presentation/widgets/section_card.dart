@@ -140,7 +140,7 @@ class SectionCard extends StatelessWidget {
                             ? AppColors.statusInfoTextDark
                             : AppColors.statusInfoText,
                         text:
-                            'Enviado por ${section.submittedByName}${section.submittedAt != null ? " · ${dateFormat.format(section.submittedAt!)}" : ""}',
+                            'Enviado por ${section.submittedByName}${section.submittedAt != null ? " · ${dateFormat.format(section.submittedAt!.toLocal())}" : ""}',
                         context: context,
                       ),
                     if (section.validatedByName != null) ...[
@@ -150,7 +150,7 @@ class SectionCard extends StatelessWidget {
                         icon: HugeIcons.strokeRoundedCheckmarkCircle01,
                         color: AppColors.secondary,
                         text:
-                            'Validado por ${section.validatedByName}${section.validatedAt != null ? " · ${dateFormat.format(section.validatedAt!)}" : ""}',
+                            'Validado por ${section.validatedByName}${section.validatedAt != null ? " · ${dateFormat.format(section.validatedAt!.toLocal())}" : ""}',
                         context: context,
                       ),
                     ],

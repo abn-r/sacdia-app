@@ -164,7 +164,7 @@ class AppColors {
   static const Color sacGreen = Color(0xFF4FBF9F);
   static const Color sacBlack = Color(0xFF183651);
   static const Color sacWhite = Color(0xFFE1E6E7);
-  static const Color sacGrey = Color(0xFFB9B9B9);
+  static const Color sacGrey = Color.fromARGB(255, 225, 184, 184);
   static const Color sacGreenLight = Color(0xFF43A78A);
 
   // ═══════════════════════════════════════════════════════════

@@ -9,15 +9,27 @@ class ClassModel extends Equatable {
   final int clubTypeId;
   final String? imageUrl;
 
+  /// Estado de investidura proveniente del enrollment.
+  /// Valores posibles: null (no inscripto), 'PENDIENTE', 'INVESTIDO', etc.
+  final String? investitureStatus;
+
+  /// Progreso general de 0 a 100, proveniente del enrollment.
+  final int? overallProgress;
+
   const ClassModel({
     required this.id,
     required this.name,
     this.description,
     required this.clubTypeId,
     this.imageUrl,
+    this.investitureStatus,
+    this.overallProgress,
   });
 
-  /// Crea una instancia desde JSON
+  /// Crea una instancia desde JSON.
+  ///
+  /// Acepta tanto el JSON de clase plano (catálogo) como el JSON ya mezclado
+  /// con campos de enrollment (investiture_status, overall_progress).
   factory ClassModel.fromJson(Map<String, dynamic> json) {
     return ClassModel(
       // Backend uses 'class_id' as PK; 'id' is fallback for catalog endpoint
@@ -27,6 +39,8 @@ class ClassModel extends Equatable {
       // Enrollment response nests club type; catalog has flat club_type_id
       clubTypeId: (json['club_type_id'] ?? 0) as int,
       imageUrl: json['image_url'] as String?,
+      investitureStatus: json['investiture_status'] as String?,
+      overallProgress: json['overall_progress'] as int?,
     );
   }
 
@@ -38,6 +52,8 @@ class ClassModel extends Equatable {
       'description': description,
       'club_type_id': clubTypeId,
       'image_url': imageUrl,
+      'investiture_status': investitureStatus,
+      'overall_progress': overallProgress,
     };
   }
 
@@ -49,6 +65,8 @@ class ClassModel extends Equatable {
       description: description,
       clubTypeId: clubTypeId,
       imageUrl: imageUrl,
+      investitureStatus: investitureStatus,
+      overallProgress: overallProgress,
     );
   }
 
@@ -59,6 +77,8 @@ class ClassModel extends Equatable {
     String? description,
     int? clubTypeId,
     String? imageUrl,
+    String? investitureStatus,
+    int? overallProgress,
   }) {
     return ClassModel(
       id: id ?? this.id,
@@ -66,9 +86,19 @@ class ClassModel extends Equatable {
       description: description ?? this.description,
       clubTypeId: clubTypeId ?? this.clubTypeId,
       imageUrl: imageUrl ?? this.imageUrl,
+      investitureStatus: investitureStatus ?? this.investitureStatus,
+      overallProgress: overallProgress ?? this.overallProgress,
     );
   }
 
   @override
-  List<Object?> get props => [id, name, description, clubTypeId, imageUrl];
+  List<Object?> get props => [
+        id,
+        name,
+        description,
+        clubTypeId,
+        imageUrl,
+        investitureStatus,
+        overallProgress,
+      ];
 }

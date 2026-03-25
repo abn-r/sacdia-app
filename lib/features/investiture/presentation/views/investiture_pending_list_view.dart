@@ -259,7 +259,7 @@ class _PendingCard extends ConsumerWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'Enviado el ${DateFormat('dd/MM/yyyy').format(item.submittedAt!)}',
+                  'Enviado el ${DateFormat('dd/MM/yyyy').format(item.submittedAt!.toLocal())}',
                   style: TextStyle(fontSize: 12, color: c.textSecondary),
                 ),
               ],

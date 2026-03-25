@@ -228,7 +228,7 @@ class _TimelineEntry extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        DateFormat('dd/MM/yyyy HH:mm').format(entry.performedAt),
+                        DateFormat('dd/MM/yyyy HH:mm').format(entry.performedAt.toLocal()),
                         style: TextStyle(
                           fontSize: 11,
                           color: c.textTertiary,

@@ -146,7 +146,7 @@ class InventoryItemDetailView extends ConsumerWidget {
                   _InfoRow(
                     icon: HugeIcons.strokeRoundedCalendar01,
                     label: 'Fecha de adquisición',
-                    value: DateFormat('dd/MM/yyyy').format(item.purchaseDate!),
+                    value: DateFormat('dd/MM/yyyy').format(item.purchaseDate!.toLocal()),
                   ),
                 if (item.estimatedValue != null)
                   _InfoRow(
@@ -203,14 +203,14 @@ class InventoryItemDetailView extends ConsumerWidget {
                   icon: HugeIcons.strokeRoundedUser,
                   label: 'Registrado por',
                   value:
-                      '${item.registeredByName} · ${DateFormat('dd/MM/yyyy').format(item.registeredAt)}',
+                      '${item.registeredByName} · ${DateFormat('dd/MM/yyyy').format(item.registeredAt.toLocal())}',
                 ),
                 if (item.modifiedByName != null)
                   _InfoRow(
                     icon: HugeIcons.strokeRoundedEdit01,
                     label: 'Última modificación',
                     value:
-                        '${item.modifiedByName} · ${item.modifiedAt != null ? DateFormat('dd/MM/yyyy').format(item.modifiedAt!) : ''}',
+                        '${item.modifiedByName} · ${item.modifiedAt != null ? DateFormat('dd/MM/yyyy').format(item.modifiedAt!.toLocal()) : ''}',
                   ),
               ],
             ),

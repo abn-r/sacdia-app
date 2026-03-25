@@ -284,7 +284,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                           icon: HugeIcons.strokeRoundedCalendar01,
                           label: 'Fecha',
                           value: DateFormat('EEEE, dd MMMM yyyy', 'es')
-                              .format(activity.createdAt!),
+                              .format(activity.createdAt!.toLocal()),
                         ),
                       if (activity.activityTime != null)
                         ActivityInfoRow(

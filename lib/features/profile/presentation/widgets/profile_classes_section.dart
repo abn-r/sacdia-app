@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -13,21 +12,42 @@ import 'package:sacdia_app/features/classes/presentation/views/classes_list_view
 
 /// Map class names to their brand colours (same palette as ClassStatusCircles).
 const Map<String, Color> _classColors = {
+  // Aventureros
+  'Corderitos': AppColors.colorCorderitos,
+  'Aves Madrugadoras': AppColors.colorCastores,
+  'Abejitas Industriosas': AppColors.colorAbejas,
+  'Rayos de Sol': AppColors.colorRayos,
+  'Constructores': AppColors.colorConstructores,
+  'Manos Ayudadoras': AppColors.colorManos,
+  // Conquistadores
   'Amigo': AppColors.colorAmigo,
   'Compañero': AppColors.colorCompanero,
   'Explorador': AppColors.colorExplorador,
   'Orientador': AppColors.colorOrientador,
   'Viajero': AppColors.colorViajero,
   'Guía': AppColors.colorGuia,
+  // Guías Mayores
+  'Guía Mayor': AppColors.colorGuiaMayor,
 };
 
-const Map<String, IconData> _classIcons = {
-  'Amigo': Icons.handshake,
-  'Compañero': Icons.people,
-  'Explorador': Icons.explore,
-  'Orientador': Icons.compass_calibration,
-  'Viajero': Icons.flight_takeoff,
-  'Guía': Icons.shield,
+/// Mapeo de nombre de clase → asset local del logo.
+const Map<String, String> _classLogos = {
+  // Aventureros
+  'Corderitos': 'assets/img/logos-clases/AV-01.png',
+  'Aves Madrugadoras': 'assets/img/logos-clases/AV-02.png',
+  'Abejitas Industriosas': 'assets/img/logos-clases/AV-03.png',
+  'Rayos de Sol': 'assets/img/logos-clases/AV-04.png',
+  'Constructores': 'assets/img/logos-clases/AV-05.png',
+  'Manos Ayudadoras': 'assets/img/logos-clases/AV-06.png',
+  // Conquistadores
+  'Amigo': 'assets/img/logos-clases/CQ-01.png',
+  'Compañero': 'assets/img/logos-clases/CQ-02.png',
+  'Explorador': 'assets/img/logos-clases/CQ-03.png',
+  'Orientador': 'assets/img/logos-clases/CQ-04.png',
+  'Viajero': 'assets/img/logos-clases/CQ-05.png',
+  'Guía': 'assets/img/logos-clases/CQ-06.png',
+  // Guías Mayores
+  'Guía Mayor': 'assets/img/logos-clases/GM-01.png',
 };
 
 /// Section of the profile view that shows the user's enrolled progressive
@@ -199,14 +219,7 @@ class _ClassGridItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final classColor =
         _classColors[progressiveClass.name] ?? AppColors.primary;
-    final classIcon =
-        _classIcons[progressiveClass.name] ?? Icons.school;
-
-    final initials = progressiveClass.name
-        .split(' ')
-        .take(2)
-        .map((w) => w.isNotEmpty ? w[0].toUpperCase() : '')
-        .join('');
+    final logoAsset = _classLogos[progressiveClass.name];
 
     return Column(
       children: [
@@ -222,28 +235,27 @@ class _ClassGridItem extends StatelessWidget {
                 ),
               );
             },
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: progressiveClass.imageUrl != null &&
-                      progressiveClass.imageUrl!.isNotEmpty
-                  ? Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        CachedNetworkImage(
-                          imageUrl: progressiveClass.imageUrl!,
-                          fit: BoxFit.cover,
-                          errorWidget: (_, __, ___) => _ClassInitialsBox(
-                            initials: initials,
-                            classColor: classColor,
-                            classIcon: classIcon,
-                          ),
-                        ),
-                      ],
+            child: Container(
+              decoration: BoxDecoration(
+                color: classColor.withAlpha(20),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: classColor.withAlpha(50), width: 1),
+              ),
+              padding: const EdgeInsets.all(10),
+              child: logoAsset != null
+                  ? Image.asset(
+                      logoAsset,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => Icon(
+                        Icons.school,
+                        size: 30,
+                        color: classColor,
+                      ),
                     )
-                  : _ClassInitialsBox(
-                      initials: initials,
-                      classColor: classColor,
-                      classIcon: classIcon,
+                  : Icon(
+                      Icons.school,
+                      size: 30,
+                      color: classColor,
                     ),
             ),
           ),
@@ -265,32 +277,3 @@ class _ClassGridItem extends StatelessWidget {
   }
 }
 
-class _ClassInitialsBox extends StatelessWidget {
-  final String initials;
-  final Color classColor;
-  final IconData classIcon;
-
-  const _ClassInitialsBox({
-    required this.initials,
-    required this.classColor,
-    required this.classIcon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: classColor.withAlpha(20),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: classColor.withAlpha(50), width: 1),
-      ),
-      child: Center(
-        child: Icon(
-          classIcon,
-          size: 30,
-          color: classColor,
-        ),
-      ),
-    );
-  }
-}

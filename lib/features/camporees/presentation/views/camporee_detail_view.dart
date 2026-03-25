@@ -165,13 +165,13 @@ class _DetailBody extends ConsumerWidget {
                       _DetailRow(
                         icon: HugeIcons.strokeRoundedCalendar01,
                         label: 'Inicio',
-                        value: dateFormat.format(camporee.startDate),
+                        value: dateFormat.format(camporee.startDate.toLocal()),
                       ),
                       Divider(color: c.border, height: 20),
                       _DetailRow(
                         icon: HugeIcons.strokeRoundedCalendar02,
                         label: 'Fin',
-                        value: dateFormat.format(camporee.endDate),
+                        value: dateFormat.format(camporee.endDate.toLocal()),
                       ),
                       Divider(color: c.border, height: 20),
                       _DetailRow(

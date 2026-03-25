@@ -109,7 +109,7 @@ class _FileCell extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        dateFormat.format(file.uploadedAt),
+                        dateFormat.format(file.uploadedAt.toLocal()),
                         style: TextStyle(
                           fontSize: 9,
                           color: c.textTertiary,

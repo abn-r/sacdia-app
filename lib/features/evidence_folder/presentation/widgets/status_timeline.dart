@@ -43,7 +43,7 @@ class StatusTimeline extends StatelessWidget {
       _TimelineStep(
         label: 'Enviado',
         sublabel: submittedByName != null && submittedAt != null
-            ? 'Por $submittedByName · ${dateFormat.format(submittedAt!)}'
+            ? 'Por $submittedByName · ${dateFormat.format(submittedAt!.toLocal())}'
             : submittedByName != null
                 ? 'Por $submittedByName'
                 : 'Esperando envío',
@@ -56,7 +56,7 @@ class StatusTimeline extends StatelessWidget {
       _TimelineStep(
         label: 'Validado',
         sublabel: validatedByName != null && validatedAt != null
-            ? 'Por $validatedByName · ${dateFormat.format(validatedAt!)}'
+            ? 'Por $validatedByName · ${dateFormat.format(validatedAt!.toLocal())}'
             : validatedByName != null
                 ? 'Por $validatedByName'
                 : 'Esperando validación',

@@ -91,7 +91,7 @@ class _DetailBody extends StatelessWidget {
     final c = context.sac;
     final statusConfig = _statusConfig(request.status);
     final dateStr = request.createdAt != null
-        ? DateFormat('dd/MM/yyyy HH:mm').format(request.createdAt!)
+        ? DateFormat('dd/MM/yyyy HH:mm').format(request.createdAt!.toLocal())
         : '-';
 
     return ListView(

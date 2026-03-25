@@ -97,8 +97,13 @@ final honorsByCategoryProvider =
   );
 });
 
-/// Provider para las especialidades de un usuario
+/// Provider para las especialidades de un usuario.
+/// keepAlive evita que se destruya al perder listeners, previniendo retry loops en error.
 final userHonorsProvider = FutureProvider.autoDispose<List<UserHonor>>((ref) async {
+  // Keep alive para evitar retry infinito: si el provider falla y se destruye,
+  // los watchers lo recrean inmediatamente → loop de requests 429.
+  ref.keepAlive();
+
   final authState = ref.watch(authNotifierProvider);
   final userId = authState.value?.id;
 
@@ -118,6 +123,8 @@ final userHonorsProvider = FutureProvider.autoDispose<List<UserHonor>>((ref) asy
 /// Provider para estadísticas de especialidades del usuario
 final userHonorStatsProvider =
     FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
+  ref.keepAlive();
+
   final authState = ref.watch(authNotifierProvider);
   final userId = authState.value?.id;
 

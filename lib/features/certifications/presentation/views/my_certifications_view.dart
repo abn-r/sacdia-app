@@ -419,7 +419,7 @@ class _UserCertificationCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Inscripto el ${DateFormat('dd/MM/yyyy').format(uc.enrollmentDate)}',
+                        'Inscripto el ${DateFormat('dd/MM/yyyy').format(uc.enrollmentDate.toLocal())}',
                         style: TextStyle(
                           fontSize: 11,
                           color: c.textTertiary,

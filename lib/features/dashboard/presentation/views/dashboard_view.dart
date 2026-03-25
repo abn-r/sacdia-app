@@ -16,6 +16,7 @@ import '../widgets/current_class_card.dart';
 import '../widgets/quick_stats_card.dart';
 import '../widgets/quick_access_grid.dart';
 import '../widgets/upcoming_activities_card.dart';
+import '../widgets/membership_status_banner.dart';
 import '../widgets/welcome_header.dart';
 import '../../../enrollment/presentation/widgets/enrollment_status_card.dart';
 
@@ -90,6 +91,10 @@ class DashboardView extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 8),
+
+                          // Membership status banner (pending/rejected/expired)
+                          const MembershipStatusBanner(),
+                          const SizedBox(height: 16),
 
                           // Enrollment status banner
                           const EnrollmentStatusCard(),

@@ -117,6 +117,9 @@ class UserModel extends UserEntity {
                       ?.toString() ??
                   '')
           : null,
+      status: value['status']?.toString(),
+      expiresAt: _parseDateTime(value['expires_at']),
+      rejectionReason: value['rejection_reason']?.toString(),
     );
   }
 
@@ -168,7 +171,10 @@ class UserModel extends UserEntity {
           'club': grant.clubId == null ? null : {'club_id': grant.clubId},
           'section': {
             'club_section_id': grant.sectionId,
-          }
+          },
+          'status': grant.status,
+          'expires_at': grant.expiresAt?.toIso8601String(),
+          'rejection_reason': grant.rejectionReason,
         };
 
     return {

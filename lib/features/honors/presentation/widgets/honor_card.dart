@@ -154,11 +154,11 @@ class HonorCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: honor.imageUrl != null && honor.imageUrl!.isNotEmpty
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+          ? Padding(
+              padding: const EdgeInsets.all(2),
               child: CachedNetworkImage(
                 imageUrl: honor.imageUrl!,
-                fit: BoxFit.cover,
+                fit: BoxFit.contain,
                 errorWidget: (_, __, ___) => Icon(
                   Icons.emoji_events_outlined,
                   color: _statusColor ?? AppColors.sacGrey,

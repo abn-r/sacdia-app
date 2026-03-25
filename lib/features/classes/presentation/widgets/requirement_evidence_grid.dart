@@ -110,7 +110,7 @@ class _FileCell extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '${file.uploadedByName} · ${dateFormat.format(file.uploadedAt)}',
+                        '${file.uploadedByName} · ${dateFormat.format(file.uploadedAt.toLocal())}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(

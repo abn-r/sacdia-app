@@ -28,7 +28,7 @@ class TransactionTile extends StatelessWidget {
       symbol: '\$',
       decimalDigits: 2,
     ).format(transaction.amount);
-    final dateStr = DateFormat('dd/MM/yyyy').format(transaction.date);
+    final dateStr = DateFormat('dd/MM/yyyy').format(transaction.date.toLocal());
 
     return InkWell(
       onTap: onTap,

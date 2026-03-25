@@ -300,13 +300,24 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
         String? fallbackAssignmentId;
         if (!hasActiveAssignment) {
+          // Prefer an assignment with status 'active' (or null = legacy active).
+          // Skip pending/rejected/expired assignments for auto-activation.
           for (final grant in user.authorization?.clubAssignments ?? const []) {
             final candidate = grant.assignmentId?.trim();
-            if (candidate != null && candidate.isNotEmpty) {
+            if (candidate != null && candidate.isNotEmpty && grant.isActive) {
               fallbackAssignmentId = candidate;
               break;
             }
           }
+          // If no active-status assignment found, fall back to the first available.
+          fallbackAssignmentId ??= (() {
+            for (final grant
+                in user.authorization?.clubAssignments ?? const []) {
+              final candidate = grant.assignmentId?.trim();
+              if (candidate != null && candidate.isNotEmpty) return candidate;
+            }
+            return null;
+          })();
         }
 
         if (!_attemptedContextAutoActivation &&

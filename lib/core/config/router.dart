@@ -17,6 +17,7 @@ import 'package:sacdia_app/features/club/presentation/providers/club_providers.d
 import 'package:sacdia_app/features/club/presentation/views/club_detail_view.dart';
 import 'package:sacdia_app/features/club/presentation/views/club_view.dart';
 import 'package:sacdia_app/features/honors/presentation/views/honor_completion_view.dart';
+import 'package:sacdia_app/features/honors/presentation/views/honors_catalog_view.dart';
 import 'package:sacdia_app/features/honors/presentation/views/honor_detail_view.dart';
 import 'package:sacdia_app/features/honors/presentation/views/honor_evidence_view.dart';
 import 'package:sacdia_app/features/finances/presentation/views/finances_view.dart';
@@ -287,6 +288,13 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => _fadeThroughBuild(
               context, state,
               const ResourcesSection(),
+            ),
+          ),
+          GoRoute(
+            path: RouteNames.homeHonors,
+            pageBuilder: (context, state) => _fadeThroughBuild(
+              context, state,
+              const HonorsCatalogView(),
             ),
           ),
           GoRoute(

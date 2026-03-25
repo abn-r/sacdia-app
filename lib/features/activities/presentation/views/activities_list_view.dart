@@ -102,8 +102,8 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
     DateTime? lastDay;
 
     for (final a in withDates) {
-      final day =
-          DateTime(a.createdAt!.year, a.createdAt!.month, a.createdAt!.day);
+      final local = a.createdAt!.toLocal();
+      final day = DateTime(local.year, local.month, local.day);
       if (lastDay == null || !_isSameDay(day, lastDay)) {
         items.add(day);
         lastDay = day;
@@ -464,7 +464,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                     filtered = filtered
                         .where((a) =>
                             a.createdAt != null &&
-                            _isSameDay(a.createdAt!, _selectedDate!))
+                            _isSameDay(a.createdAt!.toLocal(), _selectedDate!))
                         .toList();
                   }
 

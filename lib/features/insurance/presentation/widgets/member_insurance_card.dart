@@ -146,7 +146,7 @@ class MemberInsuranceCard extends StatelessWidget {
 
   String _expiryText(MemberInsurance m) {
     if (m.endDate == null) return '';
-    final formatted = DateFormat('dd/MM/yyyy').format(m.endDate!);
+    final formatted = DateFormat('dd/MM/yyyy').format(m.endDate!.toLocal());
     switch (m.status) {
       case InsuranceStatus.asegurado:
         final days = m.daysUntilExpiry;

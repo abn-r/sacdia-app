@@ -166,8 +166,8 @@ class _CamporeeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final dateFormat = DateFormat('d MMM yyyy', 'es');
-    final startFormatted = dateFormat.format(camporee.startDate);
-    final endFormatted = dateFormat.format(camporee.endDate);
+    final startFormatted = dateFormat.format(camporee.startDate.toLocal());
+    final endFormatted = dateFormat.format(camporee.endDate.toLocal());
 
     return GestureDetector(
       onTap: onTap,

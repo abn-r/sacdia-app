@@ -106,14 +106,27 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
             children: [
               // Title row
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Especialidades',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                  // Back button
+                  GestureDetector(
+                    onTap: () => context.pop(),
+                    child: const Padding(
+                      padding: EdgeInsets.only(right: 12),
+                      child: Icon(
+                        Icons.arrow_back_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                  const Expanded(
+                    child: Text(
+                      'Especialidades',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                   // Completed/total badge pill

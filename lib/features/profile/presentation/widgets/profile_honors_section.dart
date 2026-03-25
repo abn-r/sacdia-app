@@ -91,8 +91,7 @@ class ProfileHonorsSection extends ConsumerWidget {
                   text: 'Agregar especialidad',
                   icon: HugeIcons.strokeRoundedAdd01,
                   onPressed: () {
-                    // Navigate to the activities tab where the honors catalog lives
-                    context.go(RouteNames.homeActivities);
+                    context.go(RouteNames.homeHonors);
                   },
                 ),
               ],
@@ -127,8 +126,7 @@ class ProfileHonorsSection extends ConsumerWidget {
                 text: 'Agregar especialidad',
                 icon: HugeIcons.strokeRoundedAdd01,
                 onPressed: () {
-                  // Navigate to the activities tab where the honors catalog lives
-                  context.go(RouteNames.homeActivities);
+                  context.go(RouteNames.homeHonors);
                 },
               ),
             ),

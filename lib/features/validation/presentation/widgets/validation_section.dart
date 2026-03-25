@@ -202,7 +202,7 @@ class _HistoryItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final dateStr = DateFormat('dd/MM/yyyy HH:mm').format(entry.createdAt);
+    final dateStr = DateFormat('dd/MM/yyyy HH:mm').format(entry.createdAt.toLocal());
 
     return IntrinsicHeight(
       child: Row(

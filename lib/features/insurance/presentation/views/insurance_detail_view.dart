@@ -104,14 +104,14 @@ class InsuranceDetailView extends ConsumerWidget {
                       icon: HugeIcons.strokeRoundedCalendarAdd01,
                       label: 'Inicio de cobertura',
                       value: DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es')
-                          .format(insurance.startDate!),
+                          .format(insurance.startDate!.toLocal()),
                     ),
                   if (insurance.endDate != null)
                     _InfoRow(
                       icon: HugeIcons.strokeRoundedCalendarRemove01,
                       label: 'Fin de cobertura',
                       value: DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es')
-                          .format(insurance.endDate!),
+                          .format(insurance.endDate!.toLocal()),
                     ),
                   if (insurance.coverageAmount != null)
                     _InfoRow(
@@ -140,7 +140,7 @@ class InsuranceDetailView extends ConsumerWidget {
                       icon: HugeIcons.strokeRoundedUser,
                       label: 'Registrado por',
                       value: insurance.registeredAt != null
-                          ? '${insurance.registeredByName!} · ${DateFormat('dd/MM/yyyy').format(insurance.registeredAt!)}'
+                          ? '${insurance.registeredByName!} · ${DateFormat('dd/MM/yyyy').format(insurance.registeredAt!.toLocal())}'
                           : insurance.registeredByName!,
                     ),
                   if (insurance.modifiedByName != null)
@@ -148,7 +148,7 @@ class InsuranceDetailView extends ConsumerWidget {
                       icon: HugeIcons.strokeRoundedEdit01,
                       label: 'Última modificación',
                       value: insurance.modifiedAt != null
-                          ? '${insurance.modifiedByName!} · ${DateFormat('dd/MM/yyyy').format(insurance.modifiedAt!)}'
+                          ? '${insurance.modifiedByName!} · ${DateFormat('dd/MM/yyyy').format(insurance.modifiedAt!.toLocal())}'
                           : insurance.modifiedByName!,
                     ),
                 ],

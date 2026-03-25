@@ -33,6 +33,7 @@ class RouteNames {
   static const String homeInsurance = '/home/insurance';
   static const String homeInventory = '/home/inventory';
   static const String homeResources = '/home/resources';
+  static const String homeHonors = '/home/honors';
   static const String homeCertifications = '/home/certifications';
 
   // Información médica del usuario (detalle fuera del shell)

@@ -237,7 +237,7 @@ class _AssignmentCard extends StatelessWidget {
             _MetaRow(
               icon: HugeIcons.strokeRoundedCalendarAdd01,
               label: 'Asignado',
-              value: dateFmt.format(assignment.assignedAt!),
+              value: dateFmt.format(assignment.assignedAt!.toLocal()),
             ),
 
           if (assignment.revokedAt != null) ...[
@@ -245,7 +245,7 @@ class _AssignmentCard extends StatelessWidget {
             _MetaRow(
               icon: HugeIcons.strokeRoundedCalendarRemove01,
               label: 'Revocado',
-              value: dateFmt.format(assignment.revokedAt!),
+              value: dateFmt.format(assignment.revokedAt!.toLocal()),
             ),
           ],
 
