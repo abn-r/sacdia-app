@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
@@ -235,11 +236,14 @@ class _HonorDetailContent extends ConsumerWidget {
                   userHonorAsync.when(
                     data: (userHonor) {
                       if (userHonor != null) {
-                        // Already enrolled — show "Ver progreso" button
-                        // TODO(honors-redesign): navigate to evidence view when
-                        // RouteNames.honorEvidencePath is added.
+                        // Already enrolled — navigate to evidence / progress screen
                         return _EnrolledCta(
-                          onTap: () => context.pop(),
+                          onTap: () => context.push(
+                            RouteNames.honorEvidencePath(
+                              honorId.toString(),
+                              userHonor.id.toString(),
+                            ),
+                          ),
                         );
                       }
 
@@ -783,8 +787,6 @@ class _EnrolledCta extends StatelessWidget {
         onPressed: onTap,
         child: const Text(
           'Ver mi progreso',
-          // TODO(honors-redesign): update to navigate to evidence view
-          // once RouteNames.honorEvidencePath is registered.
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w700,

@@ -16,7 +16,9 @@ import 'package:sacdia_app/features/evidence_folder/presentation/views/evidence_
 import 'package:sacdia_app/features/club/presentation/providers/club_providers.dart';
 import 'package:sacdia_app/features/club/presentation/views/club_detail_view.dart';
 import 'package:sacdia_app/features/club/presentation/views/club_view.dart';
+import 'package:sacdia_app/features/honors/presentation/views/honor_completion_view.dart';
 import 'package:sacdia_app/features/honors/presentation/views/honor_detail_view.dart';
+import 'package:sacdia_app/features/honors/presentation/views/honor_evidence_view.dart';
 import 'package:sacdia_app/features/finances/presentation/views/finances_view.dart';
 import 'package:sacdia_app/features/home/presentation/widgets/resources_section.dart';
 import 'package:sacdia_app/features/inventory/presentation/views/inventory_view.dart';
@@ -345,6 +347,38 @@ final routerProvider = Provider<GoRouter>((ref) {
           final honorId = int.tryParse(honorIdStr) ?? 0;
           return _sharedAxisBuild(
               context, state, HonorDetailView(honorId: honorId));
+        },
+      ),
+
+      // Evidencia de honor (especialidad inscripta)
+      GoRoute(
+        path: RouteNames.honorEvidence,
+        pageBuilder: (context, state) {
+          final honorId =
+              int.tryParse(state.pathParameters['honorId']!) ?? 0;
+          final userHonorId =
+              int.tryParse(state.pathParameters['userHonorId']!) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            HonorEvidenceView(honorId: honorId, userHonorId: userHonorId),
+          );
+        },
+      ),
+
+      // Celebración de honor completado
+      GoRoute(
+        path: RouteNames.honorCompletion,
+        pageBuilder: (context, state) {
+          final honorId =
+              int.tryParse(state.pathParameters['honorId']!) ?? 0;
+          final userHonorId =
+              int.tryParse(state.pathParameters['userHonorId']!) ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            HonorCompletionView(honorId: honorId, userHonorId: userHonorId),
+          );
         },
       ),
 

@@ -4,9 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
-import 'package:sacdia_app/features/honors/presentation/views/add_honor_view.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 
@@ -90,16 +91,8 @@ class ProfileHonorsSection extends ConsumerWidget {
                   text: 'Agregar especialidad',
                   icon: HugeIcons.strokeRoundedAdd01,
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const AddHonorView(),
-                      ),
-                    ).then((result) {
-                      if (result == true) {
-                        ref.invalidate(userHonorsProvider);
-                      }
-                    });
+                    // Navigate to the activities tab where the honors catalog lives
+                    context.go(RouteNames.homeActivities);
                   },
                 ),
               ],
@@ -134,16 +127,8 @@ class ProfileHonorsSection extends ConsumerWidget {
                 text: 'Agregar especialidad',
                 icon: HugeIcons.strokeRoundedAdd01,
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const AddHonorView(),
-                    ),
-                  ).then((result) {
-                    if (result == true) {
-                      ref.invalidate(userHonorsProvider);
-                    }
-                  });
+                  // Navigate to the activities tab where the honors catalog lives
+                  context.go(RouteNames.homeActivities);
                 },
               ),
             ),

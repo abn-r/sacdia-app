@@ -287,14 +287,15 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
             userHonor: item.userHonor,
             onTap: () {
               if (item.userHonor != null) {
-                // TODO(honors): navigate to evidence view once
-                // RouteNames.honorEvidencePath is added to route_names.dart
-                // and the route is registered in the router.
-                // For now, fall back to detail view.
+                // Enrolled: go straight to the evidence / progress screen
                 context.push(
-                  RouteNames.honorDetailPath(item.honor.id.toString()),
+                  RouteNames.honorEvidencePath(
+                    item.honor.id.toString(),
+                    item.userHonor!.id.toString(),
+                  ),
                 );
               } else {
+                // Not enrolled: show detail for enroll CTA
                 context.push(
                   RouteNames.honorDetailPath(item.honor.id.toString()),
                 );
