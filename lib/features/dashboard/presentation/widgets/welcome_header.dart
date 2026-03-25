@@ -75,10 +75,13 @@ class WelcomeHeader extends StatelessWidget {
                 ),
               ),
               child: ClipOval(
-                child: userAvatar != null
+                child: userAvatar != null && userAvatar!.isNotEmpty
                     ? CachedNetworkImage(
                         imageUrl: userAvatar!,
                         fit: BoxFit.cover,
+                        placeholder: (_, __) => _AvatarFallback(
+                          initial: firstName,
+                        ),
                         errorWidget: (_, __, ___) => _AvatarFallback(
                           initial: firstName,
                         ),

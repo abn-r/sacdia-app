@@ -122,6 +122,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     final cachedId = await secureStorage.read('cached_user_id');
     final cachedEmail = await secureStorage.read('cached_user_email');
     final cachedName = await secureStorage.read('cached_user_name');
+    final cachedAvatar = await secureStorage.read('cached_user_avatar');
     final prefs = ref.read(sharedPreferencesProvider);
 
     AppLogger.i('Token encontrado, validando con /auth/me', tag: _tag);
@@ -141,6 +142,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
               id: cachedId,
               email: cachedEmail,
               name: cachedName,
+              avatar: cachedAvatar,
               postRegisterComplete:
                   prefs.getBool('cached_post_register_complete') ?? false,
             );
@@ -168,6 +170,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
             id: cachedId,
             email: cachedEmail,
             name: cachedName,
+            avatar: cachedAvatar,
             postRegisterComplete:
                 prefs.getBool('cached_post_register_complete') ?? false,
           );
@@ -191,6 +194,11 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     secureStorage.write('cached_user_email', user.email);
     if (user.name != null) {
       secureStorage.write('cached_user_name', user.name!);
+    }
+    if (user.avatar != null) {
+      secureStorage.write('cached_user_avatar', user.avatar!);
+    } else {
+      secureStorage.delete('cached_user_avatar');
     }
     secureStorage.write(
       'cached_post_register_complete',
@@ -466,6 +474,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         secureStorage.delete('cached_user_id');
         secureStorage.delete('cached_user_email');
         secureStorage.delete('cached_user_name');
+        secureStorage.delete('cached_user_avatar');
         secureStorage.delete('cached_post_register_complete');
 
         return true;

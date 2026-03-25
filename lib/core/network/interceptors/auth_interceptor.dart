@@ -10,6 +10,11 @@ import '../../utils/app_logger.dart';
 /// 3. Reintentar la petición original exactamente una vez tras un refresh exitoso.
 /// 4. Prevenir bucles infinitos de refresh/retry marcando la request con una
 ///    bandera en `extra`.
+///
+/// IMPORTANTE: los endpoints de autenticación pública (login, register, oauth,
+/// refresh) están excluidos del ciclo de refresh. Un 401 en esos paths
+/// significa credenciales incorrectas, no una sesión expirada, y debe
+/// propagarse tal cual para que la UI muestre el mensaje del servidor.
 class AuthInterceptor extends QueuedInterceptor {
   final FlutterSecureStorage _secureStorage;
 
@@ -22,6 +27,20 @@ class AuthInterceptor extends QueuedInterceptor {
   /// Clave usada en `RequestOptions.extra` para marcar que la petición ya fue
   /// reintentada después de un refresh, evitando bucles infinitos.
   static const _retryAfterRefreshKey = 'auth_interceptor_retry_after_refresh';
+
+  /// Paths que NO deben pasar por el ciclo de refresh reactivo.
+  ///
+  /// Un 401 en estos endpoints significa credenciales incorrectas o flujo
+  /// inválido — no una sesión expirada. Interceptarlos generaría un intento
+  /// de refresh sin sentido y tragaría el mensaje de error del servidor.
+  static const _publicAuthPaths = <String>[
+    '/auth/login',
+    '/auth/register',
+    '/auth/refresh',
+    '/auth/oauth',
+    '/auth/request-password-reset',
+    '/auth/reset-password',
+  ];
 
   AuthInterceptor({
     FlutterSecureStorage? secureStorage,
@@ -73,6 +92,21 @@ class AuthInterceptor extends QueuedInterceptor {
   ) async {
     // Solo procesar 401. Otros errores pasan al siguiente interceptor.
     if (err.response?.statusCode != 401) {
+      return handler.next(err);
+    }
+
+    // Endpoints públicos de autenticación: un 401 aquí indica credenciales
+    // inválidas o flujo incorrecto — NO una sesión expirada. Dejar pasar el
+    // error intacto para que la capa de datos lea el mensaje del servidor.
+    final requestPath = err.requestOptions.path;
+    final isPublicAuthEndpoint = _publicAuthPaths.any(
+      (p) => requestPath.contains(p),
+    );
+    if (isPublicAuthEndpoint) {
+      AppLogger.d(
+        '401 en endpoint público ($requestPath), omitiendo refresh reactivo',
+        tag: _tag,
+      );
       return handler.next(err);
     }
 

@@ -88,8 +88,7 @@ class ClassesListView extends ConsumerWidget {
                 ref.invalidate(userClassesProvider);
               },
               child: ListView.builder(
-                padding:
-                    EdgeInsets.fromLTRB(hPad, 16, hPad, 24),
+                padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 24),
                 itemCount: classes.length + 1, // +1 para el header
                 itemBuilder: (context, index) {
                   if (index == 0) {
@@ -97,18 +96,32 @@ class ClassesListView extends ConsumerWidget {
                       padding: const EdgeInsets.only(bottom: 20),
                       child: Row(
                         children: [
-                          HugeIcon(
+                          Container(
+                            padding: const EdgeInsets.all(9),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryLight,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: HugeIcon(
                               icon: HugeIcons.strokeRoundedSchool,
-                              size: 24,
-                              color: AppColors.primary),
-                          const SizedBox(width: 10),
-                          Text(
-                            'Mis Clases',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.copyWith(
-                                    fontWeight: FontWeight.w700),
+                              size: 22,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Mis Clases',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -120,14 +133,12 @@ class ClassesListView extends ConsumerWidget {
 
                   return StaggeredListItem(
                     index: classIndex,
-                    initialDelay:
-                        const Duration(milliseconds: 80),
-                    staggerDelay:
-                        const Duration(milliseconds: 65),
+                    initialDelay: const Duration(milliseconds: 80),
+                    staggerDelay: const Duration(milliseconds: 65),
                     child: Consumer(
                       builder: (context, progressRef, _) {
-                        final progressAsync = progressRef
-                            .watch(classWithProgressProvider(progressiveClass.id));
+                        final progressAsync = progressRef.watch(
+                            classWithProgressProvider(progressiveClass.id));
                         final progress = progressAsync.whenOrNull(
                               data: (cwp) => cwp.completionRatio,
                             ) ??
@@ -177,8 +188,7 @@ class ClassesListView extends ConsumerWidget {
                   const SizedBox(height: 8),
                   Text(
                     error.toString().replaceFirst('Exception: ', ''),
-                    style: TextStyle(
-                        fontSize: 14, color: c.textSecondary),
+                    style: TextStyle(fontSize: 14, color: c.textSecondary),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),

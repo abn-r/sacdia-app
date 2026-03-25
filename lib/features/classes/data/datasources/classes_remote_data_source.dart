@@ -365,21 +365,15 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     }
   }
 
-  // ── POST /users/:userId/classes/:classId/progress (submit requirement) ──────
-  //
-  // Usamos el endpoint existente PATCH con status=enviado para el requerimiento.
+  // ── POST /users/:userId/classes/:classId/sections/:sectionId/submit ─────────
 
   @override
   Future<void> submitRequirement(
       String userId, int classId, int requirementId) async {
     try {
       final token = await _getAuthToken();
-      final response = await _dio.patch(
-        '$_baseUrl/users/$userId/classes/$classId/progress',
-        data: {
-          'section_id': requirementId,
-          'status': 'enviado',
-        },
+      final response = await _dio.post(
+        '$_baseUrl/users/$userId/classes/$classId/sections/$requirementId/submit',
         options: _authOptions(token),
       );
 

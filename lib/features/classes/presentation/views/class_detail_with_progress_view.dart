@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -60,7 +59,7 @@ class ClassDetailWithProgressView extends ConsumerWidget {
 
 // ── Body cuando hay datos ──────────────────────────────────────────────────────
 
-class _ClassBody extends StatelessWidget {
+class _ClassBody extends StatefulWidget {
   final ClassWithProgress classWithProgress;
   final int classId;
 
@@ -70,8 +69,51 @@ class _ClassBody extends StatelessWidget {
   });
 
   @override
+  State<_ClassBody> createState() => _ClassBodyState();
+}
+
+class _ClassBodyState extends State<_ClassBody> {
+  final _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  /// Filtra los modulos y sus requerimientos segun el query de busqueda.
+  /// Un modulo se muestra si su nombre matchea o si algun requerimiento matchea.
+  /// Si solo matchean requerimientos, el modulo se muestra con esos requerimientos filtrados.
+  List<ClassModuleDetail> get _filteredModules {
+    if (_query.isEmpty) return widget.classWithProgress.modules;
+
+    final q = _query.toLowerCase();
+    final result = <ClassModuleDetail>[];
+
+    for (final module in widget.classWithProgress.modules) {
+      final moduleNameMatches = module.name.toLowerCase().contains(q);
+
+      final matchingRequirements = module.requirements
+          .where((r) =>
+              r.name.toLowerCase().contains(q) ||
+              (r.description?.toLowerCase().contains(q) ?? false))
+          .toList();
+
+      if (moduleNameMatches) {
+        result.add(module);
+      } else if (matchingRequirements.isNotEmpty) {
+        result.add(module.copyWithRequirements(matchingRequirements));
+      }
+    }
+
+    return result;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final filteredModules = _filteredModules;
 
     return RefreshIndicator(
       color: AppColors.primary,
@@ -89,7 +131,7 @@ class _ClassBody extends StatelessWidget {
             backgroundColor: c.background,
             surfaceTintColor: Colors.transparent,
             title: Text(
-              classWithProgress.name,
+              widget.classWithProgress.name,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: c.text,
@@ -103,15 +145,12 @@ class _ClassBody extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Class identity section — clean, no card wrapper
-                _ClassIdentitySection(classWithProgress: classWithProgress),
+                const SizedBox(height: 8),
+
+                // Progress card — compact
+                _ProgressCard(classWithProgress: widget.classWithProgress),
 
                 const SizedBox(height: 12),
-
-                // Progress card — Apple Health style
-                _ProgressCard(classWithProgress: classWithProgress),
-
-                const SizedBox(height: 16),
 
                 // Modulos header
                 Padding(
@@ -127,27 +166,99 @@ class _ClassBody extends StatelessWidget {
                         ),
                   ),
                 ),
+
+                // Search bar
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (value) => setState(() => _query = value),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: c.text,
+                        ),
+                    decoration: InputDecoration(
+                      hintText: 'Buscar modulo o requerimiento...',
+                      hintStyle: TextStyle(color: c.textTertiary),
+                      prefixIcon: HugeIcon(
+                        icon: HugeIcons.strokeRoundedSearch01,
+                        size: 20,
+                        color: c.textSecondary,
+                      ),
+                      suffixIcon: _query.isNotEmpty
+                          ? GestureDetector(
+                              onTap: () {
+                                _searchController.clear();
+                                setState(() => _query = '');
+                              },
+                              child: Icon(Icons.close_rounded,
+                                  size: 18, color: c.textSecondary),
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: c.surfaceVariant,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            BorderSide(color: AppColors.primary, width: 1.5),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
 
           // Modulos con sus requerimientos
-          if (classWithProgress.modules.isEmpty)
+          if (widget.classWithProgress.modules.isEmpty)
             SliverToBoxAdapter(child: _EmptyModules())
+          else if (filteredModules.isEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 40, vertical: 32),
+                child: Column(
+                  children: [
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedSearch01,
+                      size: 40,
+                      color: c.textTertiary,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Sin resultados para "$_query"',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: c.textSecondary,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            )
           else
             SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
-                  final module = classWithProgress.modules[index];
+                  final module = filteredModules[index];
                   return StaggeredListItem(
                     index: index,
                     child: _ModuleSection(
                       module: module,
-                      classId: classId,
+                      classId: widget.classId,
                     ),
                   );
                 },
-                childCount: classWithProgress.modules.length,
+                childCount: filteredModules.length,
               ),
             ),
 
@@ -157,7 +268,7 @@ class _ClassBody extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: ValidationSection(
                 entityType: ValidationEntityType.classProgress,
-                entityId: classId,
+                entityId: widget.classId,
               ),
             ),
           ),
@@ -170,109 +281,6 @@ class _ClassBody extends StatelessWidget {
 }
 
 // ── Class identity section ─────────────────────────────────────────────────────
-
-class _ClassIdentitySection extends StatelessWidget {
-  final ClassWithProgress classWithProgress;
-
-  const _ClassIdentitySection({required this.classWithProgress});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final classColor = _classColor(classWithProgress.name);
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Icon container — tinted with class color
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: classColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: classWithProgress.imageUrl != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
-                    child: CachedNetworkImage(
-                      imageUrl: classWithProgress.imageUrl!,
-                      fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) => Center(
-                        child: HugeIcon(
-                          icon: HugeIcons.strokeRoundedSchool,
-                          size: 26,
-                          color: classColor,
-                        ),
-                      ),
-                    ),
-                  )
-                : Center(
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedSchool,
-                      size: 26,
-                      color: classColor,
-                    ),
-                  ),
-          ),
-          const SizedBox(width: 14),
-          // Class name and description
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  classWithProgress.name,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: c.text,
-                      ),
-                ),
-                if (classWithProgress.description != null &&
-                    classWithProgress.description!.isNotEmpty) ...[
-                  const SizedBox(height: 3),
-                  Text(
-                    classWithProgress.description!,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: c.textSecondary,
-                          height: 1.4,
-                        ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Devuelve el color asociado al nombre de la clase progresiva.
-  Color _classColor(String name) {
-    final lower = name.toLowerCase();
-    if (lower.contains('amigo')) return AppColors.colorAmigo;
-    if (lower.contains('companero') || lower.contains('compañero')) {
-      return AppColors.colorCompanero;
-    }
-    if (lower.contains('explorador')) return AppColors.colorExplorador;
-    if (lower.contains('orientador')) return AppColors.colorOrientador;
-    if (lower.contains('viajero')) return AppColors.colorViajero;
-    if (lower.contains('guia') || lower.contains('guía')) {
-      return AppColors.colorGuia;
-    }
-    if (lower.contains('corderito')) return AppColors.colorCorderitos;
-    if (lower.contains('castor')) return AppColors.colorCastores;
-    if (lower.contains('abeja')) return AppColors.colorAbejas;
-    if (lower.contains('rayo')) return AppColors.colorRayos;
-    if (lower.contains('constructor')) return AppColors.colorConstructores;
-    if (lower.contains('mano')) return AppColors.colorManos;
-    return AppColors.primary;
-  }
-}
 
 // ── Progress card ──────────────────────────────────────────────────────────────
 
@@ -292,36 +300,35 @@ class _ProgressCard extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: c.border),
         boxShadow: [
           BoxShadow(
             color: c.shadow,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: 6,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Progress label + percentage
+          // Progress bar + percentage inline
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Progreso general',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: c.textSecondary,
-                    ),
+              Expanded(
+                child: SacProgressBar(
+                  progress: classWithProgress.completionRatio,
+                  height: 6,
+                ),
               ),
+              const SizedBox(width: 10),
               Text(
                 '$percentage%',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w800,
                       color: c.text,
                     ),
@@ -331,67 +338,54 @@ class _ProgressCard extends StatelessWidget {
 
           const SizedBox(height: 10),
 
-          // Progress bar — default gradient
-          SacProgressBar(
-            progress: classWithProgress.completionRatio,
-            height: 8,
-          ),
-
-          const SizedBox(height: 16),
-
-          // Stat pills row
+          // Compact stats row
           Row(
             children: [
-              _StatPill(
-                icon: HugeIcons.strokeRoundedStar,
-                iconColor: AppColors.accent,
-                value: '${classWithProgress.earnedPoints}/${classWithProgress.totalPoints}',
-                label: 'puntos',
-                context: context,
-              ),
-              const SizedBox(width: 16),
-              _StatPill(
+              _CompactStat(
                 icon: HugeIcons.strokeRoundedCheckList,
-                iconColor: AppColors.secondary,
-                value: '${classWithProgress.completedRequirements}/${classWithProgress.totalRequirements}',
+                color: AppColors.secondary,
+                value: '$validated/$total',
                 label: 'requisitos',
                 context: context,
               ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          Divider(height: 1, color: c.borderLight),
-
-          const SizedBox(height: 12),
-
-          // Count indicators row
-          Row(
-            children: [
-              Expanded(
-                child: _CountIndicator(
-                  dotColor: AppColors.accent,
-                  count: pending,
-                  label: 'Pendientes',
-                  context: context,
-                ),
+              Container(
+                width: 1,
+                height: 14,
+                margin: const EdgeInsets.symmetric(horizontal: 10),
+                color: c.borderLight,
               ),
-              Expanded(
-                child: _CountIndicator(
-                  dotColor: AppColors.sacBlue,
-                  count: submitted,
-                  label: 'Enviados',
-                  context: context,
-                ),
+              _CompactStat(
+                icon: HugeIcons.strokeRoundedClock01,
+                color: AppColors.accent,
+                value: '$pending',
+                label: 'pend.',
+                context: context,
               ),
-              Expanded(
-                child: _CountIndicator(
-                  dotColor: AppColors.secondary,
-                  count: validated,
-                  label: 'Validados',
-                  context: context,
-                ),
+              Container(
+                width: 1,
+                height: 14,
+                margin: const EdgeInsets.symmetric(horizontal: 10),
+                color: c.borderLight,
+              ),
+              _CompactStat(
+                icon: HugeIcons.strokeRoundedSent,
+                color: AppColors.sacBlue,
+                value: '$submitted',
+                label: 'env.',
+                context: context,
+              ),
+              Container(
+                width: 1,
+                height: 14,
+                margin: const EdgeInsets.symmetric(horizontal: 10),
+                color: c.borderLight,
+              ),
+              _CompactStat(
+                icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                color: AppColors.secondary,
+                value: '$validated',
+                label: 'val.',
+                context: context,
               ),
             ],
           ),
@@ -401,18 +395,18 @@ class _ProgressCard extends StatelessWidget {
   }
 }
 
-// ── Stat pill ──────────────────────────────────────────────────────────────────
+// ── Compact stat ──────────────────────────────────────────────────────────────
 
-class _StatPill extends StatelessWidget {
+class _CompactStat extends StatelessWidget {
   final List<List<dynamic>> icon;
-  final Color iconColor;
+  final Color color;
   final String value;
   final String label;
   final BuildContext context;
 
-  const _StatPill({
+  const _CompactStat({
     required this.icon,
-    required this.iconColor,
+    required this.color,
     required this.value,
     required this.label,
     required this.context,
@@ -423,57 +417,15 @@ class _StatPill extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        HugeIcon(icon: icon, size: 14, color: iconColor),
-        const SizedBox(width: 5),
+        HugeIcon(icon: icon, size: 12, color: color),
+        const SizedBox(width: 4),
         Text(
-          '$value $label',
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: context.sac.textSecondary,
-              ),
-        ),
-      ],
-    );
-  }
-}
-
-// ── Count indicator ────────────────────────────────────────────────────────────
-
-class _CountIndicator extends StatelessWidget {
-  final Color dotColor;
-  final int count;
-  final String label;
-  final BuildContext context;
-
-  const _CountIndicator({
-    required this.dotColor,
-    required this.count,
-    required this.label,
-    required this.context,
-  });
-
-  @override
-  Widget build(BuildContext _) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: dotColor,
-            shape: BoxShape.circle,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '$count',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
+          '$value ',
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.w700,
                 color: context.sac.text,
               ),
         ),
-        const SizedBox(height: 2),
         Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(

@@ -6,6 +6,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/enrollment.dart';
 import '../providers/enrollment_providers.dart';
@@ -24,6 +26,12 @@ class EnrollmentStatusCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final enrollmentAsync = ref.watch(currentEnrollmentProvider);
     final clubContextAsync = ref.watch(clubContextProvider);
+    final user = ref.watch(authNotifierProvider).valueOrNull;
+    final canEnroll = canByPermissionOrLegacyRole(
+      user,
+      requiredPermissions: const {'enrollments:create'},
+      legacyRoles: const {'director', 'secretary', 'treasurer'},
+    );
 
     return enrollmentAsync.when(
       loading: () => const Padding(
@@ -35,19 +43,25 @@ class EnrollmentStatusCard extends ConsumerWidget {
         if (enrollment == null) {
           // ── No hay inscripción activa ─────────────────────────────────────
           return _PendingCard(
-            onTap: () => clubContextAsync.whenData(
-              (ctx) {
-                if (ctx == null) return;
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => EnrollmentFormView(
-                      clubId: ctx.clubId.toString(),
-                      sectionId: ctx.sectionId,
-                    ),
-                  ),
-                );
-              },
-            ),
+            showButton: canEnroll,
+            subtitle: canEnroll
+                ? 'Completá la inscripción para este año'
+                : 'El club aún no ha completado la inscripción para este año',
+            onTap: canEnroll
+                ? () => clubContextAsync.whenData(
+                      (ctx) {
+                        if (ctx == null) return;
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => EnrollmentFormView(
+                              clubId: ctx.clubId.toString(),
+                              sectionId: ctx.sectionId,
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                : null,
           );
         }
 
@@ -61,9 +75,15 @@ class EnrollmentStatusCard extends ConsumerWidget {
 // ── Pending card ──────────────────────────────────────────────────────────────
 
 class _PendingCard extends StatelessWidget {
+  final bool showButton;
+  final String subtitle;
   final VoidCallback? onTap;
 
-  const _PendingCard({this.onTap});
+  const _PendingCard({
+    this.showButton = false,
+    this.subtitle = 'El club aún no ha completado la inscripción para este año.',
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +126,7 @@ class _PendingCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Completá tu inscripción para este año',
+                  subtitle,
                   style: TextStyle(
                     fontSize: 12,
                     color: AppColors.accentDark.withValues(alpha: 0.8),
@@ -115,15 +135,17 @@ class _PendingCard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          SacButton(
-            text: 'Inscribirse',
-            variant: SacButtonVariant.primary,
-            size: SacButtonSize.small,
-            onPressed: onTap,
-            backgroundColor: AppColors.accent,
-            textColor: Colors.white,
-          ),
+          if (showButton) ...[
+            const SizedBox(width: 8),
+            SacButton(
+              text: 'Inscribirse',
+              variant: SacButtonVariant.primary,
+              size: SacButtonSize.small,
+              onPressed: onTap,
+              backgroundColor: AppColors.accent,
+              textColor: Colors.white,
+            ),
+          ],
         ],
       ),
     );

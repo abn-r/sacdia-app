@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/sac_image_viewer.dart';
+import '../../../../core/widgets/sac_pdf_viewer.dart';
 import '../../domain/entities/evidence_file.dart';
 
 /// Grid de miniaturas de archivos de evidencia.
@@ -67,88 +69,99 @@ class _FileCell extends StatelessWidget {
     final c = context.sac;
     final dateFormat = DateFormat('d MMM', 'es');
 
-    return Stack(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: c.surfaceVariant,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: c.border),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Thumbnail / icon
-              Expanded(
-                child: file.isImage
-                    ? _ImageThumbnail(url: file.url)
-                    : _PdfIcon(),
-              ),
-
-              // Metadata
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
-                color: c.surface,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      file.uploadedByName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: c.text,
-                      ),
-                    ),
-                    Text(
-                      dateFormat.format(file.uploadedAt),
-                      style: TextStyle(
-                        fontSize: 9,
-                        color: c.textTertiary,
-                      ),
-                    ),
-                  ],
+    return GestureDetector(
+      onTap: () => _openViewer(context),
+      child: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: c.surfaceVariant,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: c.border),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Thumbnail / icon
+                Expanded(
+                  child: file.isImage
+                      ? _ImageThumbnail(url: file.url)
+                      : _PdfIcon(),
                 ),
-              ),
-            ],
-          ),
-        ),
 
-        // Botón de eliminar
-        if (canDelete && onDelete != null)
-          Positioned(
-            top: 4,
-            right: 4,
-            child: GestureDetector(
-              onTap: onDelete,
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: AppColors.error,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: context.sac.shadow,
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
+                // Metadata
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+                  color: c.surface,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        file.uploadedByName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: c.text,
+                        ),
+                      ),
+                      Text(
+                        dateFormat.format(file.uploadedAt),
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: c.textTertiary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                child: const Icon(
-                  Icons.close_rounded,
-                  size: 14,
-                  color: Colors.white,
+              ],
+            ),
+          ),
+
+          // Botón de eliminar
+          if (canDelete && onDelete != null)
+            Positioned(
+              top: 4,
+              right: 4,
+              child: GestureDetector(
+                onTap: onDelete,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: AppColors.error,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: context.sac.shadow,
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.close_rounded,
+                    size: 14,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
+  }
+
+  void _openViewer(BuildContext context) {
+    if (file.isImage) {
+      SacImageViewer.show(context, imageUrl: file.url);
+    } else if (file.isPdf) {
+      SacPdfViewer.show(context, pdfUrl: file.url, title: file.fileName);
+    }
   }
 }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -8,6 +9,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/class_requirement.dart';
 import '../../domain/entities/requirement_evidence.dart';
 import '../providers/classes_providers.dart';
@@ -26,6 +28,8 @@ import '../widgets/requirement_status_timeline.dart';
 ///
 /// Sigue el patron identico al EvidenceSectionDetailView de carpeta_evidencias.
 class RequirementDetailView extends ConsumerStatefulWidget {
+  /// Snapshot inicial usado solo para obtener el [requirementId] y como
+  /// fallback mientras [classWithProgressProvider] no haya cargado aun.
   final ClassRequirement requirement;
   final int classId;
 
@@ -46,14 +50,30 @@ class _RequirementDetailViewState
 
   bool _isUploading = false;
 
-  bool get _canModify =>
-      widget.requirement.status == RequirementStatus.pendiente;
+  /// Devuelve el requerimiento vivo desde [classWithProgressProvider] si ya
+  /// cargó, o el snapshot inicial del constructor como fallback.
+  ClassRequirement _liveRequirement(AsyncValue<dynamic> classAsync) {
+    return classAsync.whenData((classWithProgress) {
+      for (final module in classWithProgress.modules) {
+        for (final req in module.requirements) {
+          if (req.id == widget.requirement.id) return req;
+        }
+      }
+      return widget.requirement;
+    }).valueOrNull ?? widget.requirement;
+  }
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
     final notifierState =
         ref.watch(requirementNotifierProvider(widget.classId));
+
+    // Leer el provider en vivo — se actualiza automaticamente al invalidarse
+    // tras cada upload / delete exitoso en el notifier.
+    final classAsync = ref.watch(classWithProgressProvider(widget.classId));
+    final requirement = _liveRequirement(classAsync);
+    final canModify = requirement.status == RequirementStatus.pendiente;
 
     // Mostrar snackbar cuando hay error
     ref.listen(
@@ -71,7 +91,7 @@ class _RequirementDetailViewState
       backgroundColor: c.background,
       appBar: AppBar(
         title: Text(
-          widget.requirement.name,
+          requirement.name,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -80,7 +100,7 @@ class _RequirementDetailViewState
         backgroundColor: c.background,
         surfaceTintColor: Colors.transparent,
         actions: [
-          RequirementStatusBadge(status: widget.requirement.status),
+          RequirementStatusBadge(status: requirement.status),
           const SizedBox(width: 16),
         ],
       ),
@@ -94,15 +114,15 @@ class _RequirementDetailViewState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Meta card con descripcion y metricas
-                    _RequirementMetaCard(requirement: widget.requirement),
+                    _RequirementMetaCard(requirement: requirement),
 
                     const SizedBox(height: 16),
 
                     // Especialidad vinculada (si aplica)
-                    if (widget.requirement.type == RequirementType.honor &&
-                        widget.requirement.linkedHonorName != null)
+                    if (requirement.type == RequirementType.honor &&
+                        requirement.linkedHonorName != null)
                       _LinkedHonorSection(
-                          requirement: widget.requirement),
+                          requirement: requirement),
 
                     // Timeline de estado
                     Padding(
@@ -123,13 +143,13 @@ class _RequirementDetailViewState
                       padding:
                           const EdgeInsets.symmetric(horizontal: 16),
                       child: RequirementStatusTimeline(
-                        currentStatus: widget.requirement.status,
+                        currentStatus: requirement.status,
                         submittedByName:
-                            widget.requirement.submittedByName,
-                        submittedAt: widget.requirement.submittedAt,
+                            requirement.submittedByName,
+                        submittedAt: requirement.submittedAt,
                         validatedByName:
-                            widget.requirement.validatedByName,
-                        validatedAt: widget.requirement.validatedAt,
+                            requirement.validatedByName,
+                        validatedAt: requirement.validatedAt,
                       ),
                     ),
 
@@ -152,15 +172,13 @@ class _RequirementDetailViewState
                                 ),
                           ),
                           const Spacer(),
-                          if (_canModify)
+                          if (canModify)
                             Text(
-                              '${widget.requirement.files.length} / ${widget.requirement.maxFiles}',
+                              '${requirement.files.length} / ${requirement.maxFiles}',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: widget.requirement
-                                            .remainingSlots ==
-                                        0
+                                color: requirement.remainingSlots == 0
                                     ? AppColors.error
                                     : c.textSecondary,
                               ),
@@ -169,16 +187,16 @@ class _RequirementDetailViewState
                       ),
                     ),
 
-                    if (widget.requirement.files.isEmpty)
-                      _EmptyFiles(canModify: _canModify)
+                    if (requirement.files.isEmpty)
+                      _EmptyFiles(canModify: canModify)
                     else
                       Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16),
                         child: RequirementEvidenceGrid(
-                          files: widget.requirement.files,
-                          canDelete: _canModify,
-                          onDelete: _canModify
+                          files: requirement.files,
+                          canDelete: canModify,
+                          onDelete: canModify
                               ? (file) =>
                                   _confirmDelete(context, file)
                               : null,
@@ -203,13 +221,13 @@ class _RequirementDetailViewState
       ),
 
       // Bottom action bar
-      bottomNavigationBar: _canModify
+      bottomNavigationBar: canModify
           ? _BottomActionBar(
-              requirement: widget.requirement,
+              requirement: requirement,
               isLoading: isLoading,
-              onUploadImage: () => _pickImage(context),
-              onUploadPdf: () => _pickPdf(context),
-              onSubmit: () => _submit(context),
+              onUploadImage: () => _pickImage(context, requirement),
+              onUploadPdf: () => _pickPdf(context, requirement),
+              onSubmit: () => _submit(context, requirement),
             )
           : null,
     );
@@ -217,8 +235,64 @@ class _RequirementDetailViewState
 
   // ── Acciones ──────────────────────────────────────────────────────────────────
 
-  Future<void> _pickImage(BuildContext context) async {
-    if (widget.requirement.remainingSlots == 0) {
+  /// Construye un nombre de archivo descriptivo para el backend/storage.
+  ///
+  /// Formato: `evidencia_{n}_{modulo}_{seccion}_{iniciales}.{ext}`
+  /// Ejemplo: `evidencia_1_prerrequisitos_ser_un_miembro_bautizado_AM.jpg`
+  String _buildFileName(ClassRequirement requirement, String originalName) {
+    final ext = originalName.contains('.')
+        ? originalName.split('.').last.toLowerCase()
+        : 'bin';
+
+    // Numero de evidencia (archivos existentes + 1)
+    final evidenceNum = requirement.files.length + 1;
+
+    // Nombre del modulo desde el provider de progreso
+    final moduleName = _resolveModuleName(requirement.moduleId);
+
+    // Nombre de la seccion/requerimiento
+    final sectionName = _sanitize(requirement.name, 30);
+
+    // Iniciales del usuario
+    final initials = _resolveUserInitials();
+
+    return 'evidencia_${evidenceNum}_${_sanitize(moduleName, 20)}_${sectionName}_$initials.$ext';
+  }
+
+  /// Saneado de texto para nombres de archivo.
+  String _sanitize(String text, int maxLen) {
+    final raw = text
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_|_$'), '');
+    return raw.substring(0, raw.length.clamp(0, maxLen));
+  }
+
+  /// Busca el nombre del modulo desde el provider de progreso.
+  String _resolveModuleName(int moduleId) {
+    final classAsync = ref.read(classWithProgressProvider(widget.classId));
+    return classAsync.whenData((cp) {
+      for (final m in cp.modules) {
+        if (m.id == moduleId) return m.name;
+      }
+      return 'modulo';
+    }).valueOrNull ?? 'modulo';
+  }
+
+  /// Extrae las iniciales del usuario autenticado.
+  String _resolveUserInitials() {
+    final user = ref.read(authNotifierProvider).valueOrNull;
+    if (user?.name == null || user!.name!.isEmpty) return 'NN';
+    final parts = user.name!.trim().split(RegExp(r'\s+'));
+    if (parts.length >= 2) {
+      return '${parts.first[0]}${parts[1][0]}'.toUpperCase();
+    }
+    return parts.first.substring(0, parts.first.length.clamp(0, 2)).toUpperCase();
+  }
+
+  Future<void> _pickImage(BuildContext context, ClassRequirement requirement) async {
+    if (requirement.remainingSlots == 0) {
       _showErrorSnackbar(
           context, 'Has alcanzado el limite de archivos para este requerimiento.');
       return;
@@ -241,12 +315,18 @@ class _RequirementDetailViewState
       final mimeType = picked.name.toLowerCase().endsWith('.png')
           ? 'image/png'
           : 'image/jpeg';
+      final ext = mimeType == 'image/png' ? 'png' : 'jpg';
+      final namedFile = XFile(
+        picked.path,
+        name: _buildFileName(requirement, 'imagen.$ext'),
+        mimeType: mimeType,
+      );
 
       await ref
           .read(requirementNotifierProvider(widget.classId).notifier)
           .uploadFile(
-            requirementId: widget.requirement.id,
-            pickedFile: picked,
+            requirementId: requirement.id,
+            pickedFile: namedFile,
             mimeType: mimeType,
           );
     } catch (e) {
@@ -260,31 +340,35 @@ class _RequirementDetailViewState
     }
   }
 
-  Future<void> _pickPdf(BuildContext context) async {
-    if (widget.requirement.remainingSlots == 0) {
+  Future<void> _pickPdf(BuildContext context, ClassRequirement requirement) async {
+    if (requirement.remainingSlots == 0) {
       _showErrorSnackbar(
           context, 'Has alcanzado el limite de archivos para este requerimiento.');
       return;
     }
 
     try {
-      final XFile? picked = await _picker.pickMedia();
-      if (picked == null || !mounted) return;
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+      );
+      if (result == null || result.files.isEmpty || !mounted) return;
 
-      if (!picked.name.toLowerCase().endsWith('.pdf')) {
-        if (!mounted) return;
-        // ignore: use_build_context_synchronously
-        _showErrorSnackbar(
-            context, 'Solo se permiten archivos PDF en esta opcion.');
-        return;
-      }
+      final platformFile = result.files.first;
+      if (platformFile.path == null) return;
+
+      final picked = XFile(
+        platformFile.path!,
+        name: _buildFileName(requirement, 'documento.pdf'),
+        mimeType: 'application/pdf',
+      );
 
       setState(() => _isUploading = true);
 
       await ref
           .read(requirementNotifierProvider(widget.classId).notifier)
           .uploadFile(
-            requirementId: widget.requirement.id,
+            requirementId: requirement.id,
             pickedFile: picked,
             mimeType: 'application/pdf',
           );
@@ -299,13 +383,13 @@ class _RequirementDetailViewState
     }
   }
 
-  Future<void> _submit(BuildContext context) async {
-    final confirm = await _showSubmitConfirmDialog(context);
+  Future<void> _submit(BuildContext context, ClassRequirement requirement) async {
+    final confirm = await _showSubmitConfirmDialog(context, requirement);
     if (!confirm) return;
 
     final success = await ref
         .read(requirementNotifierProvider(widget.classId).notifier)
-        .submit(widget.requirement.id);
+        .submit(requirement.id);
 
     if (!mounted) return;
     if (success) {
@@ -317,7 +401,9 @@ class _RequirementDetailViewState
               Icon(Icons.check_circle_rounded,
                   color: Colors.white, size: 18),
               SizedBox(width: 8),
-              Text('Requerimiento enviado a validacion exitosamente'),
+              Expanded(
+                child: Text('Requerimiento enviado a validacion exitosamente'),
+              ),
             ],
           ),
           backgroundColor: AppColors.secondary,
@@ -396,7 +482,8 @@ class _RequirementDetailViewState
             const SizedBox(height: 16),
             ListTile(
               leading: Container(
-                padding: const EdgeInsets.all(8),
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: AppColors.primaryLight,
                   borderRadius: BorderRadius.circular(10),
@@ -415,7 +502,8 @@ class _RequirementDetailViewState
             ),
             ListTile(
               leading: Container(
-                padding: const EdgeInsets.all(8),
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: AppColors.primaryLight,
                   borderRadius: BorderRadius.circular(10),
@@ -439,7 +527,7 @@ class _RequirementDetailViewState
     );
   }
 
-  Future<bool> _showSubmitConfirmDialog(BuildContext context) async {
+  Future<bool> _showSubmitConfirmDialog(BuildContext context, ClassRequirement requirement) async {
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -454,7 +542,7 @@ class _RequirementDetailViewState
             ),
             const SizedBox(height: 12),
             Text(
-              'Archivos adjuntos: ${widget.requirement.files.length}',
+              'Archivos adjuntos: ${requirement.files.length}',
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 color: AppColors.primary,

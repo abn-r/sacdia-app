@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -255,20 +256,17 @@ class _EvidenceSectionDetailViewState
       return;
     }
 
-    // Usar image_picker para simplificar — en producción se puede añadir
-    // file_picker para soporte nativo de PDFs.
-    // Por ahora abrimos el file picker a través de galería y filtramos por mime.
     try {
-      final XFile? picked = await _picker.pickMedia();
-      if (picked == null || !mounted) return;
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+      );
+      if (result == null || result.files.isEmpty || !mounted) return;
 
-      // Verificar que sea PDF por extensión
-      if (!picked.name.toLowerCase().endsWith('.pdf')) {
-        if (!mounted) return;
-        // ignore: use_build_context_synchronously
-        _showErrorSnackbar(context, 'Solo se permiten archivos PDF en esta opción.');
-        return;
-      }
+      final platformFile = result.files.first;
+      if (platformFile.path == null) return;
+
+      final picked = XFile(platformFile.path!);
 
       setState(() => _isUploading = true);
 
@@ -386,7 +384,8 @@ class _EvidenceSectionDetailViewState
             const SizedBox(height: 16),
             ListTile(
               leading: Container(
-                padding: const EdgeInsets.all(8),
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: AppColors.primaryLight,
                   borderRadius: BorderRadius.circular(10),
@@ -406,7 +405,8 @@ class _EvidenceSectionDetailViewState
             ),
             ListTile(
               leading: Container(
-                padding: const EdgeInsets.all(8),
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: AppColors.primaryLight,
                   borderRadius: BorderRadius.circular(10),

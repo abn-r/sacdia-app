@@ -398,12 +398,19 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         id: userId,
         email: userData?['email'] as String? ?? email,
         name: userData?['name'] as String? ?? '',
+        avatar: userData?['image'] as String? ?? userData?['avatar'] as String?,
         postRegisterComplete: !needsPostRegistration,
       );
     } catch (e) {
       AppLogger.e('Error en login', tag: _tag, error: e);
       if (e is DioException) {
-        throw AuthException(message: e.message ?? 'Error de conexión');
+        // Leer el mensaje desde el body del servidor cuando está disponible.
+        // e.message solo contiene metadatos HTTP ("Http status error [401]"),
+        // no el payload — el API message vive en e.response.data['message'].
+        final serverMessage = e.response?.data is Map
+            ? e.response!.data['message'] as String?
+            : null;
+        throw AuthException(message: serverMessage ?? 'Error de conexión');
       }
       if (e is AuthException) rethrow;
       throw AuthException(message: e.toString());
@@ -772,6 +779,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         id: userId,
         email: userData?['email'] as String? ?? '',
         name: userData?['name'] as String? ?? '',
+        avatar: userData?['image'] as String? ?? userData?['avatar'] as String?,
         postRegisterComplete: !needsPostRegistration,
       );
     } catch (e) {

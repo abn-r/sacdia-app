@@ -124,16 +124,6 @@ class RequirementCard extends StatelessWidget {
               child: Row(
                 children: [
                   _StatItem(
-                    icon: HugeIcons.strokeRoundedStar,
-                    label:
-                        '${requirement.earnedPoints} / ${requirement.pointValue} pts',
-                    color: requirement.status == RequirementStatus.validado
-                        ? AppColors.secondary
-                        : c.textSecondary,
-                    context: context,
-                  ),
-                  const SizedBox(width: 16),
-                  _StatItem(
                     icon: HugeIcons.strokeRoundedFiles01,
                     label:
                         '${requirement.files.length} / ${requirement.maxFiles} archivos',

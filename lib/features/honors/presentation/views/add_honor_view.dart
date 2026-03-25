@@ -11,6 +11,8 @@ import 'package:sacdia_app/features/honors/domain/entities/honor_group.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/honors/presentation/views/honor_detail_view.dart';
 
+// ── Category color + icon maps ────────────────────────────────────────────────
+
 /// Colores por nombre de categoría
 const Map<String, Color> _categoryColors = {
   'ADRA': AppColors.catAdra,
@@ -39,18 +41,33 @@ const Map<String, IconData> _categoryIcons = {
 Color _colorForCategory(String name) {
   final color = _categoryColors[name];
   if (color == null) return AppColors.sacBlack;
-  // Naturaleza con negro para legibilidad
+  // Naturaleza usa blanco como color de logo — forzar negro para legibilidad
   if (name == 'Naturaleza' || name == 'Estudio de la naturaleza') {
     return AppColors.sacBlack;
   }
   return color;
 }
 
+// ── Data class ────────────────────────────────────────────────────────────────
+
+/// Asocia una especialidad con el nombre de su categoría para el grid plano.
+class _HonorWithCategory {
+  final Honor honor;
+  final String categoryName;
+
+  const _HonorWithCategory({
+    required this.honor,
+    required this.categoryName,
+  });
+}
+
+// ── View ──────────────────────────────────────────────────────────────────────
+
 /// Pantalla para agregar una nueva especialidad al perfil del usuario.
 ///
-/// Muestra todas las categorías con sus especialidades en secciones planas
-/// (sin acordeón), con buscador pill y chips de categoría. Al seleccionar
-/// una especialidad navega al detalle donde el usuario puede inscribirse.
+/// Muestra TODAS las especialidades en un único grid plano de 2 columnas,
+/// sin headers de categoría. Incluye buscador pill, chips de filtro con
+/// icono + nombre, y tarjetas rediseñadas con imagen, nombre y pill de categoría.
 class AddHonorView extends ConsumerStatefulWidget {
   const AddHonorView({super.key});
 
@@ -63,10 +80,6 @@ class _AddHonorViewState extends ConsumerState<AddHonorView> {
   final FocusNode _searchFocus = FocusNode();
   String _searchQuery = '';
   String? _selectedCategory; // null = "Todas"
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   void dispose() {
@@ -83,6 +96,44 @@ class _AddHonorViewState extends ConsumerState<AddHonorView> {
     });
   }
 
+  // ── Flatten + filter ────────────────────────────────────────────────────────
+
+  List<_HonorWithCategory> _buildFlatList(List<HonorGroup> groups) {
+    // Aplanar todos los grupos en una lista homogénea
+    final allHonors = groups
+        .expand(
+          (g) => g.honors.map(
+            (h) => _HonorWithCategory(
+              honor: h,
+              categoryName: g.category.name,
+            ),
+          ),
+        )
+        .toList();
+
+    // Sin filtro de categoría → ordenar alfabéticamente
+    if (_selectedCategory == null) {
+      allHonors.sort((a, b) => a.honor.name.compareTo(b.honor.name));
+    }
+
+    // Filtro de texto
+    if (_searchQuery.isNotEmpty) {
+      final q = _searchQuery.toLowerCase();
+      allHonors.removeWhere(
+        (h) => !h.honor.name.toLowerCase().contains(q),
+      );
+    }
+
+    // Filtro de categoría
+    if (_selectedCategory != null) {
+      allHonors.removeWhere((h) => h.categoryName != _selectedCategory);
+    }
+
+    return allHonors;
+  }
+
+  // ── Build ───────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     final groupsAsync = ref.watch(honorsGroupedByCategoryProvider);
@@ -93,22 +144,22 @@ class _AddHonorViewState extends ConsumerState<AddHonorView> {
       body: SafeArea(
         child: Column(
           children: [
-            // ── Search bar ─────────────────────────────────────────
+            // ── Search bar ────────────────────────────────────────────
             _buildSearchBar(context),
 
-            // ── Category filter chips ──────────────────────────────
+            // ── Category filter chips ─────────────────────────────────
             groupsAsync.maybeWhen(
               data: (groups) => _buildCategoryChips(context, groups),
               orElse: () => const SizedBox.shrink(),
             ),
             const SizedBox(height: 8),
 
-            // ── Content ────────────────────────────────────────────
+            // ── Content ───────────────────────────────────────────────
             Expanded(
               child: groupsAsync.when(
                 loading: () => const Center(child: SacLoading()),
                 error: (e, _) => _buildErrorState(context),
-                data: (groups) => _buildGroupList(context, groups),
+                data: (groups) => _buildFlatGrid(context, groups),
               ),
             ),
           ],
@@ -117,7 +168,7 @@ class _AddHonorViewState extends ConsumerState<AddHonorView> {
     );
   }
 
-  // ── AppBar ────────────────────────────────────────────────────────────────
+  // ── AppBar ──────────────────────────────────────────────────────────────────
 
   PreferredSizeWidget _buildAppBar(AsyncValue<List<HonorGroup>> groupsAsync) {
     final totalCount = groupsAsync.maybeWhen(
@@ -172,21 +223,27 @@ class _AddHonorViewState extends ConsumerState<AddHonorView> {
     );
   }
 
-  // ── Search bar ────────────────────────────────────────────────────────────
+  // ── Search bar ──────────────────────────────────────────────────────────────
 
   Widget _buildSearchBar(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
       child: TextField(
         controller: _searchController,
         focusNode: _searchFocus,
+        textInputAction: TextInputAction.search,
         decoration: InputDecoration(
           hintText: 'Buscar especialidad...',
+          hintStyle: TextStyle(
+            color: context.sac.textTertiary,
+            fontSize: 14,
+          ),
           prefixIcon: Center(
             widthFactor: 1,
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedSearch01,
               size: 18,
+              color: context.sac.textSecondary,
             ),
           ),
           suffixIcon: _searchQuery.isNotEmpty
@@ -194,6 +251,7 @@ class _AddHonorViewState extends ConsumerState<AddHonorView> {
                   icon: HugeIcon(
                     icon: HugeIcons.strokeRoundedCancel01,
                     size: 18,
+                    color: context.sac.textSecondary,
                   ),
                   onPressed: () {
                     _searchController.clear();
@@ -201,8 +259,21 @@ class _AddHonorViewState extends ConsumerState<AddHonorView> {
                   },
                 )
               : null,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(24),
+            borderSide: BorderSide(color: context.sac.border),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+            borderSide: BorderSide(color: context.sac.border),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
           ),
           filled: true,
           fillColor: context.sac.surfaceVariant,
@@ -212,34 +283,39 @@ class _AddHonorViewState extends ConsumerState<AddHonorView> {
     );
   }
 
-  // ── Category chips ────────────────────────────────────────────────────────
+  // ── Category chips ──────────────────────────────────────────────────────────
 
   Widget _buildCategoryChips(BuildContext context, List<HonorGroup> groups) {
     return SizedBox(
-      height: 36,
+      height: 52,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         children: [
+          // Chip "Todas"
           _CategoryChip(
             label: 'Todas',
+            icon: Icons.apps_rounded,
             color: AppColors.primary,
             isSelected: _selectedCategory == null,
             onTap: () => setState(() => _selectedCategory = null),
           ),
           const SizedBox(width: 8),
+          // Chips de cada categoría
           ...groups.map((group) {
-            final color = _colorForCategory(group.category.name);
+            final name = group.category.name;
+            final color = _colorForCategory(name);
+            final icon = _categoryIcons[name] ?? Icons.star_rounded;
             return Padding(
               padding: const EdgeInsets.only(right: 8),
               child: _CategoryChip(
-                label: group.category.name,
+                label: name,
+                icon: icon,
                 color: color,
-                isSelected: _selectedCategory == group.category.name,
+                isSelected: _selectedCategory == name,
                 onTap: () => setState(() {
-                  _selectedCategory = _selectedCategory == group.category.name
-                      ? null
-                      : group.category.name;
+                  _selectedCategory =
+                      _selectedCategory == name ? null : name;
                 }),
               ),
             );
@@ -249,145 +325,53 @@ class _AddHonorViewState extends ConsumerState<AddHonorView> {
     );
   }
 
-  // ── Group list ────────────────────────────────────────────────────────────
+  // ── Flat grid ───────────────────────────────────────────────────────────────
 
-  Widget _buildGroupList(BuildContext context, List<HonorGroup> groups) {
-    // Aplicar filtros
-    final filtered = groups
-        .where((g) {
-          // Filtro por chip de categoría
-          if (_selectedCategory != null &&
-              g.category.name != _selectedCategory) {
-            return false;
-          }
-          return true;
-        })
-        .map((g) {
-          List<Honor> honors = g.honors;
-          // Filtro por texto de búsqueda
-          if (_searchQuery.isNotEmpty) {
-            honors = honors
-                .where((h) =>
-                    h.name.toLowerCase().contains(_searchQuery.toLowerCase()))
-                .toList();
-          }
-          return _FilteredGroup(group: g, honors: honors);
-        })
-        .where((fg) => fg.honors.isNotEmpty)
-        .toList();
+  Widget _buildFlatGrid(BuildContext context, List<HonorGroup> groups) {
+    final items = _buildFlatList(groups);
 
-    if (filtered.isEmpty) {
+    if (items.isEmpty) {
       return _buildEmptyState(context);
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.only(top: 8, bottom: 24),
-      itemCount: filtered.length,
+    return GridView.builder(
+      padding: const EdgeInsets.fromLTRB(14, 4, 14, 24),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.70,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
+      itemCount: items.length,
       itemBuilder: (context, index) {
-        final fg = filtered[index];
-        final categoryColor = _colorForCategory(fg.group.category.name);
-        final categoryIcon =
-            _categoryIcons[fg.group.category.name] ?? Icons.star;
+        final item = items[index];
+        final categoryColor = _colorForCategory(item.categoryName);
 
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: context.sac.shadow,
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+        return _HonorCard(
+          honor: item.honor,
+          categoryName: item.categoryName,
+          categoryColor: categoryColor,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HonorDetailView(
+                  honorId: item.honor.id,
+                  initialHonor: item.honor,
+                ),
               ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Stack(
-              children: [
-                // Contenido principal con borde uniforme
-                Container(
-                  decoration: BoxDecoration(
-                    color: context.sac.surface,
-                    border: Border.all(color: context.sac.border, width: 1),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // ── Category header ─────────────────────────────
-                      _CategorySectionHeader(
-                        name: fg.group.category.name,
-                        icon: categoryIcon,
-                        color: categoryColor,
-                        count: fg.honors.length,
-                      ),
-                      // ── Subtle divider ──────────────────────────────
-                      Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: categoryColor.withAlpha(30),
-                        indent: 16,
-                        endIndent: 16,
-                      ),
-                      // ── Grid de honores ─────────────────────────────
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          childAspectRatio: 0.78,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                        ),
-                        itemCount: fg.honors.length,
-                        itemBuilder: (context, hIndex) {
-                          final honor = fg.honors[hIndex];
-                          return _HonorSelectItem(
-                            honor: honor,
-                            categoryColor: categoryColor,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => HonorDetailView(
-                                    honorId: honor.id,
-                                    initialHonor: honor,
-                                  ),
-                                ),
-                              ).then((result) {
-                                if (result == true && context.mounted) {
-                                  Navigator.pop(context, true);
-                                }
-                              });
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                // Barra de acento lateral posicionada absolutamente
-                Positioned(
-                  left: 0,
-                  top: 0,
-                  bottom: 0,
-                  child: Container(width: 4, color: categoryColor),
-                ),
-              ],
-            ),
-          ),
+            ).then((result) {
+              if (result == true && context.mounted) {
+                Navigator.pop(context, true);
+              }
+            });
+          },
         );
       },
     );
   }
 
-  // ── Empty state ───────────────────────────────────────────────────────────
+  // ── Empty state ─────────────────────────────────────────────────────────────
 
   Widget _buildEmptyState(BuildContext context) {
     final hasFilter = _searchQuery.isNotEmpty || _selectedCategory != null;
@@ -442,7 +426,9 @@ class _AddHonorViewState extends ConsumerState<AddHonorView> {
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.primary,
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 10),
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24),
                     side: const BorderSide(color: AppColors.primary),
@@ -456,7 +442,7 @@ class _AddHonorViewState extends ConsumerState<AddHonorView> {
     );
   }
 
-  // ── Error state ───────────────────────────────────────────────────────────
+  // ── Error state ─────────────────────────────────────────────────────────────
 
   Widget _buildErrorState(BuildContext context) {
     return Center(
@@ -545,96 +531,18 @@ class _AddHonorViewState extends ConsumerState<AddHonorView> {
   }
 }
 
-// ── Supporting data class ─────────────────────────────────────────────────────
-
-class _FilteredGroup {
-  final HonorGroup group;
-  final List<Honor> honors;
-
-  _FilteredGroup({required this.group, required this.honors});
-}
-
-// ── Category section header ───────────────────────────────────────────────────
-
-class _CategorySectionHeader extends StatelessWidget {
-  final String name;
-  final IconData icon;
-  final Color color;
-  final int count;
-
-  const _CategorySectionHeader({
-    required this.name,
-    required this.icon,
-    required this.color,
-    required this.count,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          // Category icon in rounded container
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              icon,
-              color: color == AppColors.sacBlack ? Colors.white : Colors.white,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          // Category name
-          Expanded(
-            child: Text(
-              name,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-                color: color,
-              ),
-            ),
-          ),
-          // Count badge pill
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: color.withAlpha(20),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: color.withAlpha(60), width: 1),
-            ),
-            child: Text(
-              '$count',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: color,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 // ── Category chip ─────────────────────────────────────────────────────────────
 
 class _CategoryChip extends StatelessWidget {
   final String label;
+  final IconData icon;
   final Color color;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _CategoryChip({
     required this.label,
+    required this.icon,
     required this.color,
     required this.isSelected,
     required this.onTap,
@@ -642,129 +550,45 @@ class _CategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Naturaleza tiene color blanco — usar negro efectivo para UI
+    final effectiveColor =
+        color == AppColors.catNaturaleza ? AppColors.sacBlack : color;
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
-        padding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
         decoration: BoxDecoration(
-          color: isSelected ? color : color.withAlpha(20),
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected
+              ? effectiveColor
+              : effectiveColor.withAlpha(18),
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: isSelected ? color : color.withAlpha(60),
+            color: isSelected
+                ? effectiveColor
+                : effectiveColor.withAlpha(70),
             width: 1,
           ),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight:
-                isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected ? Colors.white : color,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Honor select item ─────────────────────────────────────────────────────────
-
-class _HonorSelectItem extends StatefulWidget {
-  final Honor honor;
-  final Color categoryColor;
-  final VoidCallback onTap;
-
-  const _HonorSelectItem({
-    required this.honor,
-    required this.categoryColor,
-    required this.onTap,
-  });
-
-  @override
-  State<_HonorSelectItem> createState() => _HonorSelectItemState();
-}
-
-class _HonorSelectItemState extends State<_HonorSelectItem>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _scaleController;
-  late final Animation<double> _scale;
-
-  @override
-  void initState() {
-    super.initState();
-    _scaleController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 120),
-      lowerBound: 0.0,
-      upperBound: 1.0,
-      value: 1.0,
-    );
-    _scale = Tween<double>(begin: 0.92, end: 1.0).animate(
-      CurvedAnimation(parent: _scaleController, curve: Curves.easeOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _scaleController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _handleTap() async {
-    await _scaleController.reverse();
-    await _scaleController.forward();
-    widget.onTap();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final initials = widget.honor.name
-        .split(' ')
-        .take(2)
-        .map((w) => w.isNotEmpty ? w[0].toUpperCase() : '')
-        .join('');
-
-    return GestureDetector(
-      onTap: _handleTap,
-      child: ScaleTransition(
-        scale: _scale,
-        child: Column(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: AspectRatio(
-                aspectRatio: 1.0,
-                child: widget.honor.imageUrl != null &&
-                        widget.honor.imageUrl!.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: widget.honor.imageUrl!,
-                        fit: BoxFit.contain,
-                        errorWidget: (_, __, ___) => _InitialsBox(
-                          initials: initials,
-                          categoryColor: widget.categoryColor,
-                        ),
-                      )
-                    : _InitialsBox(
-                        initials: initials,
-                        categoryColor: widget.categoryColor,
-                      ),
-              ),
+            Icon(
+              icon,
+              size: 14,
+              color: isSelected ? Colors.white : effectiveColor,
             ),
-            const SizedBox(height: 5),
+            const SizedBox(width: 6),
             Text(
-              widget.honor.name,
-              textAlign: TextAlign.center,
+              label,
               style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: context.sac.text,
-                height: 1.2,
+                fontSize: 12,
+                fontWeight:
+                    isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? Colors.white : effectiveColor,
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -773,32 +597,202 @@ class _HonorSelectItemState extends State<_HonorSelectItem>
   }
 }
 
-// ── Initials box ──────────────────────────────────────────────────────────────
+// ── Honor card ────────────────────────────────────────────────────────────────
 
-class _InitialsBox extends StatelessWidget {
-  final String initials;
+/// Tarjeta de especialidad para el grid plano de 2 columnas.
+///
+/// Muestra imagen (o fallback de iniciales), nombre en 2 líneas máximo
+/// y un pill de categoría en la parte inferior. Usa Material + InkWell
+/// para feedback de tap nativo sin AnimationController por item.
+class _HonorCard extends StatelessWidget {
+  final Honor honor;
+  final String categoryName;
   final Color categoryColor;
+  final VoidCallback onTap;
 
-  const _InitialsBox({
-    required this.initials,
+  const _HonorCard({
+    required this.honor,
+    required this.categoryName,
     required this.categoryColor,
+    required this.onTap,
   });
+
+  String get _initials => honor.name
+      .split(' ')
+      .where((w) => w.isNotEmpty)
+      .take(2)
+      .map((w) => w[0].toUpperCase())
+      .join('');
+
+  // Naturaleza tiene color blanco — usar negro efectivo
+  Color get _effectiveColor =>
+      categoryColor == AppColors.catNaturaleza
+          ? AppColors.sacBlack
+          : categoryColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final sac = context.sac;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        splashColor: _effectiveColor.withAlpha(30),
+        highlightColor: _effectiveColor.withAlpha(15),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: sac.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: sac.border, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: sac.shadow,
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // ── Image area (~60% of card height) ─────────────────
+              Expanded(
+                flex: 6,
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(15),
+                  ),
+                  child: Container(
+                    color: _effectiveColor.withAlpha(12),
+                    padding: const EdgeInsets.all(12),
+                    child: _buildImage(),
+                  ),
+                ),
+              ),
+              // ── Name + category pill ──────────────────────────────
+              Expanded(
+                flex: 4,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        honor.name,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: sac.text,
+                          height: 1.25,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const Spacer(),
+                      _CategoryPill(
+                        label: categoryName,
+                        color: _effectiveColor,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImage() {
+    final hasImage = honor.imageUrl != null && honor.imageUrl!.isNotEmpty;
+
+    if (hasImage) {
+      return CachedNetworkImage(
+        imageUrl: honor.imageUrl!,
+        fit: BoxFit.contain,
+        placeholder: (_, __) => Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: _effectiveColor.withAlpha(120),
+            ),
+          ),
+        ),
+        errorWidget: (_, __, ___) => _InitialsFallback(
+          initials: _initials,
+          color: _effectiveColor,
+        ),
+      );
+    }
+
+    return _InitialsFallback(initials: _initials, color: _effectiveColor);
+  }
+}
+
+// ── Category pill ─────────────────────────────────────────────────────────────
+
+class _CategoryPill extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _CategoryPill({required this.label, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: categoryColor.withAlpha(20),
-        shape: BoxShape.circle,
-        border: Border.all(color: categoryColor.withAlpha(60), width: 1.5),
+        color: color.withAlpha(20),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withAlpha(55), width: 0.8),
       ),
-      child: Center(
-        child: Text(
-          initials,
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: categoryColor,
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: color,
+          height: 1.2,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+}
+
+// ── Initials fallback ─────────────────────────────────────────────────────────
+
+class _InitialsFallback extends StatelessWidget {
+  final String initials;
+  final Color color;
+
+  const _InitialsFallback({required this.initials, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 64,
+        height: 64,
+        decoration: BoxDecoration(
+          color: color.withAlpha(25),
+          shape: BoxShape.circle,
+          border: Border.all(color: color.withAlpha(70), width: 1.5),
+        ),
+        child: Center(
+          child: Text(
+            initials,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
         ),
       ),

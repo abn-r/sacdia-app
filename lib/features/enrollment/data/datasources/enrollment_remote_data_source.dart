@@ -55,8 +55,11 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
 
   Map<String, dynamic> _unwrapMap(dynamic body) {
     if (body is Map<String, dynamic>) {
-      if (body.containsKey('data') && body['data'] is Map<String, dynamic>) {
-        return body['data'] as Map<String, dynamic>;
+      if (body.containsKey('data')) {
+        if (body['data'] == null) return {};
+        if (body['data'] is Map<String, dynamic>) {
+          return body['data'] as Map<String, dynamic>;
+        }
       }
       return body;
     }

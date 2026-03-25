@@ -27,22 +27,26 @@ class _QuickAccessItemConfig {
 }
 
 const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
+  // Administrative: member list — requires users:read_detail (counselor and above)
   _QuickAccessItemConfig(
     label: 'Miembros',
     icon: HugeIcons.strokeRoundedUserGroup,
     color: AppColors.primary,
     route: RouteNames.homeMembers,
-    requiredPermissions: {'clubs:read'},
+    requiredPermissions: {'users:read_detail'},
     legacyRoles: {'director', 'subdirector', 'secretario', 'consejero'},
   ),
+  // Administrative: club management — requires clubs:update (secretary and above)
   _QuickAccessItemConfig(
     label: 'Club',
     icon: HugeIcons.strokeRoundedBuilding01,
     color: AppColors.secondary,
     route: RouteNames.homeClub,
-    requiredPermissions: {'clubs:read'},
+    requiredPermissions: {'clubs:update'},
     legacyRoles: {'director', 'subdirector', 'secretario'},
   ),
+  // Administrative: evidence folder management — requires users:read_detail (counselor+)
+  // Members access their own evidence via the profile screen, not this admin view.
   _QuickAccessItemConfig(
     label: 'Carpeta de Evidencias',
     icon: HugeIcons.strokeRoundedFolder01,
@@ -50,6 +54,7 @@ const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
     route: RouteNames.homeEvidences,
     requiredPermissions: {'users:read_detail'},
   ),
+  // Administrative: financial records — requires finances:read (treasurer and above)
   _QuickAccessItemConfig(
     label: 'Finanzas',
     icon: HugeIcons.strokeRoundedCreditCard,
@@ -58,30 +63,36 @@ const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
     requiredPermissions: {'finances:read'},
     legacyRoles: {'director', 'tesorero'},
   ),
+  // Administrative: unit management — requires units:update (counselor and above)
+  // Members can read their own unit info but cannot manage units.
   _QuickAccessItemConfig(
     label: 'Unidades',
     icon: HugeIcons.strokeRoundedCompass01,
     color: AppColors.secondary,
     route: RouteNames.homeUnits,
-    requiredPermissions: {'units:read'},
+    requiredPermissions: {'units:update'},
     legacyRoles: {'director', 'subdirector', 'consejero'},
   ),
+  // Administrative: group class management — requires classes:update (counselor and above)
+  // Members track their own class progress via their profile, not this group view.
   _QuickAccessItemConfig(
     label: 'Clase Agrupada',
     icon: HugeIcons.strokeRoundedBookOpen01,
     color: AppColors.primary,
     route: RouteNames.homeGroupedClass,
-    requiredPermissions: {'classes:read'},
+    requiredPermissions: {'classes:update'},
     legacyRoles: {'conquistador', 'aventurero', 'guia_mayor'},
   ),
+  // Administrative: insurance management — requires insurance:read (counselor and above)
   _QuickAccessItemConfig(
     label: 'Seguros del Club',
     icon: HugeIcons.strokeRoundedShield01,
     color: AppColors.secondaryDark,
     route: RouteNames.homeInsurance,
-    requiredPermissions: {'clubs:read'},
+    requiredPermissions: {'insurance:read'},
     legacyRoles: {'director', 'subdirector', 'secretario'},
   ),
+  // Administrative: inventory management — requires inventory:read (secretary and above)
   _QuickAccessItemConfig(
     label: 'Inventario',
     icon: HugeIcons.strokeRoundedPackage,
@@ -90,40 +101,55 @@ const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
     requiredPermissions: {'inventory:read'},
     legacyRoles: {'director', 'subdirector'},
   ),
+  // Club-wide shared resources (manuals, formats, images, music) — all members can access.
+  // Uses folders:read which is granted to every club role including member.
   _QuickAccessItemConfig(
     label: 'Recursos',
     icon: HugeIcons.strokeRoundedFiles01,
     route: RouteNames.homeResources,
+    requiredPermissions: {'folders:read'},
   ),
 ];
 
 /// Grid 2xN de acceso rápido a los módulos principales del sistema.
 ///
-/// Watches [authNotifierProvider] scoped to the authorization sub-state so
-/// the grid rebuilds reactively when permissions change (e.g. context switch).
+/// Watches the full [AsyncValue] from [authNotifierProvider] to distinguish
+/// three states:
+///   - loading  → show skeleton placeholders (avoids the flip-flop where
+///                 `valueOrNull == null` while the Future is still in flight)
+///   - data with authorization → filter items by permissions and render grid
+///   - data without authorization (genuinely empty) → SizedBox.shrink()
 class QuickAccessGrid extends ConsumerWidget {
   const QuickAccessGrid({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(
-      authNotifierProvider.select((v) => v.valueOrNull),
-    );
+    final authAsync = ref.watch(authNotifierProvider);
+
+    // While the auth future is still resolving, show a placeholder that
+    // occupies the same vertical space as the real grid would. This prevents
+    // the layout from collapsing and then jumping when permissions arrive.
+    if (authAsync.isLoading) {
+      return const _QuickAccessSkeleton();
+    }
+
+    final user = authAsync.valueOrNull;
     final authorization = user?.authorization;
 
-    final List<_QuickAccessItemConfig> filteredItems;
+    // Auth has settled but there is no authorization data — either the user
+    // has no assigned role or the response genuinely had none. Hide the grid.
     if (authorization == null) {
-      filteredItems = const [];
-    } else {
-      filteredItems = _quickAccessItemsConfig.where((item) {
-        if (item.requiredPermissions.isEmpty) return true;
-        return canByPermissionOrLegacyRole(
-          user,
-          requiredPermissions: item.requiredPermissions,
-          legacyRoles: item.legacyRoles,
-        );
-      }).toList();
+      return const SizedBox.shrink();
     }
+
+    final filteredItems = _quickAccessItemsConfig.where((item) {
+      if (item.requiredPermissions.isEmpty) return true;
+      return canByPermissionOrLegacyRole(
+        user,
+        requiredPermissions: item.requiredPermissions,
+        legacyRoles: item.legacyRoles,
+      );
+    }).toList();
 
     if (filteredItems.isEmpty) {
       return const SizedBox.shrink();
@@ -153,6 +179,53 @@ class QuickAccessGrid extends ConsumerWidget {
             final item = filteredItems[index];
             return _QuickAccessTile(item: item);
           },
+        ),
+      ],
+    );
+  }
+}
+
+/// Skeleton placeholder shown while auth is resolving.
+///
+/// Renders 4 shimmer-like boxes in a 2x2 layout so the page height stays
+/// stable and the grid doesn't cause a layout jump when it appears.
+class _QuickAccessSkeleton extends StatelessWidget {
+  const _QuickAccessSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final shimmerColor = c.border;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Title placeholder
+        Container(
+          height: 16,
+          width: 120,
+          decoration: BoxDecoration(
+            color: shimmerColor,
+            borderRadius: BorderRadius.circular(6),
+          ),
+        ),
+        const SizedBox(height: 12),
+        GridView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 1.2,
+          ),
+          itemCount: 4,
+          itemBuilder: (_, __) => Container(
+            decoration: BoxDecoration(
+              color: shimmerColor,
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
         ),
       ],
     );

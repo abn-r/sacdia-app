@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/club_info_card.dart';
 import '../widgets/current_class_card.dart';
@@ -25,6 +26,9 @@ class DashboardView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dashboardState = ref.watch(dashboardNotifierProvider);
+    final authAvatar = ref.watch(
+      authNotifierProvider.select((v) => v.valueOrNull?.avatar),
+    );
 
     final c = context.sac;
 
@@ -73,7 +77,7 @@ class DashboardView extends ConsumerWidget {
                       initialDelay: const Duration(milliseconds: 60),
                       child: WelcomeHeader(
                         userName: dashboard.userName,
-                        userAvatar: dashboard.userAvatar,
+                        userAvatar: dashboard.userAvatar ?? authAvatar,
                       ),
                     ),
 

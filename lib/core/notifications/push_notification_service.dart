@@ -121,7 +121,7 @@ class PushNotificationService {
     try {
       AppLogger.i('Desregistrando token FCM del backend', tag: _tag);
       await _dio.delete(
-        '/notifications/fcm-tokens/${Uri.encodeComponent(token)}',
+        '/fcm-tokens/${Uri.encodeComponent(token)}',
       );
       await _prefs.remove(_tokenPrefKey);
       AppLogger.i('Token FCM desregistrado', tag: _tag);
@@ -265,7 +265,7 @@ class PushNotificationService {
     try {
       AppLogger.i('Registrando token FCM en backend', tag: _tag);
       await _dio.post(
-        '/notifications/fcm-tokens',
+        '/fcm-tokens',
         data: {'token': token},
       );
       await _prefs.setString(_tokenPrefKey, token);
