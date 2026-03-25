@@ -86,6 +86,16 @@ class RouteNames {
   static String transferRequestDetail(int requestId) =>
       '/transfer/$requestId';
 
+  // Honors evidence & completion
+  static const String honorEvidence = '/honor/:honorId/evidence/:userHonorId';
+  static const String honorCompletion = '/honor/:honorId/completion/:userHonorId';
+
+  // Helpers
+  static String honorEvidencePath(String honorId, String userHonorId) =>
+      '/honor/$honorId/evidence/$userHonorId';
+  static String honorCompletionPath(String honorId, String userHonorId) =>
+      '/honor/$honorId/completion/$userHonorId';
+
   // Carpetas anuales
   static const String annualFolder = '/annual-folder/:enrollmentId';
 
