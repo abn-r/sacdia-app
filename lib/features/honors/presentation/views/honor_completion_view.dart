@@ -191,7 +191,7 @@ class _CompletionBody extends StatelessWidget {
 
                       // Completion date subtitle
                       Text(
-                        '${honorName} \u2022 ${DateFormat('d MMM yyyy', 'es').format(completionDate)}',
+                        '$honorName \u2022 ${DateFormat('d MMM yyyy', 'es').format(completionDate)}',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.white.withAlpha(179),

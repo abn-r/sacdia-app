@@ -167,6 +167,10 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
   }
 
   Future<void> _pickFromCamera() async {
+    final userHonor =
+        ref.read(userHonorForHonorProvider(widget.honorId)).valueOrNull;
+    if (userHonor != null && userHonor.evidenceCount >= _maxFiles) return;
+
     final picker = ImagePicker();
     final image = await picker.pickImage(
       source: ImageSource.camera,
@@ -180,6 +184,10 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
   }
 
   Future<void> _pickFromGallery() async {
+    final userHonor =
+        ref.read(userHonorForHonorProvider(widget.honorId)).valueOrNull;
+    if (userHonor != null && userHonor.evidenceCount >= _maxFiles) return;
+
     final picker = ImagePicker();
     final images = await picker.pickMultiImage(
       maxWidth: 1920,
@@ -192,6 +200,10 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
   }
 
   Future<void> _pickPdf() async {
+    final userHonor =
+        ref.read(userHonorForHonorProvider(widget.honorId)).valueOrNull;
+    if (userHonor != null && userHonor.evidenceCount >= _maxFiles) return;
+
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf'],
