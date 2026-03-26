@@ -21,7 +21,7 @@ import 'package:sacdia_app/features/honors/presentation/views/honors_catalog_vie
 import 'package:sacdia_app/features/honors/presentation/views/honor_detail_view.dart';
 import 'package:sacdia_app/features/honors/presentation/views/honor_evidence_view.dart';
 import 'package:sacdia_app/features/finances/presentation/views/finances_view.dart';
-import 'package:sacdia_app/features/home/presentation/widgets/resources_section.dart';
+import 'package:sacdia_app/features/resources/presentation/views/resources_view.dart';
 import 'package:sacdia_app/features/inventory/presentation/views/inventory_view.dart';
 import 'package:sacdia_app/features/insurance/presentation/views/insurance_view.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/camporees_list_view.dart';
@@ -287,7 +287,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: RouteNames.homeResources,
             pageBuilder: (context, state) => _fadeThroughBuild(
               context, state,
-              const ResourcesSection(),
+              const ResourcesView(),
             ),
           ),
           GoRoute(
