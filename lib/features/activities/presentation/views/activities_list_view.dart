@@ -10,6 +10,8 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import 'package:sacdia_app/providers/catalogs_provider.dart';
+import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 
 import '../../domain/entities/activity.dart';
@@ -71,6 +73,22 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
     _dateScrollController.dispose();
     _chronoScrollController.dispose();
     super.dispose();
+  }
+
+  bool _canCreateActivities() {
+    final authState = ref.read(authNotifierProvider);
+    final user = authState.valueOrNull;
+    if (user == null) return false;
+    return canByPermissionOrLegacyRole(
+      user,
+      requiredPermissions: const {'activities:create'},
+      legacyRoles: const {
+        'director',
+        'deputy_director',
+        'secretary',
+        'counselor',
+      },
+    );
   }
 
   List<DateTime> _buildDays() {
@@ -211,46 +229,47 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        SacSlideUpRoute(
-                          builder: (context) => CreateActivityView(
-                            clubId: resolvedClubId ?? 0,
-                            clubSectionId: resolvedSectionId ?? 0,
+                  if (_canCreateActivities())
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          SacSlideUpRoute(
+                            builder: (context) => CreateActivityView(
+                              clubId: resolvedClubId ?? 0,
+                              clubSectionId: resolvedSectionId ?? 0,
+                            ),
+                          ),
+                        ).then((created) {
+                          // Si la actividad fue creada, refrescar la lista
+                          if (created == true && mounted) {
+                            ref.invalidate(clubActivitiesProvider);
+                          }
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.all(9),
+                        decoration: BoxDecoration(
+                          color: c.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: c.border,
                           ),
                         ),
-                      ).then((created) {
-                        // Si la actividad fue creada, refrescar la lista
-                        if (created == true && mounted) {
-                          ref.invalidate(clubActivitiesProvider);
-                        }
-                      });
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.all(9),
-                      decoration: BoxDecoration(
-                        color: c.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: c.border,
+                        child: Row(
+                          children: [
+                            HugeIcon(
+                              icon: HugeIcons.strokeRoundedCalendarAdd01,
+                              size: 20,
+                              color: c.textSecondary,
+                            ),
+                            const SizedBox(width: 5),
+                            Text('Agregar')
+                          ],
                         ),
-                      ),
-                      child: Row(
-                        children: [
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedCalendarAdd01,
-                            size: 20,
-                            color: c.textSecondary,
-                          ),
-                          const SizedBox(width: 5),
-                          Text('Agregar')
-                        ],
                       ),
                     ),
-                  ),
                   const SizedBox(width: 8),
                   GestureDetector(
                     onTap: () {
