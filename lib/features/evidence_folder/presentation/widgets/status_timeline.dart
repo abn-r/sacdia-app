@@ -7,7 +7,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/evidence_section.dart';
 
 /// Timeline visual del flujo de estados de una sección:
-/// Pendiente → Enviado → Validado.
+/// Pendiente → Enviado → Validado → En evaluación → Evaluado.
 ///
 /// Cada paso muestra nombre, fecha (si aplica) y actor (si aplica).
 class StatusTimeline extends StatelessWidget {
@@ -16,6 +16,9 @@ class StatusTimeline extends StatelessWidget {
   final DateTime? submittedAt;
   final String? validatedByName;
   final DateTime? validatedAt;
+  final String? evaluatedByName;
+  final DateTime? evaluatedAt;
+  final String? evaluationNotes;
 
   const StatusTimeline({
     super.key,
@@ -24,12 +27,26 @@ class StatusTimeline extends StatelessWidget {
     this.submittedAt,
     this.validatedByName,
     this.validatedAt,
+    this.evaluatedByName,
+    this.evaluatedAt,
+    this.evaluationNotes,
   });
+
+  bool get _hasEvaluationStep =>
+      currentStatus == EvidenceSectionStatus.underEvaluation ||
+      currentStatus == EvidenceSectionStatus.evaluated ||
+      evaluatedByName != null ||
+      evaluatedAt != null;
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
     final dateFormat = DateFormat('d MMM yyyy, HH:mm', 'es');
+
+    // Determinar si los pasos "evaluación" aplican para este flujo.
+    // Solo se muestran cuando la sección ya pasó a ese estado o tiene datos de
+    // evaluación; evita mostrar pasos vacíos en el flujo normal.
+    final showEvaluation = _hasEvaluationStep;
 
     final steps = [
       _TimelineStep(
@@ -49,7 +66,9 @@ class StatusTimeline extends StatelessWidget {
                 : 'Esperando envío',
         icon: HugeIcons.strokeRoundedSent,
         isCompleted: currentStatus == EvidenceSectionStatus.enviado ||
-            currentStatus == EvidenceSectionStatus.validado,
+            currentStatus == EvidenceSectionStatus.validado ||
+            currentStatus == EvidenceSectionStatus.underEvaluation ||
+            currentStatus == EvidenceSectionStatus.evaluated,
         isActive: currentStatus == EvidenceSectionStatus.enviado,
         activeColor: AppColors.sacBlue,
       ),
@@ -61,10 +80,31 @@ class StatusTimeline extends StatelessWidget {
                 ? 'Por $validatedByName'
                 : 'Esperando validación',
         icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-        isCompleted: currentStatus == EvidenceSectionStatus.validado,
+        isCompleted: currentStatus == EvidenceSectionStatus.validado ||
+            currentStatus == EvidenceSectionStatus.underEvaluation ||
+            currentStatus == EvidenceSectionStatus.evaluated,
         isActive: currentStatus == EvidenceSectionStatus.validado,
         activeColor: AppColors.secondary,
       ),
+      if (showEvaluation) ...[
+        _TimelineStep(
+          label: 'En evaluación',
+          sublabel: 'Revisión de puntuación por el evaluador',
+          icon: HugeIcons.strokeRoundedAnalytics01,
+          isCompleted: currentStatus == EvidenceSectionStatus.underEvaluation ||
+              currentStatus == EvidenceSectionStatus.evaluated,
+          isActive: currentStatus == EvidenceSectionStatus.underEvaluation,
+          activeColor: const Color(0xFFF59E0B),
+        ),
+        _TimelineStep(
+          label: 'Evaluado',
+          sublabel: _buildEvaluatedSublabel(dateFormat),
+          icon: HugeIcons.strokeRoundedStar,
+          isCompleted: currentStatus == EvidenceSectionStatus.evaluated,
+          isActive: currentStatus == EvidenceSectionStatus.evaluated,
+          activeColor: AppColors.secondaryDark,
+        ),
+      ],
     ];
 
     return Column(
@@ -151,6 +191,17 @@ class StatusTimeline extends StatelessWidget {
         );
       }),
     );
+  }
+
+  String _buildEvaluatedSublabel(DateFormat dateFormat) {
+    if (evaluatedByName != null && evaluatedAt != null) {
+      return 'Por $evaluatedByName · ${dateFormat.format(evaluatedAt!.toLocal())}';
+    }
+    if (evaluatedByName != null) return 'Por $evaluatedByName';
+    if (evaluatedAt != null) {
+      return 'El ${dateFormat.format(evaluatedAt!.toLocal())}';
+    }
+    return 'Evaluación completada';
   }
 }
 

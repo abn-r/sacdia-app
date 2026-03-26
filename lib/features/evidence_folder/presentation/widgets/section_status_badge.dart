@@ -6,10 +6,12 @@ import '../../domain/entities/evidence_section.dart';
 
 /// Badge de color con ícono que indica el estado de la sección.
 ///
-/// Tres variantes visuales:
-/// - pendiente  → amarillo / naranja
-/// - enviado    → azul (dark-mode aware)
-/// - validado   → verde
+/// Cinco variantes visuales:
+/// - pendiente        → amarillo / naranja
+/// - enviado          → azul (dark-mode aware)
+/// - validado         → verde
+/// - underEvaluation  → ámbar (en proceso de evaluación)
+/// - evaluated        → verde oscuro (evaluación completa con puntos)
 class SectionStatusBadge extends StatelessWidget {
   final EvidenceSectionStatus status;
 
@@ -56,6 +58,10 @@ class SectionStatusBadge extends StatelessWidget {
         return 'Enviado';
       case EvidenceSectionStatus.validado:
         return 'Validado';
+      case EvidenceSectionStatus.underEvaluation:
+        return 'En evaluación';
+      case EvidenceSectionStatus.evaluated:
+        return 'Evaluado';
     }
   }
 
@@ -66,6 +72,13 @@ class SectionStatusBadge extends StatelessWidget {
       case EvidenceSectionStatus.enviado:
         return isDark ? AppColors.statusInfoBgDark : AppColors.statusInfoBgLight;
       case EvidenceSectionStatus.validado:
+        return AppColors.secondaryLight;
+      case EvidenceSectionStatus.underEvaluation:
+        // Ámbar suave para indicar proceso activo
+        return isDark
+            ? const Color(0xFF2D2010)
+            : const Color(0xFFFFF8E1);
+      case EvidenceSectionStatus.evaluated:
         return AppColors.secondaryLight;
     }
   }
@@ -78,6 +91,10 @@ class SectionStatusBadge extends StatelessWidget {
         return AppColors.sacBlue.withValues(alpha: 0.4);
       case EvidenceSectionStatus.validado:
         return AppColors.secondary.withValues(alpha: 0.4);
+      case EvidenceSectionStatus.underEvaluation:
+        return const Color(0xFFF59E0B).withValues(alpha: 0.5);
+      case EvidenceSectionStatus.evaluated:
+        return AppColors.secondaryDark.withValues(alpha: 0.4);
     }
   }
 
@@ -88,6 +105,12 @@ class SectionStatusBadge extends StatelessWidget {
       case EvidenceSectionStatus.enviado:
         return isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
       case EvidenceSectionStatus.validado:
+        return AppColors.secondaryDark;
+      case EvidenceSectionStatus.underEvaluation:
+        return isDark
+            ? const Color(0xFFFBBF24)
+            : const Color(0xFF92400E);
+      case EvidenceSectionStatus.evaluated:
         return AppColors.secondaryDark;
     }
   }
@@ -100,6 +123,10 @@ class SectionStatusBadge extends StatelessWidget {
         return HugeIcons.strokeRoundedSent;
       case EvidenceSectionStatus.validado:
         return HugeIcons.strokeRoundedCheckmarkCircle01;
+      case EvidenceSectionStatus.underEvaluation:
+        return HugeIcons.strokeRoundedAnalytics01;
+      case EvidenceSectionStatus.evaluated:
+        return HugeIcons.strokeRoundedStar;
     }
   }
 }

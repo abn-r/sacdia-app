@@ -101,8 +101,13 @@ class _FolderBody extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Banner cerrado
-                if (!folder.isOpen) const FolderClosedBanner(),
+                // Banner evaluado / cerrado
+                if (!folder.isOpen || folder.isEvaluated)
+                  FolderClosedBanner(folder: folder),
+
+                // Banner en evaluación (carpeta abierta pero bajo evaluación)
+                if (folder.isOpen && folder.isUnderEvaluation)
+                  _UnderEvaluationBanner(folder: folder),
 
                 // Header card
                 _FolderHeaderCard(folder: folder),
@@ -320,7 +325,7 @@ class _FolderHeaderCard extends StatelessWidget {
               ),
               const SizedBox(width: 5),
               Text(
-                '${folder.earnedPoints} / ${folder.totalPoints} puntos',
+                '${folder.earnedPoints} / ${folder.maxPoints} puntos',
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -345,8 +350,8 @@ class _ProgressSummaryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final total = folder.sections.length;
-    final validated = folder.validatedCount;
-    final submitted = folder.submittedCount;
+    final validated = folder.validatedCount;   // validado + evaluated
+    final submitted = folder.submittedCount;   // enviado + underEvaluation
     final pending = total - validated - submitted;
 
     return Padding(
@@ -429,6 +434,72 @@ class _SummaryChip extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ── Banner bajo evaluación ────────────────────────────────────────────────────
+
+class _UnderEvaluationBanner extends StatelessWidget {
+  final EvidenceFolder folder;
+
+  const _UnderEvaluationBanner({required this.folder});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF8E1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFFF59E0B).withValues(alpha: 0.5),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedAnalytics01,
+                size: 22,
+                color: const Color(0xFF92400E),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'En proceso de evaluación',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF92400E),
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'El evaluador del campo está revisando las evidencias de este club.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: const Color(0xFF92400E),
+                        height: 1.45,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

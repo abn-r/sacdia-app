@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -124,8 +125,37 @@ class _EvidenceSectionDetailViewState
                         submittedAt: widget.section.submittedAt,
                         validatedByName: widget.section.validatedByName,
                         validatedAt: widget.section.validatedAt,
+                        evaluatedByName: widget.section.evaluatedByName,
+                        evaluatedAt: widget.section.evaluatedAt,
+                        evaluationNotes: widget.section.evaluationNotes,
                       ),
                     ),
+
+                    // Resultado de evaluación (solo lectura, si existe)
+                    if (widget.section.status ==
+                            EvidenceSectionStatus.evaluated ||
+                        widget.section.evaluatedByName != null) ...[
+                      const SizedBox(height: 24),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                        child: Text(
+                          'Resultado de evaluación',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: c.text,
+                              ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: _EvaluationResultCard(
+                            section: widget.section),
+                      ),
+                    ],
 
                     const SizedBox(height: 24),
 
@@ -751,6 +781,129 @@ class _BottomActionBar extends StatelessWidget {
             onPressed:
                 hasFiles && !isLoading ? onSubmit : null,
           ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Tarjeta de resultado de evaluación (solo lectura) ─────────────────────────
+
+class _EvaluationResultCard extends StatelessWidget {
+  final EvidenceSection section;
+
+  const _EvaluationResultCard({required this.section});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final dateFormat = DateFormat('d MMM yyyy, HH:mm', 'es');
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.secondaryLight,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.secondary.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Puntos obtenidos
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.secondary.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedStar,
+                  size: 20,
+                  color: AppColors.secondaryDark,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Puntos obtenidos',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: c.textSecondary,
+                    ),
+                  ),
+                  Text(
+                    '${section.earnedPoints} / ${section.pointValue}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.secondaryDark,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          // Evaluador y fecha
+          if (section.evaluatedByName != null) ...[
+            const SizedBox(height: 12),
+            Divider(
+              color: AppColors.secondary.withValues(alpha: 0.25),
+              height: 1,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedUserCheck01,
+                  size: 13,
+                  color: AppColors.secondaryDark,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Evaluado por ${section.evaluatedByName}'
+                    '${section.evaluatedAt != null ? " · ${dateFormat.format(section.evaluatedAt!.toLocal())}" : ""}',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppColors.secondaryDark,
+                          fontWeight: FontWeight.w600,
+                          height: 1.3,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+
+          // Notas del evaluador
+          if (section.evaluationNotes != null &&
+              section.evaluationNotes!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Notas del evaluador',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: c.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              section.evaluationNotes!,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.secondaryDark,
+                    height: 1.5,
+                  ),
+            ),
+          ],
         ],
       ),
     );

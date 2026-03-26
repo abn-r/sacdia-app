@@ -16,6 +16,28 @@ class EvidenceFolder extends Equatable {
   final double totalPercentage;
   final List<EvidenceSection> sections;
 
+  // ── Scoring (evaluación) ────────────────────────────────────────────────────
+
+  /// Puntos obtenidos según la evaluación del backend (server-authoritative).
+  /// Puede diferir del cómputo local cuando el evaluador asigna puntos parciales.
+  /// Null si el backend aún no retorna este campo.
+  final int? totalEarnedPoints;
+
+  /// Puntos máximos posibles según el backend (server-authoritative).
+  /// Null si el backend aún no retorna este campo.
+  final int? totalMaxPoints;
+
+  /// Porcentaje de progreso calculado por el backend (0.0 – 100.0).
+  /// Null si el backend aún no retorna este campo.
+  final double? progressPercentage;
+
+  /// Fecha en que la carpeta fue evaluada completamente.
+  final DateTime? evaluatedAt;
+
+  /// Estado de la carpeta: open, submitted, under_evaluation, evaluated, closed.
+  /// Complementa [isOpen] con estados más granulares del proceso de evaluación.
+  final String? status;
+
   const EvidenceFolder({
     required this.id,
     required this.name,
@@ -24,25 +46,52 @@ class EvidenceFolder extends Equatable {
     required this.totalPoints,
     required this.totalPercentage,
     required this.sections,
+    this.totalEarnedPoints,
+    this.totalMaxPoints,
+    this.progressPercentage,
+    this.evaluatedAt,
+    this.status,
   });
 
   // ── Computed helpers ────────────────────────────────────────────────────────
 
-  /// Puntos ganados sumando las secciones ya validadas.
+  /// Puntos ganados: prioriza el valor server-authoritative del backend;
+  /// cae al cómputo local sumando secciones validadas si el backend no lo envía.
   int get earnedPoints =>
+      totalEarnedPoints ??
       sections.fold(0, (sum, s) => sum + s.earnedPoints);
 
-  /// Porcentaje completado global (0.0 – 1.0) considerando sólo validadas.
-  double get completionRatio =>
-      totalPoints == 0 ? 0 : earnedPoints / totalPoints;
+  /// Puntos máximos: prioriza el valor del backend; cae a [totalPoints].
+  int get maxPoints => totalMaxPoints ?? totalPoints;
 
-  /// Número de secciones en estado [EvidenceSectionStatus.validado].
-  int get validatedCount =>
-      sections.where((s) => s.status == EvidenceSectionStatus.validado).length;
+  /// Porcentaje completado global (0.0 – 1.0).
+  /// Usa [progressPercentage] del backend si está disponible (ya en 0–100, se
+  /// convierte a ratio). De lo contrario computa desde los puntos.
+  double get completionRatio {
+    if (progressPercentage != null) return progressPercentage! / 100.0;
+    return maxPoints == 0 ? 0 : earnedPoints / maxPoints;
+  }
 
-  /// Número de secciones en estado [EvidenceSectionStatus.enviado].
-  int get submittedCount =>
-      sections.where((s) => s.status == EvidenceSectionStatus.enviado).length;
+  /// True si la carpeta fue evaluada (tiene fecha de evaluación o status evaluated).
+  bool get isEvaluated =>
+      evaluatedAt != null || status == 'evaluated';
+
+  /// True si la carpeta está bajo evaluación activa.
+  bool get isUnderEvaluation => status == 'under_evaluation';
+
+  /// Número de secciones en estado [EvidenceSectionStatus.validado] o [EvidenceSectionStatus.evaluated].
+  int get validatedCount => sections
+      .where((s) =>
+          s.status == EvidenceSectionStatus.validado ||
+          s.status == EvidenceSectionStatus.evaluated)
+      .length;
+
+  /// Número de secciones en estado [EvidenceSectionStatus.enviado] o [EvidenceSectionStatus.underEvaluation].
+  int get submittedCount => sections
+      .where((s) =>
+          s.status == EvidenceSectionStatus.enviado ||
+          s.status == EvidenceSectionStatus.underEvaluation)
+      .length;
 
   @override
   List<Object?> get props => [
@@ -53,5 +102,10 @@ class EvidenceFolder extends Equatable {
         totalPoints,
         totalPercentage,
         sections,
+        totalEarnedPoints,
+        totalMaxPoints,
+        progressPercentage,
+        evaluatedAt,
+        status,
       ];
 }

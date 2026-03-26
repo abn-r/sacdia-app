@@ -17,6 +17,9 @@ class EvidenceSectionModel extends EvidenceSection {
     super.validatedByName,
     super.validatedAt,
     super.earnedPoints,
+    super.evaluatedByName,
+    super.evaluatedAt,
+    super.evaluationNotes,
   });
 
   factory EvidenceSectionModel.fromJson(Map<String, dynamic> json) {
@@ -52,6 +55,14 @@ class EvidenceSectionModel extends EvidenceSection {
           json['validated_at']?.toString() ?? json['validatedAt']?.toString()),
       earnedPoints:
           _parseInt(json['earned_points'] ?? json['earnedPoints'] ?? 0),
+      evaluatedByName: (json['evaluated_by_name'] ??
+              json['evaluatedByName'])
+          ?.toString(),
+      evaluatedAt: _parseDate(
+          json['evaluated_at']?.toString() ?? json['evaluatedAt']?.toString()),
+      evaluationNotes: (json['evaluation_notes'] ??
+              json['evaluationNotes'])
+          ?.toString(),
     );
   }
 
@@ -88,5 +99,8 @@ class EvidenceSectionModel extends EvidenceSection {
         validatedByName: validatedByName,
         validatedAt: validatedAt,
         earnedPoints: earnedPoints,
+        evaluatedByName: evaluatedByName,
+        evaluatedAt: evaluatedAt,
+        evaluationNotes: evaluationNotes,
       );
 }

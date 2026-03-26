@@ -12,6 +12,12 @@ enum EvidenceSectionStatus {
 
   /// El campo local validó (o rechazó) la sección.
   validado,
+
+  /// La sección está siendo evaluada por el evaluador del campo.
+  underEvaluation,
+
+  /// La sección fue evaluada y tiene puntuación asignada.
+  evaluated,
 }
 
 /// Parsea el string que llega desde la API al enum correspondiente.
@@ -21,6 +27,11 @@ EvidenceSectionStatus evidenceSectionStatusFromString(String? value) {
       return EvidenceSectionStatus.enviado;
     case 'validado':
       return EvidenceSectionStatus.validado;
+    case 'under_evaluation':
+    case 'underevaluation':
+      return EvidenceSectionStatus.underEvaluation;
+    case 'evaluated':
+      return EvidenceSectionStatus.evaluated;
     default:
       return EvidenceSectionStatus.pendiente;
   }
@@ -33,6 +44,10 @@ String evidenceSectionStatusToString(EvidenceSectionStatus status) {
       return 'enviado';
     case EvidenceSectionStatus.validado:
       return 'validado';
+    case EvidenceSectionStatus.underEvaluation:
+      return 'under_evaluation';
+    case EvidenceSectionStatus.evaluated:
+      return 'evaluated';
     case EvidenceSectionStatus.pendiente:
       return 'pendiente';
   }
@@ -71,6 +86,17 @@ class EvidenceSection extends Equatable {
   /// Puntos efectivamente ganados en esta sección (0 hasta que sea validada).
   final int earnedPoints;
 
+  // ── Evaluación (scoring) ─────────────────────────────────────────────────
+
+  /// Nombre del evaluador que puntuó esta sección (null si aún no fue evaluada).
+  final String? evaluatedByName;
+
+  /// Fecha en que se registró la evaluación (null si no evaluada).
+  final DateTime? evaluatedAt;
+
+  /// Notas del evaluador sobre esta sección (null si no hay notas).
+  final String? evaluationNotes;
+
   const EvidenceSection({
     required this.id,
     required this.name,
@@ -85,6 +111,9 @@ class EvidenceSection extends Equatable {
     this.validatedByName,
     this.validatedAt,
     this.earnedPoints = 0,
+    this.evaluatedByName,
+    this.evaluatedAt,
+    this.evaluationNotes,
   });
 
   // ── Computed helpers ────────────────────────────────────────────────────────
@@ -114,5 +143,8 @@ class EvidenceSection extends Equatable {
         validatedByName,
         validatedAt,
         earnedPoints,
+        evaluatedByName,
+        evaluatedAt,
+        evaluationNotes,
       ];
 }

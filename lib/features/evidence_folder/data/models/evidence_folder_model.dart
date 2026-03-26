@@ -11,6 +11,11 @@ class EvidenceFolderModel extends EvidenceFolder {
     required super.totalPoints,
     required super.totalPercentage,
     required super.sections,
+    super.totalEarnedPoints,
+    super.totalMaxPoints,
+    super.progressPercentage,
+    super.evaluatedAt,
+    super.status,
   });
 
   factory EvidenceFolderModel.fromJson(Map<String, dynamic> json) {
@@ -30,6 +35,15 @@ class EvidenceFolderModel extends EvidenceFolder {
       totalPercentage:
           _parseDouble(json['total_percentage'] ?? json['totalPercentage'] ?? 0),
       sections: sections,
+      totalEarnedPoints: _parseIntNullable(
+          json['total_earned_points'] ?? json['totalEarnedPoints']),
+      totalMaxPoints:
+          _parseIntNullable(json['total_max_points'] ?? json['totalMaxPoints']),
+      progressPercentage: _parseDoubleNullable(
+          json['progress_percentage'] ?? json['progressPercentage']),
+      evaluatedAt: _parseDate(
+          json['evaluated_at']?.toString() ?? json['evaluatedAt']?.toString()),
+      status: json['status']?.toString(),
     );
   }
 
@@ -40,11 +54,32 @@ class EvidenceFolderModel extends EvidenceFolder {
     return 0;
   }
 
+  static int? _parseIntNullable(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
+
   static double _parseDouble(dynamic value) {
     if (value is double) return value;
     if (value is int) return value.toDouble();
     if (value is String) return double.tryParse(value) ?? 0.0;
     return 0.0;
+  }
+
+  static double? _parseDoubleNullable(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
+  }
+
+  static DateTime? _parseDate(String? value) {
+    if (value == null || value.isEmpty) return null;
+    return DateTime.tryParse(value);
   }
 
   EvidenceFolder toEntity() => EvidenceFolder(
@@ -55,5 +90,10 @@ class EvidenceFolderModel extends EvidenceFolder {
         totalPoints: totalPoints,
         totalPercentage: totalPercentage,
         sections: sections,
+        totalEarnedPoints: totalEarnedPoints,
+        totalMaxPoints: totalMaxPoints,
+        progressPercentage: progressPercentage,
+        evaluatedAt: evaluatedAt,
+        status: status,
       );
 }

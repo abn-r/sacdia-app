@@ -94,7 +94,8 @@ class SectionCard extends StatelessWidget {
                     icon: HugeIcons.strokeRoundedStar,
                     label:
                         '${section.earnedPoints} / ${section.pointValue} pts',
-                    color: section.status == EvidenceSectionStatus.validado
+                    color: section.status == EvidenceSectionStatus.validado ||
+                            section.status == EvidenceSectionStatus.evaluated
                         ? AppColors.secondary
                         : c.textSecondary,
                     context: context,
@@ -126,7 +127,8 @@ class SectionCard extends StatelessWidget {
 
             // Trazabilidad (si aplica)
             if (section.submittedByName != null ||
-                section.validatedByName != null) ...[
+                section.validatedByName != null ||
+                section.evaluatedByName != null) ...[
               Divider(height: 1, color: c.divider),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
@@ -152,6 +154,38 @@ class SectionCard extends StatelessWidget {
                         text:
                             'Validado por ${section.validatedByName}${section.validatedAt != null ? " · ${dateFormat.format(section.validatedAt!.toLocal())}" : ""}',
                         context: context,
+                      ),
+                    ],
+                    if (section.evaluatedByName != null) ...[
+                      if (section.submittedByName != null ||
+                          section.validatedByName != null)
+                        const SizedBox(height: 4),
+                      _TraceRow(
+                        icon: HugeIcons.strokeRoundedStar,
+                        color: AppColors.secondaryDark,
+                        text:
+                            'Evaluado por ${section.evaluatedByName}${section.evaluatedAt != null ? " · ${dateFormat.format(section.evaluatedAt!.toLocal())}" : ""}',
+                        context: context,
+                      ),
+                    ],
+                    if (section.evaluationNotes != null &&
+                        section.evaluationNotes!.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondaryLight,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          section.evaluationNotes!,
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: AppColors.secondaryDark,
+                                    height: 1.4,
+                                  ),
+                        ),
                       ),
                     ],
                   ],
