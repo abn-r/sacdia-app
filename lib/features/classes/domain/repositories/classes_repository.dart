@@ -55,6 +55,7 @@ abstract class ClassesRepository {
     required String filePath,
     required String fileName,
     required String mimeType,
+    void Function(double)? onProgress,
   });
 
   /// Elimina un archivo de evidencia de un requerimiento.

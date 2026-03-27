@@ -41,6 +41,7 @@ abstract class ClassesRemoteDataSource {
     required String filePath,
     required String fileName,
     required String mimeType,
+    void Function(double)? onProgress,
   });
 
   /// Elimina un archivo de evidencia de un requerimiento.
@@ -413,6 +414,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     required String filePath,
     required String fileName,
     required String mimeType,
+    void Function(double)? onProgress,
   }) async {
     try {
       final token = await _getAuthToken();
@@ -438,8 +440,10 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
         ),
         onSendProgress: (sent, total) {
           if (total > 0) {
+            final fraction = sent / total;
+            onProgress?.call(fraction);
             AppLogger.d(
-              'Upload progress: ${(sent / total * 100).toStringAsFixed(1)}%',
+              'Upload progress: ${(fraction * 100).toStringAsFixed(1)}%',
               tag: _tag,
             );
           }

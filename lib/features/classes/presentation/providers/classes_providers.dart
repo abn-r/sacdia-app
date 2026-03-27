@@ -247,10 +247,15 @@ class RequirementNotifier
   /// Sube un archivo de evidencia al requerimiento indicado.
   ///
   /// [pickedFile] proviene de [ImagePicker] o [FilePicker].
+  /// [onProgress] callback opcional que recibe la fracción de progreso (0.0 – 1.0).
+  /// [skipInvalidation] si es `true`, omite el invalidate de [classWithProgressProvider]
+  /// tras la subida (útil en subidas por lote para evitar refrescos por archivo).
   Future<bool> uploadFile({
     required int requirementId,
     required XFile pickedFile,
     required String mimeType,
+    void Function(double)? onProgress,
+    bool skipInvalidation = false,
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
@@ -262,6 +267,7 @@ class RequirementNotifier
         filePath: pickedFile.path,
         fileName: pickedFile.name,
         mimeType: mimeType,
+        onProgress: onProgress,
       ),
     );
 
@@ -275,7 +281,9 @@ class RequirementNotifier
       },
       (_) {
         state = state.copyWith(isLoading: false, success: true);
-        ref.invalidate(classWithProgressProvider(_classId));
+        if (!skipInvalidation) {
+          ref.invalidate(classWithProgressProvider(_classId));
+        }
         return true;
       },
     );

@@ -200,6 +200,7 @@ class ClassesRepositoryImpl implements ClassesRepository {
     required String filePath,
     required String fileName,
     required String mimeType,
+    void Function(double)? onProgress,
   }) async {
     if (!await _isConnected) return _networkFailure();
     try {
@@ -210,6 +211,7 @@ class ClassesRepositoryImpl implements ClassesRepository {
         filePath: filePath,
         fileName: fileName,
         mimeType: mimeType,
+        onProgress: onProgress,
       );
       return Right(model.toEntity());
     } on ServerException catch (e) {

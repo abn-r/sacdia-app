@@ -28,6 +28,7 @@ abstract class EvidenceFolderRepository {
     required String filePath,
     required String fileName,
     required String mimeType,
+    void Function(double)? onProgress,
   });
 
   /// Elimina un archivo de evidencia (solo cuando sección está pendiente).

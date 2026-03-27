@@ -12,6 +12,7 @@ class UploadEvidenceFileParams extends Equatable {
   final String filePath;
   final String fileName;
   final String mimeType;
+  final void Function(double)? onProgress;
 
   const UploadEvidenceFileParams({
     required this.clubSectionId,
@@ -19,6 +20,7 @@ class UploadEvidenceFileParams extends Equatable {
     required this.filePath,
     required this.fileName,
     required this.mimeType,
+    this.onProgress,
   });
 
   @override
@@ -42,6 +44,7 @@ class UploadEvidenceFile
       filePath: params.filePath,
       fileName: params.fileName,
       mimeType: params.mimeType,
+      onProgress: params.onProgress,
     );
   }
 }

@@ -139,10 +139,15 @@ class EvidenceSectionNotifier
   /// Sube un archivo a la sección indicada.
   ///
   /// [pickedFile] proviene de [ImagePicker] o [FilePicker].
+  /// [onProgress] callback opcional que recibe la fracción de progreso (0.0 – 1.0).
+  /// [skipInvalidation] si es `true`, omite el invalidate de [evidenceFolderProvider]
+  /// tras la subida (útil en subidas por lote para evitar refrescos por archivo).
   Future<bool> uploadFile({
     required String sectionId,
     required XFile pickedFile,
     required String mimeType,
+    void Function(double)? onProgress,
+    bool skipInvalidation = false,
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
@@ -153,6 +158,7 @@ class EvidenceSectionNotifier
         filePath: pickedFile.path,
         fileName: pickedFile.name,
         mimeType: mimeType,
+        onProgress: onProgress,
       ),
     );
 
@@ -166,7 +172,9 @@ class EvidenceSectionNotifier
       },
       (_) {
         state = state.copyWith(isLoading: false, success: true);
-        ref.invalidate(evidenceFolderProvider(_clubSectionId));
+        if (!skipInvalidation) {
+          ref.invalidate(evidenceFolderProvider(_clubSectionId));
+        }
         return true;
       },
     );

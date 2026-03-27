@@ -67,6 +67,7 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
     required String filePath,
     required String fileName,
     required String mimeType,
+    void Function(double)? onProgress,
   }) async {
     if (!await networkInfo.isConnected) {
       return const Left(
@@ -79,6 +80,7 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
         filePath: filePath,
         fileName: fileName,
         mimeType: mimeType,
+        onProgress: onProgress,
       );
       return Right(model.toEntity());
     } on ServerException catch (e) {
