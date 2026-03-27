@@ -87,15 +87,19 @@ class RouteNames {
   static String transferRequestDetail(int requestId) =>
       '/transfer/$requestId';
 
-  // Honors evidence & completion
+  // Honors evidence, completion & requirements
   static const String honorEvidence = '/honor/:honorId/evidence/:userHonorId';
   static const String honorCompletion = '/honor/:honorId/completion/:userHonorId';
+  static const String honorRequirements = '/honor/:honorId/requirements/:userHonorId';
 
   // Helpers
   static String honorEvidencePath(String honorId, String userHonorId) =>
       '/honor/$honorId/evidence/$userHonorId';
   static String honorCompletionPath(String honorId, String userHonorId) =>
       '/honor/$honorId/completion/$userHonorId';
+  static String honorRequirementsPath(
+          String honorId, String userHonorId, String honorName) =>
+      '/honor/$honorId/requirements/$userHonorId?name=${Uri.encodeComponent(honorName)}';
 
   // Carpetas anuales
   static const String annualFolder = '/annual-folder/:enrollmentId';

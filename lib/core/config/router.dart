@@ -20,6 +20,7 @@ import 'package:sacdia_app/features/honors/presentation/views/honor_completion_v
 import 'package:sacdia_app/features/honors/presentation/views/honors_catalog_view.dart';
 import 'package:sacdia_app/features/honors/presentation/views/honor_detail_view.dart';
 import 'package:sacdia_app/features/honors/presentation/views/honor_evidence_view.dart';
+import 'package:sacdia_app/features/honors/presentation/views/honor_requirements_view.dart';
 import 'package:sacdia_app/features/finances/presentation/views/finances_view.dart';
 import 'package:sacdia_app/features/resources/presentation/views/resources_view.dart';
 import 'package:sacdia_app/features/inventory/presentation/views/inventory_view.dart';
@@ -386,6 +387,28 @@ final routerProvider = Provider<GoRouter>((ref) {
             context,
             state,
             HonorCompletionView(honorId: honorId, userHonorId: userHonorId),
+          );
+        },
+      ),
+
+      // Requisitos de honor — checklist de progreso por requisito
+      GoRoute(
+        path: RouteNames.honorRequirements,
+        pageBuilder: (context, state) {
+          final honorId =
+              int.tryParse(state.pathParameters['honorId']!) ?? 0;
+          final userHonorId =
+              int.tryParse(state.pathParameters['userHonorId']!) ?? 0;
+          final honorName =
+              state.uri.queryParameters['name'] ?? 'Requisitos';
+          return _sharedAxisBuild(
+            context,
+            state,
+            HonorRequirementsView(
+              honorId: honorId,
+              userHonorId: userHonorId,
+              honorName: honorName,
+            ),
           );
         },
       ),
