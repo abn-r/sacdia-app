@@ -14,22 +14,46 @@ import '../../domain/entities/user_honor.dart';
 /// - Enviado: yellow border-left, "Enviada — en revision"
 /// - Validado: green border-left, gold star badge
 /// - Rechazado: red border-left, "Rechazada"
+///
+/// When [progressPercentage] is provided and the user is enrolled, a thin
+/// progress bar with an "X/Y" label is rendered at the bottom of the card.
+/// Progress data must be passed from the parent — this widget never triggers
+/// API calls on its own.
 class HonorCard extends StatelessWidget {
   final Honor honor;
   final UserHonor? userHonor;
   final VoidCallback onTap;
+
+  /// Fraction from 0.0 to 1.0. Only rendered when non-null and enrolled.
+  final double? progressPercentage;
+
+  /// Completed requirement count for the "X/Y" label.
+  final int? completedCount;
+
+  /// Total requirement count for the "X/Y" label.
+  final int? totalRequirements;
 
   const HonorCard({
     super.key,
     required this.honor,
     this.userHonor,
     required this.onTap,
+    this.progressPercentage,
+    this.completedCount,
+    this.totalRequirements,
   });
 
   bool get _isEnrolled => userHonor != null;
   bool get _isCompleted => userHonor?.isCompleted ?? false;
   String? get _displayStatus => userHonor?.displayStatus;
   Color? get _statusColor => userHonor?.statusColor;
+
+  /// Whether the progress section should be shown.
+  bool get _showProgress =>
+      _isEnrolled &&
+      progressPercentage != null &&
+      completedCount != null &&
+      totalRequirements != null;
 
   @override
   Widget build(BuildContext context) {
@@ -62,62 +86,115 @@ class HonorCard extends StatelessWidget {
                     ),
 
                   // Card content
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      _isEnrolled ? 15 : 12, // Extra left padding for border
-                      12,
-                      12,
-                      12,
-                    ),
-                    child: Row(
-                      children: [
-                        // Icon area: 44x44
-                        _buildIconArea(),
-                        const SizedBox(width: 12),
-
-                        // Text area
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                honor.name,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.sacBlack,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              if (_isEnrolled && _displayStatus != null) ...[
-                                const SizedBox(height: 3),
-                                Text(
-                                  userHonor!.statusLabel,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: _statusColor,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          _isEnrolled
+                              ? 15
+                              : 12, // Extra left padding for border
+                          12,
+                          12,
+                          12,
                         ),
+                        child: Row(
+                          children: [
+                            // Icon area: 44x44
+                            _buildIconArea(),
+                            const SizedBox(width: 12),
 
-                        const SizedBox(width: 8),
+                            // Text area
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    honor.name,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.sacBlack,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  if (_isEnrolled &&
+                                      _displayStatus != null) ...[
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      userHonor!.statusLabel,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: _statusColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
 
-                        // Trailing: gold star badge (validado) or chevron (available)
-                        _buildTrailing(),
-                      ],
-                    ),
+                            const SizedBox(width: 8),
+
+                            // Trailing: gold star badge (validado) or chevron (available)
+                            _buildTrailing(),
+                          ],
+                        ),
+                      ),
+
+                      // Progress section — only for enrolled honors with data
+                      if (_showProgress) _buildProgressSection(),
+                    ],
                   ),
                 ],
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildProgressSection() {
+    final double clampedValue = progressPercentage!.clamp(0.0, 1.0);
+    final String label = '$completedCount/$totalRequirements';
+    // Left offset matches the enrolled border (3px) so the bar starts at the
+    // same horizontal position as the card content.
+    const double leftPad = 15.0;
+
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: leftPad,
+        right: 12,
+        bottom: 8,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(2),
+              child: LinearProgressIndicator(
+                value: clampedValue,
+                minHeight: 3,
+                backgroundColor: const Color(0xFFE2E8F0),
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  AppColors.secondary,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: AppColors.secondaryDark,
+            ),
+          ),
+        ],
       ),
     );
   }
