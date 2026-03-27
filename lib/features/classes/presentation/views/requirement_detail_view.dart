@@ -237,26 +237,15 @@ class _RequirementDetailViewState
 
   /// Construye un nombre de archivo descriptivo para el backend/storage.
   ///
-  /// Formato: `evidencia_{n}_{modulo}_{seccion}_{iniciales}.{ext}`
-  /// Ejemplo: `evidencia_1_prerrequisitos_ser_un_miembro_bautizado_AM.jpg`
-  String _buildFileName(ClassRequirement requirement, String originalName) {
+  /// Genera nombre con índice explícito (para batch uploads).
+  String _buildFileNameWithIndex(ClassRequirement requirement, String originalName, int index) {
     final ext = originalName.contains('.')
         ? originalName.split('.').last.toLowerCase()
         : 'bin';
-
-    // Numero de evidencia (archivos existentes + 1)
-    final evidenceNum = requirement.files.length + 1;
-
-    // Nombre del modulo desde el provider de progreso
     final moduleName = _resolveModuleName(requirement.moduleId);
-
-    // Nombre de la seccion/requerimiento
     final sectionName = _sanitize(requirement.name, 30);
-
-    // Iniciales del usuario
     final initials = _resolveUserInitials();
-
-    return 'evidencia_${evidenceNum}_${_sanitize(moduleName, 20)}_${sectionName}_$initials.$ext';
+    return 'evidencia_${index}_${_sanitize(moduleName, 20)}_${sectionName}_$initials.$ext';
   }
 
   /// Saneado de texto para nombres de archivo.
@@ -302,33 +291,64 @@ class _RequirementDetailViewState
     if (source == null) return;
 
     try {
-      final XFile? picked = await _picker.pickImage(
-        source: source,
-        imageQuality: 85,
-        maxWidth: 2048,
-        maxHeight: 2048,
-      );
-      if (picked == null || !mounted) return;
+      // Camera: single image. Gallery: multi-select.
+      final List<XFile> pickedFiles;
+      if (source == ImageSource.camera) {
+        final single = await _picker.pickImage(
+          source: ImageSource.camera,
+          imageQuality: 85,
+          maxWidth: 2048,
+          maxHeight: 2048,
+        );
+        pickedFiles = single != null ? [single] : [];
+      } else {
+        pickedFiles = await _picker.pickMultiImage(
+          imageQuality: 85,
+          maxWidth: 2048,
+          maxHeight: 2048,
+        );
+      }
+
+      if (pickedFiles.isEmpty || !mounted) return;
+
+      // Respect remaining slots
+      final slots = requirement.remainingSlots;
+      final toUpload = pickedFiles.length > slots
+          ? pickedFiles.sublist(0, slots)
+          : pickedFiles;
+
+      if (toUpload.length < pickedFiles.length && mounted) {
+        _showErrorSnackbar(
+          context,
+          'Solo se subiran ${toUpload.length} de ${pickedFiles.length} imagenes (limite alcanzado).',
+        );
+      }
 
       setState(() => _isUploading = true);
 
-      final mimeType = picked.name.toLowerCase().endsWith('.png')
-          ? 'image/png'
-          : 'image/jpeg';
-      final ext = mimeType == 'image/png' ? 'png' : 'jpg';
-      final namedFile = XFile(
-        picked.path,
-        name: _buildFileName(requirement, 'imagen.$ext'),
-        mimeType: mimeType,
-      );
+      var uploadedCount = requirement.files.length;
+      for (final picked in toUpload) {
+        if (!mounted) break;
+        uploadedCount++;
 
-      await ref
-          .read(requirementNotifierProvider(widget.classId).notifier)
-          .uploadFile(
-            requirementId: requirement.id,
-            pickedFile: namedFile,
-            mimeType: mimeType,
-          );
+        final mimeType = picked.name.toLowerCase().endsWith('.png')
+            ? 'image/png'
+            : 'image/jpeg';
+        final ext = mimeType == 'image/png' ? 'png' : 'jpg';
+        final namedFile = XFile(
+          picked.path,
+          name: _buildFileNameWithIndex(requirement, 'imagen.$ext', uploadedCount),
+          mimeType: mimeType,
+        );
+
+        await ref
+            .read(requirementNotifierProvider(widget.classId).notifier)
+            .uploadFile(
+              requirementId: requirement.id,
+              pickedFile: namedFile,
+              mimeType: mimeType,
+            );
+      }
     } catch (e) {
       AppLogger.e('Error al seleccionar imagen', error: e);
       if (mounted) {
@@ -351,27 +371,45 @@ class _RequirementDetailViewState
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
+        allowMultiple: true,
       );
       if (result == null || result.files.isEmpty || !mounted) return;
 
-      final platformFile = result.files.first;
-      if (platformFile.path == null) return;
+      // Respect remaining slots
+      final slots = requirement.remainingSlots;
+      final filesToUpload = result.files.length > slots
+          ? result.files.sublist(0, slots)
+          : result.files;
 
-      final picked = XFile(
-        platformFile.path!,
-        name: _buildFileName(requirement, 'documento.pdf'),
-        mimeType: 'application/pdf',
-      );
+      if (filesToUpload.length < result.files.length && mounted) {
+        _showErrorSnackbar(
+          context,
+          'Solo se subiran ${filesToUpload.length} de ${result.files.length} PDFs (limite alcanzado).',
+        );
+      }
 
       setState(() => _isUploading = true);
 
-      await ref
-          .read(requirementNotifierProvider(widget.classId).notifier)
-          .uploadFile(
-            requirementId: requirement.id,
-            pickedFile: picked,
-            mimeType: 'application/pdf',
-          );
+      var uploadedCount = requirement.files.length;
+      for (final platformFile in filesToUpload) {
+        if (!mounted) break;
+        if (platformFile.path == null) continue;
+        uploadedCount++;
+
+        final picked = XFile(
+          platformFile.path!,
+          name: _buildFileNameWithIndex(requirement, 'documento.pdf', uploadedCount),
+          mimeType: 'application/pdf',
+        );
+
+        await ref
+            .read(requirementNotifierProvider(widget.classId).notifier)
+            .uploadFile(
+              requirementId: requirement.id,
+              pickedFile: picked,
+              mimeType: 'application/pdf',
+            );
+      }
     } catch (e) {
       AppLogger.e('Error al seleccionar PDF', error: e);
       if (mounted) {
