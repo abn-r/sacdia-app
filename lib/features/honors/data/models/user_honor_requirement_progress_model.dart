@@ -1,0 +1,75 @@
+import 'package:equatable/equatable.dart';
+import '../../domain/entities/user_honor_requirement_progress.dart';
+
+/// Modelo de progreso de requisito de especialidad por usuario para la capa de datos
+class UserHonorRequirementProgressModel extends Equatable {
+  final int requirementId;
+  final int requirementNumber;
+  final String text;
+  final bool completed;
+  final String? notes;
+  final DateTime? completedAt;
+
+  const UserHonorRequirementProgressModel({
+    required this.requirementId,
+    required this.requirementNumber,
+    required this.text,
+    this.completed = false,
+    this.notes,
+    this.completedAt,
+  });
+
+  /// Crea una instancia desde JSON
+  factory UserHonorRequirementProgressModel.fromJson(
+      Map<String, dynamic> json) {
+    // Parse nullable completed_at ISO datetime string
+    DateTime? completedAt;
+    final rawCompletedAt = json['completed_at'] as String?;
+    if (rawCompletedAt != null) {
+      completedAt = DateTime.tryParse(rawCompletedAt);
+    }
+
+    return UserHonorRequirementProgressModel(
+      requirementId: json['requirement_id'] as int,
+      requirementNumber: json['requirement_number'] as int,
+      text: (json['requirement_text'] ?? json['text']) as String,
+      completed: (json['completed'] as bool?) ?? false,
+      notes: json['notes'] as String?,
+      completedAt: completedAt,
+    );
+  }
+
+  /// Convierte la instancia a JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'requirement_id': requirementId,
+      'requirement_number': requirementNumber,
+      'requirement_text': text,
+      'completed': completed,
+      'notes': notes,
+      'completed_at': completedAt?.toIso8601String(),
+    };
+  }
+
+  /// Convierte el modelo a entidad de dominio
+  UserHonorRequirementProgress toEntity() {
+    return UserHonorRequirementProgress(
+      requirementId: requirementId,
+      requirementNumber: requirementNumber,
+      text: text,
+      completed: completed,
+      notes: notes,
+      completedAt: completedAt,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        requirementId,
+        requirementNumber,
+        text,
+        completed,
+        notes,
+        completedAt,
+      ];
+}
