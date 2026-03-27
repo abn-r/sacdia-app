@@ -15,11 +15,18 @@ import '../../data/models/create_activity_request.dart';
 import '../providers/activities_providers.dart';
 import '../widgets/activity_form_widgets.dart';
 import 'location_picker_view.dart';
+import '../../../members/presentation/providers/members_providers.dart';
 
 /// Vista para crear una nueva actividad en el club.
 ///
 /// Expone todos los campos requeridos y opcionales del endpoint
 /// POST /api/v1/clubs/:clubId/activities.
+///
+/// El picker de "Tipo de club" fue eliminado — el backend deriva `club_type_id`
+/// desde la sección del usuario autenticado.
+///
+/// Solo los directores pueden crear actividades conjuntas (is_joint). Cuando
+/// el toggle está activo, se muestra un picker de secciones usando FilterChip.
 class CreateActivityView extends ConsumerStatefulWidget {
   /// ID del club al que pertenece la actividad.
   final int clubId;
@@ -58,8 +65,6 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
   DateTime? _activityEndDate;
 
   // Valores de picker / selector
-  int? _selectedClubTypeId;
-  String? _selectedClubTypeName;
   int _selectedPlatform = 0; // 0 = Presencial, 1 = Virtual
   int _selectedActivityType = 1; // 1 = Regular, 2 = Especial, 3 = Camporee
   String? _selectedActivityTypeName;
@@ -67,6 +72,10 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
   // Image state: file picked locally (upload happens after activity creation)
   XFile? _pickedImageFile;
   bool _isUploadingImage = false;
+
+  // Joint activity state
+  bool _isJoint = false;
+  Set<int> _selectedSectionIds = {};
 
   @override
   void dispose() {
@@ -180,11 +189,6 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
     // Validar formulario
     if (!_formKey.currentState!.validate()) return;
 
-    if (_selectedClubTypeId == null) {
-      _showError('Selecciona el tipo de club');
-      return;
-    }
-
     if (_selectedLocation == null) {
       _showError('Selecciona el lugar de la actividad en el mapa');
       return;
@@ -196,12 +200,19 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
       return;
     }
 
+    // Validar secciones para actividades conjuntas
+    if (_isJoint && _selectedSectionIds.length < 2) {
+      _showError('Selecciona al menos 2 secciones para una actividad conjunta');
+      return;
+    }
+
+    final clubSectionIds = _isJoint ? _selectedSectionIds.toList() : null;
+
     final request = CreateActivityRequest(
       name: _nameController.text.trim(),
       description: _descriptionController.text.trim().isEmpty
           ? null
           : _descriptionController.text.trim(),
-      clubTypeId: _selectedClubTypeId!,
       lat: _selectedLocation!.lat,
       long: _selectedLocation!.long,
       activityTime: _timeController.text.trim().isEmpty
@@ -217,6 +228,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
       clubSectionId: widget.clubSectionId,
       activityDate: _activityDate,
       activityEndDate: _activityEndDate,
+      clubSectionIds: clubSectionIds,
     );
 
     final notifier = ref.read(createActivityNotifierProvider.notifier);
@@ -302,6 +314,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
   Widget build(BuildContext context) {
     final createState = ref.watch(createActivityNotifierProvider);
     final activityTypesAsync = ref.watch(activityTypesProvider);
+    final clubCtxAsync = ref.watch(clubContextProvider);
     final c = context.sac;
     final isLoading = createState.isLoading || _isUploadingImage;
     final activityTypeItems = activityTypesAsync.maybeWhen(
@@ -310,6 +323,9 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
           .toList(),
       orElse: () => const <PickerItem>[],
     );
+
+    // Only directors can create joint activities
+    final isDirector = clubCtxAsync.valueOrNull?.isDirector ?? false;
 
     // Mostrar error del notifier si hay uno nuevo
     ref.listen<CreateActivityState>(
@@ -420,38 +436,6 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
             ),
             const SizedBox(height: 16),
 
-            // Tipo de club *
-            ActivityPickerField(
-              label: 'Tipo de club *',
-              hint: 'Seleccionar tipo de club',
-              icon: Icons.group_rounded,
-              selectedName: _selectedClubTypeName,
-              enabled: !isLoading,
-              onTap: () async {
-                const clubItems = [
-                  PickerItem(id: 1, name: 'Aventureros'),
-                  PickerItem(id: 2, name: 'Conquistadores'),
-                  PickerItem(id: 3, name: 'Guias Mayores'),
-                ];
-                final selected = await showPickerSheet(
-                  context: context,
-                  title: 'Tipo de club',
-                  items: clubItems,
-                  selectedId: _selectedClubTypeId,
-                  icon: Icons.group_rounded,
-                );
-                if (selected != null && mounted) {
-                  setState(() {
-                    _selectedClubTypeId = selected;
-                    _selectedClubTypeName = clubItems
-                        .firstWhere((i) => i.id == selected)
-                        .name;
-                  });
-                }
-              },
-            ),
-            const SizedBox(height: 16),
-
             // Tipo de actividad
             ActivityPickerField(
               label: 'Tipo de actividad',
@@ -484,6 +468,53 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
               },
             ),
             const SizedBox(height: 24),
+
+            // ── Sección: Actividad conjunta (solo directores) ─────────
+            if (isDirector) ...[
+              ActivitySectionHeader(
+                icon: HugeIcons.strokeRoundedUserGroup,
+                label: 'Actividad conjunta',
+              ),
+              const SizedBox(height: 8),
+              _JointActivityToggle(
+                value: _isJoint,
+                enabled: !isLoading,
+                onChanged: (val) {
+                  setState(() {
+                    _isJoint = val;
+                    if (!val) {
+                      // Reset selection when disabling joint mode
+                      _selectedSectionIds = {};
+                    } else {
+                      // Pre-select own section
+                      _selectedSectionIds = {widget.clubSectionId};
+                    }
+                  });
+                },
+              ),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeInOut,
+                child: _isJoint
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 12),
+                          _SectionMultiPicker(
+                            clubId: widget.clubId,
+                            ownSectionId: widget.clubSectionId,
+                            selectedIds: _selectedSectionIds,
+                            enabled: !isLoading,
+                            onChanged: (ids) =>
+                                setState(() => _selectedSectionIds = ids),
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                      )
+                    : const SizedBox.shrink(),
+              ),
+              const SizedBox(height: 16),
+            ],
 
             // ── Sección: Lugar y tiempo ───────────────────────────────
             ActivitySectionHeader(
@@ -623,6 +654,213 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Toggle de actividad conjunta
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _JointActivityToggle extends StatelessWidget {
+  final bool value;
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+
+  const _JointActivityToggle({
+    required this.value,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Container(
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: value
+              ? AppColors.primary.withValues(alpha: 0.4)
+              : c.border,
+          width: value ? 1.5 : 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: c.shadow,
+            offset: const Offset(0, 3),
+            blurRadius: 12,
+          ),
+        ],
+      ),
+      child: SwitchListTile(
+        value: value,
+        onChanged: enabled ? onChanged : null,
+        activeColor: AppColors.primary,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        title: Text(
+          'Actividad conjunta',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: c.text,
+          ),
+        ),
+        subtitle: Text(
+          'Incluye otras secciones del club',
+          style: TextStyle(
+            fontSize: 12,
+            color: c.textSecondary,
+          ),
+        ),
+        secondary: Container(
+          padding: const EdgeInsets.all(7),
+          decoration: BoxDecoration(
+            color: value ? AppColors.primaryLight : c.surfaceVariant,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: HugeIcon(
+            icon: HugeIcons.strokeRoundedUserGroup,
+            size: 18,
+            color: value ? AppColors.primary : c.textTertiary,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Picker de secciones para actividades conjuntas
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _SectionMultiPicker extends ConsumerWidget {
+  final int clubId;
+  final int ownSectionId;
+  final Set<int> selectedIds;
+  final bool enabled;
+  final ValueChanged<Set<int>> onChanged;
+
+  const _SectionMultiPicker({
+    required this.clubId,
+    required this.ownSectionId,
+    required this.selectedIds,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sectionsAsync = ref.watch(clubSectionsForActivityProvider);
+    final c = context.sac;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Secciones participantes',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Selecciona al menos 2 secciones. Tu sección siempre participa.',
+          style: TextStyle(
+            fontSize: 12,
+            color: c.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 10),
+        sectionsAsync.when(
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+          error: (_, __) => Text(
+            'No se pudieron cargar las secciones',
+            style: TextStyle(
+              fontSize: 12,
+              color: c.textSecondary,
+            ),
+          ),
+          data: (sections) {
+            if (sections.isEmpty) {
+              return Text(
+                'No hay secciones disponibles',
+                style: TextStyle(fontSize: 12, color: c.textSecondary),
+              );
+            }
+            return Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: sections.map((section) {
+                final isOwn = section.clubSectionId == ownSectionId;
+                final isSelected =
+                    selectedIds.contains(section.clubSectionId) || isOwn;
+                final label =
+                    section.clubTypeName ?? 'Sección ${section.clubSectionId}';
+
+                return FilterChip(
+                  label: Text(label),
+                  selected: isSelected,
+                  onSelected: enabled && !isOwn
+                      ? (selected) {
+                          final updated = Set<int>.from(selectedIds);
+                          // Own section is always included
+                          updated.add(ownSectionId);
+                          if (selected) {
+                            updated.add(section.clubSectionId);
+                          } else {
+                            updated.remove(section.clubSectionId);
+                          }
+                          onChanged(updated);
+                        }
+                      : null,
+                  selectedColor: AppColors.primaryLight,
+                  checkmarkColor: AppColors.primary,
+                  labelStyle: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: isSelected
+                        ? AppColors.primaryDark
+                        : c.textSecondary,
+                  ),
+                  backgroundColor: c.surface,
+                  side: BorderSide(
+                    color: isSelected
+                        ? AppColors.primary.withValues(alpha: 0.5)
+                        : c.border,
+                  ),
+                  avatar: isOwn
+                      ? Icon(
+                          Icons.star_rounded,
+                          size: 14,
+                          color: AppColors.primary,
+                        )
+                      : null,
+                );
+              }).toList(),
+            );
+          },
+        ),
+        if (selectedIds.length < 2) ...[
+          const SizedBox(height: 6),
+          Text(
+            'Selecciona al menos 1 sección adicional',
+            style: TextStyle(
+              fontSize: 11,
+              color: AppColors.error,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/activity.dart';
+import '../../domain/entities/activity_instance.dart';
 
 /// Modelo de actividad para la capa de datos
 class ActivityModel extends Equatable {
@@ -29,6 +30,12 @@ class ActivityModel extends Equatable {
   final String? creatorName;
   final String? creatorImage;
 
+  /// Whether this is a joint activity (spans multiple club sections).
+  final bool isJoint;
+
+  /// Participating section instances for joint activities.
+  final List<ActivityInstance>? instances;
+
   const ActivityModel({
     required this.id,
     required this.name,
@@ -53,6 +60,8 @@ class ActivityModel extends Equatable {
     this.additionalData,
     this.creatorName,
     this.creatorImage,
+    this.isJoint = false,
+    this.instances,
   });
 
   /// Crea una instancia desde JSON
@@ -89,6 +98,24 @@ class ActivityModel extends Equatable {
           .toList();
     }
 
+    // Parse activity_instances for joint activities
+    List<ActivityInstance>? instances;
+    final rawInstances = json['activity_instances'];
+    if (rawInstances is List && rawInstances.isNotEmpty) {
+      instances = rawInstances
+          .whereType<Map<String, dynamic>>()
+          .map((inst) {
+            final clubTypesNested =
+                inst['club_types'] as Map<String, dynamic>?;
+            return ActivityInstance(
+              clubSectionId: (inst['club_section_id'] as int?) ?? 0,
+              clubTypeId: (inst['club_type_id'] as int?) ?? 0,
+              clubTypeName: clubTypesNested?['name'] as String?,
+            );
+          })
+          .toList();
+    }
+
     return ActivityModel(
       id: json['activity_id'] as int,
       name: json['name'] as String,
@@ -119,6 +146,8 @@ class ActivityModel extends Equatable {
       additionalData: json['additional_data'] as String?,
       creatorName: creatorName,
       creatorImage: usersNested?['user_image'] as String?,
+      isJoint: (json['is_joint'] as bool?) ?? false,
+      instances: instances,
     );
   }
 
@@ -146,6 +175,7 @@ class ActivityModel extends Equatable {
       'attendees': attendees,
       'classes': classes,
       'additional_data': additionalData,
+      'is_joint': isJoint,
     };
   }
 
@@ -175,6 +205,8 @@ class ActivityModel extends Equatable {
       additionalData: additionalData,
       creatorName: creatorName,
       creatorImage: creatorImage,
+      isJoint: isJoint,
+      instances: instances,
     );
   }
 
@@ -203,5 +235,7 @@ class ActivityModel extends Equatable {
         additionalData,
         creatorName,
         creatorImage,
+        isJoint,
+        instances,
       ];
 }

@@ -7,6 +7,10 @@ class AuthorizationGrant extends Equatable {
   final int? clubId;
   final int? sectionId;
 
+  /// Human-readable club type name for the section (e.g. 'Conquistadores').
+  /// Populated from `club_type_name` in the backend grant response.
+  final String? clubTypeName;
+
   /// Membership status: 'pending', 'active', 'rejected', 'expired'.
   final String? status;
 
@@ -22,6 +26,7 @@ class AuthorizationGrant extends Equatable {
     this.permissions = const [],
     this.clubId,
     this.sectionId,
+    this.clubTypeName,
     this.status,
     this.expiresAt,
     this.rejectionReason,
@@ -46,6 +51,7 @@ class AuthorizationGrant extends Equatable {
         permissions,
         clubId,
         sectionId,
+        clubTypeName,
         status,
         expiresAt,
         rejectionReason,

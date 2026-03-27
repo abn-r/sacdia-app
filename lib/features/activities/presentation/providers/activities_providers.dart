@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../members/presentation/providers/members_providers.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../data/datasources/activities_remote_data_source.dart';
+import '../../data/models/club_section_model.dart';
 import '../../data/models/create_activity_request.dart';
 import '../../data/repositories/activities_repository_impl.dart';
 import '../../domain/entities/activity.dart';
@@ -353,3 +355,20 @@ final updateActivityNotifierProvider =
     NotifierProvider.autoDispose<UpdateActivityNotifier, UpdateActivityState>(
   UpdateActivityNotifier.new,
 );
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CLUB SECTIONS — para el picker de actividades conjuntas
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Carga las secciones del club activo para alimentar el picker de actividades
+/// conjuntas. Solo usado cuando el usuario es director.
+///
+/// Retorna la lista de secciones (incluye la sección propia del director).
+final clubSectionsForActivityProvider =
+    FutureProvider.autoDispose<List<ClubSectionModel>>((ref) async {
+  final ctx = await ref.watch(clubContextProvider.future);
+  if (ctx == null) return const [];
+
+  final dataSource = ref.read(activitiesRemoteDataSourceProvider);
+  return dataSource.getClubSections(ctx.clubId);
+});

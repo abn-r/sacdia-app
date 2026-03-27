@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'activity_instance.dart';
 
 /// Entidad de actividad del club del dominio
 class Activity extends Equatable {
@@ -28,6 +29,12 @@ class Activity extends Equatable {
   final String? creatorName;
   final String? creatorImage;
 
+  /// Whether this activity spans multiple club sections (actividad conjunta).
+  final bool isJoint;
+
+  /// Participating section instances (populated when [isJoint] is true).
+  final List<ActivityInstance>? instances;
+
   const Activity({
     required this.id,
     required this.name,
@@ -52,6 +59,8 @@ class Activity extends Equatable {
     this.additionalData,
     this.creatorName,
     this.creatorImage,
+    this.isJoint = false,
+    this.instances,
   });
 
   /// Returns true if the activity is in the past (based on activityDate or createdAt).
@@ -93,5 +102,7 @@ class Activity extends Equatable {
         additionalData,
         creatorName,
         creatorImage,
+        isJoint,
+        instances,
       ];
 }

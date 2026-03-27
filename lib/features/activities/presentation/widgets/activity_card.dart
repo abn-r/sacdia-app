@@ -65,16 +65,27 @@ class ActivityCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top row: type badge + arrow button
+          // Top row: type badge + optional joint badge + arrow button
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              SacBadge(
-                label: _getTypeText(
-                  activity.activityType,
-                  activity.activityTypeName,
-                ),
-                variant: _getTypeBadgeVariant(activity.activityType),
+              Wrap(
+                spacing: 6,
+                children: [
+                  SacBadge(
+                    label: _getTypeText(
+                      activity.activityType,
+                      activity.activityTypeName,
+                    ),
+                    variant: _getTypeBadgeVariant(activity.activityType),
+                  ),
+                  if (activity.isJoint)
+                    const SacBadge(
+                      label: 'Conjunta',
+                      icon: Icons.people_rounded,
+                      variant: SacBadgeVariant.neutral,
+                    ),
+                ],
               ),
               Container(
                 width: 32,
@@ -158,12 +169,15 @@ class _MetaItem extends StatelessWidget {
       children: [
         HugeIcon(icon: icon, size: 13, color: c.textTertiary),
         const SizedBox(width: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: c.textSecondary,
-            fontWeight: FontWeight.w500,
+        Flexible(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: c.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

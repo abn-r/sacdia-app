@@ -5,7 +5,12 @@
 class CreateActivityRequest {
   final String name;
   final String? description;
-  final int clubTypeId;
+
+  // club_type_id is omitted from required fields — the backend derives it
+  // from the authenticated user's club section. Only provided as a fallback
+  // when the caller has no RBAC grant (should not happen in normal flows).
+  final int? clubTypeId;
+
   final double lat;
   final double long;
   final String activityTime;
@@ -20,10 +25,16 @@ class CreateActivityRequest {
   final DateTime? activityDate;
   final DateTime? activityEndDate;
 
+  /// IDs de las secciones participantes en una actividad conjunta.
+  /// Cuando está presente con 2+ elementos el backend crea la actividad como
+  /// conjunta (is_joint = true) y genera [activity_instances] para cada sección.
+  /// La sección del creador debe estar incluida en esta lista.
+  final List<int>? clubSectionIds;
+
   const CreateActivityRequest({
     required this.name,
     this.description,
-    required this.clubTypeId,
+    this.clubTypeId,
     required this.lat,
     required this.long,
     this.activityTime = '09:00',
@@ -37,13 +48,13 @@ class CreateActivityRequest {
     required this.clubSectionId,
     this.activityDate,
     this.activityEndDate,
+    this.clubSectionIds,
   });
 
   /// Convierte la solicitud a JSON para enviar al backend
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{
       'name': name,
-      'club_type_id': clubTypeId,
       'lat': lat,
       'long': long,
       'activity_time': activityTime,
@@ -52,6 +63,10 @@ class CreateActivityRequest {
       'activity_type_id': activityTypeId,
       'club_section_id': clubSectionId,
     };
+
+    // Only include club_type_id when explicitly provided (legacy / fallback).
+    // The backend derives it from the user's section in normal RBAC flows.
+    if (clubTypeId != null) json['club_type_id'] = clubTypeId;
 
     if (image != null && image!.isNotEmpty) json['image'] = image;
     if (description != null) json['description'] = description;
@@ -63,6 +78,10 @@ class CreateActivityRequest {
     }
     if (activityEndDate != null) {
       json['activity_end_date'] = activityEndDate!.toIso8601String();
+    }
+    // Joint activity: send participating section IDs
+    if (clubSectionIds != null && clubSectionIds!.length >= 2) {
+      json['club_section_ids'] = clubSectionIds;
     }
 
     return json;

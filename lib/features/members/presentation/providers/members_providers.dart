@@ -50,15 +50,29 @@ final assignClubRoleUseCaseProvider = Provider<AssignClubRole>((ref) {
 
 // ── Context providers — club/section values ──────────────────────────────────
 
-/// Estado del contexto del club activo (clubId, sectionId)
+/// Estado del contexto del club activo (clubId, sectionId, roleName, clubTypeName)
 class ClubContext {
   final int clubId;
   final int sectionId;
 
+  /// Role name of the active assignment (e.g. 'director', 'counselor').
+  /// Null when not available from the authorization grant.
+  final String? roleName;
+
+  /// Human-readable club type name (e.g. 'Conquistadores', 'Aventureros').
+  /// Populated from the active authorization grant's club_type_name field.
+  final String? clubTypeName;
+
   const ClubContext({
     required this.clubId,
     required this.sectionId,
+    this.roleName,
+    this.clubTypeName,
   });
+
+  /// Whether the active user is a director in this club context.
+  bool get isDirector =>
+      roleName?.trim().toLowerCase() == 'director';
 }
 
 /// Provider del contexto del club activo.
@@ -75,6 +89,8 @@ final clubContextProvider = FutureProvider<ClubContext?>((ref) async {
     return ClubContext(
       clubId: activeGrant.clubId!,
       sectionId: activeGrant.sectionId!,
+      roleName: activeGrant.roleName,
+      clubTypeName: activeGrant.clubTypeName,
     );
   }
 

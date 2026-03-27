@@ -6,6 +6,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/activity_model.dart';
 import '../models/attendance_model.dart';
+import '../models/club_section_model.dart';
 import '../models/create_activity_request.dart';
 
 /// Interfaz para la fuente de datos remota de actividades
@@ -22,12 +23,19 @@ abstract class ActivitiesRemoteDataSource {
   });
   Future<ActivityModel> updateActivity({
     required int activityId,
-    String? title,
+    String? name,
     String? description,
-    DateTime? startDate,
-    DateTime? endDate,
-    String? location,
+    double? lat,
+    double? long,
+    String? activityTime,
+    String? activityDate,
+    String? activityEndDate,
+    String? activityPlace,
+    int? platform,
+    int? activityTypeId,
+    String? linkMeet,
     bool? active,
+    Set<String> clearFields = const {},
   });
   Future<void> deleteActivity(int activityId);
   Future<List<AttendanceModel>> getActivityAttendance(int activityId);
@@ -35,6 +43,10 @@ abstract class ActivitiesRemoteDataSource {
 
   /// Sube una imagen para la actividad y devuelve la URL firmada resultante.
   Future<String> uploadActivityImage(int activityId, File imageFile);
+
+  /// Obtiene las secciones de un club (para el picker de actividades conjuntas).
+  /// Llama a GET /api/v1/clubs/:clubId/sections
+  Future<List<ClubSectionModel>> getClubSections(int clubId);
 }
 
 /// Implementación de la fuente de datos remota de actividades
@@ -193,24 +205,42 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   @override
   Future<ActivityModel> updateActivity({
     required int activityId,
-    String? title,
+    String? name,
     String? description,
-    DateTime? startDate,
-    DateTime? endDate,
-    String? location,
+    double? lat,
+    double? long,
+    String? activityTime,
+    String? activityDate,
+    String? activityEndDate,
+    String? activityPlace,
+    int? platform,
+    int? activityTypeId,
+    String? linkMeet,
     bool? active,
+    Set<String> clearFields = const {},
   }) async {
     try {
       AppLogger.i('Actualizando actividad: $activityId', tag: _tag);
       final token = await _getAuthToken();
 
       final data = <String, dynamic>{};
-      if (title != null) data['title'] = title;
+      if (name != null) data['name'] = name;
       if (description != null) data['description'] = description;
-      if (startDate != null) data['start_date'] = startDate.toUtc().toIso8601String();
-      if (endDate != null) data['end_date'] = endDate.toUtc().toIso8601String();
-      if (location != null) data['location'] = location;
+      if (lat != null) data['lat'] = lat;
+      if (long != null) data['long'] = long;
+      if (activityTime != null) data['activity_time'] = activityTime;
+      if (activityDate != null) data['activity_date'] = activityDate;
+      if (activityEndDate != null) data['activity_end_date'] = activityEndDate;
+      if (activityPlace != null) data['activity_place'] = activityPlace;
+      if (platform != null) data['platform'] = platform;
+      if (activityTypeId != null) data['activity_type_id'] = activityTypeId;
+      if (linkMeet != null) data['link_meet'] = linkMeet;
       if (active != null) data['active'] = active;
+
+      // Campos explícitamente nulos (el backend usa undefined-check, necesitamos la clave presente)
+      for (final field in clearFields) {
+        data[field] = null;
+      }
 
       final response = await _dio.patch(
         '$_baseUrl/activities/$activityId',
@@ -336,6 +366,40 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
             : (e.message ?? 'Error de conexión');
         throw ServerException(
           message: message.toString(),
+          code: e.response?.statusCode,
+        );
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<List<ClubSectionModel>> getClubSections(int clubId) async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.get(
+        '$_baseUrl/clubs/$clubId/sections',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final List<dynamic> data = response.data as List<dynamic>;
+        return data
+            .map((json) =>
+                ClubSectionModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+
+      throw ServerException(
+        message: 'Error al obtener secciones del club',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getClubSections', tag: _tag, error: e);
+      if (e is DioException) {
+        throw ServerException(
+          message: e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
           code: e.response?.statusCode,
         );
       }
