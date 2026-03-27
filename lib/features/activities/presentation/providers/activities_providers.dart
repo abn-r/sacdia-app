@@ -308,6 +308,7 @@ class UpdateActivityNotifier
     String? linkMeet,
     bool? active,
     Set<String> clearFields = const {},
+    List<int>? clubSectionIds,
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
@@ -327,6 +328,7 @@ class UpdateActivityNotifier
       linkMeet: linkMeet,
       active: active,
       clearFields: clearFields,
+      clubSectionIds: clubSectionIds,
     );
 
     return result.fold(

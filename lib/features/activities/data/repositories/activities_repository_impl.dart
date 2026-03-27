@@ -111,12 +111,20 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
   @override
   Future<Either<Failure, Activity>> updateActivity({
     required int activityId,
-    String? title,
+    String? name,
     String? description,
-    DateTime? startDate,
-    DateTime? endDate,
-    String? location,
+    double? lat,
+    double? long,
+    String? activityTime,
+    String? activityDate,
+    String? activityEndDate,
+    String? activityPlace,
+    int? platform,
+    int? activityTypeId,
+    String? linkMeet,
     bool? active,
+    Set<String> clearFields = const {},
+    List<int>? clubSectionIds,
   }) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure(message: 'No hay conexión a internet'));
@@ -125,12 +133,20 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
     try {
       final activityModel = await remoteDataSource.updateActivity(
         activityId: activityId,
-        title: title,
+        name: name,
         description: description,
-        startDate: startDate,
-        endDate: endDate,
-        location: location,
+        lat: lat,
+        long: long,
+        activityTime: activityTime,
+        activityDate: activityDate,
+        activityEndDate: activityEndDate,
+        activityPlace: activityPlace,
+        platform: platform,
+        activityTypeId: activityTypeId,
+        linkMeet: linkMeet,
         active: active,
+        clearFields: clearFields,
+        clubSectionIds: clubSectionIds,
       );
       return Right(activityModel.toEntity());
     } on ServerException catch (e) {

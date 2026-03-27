@@ -36,6 +36,11 @@ abstract class ActivitiesRemoteDataSource {
     String? linkMeet,
     bool? active,
     Set<String> clearFields = const {},
+    // TODO(backend): UpdateActivityDto does not yet support club_section_ids.
+    // Once the backend PATCH /activities/:id endpoint accepts this field,
+    // remove this comment and wire it through. The value is sent optimistically
+    // and will be stripped by NestJS whitelist validation until then.
+    List<int>? clubSectionIds,
   });
   Future<void> deleteActivity(int activityId);
   Future<List<AttendanceModel>> getActivityAttendance(int activityId);
@@ -218,6 +223,7 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
     String? linkMeet,
     bool? active,
     Set<String> clearFields = const {},
+    List<int>? clubSectionIds,
   }) async {
     try {
       AppLogger.i('Actualizando actividad: $activityId', tag: _tag);
@@ -240,6 +246,12 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
       // Campos explícitamente nulos (el backend usa undefined-check, necesitamos la clave presente)
       for (final field in clearFields) {
         data[field] = null;
+      }
+
+      // Joint activity sections — sent when provided (2+ IDs).
+      // TODO(backend): stripped by NestJS whitelist until UpdateActivityDto adds club_section_ids.
+      if (clubSectionIds != null && clubSectionIds.length >= 2) {
+        data['club_section_ids'] = clubSectionIds;
       }
 
       final response = await _dio.patch(

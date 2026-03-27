@@ -28,12 +28,20 @@ abstract class ActivitiesRepository {
   /// Actualiza una actividad existente
   Future<Either<Failure, Activity>> updateActivity({
     required int activityId,
-    String? title,
+    String? name,
     String? description,
-    DateTime? startDate,
-    DateTime? endDate,
-    String? location,
+    double? lat,
+    double? long,
+    String? activityTime,
+    String? activityDate,
+    String? activityEndDate,
+    String? activityPlace,
+    int? platform,
+    int? activityTypeId,
+    String? linkMeet,
     bool? active,
+    Set<String> clearFields = const {},
+    List<int>? clubSectionIds,
   });
 
   /// Elimina (desactiva) una actividad
