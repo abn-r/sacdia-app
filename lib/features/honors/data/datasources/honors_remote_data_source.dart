@@ -27,12 +27,12 @@ abstract class HonorsRemoteDataSource {
 
   /// Obtiene el progreso del usuario por requisito para una especialidad inscripta
   Future<Map<String, dynamic>> getUserHonorProgress(
-      String userId, int userHonorId);
+      String userId, int honorId);
 
   /// Actualiza el progreso de múltiples requisitos en una sola operación
   Future<Map<String, dynamic>> bulkUpdateRequirementProgress(
       String userId,
-      int userHonorId,
+      int honorId,
       List<Map<String, dynamic>> updates);
 }
 
@@ -367,16 +367,17 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
 
   @override
   Future<Map<String, dynamic>> getUserHonorProgress(
-      String userId, int userHonorId) async {
+      String userId, int honorId) async {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/users/$userId/honors/$userHonorId/requirements/progress',
+        '$_baseUrl/users/$userId/honors/$honorId/requirements/progress',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return response.data as Map<String, dynamic>;
+        final raw = response.data as Map<String, dynamic>;
+        return raw['data'] as Map<String, dynamic>? ?? raw;
       }
 
       throw ServerException(
@@ -398,18 +399,19 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   @override
   Future<Map<String, dynamic>> bulkUpdateRequirementProgress(
       String userId,
-      int userHonorId,
+      int honorId,
       List<Map<String, dynamic>> updates) async {
     try {
       final token = await _getAuthToken();
       final response = await _dio.patch(
-        '$_baseUrl/users/$userId/honors/$userHonorId/requirements/progress/batch',
+        '$_baseUrl/users/$userId/honors/$honorId/requirements/progress/batch',
         data: {'requirements': updates},
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return response.data as Map<String, dynamic>;
+        final raw = response.data as Map<String, dynamic>;
+        return raw['data'] as Map<String, dynamic>? ?? raw;
       }
 
       throw ServerException(

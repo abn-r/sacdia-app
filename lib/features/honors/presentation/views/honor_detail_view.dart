@@ -863,7 +863,7 @@ class _RequisitosCta extends ConsumerWidget {
       userHonorProgressProvider(
         UserHonorProgressParams(
           userId: userId,
-          userHonorId: userHonorId,
+          honorId: honorId,
         ),
       ),
     );

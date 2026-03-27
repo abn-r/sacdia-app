@@ -89,7 +89,7 @@ class _HonorRequirementsViewState
 
   UserHonorProgressParams get _progressParams => UserHonorProgressParams(
         userId: ref.read(authNotifierProvider).value?.id ?? '',
-        userHonorId: widget.userHonorId,
+        honorId: widget.honorId,
       );
 
   /// Initialise local state from the server progress map, once per load.
@@ -229,15 +229,44 @@ class _HonorRequirementsViewState
     final progressAsync =
         ref.watch(userHonorProgressProvider(_progressParams));
 
-    return Scaffold(
-      backgroundColor: context.sac.background,
-      body: Column(
-        children: [
-          _DarkHeader(honorName: widget.honorName),
+    return PopScope(
+      canPop: !_hasUnsavedChanges,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Cambios sin guardar'),
+            content: const Text(
+              'Tenés cambios sin guardar. ¿Seguro que querés salir?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Quedarme'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: TextButton.styleFrom(
+                    foregroundColor: Colors.red),
+                child: const Text('Salir'),
+              ),
+            ],
+          ),
+        );
+        if (confirm == true && context.mounted) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: context.sac.background,
+        body: Column(
+          children: [
+            _DarkHeader(honorName: widget.honorName),
 
-          // ── Body ─────────────────────────────────────────────
-          Expanded(
-            child: requirementsAsync.when(
+            // ── Body ─────────────────────────────────────────────
+            Expanded(
+              child: requirementsAsync.when(
               loading: () => const _LoadingBody(),
               error: (err, _) => _ErrorBody(
                 message: err.toString().replaceAll('Exception: ', ''),
@@ -319,7 +348,8 @@ class _HonorRequirementsViewState
               },
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -243,14 +243,14 @@ class HonorsRepositoryImpl implements HonorsRepository {
 
   @override
   Future<Either<Failure, Map<String, dynamic>>> getUserHonorProgress(
-      String userId, int userHonorId) async {
+      String userId, int honorId) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure(message: 'No hay conexión a internet'));
     }
 
     try {
       final data =
-          await remoteDataSource.getUserHonorProgress(userId, userHonorId);
+          await remoteDataSource.getUserHonorProgress(userId, honorId);
       return Right(data);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
@@ -264,7 +264,7 @@ class HonorsRepositoryImpl implements HonorsRepository {
   @override
   Future<Either<Failure, Map<String, dynamic>>> bulkUpdateRequirementProgress(
       String userId,
-      int userHonorId,
+      int honorId,
       List<Map<String, dynamic>> updates) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure(message: 'No hay conexión a internet'));
@@ -272,7 +272,7 @@ class HonorsRepositoryImpl implements HonorsRepository {
 
     try {
       final data = await remoteDataSource.bulkUpdateRequirementProgress(
-          userId, userHonorId, updates);
+          userId, honorId, updates);
       return Right(data);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));

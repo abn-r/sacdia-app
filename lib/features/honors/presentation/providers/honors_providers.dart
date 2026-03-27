@@ -348,24 +348,24 @@ final honorRequirementsProvider = FutureProvider.autoDispose
 });
 
 /// Parámetros para [userHonorProgressProvider].
-/// Encapsula userId + userHonorId como clave del family.
+/// Encapsula userId + honorId como clave del family.
 class UserHonorProgressParams {
   final String userId;
-  final int userHonorId;
+  final int honorId;
 
   const UserHonorProgressParams({
     required this.userId,
-    required this.userHonorId,
+    required this.honorId,
   });
 
   @override
   bool operator ==(Object other) =>
       other is UserHonorProgressParams &&
       other.userId == userId &&
-      other.userHonorId == userHonorId;
+      other.honorId == honorId;
 
   @override
-  int get hashCode => Object.hash(userId, userHonorId);
+  int get hashCode => Object.hash(userId, honorId);
 }
 
 /// Provider para el progreso del usuario en los requisitos de una especialidad.
@@ -376,7 +376,7 @@ final userHonorProgressProvider = FutureProvider.autoDispose
   final useCase = ref.read(getUserHonorProgressProvider);
   final result = await useCase(GetUserHonorProgressParams(
     userId: params.userId,
-    userHonorId: params.userHonorId,
+    honorId: params.honorId,
   ));
 
   return result.fold(
@@ -435,7 +435,7 @@ class RequirementProgressNotifier
     final result = await ref.read(updateRequirementProgressProvider)(
       UpdateRequirementProgressParams(
         userId: userId,
-        userHonorId: progressParams.userHonorId,
+        honorId: progressParams.honorId,
         updates: updates,
       ),
     );

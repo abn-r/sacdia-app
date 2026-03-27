@@ -20,17 +20,17 @@ class GetUserHonorProgress
   Future<Either<Failure, Map<String, dynamic>>> call(
       GetUserHonorProgressParams params) async {
     return await repository.getUserHonorProgress(
-        params.userId, params.userHonorId);
+        params.userId, params.honorId);
   }
 }
 
 /// Parámetros para obtener el progreso de requisitos de usuario
 class GetUserHonorProgressParams {
   final String userId;
-  final int userHonorId;
+  final int honorId;
 
   const GetUserHonorProgressParams({
     required this.userId,
-    required this.userHonorId,
+    required this.honorId,
   });
 }

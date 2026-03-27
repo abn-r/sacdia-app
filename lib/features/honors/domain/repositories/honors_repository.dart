@@ -57,12 +57,12 @@ abstract class HonorsRepository {
   /// Devuelve un mapa con claves: totalRequirements, completedCount,
   /// progressPercentage y requirements (lista de progreso por requisito).
   Future<Either<Failure, Map<String, dynamic>>> getUserHonorProgress(
-      String userId, int userHonorId);
+      String userId, int honorId);
 
   /// Actualiza el progreso de múltiples requisitos en una sola operación.
   /// [updates] es una lista de mapas con requirementId, completed y notes opcional.
   Future<Either<Failure, Map<String, dynamic>>> bulkUpdateRequirementProgress(
       String userId,
-      int userHonorId,
+      int honorId,
       List<Map<String, dynamic>> updates);
 }
