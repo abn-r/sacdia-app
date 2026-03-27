@@ -98,21 +98,20 @@ class ActivityModel extends Equatable {
           .toList();
     }
 
-    // Parse activity_instances for joint activities
+    // Parse instances for joint activities.
+    // The backend's attachInstances() method strips activity_instances and
+    // re-exposes them as `instances` with the shape:
+    //   { section_id: int, club_id: int, club_type_name: String? }
     List<ActivityInstance>? instances;
-    final rawInstances = json['activity_instances'];
+    final rawInstances = json['instances'];
     if (rawInstances is List && rawInstances.isNotEmpty) {
       instances = rawInstances
           .whereType<Map<String, dynamic>>()
-          .map((inst) {
-            final clubTypesNested =
-                inst['club_types'] as Map<String, dynamic>?;
-            return ActivityInstance(
-              clubSectionId: (inst['club_section_id'] as int?) ?? 0,
-              clubTypeId: (inst['club_type_id'] as int?) ?? 0,
-              clubTypeName: clubTypesNested?['name'] as String?,
-            );
-          })
+          .map((inst) => ActivityInstance(
+                clubSectionId: (inst['section_id'] as int?) ?? 0,
+                clubId: inst['club_id'] as int?,
+                clubTypeName: inst['club_type_name'] as String?,
+              ))
           .toList();
     }
 
