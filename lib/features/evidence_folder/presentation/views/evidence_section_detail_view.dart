@@ -1,19 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/utils/app_logger.dart';
-import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
+import '../../../../core/widgets/evidence_staging/staged_file.dart';
 import '../../../../core/widgets/sac_loading.dart';
-import '../../domain/entities/evidence_file.dart';
 import '../../domain/entities/evidence_section.dart';
 import '../providers/evidence_folder_providers.dart';
-import '../widgets/evidence_file_grid.dart';
 import '../widgets/section_status_badge.dart';
 import '../widgets/status_timeline.dart';
 
@@ -45,21 +41,18 @@ class EvidenceSectionDetailView extends ConsumerStatefulWidget {
 
 class _EvidenceSectionDetailViewState
     extends ConsumerState<EvidenceSectionDetailView> {
-  final _picker = ImagePicker();
-
-  // Indica si una operación de subida está en curso (para UI local).
-  bool _isUploading = false;
-
-  /// La sección puede ser modificada solo si está pendiente Y la carpeta está abierta.
-  bool get _canModify =>
-      widget.section.status == EvidenceSectionStatus.pendiente &&
-      widget.folderIsOpen;
+  /// Tracks whether there are locally staged files (for PopScope).
+  bool _hasUnsavedFiles = false;
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
     final notifierState = ref.watch(
         evidenceSectionNotifierProvider(widget.clubSectionId));
+
+    final canModify =
+        widget.section.status == EvidenceSectionStatus.pendiente &&
+        widget.folderIsOpen;
 
     // Mostrar snackbar cuando hay error
     ref.listen(
@@ -71,75 +64,72 @@ class _EvidenceSectionDetailViewState
       },
     );
 
-    final isLoading = notifierState.isLoading || _isUploading;
+    final isLoading = notifierState.isLoading;
 
-    return Scaffold(
-      backgroundColor: c.background,
-      appBar: AppBar(
-        title: Text(
-          widget.section.name,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
+    return PopScope(
+      canPop: !_hasUnsavedFiles,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Archivos sin enviar'),
+            content: const Text(
+              'Tenés archivos sin enviar. ¿Seguro que querés salir?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Quedarme'),
               ),
-          overflow: TextOverflow.ellipsis,
-        ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: TextButton.styleFrom(foregroundColor: AppColors.error),
+                child: const Text('Salir'),
+              ),
+            ],
+          ),
+        );
+        if (confirm == true && context.mounted) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
         backgroundColor: c.background,
-        surfaceTintColor: Colors.transparent,
-        actions: [
-          SectionStatusBadge(status: widget.section.status),
-          const SizedBox(width: 16),
-        ],
-      ),
-      body: Stack(
-        children: [
-          CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Descripción + métricas
-                    _SectionMetaCard(section: widget.section),
+        appBar: AppBar(
+          title: Text(
+            widget.section.name,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+            overflow: TextOverflow.ellipsis,
+          ),
+          backgroundColor: c.background,
+          surfaceTintColor: Colors.transparent,
+          actions: [
+            SectionStatusBadge(status: widget.section.status),
+            const SizedBox(width: 16),
+          ],
+        ),
+        body: Stack(
+          children: [
+            CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Descripción + métricas
+                      _SectionMetaCard(section: widget.section),
 
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                    // Timeline de estado
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                      child: Text(
-                        'Flujo de estado',
-                        style:
-                            Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: c.text,
-                                ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: StatusTimeline(
-                        currentStatus: widget.section.status,
-                        submittedByName: widget.section.submittedByName,
-                        submittedAt: widget.section.submittedAt,
-                        validatedByName: widget.section.validatedByName,
-                        validatedAt: widget.section.validatedAt,
-                        evaluatedByName: widget.section.evaluatedByName,
-                        evaluatedAt: widget.section.evaluatedAt,
-                        evaluationNotes: widget.section.evaluationNotes,
-                      ),
-                    ),
-
-                    // Resultado de evaluación (solo lectura, si existe)
-                    if (widget.section.status ==
-                            EvidenceSectionStatus.evaluated ||
-                        widget.section.evaluatedByName != null) ...[
-                      const SizedBox(height: 24),
+                      // Timeline de estado
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                         child: Text(
-                          'Resultado de evaluación',
+                          'Flujo de estado',
                           style: Theme.of(context)
                               .textTheme
                               .titleSmall
@@ -152,20 +142,27 @@ class _EvidenceSectionDetailViewState
                       const SizedBox(height: 12),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: _EvaluationResultCard(
-                            section: widget.section),
+                        child: StatusTimeline(
+                          currentStatus: widget.section.status,
+                          submittedByName: widget.section.submittedByName,
+                          submittedAt: widget.section.submittedAt,
+                          validatedByName: widget.section.validatedByName,
+                          validatedAt: widget.section.validatedAt,
+                          evaluatedByName: widget.section.evaluatedByName,
+                          evaluatedAt: widget.section.evaluatedAt,
+                          evaluationNotes: widget.section.evaluationNotes,
+                        ),
                       ),
-                    ],
 
-                    const SizedBox(height: 24),
-
-                    // Archivos
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                      child: Row(
-                        children: [
-                          Text(
-                            'Archivos de evidencia',
+                      // Resultado de evaluación (solo lectura, si existe)
+                      if (widget.section.status ==
+                              EvidenceSectionStatus.evaluated ||
+                          widget.section.evaluatedByName != null) ...[
+                        const SizedBox(height: 24),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                          child: Text(
+                            'Resultado de evaluación',
                             style: Theme.of(context)
                                 .textTheme
                                 .titleSmall
@@ -174,333 +171,141 @@ class _EvidenceSectionDetailViewState
                                   color: c.text,
                                 ),
                           ),
-                          const Spacer(),
-                          if (_canModify)
-                            Text(
-                              '${widget.section.files.length} / ${widget.section.maxFiles}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: widget.section.remainingSlots == 0
-                                    ? AppColors.error
-                                    : c.textSecondary,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
+                        ),
+                        const SizedBox(height: 12),
+                        Padding(
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 16),
+                          child: _EvaluationResultCard(
+                              section: widget.section),
+                        ),
+                      ],
 
-                    if (widget.section.files.isEmpty)
-                      _EmptyFiles(canModify: _canModify)
-                    else
+                      const SizedBox(height: 24),
+
+                      // Archivos de evidencia header
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: EvidenceFileGrid(
-                          files: widget.section.files,
-                          canDelete: _canModify,
-                          onDelete: _canModify
-                              ? (file) => _confirmDelete(context, file)
-                              : null,
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                        child: Text(
+                          'Archivos de evidencia',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: c.text,
+                              ),
                         ),
                       ),
-
-                    // Espacio inferior para que los botones no tapen el contenido
-                    const SizedBox(height: 160),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          // Loading overlay
-          if (isLoading)
-            Container(
-              color: Colors.black.withValues(alpha: 0.35),
-              child: const Center(child: SacLoading()),
-            ),
-        ],
-      ),
-
-      // Bottom action bar
-      bottomNavigationBar: _canModify
-          ? _BottomActionBar(
-              section: widget.section,
-              isLoading: isLoading,
-              onUploadImage: () => _pickImage(context),
-              onUploadPdf: () => _pickPdf(context),
-              onSubmit: () => _submit(context),
-            )
-          : null,
-    );
-  }
-
-  // ── Acciones ─────────────────────────────────────────────────────────────────
-
-  Future<void> _pickImage(BuildContext context) async {
-    if (widget.section.remainingSlots == 0) {
-      _showErrorSnackbar(
-          context, 'Has alcanzado el límite de archivos para esta sección.');
-      return;
-    }
-
-    final source = await _showImageSourceDialog(context);
-    if (source == null) return;
-
-    try {
-      final XFile? picked = await _picker.pickImage(
-        source: source,
-        imageQuality: 85,
-        maxWidth: 2048,
-        maxHeight: 2048,
-      );
-      if (picked == null || !mounted) return;
-
-      setState(() => _isUploading = true);
-
-      final mimeType = picked.name.toLowerCase().endsWith('.png')
-          ? 'image/png'
-          : 'image/jpeg';
-
-      await ref
-          .read(evidenceSectionNotifierProvider(widget.clubSectionId).notifier)
-          .uploadFile(
-            sectionId: widget.section.id,
-            pickedFile: picked,
-            mimeType: mimeType,
-          );
-    } catch (e) {
-      AppLogger.e('Error al seleccionar imagen', error: e);
-      if (mounted) {
-        // ignore: use_build_context_synchronously
-        _showErrorSnackbar(context, 'No se pudo seleccionar la imagen.');
-      }
-    } finally {
-      if (mounted) setState(() => _isUploading = false);
-    }
-  }
-
-  Future<void> _pickPdf(BuildContext context) async {
-    if (widget.section.remainingSlots == 0) {
-      _showErrorSnackbar(
-          context, 'Has alcanzado el límite de archivos para esta sección.');
-      return;
-    }
-
-    try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf'],
-      );
-      if (result == null || result.files.isEmpty || !mounted) return;
-
-      final platformFile = result.files.first;
-      if (platformFile.path == null) return;
-
-      final picked = XFile(platformFile.path!);
-
-      setState(() => _isUploading = true);
-
-      await ref
-          .read(evidenceSectionNotifierProvider(widget.clubSectionId).notifier)
-          .uploadFile(
-            sectionId: widget.section.id,
-            pickedFile: picked,
-            mimeType: 'application/pdf',
-          );
-    } catch (e) {
-      AppLogger.e('Error al seleccionar PDF', error: e);
-      if (mounted) {
-        // ignore: use_build_context_synchronously
-        _showErrorSnackbar(context, 'No se pudo seleccionar el PDF.');
-      }
-    } finally {
-      if (mounted) setState(() => _isUploading = false);
-    }
-  }
-
-  Future<void> _submit(BuildContext context) async {
-    final confirm = await _showSubmitConfirmDialog(context);
-    if (!confirm) return;
-
-    final success = await ref
-        .read(evidenceSectionNotifierProvider(widget.clubSectionId).notifier)
-        .submit(widget.section.id);
-
-    if (!mounted) return;
-    if (success) {
-      // ignore: use_build_context_synchronously
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(Icons.check_circle_rounded,
-                  color: Colors.white, size: 18),
-              SizedBox(width: 8),
-              Text('Sección enviada a validación exitosamente'),
-            ],
-          ),
-          backgroundColor: AppColors.secondary,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
-      // ignore: use_build_context_synchronously
-      Navigator.pop(context);
-    }
-  }
-
-  Future<void> _confirmDelete(BuildContext context, EvidenceFile file) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar archivo'),
-        content: Text(
-            '¿Estás seguro de que deseas eliminar "${file.fileName}"? Esta acción no se puede deshacer.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style:
-                TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Eliminar'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true && mounted) {
-      await ref
-          .read(evidenceSectionNotifierProvider(widget.clubSectionId).notifier)
-          .deleteFile(
-            sectionId: widget.section.id,
-            fileId: file.id,
-          );
-    }
-  }
-
-  // ── Dialogs helpers ───────────────────────────────────────────────────────────
-
-  Future<ImageSource?> _showImageSourceDialog(BuildContext context) {
-    return showModalBottomSheet<ImageSource>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 8),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: context.sac.border,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Seleccionar imagen',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedCamera01,
-                    size: 22,
-                    color: AppColors.primary,
+                    ],
                   ),
                 ),
-              ),
-              title: const Text('Cámara'),
-              subtitle: const Text('Tomar una foto ahora'),
-              onTap: () =>
-                  Navigator.pop(ctx, ImageSource.camera),
-            ),
-            ListTile(
-              leading: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedImage01,
-                    size: 22,
-                    color: AppColors.primary,
+
+                // I-2: EvidenceStagingManager goes inside the body,
+                // NOT bottomNavigationBar. It manages its own action
+                // bar internally — no GlobalKey needed.
+                SliverFillRemaining(
+                  hasScrollBody: true,
+                  child: EvidenceStagingManager(
+                    existingFiles: widget.section.files
+                        .map(StagedFile.fromEvidenceFile)
+                        .toList(),
+                    maxFiles: widget.section.maxFiles,
+                    isLoading: isLoading,
+                    canModify: canModify,
+                    onLocalFilesChanged: (hasLocal) {
+                      setState(() => _hasUnsavedFiles = hasLocal);
+                    },
+                    // C-1: Pass onProgress to the notifier so Dio
+                    // reports progress.
+                    // C-2: skipInvalidation prevents per-file provider
+                    // refresh mid-batch.
+                    // I-6: Throw on false so the staging manager
+                    // catches the error.
+                    onUpload: (xFile, mimeType, onProgress) async {
+                      final success = await ref
+                          .read(evidenceSectionNotifierProvider(
+                                  widget.clubSectionId)
+                              .notifier)
+                          .uploadFile(
+                            sectionId: widget.section.id,
+                            pickedFile: xFile,
+                            mimeType: mimeType,
+                            onProgress: onProgress,
+                            skipInvalidation: true,
+                          );
+                      if (!success) throw Exception('Upload failed');
+                    },
+                    onDeleteRemote: (fileId) async {
+                      await ref
+                          .read(evidenceSectionNotifierProvider(
+                                  widget.clubSectionId)
+                              .notifier)
+                          .deleteFile(
+                            sectionId: widget.section.id,
+                            fileId: fileId,
+                          );
+                    },
+                    onSubmit: () async {
+                      final success = await ref
+                          .read(evidenceSectionNotifierProvider(
+                                  widget.clubSectionId)
+                              .notifier)
+                          .submit(widget.section.id);
+                      if (success && mounted) {
+                        // ignore: use_build_context_synchronously
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Row(
+                              children: [
+                                Icon(Icons.check_circle_rounded,
+                                    color: Colors.white, size: 18),
+                                SizedBox(width: 8),
+                                Text(
+                                    'Sección enviada a validación exitosamente'),
+                              ],
+                            ),
+                            backgroundColor: AppColors.secondary,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                        );
+                        // ignore: use_build_context_synchronously
+                        Navigator.pop(context);
+                      }
+                    },
+                    fileNameBuilder: (originalName, index) {
+                      final ext = originalName.contains('.')
+                          ? originalName.split('.').last.toLowerCase()
+                          : 'bin';
+                      final sectionName = widget.section.name
+                          .toLowerCase()
+                          .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+                          .replaceAll(RegExp(r'_+'), '_')
+                          .replaceAll(RegExp(r'^_|_$'), '');
+                      final truncated = sectionName.substring(
+                          0, sectionName.length.clamp(0, 30));
+                      return 'evidencia_${index}_$truncated.$ext';
+                    },
                   ),
                 ),
-              ),
-              title: const Text('Galería'),
-              subtitle: const Text('Elegir de la galería de fotos'),
-              onTap: () =>
-                  Navigator.pop(ctx, ImageSource.gallery),
+              ],
             ),
-            const SizedBox(height: 16),
+
+            // Loading overlay
+            if (isLoading)
+              Container(
+                color: Colors.black.withValues(alpha: 0.35),
+                child: const Center(child: SacLoading()),
+              ),
           ],
         ),
       ),
     );
   }
 
-  Future<bool> _showSubmitConfirmDialog(BuildContext context) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Enviar a validación'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Una vez enviada, no podrás modificar los archivos de esta sección hasta recibir retroalimentación del campo local.',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Archivos adjuntos: ${widget.section.files.length}',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: AppColors.primary,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.secondary,
-            ),
-            child: const Text('Enviar'),
-          ),
-        ],
-      ),
-    );
-    return result ?? false;
-  }
+  // ── Helpers ─────────────────────────────────────────────────────────────────
 
   void _showErrorSnackbar(BuildContext context, String message) {
     if (!mounted) return;
@@ -635,154 +440,6 @@ class _MetaItem extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-// ── Empty files state ─────────────────────────────────────────────────────────
-
-class _EmptyFiles extends StatelessWidget {
-  final bool canModify;
-
-  const _EmptyFiles({required this.canModify});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Padding(
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedFiles01,
-            size: 48,
-            color: c.textTertiary,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            canModify
-                ? 'Aún no hay archivos. Usa el botón de abajo para subir evidencias.'
-                : 'No hay archivos de evidencia para esta sección.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: c.textSecondary,
-              height: 1.4,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Bottom action bar ──────────────────────────────────────────────────────────
-
-class _BottomActionBar extends StatelessWidget {
-  final EvidenceSection section;
-  final bool isLoading;
-  final VoidCallback onUploadImage;
-  final VoidCallback onUploadPdf;
-  final VoidCallback onSubmit;
-
-  const _BottomActionBar({
-    required this.section,
-    required this.isLoading,
-    required this.onUploadImage,
-    required this.onUploadPdf,
-    required this.onSubmit,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final hasFiles = section.files.isNotEmpty;
-    final canUploadMore = section.remainingSlots > 0;
-
-    return Container(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 12,
-        bottom: MediaQuery.of(context).padding.bottom + 12,
-      ),
-      decoration: BoxDecoration(
-        color: c.surface,
-        border: Border(top: BorderSide(color: c.border)),
-        boxShadow: [
-          BoxShadow(
-            color: c.shadow,
-            blurRadius: 12,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Slot indicator
-          if (canUploadMore)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Text(
-                '${section.remainingSlots} de ${section.maxFiles} archivos disponibles',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: c.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            )
-          else
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Text(
-                'Limite de archivos alcanzado (${section.maxFiles}/${section.maxFiles})',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.error,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-
-          // Upload buttons
-          if (canUploadMore)
-            Row(
-              children: [
-                Expanded(
-                  child: SacButton.outline(
-                    text: 'Imagen',
-                    icon: HugeIcons.strokeRoundedCamera01,
-                    isEnabled: !isLoading,
-                    onPressed: isLoading ? null : onUploadImage,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: SacButton.outline(
-                    text: 'PDF',
-                    icon: HugeIcons.strokeRoundedPdf01,
-                    isEnabled: !isLoading,
-                    onPressed: isLoading ? null : onUploadPdf,
-                  ),
-                ),
-              ],
-            ),
-
-          if (canUploadMore) const SizedBox(height: 10),
-
-          // Submit button
-          SacButton.primary(
-            text: 'Enviar a validación',
-            icon: HugeIcons.strokeRoundedSent,
-            isEnabled: hasFiles && !isLoading,
-            isLoading: isLoading,
-            onPressed:
-                hasFiles && !isLoading ? onSubmit : null,
-          ),
-        ],
-      ),
     );
   }
 }
