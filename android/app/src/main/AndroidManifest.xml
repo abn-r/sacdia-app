@@ -19,7 +19,7 @@
              See: https://developers.google.com/maps/api-security-best-practices -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCg2AIgPaE1rsCdmzNnAWPYmtVQ0jQu6oY"/>
+            android:value="AIzaSyAQoO0HmAfSdbRs-T0cqtCXEGNn7TtMGZk"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"
