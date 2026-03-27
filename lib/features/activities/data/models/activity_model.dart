@@ -18,6 +18,17 @@ class ActivityModel extends Equatable {
   final String? linkMeet;
   final DateTime? createdAt;
 
+  // Extended fields
+  final double? lat;
+  final double? longitude;
+  final DateTime? activityDate;
+  final DateTime? activityEndDate;
+  final List<String>? attendees;
+  final List<int>? classes;
+  final String? additionalData;
+  final String? creatorName;
+  final String? creatorImage;
+
   const ActivityModel({
     required this.id,
     required this.name,
@@ -33,6 +44,15 @@ class ActivityModel extends Equatable {
     required this.clubTypeId,
     this.linkMeet,
     this.createdAt,
+    this.lat,
+    this.longitude,
+    this.activityDate,
+    this.activityEndDate,
+    this.attendees,
+    this.classes,
+    this.additionalData,
+    this.creatorName,
+    this.creatorImage,
   });
 
   /// Crea una instancia desde JSON
@@ -42,6 +62,32 @@ class ActivityModel extends Equatable {
         (json['activity_type'] as int?) ??
         (activityTypeNested?['activity_type_id'] as int?) ??
         1;
+
+    // Creator info from nested users object
+    final usersNested = json['users'] as Map<String, dynamic>?;
+    String? creatorName;
+    if (usersNested != null) {
+      final firstName = usersNested['name'] as String? ?? '';
+      final lastName = usersNested['paternal_last_name'] as String? ?? '';
+      final fullName = '$firstName $lastName'.trim();
+      creatorName = fullName.isNotEmpty ? fullName : null;
+    }
+
+    // Parse attendees list
+    List<String>? attendees;
+    final rawAttendees = json['attendees'];
+    if (rawAttendees is List) {
+      attendees = rawAttendees.map((e) => e.toString()).toList();
+    }
+
+    // Parse classes list
+    List<int>? classes;
+    final rawClasses = json['classes'];
+    if (rawClasses is List) {
+      classes = rawClasses
+          .map((e) => e is int ? e : int.tryParse(e.toString()) ?? 0)
+          .toList();
+    }
 
     return ActivityModel(
       id: json['activity_id'] as int,
@@ -60,6 +106,19 @@ class ActivityModel extends Equatable {
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String)
           : null,
+      lat: (json['lat'] as num?)?.toDouble(),
+      longitude: (json['long'] as num?)?.toDouble(),
+      activityDate: json['activity_date'] != null
+          ? DateTime.tryParse(json['activity_date'] as String)
+          : null,
+      activityEndDate: json['activity_end_date'] != null
+          ? DateTime.tryParse(json['activity_end_date'] as String)
+          : null,
+      attendees: attendees,
+      classes: classes,
+      additionalData: json['additional_data'] as String?,
+      creatorName: creatorName,
+      creatorImage: usersNested?['user_image'] as String?,
     );
   }
 
@@ -80,6 +139,13 @@ class ActivityModel extends Equatable {
       'club_type_id': clubTypeId,
       'link_meet': linkMeet,
       'created_at': createdAt?.toIso8601String(),
+      'lat': lat,
+      'long': longitude,
+      'activity_date': activityDate?.toIso8601String(),
+      'activity_end_date': activityEndDate?.toIso8601String(),
+      'attendees': attendees,
+      'classes': classes,
+      'additional_data': additionalData,
     };
   }
 
@@ -100,6 +166,15 @@ class ActivityModel extends Equatable {
       clubTypeId: clubTypeId,
       linkMeet: linkMeet,
       createdAt: createdAt,
+      lat: lat,
+      longitude: longitude,
+      activityDate: activityDate,
+      activityEndDate: activityEndDate,
+      attendees: attendees,
+      classes: classes,
+      additionalData: additionalData,
+      creatorName: creatorName,
+      creatorImage: creatorImage,
     );
   }
 
@@ -119,5 +194,14 @@ class ActivityModel extends Equatable {
         clubTypeId,
         linkMeet,
         createdAt,
+        lat,
+        longitude,
+        activityDate,
+        activityEndDate,
+        attendees,
+        classes,
+        additionalData,
+        creatorName,
+        creatorImage,
       ];
 }

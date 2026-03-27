@@ -17,6 +17,8 @@ class CreateActivityRequest {
   final String? additionalData;
   final List<int>? classes;
   final int clubSectionId;
+  final DateTime? activityDate;
+  final DateTime? activityEndDate;
 
   const CreateActivityRequest({
     required this.name,
@@ -33,6 +35,8 @@ class CreateActivityRequest {
     this.additionalData,
     this.classes,
     required this.clubSectionId,
+    this.activityDate,
+    this.activityEndDate,
   });
 
   /// Convierte la solicitud a JSON para enviar al backend
@@ -54,6 +58,12 @@ class CreateActivityRequest {
     if (linkMeet != null) json['link_meet'] = linkMeet;
     if (additionalData != null) json['additional_data'] = additionalData;
     if (classes != null && classes!.isNotEmpty) json['classes'] = classes;
+    if (activityDate != null) {
+      json['activity_date'] = activityDate!.toIso8601String();
+    }
+    if (activityEndDate != null) {
+      json['activity_end_date'] = activityEndDate!.toIso8601String();
+    }
 
     return json;
   }

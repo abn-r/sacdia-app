@@ -4,16 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
-import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_dropdown_field.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/features/post_registration/presentation/widgets/bottom_sheet_picker.dart';
 import 'package:sacdia_app/providers/catalogs_provider.dart';
 import '../../data/models/create_activity_request.dart';
 import '../providers/activities_providers.dart';
+import '../widgets/activity_form_widgets.dart';
 import 'location_picker_view.dart';
 
 /// Vista para crear una nueva actividad en el club.
@@ -53,10 +53,16 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
   // Flag para marcar que el usuario intentó guardar sin seleccionar ubicación
   bool _locationTouched = false;
 
-  // Valores de dropdown / selector
+  // Fechas de la actividad
+  DateTime? _activityDate;
+  DateTime? _activityEndDate;
+
+  // Valores de picker / selector
   int? _selectedClubTypeId;
+  String? _selectedClubTypeName;
   int _selectedPlatform = 0; // 0 = Presencial, 1 = Virtual
   int _selectedActivityType = 1; // 1 = Regular, 2 = Especial, 3 = Camporee
+  String? _selectedActivityTypeName;
 
   // Image state: file picked locally (upload happens after activity creation)
   XFile? _pickedImageFile;
@@ -94,6 +100,42 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
       final hh = picked.hour.toString().padLeft(2, '0');
       final mm = picked.minute.toString().padLeft(2, '0');
       _timeController.text = '$hh:$mm';
+    }
+  }
+
+  Future<void> _pickActivityDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _activityDate ?? now,
+      firstDate: DateTime(now.year - 2),
+      lastDate: DateTime(now.year + 5),
+      locale: const Locale('es'),
+    );
+    if (picked != null && mounted) {
+      setState(() {
+        _activityDate = picked;
+        // Clear end date if it's before the new start date
+        if (_activityEndDate != null &&
+            _activityEndDate!.isBefore(picked)) {
+          _activityEndDate = null;
+        }
+      });
+    }
+  }
+
+  Future<void> _pickActivityEndDate() async {
+    final now = DateTime.now();
+    final minDate = _activityDate ?? now;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _activityEndDate ?? minDate,
+      firstDate: minDate,
+      lastDate: DateTime(now.year + 5),
+      locale: const Locale('es'),
+    );
+    if (picked != null && mounted) {
+      setState(() => _activityEndDate = picked);
     }
   }
 
@@ -173,6 +215,8 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
           ? null
           : _linkMeetController.text.trim(),
       clubSectionId: widget.clubSectionId,
+      activityDate: _activityDate,
+      activityEndDate: _activityEndDate,
     );
 
     final notifier = ref.read(createActivityNotifierProvider.notifier);
@@ -262,14 +306,9 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
     final isLoading = createState.isLoading || _isUploadingImage;
     final activityTypeItems = activityTypesAsync.maybeWhen(
       data: (activityTypes) => activityTypes
-          .map(
-            (activityType) => DropdownMenuItem<int>(
-              value: activityType.activityTypeId,
-              child: Text(activityType.name),
-            ),
-          )
+          .map((t) => PickerItem(id: t.activityTypeId, name: t.name))
           .toList(),
-      orElse: () => const <DropdownMenuItem<int>>[],
+      orElse: () => const <PickerItem>[],
     );
 
     // Mostrar error del notifier si hay uno nuevo
@@ -343,7 +382,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
           padding: const EdgeInsets.all(20),
           children: [
             // ── Sección: Información general ──────────────────────────
-            _SectionHeader(
+            ActivitySectionHeader(
               icon: HugeIcons.strokeRoundedInformationCircle,
               label: 'Información general',
             ),
@@ -382,63 +421,79 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
             const SizedBox(height: 16),
 
             // Tipo de club *
-            SacDropdownField<int>(
-              value: _selectedClubTypeId,
+            ActivityPickerField(
               label: 'Tipo de club *',
-              hint: 'Selecciona el tipo de club',
-              prefixIcon: HugeIcons.strokeRoundedUserGroup,
+              hint: 'Seleccionar tipo de club',
+              icon: Icons.group_rounded,
+              selectedName: _selectedClubTypeName,
               enabled: !isLoading,
-              items: const [
-                DropdownMenuItem(value: 1, child: Text('Aventureros')),
-                DropdownMenuItem(value: 2, child: Text('Conquistadores')),
-                DropdownMenuItem(value: 3, child: Text('Guias Mayores')),
-              ],
-              onChanged: (value) {
-                setState(() => _selectedClubTypeId = value);
-              },
-              validator: (value) {
-                if (value == null) return 'Selecciona el tipo de club';
-                return null;
+              onTap: () async {
+                const clubItems = [
+                  PickerItem(id: 1, name: 'Aventureros'),
+                  PickerItem(id: 2, name: 'Conquistadores'),
+                  PickerItem(id: 3, name: 'Guias Mayores'),
+                ];
+                final selected = await showPickerSheet(
+                  context: context,
+                  title: 'Tipo de club',
+                  items: clubItems,
+                  selectedId: _selectedClubTypeId,
+                  icon: Icons.group_rounded,
+                );
+                if (selected != null && mounted) {
+                  setState(() {
+                    _selectedClubTypeId = selected;
+                    _selectedClubTypeName = clubItems
+                        .firstWhere((i) => i.id == selected)
+                        .name;
+                  });
+                }
               },
             ),
             const SizedBox(height: 16),
 
             // Tipo de actividad
-            SacDropdownField<int>(
-              value: _selectedActivityType,
+            ActivityPickerField(
               label: 'Tipo de actividad',
               hint: activityTypesAsync.isLoading
-                  ? 'Cargando tipos de actividad...'
-                  : 'Selecciona el tipo',
-              prefixIcon: HugeIcons.strokeRoundedTag01,
-              helperText: activityTypesAsync.hasError
-                  ? 'No se pudieron cargar los tipos. Intenta nuevamente.'
-                  : null,
+                  ? 'Cargando tipos...'
+                  : 'Seleccionar tipo de actividad',
+              icon: Icons.label_rounded,
+              selectedName: _selectedActivityTypeName,
               enabled: !isLoading &&
                   !activityTypesAsync.isLoading &&
                   activityTypeItems.isNotEmpty,
-              items: activityTypeItems,
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _selectedActivityType = value);
+              isLoading: activityTypesAsync.isLoading,
+              onTap: () async {
+                if (activityTypeItems.isEmpty) return;
+                final selected = await showPickerSheet(
+                  context: context,
+                  title: 'Tipo de actividad',
+                  items: activityTypeItems,
+                  selectedId: _selectedActivityType,
+                  icon: Icons.label_rounded,
+                );
+                if (selected != null && mounted) {
+                  setState(() {
+                    _selectedActivityType = selected;
+                    _selectedActivityTypeName = activityTypeItems
+                        .firstWhere((i) => i.id == selected)
+                        .name;
+                  });
                 }
-              },
-              validator: (value) {
-                if (value == null) return 'Selecciona el tipo de actividad';
-                return null;
               },
             ),
             const SizedBox(height: 24),
 
             // ── Sección: Lugar y tiempo ───────────────────────────────
-            _SectionHeader(
+            ActivitySectionHeader(
               icon: HugeIcons.strokeRoundedLocation01,
               label: 'Lugar y tiempo',
             ),
             const SizedBox(height: 12),
 
             // Selector de ubicación (tappable — abre el mapa) *
-            _LocationPickerField(
+            ActivityLocationPickerField(
               result: _selectedLocation,
               hasError: _locationTouched && _selectedLocation == null,
               enabled: !isLoading,
@@ -446,10 +501,25 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
             ),
             const SizedBox(height: 16),
 
+            // Fecha de inicio
+            ActivityDatePickerField(
+              label: 'Fecha',
+              value: _activityDate,
+              enabled: !isLoading,
+              onTap: isLoading ? null : _pickActivityDate,
+              onClear: _activityDate == null
+                  ? null
+                  : () => setState(() {
+                        _activityDate = null;
+                        _activityEndDate = null;
+                      }),
+            ),
+            const SizedBox(height: 16),
+
             // Hora
             SacTextField(
               controller: _timeController,
-              label: 'Hora de inicio',
+              label: 'Hora',
               hint: '09:00',
               prefixIcon: HugeIcons.strokeRoundedClock01,
               readOnly: true,
@@ -464,22 +534,35 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
                 onPressed: isLoading ? null : _pickTime,
               ),
             ),
+            const SizedBox(height: 16),
+
+            // Fecha de fin (opcional)
+            ActivityDatePickerField(
+              label: 'Fecha de fin (opcional)',
+              value: _activityEndDate,
+              enabled: !isLoading && _activityDate != null,
+              onTap:
+                  (isLoading || _activityDate == null) ? null : _pickActivityEndDate,
+              onClear: _activityEndDate == null
+                  ? null
+                  : () => setState(() => _activityEndDate = null),
+            ),
             const SizedBox(height: 24),
 
             // ── Sección: Modalidad ────────────────────────────────────
-            _SectionHeader(
+            ActivitySectionHeader(
               icon: HugeIcons.strokeRoundedComputerVideoCall,
               label: 'Modalidad',
             ),
             const SizedBox(height: 12),
 
             // Plataforma (presencial / virtual) — always visible
-            _SegmentedSelector<int>(
+            ActivitySegmentedSelector<int>(
               label: 'Tipo de actividad',
               value: _selectedPlatform,
               options: const [
-                _SegmentOption(value: 0, label: 'Presencial'),
-                _SegmentOption(value: 1, label: 'Virtual'),
+                ActivitySegmentOption(value: 0, label: 'Presencial'),
+                ActivitySegmentOption(value: 1, label: 'Virtual'),
               ],
               onChanged: isLoading
                   ? null
@@ -512,7 +595,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
                         ),
                         const SizedBox(height: 16),
                         // Image picker
-                        _ActivityImagePicker(
+                        ActivityImagePicker(
                           localImagePath: _pickedImageFile?.path,
                           isUploading: _isUploadingImage,
                           enabled: !isLoading,
@@ -540,613 +623,6 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
           ],
         ),
       ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Widget de selección y previsualización de imagen
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _ActivityImagePicker extends StatelessWidget {
-  final String? localImagePath;
-  final bool isUploading;
-  final bool enabled;
-  final VoidCallback onPickGallery;
-  final VoidCallback onPickCamera;
-
-  const _ActivityImagePicker({
-    required this.localImagePath,
-    required this.isUploading,
-    required this.enabled,
-    required this.onPickGallery,
-    required this.onPickCamera,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Label
-        Text(
-          'Imagen de la actividad',
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 6),
-
-        // Container body
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: enabled ? c.surface : c.surfaceVariant,
-            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-            border: Border.all(
-              color: localImagePath != null
-                  ? AppColors.primary.withValues(alpha: 0.4)
-                  : c.border,
-              width: localImagePath != null ? 1.5 : 1.0,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: context.sac.shadow,
-                offset: const Offset(0, 3),
-                blurRadius: 20,
-              ),
-            ],
-          ),
-          child: isUploading
-              ? _UploadingBody()
-              : localImagePath != null
-                  ? _PreviewBody(
-                      localImagePath: localImagePath!,
-                      enabled: enabled,
-                      onPickGallery: onPickGallery,
-                      onPickCamera: onPickCamera,
-                    )
-                  : _PickerBody(
-                      enabled: enabled,
-                      onPickGallery: onPickGallery,
-                      onPickCamera: onPickCamera,
-                    ),
-        ),
-      ],
-    );
-  }
-}
-
-class _UploadingBody extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const LinearProgressIndicator(
-            color: AppColors.primary,
-            backgroundColor: AppColors.primaryLight,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Subiendo imagen...',
-            style: TextStyle(
-              fontSize: 13,
-              color: c.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PickerBody extends StatelessWidget {
-  final bool enabled;
-  final VoidCallback onPickGallery;
-  final VoidCallback onPickCamera;
-
-  const _PickerBody({
-    required this.enabled,
-    required this.onPickGallery,
-    required this.onPickCamera,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Expanded(
-            child: _ImageSourceButton(
-              icon: HugeIcons.strokeRoundedImage01,
-              label: 'Galeria',
-              enabled: enabled,
-              onTap: onPickGallery,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _ImageSourceButton(
-              icon: HugeIcons.strokeRoundedCamera01,
-              label: 'Camara',
-              enabled: enabled,
-              onTap: onPickCamera,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ImageSourceButton extends StatelessWidget {
-  final dynamic icon;
-  final String label;
-  final bool enabled;
-  final VoidCallback onTap;
-
-  const _ImageSourceButton({
-    required this.icon,
-    required this.label,
-    required this.enabled,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: enabled ? onTap : null,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: AppColors.primaryLight,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: AppColors.primary.withValues(alpha: 0.25),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            HugeIcon(
-              icon: icon,
-              size: 24,
-              color: AppColors.primary,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.primary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PreviewBody extends StatelessWidget {
-  final String localImagePath;
-  final bool enabled;
-  final VoidCallback onPickGallery;
-  final VoidCallback onPickCamera;
-
-  const _PreviewBody({
-    required this.localImagePath,
-    required this.enabled,
-    required this.onPickGallery,
-    required this.onPickCamera,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Thumbnail with re-pick overlay
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.file(
-                  File(localImagePath),
-                  height: 120,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    height: 120,
-                    color: AppColors.primaryLight,
-                    child: const Center(
-                      child: HugeIcon(
-                        icon: HugeIcons.strokeRoundedImage01,
-                        size: 32,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              // Re-pick button (top-right corner)
-              if (enabled)
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: _RepickMenu(
-                    onPickGallery: onPickGallery,
-                    onPickCamera: onPickCamera,
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          // Success text
-          Row(
-            children: [
-              const Icon(
-                Icons.check_circle_rounded,
-                size: 16,
-                color: AppColors.secondary,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                'Imagen cargada correctamente',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.secondary,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RepickMenu extends StatelessWidget {
-  final VoidCallback onPickGallery;
-  final VoidCallback onPickCamera;
-
-  const _RepickMenu({
-    required this.onPickGallery,
-    required this.onPickCamera,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
-      onSelected: (value) {
-        if (value == 'gallery') onPickGallery();
-        if (value == 'camera') onPickCamera();
-      },
-      itemBuilder: (_) => const [
-        PopupMenuItem(
-          value: 'gallery',
-          child: Row(
-            children: [
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedImage01,
-                size: 18,
-                color: AppColors.primary,
-              ),
-              SizedBox(width: 10),
-              Text('Galeria'),
-            ],
-          ),
-        ),
-        PopupMenuItem(
-          value: 'camera',
-          child: Row(
-            children: [
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedCamera01,
-                size: 18,
-                color: AppColors.primary,
-              ),
-              SizedBox(width: 10),
-              Text('Camara'),
-            ],
-          ),
-        ),
-      ],
-      child: Container(
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.55),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const HugeIcon(
-          icon: HugeIcons.strokeRoundedEdit02,
-          size: 16,
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Widgets de apoyo internos
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// Cabecera de sección con icono y label
-class _SectionHeader extends StatelessWidget {
-  final dynamic icon;
-  final String label;
-
-  const _SectionHeader({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(7),
-          decoration: BoxDecoration(
-            color: AppColors.primaryLight,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: HugeIcon(icon: icon, size: 16, color: AppColors.primary),
-        ),
-        const SizedBox(width: 10),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: c.text,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(child: Divider(color: c.divider, height: 1)),
-      ],
-    );
-  }
-}
-
-/// Opcion de selector segmentado
-class _SegmentOption<T> {
-  final T value;
-  final String label;
-  const _SegmentOption({required this.value, required this.label});
-}
-
-/// Selector segmentado tipo toggle-chip horizontal
-class _SegmentedSelector<T> extends StatelessWidget {
-  final String label;
-  final T value;
-  final List<_SegmentOption<T>> options;
-  final void Function(T)? onChanged;
-
-  const _SegmentedSelector({
-    required this.label,
-    required this.value,
-    required this.options,
-    this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: options.map((opt) {
-            final isSelected = opt.value == value;
-            return Expanded(
-              child: GestureDetector(
-                onTap: onChanged != null ? () => onChanged!(opt.value) : null,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primary : c.surface,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: isSelected ? AppColors.primary : c.border,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: context.sac.shadow,
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    opt.label,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected ? Colors.white : c.textSecondary,
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Campo tappable de selección de ubicación
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// Campo que muestra la ubicación seleccionada o un placeholder,
-/// y abre [LocationPickerView] al ser pulsado.
-///
-/// Sigue el mismo estilo visual de [SacTextField]:
-/// - Label externo sobre el campo
-/// - Container con sombra suave
-/// - Error en texto rojo debajo
-class _LocationPickerField extends StatelessWidget {
-  final LocationPickerResult? result;
-  final bool hasError;
-  final bool enabled;
-  final VoidCallback? onTap;
-
-  const _LocationPickerField({
-    required this.result,
-    required this.hasError,
-    required this.enabled,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final theme = Theme.of(context);
-    final hasResult = result != null;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Label — igual que SacTextField
-        Text(
-          'Lugar de la actividad *',
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 6),
-
-        // Contenedor tappable con el mismo estilo de SacTextField
-        GestureDetector(
-          onTap: enabled ? onTap : null,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            decoration: BoxDecoration(
-              color: enabled ? c.surface : c.surfaceVariant,
-              boxShadow: [
-                BoxShadow(
-                  color: c.shadow,
-                  offset: const Offset(0, 3),
-                  blurRadius: 20,
-                ),
-              ],
-              borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-              border: hasError
-                  ? Border.all(color: theme.colorScheme.error, width: 1.5)
-                  : hasResult
-                      ? Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.4),
-                          width: 1.5,
-                        )
-                      : null,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Icono de ubicación
-                Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: HugeIcon(
-                    icon: hasResult
-                        ? HugeIcons.strokeRoundedLocation01
-                        : HugeIcons.strokeRoundedLocation03,
-                    size: 20,
-                    color: hasResult ? AppColors.primary : c.textSecondary,
-                  ),
-                ),
-
-                // Texto de la ubicación o placeholder
-                Expanded(
-                  child: hasResult
-                      ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              result!.name,
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: c.text,
-                                height: 1.3,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 3),
-                            Text(
-                              '${result!.lat.toStringAsFixed(5)}, ${result!.long.toStringAsFixed(5)}',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: c.textTertiary,
-                                fontFeatures: const [
-                                  FontFeature.tabularFigures()
-                                ],
-                              ),
-                            ),
-                          ],
-                        )
-                      : Text(
-                          'Seleccionar lugar en el mapa',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: c.textTertiary,
-                          ),
-                        ),
-                ),
-
-                // Chevron indicador de que es tappable
-                const SizedBox(width: 8),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  size: 22,
-                  color: c.textSecondary,
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        // Error debajo — igual que SacTextField
-        if (hasError)
-          Padding(
-            padding: const EdgeInsets.only(top: 6, left: 6),
-            child: Text(
-              'Selecciona el lugar de la actividad',
-              style: TextStyle(
-                color: theme.colorScheme.error,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-      ],
     );
   }
 }
