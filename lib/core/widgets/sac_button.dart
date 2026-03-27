@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 /// Variantes visuales del botón
@@ -301,26 +302,25 @@ class _SacButtonState extends State<SacButton>
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+
+    // ── Resolve disabled colors using theme tokens ──────────────────────
+    final effectiveBg = _effectivelyDisabled ? c.surface : _backgroundColor;
+    final effectiveFg = _effectivelyDisabled ? c.textTertiary : _foregroundColor;
+    final effectiveBorder = _effectivelyDisabled
+        ? BorderSide(color: c.border, width: 1.5)
+        : (_borderSide ?? BorderSide.none);
+
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(_borderRadius),
-      side: _borderSide ?? BorderSide.none,
+      side: effectiveBorder,
     );
 
     final style = ButtonStyle(
-      backgroundColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.disabled)) {
-          return _backgroundColor.withValues(alpha: 0.5);
-        }
-        return _backgroundColor;
-      }),
-      foregroundColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.disabled)) {
-          return _foregroundColor.withValues(alpha: 0.5);
-        }
-        return _foregroundColor;
-      }),
+      backgroundColor: WidgetStateProperty.all(effectiveBg),
+      foregroundColor: WidgetStateProperty.all(effectiveFg),
       overlayColor: WidgetStateProperty.all(
-        _foregroundColor.withValues(alpha: 0.1),
+        effectiveFg.withValues(alpha: 0.1),
       ),
       elevation: WidgetStateProperty.all(0),
       padding: WidgetStateProperty.all(_padding),
@@ -338,7 +338,7 @@ class _SacButtonState extends State<SacButton>
             height: _iconSize,
             width: _iconSize,
             child: CircularProgressIndicator(
-              color: _foregroundColor,
+              color: effectiveFg,
               strokeWidth: 2.0,
             ),
           )
@@ -349,7 +349,7 @@ class _SacButtonState extends State<SacButton>
             children: [
               if (widget.icon != null) ...[
                 buildIcon(widget.icon,
-                    size: _iconSize, color: _foregroundColor),
+                    size: _iconSize, color: effectiveFg),
                 SizedBox(width: widget.spaceBetween),
               ],
               Flexible(
@@ -361,7 +361,7 @@ class _SacButtonState extends State<SacButton>
               if (widget.trailingIcon != null) ...[
                 SizedBox(width: widget.spaceBetween),
                 buildIcon(widget.trailingIcon,
-                    size: _iconSize, color: _foregroundColor),
+                    size: _iconSize, color: effectiveFg),
               ],
             ],
           );
@@ -381,7 +381,11 @@ class _SacButtonState extends State<SacButton>
       );
     }
 
-    // Animación de press — scale down sutil con haptic feedback
+    // I-4: No AnimatedOpacity wrapper — opacity is always 1.0 so it's a no-op.
+    // Disabled state is handled via color changes which are instant on setState.
+    // The ScaleTransition below provides the only intentional animation.
+
+    // Scale animation on press with haptic feedback
     return GestureDetector(
       onTapDown: _handleTapDown,
       onTapUp: _handleTapUp,
