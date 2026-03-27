@@ -86,7 +86,7 @@ final enrollPreviousClassUseCaseProvider =
 
 /// Provider para las clases de un usuario.
 final userClassesProvider =
-    FutureProvider.autoDispose<List<ProgressiveClass>>((ref) async {
+    FutureProvider<List<ProgressiveClass>>((ref) async {
   final authState = ref.watch(authNotifierProvider);
   final userId = authState.value?.id;
 
@@ -337,7 +337,9 @@ final requirementNotifierProvider = NotifierProvider.autoDispose
 // ── Class progress notifier (legacy) ──────────────────────────────────────────
 
 /// Notifier para manejar actualizaciones de progreso
-class ClassProgressNotifier extends AsyncNotifier<ClassProgress?> {
+// Legacy: superseded by RequirementNotifier for new flows. Kept for
+// section_detail_view and class_modules_view which still use this directly.
+class ClassProgressNotifier extends AutoDisposeAsyncNotifier<ClassProgress?> {
   @override
   Future<ClassProgress?> build() async => null;
 
@@ -366,6 +368,6 @@ class ClassProgressNotifier extends AsyncNotifier<ClassProgress?> {
 
 /// Provider para el notifier de progreso de clase
 final classProgressNotifierProvider =
-    AsyncNotifierProvider<ClassProgressNotifier, ClassProgress?>(() {
+    AsyncNotifierProvider.autoDispose<ClassProgressNotifier, ClassProgress?>(() {
   return ClassProgressNotifier();
 });

@@ -43,7 +43,7 @@ final createEnrollmentUseCaseProvider = Provider<CreateEnrollment>((ref) {
 /// Carga la inscripción activa del usuario en su sección de club actual.
 /// Depende de [clubContextProvider] como fuente de verdad.
 final currentEnrollmentProvider =
-    FutureProvider.autoDispose<Enrollment?>((ref) async {
+    FutureProvider<Enrollment?>((ref) async {
   final context = await ref.watch(clubContextProvider.future);
   if (context == null) return null;
 

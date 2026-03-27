@@ -98,12 +98,9 @@ final honorsByCategoryProvider =
 });
 
 /// Provider para las especialidades de un usuario.
-/// keepAlive evita que se destruya al perder listeners, previniendo retry loops en error.
-final userHonorsProvider = FutureProvider.autoDispose<List<UserHonor>>((ref) async {
-  // Keep alive para evitar retry infinito: si el provider falla y se destruye,
-  // los watchers lo recrean inmediatamente → loop de requests 429.
-  ref.keepAlive();
-
+/// keepAlive: el provider se mantiene vivo mientras el árbol esté montado,
+/// evitando re-fetches al cambiar de tab y eliminando el retry loop 429.
+final userHonorsProvider = FutureProvider<List<UserHonor>>((ref) async {
   final authState = ref.watch(authNotifierProvider);
   final userId = authState.value?.id;
 
@@ -122,9 +119,7 @@ final userHonorsProvider = FutureProvider.autoDispose<List<UserHonor>>((ref) asy
 
 /// Provider para estadísticas de especialidades del usuario
 final userHonorStatsProvider =
-    FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
-  ref.keepAlive();
-
+    FutureProvider<Map<String, dynamic>>((ref) async {
   final authState = ref.watch(authNotifierProvider);
   final userId = authState.value?.id;
 
@@ -152,7 +147,7 @@ final honorsGroupedByCategoryProvider = FutureProvider.autoDispose<List<HonorGro
 });
 
 /// Notifier para manejar inscripciones en especialidades
-class HonorEnrollmentNotifier extends AsyncNotifier<UserHonor?> {
+class HonorEnrollmentNotifier extends AutoDisposeAsyncNotifier<UserHonor?> {
   @override
   Future<UserHonor?> build() async => null;
 
@@ -173,7 +168,7 @@ class HonorEnrollmentNotifier extends AsyncNotifier<UserHonor?> {
 
 /// Provider para el notifier de inscripción en especialidades
 final honorEnrollmentNotifierProvider =
-    AsyncNotifierProvider<HonorEnrollmentNotifier, UserHonor?>(() {
+    AsyncNotifierProvider.autoDispose<HonorEnrollmentNotifier, UserHonor?>(() {
   return HonorEnrollmentNotifier();
 });
 
@@ -207,7 +202,7 @@ class HonorRegistrationState {
 }
 
 /// Notifier para manejar el registro completo de especialidades
-class HonorRegistrationNotifier extends Notifier<HonorRegistrationState> {
+class HonorRegistrationNotifier extends AutoDisposeNotifier<HonorRegistrationState> {
   @override
   HonorRegistrationState build() => const HonorRegistrationState();
 
@@ -243,7 +238,7 @@ class HonorRegistrationNotifier extends Notifier<HonorRegistrationState> {
 
 /// Provider para el notifier de registro de especialidades
 final honorRegistrationNotifierProvider =
-    NotifierProvider<HonorRegistrationNotifier, HonorRegistrationState>(() {
+    NotifierProvider.autoDispose<HonorRegistrationNotifier, HonorRegistrationState>(() {
   return HonorRegistrationNotifier();
 });
 

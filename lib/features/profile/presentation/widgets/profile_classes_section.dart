@@ -7,7 +7,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/classes/domain/entities/progressive_class.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
-import 'package:sacdia_app/features/classes/presentation/views/class_detail_view.dart';
+import 'package:sacdia_app/features/classes/presentation/views/class_detail_with_progress_view.dart';
 import 'package:sacdia_app/features/classes/presentation/views/classes_list_view.dart';
 
 /// Map class names to their brand colours (same palette as ClassStatusCircles).
@@ -221,6 +221,9 @@ class _ClassGridItem extends StatelessWidget {
         _classColors[progressiveClass.name] ?? AppColors.primary;
     final logoAsset = _classLogos[progressiveClass.name];
 
+    final progress = progressiveClass.overallProgress ?? 0;
+    final isInvested = progressiveClass.investitureStatus == 'INVESTIDO';
+
     return Column(
       children: [
         Expanded(
@@ -229,34 +232,85 @@ class _ClassGridItem extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => ClassDetailView(
+                  builder: (_) => ClassDetailWithProgressView(
                     classId: progressiveClass.id,
                   ),
                 ),
               );
             },
-            child: Container(
-              decoration: BoxDecoration(
-                color: classColor.withAlpha(20),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: classColor.withAlpha(50), width: 1),
-              ),
-              padding: const EdgeInsets.all(10),
-              child: logoAsset != null
-                  ? Image.asset(
-                      logoAsset,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Icon(
-                        Icons.school,
-                        size: 30,
-                        color: classColor,
-                      ),
-                    )
-                  : Icon(
-                      Icons.school,
-                      size: 30,
-                      color: classColor,
+            child: Stack(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: classColor.withAlpha(20),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isInvested
+                          ? classColor
+                          : classColor.withAlpha(50),
+                      width: isInvested ? 2 : 1,
                     ),
+                  ),
+                  padding: const EdgeInsets.all(10),
+                  child: logoAsset != null
+                      ? Image.asset(
+                          logoAsset,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => Icon(
+                            Icons.school,
+                            size: 30,
+                            color: classColor,
+                          ),
+                        )
+                      : Icon(
+                          Icons.school,
+                          size: 30,
+                          color: classColor,
+                        ),
+                ),
+                // Progress badge (top-right)
+                if (progress > 0 && !isInvested)
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: classColor,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '$progress%',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                // Invested badge (top-right checkmark)
+                if (isInvested)
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        color: classColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 12,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),

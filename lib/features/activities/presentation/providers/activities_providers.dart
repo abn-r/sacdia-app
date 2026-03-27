@@ -86,6 +86,7 @@ class ClubActivitiesParams {
 final clubActivitiesProvider =
     FutureProvider.autoDispose.family<List<Activity>, ClubActivitiesParams>(
         (ref, params) async {
+  ref.keepAlive();
   final getClubActivities = ref.read(getClubActivitiesProvider);
   final result = await getClubActivities(
     GetClubActivitiesParams(
@@ -115,7 +116,7 @@ final activityDetailProvider =
 });
 
 /// Notifier para manejar el registro de asistencia
-class AttendanceNotifier extends AsyncNotifier<int?> {
+class AttendanceNotifier extends AutoDisposeAsyncNotifier<int?> {
   @override
   Future<int?> build() async => null;
 
@@ -144,7 +145,7 @@ class AttendanceNotifier extends AsyncNotifier<int?> {
 
 /// Provider para el notifier de asistencia
 final attendanceNotifierProvider =
-    AsyncNotifierProvider<AttendanceNotifier, int?>(() {
+    AsyncNotifierProvider.autoDispose<AttendanceNotifier, int?>(() {
   return AttendanceNotifier();
 });
 
@@ -292,18 +293,38 @@ class UpdateActivityNotifier
   /// Actualiza una actividad existente
   Future<bool> update({
     required int activityId,
-    String? title,
+    String? name,
     String? description,
-    String? location,
+    double? lat,
+    double? long,
+    String? activityTime,
+    String? activityDate,
+    String? activityEndDate,
+    String? activityPlace,
+    int? platform,
+    int? activityTypeId,
+    String? linkMeet,
+    bool? active,
+    Set<String> clearFields = const {},
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     final repository = ref.read(activitiesRepositoryProvider);
     final result = await repository.updateActivity(
       activityId: activityId,
-      title: title,
+      name: name,
       description: description,
-      location: location,
+      lat: lat,
+      long: long,
+      activityTime: activityTime,
+      activityDate: activityDate,
+      activityEndDate: activityEndDate,
+      activityPlace: activityPlace,
+      platform: platform,
+      activityTypeId: activityTypeId,
+      linkMeet: linkMeet,
+      active: active,
+      clearFields: clearFields,
     );
 
     return result.fold(
