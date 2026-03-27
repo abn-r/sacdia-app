@@ -421,7 +421,7 @@ class _StatusMessageCard extends StatelessWidget {
       case 'en_progreso':
         return (
           Icons.upload_file_rounded,
-          'Tenes evidencia cargada. Cuando estes listo, enviala a revision',
+          'Tienes evidencia cargada. Cuando estes listo, enviala a revision',
         );
       case 'enviado':
         return (

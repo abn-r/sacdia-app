@@ -14,6 +14,7 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/honor.dart';
 import '../../domain/usecases/get_honors.dart';
 import '../providers/honors_providers.dart';
+import '../../domain/entities/user_honor.dart';
 
 // ── Label helpers ─────────────────────────────────────────────────────────────
 
@@ -236,14 +237,10 @@ class _HonorDetailContent extends ConsumerWidget {
                   userHonorAsync.when(
                     data: (userHonor) {
                       if (userHonor != null) {
-                        // Already enrolled — navigate to evidence / progress screen
-                        return _EnrolledCta(
-                          onTap: () => context.push(
-                            RouteNames.honorEvidencePath(
-                              honorId.toString(),
-                              userHonor.id.toString(),
-                            ),
-                          ),
+                        // Already enrolled — show requisitos section + evidence CTA
+                        return _EnrolledSection(
+                          userHonor: userHonor,
+                          honor: honor,
                         );
                       }
 
@@ -792,6 +789,251 @@ class _EnrolledCta extends StatelessWidget {
             fontWeight: FontWeight.w700,
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ── Enrolled Section (Requisitos + Evidence CTA) ───────────────────────────
+
+/// Muestra la sección de requisitos y el botón de evidencia para usuarios inscritos.
+/// La sección de requisitos solo aparece para usuarios enrollados (ya inscriptos).
+class _EnrolledSection extends ConsumerWidget {
+  final UserHonor userHonor;
+  final Honor honor;
+
+  const _EnrolledSection({
+    required this.userHonor,
+    required this.honor,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authNotifierProvider);
+    final userId = authState.value?.id;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Requisitos CTA ─────────────────────────────────────────────
+        if (userId != null)
+          _RequisitosCta(
+            userId: userId,
+            honorId: honor.id,
+            userHonorId: userHonor.id,
+            honorName: honor.name,
+          ),
+        if (userId != null) const SizedBox(height: 16),
+
+        // ── Evidence / Progress CTA ────────────────────────────────────
+        _EnrolledCta(
+          onTap: () => context.push(
+            RouteNames.honorEvidencePath(
+              honor.id.toString(),
+              userHonor.id.toString(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Requisitos CTA ─────────────────────────────────────────────────────────
+
+/// Card de requisitos para usuarios inscritos.
+/// Muestra "X/Y completados" y una barra de progreso.
+/// Al tocar navega a HonorRequirementsView.
+class _RequisitosCta extends ConsumerWidget {
+  final String userId;
+  final int honorId;
+  final int userHonorId;
+  final String honorName;
+
+  const _RequisitosCta({
+    required this.userId,
+    required this.honorId,
+    required this.userHonorId,
+    required this.honorName,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final progressAsync = ref.watch(
+      userHonorProgressProvider(
+        UserHonorProgressParams(
+          userId: userId,
+          userHonorId: userHonorId,
+        ),
+      ),
+    );
+
+    return progressAsync.when(
+      data: (progress) {
+        final total = (progress['total_requirements'] as num?)?.toInt() ?? 0;
+        final completed = (progress['completed_count'] as num?)?.toInt() ?? 0;
+        final percentage =
+            total > 0 ? (completed / total).clamp(0.0, 1.0) : 0.0;
+
+        return GestureDetector(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            context.push(
+              RouteNames.honorRequirementsPath(
+                honorId.toString(),
+                userHonorId.toString(),
+                honorName,
+              ),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFF),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: AppColors.sacBlue.withValues(alpha: 0.18),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    // Icono en cuadro azul
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColors.sacBlue,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.checklist_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // Texto
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Requisitos',
+                            style: TextStyle(
+                              color: AppColors.sacBlack,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            total == 0
+                                ? 'Cargando requisitos...'
+                                : '$completed/$total completados',
+                            style: const TextStyle(
+                              color: Color(0xFF94A3B8),
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Flecha
+                    const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: AppColors.sacBlue,
+                      size: 16,
+                    ),
+                  ],
+                ),
+
+                // Barra de progreso
+                if (total > 0) ...[
+                  const SizedBox(height: 10),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: percentage,
+                      minHeight: 5,
+                      backgroundColor:
+                          AppColors.sacBlue.withValues(alpha: 0.12),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        AppColors.sacBlue,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => _RequisitosCta._loadingShimmer(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  static Widget _loadingShimmer() {
+    return Container(
+      height: 66,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFF),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0x2D3085FF),
+          width: 1,
+        ),
+      ),
+      child: const Row(
+        children: [
+          SizedBox(
+            width: 36,
+            height: 36,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Color(0xFFE2E8F0),
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              ),
+            ),
+          ),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: 11,
+                  width: 80,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.all(Radius.circular(4)),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 4),
+                SizedBox(
+                  height: 9,
+                  width: 120,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.all(Radius.circular(4)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
