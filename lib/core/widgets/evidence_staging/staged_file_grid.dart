@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/sac_colors.dart';
+import '../sac_image_viewer.dart';
+import '../sac_pdf_viewer.dart';
 import 'staged_file.dart';
 
 /// Unified grid for displaying both remote (uploaded) and local (staged) files.
@@ -418,59 +420,31 @@ class _StagedFileCell extends StatelessWidget {
   }
 
   void _openViewer(BuildContext context) {
-    if (file.isRemote) {
-      if (file.isImage && file.remoteUrl != null) {
-        // Full-screen network image viewer
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => Scaffold(
-              backgroundColor: Colors.black,
-              appBar: AppBar(
-                backgroundColor: Colors.transparent,
-                iconTheme: const IconThemeData(color: Colors.white),
-              ),
-              body: Center(
-                child: InteractiveViewer(
-                  child: CachedNetworkImage(
-                    imageUrl: file.remoteUrl!,
-                    fit: BoxFit.contain,
-                    errorWidget: (_, __, ___) => const Icon(
-                      Icons.broken_image_rounded,
-                      color: Colors.white54,
-                      size: 64,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      }
-      // PDFs: no in-app preview (no PDF viewer dependency available)
-    } else if (file.isLocal && file.localPath != null) {
-      // Local images: open full-screen preview
+    if (file.isRemote && file.remoteUrl != null) {
       if (file.isImage) {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => Scaffold(
-              backgroundColor: Colors.black,
-              appBar: AppBar(
-                backgroundColor: Colors.transparent,
-                iconTheme: const IconThemeData(color: Colors.white),
-              ),
-              body: Center(
-                child: InteractiveViewer(
-                  child: Image.file(
-                    File(file.localPath!),
-                    fit: BoxFit.contain,
-                  ),
-                ),
+        SacImageViewer.show(context, imageUrl: file.remoteUrl!, title: file.name);
+      } else if (file.isPdf) {
+        SacPdfViewer.show(context, pdfUrl: file.remoteUrl!, title: file.name);
+      }
+    } else if (file.isLocal && file.localPath != null && file.isImage) {
+      // Local images: full-screen preview with InteractiveViewer
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => Scaffold(
+            backgroundColor: Colors.black,
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              iconTheme: const IconThemeData(color: Colors.white),
+              title: Text(file.name, style: const TextStyle(color: Colors.white)),
+            ),
+            body: Center(
+              child: InteractiveViewer(
+                child: Image.file(File(file.localPath!), fit: BoxFit.contain),
               ),
             ),
           ),
-        );
-      }
-      // Local PDFs: no preview (would need a local PDF viewer dependency)
+        ),
+      );
     }
   }
 }

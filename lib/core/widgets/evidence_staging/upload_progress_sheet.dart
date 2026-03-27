@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -64,16 +66,23 @@ class _UploadProgressSheetContent extends StatefulWidget {
 class _UploadProgressSheetContentState
     extends State<_UploadProgressSheetContent> {
   late List<StagedFile> _files;
+  late final StreamSubscription<List<StagedFile>> _subscription;
 
   @override
   void initState() {
     super.initState();
     _files = List.from(widget.initialFiles);
-    widget.uploadStream.listen((updatedFiles) {
+    _subscription = widget.uploadStream.listen((updatedFiles) {
       if (mounted) {
         setState(() => _files = updatedFiles);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
   }
 
   // ── Computed state ──────────────────────────────────────────────────────────
