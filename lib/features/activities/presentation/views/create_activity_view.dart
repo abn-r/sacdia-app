@@ -96,14 +96,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
       minute: int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0,
     );
 
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: initial,
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-        child: child!,
-      ),
-    );
+    final picked = await showTimePickerSheet(context, initial);
 
     if (picked != null && mounted) {
       final hh = picked.hour.toString().padLeft(2, '0');
@@ -697,7 +690,6 @@ class _JointActivityToggle extends StatelessWidget {
       child: SwitchListTile(
         value: value,
         onChanged: enabled ? onChanged : null,
-        activeColor: AppColors.primary,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         title: Text(
           'Actividad conjunta',
