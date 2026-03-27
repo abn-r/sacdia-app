@@ -6,6 +6,7 @@ import '../../domain/usecases/register_user_honor.dart';
 import '../models/honor_model.dart';
 import '../models/honor_category_model.dart';
 import '../models/honor_group_model.dart';
+import '../models/honor_requirement_model.dart';
 import '../models/user_honor_model.dart';
 
 /// Interfaz para la fuente de datos remota de especialidades
@@ -20,6 +21,19 @@ abstract class HonorsRemoteDataSource {
   Future<void> deleteUserHonor(String userId, int honorId);
   Future<UserHonorModel> registerUserHonor(RegisterUserHonorParams params);
   Future<List<HonorGroupModel>> getHonorsGroupedByCategory();
+
+  /// Obtiene los requisitos del catálogo de una especialidad
+  Future<List<HonorRequirementModel>> getHonorRequirements(int honorId);
+
+  /// Obtiene el progreso del usuario por requisito para una especialidad inscripta
+  Future<Map<String, dynamic>> getUserHonorProgress(
+      String userId, int userHonorId);
+
+  /// Actualiza el progreso de múltiples requisitos en una sola operación
+  Future<Map<String, dynamic>> bulkUpdateRequirementProgress(
+      String userId,
+      int userHonorId,
+      List<Map<String, dynamic>> updates);
 }
 
 /// Implementación de la fuente de datos remota de especialidades
@@ -310,6 +324,104 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       AppLogger.e('Error en getHonorsGroupedByCategory', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<List<HonorRequirementModel>> getHonorRequirements(int honorId) async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.get(
+        '$_baseUrl/honors/$honorId/requirements',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final raw = response.data as Map<String, dynamic>;
+        final data = raw['data'] as Map<String, dynamic>;
+        final List<dynamic> requirements = data['requirements'] as List<dynamic>;
+        return requirements
+            .map((json) =>
+                HonorRequirementModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+
+      throw ServerException(
+        message: 'Error al obtener requisitos de la especialidad',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getHonorRequirements', tag: _tag, error: e);
+      if (e is DioException) {
+        throw ServerException(
+            message: e.message ?? 'Error de conexión',
+            code: e.response?.statusCode);
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getUserHonorProgress(
+      String userId, int userHonorId) async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.get(
+        '$_baseUrl/users/$userId/honors/$userHonorId/requirements/progress',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return response.data as Map<String, dynamic>;
+      }
+
+      throw ServerException(
+        message: 'Error al obtener progreso de requisitos',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getUserHonorProgress', tag: _tag, error: e);
+      if (e is DioException) {
+        throw ServerException(
+            message: e.message ?? 'Error de conexión',
+            code: e.response?.statusCode);
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> bulkUpdateRequirementProgress(
+      String userId,
+      int userHonorId,
+      List<Map<String, dynamic>> updates) async {
+    try {
+      final token = await _getAuthToken();
+      final response = await _dio.patch(
+        '$_baseUrl/users/$userId/honors/$userHonorId/requirements/progress/batch',
+        data: {'requirements': updates},
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return response.data as Map<String, dynamic>;
+      }
+
+      throw ServerException(
+        message: 'Error al actualizar progreso de requisitos',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en bulkUpdateRequirementProgress', tag: _tag, error: e);
+      if (e is DioException) {
+        throw ServerException(
+            message: e.message ?? 'Error de conexión',
+            code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());

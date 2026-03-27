@@ -3,6 +3,7 @@ import '../../../../core/errors/failures.dart';
 import '../entities/honor.dart';
 import '../entities/honor_category.dart';
 import '../entities/honor_group.dart';
+import '../entities/honor_requirement.dart';
 import '../entities/user_honor.dart';
 import '../usecases/register_user_honor.dart';
 
@@ -47,4 +48,21 @@ abstract class HonorsRepository {
 
   /// Obtiene las especialidades agrupadas por categoría
   Future<Either<Failure, List<HonorGroup>>> getHonorsGroupedByCategory();
+
+  /// Obtiene los requisitos del catálogo para una especialidad
+  Future<Either<Failure, List<HonorRequirement>>> getHonorRequirements(
+      int honorId);
+
+  /// Obtiene el progreso del usuario por requisito para una especialidad inscripta.
+  /// Devuelve un mapa con claves: totalRequirements, completedCount,
+  /// progressPercentage y requirements (lista de progreso por requisito).
+  Future<Either<Failure, Map<String, dynamic>>> getUserHonorProgress(
+      String userId, int userHonorId);
+
+  /// Actualiza el progreso de múltiples requisitos en una sola operación.
+  /// [updates] es una lista de mapas con requirementId, completed y notes opcional.
+  Future<Either<Failure, Map<String, dynamic>>> bulkUpdateRequirementProgress(
+      String userId,
+      int userHonorId,
+      List<Map<String, dynamic>> updates);
 }

@@ -5,6 +5,7 @@ import '../../../../core/network/network_info.dart';
 import '../../domain/entities/honor.dart';
 import '../../domain/entities/honor_category.dart';
 import '../../domain/entities/honor_group.dart';
+import '../../domain/entities/honor_requirement.dart';
 import '../../domain/entities/user_honor.dart';
 import '../../domain/repositories/honors_repository.dart';
 import '../../domain/usecases/register_user_honor.dart';
@@ -209,6 +210,70 @@ class HonorsRepositoryImpl implements HonorsRepository {
       final groupModels = await remoteDataSource.getHonorsGroupedByCategory();
       final groups = groupModels.map((model) => model.toEntity()).toList();
       return Right(groups);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<HonorRequirement>>> getHonorRequirements(
+      int honorId) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+
+    try {
+      final requirementModels =
+          await remoteDataSource.getHonorRequirements(honorId);
+      final requirements =
+          requirementModels.map((model) => model.toEntity()).toList();
+      return Right(requirements);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getUserHonorProgress(
+      String userId, int userHonorId) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+
+    try {
+      final data =
+          await remoteDataSource.getUserHonorProgress(userId, userHonorId);
+      return Right(data);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> bulkUpdateRequirementProgress(
+      String userId,
+      int userHonorId,
+      List<Map<String, dynamic>> updates) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+
+    try {
+      final data = await remoteDataSource.bulkUpdateRequirementProgress(
+          userId, userHonorId, updates);
+      return Right(data);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on AuthException catch (e) {
