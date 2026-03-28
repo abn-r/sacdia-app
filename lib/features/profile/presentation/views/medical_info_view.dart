@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/post_registration/presentation/providers/personal_info_providers.dart';
 import 'package:sacdia_app/features/post_registration/presentation/views/allergies_selection_view.dart';
 import 'package:sacdia_app/features/post_registration/presentation/views/diseases_selection_view.dart';
+import 'package:sacdia_app/features/post_registration/presentation/views/medicines_selection_view.dart';
 import 'package:sacdia_app/features/post_registration/presentation/views/emergency_contacts_view.dart';
 import 'package:sacdia_app/features/post_registration/presentation/views/legal_representative_view.dart';
 
@@ -17,6 +18,7 @@ class MedicalInfoView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final allergiesAsync = ref.watch(userAllergiesProvider);
     final diseasesAsync = ref.watch(userDiseasesProvider);
+    final medicinesAsync = ref.watch(userMedicinesProvider);
     final contactsAsync = ref.watch(emergencyContactsProvider);
     final legalRepAsync = ref.watch(legalRepresentativeProvider);
     final legalRequiredAsync = ref.watch(legalRepresentativeRequiredProvider);
@@ -146,6 +148,67 @@ class MedicalInfoView extends ConsumerWidget {
             onAction: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => const DiseasesSelectionView(),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          _MedicalSectionCard(
+            icon: HugeIcons.strokeRoundedMedicine01,
+            title: 'Medicamentos',
+            iconColor: AppColors.secondary,
+            body: medicinesAsync.when(
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: SacLoadingSmall(),
+              ),
+              error: (e, _) => _SectionError(
+                message: e.toString(),
+                onRetry: () => ref.invalidate(userMedicinesProvider),
+              ),
+              data: (medicines) {
+                if (medicines.isEmpty) {
+                  return Text(
+                    'Sin medicamentos registrados',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: c.textTertiary,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  );
+                }
+                return Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: medicines
+                      .map(
+                        (m) => Chip(
+                          label: Text(
+                            m.name,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.secondaryDark,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          backgroundColor: AppColors.secondaryLight,
+                          side: BorderSide(
+                            color: AppColors.secondary.withValues(alpha: 0.3),
+                          ),
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                        ),
+                      )
+                      .toList(),
+                );
+              },
+            ),
+            actionLabel: 'Editar',
+            onAction: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const MedicinesSelectionView(),
               ),
             ),
           ),

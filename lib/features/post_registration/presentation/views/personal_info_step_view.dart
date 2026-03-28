@@ -15,6 +15,7 @@ import 'emergency_contacts_view.dart';
 import 'legal_representative_view.dart';
 import 'allergies_selection_view.dart';
 import 'diseases_selection_view.dart';
+import 'medicines_selection_view.dart';
 
 /// Vista del paso 2: Información Personal - Estilo "Scout Vibrante"
 ///
@@ -51,6 +52,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
         ref.watch(legalRepresentativeRequiredProvider);
     final selectedAllergies = ref.watch(selectedAllergiesProvider);
     final selectedDiseases = ref.watch(selectedDiseasesProvider);
+    final selectedMedicines = ref.watch(selectedMedicinesProvider);
     final canComplete = ref.watch(canCompleteStep2Provider);
     final canReadEmergencyContacts = canReadSensitiveUserFamilyForUser(
       authUser,
@@ -405,7 +407,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
               title: 'Información médica',
               subtitle: 'Opcional',
               isCompleted:
-                  selectedAllergies.isNotEmpty || selectedDiseases.isNotEmpty,
+                  selectedAllergies.isNotEmpty || selectedDiseases.isNotEmpty || selectedMedicines.isNotEmpty,
             ),
             const SizedBox(height: 12),
             SacCard(
@@ -480,6 +482,49 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                       selectedDiseases.isEmpty
                           ? 'Enfermedades'
                           : '${selectedDiseases.length} enfermedad(es)',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowRight01,
+                    color: context.sac.textTertiary,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            SacCard(
+              onTap: () => _navigateToMedicinesSelection(),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: selectedMedicines.isNotEmpty
+                          ? AppColors.secondaryLight
+                          : context.sac.surfaceVariant,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedMedicine01,
+                        size: 20,
+                        color: selectedMedicines.isNotEmpty
+                            ? AppColors.secondary
+                            : context.sac.textTertiary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      selectedMedicines.isEmpty
+                          ? 'Medicamentos'
+                          : '${selectedMedicines.length} medicamento(s)',
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
@@ -597,6 +642,14 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => const DiseasesSelectionView(),
+      ),
+    );
+  }
+
+  Future<void> _navigateToMedicinesSelection() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const MedicinesSelectionView(),
       ),
     );
   }
