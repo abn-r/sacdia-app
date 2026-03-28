@@ -399,7 +399,8 @@ class _TransferRequestFormViewState
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
     if (_parsedSectionId == null) return;
 
     final notifier = ref.read(createTransferProvider.notifier);

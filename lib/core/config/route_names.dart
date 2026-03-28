@@ -119,6 +119,22 @@ class RouteNames {
   // Asignaciones de rol
   static const String roleAssignments = '/role-assignments';
 
+  // Coordinación — hub y sub-módulos
+  static const String coordinator = '/coordinator';
+  static const String coordinatorSla = '/coordinator/sla';
+  static const String coordinatorEvidenceReview = '/coordinator/evidence-review';
+  static const String coordinatorEvidenceReviewDetailRoute =
+      '/coordinator/evidence-review/:type/:id';
+  static const String coordinatorCamporeeApprovals =
+      '/coordinator/camporee-approvals';
+
+  // Helpers para coordinación
+  static String coordinatorEvidenceReviewDetail(String type, String id) =>
+      '/coordinator/evidence-review/$type/$id';
+
+  // Bandeja de notificaciones
+  static const String notificationsInbox = '/notifications';
+
   // Pagos de camporee (miembro)
   static const String camporeePayments =
       '/camporee/:camporeeId/member/:memberId/payments';

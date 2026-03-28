@@ -30,15 +30,13 @@ import '../../../profile/presentation/providers/profile_providers.dart';
 ///   - dashboardNotifierProvider   AsyncNotifierProvider  (non-autoDispose)
 ///   - userHonorsProvider          FutureProvider         (non-autoDispose)
 ///   - clubContextProvider         FutureProvider         (non-autoDispose)
-///   - membersNotifierProvider     AsyncNotifierProvider  (non-autoDispose)
 ///   - profileNotifierProvider     AsyncNotifierProvider  (non-autoDispose)
 ///   - currentEnrollmentProvider   FutureProvider         (non-autoDispose)
 ///   - clubActivitiesProvider      FutureProvider.autoDispose + keepAlive (club-specific)
-void clearUserStateOnLogout(Ref ref) {
+void clearUserStateOnLogout(WidgetRef ref) {
   ref.invalidate(dashboardNotifierProvider);
   ref.invalidate(userHonorsProvider);
   ref.invalidate(clubContextProvider);
-  ref.invalidate(membersNotifierProvider);
   ref.invalidate(profileNotifierProvider);
   ref.invalidate(currentEnrollmentProvider);
   ref.invalidate(clubActivitiesProvider);

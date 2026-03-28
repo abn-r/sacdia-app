@@ -135,7 +135,8 @@ class _ClubViewState extends ConsumerState<ClubView> {
   }
 
   Future<void> _handleSave(ClubSection section) async {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     final notifier = ref.read(updateClubNotifierProvider.notifier);
 

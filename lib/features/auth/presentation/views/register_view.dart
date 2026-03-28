@@ -85,7 +85,8 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
   }
 
   Future<void> _signUp() async {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     final success = await ref.read(authNotifierProvider.notifier).signUp(
           email: _emailController.text.trim(),

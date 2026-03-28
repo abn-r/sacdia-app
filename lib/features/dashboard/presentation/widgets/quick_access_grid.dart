@@ -27,6 +27,15 @@ class _QuickAccessItemConfig {
 }
 
 const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
+  // Coordination hub — requires coordinator or admin global role
+  _QuickAccessItemConfig(
+    label: 'Coordinación',
+    icon: HugeIcons.strokeRoundedAnalytics01,
+    color: AppColors.info,
+    route: RouteNames.coordinator,
+    requiredPermissions: {'coordinator:access', 'investiture:validate'},
+    legacyRoles: {'coordinator', 'admin'},
+  ),
   // Administrative: member list — requires users:read_detail (counselor and above)
   _QuickAccessItemConfig(
     label: 'Miembros',

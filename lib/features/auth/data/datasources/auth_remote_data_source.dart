@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/user_model.dart';
@@ -165,7 +166,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<bool?> _fetchCompletionStatus(String token) async {
     try {
       final response = await _dio.get(
-        '$_baseUrl/auth/profile/completion-status',
+        '$_baseUrl${ApiEndpoints.auth}/profile/completion-status',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
@@ -200,7 +201,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   ) async {
     try {
       final response = await _dio.patch(
-        '$_baseUrl/auth/me/context',
+        '$_baseUrl${ApiEndpoints.auth}/me/context',
         data: {'assignment_id': assignmentId},
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
@@ -226,7 +227,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (token == null) return null;
 
       final response = await _dio.get(
-        '$_baseUrl/auth/me',
+        '$_baseUrl${ApiEndpoints.auth}/me',
         options: Options(headers: {
           'Authorization': 'Bearer $token',
         }),
@@ -365,7 +366,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       AppLogger.i('Login: $email', tag: _tag);
 
-      final response = await _dio.post('$_baseUrl/auth/login', data: {
+      final response = await _dio.post('$_baseUrl${ApiEndpoints.auth}/login', data: {
         'email': email,
         'password': password,
       });
@@ -439,7 +440,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       AppLogger.i('Registro: $email', tag: _tag);
 
-      final response = await _dio.post('$_baseUrl/auth/register', data: {
+      final response = await _dio.post('$_baseUrl${ApiEndpoints.auth}/register', data: {
         'email': email,
         'password': password,
         'name': name,
@@ -523,7 +524,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       await _dio.post(
-        '$_baseUrl/auth/logout',
+        '$_baseUrl${ApiEndpoints.auth}/logout',
         data: body.isNotEmpty ? body : null,
         options: Options(
           headers: headers.isNotEmpty ? headers : null,
@@ -545,7 +546,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       AppLogger.i('Recuperación de contraseña: $email', tag: _tag);
 
       final response = await _dio.post(
-        '$_baseUrl/auth/request-password-reset',
+        '$_baseUrl${ApiEndpoints.auth}/request-password-reset',
         data: {'email': email},
       );
 
@@ -574,7 +575,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       _dio.options.headers['Authorization'] = 'Bearer $token';
 
-      await _dio.post('$_baseUrl/auth/update-password', data: {
+      await _dio.post('$_baseUrl${ApiEndpoints.auth}/update-password', data: {
         'password': newPassword,
       });
 
@@ -649,7 +650,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       AppLogger.i('Iniciando OAuth con Google', tag: _tag);
 
       // 1. Obtener el redirect URL del backend
-      final response = await _dio.get('$_baseUrl/auth/oauth/google');
+      final response = await _dio.get('$_baseUrl${ApiEndpoints.auth}/oauth/google');
       final redirectUrl = _extractOAuthUrl(response, 'Google');
 
       // 2. Abrir en navegador del sistema
@@ -684,7 +685,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       AppLogger.i('Iniciando OAuth con Apple', tag: _tag);
 
       // 1. Obtener el redirect URL del backend
-      final response = await _dio.get('$_baseUrl/auth/oauth/apple');
+      final response = await _dio.get('$_baseUrl${ApiEndpoints.auth}/oauth/apple');
       final redirectUrl = _extractOAuthUrl(response, 'Apple');
 
       // 2. Abrir en navegador del sistema
@@ -746,7 +747,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       AppLogger.i('Procesando OAuth callback con backend SACDIA', tag: _tag);
 
       final response = await _dio.post(
-        '$_baseUrl/auth/oauth/callback',
+        '$_baseUrl${ApiEndpoints.auth}/oauth/callback',
         data: {
           'session_token': sessionToken,
           'provider': provider,
@@ -822,7 +823,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
 
     final response = await _dio.patch(
-      '$_baseUrl/auth/me/context',
+      '$_baseUrl${ApiEndpoints.auth}/me/context',
       data: {'assignment_id': assignmentId},
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
@@ -843,7 +844,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final response = await _dio.get(
-        '$_baseUrl/auth/profile/completion-status',
+        '$_baseUrl${ApiEndpoints.auth}/profile/completion-status',
         options: Options(headers: {
           'Authorization': 'Bearer $token',
         }),

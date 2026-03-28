@@ -75,19 +75,6 @@ final signInWithAppleProvider = Provider<SignInWithApple>((ref) {
   return SignInWithApple(ref.read(authRepositoryProvider));
 });
 
-/// Flag global para rastrear manualmente el estado de autenticación
-final isUserLoggedOutProvider = StateProvider<bool>((ref) => false);
-
-/// Provider para el stream de estado de autenticación con verificación manual adicional
-final authStateProvider = StreamProvider<bool>((ref) {
-  final manuallyLoggedOut = ref.watch(isUserLoggedOutProvider);
-
-  if (manuallyLoggedOut) {
-    return Stream.value(false);
-  }
-
-  return ref.watch(authRepositoryProvider).authStateChanges;
-});
 
 /// Notifier para manejar la autenticación y sus estados
 class AuthNotifier extends AsyncNotifier<UserEntity?> {
@@ -228,7 +215,6 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       },
       (user) {
         AppLogger.i('Login exitoso: ${user.email}', tag: _tag);
-        ref.read(isUserLoggedOutProvider.notifier).state = false;
         ref.read(sharedPreferencesProvider).setBool('user_manually_logged_out', false);
         _cacheUser(user);
         // Register FCM token after successful login (fire-and-forget).
@@ -328,7 +314,6 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       },
       (user) {
         AppLogger.i('OAuth completado: ${user.email}', tag: _tag);
-        ref.read(isUserLoggedOutProvider.notifier).state = false;
         _cacheUser(user);
         state = AsyncValue.data(user);
         // Register FCM token after OAuth login (fire-and-forget).
@@ -446,8 +431,6 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   /// Cerrar sesión
   Future<bool> signOut() async {
     state = const AsyncValue.loading();
-
-    ref.read(isUserLoggedOutProvider.notifier).state = true;
 
     // Unregister FCM token before clearing auth tokens so the Dio interceptor
     // can still attach the Bearer header for the DELETE request.

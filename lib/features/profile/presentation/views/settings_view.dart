@@ -8,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../auth/presentation/providers/logout_cleanup.dart';
 import '../widgets/setting_tile.dart';
 import 'template_view.dart';
 import 'template_1_view.dart';
@@ -79,7 +80,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     );
 
     if (shouldLogout == true && mounted) {
-      await ref.read(authNotifierProvider.notifier).signOut();
+      final success = await ref.read(authNotifierProvider.notifier).signOut();
+      if (success) clearUserStateOnLogout(ref);
       if (mounted) {
         Navigator.pop(context);
       }

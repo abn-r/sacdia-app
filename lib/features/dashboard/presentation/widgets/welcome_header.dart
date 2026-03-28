@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
@@ -13,10 +14,15 @@ class WelcomeHeader extends StatelessWidget {
   final String userName;
   final String? userAvatar;
 
+  /// Callback opcional para navegar a la bandeja de notificaciones.
+  /// Si es null, el icono de campana no se muestra.
+  final VoidCallback? onNotificationsTap;
+
   const WelcomeHeader({
     super.key,
     required this.userName,
     this.userAvatar,
+    this.onNotificationsTap,
   });
 
   String _getGreeting() {
@@ -61,6 +67,19 @@ class WelcomeHeader extends StatelessWidget {
               ],
             ),
           ),
+
+          // Botón de notificaciones
+          if (onNotificationsTap != null) ...[
+            IconButton(
+              onPressed: onNotificationsTap,
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedNotification01,
+                size: 24,
+                color: AppColors.lightText,
+              ),
+              tooltip: 'Notificaciones',
+            ),
+          ],
 
           // Avatar — size adapts to screen
           GestureDetector(

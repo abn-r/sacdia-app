@@ -39,7 +39,8 @@ class _LoginViewState extends ConsumerState<LoginView> {
   }
 
   Future<void> _signIn() async {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
     await ref.read(authNotifierProvider.notifier).signIn(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
@@ -100,7 +101,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
 
                       // Título
                       Text(
-                        'Bienvenido de vuelta',
+                        'SACDIA',
                         style: Theme.of(context).textTheme.displayMedium,
                         textAlign: TextAlign.center,
                       ),
@@ -191,60 +192,60 @@ class _LoginViewState extends ConsumerState<LoginView> {
                         isLoading: isLoading,
                         onPressed: _signIn,
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 34),
 
                       // Divider "o continúa con"
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              height: 1,
-                              color: context.sac.border,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Text(
-                              'o continúa con',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color: AppColors.sacBlack,
-                                  ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Container(
-                              height: 1,
-                              color: context.sac.border,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
+                      // Row(
+                      //   children: [
+                      //     Expanded(
+                      //       child: Container(
+                      //         height: 1,
+                      //         color: context.sac.border,
+                      //       ),
+                      //     ),
+                      //     Padding(
+                      //       padding: const EdgeInsets.symmetric(horizontal: 16),
+                      //       child: Text(
+                      //         'o continúa con',
+                      //         style: Theme.of(context)
+                      //             .textTheme
+                      //             .bodySmall
+                      //             ?.copyWith(
+                      //               color: AppColors.sacBlack,
+                      //             ),
+                      //       ),
+                      //     ),
+                      //     Expanded(
+                      //       child: Container(
+                      //         height: 1,
+                      //         color: context.sac.border,
+                      //       ),
+                      //     ),
+                      //   ],
+                      // ),
+                      // const SizedBox(height: 16),
 
-                      // Botones OAuth
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _OAuthButton(
-                              onPressed: isLoading ? null : _signInWithGoogle,
-                              iconPath: 'assets/svg/google_logo.svg',
-                              label: 'Google',
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: _OAuthButton(
-                              onPressed: isLoading ? null : _signInWithApple,
-                              iconPath: 'assets/svg/apple_logo.svg',
-                              label: 'Apple',
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 40),
+                      // // Botones OAuth
+                      // Row(
+                      //   children: [
+                      //     Expanded(
+                      //       child: _OAuthButton(
+                      //         onPressed: isLoading ? null : _signInWithGoogle,
+                      //         iconPath: 'assets/svg/google_logo.svg',
+                      //         label: 'Google',
+                      //       ),
+                      //     ),
+                      //     const SizedBox(width: 14),
+                      //     Expanded(
+                      //       child: _OAuthButton(
+                      //         onPressed: isLoading ? null : _signInWithApple,
+                      //         iconPath: 'assets/svg/apple_logo.svg',
+                      //         label: 'Apple',
+                      //       ),
+                      //     ),
+                      //   ],
+                      // ),
+                      // const SizedBox(height: 40),
 
                       // Link a registro
                       Center(

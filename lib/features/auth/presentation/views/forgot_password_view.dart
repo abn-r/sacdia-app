@@ -36,7 +36,8 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
 
   Future<void> _handleSubmit() async {
     setState(() => _errorMessage = null);
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     setState(() => _isLoading = true);
 
