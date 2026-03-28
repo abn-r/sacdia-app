@@ -9,6 +9,7 @@ class UserHonorRequirementProgress extends Equatable {
   final int requirementNumber;
   final String text;
   final bool completed;
+  final bool hasSubItems;
   final String? notes;
   final DateTime? completedAt;
 
@@ -17,6 +18,7 @@ class UserHonorRequirementProgress extends Equatable {
     required this.requirementNumber,
     required this.text,
     this.completed = false,
+    this.hasSubItems = false,
     this.notes,
     this.completedAt,
   });
@@ -26,6 +28,7 @@ class UserHonorRequirementProgress extends Equatable {
     int? requirementNumber,
     String? text,
     bool? completed,
+    bool? hasSubItems,
     String? notes,
     DateTime? completedAt,
   }) {
@@ -34,6 +37,7 @@ class UserHonorRequirementProgress extends Equatable {
       requirementNumber: requirementNumber ?? this.requirementNumber,
       text: text ?? this.text,
       completed: completed ?? this.completed,
+      hasSubItems: hasSubItems ?? this.hasSubItems,
       notes: notes ?? this.notes,
       completedAt: completedAt ?? this.completedAt,
     );
@@ -45,6 +49,7 @@ class UserHonorRequirementProgress extends Equatable {
         requirementNumber,
         text,
         completed,
+        hasSubItems,
         notes,
         completedAt,
       ];

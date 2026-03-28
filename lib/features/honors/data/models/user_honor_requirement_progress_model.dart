@@ -7,6 +7,7 @@ class UserHonorRequirementProgressModel extends Equatable {
   final int requirementNumber;
   final String text;
   final bool completed;
+  final bool hasSubItems;
   final String? notes;
   final DateTime? completedAt;
 
@@ -15,6 +16,7 @@ class UserHonorRequirementProgressModel extends Equatable {
     required this.requirementNumber,
     required this.text,
     this.completed = false,
+    this.hasSubItems = false,
     this.notes,
     this.completedAt,
   });
@@ -34,6 +36,7 @@ class UserHonorRequirementProgressModel extends Equatable {
       requirementNumber: json['requirement_number'] as int,
       text: (json['requirement_text'] ?? json['text']) as String,
       completed: (json['completed'] as bool?) ?? false,
+      hasSubItems: (json['has_sub_items'] as bool?) ?? false,
       notes: json['notes'] as String?,
       completedAt: completedAt,
     );
@@ -46,6 +49,7 @@ class UserHonorRequirementProgressModel extends Equatable {
       'requirement_number': requirementNumber,
       'requirement_text': text,
       'completed': completed,
+      'has_sub_items': hasSubItems,
       'notes': notes,
       'completed_at': completedAt?.toIso8601String(),
     };
@@ -57,6 +61,7 @@ class UserHonorRequirementProgressModel extends Equatable {
     int? requirementNumber,
     String? text,
     bool? completed,
+    bool? hasSubItems,
     String? notes,
     DateTime? completedAt,
   }) {
@@ -65,6 +70,7 @@ class UserHonorRequirementProgressModel extends Equatable {
       requirementNumber: requirementNumber ?? this.requirementNumber,
       text: text ?? this.text,
       completed: completed ?? this.completed,
+      hasSubItems: hasSubItems ?? this.hasSubItems,
       notes: notes ?? this.notes,
       completedAt: completedAt ?? this.completedAt,
     );
@@ -77,6 +83,7 @@ class UserHonorRequirementProgressModel extends Equatable {
       requirementNumber: requirementNumber,
       text: text,
       completed: completed,
+      hasSubItems: hasSubItems,
       notes: notes,
       completedAt: completedAt,
     );
@@ -88,6 +95,7 @@ class UserHonorRequirementProgressModel extends Equatable {
         requirementNumber,
         text,
         completed,
+        hasSubItems,
         notes,
         completedAt,
       ];

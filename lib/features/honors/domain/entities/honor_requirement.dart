@@ -21,6 +21,24 @@ class HonorRequirement extends Equatable {
     this.needsReview = true,
   });
 
+  HonorRequirement copyWith({
+    int? id,
+    int? honorId,
+    int? requirementNumber,
+    String? text,
+    bool? hasSubItems,
+    bool? needsReview,
+  }) {
+    return HonorRequirement(
+      id: id ?? this.id,
+      honorId: honorId ?? this.honorId,
+      requirementNumber: requirementNumber ?? this.requirementNumber,
+      text: text ?? this.text,
+      hasSubItems: hasSubItems ?? this.hasSubItems,
+      needsReview: needsReview ?? this.needsReview,
+    );
+  }
+
   @override
   List<Object?> get props => [
         id,
