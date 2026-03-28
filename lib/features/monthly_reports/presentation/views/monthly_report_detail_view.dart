@@ -3,12 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/app_logger.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/entities/monthly_report.dart';
 import '../providers/monthly_reports_providers.dart';
+
+const _tag = 'MonthlyReportDetailView';
 
 /// Vista de detalle de un informe mensual.
 class MonthlyReportDetailView extends ConsumerWidget {
@@ -62,6 +65,14 @@ class MonthlyReportDetailView extends ConsumerWidget {
 }
 
 // ── PDF Button ────────────────────────────────────────────────────────────────
+
+// NOTE: The PDF call is intentionally separate from the detail call.
+// The backend endpoint (GET /monthly-reports/:reportId/pdf) generates the PDF
+// on demand and streams raw application/pdf bytes — it does not return a signed
+// URL or a JSON payload. There is no pdfUrl field in the detail response.
+// monthlyReportPdfUrlProvider constructs the authenticated URL that is passed
+// to url_launcher so the OS can open or download the PDF. The provider is only
+// invoked on user interaction (tap), never at page load.
 
 class _PdfButton extends ConsumerWidget {
   final int reportId;
@@ -159,7 +170,9 @@ class _ReportDetail extends ConsumerWidget {
                 await launchUrl(uri,
                     mode: LaunchMode.externalApplication);
               }
-            } catch (_) {}
+            } catch (e) {
+              AppLogger.w('Error al abrir PDF del informe mensual', tag: _tag, error: e);
+            }
           },
         ),
         const SizedBox(height: 40),

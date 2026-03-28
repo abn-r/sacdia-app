@@ -8,13 +8,15 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../validation/domain/entities/validation.dart';
 import '../../../validation/presentation/providers/validation_providers.dart';
 import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor.dart';
-import '../../domain/usecases/get_honors.dart';
 import '../providers/honors_providers.dart';
 
 /// Evidence & progress screen for an enrolled honor.
@@ -44,44 +46,63 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
   static const int _maxFiles = 10;
   static const int _maxFileSizeBytes = 10 * 1024 * 1024; // 10 MB
 
+  bool _isUploading = false;
+
   @override
   Widget build(BuildContext context) {
-    final userHonorAsync =
-        ref.watch(userHonorForHonorProvider(widget.honorId));
-    final honorsAsync = ref.watch(honorsProvider(const GetHonorsParams()));
+    final userHonor = ref.watch(userHonorForHonorProvider(widget.honorId));
+    final userHonorsAsync = ref.watch(userHonorsProvider);
+    final honorsAsync = ref.watch(allHonorsProvider);
 
-    return userHonorAsync.when(
-      data: (userHonor) {
-        if (userHonor == null) {
-          return const Scaffold(
-            body: Center(child: Text('Honor no encontrado')),
-          );
+    // Show loading while userHonorsProvider is still fetching
+    if (userHonorsAsync.isLoading) {
+      return const Scaffold(body: Center(child: SacLoading()));
+    }
+
+    // Surface any hard error from userHonorsProvider
+    if (userHonorsAsync.hasError) {
+      return Scaffold(
+        appBar: AppBar(backgroundColor: AppColors.sacRed),
+        body: const Center(child: Text('Error al cargar')),
+      );
+    }
+
+    if (userHonor == null) {
+      return const Scaffold(
+        body: Center(child: Text('Honor no encontrado')),
+      );
+    }
+
+    // Find the honor catalog entry for metadata (name, image, materialUrl)
+    final honor = honorsAsync.maybeWhen(
+      data: (honors) {
+        try {
+          return honors.firstWhere((h) => h.id == widget.honorId);
+        } catch (_) {
+          return null;
         }
+      },
+      orElse: () => null,
+    );
 
-        // Find the honor catalog entry for metadata (name, image, materialUrl)
-        final honor = honorsAsync.maybeWhen(
-          data: (honors) {
-            try {
-              return honors.firstWhere((h) => h.id == widget.honorId);
-            } catch (_) {
-              return null;
-            }
-          },
-          orElse: () => null,
-        );
-
-        return _EvidenceBody(
+    return Stack(
+      children: [
+        _EvidenceBody(
           userHonor: userHonor,
           honor: honor,
           onSubmit: () => _submitForReview(userHonor),
           onAddEvidence: _showFilePickerOptions,
-        );
-      },
-      loading: () => const Scaffold(body: Center(child: SacLoading())),
-      error: (_, __) => Scaffold(
-        appBar: AppBar(backgroundColor: AppColors.sacRed),
-        body: const Center(child: Text('Error al cargar')),
-      ),
+          onDeleteEvidence: (imageUrl) =>
+              _deleteEvidenceFile(userHonor, imageUrl),
+          onViewEvidence: (imageUrl) =>
+              _openEvidenceFile(imageUrl),
+        ),
+        if (_isUploading)
+          Container(
+            color: Colors.black.withAlpha(90),
+            child: const Center(child: SacLoading()),
+          ),
+      ],
     );
   }
 
@@ -92,10 +113,11 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
         );
 
     if (success && mounted) {
-      // Refresh user honors to reflect new status
+      // Refresh user honors to reflect new status.
+      // userHonorStatsLocalProvider recomputes automatically when
+      // userHonorsProvider is invalidated — no explicit invalidation needed.
       ref.invalidate(userHonorsProvider);
       ref.invalidate(userHonorForHonorProvider(widget.honorId));
-      ref.invalidate(userHonorStatsProvider);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -167,8 +189,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
   }
 
   Future<void> _pickFromCamera() async {
-    final userHonor =
-        ref.read(userHonorForHonorProvider(widget.honorId)).valueOrNull;
+    final userHonor = ref.read(userHonorForHonorProvider(widget.honorId));
     if (userHonor != null && userHonor.evidenceCount >= _maxFiles) return;
 
     final picker = ImagePicker();
@@ -184,8 +205,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
   }
 
   Future<void> _pickFromGallery() async {
-    final userHonor =
-        ref.read(userHonorForHonorProvider(widget.honorId)).valueOrNull;
+    final userHonor = ref.read(userHonorForHonorProvider(widget.honorId));
     if (userHonor != null && userHonor.evidenceCount >= _maxFiles) return;
 
     final picker = ImagePicker();
@@ -200,8 +220,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
   }
 
   Future<void> _pickPdf() async {
-    final userHonor =
-        ref.read(userHonorForHonorProvider(widget.honorId)).valueOrNull;
+    final userHonor = ref.read(userHonorForHonorProvider(widget.honorId));
     if (userHonor != null && userHonor.evidenceCount >= _maxFiles) return;
 
     final result = await FilePicker.platform.pickFiles(
@@ -232,13 +251,124 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
       return;
     }
 
-    // TODO: Upload file via HonorsService.updateUserHonor()
-    // Connect to existing file upload infrastructure using
-    // StorageBucketAlias.EVIDENCE_FILES and the backend
-    // PATCH /users/:userId/honors/:honorId endpoint.
-    // After upload, invalidate providers to refresh evidence list:
-    //   ref.invalidate(userHonorsProvider);
-    //   ref.invalidate(userHonorForHonorProvider(widget.honorId));
+    final userId = ref.read(authNotifierProvider).value?.id;
+    if (userId == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No hay sesión activa'),
+            backgroundColor: AppColors.sacRed,
+          ),
+        );
+      }
+      return;
+    }
+
+    setState(() => _isUploading = true);
+
+    try {
+      final dataSource = ref.read(honorsRemoteDataSourceProvider);
+      await dataSource.uploadHonorFile(
+        userId: userId,
+        honorId: widget.userHonorId,
+        file: file,
+        fileName: fileName,
+      );
+
+      ref.invalidate(userHonorsProvider);
+      ref.invalidate(userHonorForHonorProvider(widget.honorId));
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Evidencia subida correctamente'),
+            backgroundColor: AppColors.sacGreen,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al subir $fileName'),
+            backgroundColor: AppColors.sacRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUploading = false);
+    }
+  }
+
+  Future<void> _deleteEvidenceFile(
+      UserHonor userHonor, String imageUrl) async {
+    final userId = ref.read(authNotifierProvider).value?.id;
+    if (userId == null) return;
+
+    setState(() => _isUploading = true);
+
+    try {
+      final updatedImages =
+          userHonor.images.where((url) => url != imageUrl).toList();
+
+      final dataSource = ref.read(honorsRemoteDataSourceProvider);
+      await dataSource.updateUserHonor(
+        userId,
+        userHonor.honorId,
+        {'images': updatedImages},
+      );
+
+      ref.invalidate(userHonorsProvider);
+      ref.invalidate(userHonorForHonorProvider(widget.honorId));
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Evidencia eliminada'),
+            backgroundColor: AppColors.sacGreen,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error al eliminar evidencia'),
+            backgroundColor: AppColors.sacRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUploading = false);
+    }
+  }
+
+  void _openEvidenceFile(String url) {
+    final lower = url.toLowerCase();
+    final isPdf =
+        lower.endsWith('.pdf') || lower.contains('/pdf');
+    if (isPdf) {
+      _launchUrl(url);
+    } else {
+      SacImageViewer.show(context, imageUrl: url);
+    }
+  }
+
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return;
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No se pudo abrir el archivo'),
+            backgroundColor: AppColors.sacRed,
+          ),
+        );
+      }
+    }
   }
 }
 
@@ -249,12 +379,16 @@ class _EvidenceBody extends StatelessWidget {
   final Honor? honor;
   final VoidCallback onSubmit;
   final VoidCallback onAddEvidence;
+  final void Function(String imageUrl) onDeleteEvidence;
+  final void Function(String url) onViewEvidence;
 
   const _EvidenceBody({
     required this.userHonor,
     this.honor,
     required this.onSubmit,
     required this.onAddEvidence,
+    required this.onDeleteEvidence,
+    required this.onViewEvidence,
   });
 
   Color get _headerColor => userHonor.statusColor;
@@ -377,7 +511,10 @@ class _EvidenceBody extends StatelessWidget {
                   // Material download (only when URL available)
                   if (honor?.materialUrl != null &&
                       honor!.materialUrl!.isNotEmpty) ...[
-                    _MaterialCard(materialUrl: honor!.materialUrl!),
+                    _MaterialCard(
+                      materialUrl: honor!.materialUrl!,
+                      onOpen: onViewEvidence,
+                    ),
                     const SizedBox(height: 20),
                   ],
 
@@ -385,6 +522,8 @@ class _EvidenceBody extends StatelessWidget {
                   _EvidenceSection(
                     userHonor: userHonor,
                     onAddEvidence: onAddEvidence,
+                    onDeleteEvidence: onDeleteEvidence,
+                    onViewEvidence: onViewEvidence,
                   ),
                   const SizedBox(height: 24),
 
@@ -482,19 +621,17 @@ class _StatusMessageCard extends StatelessWidget {
 
 class _MaterialCard extends StatelessWidget {
   final String materialUrl;
+  final void Function(String url) onOpen;
 
-  const _MaterialCard({required this.materialUrl});
+  const _MaterialCard({
+    required this.materialUrl,
+    required this.onOpen,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () async {
-        // TODO: Open with url_launcher
-        // final uri = Uri.tryParse(materialUrl);
-        // if (uri != null) {
-        //   await launchUrl(uri, mode: LaunchMode.externalApplication);
-        // }
-      },
+      onTap: () => onOpen(materialUrl),
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
@@ -557,10 +694,14 @@ class _MaterialCard extends StatelessWidget {
 class _EvidenceSection extends StatelessWidget {
   final UserHonor userHonor;
   final VoidCallback onAddEvidence;
+  final void Function(String imageUrl) onDeleteEvidence;
+  final void Function(String url) onViewEvidence;
 
   const _EvidenceSection({
     required this.userHonor,
     required this.onAddEvidence,
+    required this.onDeleteEvidence,
+    required this.onViewEvidence,
   });
 
   @override
@@ -618,12 +759,8 @@ class _EvidenceSection extends StatelessWidget {
             return _EvidenceThumbnail(
               imageUrl: imageUrl,
               canDelete: canEdit,
-              onDelete: () {
-                // TODO: Implement delete with confirmation dialog
-              },
-              onTap: () {
-                // TODO: Open fullscreen viewer (SacImageViewer for images)
-              },
+              onDelete: () => onDeleteEvidence(imageUrl),
+              onTap: () => onViewEvidence(imageUrl),
             );
           },
         ),

@@ -105,8 +105,12 @@ final honorsByCategoryProvider =
 /// keepAlive: el provider se mantiene vivo mientras el árbol esté montado,
 /// evitando re-fetches al cambiar de tab y eliminando el retry loop 429.
 final userHonorsProvider = FutureProvider<List<UserHonor>>((ref) async {
-  final authState = ref.watch(authNotifierProvider);
-  final userId = authState.value?.id;
+  // Fix 1: use selectAsync to avoid watching the full auth state object.
+  // This provider only rebuilds when the userId itself changes, not on every
+  // auth state field update.
+  final userId = await ref.watch(
+    authNotifierProvider.selectAsync((user) => user?.id),
+  );
 
   if (userId == null) {
     throw Exception('Usuario no autenticado');
@@ -121,11 +125,40 @@ final userHonorsProvider = FutureProvider<List<UserHonor>>((ref) async {
   );
 });
 
-/// Provider para estadísticas de especialidades del usuario
+/// Provider para estadísticas de especialidades del usuario derivadas localmente.
+///
+/// Computes stats synchronously from [userHonorsProvider] — no extra API call.
+/// Returns an [AsyncValue<Map<String, dynamic>>] with the same shape used
+/// across the app:
+///   - 'total'       : total user honors
+///   - 'validated'   : count with validationStatus == 'APPROVED'
+///   - 'completed'   : alias for 'validated' (used by my_honors_view)
+///   - 'in_progress' : count not yet APPROVED
+final userHonorStatsLocalProvider =
+    Provider<AsyncValue<Map<String, dynamic>>>((ref) {
+  final userHonorsAsync = ref.watch(userHonorsProvider);
+
+  return userHonorsAsync.whenData((honors) {
+    final total = honors.length;
+    final validated = honors.where((h) => h.isCompleted).length;
+    final inProgress = total - validated;
+
+    return {
+      'total': total,
+      'validated': validated,
+      'completed': validated,
+      'in_progress': inProgress,
+    };
+  });
+});
+
+/// Provider para estadísticas de especialidades del usuario (API call)
 final userHonorStatsProvider =
-    FutureProvider<Map<String, dynamic>>((ref) async {
-  final authState = ref.watch(authNotifierProvider);
-  final userId = authState.value?.id;
+    FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
+  // Fix 1: use selectAsync — rebuilds only when userId changes.
+  final userId = await ref.watch(
+    authNotifierProvider.selectAsync((user) => user?.id),
+  );
 
   if (userId == null) {
     throw Exception('Usuario no autenticado');
@@ -246,21 +279,18 @@ final honorRegistrationNotifierProvider =
   return HonorRegistrationNotifier();
 });
 
-/// Provider para verificar si el usuario ya tiene registrada una especialidad
+/// Provider para verificar si el usuario ya tiene registrada una especialidad.
+///
+/// Plain [Provider] — synchronous derivation of [userHonorsProvider].
+/// Returns null while [userHonorsProvider] is still loading (no enrollment
+/// data yet), which is the correct default: show the "not enrolled" state
+/// until the list resolves. Consumers that need to distinguish "loading" from
+/// "not enrolled" should also watch [userHonorsProvider] directly.
 final userHonorForHonorProvider =
-    FutureProvider.autoDispose.family<UserHonor?, int>((ref, honorId) async {
-  final userHonorsAsync = ref.watch(userHonorsProvider);
-  return userHonorsAsync.when(
-    data: (honors) {
-      try {
-        return honors.firstWhere((h) => h.honorId == honorId);
-      } catch (_) {
-        return null;
-      }
-    },
-    loading: () => null,
-    error: (_, __) => null,
-  );
+    Provider.autoDispose.family<UserHonor?, int>((ref, honorId) {
+  return ref.watch(userHonorsProvider).valueOrNull
+      ?.where((h) => h.honorId == honorId)
+      .firstOrNull;
 });
 
 // ── Search & filter providers ─────────────────────────────────────────────
@@ -271,26 +301,51 @@ final searchQueryProvider = StateProvider.autoDispose<String>((ref) => '');
 /// Currently selected category ID for catalog filtering. null = "Todas".
 final selectedCategoryProvider = StateProvider.autoDispose<int?>((ref) => null);
 
-/// All honors filtered by search query and selected category.
-/// Used by the redesigned honors_catalog_view.
-final filteredHonorsProvider =
-    FutureProvider.autoDispose<List<Honor>>((ref) async {
-  final query = ref.watch(searchQueryProvider).toLowerCase();
-  final categoryId = ref.watch(selectedCategoryProvider);
-
-  // Fetch all honors (no filter params = get all)
+/// Fix 2: fetches ALL honors ONCE from the network and caches the result.
+/// Category filtering and text search are done locally in [filteredHonorsProvider].
+/// Consumers that need a network refresh should invalidate this provider directly.
+///
+/// Not autoDispose so it survives tab switches in the catalog without re-fetching.
+final allHonorsProvider = FutureProvider<List<Honor>>((ref) async {
   final getHonors = ref.read(getHonorsProvider);
-  final result = await getHonors(GetHonorsParams(categoryId: categoryId));
+  final result = await getHonors(const GetHonorsParams());
 
   return result.fold(
     (failure) => throw Exception(failure.message),
-    (honors) {
-      if (query.length < 2) return honors;
-      return honors
-          .where((h) => h.name.toLowerCase().contains(query))
-          .toList();
-    },
+    (honors) => honors,
   );
+});
+
+/// All honors filtered by search query and selected category.
+/// Used by the redesigned honors_catalog_view.
+///
+/// Fix 2: now a [Provider] (synchronous) that derives from [allHonorsProvider].
+/// Filter/search changes no longer trigger network requests — they filter the
+/// already-fetched list locally. The return type is [AsyncValue<List<Honor>>]
+/// so existing consumers that call `.when(data:, loading:, error:)` on the
+/// result of `ref.watch(filteredHonorsProvider)` continue to work unchanged.
+///
+/// NOTE: `ref.invalidate(filteredHonorsProvider)` in the catalog view resets
+/// only the local filter computation. To also refetch from the network, also
+/// call `ref.invalidate(allHonorsProvider)`.
+final filteredHonorsProvider =
+    Provider.autoDispose<AsyncValue<List<Honor>>>((ref) {
+  final query = ref.watch(searchQueryProvider).toLowerCase();
+  final categoryId = ref.watch(selectedCategoryProvider);
+  final allHonorsAsync = ref.watch(allHonorsProvider);
+
+  return allHonorsAsync.whenData((honors) {
+    // Category filter
+    final byCategory = categoryId == null
+        ? honors
+        : honors.where((h) => h.categoryId == categoryId).toList();
+
+    // Text search — only applied when query is at least 2 chars
+    if (query.length < 2) return byCategory;
+    return byCategory
+        .where((h) => h.name.toLowerCase().contains(query))
+        .toList();
+  });
 });
 
 /// Combines catalog honors with user honors to determine display status.
@@ -298,15 +353,28 @@ final filteredHonorsProvider =
 final honorsWithStatusProvider =
     FutureProvider.autoDispose<List<({Honor honor, UserHonor? userHonor})>>(
         (ref) async {
-  final honorsAsync = await ref.watch(filteredHonorsProvider.future);
-  final userHonorsAsync = ref.watch(userHonorsProvider);
+  // filteredHonorsProvider is a Provider<AsyncValue<List<Honor>>>, a
+  // synchronous derivation of allHonorsProvider. We await allHonorsProvider
+  // first so this FutureProvider stays in loading state while the network
+  // request is in flight, then apply the in-memory filter from
+  // filteredHonorsProvider (which is already computed at this point).
+  await ref.watch(allHonorsProvider.future);
 
-  final userHonors = userHonorsAsync.maybeWhen(
+  // At this point allHonorsProvider has resolved, so filteredHonorsProvider
+  // is guaranteed to hold AsyncValue.data. If it somehow carries an error
+  // (shouldn't happen, but defensive), re-throw it.
+  final filteredAsync = ref.watch(filteredHonorsProvider);
+  final honors = filteredAsync.when(
     data: (list) => list,
-    orElse: () => <UserHonor>[],
+    loading: () => <Honor>[],       // unreachable after awaiting allHonors
+    error: (err, st) => throw err,
   );
 
-  return honorsAsync.map((honor) {
+  // Fix 3: await the future so we never flash an empty list while
+  // userHonorsProvider is still loading.
+  final userHonors = await ref.watch(userHonorsProvider.future);
+
+  return honors.map((honor) {
     final uh = userHonors.cast<UserHonor?>().firstWhere(
           (u) => u!.honorId == honor.id,
           orElse: () => null,

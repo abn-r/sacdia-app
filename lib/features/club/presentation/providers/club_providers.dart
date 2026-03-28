@@ -82,8 +82,12 @@ final canEditClubProvider = FutureProvider.autoDispose<bool>((ref) async {
 
 /// Carga la sección de club del usuario actual.
 /// Depende de [clubContextProvider] del módulo de miembros (fuente de verdad del contexto).
+///
+/// Sin autoDispose: se mantiene vivo durante toda la sesión igual que
+/// [clubContextProvider], evitando re-fetches redundantes entre listeners
+/// (_EvidenceFolderShell, ClubDetailView, etc.).
 final currentClubSectionProvider =
-    FutureProvider.autoDispose<ClubSection?>((ref) async {
+    FutureProvider<ClubSection?>((ref) async {
   final context = await ref.watch(clubContextProvider.future);
   if (context == null) return null;
 

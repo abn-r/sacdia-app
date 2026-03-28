@@ -45,9 +45,29 @@ final camporeesProvider =
 /// Provider para el detalle de un camporee específico.
 ///
 /// Family por [camporeeId].
+///
+/// Cache-first: antes de ir al network, verifica si el camporee ya está
+/// cargado en [camporeesProvider] (lista activa). El modelo de lista y el
+/// de detalle tienen el mismo esquema, por lo que reutilizar el objeto
+/// evita una llamada de red redundante al navegar desde la lista.
+/// Si el camporee no está en caché (p.ej. navegación por deep link),
+/// se realiza la llamada al endpoint de detalle normalmente.
 final camporeeDetailProvider =
     FutureProvider.autoDispose.family<Camporee, int>(
         (ref, camporeeId) async {
+  // Check the already-loaded list first to avoid a redundant network call.
+  final cachedList = ref.read(camporeesProvider).valueOrNull;
+  if (cachedList != null) {
+    Camporee? cached;
+    for (final c in cachedList) {
+      if (c.camporeeId == camporeeId) {
+        cached = c;
+        break;
+      }
+    }
+    if (cached != null) return cached;
+  }
+
   final repository = ref.read(camporeesRepositoryProvider);
   final result = await repository.getCamporeeDetail(camporeeId);
 

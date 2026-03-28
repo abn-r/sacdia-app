@@ -39,6 +39,12 @@ import 'package:sacdia_app/features/annual_folders/presentation/views/annual_fol
 import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_reports_list_view.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_report_detail_view.dart';
 import 'package:sacdia_app/features/role_assignments/presentation/views/role_assignments_view.dart';
+import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_hub_view.dart';
+import 'package:sacdia_app/features/coordinator/presentation/views/sla_dashboard_view.dart';
+import 'package:sacdia_app/features/coordinator/presentation/views/evidence_review_list_view.dart';
+import 'package:sacdia_app/features/coordinator/presentation/views/evidence_review_detail_view.dart';
+import 'package:sacdia_app/features/coordinator/presentation/views/camporee_approvals_view.dart';
+import 'package:sacdia_app/features/coordinator/domain/entities/evidence_review_item.dart';
 
 import '../../features/auth/domain/entities/authorization_snapshot.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
@@ -753,6 +759,61 @@ final routerProvider = Provider<GoRouter>((ref) {
           context,
           state,
           const RoleAssignmentsView(),
+        ),
+      ),
+
+      // Coordinador: hub principal
+      GoRoute(
+        path: RouteNames.coordinator,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          const CoordinatorHubView(),
+        ),
+      ),
+
+      // Coordinador: dashboard SLA operativo
+      GoRoute(
+        path: RouteNames.coordinatorSla,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          const SLADashboardView(),
+        ),
+      ),
+
+      // Coordinador: lista de evidencias pendientes
+      GoRoute(
+        path: RouteNames.coordinatorEvidenceReview,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          const EvidenceReviewListView(),
+        ),
+      ),
+
+      // Coordinador: detalle de evidencia
+      GoRoute(
+        path: RouteNames.coordinatorEvidenceReviewDetailRoute,
+        pageBuilder: (context, state) {
+          final typeStr = state.pathParameters['type'] ?? 'folder';
+          final id = state.pathParameters['id'] ?? '';
+          final type = EvidenceReviewType.fromString(typeStr);
+          return _sharedAxisBuild(
+            context,
+            state,
+            EvidenceReviewDetailView(type: type, id: id),
+          );
+        },
+      ),
+
+      // Coordinador: aprobaciones de camporees
+      GoRoute(
+        path: RouteNames.coordinatorCamporeeApprovals,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          const CamporeeApprovalsView(),
         ),
       ),
 

@@ -12,7 +12,6 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/honor.dart';
-import '../../domain/usecases/get_honors.dart';
 import '../providers/honors_providers.dart';
 import '../../domain/entities/user_honor.dart';
 
@@ -69,19 +68,24 @@ class HonorDetailView extends ConsumerWidget {
       return _HonorDetailContent(honor: initialHonor!, honorId: honorId);
     }
 
-    final honorAsync = ref.watch(honorsProvider(const GetHonorsParams()));
+    // Fallback: look up the honor from the already-cached allHonorsProvider.
+    // This avoids issuing GET /honors when navigating from outside the catalog
+    // (e.g. deep link, push notification) — the full list may not be in memory yet
+    // in those cases, so we fall through to allHonorsProvider which fetches once
+    // and is keepAlive.
+    final honorAsync = ref.watch(allHonorsProvider);
     return honorAsync.when(
       data: (honors) {
         try {
           final honor = honors.firstWhere((h) => h.id == honorId);
           return _HonorDetailContent(honor: honor, honorId: honorId);
         } catch (_) {
-          return _ErrorScaffold(onRetry: () => ref.invalidate(honorsProvider));
+          return _ErrorScaffold(onRetry: () => ref.invalidate(allHonorsProvider));
         }
       },
       loading: () => const _LoadingScaffold(),
       error: (_, __) =>
-          _ErrorScaffold(onRetry: () => ref.invalidate(honorsProvider)),
+          _ErrorScaffold(onRetry: () => ref.invalidate(allHonorsProvider)),
     );
   }
 }
@@ -175,7 +179,8 @@ class _HonorDetailContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userHonorAsync = ref.watch(userHonorForHonorProvider(honorId));
+    final userHonor = ref.watch(userHonorForHonorProvider(honorId));
+    final userHonorsLoading = ref.watch(userHonorsProvider).isLoading;
     final enrollAsync = ref.watch(honorEnrollmentNotifierProvider);
     final categoriesAsync = ref.watch(honorCategoriesProvider);
 
@@ -234,44 +239,39 @@ class _HonorDetailContent extends ConsumerWidget {
                   const SizedBox(height: 28),
 
                   // CTA button — reactive to enrollment state
-                  userHonorAsync.when(
-                    data: (userHonor) {
-                      if (userHonor != null) {
-                        // Already enrolled — show requisitos section + evidence CTA
-                        return _EnrolledSection(
-                          userHonor: userHonor,
-                          honor: honor,
-                        );
-                      }
-
-                      return enrollAsync.when(
-                        data: (enrolled) {
-                          if (enrolled != null) {
-                            // Just enrolled this session — navigate back
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (context.mounted) {
-                                ref.invalidate(userHonorsProvider);
-                                ref.invalidate(
-                                    userHonorForHonorProvider(honorId));
-                                context.pop();
-                              }
-                            });
-                            return const SizedBox.shrink();
-                          }
-                          return _EnrollCta(
-                            honorId: honorId,
-                          );
-                        },
-                        loading: () => _EnrollCtaLoading(),
-                        error: (err, _) => _EnrollCtaError(
-                          message: err.toString(),
+                  if (userHonorsLoading)
+                    _EnrollCtaLoading()
+                  else if (userHonor != null)
+                    // Already enrolled — show requisitos section + evidence CTA
+                    _EnrolledSection(
+                      userHonor: userHonor,
+                      honor: honor,
+                    )
+                  else
+                    enrollAsync.when(
+                      data: (enrolled) {
+                        if (enrolled != null) {
+                          // Just enrolled this session — navigate back
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (context.mounted) {
+                              ref.invalidate(userHonorsProvider);
+                              ref.invalidate(
+                                  userHonorForHonorProvider(honorId));
+                              context.pop();
+                            }
+                          });
+                          return const SizedBox.shrink();
+                        }
+                        return _EnrollCta(
                           honorId: honorId,
-                        ),
-                      );
-                    },
-                    loading: () => _EnrollCtaLoading(),
-                    error: (_, __) => _EnrollCta(honorId: honorId),
-                  ),
+                        );
+                      },
+                      loading: () => _EnrollCtaLoading(),
+                      error: (err, _) => _EnrollCtaError(
+                        message: err.toString(),
+                        honorId: honorId,
+                      ),
+                    ),
                 ],
               ),
             ),

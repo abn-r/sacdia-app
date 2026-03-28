@@ -8,7 +8,6 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor.dart';
-import '../../domain/usecases/get_honors.dart';
 import '../providers/honors_providers.dart';
 
 // ── Label helpers ─────────────────────────────────────────────────────────────
@@ -45,38 +44,43 @@ class HonorCompletionView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userHonorAsync = ref.watch(userHonorForHonorProvider(honorId));
-    final honorsAsync = ref.watch(honorsProvider(const GetHonorsParams()));
+    final userHonor = ref.watch(userHonorForHonorProvider(honorId));
+    final userHonorsAsync = ref.watch(userHonorsProvider);
+    final honorsAsync = ref.watch(allHonorsProvider);
 
-    return userHonorAsync.when(
-      data: (userHonor) {
-        if (userHonor == null) {
-          return const _ErrorScaffold(
-            message: 'Especialidad no encontrada',
-          );
-        }
-
-        final honor = honorsAsync.maybeWhen(
-          data: (honors) {
-            try {
-              return honors.firstWhere((h) => h.id == honorId);
-            } catch (_) {
-              return null;
-            }
-          },
-          orElse: () => null,
-        );
-
-        return _CompletionBody(userHonor: userHonor, honor: honor);
-      },
-      loading: () => const Scaffold(
+    // Show loading while userHonorsProvider is still fetching
+    if (userHonorsAsync.isLoading) {
+      return const Scaffold(
         backgroundColor: Colors.white,
         body: Center(child: SacLoading()),
-      ),
-      error: (_, __) => const _ErrorScaffold(
+      );
+    }
+
+    // Surface any hard error from userHonorsProvider
+    if (userHonorsAsync.hasError) {
+      return const _ErrorScaffold(
         message: 'Error al cargar la especialidad',
-      ),
+      );
+    }
+
+    if (userHonor == null) {
+      return const _ErrorScaffold(
+        message: 'Especialidad no encontrada',
+      );
+    }
+
+    final honor = honorsAsync.maybeWhen(
+      data: (honors) {
+        try {
+          return honors.firstWhere((h) => h.id == honorId);
+        } catch (_) {
+          return null;
+        }
+      },
+      orElse: () => null,
     );
+
+    return _CompletionBody(userHonor: userHonor, honor: honor);
   }
 }
 

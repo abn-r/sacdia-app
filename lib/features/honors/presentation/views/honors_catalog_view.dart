@@ -50,7 +50,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
     final categoriesAsync = ref.watch(honorCategoriesProvider);
     final selectedCategory = ref.watch(selectedCategoryProvider);
     final honorsWithStatus = ref.watch(honorsWithStatusProvider);
-    final statsAsync = ref.watch(userHonorStatsProvider);
+    final statsAsync = ref.watch(userHonorStatsLocalProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -286,9 +286,11 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
     return RefreshIndicator(
       color: AppColors.sacBlue,
       onRefresh: () async {
+        ref.invalidate(allHonorsProvider);
         ref.invalidate(filteredHonorsProvider);
         ref.invalidate(userHonorsProvider);
-        ref.invalidate(userHonorStatsProvider);
+        // userHonorStatsLocalProvider recomputes automatically when
+        // userHonorsProvider is invalidated — no explicit invalidation needed.
       },
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -308,9 +310,12 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                   ),
                 );
               } else {
-                // Not enrolled: show detail for enroll CTA
+                // Not enrolled: show detail for enroll CTA.
+                // Pass the already-loaded Honor as extra so HonorDetailView
+                // does not re-fetch the full catalog to find it.
                 context.push(
                   RouteNames.honorDetailPath(item.honor.id.toString()),
+                  extra: item.honor,
                 );
               }
             },
@@ -338,6 +343,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
           const SizedBox(height: 24),
           FilledButton.icon(
             onPressed: () {
+              ref.invalidate(allHonorsProvider);
               ref.invalidate(filteredHonorsProvider);
               ref.invalidate(userHonorsProvider);
             },

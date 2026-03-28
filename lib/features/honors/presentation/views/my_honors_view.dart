@@ -32,7 +32,7 @@ class MyHonorsView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userHonorsAsync = ref.watch(userHonorsProvider);
-    final statsAsync = ref.watch(userHonorStatsProvider);
+    final statsAsync = ref.watch(userHonorStatsLocalProvider);
     final hPad = Responsive.horizontalPadding(context);
 
     return DefaultTabController(
@@ -272,7 +272,8 @@ class MyHonorsView extends ConsumerWidget {
       color: AppColors.primary,
       onRefresh: () async {
         ref.invalidate(userHonorsProvider);
-        ref.invalidate(userHonorStatsProvider);
+        // userHonorStatsLocalProvider recomputes automatically when
+        // userHonorsProvider is invalidated — no explicit invalidation needed.
       },
       child: ListView.builder(
         padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 24),

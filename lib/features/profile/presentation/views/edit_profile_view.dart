@@ -208,7 +208,8 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
   }
 
   Future<void> _saveProfile() async {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
     if (!_validatePersonalInfo()) return;
 
     setState(() => _isLoading = true);
@@ -255,6 +256,10 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
     if (basicSuccess && personalSuccess) {
       ref.invalidate(profileNotifierProvider);
+      // Invalidate auth state so any widget reading authNotifierProvider
+      // (navbars, dashboard greetings, etc.) reflects the updated name/avatar
+      // without waiting for the next /auth/me call on app restart.
+      ref.invalidate(authNotifierProvider);
       _showSnackbar(
         'Perfil actualizado correctamente',
         AppColors.secondary,

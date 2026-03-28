@@ -41,6 +41,18 @@ final myTransferRequestsProvider =
 final transferRequestDetailProvider =
     FutureProvider.autoDispose.family<TransferRequest, int>(
   (ref, requestId) async {
+    // Cache-first: if the list is already loaded, reuse the matching item
+    // instead of making a redundant network call. The list endpoint returns
+    // all fields that TransferRequestDetailView needs (toSectionName,
+    // toClubName, reason, reviewerComment, createdAt, status).
+    final cached = ref
+        .read(myTransferRequestsProvider)
+        .valueOrNull
+        ?.where((t) => t.id == requestId)
+        .firstOrNull;
+    if (cached != null) return cached;
+
+    // Fallback: list not loaded yet or item not found (e.g. deep-link entry).
     final repo = ref.read(transferRepositoryProvider);
     final result = await repo.getTransferRequest(requestId);
     return result.fold(
