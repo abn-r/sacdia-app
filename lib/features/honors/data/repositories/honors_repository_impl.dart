@@ -7,6 +7,7 @@ import '../../domain/entities/honor_category.dart';
 import '../../domain/entities/honor_group.dart';
 import '../../domain/entities/honor_requirement.dart';
 import '../../domain/entities/user_honor.dart';
+import '../../domain/entities/user_honor_requirement_progress.dart';
 import '../../domain/repositories/honors_repository.dart';
 import '../../domain/usecases/register_user_honor.dart';
 import '../datasources/honors_remote_data_source.dart';
@@ -242,16 +243,16 @@ class HonorsRepositoryImpl implements HonorsRepository {
   }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> getUserHonorProgress(
-      String userId, int honorId) async {
+  Future<Either<Failure, List<UserHonorRequirementProgress>>> getUserHonorProgress(
+      int honorId) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure(message: 'No hay conexión a internet'));
     }
 
     try {
-      final data =
-          await remoteDataSource.getUserHonorProgress(userId, honorId);
-      return Right(data);
+      final models = await remoteDataSource.getUserHonorProgress(honorId);
+      final entities = models.map((m) => m.toEntity()).toList();
+      return Right(entities);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on AuthException catch (e) {
@@ -262,8 +263,35 @@ class HonorsRepositoryImpl implements HonorsRepository {
   }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> bulkUpdateRequirementProgress(
-      String userId,
+  Future<Either<Failure, UserHonorRequirementProgress>> updateRequirementProgress({
+    required int honorId,
+    required int requirementId,
+    required bool completed,
+    String? notes,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
+    }
+
+    try {
+      final model = await remoteDataSource.updateRequirementProgress(
+        honorId: honorId,
+        requirementId: requirementId,
+        completed: completed,
+        notes: notes,
+      );
+      return Right(model.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<UserHonorRequirementProgress>>> bulkUpdateRequirementProgress(
       int honorId,
       List<Map<String, dynamic>> updates) async {
     if (!await networkInfo.isConnected) {
@@ -271,9 +299,10 @@ class HonorsRepositoryImpl implements HonorsRepository {
     }
 
     try {
-      final data = await remoteDataSource.bulkUpdateRequirementProgress(
-          userId, honorId, updates);
-      return Right(data);
+      final models = await remoteDataSource.bulkUpdateRequirementProgress(
+          honorId, updates);
+      final entities = models.map((m) => m.toEntity()).toList();
+      return Right(entities);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on AuthException catch (e) {

@@ -10,6 +10,7 @@ import '../models/honor_model.dart';
 import '../models/honor_category_model.dart';
 import '../models/honor_group_model.dart';
 import '../models/honor_requirement_model.dart';
+import '../models/user_honor_requirement_progress_model.dart';
 import '../models/user_honor_model.dart';
 
 /// Interfaz para la fuente de datos remota de especialidades
@@ -25,16 +26,26 @@ abstract class HonorsRemoteDataSource {
   Future<UserHonorModel> registerUserHonor(RegisterUserHonorParams params);
   Future<List<HonorGroupModel>> getHonorsGroupedByCategory();
 
-  /// Obtiene los requisitos del catálogo de una especialidad
+  /// Obtiene los requisitos del catálogo de una especialidad.
+  /// GET /honors/:honorId/requirements — público
   Future<List<HonorRequirementModel>> getHonorRequirements(int honorId);
 
-  /// Obtiene el progreso del usuario por requisito para una especialidad inscrita
-  Future<Map<String, dynamic>> getUserHonorProgress(
-      String userId, int honorId);
+  /// Obtiene el progreso del usuario por requisito para una especialidad inscrita.
+  /// GET /honors/:honorId/progress — userId deriva del JWT
+  Future<List<UserHonorRequirementProgressModel>> getUserHonorProgress(int honorId);
 
-  /// Actualiza el progreso de múltiples requisitos en una sola operación
-  Future<Map<String, dynamic>> bulkUpdateRequirementProgress(
-      String userId,
+  /// Actualiza el progreso de un requisito individual.
+  /// PATCH /honors/:honorId/progress/:requirementId
+  Future<UserHonorRequirementProgressModel> updateRequirementProgress({
+    required int honorId,
+    required int requirementId,
+    required bool completed,
+    String? notes,
+  });
+
+  /// Actualiza el progreso de múltiples requisitos en una sola operación.
+  /// PATCH /honors/:honorId/progress/bulk
+  Future<List<UserHonorRequirementProgressModel>> bulkUpdateRequirementProgress(
       int honorId,
       List<Map<String, dynamic>> updates);
 
@@ -354,9 +365,9 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        // New API: { data: [...] } — flat array directly under 'data'
         final raw = response.data as Map<String, dynamic>;
-        final data = raw['data'] as Map<String, dynamic>;
-        final List<dynamic> requirements = data['requirements'] as List<dynamic>;
+        final List<dynamic> requirements = raw['data'] as List<dynamic>;
         return requirements
             .map((json) =>
                 HonorRequirementModel.fromJson(json as Map<String, dynamic>))
@@ -380,18 +391,23 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   }
 
   @override
-  Future<Map<String, dynamic>> getUserHonorProgress(
-      String userId, int honorId) async {
+  Future<List<UserHonorRequirementProgressModel>> getUserHonorProgress(
+      int honorId) async {
     try {
       final token = await _getAuthToken();
+      // New API: GET /honors/:honorId/progress — userId derived from JWT
       final response = await _dio.get(
-        '$_baseUrl${ApiEndpoints.users}/$userId/honors/$honorId/requirements/progress',
+        '$_baseUrl${ApiEndpoints.honors}/$honorId/progress',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final raw = response.data as Map<String, dynamic>;
-        return raw['data'] as Map<String, dynamic>? ?? raw;
+        final List<dynamic> items = raw['data'] as List<dynamic>;
+        return items
+            .map((json) => UserHonorRequirementProgressModel.fromJson(
+                json as Map<String, dynamic>))
+            .toList();
       }
 
       throw ServerException(
@@ -411,21 +427,68 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   }
 
   @override
-  Future<Map<String, dynamic>> bulkUpdateRequirementProgress(
-      String userId,
-      int honorId,
-      List<Map<String, dynamic>> updates) async {
+  Future<UserHonorRequirementProgressModel> updateRequirementProgress({
+    required int honorId,
+    required int requirementId,
+    required bool completed,
+    String? notes,
+  }) async {
     try {
       final token = await _getAuthToken();
+      final body = <String, dynamic>{
+        'completed': completed,
+        if (notes != null) 'notes': notes,
+      };
+      // New API: PATCH /honors/:honorId/progress/:requirementId
       final response = await _dio.patch(
-        '$_baseUrl${ApiEndpoints.users}/$userId/honors/$honorId/requirements/progress/batch',
-        data: {'requirements': updates},
+        '$_baseUrl${ApiEndpoints.honors}/$honorId/progress/$requirementId',
+        data: body,
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final raw = response.data as Map<String, dynamic>;
-        return raw['data'] as Map<String, dynamic>? ?? raw;
+        final data = raw['data'] as Map<String, dynamic>;
+        return UserHonorRequirementProgressModel.fromJson(data);
+      }
+
+      throw ServerException(
+        message: 'Error al actualizar requisito',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en updateRequirementProgress', tag: _tag, error: e);
+      if (e is DioException) {
+        throw ServerException(
+            message: e.message ?? 'Error de conexión',
+            code: e.response?.statusCode);
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<List<UserHonorRequirementProgressModel>> bulkUpdateRequirementProgress(
+      int honorId,
+      List<Map<String, dynamic>> updates) async {
+    try {
+      final token = await _getAuthToken();
+      // New API: PATCH /honors/:honorId/progress/bulk
+      // Body: { items: [{ requirementId, completed, notes? }] }
+      final response = await _dio.patch(
+        '$_baseUrl${ApiEndpoints.honors}/$honorId/progress/bulk',
+        data: {'items': updates},
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final raw = response.data as Map<String, dynamic>;
+        final List<dynamic> items = raw['data'] as List<dynamic>;
+        return items
+            .map((json) => UserHonorRequirementProgressModel.fromJson(
+                json as Map<String, dynamic>))
+            .toList();
       }
 
       throw ServerException(

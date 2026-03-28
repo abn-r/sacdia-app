@@ -51,6 +51,25 @@ class UserHonorRequirementProgressModel extends Equatable {
     };
   }
 
+  /// Crea una copia del modelo con campos opcionales sobreescritos
+  UserHonorRequirementProgressModel copyWith({
+    int? requirementId,
+    int? requirementNumber,
+    String? text,
+    bool? completed,
+    String? notes,
+    DateTime? completedAt,
+  }) {
+    return UserHonorRequirementProgressModel(
+      requirementId: requirementId ?? this.requirementId,
+      requirementNumber: requirementNumber ?? this.requirementNumber,
+      text: text ?? this.text,
+      completed: completed ?? this.completed,
+      notes: notes ?? this.notes,
+      completedAt: completedAt ?? this.completedAt,
+    );
+  }
+
   /// Convierte el modelo a entidad de dominio
   UserHonorRequirementProgress toEntity() {
     return UserHonorRequirementProgress(

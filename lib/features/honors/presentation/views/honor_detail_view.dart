@@ -859,19 +859,12 @@ class _RequisitosCta extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final progressAsync = ref.watch(
-      userHonorProgressProvider(
-        UserHonorProgressParams(
-          userId: userId,
-          honorId: honorId,
-        ),
-      ),
-    );
+    final progressAsync = ref.watch(userHonorProgressProvider(honorId));
 
     return progressAsync.when(
-      data: (progress) {
-        final total = (progress['total_requirements'] as num?)?.toInt() ?? 0;
-        final completed = (progress['completed_count'] as num?)?.toInt() ?? 0;
+      data: (progressList) {
+        final total = progressList.length;
+        final completed = progressList.where((p) => p.completed).length;
         final percentage =
             total > 0 ? (completed / total).clamp(0.0, 1.0) : 0.0;
 

@@ -5,6 +5,7 @@ import '../entities/honor_category.dart';
 import '../entities/honor_group.dart';
 import '../entities/honor_requirement.dart';
 import '../entities/user_honor.dart';
+import '../entities/user_honor_requirement_progress.dart';
 import '../usecases/register_user_honor.dart';
 
 /// Repositorio de especialidades (interfaz del dominio)
@@ -54,15 +55,21 @@ abstract class HonorsRepository {
       int honorId);
 
   /// Obtiene el progreso del usuario por requisito para una especialidad inscrita.
-  /// Devuelve un mapa con claves: totalRequirements, completedCount,
-  /// progressPercentage y requirements (lista de progreso por requisito).
-  Future<Either<Failure, Map<String, dynamic>>> getUserHonorProgress(
-      String userId, int honorId);
+  /// El userId se deriva del JWT — no se pasa explícitamente.
+  Future<Either<Failure, List<UserHonorRequirementProgress>>> getUserHonorProgress(
+      int honorId);
+
+  /// Actualiza el progreso de un requisito individual.
+  Future<Either<Failure, UserHonorRequirementProgress>> updateRequirementProgress({
+    required int honorId,
+    required int requirementId,
+    required bool completed,
+    String? notes,
+  });
 
   /// Actualiza el progreso de múltiples requisitos en una sola operación.
   /// [updates] es una lista de mapas con requirementId, completed y notes opcional.
-  Future<Either<Failure, Map<String, dynamic>>> bulkUpdateRequirementProgress(
-      String userId,
+  Future<Either<Failure, List<UserHonorRequirementProgress>>> bulkUpdateRequirementProgress(
       int honorId,
       List<Map<String, dynamic>> updates);
 }

@@ -9,6 +9,7 @@ import '../../domain/entities/honor_category.dart';
 import '../../domain/entities/honor_group.dart';
 import '../../domain/entities/honor_requirement.dart';
 import '../../domain/entities/user_honor.dart';
+import '../../domain/entities/user_honor_requirement_progress.dart';
 import '../../domain/repositories/honors_repository.dart';
 import '../../domain/usecases/get_honor_categories.dart';
 import '../../domain/usecases/get_honor_requirements.dart';
@@ -406,8 +407,7 @@ final updateRequirementProgressProvider =
 final honorRequirementsProvider = FutureProvider.autoDispose
     .family<List<HonorRequirement>, int>((ref, honorId) async {
   final useCase = ref.read(getHonorRequirementsProvider);
-  final result =
-      await useCase(GetHonorRequirementsParams(honorId: honorId));
+  final result = await useCase(GetHonorRequirementsParams(honorId: honorId));
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -415,37 +415,15 @@ final honorRequirementsProvider = FutureProvider.autoDispose
   );
 });
 
-/// Parámetros para [userHonorProgressProvider].
-/// Encapsula userId + honorId como clave del family.
-class UserHonorProgressParams {
-  final String userId;
-  final int honorId;
-
-  const UserHonorProgressParams({
-    required this.userId,
-    required this.honorId,
-  });
-
-  @override
-  bool operator ==(Object other) =>
-      other is UserHonorProgressParams &&
-      other.userId == userId &&
-      other.honorId == honorId;
-
-  @override
-  int get hashCode => Object.hash(userId, honorId);
-}
-
 /// Provider para el progreso del usuario en los requisitos de una especialidad.
-/// Keyed by [UserHonorProgressParams].
-final userHonorProgressProvider = FutureProvider.autoDispose
-    .family<Map<String, dynamic>, UserHonorProgressParams>(
-        (ref, params) async {
+/// Keyed by honorId — el userId lo deriva el backend del JWT.
+///
+/// Nota: no es autoDispose para que el catálogo pueda leer el progreso de los
+/// honors inscritos sin re-fetchear al cambiar de pestaña.
+final userHonorProgressProvider = FutureProvider
+    .family<List<UserHonorRequirementProgress>, int>((ref, honorId) async {
   final useCase = ref.read(getUserHonorProgressProvider);
-  final result = await useCase(GetUserHonorProgressParams(
-    userId: params.userId,
-    honorId: params.honorId,
-  ));
+  final result = await useCase(GetUserHonorProgressParams(honorId: honorId));
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -453,71 +431,56 @@ final userHonorProgressProvider = FutureProvider.autoDispose
   );
 });
 
+/// Provider derivado que computa stats de progreso a partir de [userHonorProgressProvider].
+///
+/// Retorna un record con: total, completed, percentage.
+/// Es un [Provider] síncrono que reactivamente recalcula cuando cambia el progreso.
+final honorProgressStatsProvider = Provider.family<
+    ({int total, int completed, double percentage}),
+    int>((ref, honorId) {
+  final progressAsync = ref.watch(userHonorProgressProvider(honorId));
+
+  return progressAsync.maybeWhen(
+    data: (list) {
+      final total = list.length;
+      final completed = list.where((p) => p.completed).length;
+      final percentage = total > 0 ? completed / total : 0.0;
+      return (total: total, completed: completed, percentage: percentage);
+    },
+    orElse: () => (total: 0, completed: 0, percentage: 0.0),
+  );
+});
+
 // ── RequirementProgressNotifier ────────────────────────────────────────────
 
 /// Notifier para manejar actualizaciones de progreso de requisitos.
 ///
-/// Recibe [UserHonorProgressParams] como argumento para saber qué
-/// proveedor de progreso invalidar tras una actualización exitosa.
+/// Keyed por honorId para invalidar el provider de progreso correcto.
 class RequirementProgressNotifier
-    extends AutoDisposeAsyncNotifier<Map<String, dynamic>?> {
+    extends AutoDisposeFamilyAsyncNotifier<List<UserHonorRequirementProgress>?, int> {
   @override
-  Future<Map<String, dynamic>?> build() async => null;
+  Future<List<UserHonorRequirementProgress>?> build(int arg) async => null;
 
-  /// Alterna el estado completado de un requisito individual y sincroniza
-  /// con el backend via bulkUpdate de un solo ítem.
-  Future<bool> toggle({
-    required UserHonorProgressParams progressParams,
-    required int requirementId,
-    required bool completed,
-    String? notes,
-  }) async {
-    return bulkUpdate(
-      progressParams: progressParams,
-      updates: [
-        {
-          'requirementId': requirementId,
-          'completed': completed,
-          if (notes != null) 'notes': notes,
-        }
-      ],
-    );
-  }
-
-  /// Actualiza el progreso de múltiples requisitos en una sola operación
-  /// e invalida [userHonorProgressProvider] en caso de éxito.
-  Future<bool> bulkUpdate({
-    required UserHonorProgressParams progressParams,
-    required List<Map<String, dynamic>> updates,
-  }) async {
+  /// Actualiza el progreso de múltiples requisitos en una sola operación.
+  /// Invalida [userHonorProgressProvider] en caso de éxito.
+  Future<bool> bulkUpdate(List<Map<String, dynamic>> updates) async {
     state = const AsyncValue.loading();
-
-    final authState = ref.read(authNotifierProvider);
-    final userId = authState.value?.id;
-    if (userId == null) {
-      state = AsyncValue.error(
-          'Usuario no autenticado', StackTrace.current);
-      return false;
-    }
 
     final result = await ref.read(updateRequirementProgressProvider)(
       UpdateRequirementProgressParams(
-        userId: userId,
-        honorId: progressParams.honorId,
+        honorId: arg,
         updates: updates,
       ),
     );
 
     return result.fold(
       (failure) {
-        state =
-            AsyncValue.error(failure.message, StackTrace.current);
+        state = AsyncValue.error(failure.message, StackTrace.current);
         return false;
       },
       (updated) {
         state = AsyncValue.data(updated);
-        ref.invalidate(
-            userHonorProgressProvider(progressParams));
+        ref.invalidate(userHonorProgressProvider(arg));
         return true;
       },
     );
@@ -525,8 +488,9 @@ class RequirementProgressNotifier
 }
 
 /// Provider para [RequirementProgressNotifier].
-/// Es autoDispose para que se limpie al salir de la pantalla de requisitos.
-final requirementProgressNotifierProvider = AsyncNotifierProvider.autoDispose<
-    RequirementProgressNotifier, Map<String, dynamic>?>(() {
+/// Es autoDispose.family keyed por honorId.
+final requirementProgressNotifierProvider = AsyncNotifierProvider.autoDispose
+    .family<RequirementProgressNotifier, List<UserHonorRequirementProgress>?,
+        int>(() {
   return RequirementProgressNotifier();
 });

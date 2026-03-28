@@ -14,6 +14,56 @@ import '../providers/honors_providers.dart';
 import '../widgets/honor_card.dart';
 import '../widgets/honor_category_chip.dart';
 
+// ── HonorCard with progress ───────────────────────────────────────────────────
+
+/// Wraps [HonorCard] and injects progress stats for enrolled honors.
+///
+/// For non-enrolled honors, renders [HonorCard] directly with no progress data.
+/// For enrolled honors, reads [honorProgressStatsProvider] (derived from
+/// [userHonorProgressProvider]) and passes the stats to [HonorCard].
+/// The provider is keepAlive so stats persist across tab switches.
+class _HonorCardWithProgress extends ConsumerWidget {
+  final Honor honor;
+  final UserHonor? userHonor;
+
+  const _HonorCardWithProgress({
+    required this.honor,
+    required this.userHonor,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (userHonor == null) {
+      return HonorCard(
+        honor: honor,
+        userHonor: null,
+        onTap: () => context.push(
+          RouteNames.honorDetailPath(honor.id.toString()),
+          extra: honor,
+        ),
+      );
+    }
+
+    // Enrolled: read progress stats derived from the progress provider.
+    // This is a synchronous derivation — no loading state.
+    final stats = ref.watch(honorProgressStatsProvider(honor.id));
+
+    return HonorCard(
+      honor: honor,
+      userHonor: userHonor,
+      progressPercentage: stats.total > 0 ? stats.percentage : null,
+      completedCount: stats.total > 0 ? stats.completed : null,
+      totalRequirements: stats.total > 0 ? stats.total : null,
+      onTap: () => context.push(
+        RouteNames.honorEvidencePath(
+          honor.id.toString(),
+          userHonor!.id.toString(),
+        ),
+      ),
+    );
+  }
+}
+
 /// Redesigned honors catalog view.
 ///
 /// Layout:
@@ -297,28 +347,9 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
         itemCount: items.length,
         itemBuilder: (context, index) {
           final item = items[index];
-          return HonorCard(
+          return _HonorCardWithProgress(
             honor: item.honor,
             userHonor: item.userHonor,
-            onTap: () {
-              if (item.userHonor != null) {
-                // Enrolled: go straight to the evidence / progress screen
-                context.push(
-                  RouteNames.honorEvidencePath(
-                    item.honor.id.toString(),
-                    item.userHonor!.id.toString(),
-                  ),
-                );
-              } else {
-                // Not enrolled: show detail for enroll CTA.
-                // Pass the already-loaded Honor as extra so HonorDetailView
-                // does not re-fetch the full catalog to find it.
-                context.push(
-                  RouteNames.honorDetailPath(item.honor.id.toString()),
-                  extra: item.honor,
-                );
-              }
-            },
           );
         },
       ),

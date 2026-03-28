@@ -19,13 +19,15 @@ class HonorRequirementModel extends Equatable {
     this.needsReview = true,
   });
 
-  /// Crea una instancia desde JSON
+  /// Crea una instancia desde JSON.
+  ///
+  /// Soporta tanto el campo 'text' (nuevo API) como 'requirement_text' (legado).
   factory HonorRequirementModel.fromJson(Map<String, dynamic> json) {
     return HonorRequirementModel(
       id: json['requirement_id'] as int,
       honorId: json['honor_id'] as int,
       requirementNumber: json['requirement_number'] as int,
-      text: json['requirement_text'] as String,
+      text: (json['text'] ?? json['requirement_text']) as String,
       hasSubItems: (json['has_sub_items'] as bool?) ?? false,
       needsReview: (json['needs_review'] as bool?) ?? true,
     );

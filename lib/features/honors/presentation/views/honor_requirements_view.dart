@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_requirement.dart';
+import 'package:sacdia_app/features/honors/domain/entities/user_honor_requirement_progress.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 
 // ── Local state helpers ───────────────────────────────────────────────────────
@@ -87,31 +87,23 @@ class _HonorRequirementsViewState
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  UserHonorProgressParams get _progressParams => UserHonorProgressParams(
-        userId: ref.read(authNotifierProvider).value?.id ?? '',
-        honorId: widget.honorId,
-      );
-
-  /// Initialise local state from the server progress map, once per load.
+  /// Initialise local state from the server progress list, once per load.
   void _initLocalState(
     List<HonorRequirement> requirements,
-    Map<String, dynamic> progress,
+    List<UserHonorRequirementProgress> progressList,
   ) {
     if (_localState.isNotEmpty) return;
 
-    final progressList =
-        (progress['requirements'] as List?)?.cast<Map<String, dynamic>>() ??
-            [];
-    final progressMap = <int, Map<String, dynamic>>{};
+    // Build lookup map requirementId → progress item
+    final progressMap = <int, UserHonorRequirementProgress>{};
     for (final item in progressList) {
-      final id = (item['requirement_id'] as num?)?.toInt();
-      if (id != null) progressMap[id] = item;
+      progressMap[item.requirementId] = item;
     }
 
     for (final req in requirements) {
       final p = progressMap[req.id];
-      final completed = (p?['completed'] as bool?) ?? false;
-      final notes = (p?['notes'] as String?) ?? '';
+      final completed = p?.completed ?? false;
+      final notes = p?.notes ?? '';
 
       _localState[req.id] = _RequirementState(
         completed: completed,
@@ -181,11 +173,8 @@ class _HonorRequirementsViewState
     }
 
     final success = await ref
-        .read(requirementProgressNotifierProvider.notifier)
-        .bulkUpdate(
-          progressParams: _progressParams,
-          updates: updates,
-        );
+        .read(requirementProgressNotifierProvider(widget.honorId).notifier)
+        .bulkUpdate(updates);
 
     if (!mounted) return;
 
@@ -213,10 +202,6 @@ class _HonorRequirementsViewState
           duration: const Duration(seconds: 2),
         ),
       );
-
-      // Invalidate both providers so they re-fetch fresh data.
-      ref.invalidate(userHonorProgressProvider(_progressParams));
-      ref.invalidate(honorRequirementsProvider(widget.honorId));
     }
   }
 
@@ -227,7 +212,7 @@ class _HonorRequirementsViewState
     final requirementsAsync =
         ref.watch(honorRequirementsProvider(widget.honorId));
     final progressAsync =
-        ref.watch(userHonorProgressProvider(_progressParams));
+        ref.watch(userHonorProgressProvider(widget.honorId));
 
     return PopScope(
       canPop: !_hasUnsavedChanges,
@@ -267,87 +252,87 @@ class _HonorRequirementsViewState
             // ── Body ─────────────────────────────────────────────
             Expanded(
               child: requirementsAsync.when(
-              loading: () => const _LoadingBody(),
-              error: (err, _) => _ErrorBody(
-                message: err.toString().replaceAll('Exception: ', ''),
-                onRetry: () {
-                  ref.invalidate(honorRequirementsProvider(widget.honorId));
-                  ref.invalidate(
-                      userHonorProgressProvider(_progressParams));
+                loading: () => const _LoadingBody(),
+                error: (err, _) => _ErrorBody(
+                  message: err.toString().replaceAll('Exception: ', ''),
+                  onRetry: () {
+                    ref.invalidate(honorRequirementsProvider(widget.honorId));
+                    ref.invalidate(
+                        userHonorProgressProvider(widget.honorId));
+                  },
+                ),
+                data: (requirements) {
+                  return progressAsync.when(
+                    loading: () => const _LoadingBody(),
+                    error: (err, _) => _ErrorBody(
+                      message: err.toString().replaceAll('Exception: ', ''),
+                      onRetry: () {
+                        ref.invalidate(
+                            userHonorProgressProvider(widget.honorId));
+                      },
+                    ),
+                    data: (progressList) {
+                      _initLocalState(requirements, progressList);
+
+                      final totalRequirements = requirements.length;
+                      final serverCompletedCount =
+                          progressList.where((p) => p.completed).length;
+
+                      // Use local count if we have local state, else server count.
+                      final displayCompleted = _localState.isNotEmpty
+                          ? _localCompletedCount
+                          : serverCompletedCount;
+
+                      return Column(
+                        children: [
+                          // Progress section
+                          _ProgressSection(
+                            completed: displayCompleted,
+                            total: totalRequirements,
+                          ),
+
+                          // Requirements list
+                          Expanded(
+                            child: ListView.separated(
+                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
+                              itemCount: requirements.length,
+                              separatorBuilder: (_, __) => Divider(
+                                height: 1,
+                                thickness: 1,
+                                color: context.sac.divider,
+                              ),
+                              itemBuilder: (context, index) {
+                                final req = requirements[index];
+                                final state = _localState[req.id] ??
+                                    const _RequirementState(
+                                      completed: false,
+                                      notes: '',
+                                    );
+                                return _RequirementRow(
+                                  requirement: req,
+                                  state: state,
+                                  controller: _controllers[req.id],
+                                  onToggle: () => _toggleRequirement(req.id),
+                                  onToggleExpand: () => _toggleExpand(req.id),
+                                  onToggleNotes: () => _toggleNotes(req.id),
+                                );
+                              },
+                            ),
+                          ),
+
+                          // Save button — floating above content
+                          _SaveBar(
+                            hasChanges: _hasUnsavedChanges,
+                            saving: _saving,
+                            onSave: () => _saveChanges(requirements),
+                          ),
+                        ],
+                      );
+                    },
+                  );
                 },
               ),
-              data: (requirements) {
-                return progressAsync.when(
-                  loading: () => const _LoadingBody(),
-                  error: (err, _) => _ErrorBody(
-                    message: err.toString().replaceAll('Exception: ', ''),
-                    onRetry: () {
-                      ref.invalidate(
-                          userHonorProgressProvider(_progressParams));
-                    },
-                  ),
-                  data: (progress) {
-                    _initLocalState(requirements, progress);
-
-                    final totalRequirements = requirements.length;
-                    final serverCompletedCount =
-                        (progress['completed_count'] as num?)?.toInt() ?? 0;
-
-                    // Use local count if we have local state, else server count.
-                    final displayCompleted = _localState.isNotEmpty
-                        ? _localCompletedCount
-                        : serverCompletedCount;
-
-                    return Column(
-                      children: [
-                        // Progress section
-                        _ProgressSection(
-                          completed: displayCompleted,
-                          total: totalRequirements,
-                        ),
-
-                        // Requirements list
-                        Expanded(
-                          child: ListView.separated(
-                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
-                            itemCount: requirements.length,
-                            separatorBuilder: (_, __) => Divider(
-                              height: 1,
-                              thickness: 1,
-                              color: context.sac.divider,
-                            ),
-                            itemBuilder: (context, index) {
-                              final req = requirements[index];
-                              final state = _localState[req.id] ??
-                                  const _RequirementState(
-                                    completed: false,
-                                    notes: '',
-                                  );
-                              return _RequirementRow(
-                                requirement: req,
-                                state: state,
-                                controller: _controllers[req.id],
-                                onToggle: () => _toggleRequirement(req.id),
-                                onToggleExpand: () => _toggleExpand(req.id),
-                                onToggleNotes: () => _toggleNotes(req.id),
-                              );
-                            },
-                          ),
-                        ),
-
-                        // Save button — floating above content
-                        _SaveBar(
-                          hasChanges: _hasUnsavedChanges,
-                          saving: _saving,
-                          onSave: () => _saveChanges(requirements),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
             ),
-          ),
           ],
         ),
       ),
@@ -668,7 +653,7 @@ class _RequirementRow extends StatelessWidget {
   }
 
   /// Heuristic: only show expand toggle when text is likely to exceed 3 lines
-  /// (roughly 150 characters is a safe threshold for ~13sp text at 320dp width).
+  /// (roughly 120 characters is a safe threshold for ~13sp text at 320dp width).
   bool _needsExpandToggle(String text) => text.length > 120;
 }
 

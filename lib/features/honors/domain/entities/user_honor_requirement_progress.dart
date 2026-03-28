@@ -21,6 +21,24 @@ class UserHonorRequirementProgress extends Equatable {
     this.completedAt,
   });
 
+  UserHonorRequirementProgress copyWith({
+    int? requirementId,
+    int? requirementNumber,
+    String? text,
+    bool? completed,
+    String? notes,
+    DateTime? completedAt,
+  }) {
+    return UserHonorRequirementProgress(
+      requirementId: requirementId ?? this.requirementId,
+      requirementNumber: requirementNumber ?? this.requirementNumber,
+      text: text ?? this.text,
+      completed: completed ?? this.completed,
+      notes: notes ?? this.notes,
+      completedAt: completedAt ?? this.completedAt,
+    );
+  }
+
   @override
   List<Object?> get props => [
         requirementId,
