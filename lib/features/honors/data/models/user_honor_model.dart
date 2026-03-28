@@ -1,5 +1,9 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/user_honor.dart';
+import '../../../../core/utils/app_logger.dart';
+import '../../../../core/utils/json_helpers.dart';
+
+const String _tag = 'UserHonorModel';
 
 const String _honorImagesBase =
     'https://sacdia-files.s3.us-east-1.amazonaws.com/Especialidades/';
@@ -59,7 +63,7 @@ class UserHonorModel extends Equatable {
   /// Crea una instancia desde JSON
   factory UserHonorModel.fromJson(Map<String, dynamic> json) {
     // PK is 'user_honor_id'; 'id' as fallback
-    final id = (json['user_honor_id'] ?? json['id']) as int;
+    final id = safeInt(json['user_honor_id'] ?? json['id']);
 
     // Parse images — stored as JSON array of strings
     List<String> images = const [];
@@ -69,20 +73,27 @@ class UserHonorModel extends Equatable {
     }
 
     // Date field: 'date' is the honor date, 'created_at' as fallback
-    final dateRaw = json['date'] as String? ?? json['created_at'] as String?;
-    final date = dateRaw != null
-        ? DateTime.tryParse(dateRaw) ?? DateTime.now()
-        : DateTime.now();
+    final dateRaw = safeStringOrNull(json['date']) ?? safeStringOrNull(json['created_at']);
+    DateTime date;
+    if (dateRaw != null) {
+      final parsed = DateTime.tryParse(dateRaw);
+      if (parsed == null) {
+        AppLogger.w('Failed to parse date: $dateRaw, using DateTime.now()', tag: _tag);
+      }
+      date = parsed ?? DateTime.now();
+    } else {
+      date = DateTime.now();
+    }
 
     // Parse nullable timestamps
     DateTime? submittedAt;
-    final rawSubmittedAt = json['submitted_at'] as String?;
+    final rawSubmittedAt = safeStringOrNull(json['submitted_at']);
     if (rawSubmittedAt != null) {
       submittedAt = DateTime.tryParse(rawSubmittedAt);
     }
 
     DateTime? validatedAt;
-    final rawValidatedAt = json['validated_at'] as String?;
+    final rawValidatedAt = safeStringOrNull(json['validated_at']);
     if (rawValidatedAt != null) {
       validatedAt = DateTime.tryParse(rawValidatedAt);
     }
@@ -94,30 +105,30 @@ class UserHonorModel extends Equatable {
     int? honorSkillLevel;
     final nestedHonor = json['honors'] as Map<String, dynamic>?;
     if (nestedHonor != null) {
-      honorName = nestedHonor['name'] as String?;
-      honorImageUrl = _buildImageUrl(nestedHonor['honor_image'] as String?);
-      honorSkillLevel = nestedHonor['skill_level'] as int?;
+      honorName = safeStringOrNull(nestedHonor['name']);
+      honorImageUrl = _buildImageUrl(safeStringOrNull(nestedHonor['honor_image']));
+      honorSkillLevel = safeIntOrNull(nestedHonor['skill_level']);
       final nestedCategory =
           nestedHonor['honors_categories'] as Map<String, dynamic>?;
-      honorCategoryName = nestedCategory?['name'] as String?;
+      honorCategoryName = safeStringOrNull(nestedCategory?['name']);
     }
 
     return UserHonorModel(
       id: id,
-      honorId: json['honor_id'] as int,
-      userId: json['user_id'] as String,
-      active: (json['active'] as bool?) ?? true,
-      validate: (json['validate'] as bool?) ?? false,
+      honorId: safeInt(json['honor_id']),
+      userId: safeString(json['user_id']),
+      active: safeBool(json['active'], true),
+      validate: safeBool(json['validate']),
       validationStatus:
-          (json['validation_status'] as String?) ?? 'in_progress',
-      certificate: (json['certificate'] as String?) ?? '',
+          safeString(json['validation_status'], 'in_progress'),
+      certificate: safeString(json['certificate']),
       images: images,
-      document: json['document'] as String?,
+      document: safeStringOrNull(json['document']),
       date: date,
       submittedAt: submittedAt,
-      validatedById: json['validated_by_id'] as String?,
+      validatedById: safeStringOrNull(json['validated_by_id']),
       validatedAt: validatedAt,
-      rejectionReason: json['rejection_reason'] as String?,
+      rejectionReason: safeStringOrNull(json['rejection_reason']),
       honorName: honorName,
       honorImageUrl: honorImageUrl,
       honorCategoryName: honorCategoryName,

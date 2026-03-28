@@ -9,7 +9,7 @@ import '../../domain/entities/user_honor.dart';
 ///
 /// Renders all 6 states:
 /// - Available (not enrolled): no border-left, chevron-right
-/// - Inscripto: blue border-left, "Inscripta — sin evidencia"
+/// - Inscripto: blue border-left, "inscrita — sin evidencia"
 /// - En progreso: red border-left, "En progreso"
 /// - Enviado: yellow border-left, "Enviada — en revision"
 /// - Validado: green border-left, gold star badge

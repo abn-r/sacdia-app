@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 /// Entidad de progreso de requisito de especialidad por usuario del dominio.
 ///
 /// Representa el estado de completado de un requisito individual
-/// dentro de una especialidad inscripta por el usuario.
+/// dentro de una especialidad inscrita por el usuario.
 class UserHonorRequirementProgress extends Equatable {
   final int requirementId;
   final int requirementNumber;

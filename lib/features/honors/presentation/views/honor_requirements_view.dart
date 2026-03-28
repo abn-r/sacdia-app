@@ -41,7 +41,7 @@ class _RequirementState {
 
 // ── View ──────────────────────────────────────────────────────────────────────
 
-/// Vista de checklist de requisitos de una especialidad inscripta.
+/// Vista de checklist de requisitos de una especialidad inscrita.
 ///
 /// Muestra la lista de requisitos con checkboxes, notas opcionales
 /// y un botón "Guardar cambios" que persiste los cambios via [RequirementProgressNotifier].

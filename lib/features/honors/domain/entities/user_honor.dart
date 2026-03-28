@@ -54,12 +54,13 @@ class UserHonor extends Equatable {
   // ── Computed display helpers ─────────────────────────────────────────
 
   /// Display status combines backend validation_status with evidence presence.
-  /// Backend stores: in_progress | pending_review | approved | rejected
+  /// Backend stores: in_progress | pending_review | approved | rejected (lowercase or uppercase).
   /// Display adds: inscripto (in_progress + no evidence) vs en_progreso (in_progress + evidence)
   String get displayStatus {
-    if (validationStatus == 'approved') return 'validado';
-    if (validationStatus == 'rejected') return 'rechazado';
-    if (validationStatus == 'pending_review') return 'enviado';
+    final vs = validationStatus.toUpperCase();
+    if (vs == 'APPROVED') return 'validado';
+    if (vs == 'REJECTED') return 'rechazado';
+    if (vs == 'PENDING_REVIEW') return 'enviado';
     // in_progress: split by evidence presence
     if (images.isNotEmpty || (document != null && document!.isNotEmpty)) {
       return 'en_progreso';
@@ -96,21 +97,23 @@ class UserHonor extends Equatable {
       case 'rechazado':
         return 'Rechazada';
       case 'inscripto':
-        return 'Inscripta — sin evidencia';
+        return 'Inscrito — sin evidencia';
       default:
         return 'Disponible';
     }
   }
 
   /// Whether the honor has been fully validated/completed.
-  bool get isCompleted => validationStatus == 'approved';
+  bool get isCompleted => validationStatus.toUpperCase() == 'APPROVED';
 
   /// Whether the user can submit (or resubmit) for review.
-  bool get canSubmit =>
-      validationStatus == 'in_progress' || validationStatus == 'rejected';
+  bool get canSubmit {
+    final vs = validationStatus.toUpperCase();
+    return vs == 'IN_PROGRESS' || vs == 'REJECTED';
+  }
 
   /// Whether the honor is currently under review (read-only for member).
-  bool get isUnderReview => validationStatus == 'pending_review';
+  bool get isUnderReview => validationStatus.toUpperCase() == 'PENDING_REVIEW';
 
   /// Whether there is evidence uploaded.
   bool get hasEvidence =>

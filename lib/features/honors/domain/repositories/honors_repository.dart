@@ -53,7 +53,7 @@ abstract class HonorsRepository {
   Future<Either<Failure, List<HonorRequirement>>> getHonorRequirements(
       int honorId);
 
-  /// Obtiene el progreso del usuario por requisito para una especialidad inscripta.
+  /// Obtiene el progreso del usuario por requisito para una especialidad inscrita.
   /// Devuelve un mapa con claves: totalRequirements, completedCount,
   /// progressPercentage y requirements (lista de progreso por requisito).
   Future<Either<Failure, Map<String, dynamic>>> getUserHonorProgress(

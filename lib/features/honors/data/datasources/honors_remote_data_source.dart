@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/usecases/register_user_honor.dart';
@@ -25,7 +28,7 @@ abstract class HonorsRemoteDataSource {
   /// Obtiene los requisitos del catálogo de una especialidad
   Future<List<HonorRequirementModel>> getHonorRequirements(int honorId);
 
-  /// Obtiene el progreso del usuario por requisito para una especialidad inscripta
+  /// Obtiene el progreso del usuario por requisito para una especialidad inscrita
   Future<Map<String, dynamic>> getUserHonorProgress(
       String userId, int honorId);
 
@@ -34,6 +37,17 @@ abstract class HonorsRemoteDataSource {
       String userId,
       int honorId,
       List<Map<String, dynamic>> updates);
+
+  /// Sube un archivo de evidencia al honor del usuario.
+  ///
+  /// Llama a POST /users/:userId/honors/:userHonorId/files con el archivo
+  /// como campo `images` en multipart/form-data.
+  Future<void> uploadHonorFile({
+    required String userId,
+    required int honorId,
+    required File file,
+    required String fileName,
+  });
 }
 
 /// Implementación de la fuente de datos remota de especialidades
@@ -64,7 +78,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/honors/categories',
+        '$_baseUrl${ApiEndpoints.honors}/categories',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
@@ -98,7 +112,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       final queryString = queryParams.isNotEmpty ? '?${queryParams.join('&')}' : '';
 
       final response = await _dio.get(
-        '$_baseUrl/honors$queryString',
+        '$_baseUrl${ApiEndpoints.honors}$queryString',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
@@ -128,7 +142,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/honors/$honorId',
+        '$_baseUrl${ApiEndpoints.honors}/$honorId',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
@@ -152,7 +166,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/users/$userId/honors',
+        '$_baseUrl${ApiEndpoints.users}/$userId/honors',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
@@ -179,7 +193,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/users/$userId/honors/stats',
+        '$_baseUrl${ApiEndpoints.users}/$userId/honors/stats',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
@@ -203,7 +217,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.post(
-        '$_baseUrl/users/$userId/honors/$honorId',
+        '$_baseUrl${ApiEndpoints.users}/$userId/honors/$honorId',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
@@ -227,7 +241,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.patch(
-        '$_baseUrl/users/$userId/honors/$honorId',
+        '$_baseUrl${ApiEndpoints.users}/$userId/honors/$honorId',
         data: data,
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
@@ -252,7 +266,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.delete(
-        '$_baseUrl/users/$userId/honors/$honorId',
+        '$_baseUrl${ApiEndpoints.users}/$userId/honors/$honorId',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
@@ -274,7 +288,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.post(
-        '$_baseUrl/users/${params.userId}/honors',
+        '$_baseUrl${ApiEndpoints.users}/${params.userId}/honors',
         data: params.toJson(),
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
@@ -305,7 +319,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/honors/grouped-by-category',
+        '$_baseUrl${ApiEndpoints.honors}/grouped-by-category',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
@@ -335,7 +349,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/honors/$honorId/requirements',
+        '$_baseUrl${ApiEndpoints.honors}/$honorId/requirements',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
@@ -371,7 +385,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/users/$userId/honors/$honorId/requirements/progress',
+        '$_baseUrl${ApiEndpoints.users}/$userId/honors/$honorId/requirements/progress',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
@@ -404,7 +418,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.patch(
-        '$_baseUrl/users/$userId/honors/$honorId/requirements/progress/batch',
+        '$_baseUrl${ApiEndpoints.users}/$userId/honors/$honorId/requirements/progress/batch',
         data: {'requirements': updates},
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
@@ -424,6 +438,55 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
         throw ServerException(
             message: e.message ?? 'Error de conexión',
             code: e.response?.statusCode);
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<void> uploadHonorFile({
+    required String userId,
+    required int honorId,
+    required File file,
+    required String fileName,
+  }) async {
+    try {
+      final token = await _getAuthToken();
+
+      final formData = FormData.fromMap({
+        'images': await MultipartFile.fromFile(
+          file.path,
+          filename: fileName,
+        ),
+      });
+
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.users}/$userId/honors/$honorId/files',
+        data: formData,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'multipart/form-data',
+          },
+          sendTimeout: const Duration(minutes: 2),
+          receiveTimeout: const Duration(minutes: 2),
+        ),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) return;
+
+      throw ServerException(
+        message: 'Error al subir evidencia',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en uploadHonorFile', tag: _tag, error: e);
+      if (e is DioException) {
+        throw ServerException(
+          message: e.message ?? 'Error de conexión',
+          code: e.response?.statusCode,
+        );
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());

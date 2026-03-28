@@ -270,7 +270,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
       final dataSource = ref.read(honorsRemoteDataSourceProvider);
       await dataSource.uploadHonorFile(
         userId: userId,
-        honorId: widget.userHonorId,
+        honorId: widget.honorId,
         file: file,
         fileName: fileName,
       );
