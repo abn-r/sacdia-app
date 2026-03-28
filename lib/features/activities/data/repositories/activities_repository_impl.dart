@@ -20,21 +20,21 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
     required this.networkInfo,
   });
 
+  // TODO: The networkInfo.isConnected check pattern below is used across all 24
+  // repository impls in this project. It costs 10-200ms per request on Android
+  // (connectivity_plus) and is redundant — Dio's connectTimeout and the
+  // ErrorInterceptor already handle offline scenarios. Remove it from all repos
+  // when doing a broader cleanup pass.
+
   @override
   Future<Either<Failure, List<Activity>>> getClubActivities(
     int clubId, {
     int? clubTypeId,
-    int? activityTypeId,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final activityModels = await remoteDataSource.getClubActivities(
         clubId,
         clubTypeId: clubTypeId,
-        activityTypeId: activityTypeId,
       );
       final activities = activityModels.map((model) => model.toEntity()).toList();
       return Right(activities);

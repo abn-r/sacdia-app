@@ -15,7 +15,6 @@ class GetClubActivities implements UseCase<List<Activity>, GetClubActivitiesPara
     return await repository.getClubActivities(
       params.clubId,
       clubTypeId: params.clubTypeId,
-      activityTypeId: params.activityTypeId,
     );
   }
 }
@@ -24,11 +23,9 @@ class GetClubActivities implements UseCase<List<Activity>, GetClubActivitiesPara
 class GetClubActivitiesParams {
   final int clubId;
   final int? clubTypeId;
-  final int? activityTypeId;
 
   const GetClubActivitiesParams({
     required this.clubId,
     this.clubTypeId,
-    this.activityTypeId,
   });
 }

@@ -12,7 +12,6 @@ abstract class ActivitiesRepository {
   Future<Either<Failure, List<Activity>>> getClubActivities(
     int clubId, {
     int? clubTypeId,
-    int? activityTypeId,
   });
 
 

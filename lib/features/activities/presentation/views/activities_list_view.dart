@@ -174,7 +174,6 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
         ? ref.watch(clubActivitiesProvider(ClubActivitiesParams(
             clubId: resolvedClubId,
             clubTypeId: widget.clubTypeId,
-            activityTypeId: _selectedFilter,
           )))
         : const AsyncValue<List<Activity>>.loading();
     final activityTypesAsync = ref.watch(activityTypesProvider);
@@ -475,16 +474,26 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
             Expanded(
               child: activitiesAsync.when(
                 data: (activities) {
-                  // El filtro por tipo de actividad se aplica en el servidor.
-                  // Aquí solo aplicamos el filtro local de fecha.
-                  var filtered = List.of(activities);
+                  // Activity type filter is applied locally — no new request needed.
+                  // Date filter is also applied locally.
+                  var filtered = _selectedFilter != null
+                      ? activities.where((a) => a.activityType == _selectedFilter).toList()
+                      : List.of(activities);
 
                   if (!_isChronologicalView && _selectedDate != null) {
-                    filtered = filtered
-                        .where((a) =>
-                            a.createdAt != null &&
-                            _isSameDay(a.createdAt!.toLocal(), _selectedDate!))
-                        .toList();
+                    filtered = filtered.where((a) {
+                      if (a.activityDate == null) return false;
+                      final start = a.activityDate!.toLocal();
+                      final end = a.activityEndDate?.toLocal() ?? start;
+                      final startDay = DateTime(start.year, start.month, start.day);
+                      final endDay = DateTime(end.year, end.month, end.day);
+                      final sel = DateTime(
+                        _selectedDate!.year,
+                        _selectedDate!.month,
+                        _selectedDate!.day,
+                      );
+                      return !sel.isBefore(startDay) && !sel.isAfter(endDay);
+                    }).toList();
                   }
 
                   late final Widget content;

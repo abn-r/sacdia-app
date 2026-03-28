@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
@@ -61,15 +63,17 @@ final registerAttendanceProvider = Provider<RegisterAttendance>((ref) {
 
 /// Parámetros de consulta para el provider de actividades del club.
 /// Implementa == y hashCode para que Riverpod family funcione correctamente.
+///
+/// [activityTypeId] is intentionally excluded from the family key so that
+/// filter chip taps do NOT trigger new network requests. Filtering by activity
+/// type is applied locally after the full list is fetched once.
 class ClubActivitiesParams {
   final int clubId;
   final int? clubTypeId;
-  final int? activityTypeId;
 
   const ClubActivitiesParams({
     required this.clubId,
     this.clubTypeId,
-    this.activityTypeId,
   });
 
   @override
@@ -77,14 +81,16 @@ class ClubActivitiesParams {
       identical(this, other) ||
       other is ClubActivitiesParams &&
           other.clubId == clubId &&
-          other.clubTypeId == clubTypeId &&
-          other.activityTypeId == activityTypeId;
+          other.clubTypeId == clubTypeId;
 
   @override
-  int get hashCode => Object.hash(clubId, clubTypeId, activityTypeId);
+  int get hashCode => Object.hash(clubId, clubTypeId);
 }
 
-/// Provider para las actividades de un club con filtros opcionales
+/// Provider para las actividades de un club.
+/// Fetches ALL activities for the club once and caches the result. Filter chips
+/// apply locally inside ActivitiesListView using _selectedFilter state, so
+/// tapping a chip never triggers an additional network request.
 final clubActivitiesProvider =
     FutureProvider.autoDispose.family<List<Activity>, ClubActivitiesParams>(
         (ref, params) async {
@@ -94,7 +100,6 @@ final clubActivitiesProvider =
     GetClubActivitiesParams(
       clubId: params.clubId,
       clubTypeId: params.clubTypeId,
-      activityTypeId: params.activityTypeId,
     ),
   );
 
@@ -105,9 +110,25 @@ final clubActivitiesProvider =
 });
 
 
-/// Provider para el detalle de una actividad
+/// Provider para el detalle de una actividad.
+/// Caches the result with a 5-minute timer: the instance is kept alive while
+/// any listener is active and is auto-disposed 5 minutes after the last
+/// listener is removed, preventing unbounded growth across many navigations.
 final activityDetailProvider =
     FutureProvider.autoDispose.family<Activity, int>((ref, activityId) async {
+  final link = ref.keepAlive();
+  Timer? timer;
+  ref.onCancel(() {
+    timer = Timer(const Duration(minutes: 5), () {
+      link.close();
+    });
+  });
+  ref.onResume(() {
+    timer?.cancel();
+  });
+  ref.onDispose(() {
+    timer?.cancel();
+  });
   final getActivityDetail = ref.read(getActivityDetailProvider);
   final result = await getActivityDetail(GetActivityDetailParams(activityId: activityId));
 
