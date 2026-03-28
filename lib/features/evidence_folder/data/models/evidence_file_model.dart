@@ -1,4 +1,7 @@
+import 'package:sacdia_app/core/utils/app_logger.dart';
 import '../../domain/entities/evidence_file.dart';
+
+const String _tag = 'EvidenceFileModel';
 
 /// Modelo de datos para [EvidenceFile].
 ///
@@ -25,11 +28,17 @@ class EvidenceFileModel extends EvidenceFile {
               json['uploadedByName'] ??
               'Desconocido')
           .toString(),
-      uploadedAt: json['uploaded_at'] != null
-          ? DateTime.tryParse(json['uploaded_at'].toString()) ?? DateTime.now()
-          : json['uploadedAt'] != null
-              ? DateTime.tryParse(json['uploadedAt'].toString()) ?? DateTime.now()
-              : DateTime.now(),
+      uploadedAt: () {
+        final raw = json['uploaded_at'] ?? json['uploadedAt'];
+        if (raw != null) {
+          final parsed = DateTime.tryParse(raw.toString());
+          if (parsed == null) {
+            AppLogger.w('Failed to parse date: $raw, using DateTime.now()', tag: _tag);
+          }
+          return parsed ?? DateTime.now();
+        }
+        return DateTime.now();
+      }(),
     );
   }
 

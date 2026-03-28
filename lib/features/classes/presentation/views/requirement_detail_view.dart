@@ -67,7 +67,8 @@ class _RequirementDetailViewState
     // tras cada upload / delete exitoso en el notifier.
     final classAsync = ref.watch(classWithProgressProvider(widget.classId));
     final requirement = _liveRequirement(classAsync);
-    final canModify = requirement.status == RequirementStatus.pendiente;
+    final canModify = requirement.status == RequirementStatus.pendiente ||
+        requirement.status == RequirementStatus.rechazado;
 
     // Mostrar snackbar cuando hay error
     ref.listen(
@@ -128,82 +129,75 @@ class _RequirementDetailViewState
         ),
         body: Stack(
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Scrollable top section: meta card, linked honor, timeline
-                Flexible(
-                  flex: 0,
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Meta card con descripcion y metricas
-                        _RequirementMetaCard(requirement: requirement),
+            // Single scroll view for all content — meta card, timeline, and
+            // evidence staging area are one continuous scrollable surface.
+            // EvidenceStagingManager uses embeddedMode: true so it grows with
+            // its content instead of claiming its own bounded scroll area.
+            SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Meta card con descripcion y metricas
+                  _RequirementMetaCard(requirement: requirement),
 
-                        const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                        // Especialidad vinculada (si aplica)
-                        if (requirement.type == RequirementType.honor &&
-                            requirement.linkedHonorName != null)
-                          _LinkedHonorSection(requirement: requirement),
+                  // Especialidad vinculada (si aplica)
+                  if (requirement.type == RequirementType.honor &&
+                      requirement.linkedHonorName != null)
+                    _LinkedHonorSection(requirement: requirement),
 
-                        // Timeline de estado
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                          child: Text(
-                            'Flujo de estado',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: c.text,
-                                ),
+                  // Timeline de estado
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                    child: Text(
+                      'Flujo de estado',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: c.text,
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        Padding(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 16),
-                          child: RequirementStatusTimeline(
-                            currentStatus: requirement.status,
-                            submittedByName:
-                                requirement.submittedByName,
-                            submittedAt: requirement.submittedAt,
-                            validatedByName:
-                                requirement.validatedByName,
-                            validatedAt: requirement.validatedAt,
-                          ),
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // Archivos de evidencia
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                          child: Text(
-                            'Archivos de evidencia',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: c.text,
-                                ),
-                          ),
-                        ),
-                      ],
                     ),
                   ),
-                ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16),
+                    child: RequirementStatusTimeline(
+                      currentStatus: requirement.status,
+                      submittedByName: requirement.submittedByName,
+                      submittedAt: requirement.submittedAt,
+                      validatedByName: requirement.validatedByName,
+                      validatedAt: requirement.validatedAt,
+                    ),
+                  ),
 
-                // I-2: EvidenceStagingManager goes inside the body, NOT
-                // bottomNavigationBar. It manages its own action bar
-                // internally — no GlobalKey needed.
-                Expanded(
-                  child: EvidenceStagingManager(
+                  const SizedBox(height: 24),
+
+                  // Archivos de evidencia
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: Text(
+                      'Archivos de evidencia',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: c.text,
+                          ),
+                    ),
+                  ),
+
+                  // Evidence staging — grows with content (no internal scroll).
+                  // In embeddedMode the manager renders its action bar at the
+                  // bottom of its own Column so it stays co-located with the
+                  // file grid and scrolls as one unit.
+                  EvidenceStagingManager(
+                    embeddedMode: true,
                     existingFiles: requirement.files
                         .map(StagedFile.fromRequirementEvidence)
                         .toList(),
@@ -274,8 +268,10 @@ class _RequirementDetailViewState
                     onLocalFilesChanged: (hasLocal) =>
                         setState(() => _hasUnsavedFiles = hasLocal),
                   ),
-                ),
-              ],
+
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
 
             // Loading overlay

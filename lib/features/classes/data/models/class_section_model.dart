@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/class_section.dart';
+import '../../../../core/utils/json_helpers.dart';
 
 /// Modelo de sección de clase para la capa de datos
 class ClassSectionModel extends Equatable {
@@ -18,10 +19,10 @@ class ClassSectionModel extends Equatable {
   /// Crea una instancia desde JSON
   factory ClassSectionModel.fromJson(Map<String, dynamic> json) {
     return ClassSectionModel(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      moduleId: json['module_id'] as int,
-      isCompleted: json['is_completed'] as bool? ?? false,
+      id: safeInt(json['id']),
+      name: safeString(json['name']),
+      moduleId: safeInt(json['module_id']),
+      isCompleted: safeBool(json['is_completed']),
     );
   }
 

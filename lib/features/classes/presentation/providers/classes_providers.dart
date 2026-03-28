@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../../providers/catalogs_provider.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../data/datasources/classes_remote_data_source.dart';
 import '../../data/repositories/classes_repository_impl.dart';
@@ -86,9 +85,10 @@ final enrollPreviousClassUseCaseProvider =
 
 /// Provider para las clases de un usuario.
 final userClassesProvider =
-    FutureProvider<List<ProgressiveClass>>((ref) async {
-  final authState = ref.watch(authNotifierProvider);
-  final userId = authState.value?.id;
+    FutureProvider.autoDispose<List<ProgressiveClass>>((ref) async {
+  final userId = await ref.watch(
+    authNotifierProvider.selectAsync((user) => user?.id),
+  );
 
   if (userId == null) {
     throw Exception('Usuario no autenticado');
@@ -114,12 +114,6 @@ final classesByClubTypeProvider =
   final models = await dataSource.getClasses(clubTypeId: clubTypeId);
   return models.map((m) => m.toEntity()).toList();
 });
-
-/// Provider que expone el año eclesiástico actual para la feature de clases.
-///
-/// Alias de [currentEcclesiasticalYearProvider] para evitar importar
-/// catalogs_provider directamente en los widgets de clases.
-final currentEccYearProvider = currentEcclesiasticalYearProvider;
 
 /// Provider para el detalle de una clase especifica.
 final classDetailProvider =
@@ -153,8 +147,9 @@ final classModulesProvider =
 /// autoDispose para liberar memoria al salir de la pantalla.
 final classWithProgressProvider = FutureProvider.autoDispose
     .family<ClassWithProgress, int>((ref, classId) async {
-  final authState = ref.watch(authNotifierProvider);
-  final userId = authState.value?.id;
+  final userId = await ref.watch(
+    authNotifierProvider.selectAsync((user) => user?.id),
+  );
 
   if (userId == null) {
     throw Exception('Usuario no autenticado');
@@ -230,6 +225,14 @@ class RequirementNotifier
 
     return result.fold(
       (failure) {
+        // If the section was already validated (e.g. admin validated it
+        // while the user was uploading), treat as success — the desired
+        // end-state was already reached.
+        if (failure.message.contains("already in status 'VALIDATED'")) {
+          state = state.copyWith(isLoading: false, success: true);
+          ref.invalidate(classWithProgressProvider(_classId));
+          return true;
+        }
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,

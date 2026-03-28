@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/class_model.dart';
@@ -97,7 +98,9 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       if (data is Map) {
         return (data['message'] ?? e.message ?? 'Error de conexion').toString();
       }
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
+    }
     return e.message ?? 'Error de conexion';
   }
 
@@ -108,7 +111,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.post(
-        '$_baseUrl/users/$userId/classes/enroll',
+        '$_baseUrl${ApiEndpoints.users}/$userId/classes/enroll',
         data: {
           'class_id': classId,
           'ecclesiastical_year_id': yearId,
@@ -141,7 +144,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       final queryParams = clubTypeId != null ? '?clubTypeId=$clubTypeId' : '';
 
       final response = await _dio.get(
-        '$_baseUrl/classes$queryParams',
+        '$_baseUrl${ApiEndpoints.classes}$queryParams',
         options: _authOptions(token),
       );
 
@@ -172,7 +175,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/classes/$classId',
+        '$_baseUrl${ApiEndpoints.classes}/$classId',
         options: _authOptions(token),
       );
 
@@ -195,7 +198,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/classes/$classId/modules',
+        '$_baseUrl${ApiEndpoints.classes}/$classId/modules',
         options: _authOptions(token),
       );
 
@@ -222,7 +225,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/users/$userId/classes',
+        '$_baseUrl${ApiEndpoints.users}/$userId/classes',
         options: _authOptions(token),
       );
 
@@ -264,7 +267,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/users/$userId/classes/$classId/progress',
+        '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/progress',
         options: _authOptions(token),
       );
 
@@ -293,7 +296,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.patch(
-        '$_baseUrl/users/$userId/classes/$classId/progress',
+        '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/progress',
         data: progressData,
         options: _authOptions(token),
       );
@@ -329,7 +332,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
 
       // Intentar obtener progreso detallado en un solo endpoint
       final response = await _dio.get(
-        '$_baseUrl/users/$userId/classes/$classId/progress',
+        '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/progress',
         options: _authOptions(token),
       );
 
@@ -343,12 +346,12 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
 
         // Si no, obtener la clase y los modulos por separado y combinar
         final classResponse = await _dio.get(
-          '$_baseUrl/classes/$classId',
+          '$_baseUrl${ApiEndpoints.classes}/$classId',
           options: _authOptions(token),
         );
 
         final modulesResponse = await _dio.get(
-          '$_baseUrl/classes/$classId/modules',
+          '$_baseUrl${ApiEndpoints.classes}/$classId/modules',
           options: _authOptions(token),
         );
 
@@ -385,7 +388,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.post(
-        '$_baseUrl/users/$userId/classes/$classId/sections/$requirementId/submit',
+        '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/sections/$requirementId/submit',
         options: _authOptions(token),
       );
 
@@ -428,7 +431,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       });
 
       final response = await _dio.post(
-        '$_baseUrl/users/$userId/classes/$classId/sections/$requirementId/files',
+        '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/sections/$requirementId/files',
         data: formData,
         options: Options(
           headers: {
@@ -480,7 +483,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.delete(
-        '$_baseUrl/users/$userId/classes/$classId/sections/$requirementId/files/$fileId',
+        '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/sections/$requirementId/files/$fileId',
         options: _authOptions(token),
       );
 

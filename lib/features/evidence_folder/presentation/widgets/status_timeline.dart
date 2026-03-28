@@ -38,6 +38,8 @@ class StatusTimeline extends StatelessWidget {
       evaluatedByName != null ||
       evaluatedAt != null;
 
+  bool get _isRejected => currentStatus == EvidenceSectionStatus.rechazado;
+
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
@@ -67,26 +69,40 @@ class StatusTimeline extends StatelessWidget {
         icon: HugeIcons.strokeRoundedSent,
         isCompleted: currentStatus == EvidenceSectionStatus.enviado ||
             currentStatus == EvidenceSectionStatus.validado ||
+            currentStatus == EvidenceSectionStatus.rechazado ||
             currentStatus == EvidenceSectionStatus.underEvaluation ||
             currentStatus == EvidenceSectionStatus.evaluated,
         isActive: currentStatus == EvidenceSectionStatus.enviado,
         activeColor: AppColors.sacBlue,
       ),
-      _TimelineStep(
-        label: 'Validado',
-        sublabel: validatedByName != null && validatedAt != null
-            ? 'Por $validatedByName · ${dateFormat.format(validatedAt!.toLocal())}'
-            : validatedByName != null
-                ? 'Por $validatedByName'
-                : 'Esperando validación',
-        icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-        isCompleted: currentStatus == EvidenceSectionStatus.validado ||
-            currentStatus == EvidenceSectionStatus.underEvaluation ||
-            currentStatus == EvidenceSectionStatus.evaluated,
-        isActive: currentStatus == EvidenceSectionStatus.validado,
-        activeColor: AppColors.secondary,
-      ),
-      if (showEvaluation) ...[
+      if (_isRejected)
+        _TimelineStep(
+          label: 'Rechazado',
+          sublabel: validatedByName != null
+              ? 'Por $validatedByName'
+              : 'Sección rechazada',
+          icon: HugeIcons.strokeRoundedCancel01,
+          isCompleted: true,
+          isActive: true,
+          activeColor: AppColors.error,
+        )
+      else ...[
+        _TimelineStep(
+          label: 'Validado',
+          sublabel: validatedByName != null && validatedAt != null
+              ? 'Por $validatedByName · ${dateFormat.format(validatedAt!.toLocal())}'
+              : validatedByName != null
+                  ? 'Por $validatedByName'
+                  : 'Esperando validación',
+          icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+          isCompleted: currentStatus == EvidenceSectionStatus.validado ||
+              currentStatus == EvidenceSectionStatus.underEvaluation ||
+              currentStatus == EvidenceSectionStatus.evaluated,
+          isActive: currentStatus == EvidenceSectionStatus.validado,
+          activeColor: AppColors.secondary,
+        ),
+      ],
+      if (!_isRejected && showEvaluation) ...[
         _TimelineStep(
           label: 'En evaluación',
           sublabel: 'Revisión de puntuación por el evaluador',

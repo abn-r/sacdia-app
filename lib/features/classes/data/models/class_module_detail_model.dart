@@ -1,5 +1,6 @@
 import '../../domain/entities/class_module_detail.dart';
 import 'class_requirement_model.dart';
+import '../../../../core/utils/json_helpers.dart';
 
 /// Modelo de datos para [ClassModuleDetail].
 class ClassModuleDetailModel extends ClassModuleDetail {
@@ -22,10 +23,10 @@ class ClassModuleDetailModel extends ClassModuleDetail {
         .toList();
 
     return ClassModuleDetailModel(
-      id: (json['id'] ?? json['module_id'] ?? 0) as int,
-      name: (json['name'] ?? json['module_name'] ?? '').toString(),
+      id: safeInt(json['id'] ?? json['module_id']),
+      name: safeString(json['name'] ?? json['module_name']),
       description: json['description']?.toString(),
-      classId: (json['class_id'] ?? json['classId'] ?? 0) as int,
+      classId: safeInt(json['class_id'] ?? json['classId']),
       requirements: requirements,
     );
   }

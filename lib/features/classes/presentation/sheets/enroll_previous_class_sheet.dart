@@ -9,6 +9,7 @@ import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.d
 import 'package:sacdia_app/features/classes/domain/entities/progressive_class.dart';
 import 'package:sacdia_app/features/classes/domain/usecases/enroll_previous_class.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
+import 'package:sacdia_app/providers/catalogs_provider.dart';
 import 'package:sacdia_app/shared/models/catalogs/ecclesiastical_year_model.dart';
 
 /// Sheet modal para inscribir al usuario en una clase que completó antes de
@@ -49,7 +50,7 @@ class _EnrollPreviousClassSheetState
     }
 
     final classesAsync = ref.watch(classesByClubTypeProvider(clubTypeId));
-    final yearAsync = ref.watch(currentEccYearProvider);
+    final yearAsync = ref.watch(currentEcclesiasticalYearProvider);
 
     return SafeArea(
       child: Padding(

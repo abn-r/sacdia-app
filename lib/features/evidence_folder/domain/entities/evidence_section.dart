@@ -10,8 +10,11 @@ enum EvidenceSectionStatus {
   /// El club envió las evidencias y espera revisión del campo local.
   enviado,
 
-  /// El campo local validó (o rechazó) la sección.
+  /// El campo local validó la sección.
   validado,
+
+  /// El campo local rechazó la sección; el club puede reenviar.
+  rechazado,
 
   /// La sección está siendo evaluada por el evaluador del campo.
   underEvaluation,
@@ -21,16 +24,22 @@ enum EvidenceSectionStatus {
 }
 
 /// Parsea el string que llega desde la API al enum correspondiente.
+/// Soporta tanto valores legacy en español como el enum inglés actual.
 EvidenceSectionStatus evidenceSectionStatusFromString(String? value) {
-  switch (value?.toLowerCase()) {
-    case 'enviado':
+  switch (value?.toUpperCase()) {
+    case 'ENVIADO':
+    case 'SUBMITTED':
       return EvidenceSectionStatus.enviado;
-    case 'validado':
+    case 'VALIDADO':
+    case 'VALIDATED':
       return EvidenceSectionStatus.validado;
-    case 'under_evaluation':
-    case 'underevaluation':
+    case 'RECHAZADO':
+    case 'REJECTED':
+      return EvidenceSectionStatus.rechazado;
+    case 'UNDER_EVALUATION':
+    case 'UNDEREVALUATION':
       return EvidenceSectionStatus.underEvaluation;
-    case 'evaluated':
+    case 'EVALUATED':
       return EvidenceSectionStatus.evaluated;
     default:
       return EvidenceSectionStatus.pendiente;
@@ -44,6 +53,8 @@ String evidenceSectionStatusToString(EvidenceSectionStatus status) {
       return 'enviado';
     case EvidenceSectionStatus.validado:
       return 'validado';
+    case EvidenceSectionStatus.rechazado:
+      return 'REJECTED';
     case EvidenceSectionStatus.underEvaluation:
       return 'under_evaluation';
     case EvidenceSectionStatus.evaluated:
@@ -121,12 +132,16 @@ class EvidenceSection extends Equatable {
   /// Slots de archivos restantes.
   int get remainingSlots => (maxFiles - files.length).clamp(0, maxFiles);
 
-  /// El club puede subir o eliminar archivos sólo cuando está pendiente.
-  bool get canUpload => status == EvidenceSectionStatus.pendiente;
+  /// El club puede subir o eliminar archivos cuando está pendiente o rechazado.
+  bool get canUpload =>
+      status == EvidenceSectionStatus.pendiente ||
+      status == EvidenceSectionStatus.rechazado;
 
-  /// El club puede enviar a validación cuando tiene archivos y está pendiente.
+  /// El club puede enviar a validación cuando tiene archivos y está pendiente o rechazado.
   bool get canSubmit =>
-      status == EvidenceSectionStatus.pendiente && files.isNotEmpty;
+      (status == EvidenceSectionStatus.pendiente ||
+          status == EvidenceSectionStatus.rechazado) &&
+      files.isNotEmpty;
 
   @override
   List<Object?> get props => [

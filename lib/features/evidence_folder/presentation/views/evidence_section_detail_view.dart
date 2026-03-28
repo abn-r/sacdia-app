@@ -51,7 +51,8 @@ class _EvidenceSectionDetailViewState
         evidenceSectionNotifierProvider(widget.clubSectionId));
 
     final canModify =
-        widget.section.status == EvidenceSectionStatus.pendiente &&
+        (widget.section.status == EvidenceSectionStatus.pendiente ||
+            widget.section.status == EvidenceSectionStatus.rechazado) &&
         widget.folderIsOpen;
 
     // Mostrar snackbar cuando hay error

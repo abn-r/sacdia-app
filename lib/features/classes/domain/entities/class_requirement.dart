@@ -12,15 +12,24 @@ enum RequirementStatus {
 
   /// El lider del club valido el requerimiento.
   validado,
+
+  /// El lider rechazo el requerimiento; el miembro puede reenviar.
+  rechazado,
 }
 
 /// Parsea el string que llega desde la API al enum correspondiente.
+/// Soporta tanto valores legacy en español como el enum inglés actual.
 RequirementStatus requirementStatusFromString(String? value) {
-  switch (value?.toLowerCase()) {
-    case 'enviado':
+  switch (value?.toUpperCase()) {
+    case 'ENVIADO':
+    case 'SUBMITTED':
       return RequirementStatus.enviado;
-    case 'validado':
+    case 'VALIDADO':
+    case 'VALIDATED':
       return RequirementStatus.validado;
+    case 'RECHAZADO':
+    case 'REJECTED':
+      return RequirementStatus.rechazado;
     default:
       return RequirementStatus.pendiente;
   }
@@ -33,6 +42,8 @@ String requirementStatusToString(RequirementStatus status) {
       return 'enviado';
     case RequirementStatus.validado:
       return 'validado';
+    case RequirementStatus.rechazado:
+      return 'REJECTED';
     case RequirementStatus.pendiente:
       return 'pendiente';
   }
@@ -128,12 +139,16 @@ class ClassRequirement extends Equatable {
   /// Slots de archivos restantes.
   int get remainingSlots => (maxFiles - files.length).clamp(0, maxFiles);
 
-  /// El miembro puede subir o eliminar archivos solo cuando esta pendiente.
-  bool get canUpload => status == RequirementStatus.pendiente;
+  /// El miembro puede subir o eliminar archivos cuando esta pendiente o rechazado.
+  bool get canUpload =>
+      status == RequirementStatus.pendiente ||
+      status == RequirementStatus.rechazado;
 
-  /// El miembro puede enviar a validacion cuando tiene archivos y esta pendiente.
+  /// El miembro puede enviar a validacion cuando tiene archivos y esta pendiente o rechazado.
   bool get canSubmit =>
-      status == RequirementStatus.pendiente && files.isNotEmpty;
+      (status == RequirementStatus.pendiente ||
+          status == RequirementStatus.rechazado) &&
+      files.isNotEmpty;
 
   @override
   List<Object?> get props => [

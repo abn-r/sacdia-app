@@ -1,5 +1,6 @@
 import '../../domain/entities/class_with_progress.dart';
 import 'class_module_detail_model.dart';
+import '../../../../core/utils/json_helpers.dart';
 
 /// Modelo de datos para [ClassWithProgress].
 class ClassWithProgressModel extends ClassWithProgress {
@@ -21,10 +22,10 @@ class ClassWithProgressModel extends ClassWithProgress {
         .toList();
 
     return ClassWithProgressModel(
-      id: (json['class_id'] ?? json['id'] ?? 0) as int,
-      name: (json['name'] ?? 'Clase').toString(),
+      id: safeInt(json['class_id'] ?? json['id']),
+      name: safeString(json['name'], 'Clase'),
       description: json['description']?.toString(),
-      clubTypeId: (json['club_type_id'] ?? json['clubTypeId'] ?? 0) as int,
+      clubTypeId: safeInt(json['club_type_id'] ?? json['clubTypeId']),
       imageUrl: json['image_url']?.toString() ?? json['imageUrl']?.toString(),
       modules: modules,
     );

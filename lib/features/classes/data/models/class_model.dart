@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/progressive_class.dart';
+import '../../../../core/utils/json_helpers.dart';
 
 /// Modelo de clase progresiva para la capa de datos
 class ClassModel extends Equatable {
@@ -33,14 +34,14 @@ class ClassModel extends Equatable {
   factory ClassModel.fromJson(Map<String, dynamic> json) {
     return ClassModel(
       // Backend uses 'class_id' as PK; 'id' is fallback for catalog endpoint
-      id: (json['class_id'] ?? json['id']) as int,
-      name: json['name'] as String,
-      description: json['description'] as String?,
+      id: safeInt(json['class_id'] ?? json['id']),
+      name: safeString(json['name']),
+      description: safeStringOrNull(json['description']),
       // Enrollment response nests club type; catalog has flat club_type_id
-      clubTypeId: (json['club_type_id'] ?? 0) as int,
-      imageUrl: json['image_url'] as String?,
-      investitureStatus: json['investiture_status'] as String?,
-      overallProgress: json['overall_progress'] as int?,
+      clubTypeId: safeInt(json['club_type_id']),
+      imageUrl: safeStringOrNull(json['image_url']),
+      investitureStatus: safeStringOrNull(json['investiture_status']),
+      overallProgress: safeIntOrNull(json['overall_progress']),
     );
   }
 
