@@ -228,7 +228,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
               child: Text(
                 typeText,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: typeColor,
                 ),
@@ -584,8 +584,14 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                         fit: StackFit.expand,
                         children: [
                           // Hero content — full bleed, no border radius
-                          if (!isCollapsed)
-                            ActivityHeroSection(activity: activity),
+                          RepaintBoundary(
+                            child: Visibility(
+                              visible: !isCollapsed,
+                              maintainState: true,
+                              maintainAnimation: true,
+                              child: ActivityHeroSection(activity: activity),
+                            ),
+                          ),
                           // Collapsed: just a solid background (handled by backgroundColor)
                           // Status-bar-aware action buttons (always visible)
                           Positioned(
@@ -654,10 +660,12 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const SizedBox(height: 20),
+
                         // B) Title + type chip + platform badge row
                         _buildTitleSection(context, activity),
 
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 20),
 
                         // C) Metadata grid
                         ActivityMetadataGrid(activity: activity),
@@ -665,7 +673,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                         // D) Description — reduced gap from grid
                         if (activity.description != null &&
                             activity.description!.isNotEmpty) ...[
-                          const SizedBox(height: 14),
+                          const SizedBox(height: 10),
                           _buildDescriptionSection(
                               context, activity.description!),
                         ],

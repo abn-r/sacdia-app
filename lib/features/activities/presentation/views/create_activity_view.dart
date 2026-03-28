@@ -180,7 +180,8 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
     setState(() => _locationTouched = true);
 
     // Validar formulario
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     if (_selectedLocation == null) {
       _showError('Selecciona el lugar de la actividad en el mapa');

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
@@ -8,6 +9,230 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 import '../views/location_picker_view.dart';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Selector de hora estilo Cupertino en bottom sheet
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Abre un bottom sheet con dos ruedas CupertinoPicker (horas 00-23, minutos
+/// 00-59) pre-seleccionadas en [initialTime].
+///
+/// Retorna el [TimeOfDay] confirmado o `null` si el usuario cierra sin
+/// confirmar.
+Future<TimeOfDay?> showTimePickerSheet(
+  BuildContext context,
+  TimeOfDay initialTime,
+) {
+  return showModalBottomSheet<TimeOfDay>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => _TimePickerSheet(initialTime: initialTime),
+  );
+}
+
+/// Bottom sheet interna con los dos wheels de hora y minuto.
+class _TimePickerSheet extends StatefulWidget {
+  final TimeOfDay initialTime;
+
+  const _TimePickerSheet({required this.initialTime});
+
+  @override
+  State<_TimePickerSheet> createState() => _TimePickerSheetState();
+}
+
+class _TimePickerSheetState extends State<_TimePickerSheet> {
+  late int _hour;
+  late int _minute;
+
+  late final FixedExtentScrollController _hourController;
+  late final FixedExtentScrollController _minuteController;
+
+  @override
+  void initState() {
+    super.initState();
+    _hour = widget.initialTime.hour;
+    _minute = widget.initialTime.minute;
+    _hourController = FixedExtentScrollController(initialItem: _hour);
+    _minuteController = FixedExtentScrollController(initialItem: _minute);
+  }
+
+  @override
+  void dispose() {
+    _hourController.dispose();
+    _minuteController.dispose();
+    super.dispose();
+  }
+
+  void _confirm() {
+    Navigator.of(context).pop(TimeOfDay(hour: _hour, minute: _minute));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final theme = Theme.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppTheme.radiusLG),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag handle
+          Padding(
+            padding: const EdgeInsets.only(top: 12, bottom: 4),
+            child: Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: c.border,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                ),
+              ),
+            ),
+          ),
+
+          // Header — título y botón Listo
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Seleccionar hora',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: c.text,
+                  ),
+                ),
+                TextButton(
+                  onPressed: _confirm,
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                  ),
+                  child: const Text('Listo'),
+                ),
+              ],
+            ),
+          ),
+
+          Divider(height: 1, color: c.border),
+
+          // Wheels
+          SizedBox(
+            height: 220,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Highlight band — resalta el item seleccionado
+                Positioned(
+                  top: 88,
+                  left: 16,
+                  right: 16,
+                  child: Container(
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.3),
+                      ),
+                    ),
+                  ),
+                ),
+
+                Row(
+                  children: [
+                    // Wheel de horas
+                    Expanded(
+                      child: CupertinoPicker(
+                        scrollController: _hourController,
+                        itemExtent: 44,
+                        looping: true,
+                        selectionOverlay: const SizedBox.shrink(),
+                        onSelectedItemChanged: (index) {
+                          _hour = index % 24;
+                        },
+                        children: List.generate(24, (i) {
+                          return Center(
+                            child: Text(
+                              i.toString().padLeft(2, '0'),
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w600,
+                                color: c.text,
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+
+                    // Separador de dos puntos
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Text(
+                        ':',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          color: c.text,
+                        ),
+                      ),
+                    ),
+
+                    // Wheel de minutos
+                    Expanded(
+                      child: CupertinoPicker(
+                        scrollController: _minuteController,
+                        itemExtent: 44,
+                        looping: true,
+                        selectionOverlay: const SizedBox.shrink(),
+                        onSelectedItemChanged: (index) {
+                          _minute = index % 60;
+                        },
+                        children: List.generate(60, (i) {
+                          return Center(
+                            child: Text(
+                              i.toString().padLeft(2, '0'),
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w600,
+                                color: c.text,
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Espacio para el safe-area inferior
+          SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
+        ],
+      ),
+    );
+  }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Cabecera de sección

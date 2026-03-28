@@ -213,7 +213,8 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
   Future<void> _handleSave() async {
     setState(() => _locationTouched = true);
 
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     if (_selectedLocation == null) {
       _showError('Selecciona el lugar de la actividad en el mapa');
