@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/inventory_item.dart';
@@ -77,7 +78,7 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/inventory/catalogs/inventory-categories',
+        '$_baseUrl${ApiEndpoints.inventory}/catalogs/inventory-categories',
         options: _authOptions(token),
       );
 
@@ -109,7 +110,7 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/inventory/clubs/$clubId/inventory',
+        '$_baseUrl${ApiEndpoints.inventory}/clubs/$clubId/inventory',
         options: _authOptions(token),
       );
 
@@ -141,7 +142,7 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/inventory/inventory/$itemId',
+        '$_baseUrl${ApiEndpoints.inventory}/inventory/$itemId',
         options: _authOptions(token),
       );
 
@@ -201,7 +202,7 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
       };
 
       final response = await _dio.post(
-        '$_baseUrl/inventory/clubs/$clubId/inventory',
+        '$_baseUrl${ApiEndpoints.inventory}/clubs/$clubId/inventory',
         data: body,
         options: _authOptions(token),
       );
@@ -260,7 +261,7 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
       };
 
       final response = await _dio.patch(
-        '$_baseUrl/inventory/inventory/$itemId',
+        '$_baseUrl${ApiEndpoints.inventory}/inventory/$itemId',
         data: body,
         options: _authOptions(token),
       );
@@ -289,7 +290,7 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.delete(
-        '$_baseUrl/inventory/inventory/$itemId',
+        '$_baseUrl${ApiEndpoints.inventory}/inventory/$itemId',
         options: _authOptions(token),
       );
 
@@ -326,7 +327,9 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
       if (data is Map) {
         return (data['message'] ?? e.message ?? 'Error de conexión').toString();
       }
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
+    }
     return e.message ?? 'Error de conexión';
   }
 }

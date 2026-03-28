@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/user_detail_model.dart';
@@ -41,7 +42,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       }
 
       final response = await _dio.get(
-        '$_baseUrl/auth/me',
+        '$_baseUrl${ApiEndpoints.auth}/me',
         options: Options(headers: {
           'Authorization': 'Bearer $token',
         }),
@@ -85,7 +86,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       }
 
       final response = await _dio.patch(
-        '$_baseUrl/users/$userId',
+        '$_baseUrl${ApiEndpoints.users}/$userId',
         data: data,
         options: Options(headers: {
           'Authorization': 'Bearer $token',
@@ -132,7 +133,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       });
 
       final response = await _dio.post(
-        '$_baseUrl/users/$userId/profile-picture',
+        '$_baseUrl${ApiEndpoints.users}/$userId/profile-picture',
         data: formData,
         options: Options(headers: {
           'Authorization': 'Bearer $token',

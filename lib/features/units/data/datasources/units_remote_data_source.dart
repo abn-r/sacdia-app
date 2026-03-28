@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/unit_member_model.dart';
@@ -115,7 +116,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
   Options _authOptions(String token) =>
       Options(headers: {'Authorization': 'Bearer $token'});
 
-  String _unitsBase(int clubId) => '$_baseUrl/clubs/$clubId/units';
+  String _unitsBase(int clubId) => '$_baseUrl${ApiEndpoints.clubs}/$clubId/units';
 
   // ── GET /clubs/:clubId/units ───────────────────────────────────────────────
 
@@ -455,7 +456,9 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
       if (data is Map) {
         return (data['message'] ?? e.message ?? 'Error de conexión').toString();
       }
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
+    }
     return e.message ?? 'Error de conexión';
   }
 }

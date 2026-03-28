@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/finance_category_model.dart';
@@ -78,7 +79,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/clubs/$clubId/finances',
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/finances',
         queryParameters: {'year': year, 'month': month},
         options: _authOptions(token),
       );
@@ -106,7 +107,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/clubs/$clubId/finances/summary',
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/finances/summary',
         options: _authOptions(token),
       );
 
@@ -135,7 +136,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/finances/$financeId',
+        '$_baseUrl${ApiEndpoints.finances}/$financeId',
         options: _authOptions(token),
       );
 
@@ -182,7 +183,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
       };
 
       final response = await _dio.post(
-        '$_baseUrl/clubs/$clubId/finances',
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/finances',
         data: body,
         options: _authOptions(token),
       );
@@ -228,7 +229,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
       };
 
       final response = await _dio.patch(
-        '$_baseUrl/finances/$financeId',
+        '$_baseUrl${ApiEndpoints.finances}/$financeId',
         data: body,
         options: _authOptions(token),
       );
@@ -257,7 +258,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.delete(
-        '$_baseUrl/finances/$financeId',
+        '$_baseUrl${ApiEndpoints.finances}/$financeId',
         options: _authOptions(token),
       );
 
@@ -284,7 +285,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/finances/categories',
+        '$_baseUrl${ApiEndpoints.finances}/categories',
         options: _authOptions(token),
       );
 
@@ -326,7 +327,9 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
       if (data is Map) {
         return (data['message'] ?? e.message ?? 'Error de conexión').toString();
       }
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
+    }
     return e.message ?? 'Error de conexión';
   }
 }

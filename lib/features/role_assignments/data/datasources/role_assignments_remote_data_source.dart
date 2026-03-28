@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/role_assignment_model.dart';
@@ -49,7 +50,9 @@ class RoleAssignmentsRemoteDataSourceImpl
         if (msg is List) return msg.join(', ');
         return (msg ?? e.message ?? 'Error de conexion').toString();
       }
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
+    }
     return e.message ?? 'Error de conexion';
   }
 
@@ -60,7 +63,7 @@ class RoleAssignmentsRemoteDataSourceImpl
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/requests/assignments',
+        '$_baseUrl${ApiEndpoints.requests}/assignments',
         options: _authOptions(token),
       );
 

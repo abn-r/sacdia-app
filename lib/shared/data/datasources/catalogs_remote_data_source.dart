@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../core/constants/api_endpoints.dart';
 import '../../../core/errors/exceptions.dart';
 import '../../../core/utils/app_logger.dart';
 import '../../models/catalogs/catalogs.dart';
@@ -31,7 +32,7 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
   @override
   Future<List<ClubTypeModel>> getClubTypes() async {
     try {
-      final response = await _dio.get('$_baseUrl/catalogs/club-types');
+      final response = await _dio.get('$_baseUrl${ApiEndpoints.catalogs}/club-types');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final List<dynamic> data = response.data as List<dynamic>;
@@ -57,7 +58,7 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
   @override
   Future<List<ActivityTypeModel>> getActivityTypes() async {
     try {
-      final response = await _dio.get('$_baseUrl/catalogs/activity-types');
+      final response = await _dio.get('$_baseUrl${ApiEndpoints.catalogs}/activity-types');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final List<dynamic> data = response.data as List<dynamic>;
@@ -91,7 +92,7 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
       if (localFieldId != null) queryParams['localFieldId'] = localFieldId;
 
       final response = await _dio.get(
-        '$_baseUrl/catalogs/districts',
+        '$_baseUrl${ApiEndpoints.catalogs}/districts',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 
@@ -123,7 +124,7 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
       if (districtId != null) queryParams['districtId'] = districtId;
 
       final response = await _dio.get(
-        '$_baseUrl/catalogs/churches',
+        '$_baseUrl${ApiEndpoints.catalogs}/churches',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 
@@ -155,7 +156,7 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
       if (clubTypeId != null) queryParams['clubTypeId'] = clubTypeId;
 
       final response = await _dio.get(
-        '$_baseUrl/catalogs/roles',
+        '$_baseUrl${ApiEndpoints.catalogs}/roles',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 
@@ -188,7 +189,7 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
       if (active != null) queryParams['active'] = active;
 
       final response = await _dio.get(
-        '$_baseUrl/catalogs/ecclesiastical-years',
+        '$_baseUrl${ApiEndpoints.catalogs}/ecclesiastical-years',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 

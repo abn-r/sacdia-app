@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -27,6 +29,11 @@ class AuthInterceptor extends QueuedInterceptor {
   /// Clave usada en `RequestOptions.extra` para marcar que la petición ya fue
   /// reintentada después de un refresh, evitando bucles infinitos.
   static const _retryAfterRefreshKey = 'auth_interceptor_retry_after_refresh';
+
+  /// Lock para evitar race condition cuando múltiples 401 llegan en paralelo.
+  /// El primer llamador inicia el refresh; los demás esperan su resultado.
+  /// Es `static` para cubrir el caso de múltiples instancias del interceptor.
+  static Completer<bool>? _refreshCompleter;
 
   /// Paths que NO deben pasar por el ciclo de refresh reactivo.
   ///
@@ -177,13 +184,27 @@ class AuthInterceptor extends QueuedInterceptor {
 
   /// Realiza el refresh usando el refresh token almacenado.
   /// Guarda los nuevos tokens si el servidor responde con éxito.
+  ///
+  /// Usa un [Completer] estático como lock: si un refresh ya está en curso,
+  /// los llamadores posteriores esperan su resultado en lugar de disparar
+  /// una segunda petición. Esto evita la race condition cuando múltiples
+  /// peticiones reciben 401 simultáneamente.
   Future<bool> _tryRefreshToken() async {
+    // Si ya hay un refresh en curso, esperar su resultado sin iniciar otro.
+    if (_refreshCompleter != null) {
+      AppLogger.d('Refresh ya en curso, esperando resultado…', tag: _tag);
+      return _refreshCompleter!.future;
+    }
+
+    _refreshCompleter = Completer<bool>();
+
     try {
       final refreshToken =
           await _secureStorage.read(key: AppConstants.refreshTokenKey);
 
       if (refreshToken == null || refreshToken.isEmpty) {
         AppLogger.w('Sin refresh token disponible', tag: _tag);
+        _refreshCompleter!.complete(false);
         return false;
       }
 
@@ -220,15 +241,22 @@ class AuthInterceptor extends QueuedInterceptor {
                 key: AppConstants.tokenTypeKey, value: newTokenType);
           }
           AppLogger.i('Token refrescado exitosamente (interceptor)', tag: _tag);
+          _refreshCompleter!.complete(true);
           return true;
         }
       }
 
       AppLogger.w('Refresh token falló: ${response.statusCode}', tag: _tag);
+      _refreshCompleter!.complete(false);
       return false;
     } catch (e) {
       AppLogger.e('Error en refresh token (interceptor)', tag: _tag, error: e);
+      _refreshCompleter!.complete(false);
       return false;
+    } finally {
+      // Siempre liberar el lock para que el próximo ciclo de refresh pueda
+      // iniciarse. Se ejecuta DESPUÉS de que complete() fue llamado.
+      _refreshCompleter = null;
     }
   }
 

@@ -12,7 +12,6 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/utils/app_logger.dart';
 import 'firebase_options.dart';
-import 'features/auth/presentation/providers/auth_providers.dart';
 import 'providers/storage_provider.dart';
 
 /// Punto de entrada principal de la aplicación
@@ -34,18 +33,12 @@ Future<void> main() async {
   // Firebase se inicializa después de orientación y prefs
   await _initializeFirebaseAndPrintDebugTokens();
 
-  // Recuperar estado de cierre de sesión manual
-  final wasManuallyLoggedOut =
-      sharedPreferences.getBool('user_manually_logged_out') ?? false;
-
   // Ejecutamos la aplicación con la configuración inicial
   runApp(
     ProviderScope(
       overrides: [
         // Proporcionamos la instancia de SharedPreferences a la aplicación
         sharedPreferencesProvider.overrideWithValue(sharedPreferences),
-        // Restauramos el estado de cierre de sesión manual
-        isUserLoggedOutProvider.overrideWith((ref) => wasManuallyLoggedOut),
       ],
       child: const MyApp(),
     ),

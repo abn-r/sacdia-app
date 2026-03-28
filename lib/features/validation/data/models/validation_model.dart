@@ -1,4 +1,7 @@
+import 'package:sacdia_app/core/utils/app_logger.dart';
 import '../../domain/entities/validation.dart';
+
+const String _tag = 'ValidationModel';
 
 ValidationStatus _parseStatus(String? raw) {
   switch (raw?.toLowerCase()) {
@@ -32,7 +35,11 @@ class ValidationHistoryEntryModel extends ValidationHistoryEntry {
     DateTime createdAt = DateTime.now();
     final rawDate = json['created_at'];
     if (rawDate is String) {
-      createdAt = DateTime.tryParse(rawDate) ?? DateTime.now();
+      final parsed = DateTime.tryParse(rawDate);
+      if (parsed == null) {
+        AppLogger.w('Failed to parse date: $rawDate, using DateTime.now()', tag: _tag);
+      }
+      createdAt = parsed ?? DateTime.now();
     }
 
     return ValidationHistoryEntryModel(

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/annual_folder_model.dart';
@@ -63,7 +64,9 @@ class AnnualFoldersRemoteDataSourceImpl
         if (msg is List) return msg.join(', ');
         return (msg ?? e.message ?? 'Error de conexion').toString();
       }
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
+    }
     return e.message ?? 'Error de conexion';
   }
 
@@ -74,7 +77,7 @@ class AnnualFoldersRemoteDataSourceImpl
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/annual-folders/enrollment/$enrollmentId',
+        '$_baseUrl${ApiEndpoints.annualFolders}/enrollment/$enrollmentId',
         options: _authOptions(token),
       );
 
@@ -115,7 +118,7 @@ class AnnualFoldersRemoteDataSourceImpl
       if (notes != null) body['notes'] = notes;
 
       final response = await _dio.post(
-        '$_baseUrl/annual-folders/$folderId/evidences',
+        '$_baseUrl${ApiEndpoints.annualFolders}/$folderId/evidences',
         data: body,
         options: _authOptions(token),
       );
@@ -144,7 +147,7 @@ class AnnualFoldersRemoteDataSourceImpl
     try {
       final token = await _getAuthToken();
       final response = await _dio.delete(
-        '$_baseUrl/annual-folders/evidences/$evidenceId',
+        '$_baseUrl${ApiEndpoints.annualFolders}/evidences/$evidenceId',
         options: _authOptions(token),
       );
 
@@ -170,7 +173,7 @@ class AnnualFoldersRemoteDataSourceImpl
     try {
       final token = await _getAuthToken();
       final response = await _dio.post(
-        '$_baseUrl/annual-folders/$folderId/submit',
+        '$_baseUrl${ApiEndpoints.annualFolders}/$folderId/submit',
         options: _authOptions(token),
       );
 

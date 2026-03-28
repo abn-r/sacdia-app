@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/enrollment_model.dart';
@@ -78,7 +79,7 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
       final token = await _getAuthToken();
 
       final response = await _dio.post(
-        '$_baseUrl/clubs/$clubId/sections/$sectionId/enrollments',
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/enrollments',
         data: {
           'address': address,
           'meeting_days': meetingDays,
@@ -117,7 +118,7 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
       final token = await _getAuthToken();
 
       final response = await _dio.get(
-        '$_baseUrl/clubs/$clubId/sections/$sectionId/enrollments/current',
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/enrollments/current',
         options: Options(headers: _authHeaders(token)),
       );
 
@@ -165,7 +166,7 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
       if (meetingDays != null) data['meeting_days'] = meetingDays;
 
       final response = await _dio.patch(
-        '$_baseUrl/clubs/$clubId/sections/$sectionId/enrollments/$enrollmentId',
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/enrollments/$enrollmentId',
         data: data,
         options: Options(headers: _authHeaders(token)),
       );

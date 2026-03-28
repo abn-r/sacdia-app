@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/evidence_file_model.dart';
@@ -65,7 +66,7 @@ class EvidenceFolderRemoteDataSourceImpl
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/club-sections/$clubSectionId/evidence-folder',
+        '$_baseUrl${ApiEndpoints.clubSections}/$clubSectionId/evidence-folder',
         options: _authOptions(token),
       );
 
@@ -95,7 +96,7 @@ class EvidenceFolderRemoteDataSourceImpl
     try {
       final token = await _getAuthToken();
       final response = await _dio.post(
-        '$_baseUrl/club-sections/$clubSectionId/evidence-folder/sections/$sectionId/submit',
+        '$_baseUrl${ApiEndpoints.clubSections}/$clubSectionId/evidence-folder/sections/$sectionId/submit',
         options: _authOptions(token),
       );
 
@@ -134,7 +135,7 @@ class EvidenceFolderRemoteDataSourceImpl
       });
 
       final response = await _dio.post(
-        '$_baseUrl/club-sections/$clubSectionId/evidence-folder/sections/$sectionId/files',
+        '$_baseUrl${ApiEndpoints.clubSections}/$clubSectionId/evidence-folder/sections/$sectionId/files',
         data: formData,
         options: Options(
           headers: {
@@ -185,7 +186,7 @@ class EvidenceFolderRemoteDataSourceImpl
     try {
       final token = await _getAuthToken();
       final response = await _dio.delete(
-        '$_baseUrl/club-sections/$clubSectionId/evidence-folder/sections/$sectionId/files/$fileId',
+        '$_baseUrl${ApiEndpoints.clubSections}/$clubSectionId/evidence-folder/sections/$sectionId/files/$fileId',
         options: _authOptions(token),
       );
 
@@ -222,7 +223,9 @@ class EvidenceFolderRemoteDataSourceImpl
       if (data is Map) {
         return (data['message'] ?? e.message ?? 'Error de conexión').toString();
       }
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
+    }
     return e.message ?? 'Error de conexión';
   }
 }

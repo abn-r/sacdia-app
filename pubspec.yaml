@@ -62,6 +62,15 @@ dependencies:
   firebase_messaging: ^15.1.6
 
 
+dependency_overrides:
+  # path_provider_foundation 2.6.0 re-introduced FFI-based implementation using
+  # objective_c package, which builds a device-only arm64 binary. This causes
+  # "Couldn't resolve native function 'DOBJC_initializeApi'" on iOS simulator
+  # because the simulator needs arm64-sim ABI, not arm64 device ABI.
+  # 2.5.1 reverted to the safe plugin-based implementation (no objective_c dep).
+  # Remove this override once flutter/packages fixes the simulator build for 2.6.x.
+  path_provider_foundation: 2.5.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

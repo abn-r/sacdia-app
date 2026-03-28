@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/paginated_resources_model.dart';
@@ -66,7 +67,7 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
       if (search != null && search.isNotEmpty) queryParams['search'] = search;
 
       final response = await _dio.get(
-        '$_baseUrl/resources/me',
+        '$_baseUrl${ApiEndpoints.resources}/me',
         queryParameters: queryParams,
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
@@ -97,7 +98,7 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/resources/me/$id',
+        '$_baseUrl${ApiEndpoints.resources}/me/$id',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
@@ -127,7 +128,7 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/resources/me/$id/signed-url',
+        '$_baseUrl${ApiEndpoints.resources}/me/$id/signed-url',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
@@ -161,7 +162,7 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/resource-categories',
+        '$_baseUrl${ApiEndpoints.resourceCategories}',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 

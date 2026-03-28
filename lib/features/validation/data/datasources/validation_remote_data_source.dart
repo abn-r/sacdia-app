@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/validation.dart';
@@ -75,7 +76,7 @@ class ValidationRemoteDataSourceImpl implements ValidationRemoteDataSource {
       final token = await _getAuthToken();
 
       final response = await _dio.post(
-        '$_baseUrl/validation/submit',
+        '$_baseUrl${ApiEndpoints.validation}/submit',
         data: {
           'entity_type': entityType.slug,
           'entity_id': entityId,
@@ -116,7 +117,7 @@ class ValidationRemoteDataSourceImpl implements ValidationRemoteDataSource {
       final token = await _getAuthToken();
 
       final response = await _dio.get(
-        '$_baseUrl/validation/${entityType.slug}/$entityId/history',
+        '$_baseUrl${ApiEndpoints.validation}/${entityType.slug}/$entityId/history',
         options: Options(headers: _authHeaders(token)),
       );
 
@@ -151,7 +152,7 @@ class ValidationRemoteDataSourceImpl implements ValidationRemoteDataSource {
       final token = await _getAuthToken();
 
       final response = await _dio.get(
-        '$_baseUrl/validation/eligibility/$userId',
+        '$_baseUrl${ApiEndpoints.validation}/eligibility/$userId',
         options: Options(headers: _authHeaders(token)),
       );
 

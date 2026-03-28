@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/transfer_request_model.dart';
@@ -73,7 +74,7 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
       if (reason != null && reason.isNotEmpty) data['reason'] = reason;
 
       final response = await _dio.post(
-        '$_baseUrl/requests/transfers',
+        '$_baseUrl${ApiEndpoints.requests}/transfers',
         data: data,
         options: Options(headers: _authHeaders(token)),
       );
@@ -108,7 +109,7 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
       final token = await _getAuthToken();
 
       final response = await _dio.get(
-        '$_baseUrl/requests/transfers',
+        '$_baseUrl${ApiEndpoints.requests}/transfers',
         options: Options(headers: _authHeaders(token)),
       );
 
@@ -142,7 +143,7 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
       final token = await _getAuthToken();
 
       final response = await _dio.get(
-        '$_baseUrl/requests/transfers/$requestId',
+        '$_baseUrl${ApiEndpoints.requests}/transfers/$requestId',
         options: Options(headers: _authHeaders(token)),
       );
 

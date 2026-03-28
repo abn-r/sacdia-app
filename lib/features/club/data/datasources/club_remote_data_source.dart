@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/club_info_model.dart';
@@ -75,7 +76,7 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
       final token = await _getAuthToken();
 
       final response = await _dio.get(
-        '$_baseUrl/clubs/$clubId',
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId',
         options: Options(headers: _authHeaders(token)),
       );
 
@@ -111,7 +112,7 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
       final token = await _getAuthToken();
 
       final response = await _dio.get(
-        '$_baseUrl/clubs/$clubId/sections/$sectionId',
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId',
         options: Options(headers: _authHeaders(token)),
       );
 
@@ -151,7 +152,7 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
       final token = await _getAuthToken();
 
       final response = await _dio.patch(
-        '$_baseUrl/clubs/$clubId/sections/$sectionId',
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId',
         data: data ?? {},
         options: Options(headers: _authHeaders(token)),
       );

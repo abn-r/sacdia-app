@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/monthly_report_model.dart';
@@ -62,7 +63,9 @@ class MonthlyReportsRemoteDataSourceImpl
         if (msg is List) return msg.join(', ');
         return (msg ?? e.message ?? 'Error de conexion').toString();
       }
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
+    }
     return e.message ?? 'Error de conexion';
   }
 
@@ -96,7 +99,7 @@ class MonthlyReportsRemoteDataSourceImpl
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/monthly-reports/preview/$enrollmentId',
+        '$_baseUrl${ApiEndpoints.monthlyReports}/preview/$enrollmentId',
         queryParameters: {'month': month, 'year': year},
         options: _authOptions(token),
       );
@@ -123,7 +126,7 @@ class MonthlyReportsRemoteDataSourceImpl
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/monthly-reports/enrollment/$enrollmentId',
+        '$_baseUrl${ApiEndpoints.monthlyReports}/enrollment/$enrollmentId',
         options: _authOptions(token),
       );
 
@@ -148,7 +151,7 @@ class MonthlyReportsRemoteDataSourceImpl
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/monthly-reports/$reportId',
+        '$_baseUrl${ApiEndpoints.monthlyReports}/$reportId',
         options: _authOptions(token),
       );
 
@@ -174,7 +177,7 @@ class MonthlyReportsRemoteDataSourceImpl
       // The PDF endpoint may return a redirect or a JSON with a url field.
       // We disable followRedirects to capture the Location header if present.
       final response = await _dio.get(
-        '$_baseUrl/monthly-reports/$reportId/pdf',
+        '$_baseUrl${ApiEndpoints.monthlyReports}/$reportId/pdf',
         options: Options(
           headers: {'Authorization': 'Bearer $token'},
           followRedirects: false,
@@ -201,7 +204,7 @@ class MonthlyReportsRemoteDataSourceImpl
       }
 
       // Fallback: build the URL with token as query param
-      return '$_baseUrl/monthly-reports/$reportId/pdf?token=$token';
+      return '$_baseUrl${ApiEndpoints.monthlyReports}/$reportId/pdf?token=$token';
     } catch (e) {
       AppLogger.e('Error en getReportPdfUrl', tag: _tag, error: e);
       _rethrow(e);

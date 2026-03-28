@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/dashboard_summary_model.dart';
@@ -42,7 +43,7 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/dashboard/summary',
+        '$_baseUrl${ApiEndpoints.dashboard}/summary',
         options: _authOptions(token),
       );
 
@@ -83,7 +84,9 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
       if (data is Map) {
         return (data['message'] ?? e.message ?? 'Error de conexión').toString();
       }
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
+    }
     return e.message ?? 'Error de conexión';
   }
 }

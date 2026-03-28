@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/club_member_model.dart';
@@ -125,7 +126,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
 
     try {
       final response = await _dio.get(
-        '$_baseUrl/catalogs/roles',
+        '$_baseUrl${ApiEndpoints.catalogs}/roles',
         queryParameters: const {'category': 'CLUB'},
         options: Options(headers: _authHeaders(token)),
       );
@@ -172,7 +173,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       if (token == null) throw AuthException(message: 'No hay sesión activa');
 
       final response = await _dio.get(
-        '$_baseUrl/clubs/$clubId/sections/$sectionId/members',
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/members',
         options: Options(headers: _authHeaders(token)),
       );
 
@@ -205,7 +206,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       if (token == null) throw AuthException(message: 'No hay sesión activa');
 
       final response = await _dio.get(
-        '$_baseUrl/users/$userId',
+        '$_baseUrl${ApiEndpoints.users}/$userId',
         options: Options(headers: _authHeaders(token)),
       );
 
@@ -247,7 +248,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       // de miembros con parámetro de estado, o retornamos lista vacía si
       // el endpoint aún no existe.
       final response = await _dio.get(
-        '$_baseUrl/clubs/$clubId/sections/$sectionId/members',
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/members',
         queryParameters: {'status': 'pending'},
         options: Options(headers: _authHeaders(token)),
       );
@@ -290,7 +291,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       if (token == null) throw AuthException(message: 'No hay sesión activa');
 
       final response = await _dio.patch(
-        '$_baseUrl/club-roles/$assignmentId',
+        '$_baseUrl${ApiEndpoints.clubRoles}/$assignmentId',
         data: {'status': 'approved'},
         options: Options(headers: _authHeaders(token)),
       );
@@ -323,7 +324,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       if (token == null) throw AuthException(message: 'No hay sesión activa');
 
       final response = await _dio.patch(
-        '$_baseUrl/club-roles/$assignmentId',
+        '$_baseUrl${ApiEndpoints.clubRoles}/$assignmentId',
         data: {'status': 'rejected'},
         options: Options(headers: _authHeaders(token)),
       );
@@ -376,7 +377,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       payload['role_id'] = roleId;
 
       final response = await _dio.post(
-        '$_baseUrl/clubs/$clubId/sections/$sectionId/roles',
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/roles',
         data: payload,
         options: Options(headers: _authHeaders(token)),
       );
@@ -401,7 +402,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       if (token == null) throw AuthException(message: 'No hay sesión activa');
 
       final response = await _dio.delete(
-        '$_baseUrl/club-roles/$assignmentId',
+        '$_baseUrl${ApiEndpoints.clubRoles}/$assignmentId',
         options: Options(headers: _authHeaders(token)),
       );
 

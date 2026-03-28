@@ -62,6 +62,16 @@ class EvidenceStagingManager extends StatefulWidget {
   /// The parent can use this to update `PopScope.canPop` without a GlobalKey.
   final void Function(bool hasLocalFiles)? onLocalFilesChanged;
 
+  /// When true, the widget renders WITHOUT its own [Expanded] /
+  /// [SingleChildScrollView] wrapper and WITHOUT the action bar.
+  ///
+  /// Use this when embedding the staging manager inside a parent scroll view.
+  /// The parent is responsible for providing scrolling and for placing the
+  /// action bar (via [buildActionBar]) wherever it belongs in the layout.
+  ///
+  /// Defaults to false for backward compatibility.
+  final bool embeddedMode;
+
   const EvidenceStagingManager({
     super.key,
     required this.existingFiles,
@@ -73,6 +83,7 @@ class EvidenceStagingManager extends StatefulWidget {
     required this.canModify,
     this.isLoading = false,
     this.onLocalFilesChanged,
+    this.embeddedMode = false,
   });
 
   @override
@@ -512,8 +523,45 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
   // providers are not invalidated during batch uploads. A single invalidation
   // happens after the full batch via the onSubmit callback.
 
+  Widget _buildContent() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: _allFiles.isEmpty
+          ? _EmptyFiles(canModify: widget.canModify)
+          : StagedFileGrid(
+              files: _allFiles,
+              maxFiles: widget.maxFiles,
+              canModify: widget.canModify,
+              onRemoveLocal: _removeLocalFile,
+              onDeleteRemote: _deleteRemoteFile,
+            ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Embedded mode: no Expanded, no SingleChildScrollView.
+    // The parent provides scrolling via its own SingleChildScrollView.
+    // The action bar is included at the bottom of the Column so it remains
+    // co-located with the content — the user scrolls down to reach it.
+    if (widget.embeddedMode) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildContent(),
+          if (widget.canModify)
+            _EvidenceStagingActionBar(
+              onPickImages: () => _pickImages(context),
+              onPickPdfs: () => _pickPdfs(context),
+              onSubmit: () => _submitForValidation(context),
+              canSubmit: _canSubmit,
+              isLoading: widget.isLoading || _isUploading,
+            ),
+        ],
+      );
+    }
+
+    // Default (non-embedded) layout: self-contained with scroll + action bar.
     return Column(
       children: [
         // Scrollable content area
