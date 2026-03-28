@@ -4,7 +4,6 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/classes/domain/entities/progressive_class.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
 import 'package:sacdia_app/features/classes/presentation/views/class_detail_with_progress_view.dart';
@@ -59,12 +58,12 @@ class ProfileClassesSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final classesAsync = ref.watch(userClassesProvider);
 
-    return classesAsync.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 32),
-        child: Center(child: SacLoading()),
-      ),
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: classesAsync.when(
+      loading: () => _ClassesSkeleton(key: const ValueKey('classes-skeleton')),
       error: (e, _) => Padding(
+        key: const ValueKey('classes-error'),
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Center(
           child: Text(
@@ -76,6 +75,7 @@ class ProfileClassesSection extends ConsumerWidget {
       data: (classes) {
         if (classes.isEmpty) {
           return Padding(
+            key: const ValueKey('classes-data'),
             padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
             child: Column(
               children: [
@@ -112,6 +112,7 @@ class ProfileClassesSection extends ConsumerWidget {
         }
 
         return Column(
+          key: const ValueKey('classes-data'),
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Class header banner
@@ -204,6 +205,7 @@ class ProfileClassesSection extends ConsumerWidget {
           ],
         );
       },
+    ),
     );
   }
 }
@@ -327,6 +329,49 @@ class _ClassGridItem extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
       ],
+    );
+  }
+}
+
+// ── Skeleton placeholder for classes section ──────────────────────────────────
+
+class _ClassesSkeleton extends StatelessWidget {
+  const _ClassesSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final skeletonColor = context.sac.surfaceVariant;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Simulate the category header banner
+          Container(
+            height: 52,
+            decoration: BoxDecoration(
+              color: skeletonColor,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Simulate a row of 3 class cards
+          Row(
+            children: List.generate(3, (i) => Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(left: i == 0 ? 0 : 5, right: i == 2 ? 0 : 5),
+                child: Container(
+                  height: 90,
+                  decoration: BoxDecoration(
+                    color: skeletonColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            )),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -4,7 +4,6 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/widgets/sac_loading.dart';
 import '../providers/validation_providers.dart';
 
 /// Banner compacto que muestra la elegibilidad para investidura del usuario.
@@ -23,17 +22,19 @@ class EligibilityBanner extends ConsumerWidget {
     final eligibilityAsync = ref.watch(eligibilityProvider(userId));
     final c = context.sac;
 
-    return eligibilityAsync.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 8),
-        child: SacLoading(),
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: eligibilityAsync.when(
+      loading: () => _EligibilitySkeleton(
+        key: const ValueKey('eligibility-skeleton'),
       ),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(key: ValueKey('eligibility-error')),
       data: (eligibility) {
         final percent = eligibility.completionPercent.clamp(0.0, 100.0);
         final isEligible = eligibility.eligible;
 
         return Container(
+          key: const ValueKey('eligibility-data'),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isEligible ? AppColors.secondaryLight : c.surfaceVariant,
@@ -129,6 +130,25 @@ class EligibilityBanner extends ConsumerWidget {
           ),
         );
       },
+    ),
+    );
+  }
+}
+
+// ── Skeleton placeholder ──────────────────────────────────────────────────────
+
+class _EligibilitySkeleton extends StatelessWidget {
+  const _EligibilitySkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final skeletonColor = context.sac.surfaceVariant;
+    return Container(
+      height: 80,
+      decoration: BoxDecoration(
+        color: skeletonColor,
+        borderRadius: BorderRadius.circular(14),
+      ),
     );
   }
 }

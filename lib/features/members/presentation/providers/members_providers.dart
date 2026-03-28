@@ -78,11 +78,15 @@ class ClubContext {
 /// Provider del contexto del club activo.
 /// Fuente oficial: authorization.active_assignment + authorization.grants.club_assignments.
 /// Mantiene fallback legacy temporal hacia metadata.club.
+///
+/// Usa [selectAsync] para que este provider solo se reconstruya cuando el
+/// [activeGrant] cambia efectivamente, evitando re-fetches innecesarios por
+/// cambios en otras partes del [UserEntity] (e.g. avatar, nombre).
 final clubContextProvider = FutureProvider<ClubContext?>((ref) async {
-  final authState = await ref.watch(authNotifierProvider.future);
-  if (authState == null) return null;
+  final activeGrant = await ref.watch(
+    authNotifierProvider.selectAsync((u) => u?.authorization?.activeGrant),
+  );
 
-  final activeGrant = authState.authorization?.activeGrant;
   if (activeGrant != null &&
       activeGrant.clubId != null &&
       activeGrant.sectionId != null) {
@@ -95,6 +99,11 @@ final clubContextProvider = FutureProvider<ClubContext?>((ref) async {
   }
 
   if (!kRbacLegacyContextFallbackEnabled) return null;
+
+  // Legacy fallback: read the full user state once (no reactive subscription).
+  // Only reachable when RBAC_LEGACY_FALLBACK_ENABLED=true at compile time.
+  final authState = await ref.read(authNotifierProvider.future);
+  if (authState == null) return null;
 
   final metadata = authState.metadata;
   if (metadata == null) return null;
@@ -188,7 +197,7 @@ class MemberFilters {
 
 /// Provider para los filtros de miembros (estado mutable)
 final memberFiltersProvider =
-    StateProvider<MemberFilters>((ref) => const MemberFilters());
+    StateProvider.autoDispose<MemberFilters>((ref) => const MemberFilters());
 
 /// Provider para los filtros de solicitudes de ingreso
 class JoinRequestFilters {
@@ -224,7 +233,7 @@ class JoinRequestFilters {
 }
 
 final joinRequestFiltersProvider =
-    StateProvider<JoinRequestFilters>((ref) => const JoinRequestFilters());
+    StateProvider.autoDispose<JoinRequestFilters>((ref) => const JoinRequestFilters());
 
 // ── Members data ──────────────────────────────────────────────────────────────
 
@@ -246,9 +255,10 @@ class MembersData {
 // ── Members notifier ──────────────────────────────────────────────────────────
 
 /// Notifier principal para el módulo de miembros.
-/// Usa AsyncNotifier para que el estado de loading/error sea manejado
-/// automáticamente por AsyncValue, eliminando los campos manuales isLoading/error.
-class MembersNotifier extends AsyncNotifier<MembersData> {
+/// Usa AutoDisposeAsyncNotifier para que el estado de loading/error sea manejado
+/// automáticamente por AsyncValue, eliminando los campos manuales isLoading/error,
+/// y para liberar memoria cuando el árbol de widgets que lo consume se desmonta.
+class MembersNotifier extends AutoDisposeAsyncNotifier<MembersData> {
   @override
   Future<MembersData> build() async {
     // ref.watch sobre clubContextProvider dispara rebuild automático
@@ -334,14 +344,14 @@ class MembersNotifier extends AsyncNotifier<MembersData> {
 
 /// Provider del notifier de miembros
 final membersNotifierProvider =
-    AsyncNotifierProvider<MembersNotifier, MembersData>(
+    AsyncNotifierProvider.autoDispose<MembersNotifier, MembersData>(
   MembersNotifier.new,
 );
 
 // ── Derived / computed providers ──────────────────────────────────────────────
 
 /// Miembros filtrados según los filtros activos
-final filteredMembersProvider = Provider<List<ClubMember>>((ref) {
+final filteredMembersProvider = Provider.autoDispose<List<ClubMember>>((ref) {
   final data = ref.watch(membersNotifierProvider).valueOrNull;
   final members = data?.members ?? [];
   final filters = ref.watch(memberFiltersProvider);
@@ -349,7 +359,7 @@ final filteredMembersProvider = Provider<List<ClubMember>>((ref) {
 });
 
 /// Solicitudes filtradas según los filtros activos
-final filteredJoinRequestsProvider = Provider<List<JoinRequest>>((ref) {
+final filteredJoinRequestsProvider = Provider.autoDispose<List<JoinRequest>>((ref) {
   final data = ref.watch(membersNotifierProvider).valueOrNull;
   final requests = data?.joinRequests ?? [];
   final filters = ref.watch(joinRequestFiltersProvider);
@@ -357,13 +367,13 @@ final filteredJoinRequestsProvider = Provider<List<JoinRequest>>((ref) {
 });
 
 /// Número de solicitudes pendientes (para el badge del tab)
-final pendingRequestsCountProvider = Provider<int>((ref) {
+final pendingRequestsCountProvider = Provider.autoDispose<int>((ref) {
   return ref.watch(membersNotifierProvider).valueOrNull?.pendingRequestsCount ??
       0;
 });
 
 /// Clases únicas presentes en la lista de miembros (para el filtro)
-final availableClassesProvider = Provider<List<String>>((ref) {
+final availableClassesProvider = Provider.autoDispose<List<String>>((ref) {
   final members =
       ref.watch(membersNotifierProvider).valueOrNull?.members ?? [];
   final classes = members
@@ -377,7 +387,7 @@ final availableClassesProvider = Provider<List<String>>((ref) {
 });
 
 /// Roles únicos presentes en la lista de miembros (para el filtro)
-final availableRolesProvider = Provider<List<String>>((ref) {
+final availableRolesProvider = Provider.autoDispose<List<String>>((ref) {
   final members =
       ref.watch(membersNotifierProvider).valueOrNull?.members ?? [];
   final roles = members
@@ -391,7 +401,7 @@ final availableRolesProvider = Provider<List<String>>((ref) {
 });
 
 /// Miembros agrupados por clase progresiva
-final membersByClassProvider = Provider<Map<String, List<ClubMember>>>((ref) {
+final membersByClassProvider = Provider.autoDispose<Map<String, List<ClubMember>>>((ref) {
   final members = ref.watch(filteredMembersProvider);
   final grouped = <String, List<ClubMember>>{};
 

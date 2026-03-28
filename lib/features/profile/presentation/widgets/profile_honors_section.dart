@@ -7,7 +7,6 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 
@@ -52,12 +51,12 @@ class ProfileHonorsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userHonorsAsync = ref.watch(userHonorsProvider);
 
-    return userHonorsAsync.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 32),
-        child: Center(child: SacLoading()),
-      ),
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: userHonorsAsync.when(
+      loading: () => _HonorsSkeleton(key: const ValueKey('honors-skeleton')),
       error: (e, _) => Padding(
+        key: const ValueKey('honors-error'),
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Center(
           child: Text(
@@ -69,6 +68,7 @@ class ProfileHonorsSection extends ConsumerWidget {
       data: (userHonors) {
         if (userHonors.isEmpty) {
           return Padding(
+            key: const ValueKey('honors-data'),
             padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
             child: Column(
               children: [
@@ -91,7 +91,7 @@ class ProfileHonorsSection extends ConsumerWidget {
                   text: 'Agregar especialidad',
                   icon: HugeIcons.strokeRoundedAdd01,
                   onPressed: () {
-                    context.go(RouteNames.homeHonors);
+                    context.push(RouteNames.homeHonors);
                   },
                 ),
               ],
@@ -111,6 +111,7 @@ class ProfileHonorsSection extends ConsumerWidget {
           ..sort((a, b) => a.key.compareTo(b.key));
 
         return Column(
+          key: const ValueKey('honors-data'),
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ...sortedEntries.map((entry) {
@@ -126,13 +127,14 @@ class ProfileHonorsSection extends ConsumerWidget {
                 text: 'Agregar especialidad',
                 icon: HugeIcons.strokeRoundedAdd01,
                 onPressed: () {
-                  context.go(RouteNames.homeHonors);
+                  context.push(RouteNames.homeHonors);
                 },
               ),
             ),
           ],
         );
       },
+    ),
     );
   }
 }
@@ -371,6 +373,74 @@ class _InitialsBox extends StatelessWidget {
             color: categoryColor,
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ── Skeleton placeholder for honors section ───────────────────────────────────
+
+class _HonorsSkeleton extends StatelessWidget {
+  const _HonorsSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final skeletonColor = context.sac.surfaceVariant;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Simulate first category header
+          Container(
+            height: 52,
+            decoration: BoxDecoration(
+              color: skeletonColor,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Simulate a row of 3 honor cards
+          Row(
+            children: List.generate(3, (i) => Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(left: i == 0 ? 0 : 5, right: i == 2 ? 0 : 5),
+                child: Container(
+                  height: 90,
+                  decoration: BoxDecoration(
+                    color: skeletonColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            )),
+          ),
+          const SizedBox(height: 20),
+          // Simulate a second category header
+          Container(
+            height: 52,
+            decoration: BoxDecoration(
+              color: skeletonColor,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Simulate a second row of cards
+          Row(
+            children: List.generate(3, (i) => Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(left: i == 0 ? 0 : 5, right: i == 2 ? 0 : 5),
+                child: Container(
+                  height: 90,
+                  decoration: BoxDecoration(
+                    color: skeletonColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            )),
+          ),
+        ],
       ),
     );
   }

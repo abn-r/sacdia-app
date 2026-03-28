@@ -16,6 +16,7 @@ import 'package:sacdia_app/features/evidence_folder/presentation/views/evidence_
 import 'package:sacdia_app/features/club/presentation/providers/club_providers.dart';
 import 'package:sacdia_app/features/club/presentation/views/club_detail_view.dart';
 import 'package:sacdia_app/features/club/presentation/views/club_view.dart';
+import 'package:sacdia_app/features/honors/domain/entities/honor.dart';
 import 'package:sacdia_app/features/honors/presentation/views/honor_completion_view.dart';
 import 'package:sacdia_app/features/honors/presentation/views/honors_catalog_view.dart';
 import 'package:sacdia_app/features/honors/presentation/views/honor_detail_view.dart';
@@ -201,118 +202,234 @@ final routerProvider = Provider<GoRouter>((ref) {
             _slideUpBuild(context, state, const PostRegistrationShell()),
       ),
 
-      // Shell con navegación adaptativa (bottom bar en phones, rail en tablets)
-      ShellRoute(
-        builder: (context, state, child) => _MainShell(child: child),
-        routes: [
-          GoRoute(
-            path: RouteNames.homeDashboard,
-            pageBuilder: (context, state) =>
-                _fadeThroughBuild(context, state, const DashboardView()),
+      // Shell con navegación adaptativa (bottom bar en phones, rail en tablets).
+      //
+      // StatefulShellRoute.indexedStack preserves the widget tree of every
+      // branch across tab switches, so autoDispose providers are NOT disposed
+      // when the user switches tabs. Each StatefulShellBranch gets its own
+      // Navigator stack that survives as long as the shell is alive.
+      //
+      // The four primary nav-bar tabs are modelled as individual branches.
+      // The remaining /home/* "quick-access" modules each get their own branch
+      // too — they are not shown in the nav bar but still benefit from the
+      // preserved widget tree when navigated to via context.go().
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            _MainShell(navigationShell: navigationShell),
+        branches: [
+          // ── Branch 0: Dashboard ──────────────────────────────────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeDashboard,
+                pageBuilder: (context, state) =>
+                    _fadeThroughBuild(context, state, const DashboardView()),
+              ),
+            ],
           ),
-          GoRoute(
-            path: RouteNames.homeClasses,
-            pageBuilder: (context, state) =>
-                _fadeThroughBuild(context, state, const ClassesListView()),
+
+          // ── Branch 1: Clases ─────────────────────────────────────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeClasses,
+                pageBuilder: (context, state) =>
+                    _fadeThroughBuild(context, state, const ClassesListView()),
+              ),
+            ],
           ),
-          GoRoute(
-            path: RouteNames.homeActivities,
-            pageBuilder: (context, state) => _fadeThroughBuild(
-              context,
-              state,
-              const ActivitiesListView(),
-            ),
+
+          // ── Branch 2: Actividades ────────────────────────────────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeActivities,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const ActivitiesListView(),
+                ),
+              ),
+            ],
           ),
-          GoRoute(
-            path: RouteNames.homeProfile,
-            pageBuilder: (context, state) =>
-                _fadeThroughBuild(context, state, const ProfileView()),
+
+          // ── Branch 3: Perfil ─────────────────────────────────────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeProfile,
+                pageBuilder: (context, state) =>
+                    _fadeThroughBuild(context, state, const ProfileView()),
+              ),
+            ],
           ),
-          GoRoute(
-            path: RouteNames.homeMembers,
-            pageBuilder: (context, state) => _fadeThroughBuild(
-              context, state,
-              const MembersView(),
-            ),
+
+          // ── Branch 4: Miembros (quick-access, no nav bar) ────────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeMembers,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const MembersView(),
+                ),
+              ),
+            ],
           ),
-          GoRoute(
-            path: RouteNames.homeClub,
-            pageBuilder: (context, state) => _fadeThroughBuild(
-              context, state,
-              const ClubView(),
-            ),
+
+          // ── Branch 5: Club (quick-access, no nav bar) ────────────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeClub,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const ClubView(),
+                ),
+              ),
+            ],
           ),
-          GoRoute(
-            path: RouteNames.homeEvidences,
-            pageBuilder: (context, state) => _fadeThroughBuild(
-              context, state,
-              const _EvidenceFolderShell(),
-            ),
+
+          // ── Branch 6: Carpeta de evidencias (quick-access, no nav bar) ───
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeEvidences,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const _EvidenceFolderShell(),
+                ),
+              ),
+            ],
           ),
-          GoRoute(
-            path: RouteNames.homeFinances,
-            pageBuilder: (context, state) => _fadeThroughBuild(
-              context, state,
-              const FinancesView(),
-            ),
+
+          // ── Branch 7: Finanzas (quick-access, no nav bar) ────────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeFinances,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const FinancesView(),
+                ),
+              ),
+            ],
           ),
-          GoRoute(
-            path: RouteNames.homeUnits,
-            pageBuilder: (context, state) => _fadeThroughBuild(
-              context, state,
-              const UnitsListView(),
-            ),
+
+          // ── Branch 8: Unidades (quick-access, no nav bar) ────────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeUnits,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const UnitsListView(),
+                ),
+              ),
+            ],
           ),
-          GoRoute(
-            path: RouteNames.homeGroupedClass,
-            pageBuilder: (context, state) => _fadeThroughBuild(
-              context, state,
-              const _ActiveClassDetailShell(),
-            ),
+
+          // ── Branch 9: Clase agrupada (quick-access, no nav bar) ──────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeGroupedClass,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const _ActiveClassDetailShell(),
+                ),
+              ),
+            ],
           ),
-          GoRoute(
-            path: RouteNames.homeInsurance,
-            pageBuilder: (context, state) => _fadeThroughBuild(
-              context, state,
-              const InsuranceView(),
-            ),
+
+          // ── Branch 10: Seguro (quick-access, no nav bar) ─────────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeInsurance,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const InsuranceView(),
+                ),
+              ),
+            ],
           ),
-          GoRoute(
-            path: RouteNames.homeInventory,
-            pageBuilder: (context, state) => _fadeThroughBuild(
-              context, state,
-              const InventoryView(),
-            ),
+
+          // ── Branch 11: Inventario (quick-access, no nav bar) ─────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeInventory,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const InventoryView(),
+                ),
+              ),
+            ],
           ),
-          GoRoute(
-            path: RouteNames.homeResources,
-            pageBuilder: (context, state) => _fadeThroughBuild(
-              context, state,
-              const ResourcesView(),
-            ),
+
+          // ── Branch 12: Recursos (quick-access, no nav bar) ───────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeResources,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const ResourcesView(),
+                ),
+              ),
+            ],
           ),
-          GoRoute(
-            path: RouteNames.homeHonors,
-            pageBuilder: (context, state) => _fadeThroughBuild(
-              context, state,
-              const HonorsCatalogView(),
-            ),
+
+          // ── Branch 13: Honores (quick-access, no nav bar) ────────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeHonors,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const HonorsCatalogView(),
+                ),
+              ),
+            ],
           ),
-          GoRoute(
-            path: RouteNames.homeCertifications,
-            pageBuilder: (context, state) => _fadeThroughBuild(
-              context,
-              state,
-              const CertificationsListView(),
-            ),
+
+          // ── Branch 14: Certificaciones (quick-access, no nav bar) ────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeCertifications,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const CertificationsListView(),
+                ),
+              ),
+            ],
           ),
-          GoRoute(
-            path: RouteNames.homeCamporees,
-            pageBuilder: (context, state) => _fadeThroughBuild(
-              context,
-              state,
-              const CamporeesListView(),
-            ),
+
+          // ── Branch 15: Camporees (quick-access, no nav bar) ──────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeCamporees,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const CamporeesListView(),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -349,17 +466,23 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       // Detalle de honor
+      // The caller may pass the already-loaded Honor object as state.extra
+      // to avoid re-fetching the full catalog on every open.
       GoRoute(
         path: RouteNames.honorDetail,
         pageBuilder: (context, state) {
           final honorIdStr = state.pathParameters['honorId']!;
           final honorId = int.tryParse(honorIdStr) ?? 0;
+          final initialHonor = state.extra is Honor ? state.extra as Honor : null;
           return _sharedAxisBuild(
-              context, state, HonorDetailView(honorId: honorId));
+            context,
+            state,
+            HonorDetailView(honorId: honorId, initialHonor: initialHonor),
+          );
         },
       ),
 
-      // Evidencia de honor (especialidad inscripta)
+      // Evidencia de honor (especialidad inscrita)
       GoRoute(
         path: RouteNames.honorEvidence,
         pageBuilder: (context, state) {
@@ -677,6 +800,9 @@ final routerProvider = Provider<GoRouter>((ref) {
 // ── Navigation destination data ───────────────────────────────────────────────
 
 class _NavItemConfig {
+  /// The shell branch index for this tab. Must match the branch position in
+  /// the StatefulShellRoute.indexedStack branches list.
+  final int branchIndex;
   final String route;
   final List<List<dynamic>> icon;
   final String label;
@@ -684,6 +810,7 @@ class _NavItemConfig {
   final Set<String> legacyRoles;
 
   const _NavItemConfig({
+    required this.branchIndex,
     required this.route,
     required this.icon,
     required this.label,
@@ -694,11 +821,13 @@ class _NavItemConfig {
 
 const List<_NavItemConfig> _navItemsConfig = [
   _NavItemConfig(
+    branchIndex: 0,
     route: RouteNames.homeDashboard,
     icon: HugeIcons.strokeRoundedHome01,
     label: 'Inicio',
   ),
   _NavItemConfig(
+    branchIndex: 1,
     route: RouteNames.homeClasses,
     icon: HugeIcons.strokeRoundedSchool,
     label: 'Clases',
@@ -706,6 +835,7 @@ const List<_NavItemConfig> _navItemsConfig = [
     legacyRoles: {'conquistador', 'aventurero', 'guia_mayor'},
   ),
   _NavItemConfig(
+    branchIndex: 2,
     route: RouteNames.homeActivities,
     icon: HugeIcons.strokeRoundedCalendar01,
     label: 'Actividades',
@@ -713,6 +843,7 @@ const List<_NavItemConfig> _navItemsConfig = [
     legacyRoles: {'conquistador', 'aventurero', 'guia_mayor'},
   ),
   _NavItemConfig(
+    branchIndex: 3,
     route: RouteNames.homeProfile,
     icon: HugeIcons.strokeRoundedUser,
     label: 'Perfil',
@@ -736,39 +867,22 @@ List<_NavItemConfig> _filterNavItems(
   }).toList();
 }
 
-int _resolveCurrentIndex(
-  BuildContext context,
-  List<_NavItemConfig> items,
-) {
-  final location = GoRouterState.of(context).matchedLocation;
-  final idx = items.indexWhere(
-    (item) => location.startsWith(item.route),
-  );
-  return idx.clamp(0, items.length - 1);
-}
-
-void _navigateToIndex(
-  BuildContext context,
-  int index,
-  List<_NavItemConfig> items,
-) {
-  if (index < items.length) {
-    context.go(items[index].route);
-  }
-}
-
 // ── Main shell — adaptive navigation ─────────────────────────────────────────
 
 /// Shell principal con navegación adaptativa:
 /// - Phones (< 600dp): Material 3 NavigationBar en la parte inferior.
 /// - Tablets / landscape (>= 600dp): NavigationRail a la izquierda.
 ///
+/// Uses [StatefulNavigationShell] so each branch keeps its widget tree alive
+/// across tab switches, preventing autoDispose providers from being disposed
+/// on every tab change.
+///
 /// Watches [authNotifierProvider] scoped to the authorization sub-state so
 /// the tab list rebuilds reactively when permissions change (e.g. context switch).
 class _MainShell extends ConsumerWidget {
-  final Widget child;
+  final StatefulNavigationShell navigationShell;
 
-  const _MainShell({required this.child});
+  const _MainShell({required this.navigationShell});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -783,7 +897,17 @@ class _MainShell extends ConsumerWidget {
       authorization,
     );
 
-    final selectedIndex = _resolveCurrentIndex(context, filteredItems);
+    // Map the shell's current branch index to the filtered UI position.
+    // Quick-access branches (index >= _kNavBranchCount) are not shown in the
+    // nav bar, so we fall back to index 0 (Dashboard) for those cases.
+    final currentBranchIndex = navigationShell.currentIndex;
+    final selectedIndex = () {
+      final uiIdx = filteredItems.indexWhere(
+        (item) => item.branchIndex == currentBranchIndex,
+      );
+      return uiIdx < 0 ? 0 : uiIdx;
+    }();
+
     final useRail = Responsive.isTablet(context);
 
     if (useRail) {
@@ -793,8 +917,8 @@ class _MainShell extends ConsumerWidget {
           children: [
             NavigationRail(
               selectedIndex: selectedIndex,
-              onDestinationSelected: (index) =>
-                  _navigateToIndex(context, index, filteredItems),
+              onDestinationSelected: (uiIndex) =>
+                  navigationShell.goBranch(filteredItems[uiIndex].branchIndex),
               labelType: NavigationRailLabelType.all,
               useIndicator: true,
               destinations: filteredItems
@@ -816,7 +940,7 @@ class _MainShell extends ConsumerWidget {
                   .toList(),
             ),
             const VerticalDivider(width: 1, thickness: 1),
-            Expanded(child: child),
+            Expanded(child: navigationShell),
           ],
         ),
       );
@@ -824,11 +948,11 @@ class _MainShell extends ConsumerWidget {
 
     // ── Phone: bottom NavigationBar ──────────────────────────────────────────
     return Scaffold(
-      body: child,
+      body: navigationShell,
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
-        onDestinationSelected: (index) =>
-            _navigateToIndex(context, index, filteredItems),
+        onDestinationSelected: (uiIndex) =>
+            navigationShell.goBranch(filteredItems[uiIndex].branchIndex),
         destinations: filteredItems
             .map(
               (item) => NavigationDestination(
@@ -902,7 +1026,7 @@ class _EvidenceFolderShell extends ConsumerWidget {
 /// Sigue el mismo patrón que [_EvidenceFolderShell]: observa un provider
 /// asíncrono y muestra loading / error / data según el estado.
 ///
-/// Si el usuario no tiene ninguna clase inscripta muestra un mensaje informativo
+/// Si el usuario no tiene ninguna clase inscrita muestra un mensaje informativo
 /// en lugar de la vista de detalle.
 class _ActiveClassDetailShell extends ConsumerWidget {
   const _ActiveClassDetailShell();

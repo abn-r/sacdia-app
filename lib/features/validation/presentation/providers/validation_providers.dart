@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
@@ -46,9 +48,26 @@ final validationHistoryProvider = FutureProvider.autoDispose
 
 // ── Eligibility ───────────────────────────────────────────────────────────────
 
+/// Caches eligibility results per userId with a 5-minute timer: the instance
+/// is kept alive while any listener is active and is auto-disposed 5 minutes
+/// after the last listener is removed, preventing unbounded growth when
+/// checking eligibility for many different members in a session.
 final eligibilityProvider =
     FutureProvider.autoDispose.family<EligibilityResult, String>(
   (ref, userId) async {
+    final link = ref.keepAlive();
+    Timer? timer;
+    ref.onCancel(() {
+      timer = Timer(const Duration(minutes: 5), () {
+        link.close();
+      });
+    });
+    ref.onResume(() {
+      timer?.cancel();
+    });
+    ref.onDispose(() {
+      timer?.cancel();
+    });
     final repo = ref.read(validationRepositoryProvider);
     final result = await repo.checkEligibility(userId: userId);
     return result.fold(
