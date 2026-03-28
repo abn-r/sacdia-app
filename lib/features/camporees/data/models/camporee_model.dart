@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/camporee.dart';
+import '../../../../core/utils/json_helpers.dart';
 
 /// Modelo de camporee para la capa de datos
 class CamporeeModel extends Equatable {
@@ -38,29 +39,25 @@ class CamporeeModel extends Equatable {
     final localFields = json['local_fields'] as Map<String, dynamic>?;
 
     return CamporeeModel(
-      camporeeId:
-          (json['local_camporee_id'] ?? json['camporee_id'] ?? json['id'])
-              as int,
-      name: json['name'] as String,
-      description: json['description'] as String?,
-      startDate: DateTime.parse(json['start_date'] as String),
-      endDate: DateTime.parse(json['end_date'] as String),
-      place: (json['local_camporee_place'] ?? json['place'] ?? '') as String,
+      camporeeId: safeInt(
+          json['local_camporee_id'] ?? json['camporee_id'] ?? json['id']),
+      name: safeString(json['name']),
+      description: safeStringOrNull(json['description']),
+      startDate: DateTime.parse(safeString(json['start_date'])),
+      endDate: DateTime.parse(safeString(json['end_date'])),
+      place: safeString(json['local_camporee_place'] ?? json['place']),
       registrationCost: json['registration_cost'] != null
           ? (json['registration_cost'] as num).toDouble()
           : null,
-      includesAdventurers:
-          json['includes_adventurers'] as bool? ?? false,
-      includesPathfinders:
-          json['includes_pathfinders'] as bool? ?? false,
-      includesMasterGuides:
-          json['includes_master_guides'] as bool? ?? false,
-      active: json['active'] as bool? ?? true,
+      includesAdventurers: safeBool(json['includes_adventurers']),
+      includesPathfinders: safeBool(json['includes_pathfinders']),
+      includesMasterGuides: safeBool(json['includes_master_guides']),
+      active: safeBool(json['active'], true),
       localFieldId: localFields != null
-          ? localFields['local_field_id'] as int?
-          : json['local_field_id'] as int?,
+          ? safeIntOrNull(localFields['local_field_id'])
+          : safeIntOrNull(json['local_field_id']),
       localFieldName:
-          localFields != null ? localFields['name'] as String? : null,
+          localFields != null ? safeStringOrNull(localFields['name']) : null,
     );
   }
 

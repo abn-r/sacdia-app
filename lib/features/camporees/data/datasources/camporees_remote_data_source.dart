@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/camporee_model.dart';
@@ -117,7 +118,9 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
         if (msg is List) return msg.join(', ');
         return (msg ?? e.message ?? 'Error de conexion').toString();
       }
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
+    }
     return e.message ?? 'Error de conexion';
   }
 
@@ -131,7 +134,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       if (active != null) queryParams['active'] = active;
 
       final response = await _dio.get(
-        '$_baseUrl/camporees',
+        '$_baseUrl${ApiEndpoints.camporees}',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
         options: _authOptions(token),
       );
@@ -171,7 +174,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/camporees/$camporeeId',
+        '$_baseUrl${ApiEndpoints.camporees}/$camporeeId',
         options: _authOptions(token),
       );
 
@@ -208,7 +211,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       if (insuranceId != null) body['insurance_id'] = insuranceId;
 
       final response = await _dio.post(
-        '$_baseUrl/camporees/$camporeeId/register',
+        '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/register',
         data: body,
         options: _authOptions(token),
       );
@@ -234,7 +237,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/camporees/$camporeeId/members',
+        '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/members',
         options: _authOptions(token),
       );
 
@@ -272,7 +275,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.delete(
-        '$_baseUrl/camporees/$camporeeId/members/$userId',
+        '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/members/$userId',
         options: _authOptions(token),
       );
 
@@ -301,7 +304,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.post(
-        '$_baseUrl/camporees/$camporeeId/clubs',
+        '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/clubs',
         data: {'club_section_id': clubSectionId},
         options: _authOptions(token),
       );
@@ -328,7 +331,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/camporees/$camporeeId/clubs',
+        '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/clubs',
         options: _authOptions(token),
       );
 
@@ -384,7 +387,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       if (notes != null) body['notes'] = notes;
 
       final response = await _dio.post(
-        '$_baseUrl/camporees/$camporeeId/members/$memberId/payments',
+        '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/members/$memberId/payments',
         data: body,
         options: _authOptions(token),
       );
@@ -413,7 +416,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/camporees/$camporeeId/members/$memberId/payments',
+        '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/members/$memberId/payments',
         options: _authOptions(token),
       );
 
@@ -452,7 +455,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/camporees/$camporeeId/payments',
+        '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/payments',
         options: _authOptions(token),
       );
 

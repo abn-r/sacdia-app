@@ -758,7 +758,8 @@ class _CamporeePaymentFormSheetState
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     final params = CamporeePaymentParams(
       camporeeId: widget.camporeeId,

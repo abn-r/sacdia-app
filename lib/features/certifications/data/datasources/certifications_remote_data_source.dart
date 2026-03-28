@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/certification_model.dart';
@@ -90,7 +91,9 @@ class CertificationsRemoteDataSourceImpl
       if (data is Map) {
         return (data['message'] ?? e.message ?? 'Error de conexion').toString();
       }
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
+    }
     return e.message ?? 'Error de conexion';
   }
 
@@ -101,7 +104,7 @@ class CertificationsRemoteDataSourceImpl
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/certifications/certifications',
+        '$_baseUrl${ApiEndpoints.certifications}/certifications',
         options: _authOptions(token),
       );
 
@@ -130,7 +133,7 @@ class CertificationsRemoteDataSourceImpl
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/certifications/certifications/$certificationId',
+        '$_baseUrl${ApiEndpoints.certifications}/certifications/$certificationId',
         options: _authOptions(token),
       );
 
@@ -156,7 +159,7 @@ class CertificationsRemoteDataSourceImpl
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/certifications/users/$userId/certifications',
+        '$_baseUrl${ApiEndpoints.certifications}/users/$userId/certifications',
         options: _authOptions(token),
       );
 
@@ -185,7 +188,7 @@ class CertificationsRemoteDataSourceImpl
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/certifications/users/$userId/certifications/$certificationId/progress',
+        '$_baseUrl${ApiEndpoints.certifications}/users/$userId/certifications/$certificationId/progress',
         options: _authOptions(token),
       );
 
@@ -210,7 +213,7 @@ class CertificationsRemoteDataSourceImpl
     try {
       final token = await _getAuthToken();
       final response = await _dio.post(
-        '$_baseUrl/certifications/users/$userId/certifications/enroll',
+        '$_baseUrl${ApiEndpoints.certifications}/users/$userId/certifications/enroll',
         data: {'certification_id': certificationId},
         options: _authOptions(token),
       );
@@ -243,7 +246,7 @@ class CertificationsRemoteDataSourceImpl
     try {
       final token = await _getAuthToken();
       final response = await _dio.patch(
-        '$_baseUrl/certifications/users/$userId/certifications/$certificationId/progress',
+        '$_baseUrl${ApiEndpoints.certifications}/users/$userId/certifications/$certificationId/progress',
         data: {
           'module_id': moduleId,
           'section_id': sectionId,
@@ -273,7 +276,7 @@ class CertificationsRemoteDataSourceImpl
     try {
       final token = await _getAuthToken();
       final response = await _dio.delete(
-        '$_baseUrl/certifications/users/$userId/certifications/$certificationId',
+        '$_baseUrl${ApiEndpoints.certifications}/users/$userId/certifications/$certificationId',
         options: _authOptions(token),
       );
 

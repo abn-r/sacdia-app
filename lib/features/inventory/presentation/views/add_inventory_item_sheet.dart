@@ -396,7 +396,8 @@ class _AddInventoryItemSheetState
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     final clubId = await ref.read(inventoryClubIdProvider.future);
     if (clubId == null) return;

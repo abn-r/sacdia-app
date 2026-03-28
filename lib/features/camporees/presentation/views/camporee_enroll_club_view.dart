@@ -353,7 +353,8 @@ class _CamporeeEnrollClubViewState
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     ref
         .read(enrollClubNotifierProvider(widget.camporeeId).notifier)

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/investiture_pending_model.dart';
@@ -101,7 +102,9 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
       if (data is Map) {
         return (data['message'] ?? e.message ?? 'Error de conexion').toString();
       }
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
+    }
     return e.message ?? 'Error de conexion';
   }
 
@@ -121,7 +124,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
       }
 
       final response = await _dio.post(
-        '$_baseUrl/enrollments/$enrollmentId/submit-for-validation',
+        '$_baseUrl${ApiEndpoints.enrollments}/$enrollmentId/submit-for-validation',
         data: body,
         options: _authOptions(token),
       );
@@ -158,7 +161,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
       }
 
       final response = await _dio.post(
-        '$_baseUrl/enrollments/$enrollmentId/validate',
+        '$_baseUrl${ApiEndpoints.enrollments}/$enrollmentId/validate',
         data: body,
         options: _authOptions(token),
       );
@@ -194,7 +197,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
       }
 
       final response = await _dio.post(
-        '$_baseUrl/enrollments/$enrollmentId/investiture',
+        '$_baseUrl${ApiEndpoints.enrollments}/$enrollmentId/investiture',
         data: body,
         options: _authOptions(token),
       );
@@ -238,7 +241,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
       }
 
       final response = await _dio.get(
-        '$_baseUrl/investiture/pending',
+        '$_baseUrl${ApiEndpoints.investiture}/pending',
         queryParameters: queryParams,
         options: _authOptions(token),
       );
@@ -279,7 +282,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
     try {
       final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/enrollments/$enrollmentId/investiture-history',
+        '$_baseUrl${ApiEndpoints.enrollments}/$enrollmentId/investiture-history',
         options: _authOptions(token),
       );
 

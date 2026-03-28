@@ -303,7 +303,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
   }
 
   Future<void> _submit(SelectedMonth selectedMonth) async {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     final amount = double.parse(_amountController.text);
     final clubIdAsync = await ref.read(currentClubIdProvider.future);

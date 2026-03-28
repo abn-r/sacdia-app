@@ -1,11 +1,14 @@
 /// Estado de investidura de un enrollment.
 ///
 /// Máquina de estados:
-/// IN_PROGRESS → SUBMITTED_FOR_VALIDATION → APPROVED → INVESTIDO
+/// IN_PROGRESS → SUBMITTED_FOR_VALIDATION → CLUB_APPROVED → COORDINATOR_APPROVED → FIELD_APPROVED → APPROVED → INVESTIDO
 ///                                        → REJECTED → (editar) → SUBMITTED_FOR_VALIDATION
 enum InvestitureStatus {
   inProgress,
   submittedForValidation,
+  clubApproved,
+  coordinatorApproved,
+  fieldApproved,
   approved,
   rejected,
   investido;
@@ -17,6 +20,12 @@ enum InvestitureStatus {
         return 'En progreso';
       case InvestitureStatus.submittedForValidation:
         return 'Enviado';
+      case InvestitureStatus.clubApproved:
+        return 'Aprobado por el club';
+      case InvestitureStatus.coordinatorApproved:
+        return 'Aprobado por coordinador';
+      case InvestitureStatus.fieldApproved:
+        return 'Aprobado por campo';
       case InvestitureStatus.approved:
         return 'Aprobado';
       case InvestitureStatus.rejected:
@@ -33,6 +42,12 @@ enum InvestitureStatus {
         return InvestitureStatus.inProgress;
       case 'SUBMITTED_FOR_VALIDATION':
         return InvestitureStatus.submittedForValidation;
+      case 'CLUB_APPROVED':
+        return InvestitureStatus.clubApproved;
+      case 'COORDINATOR_APPROVED':
+        return InvestitureStatus.coordinatorApproved;
+      case 'FIELD_APPROVED':
+        return InvestitureStatus.fieldApproved;
       case 'APPROVED':
         return InvestitureStatus.approved;
       case 'REJECTED':
@@ -51,6 +66,12 @@ enum InvestitureStatus {
         return 'IN_PROGRESS';
       case InvestitureStatus.submittedForValidation:
         return 'SUBMITTED_FOR_VALIDATION';
+      case InvestitureStatus.clubApproved:
+        return 'CLUB_APPROVED';
+      case InvestitureStatus.coordinatorApproved:
+        return 'COORDINATOR_APPROVED';
+      case InvestitureStatus.fieldApproved:
+        return 'FIELD_APPROVED';
       case InvestitureStatus.approved:
         return 'APPROVED';
       case InvestitureStatus.rejected:

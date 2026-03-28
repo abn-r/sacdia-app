@@ -53,6 +53,9 @@ class InvestitureStatusBadge extends StatelessWidget {
             : const Color(0xFFF1F5F9);
       case InvestitureStatus.submittedForValidation:
         return AppColors.accentLight;
+      case InvestitureStatus.clubApproved:
+      case InvestitureStatus.coordinatorApproved:
+      case InvestitureStatus.fieldApproved:
       case InvestitureStatus.approved:
         return isDark
             ? AppColors.statusInfoBgDark
@@ -72,6 +75,9 @@ class InvestitureStatusBadge extends StatelessWidget {
             : const Color(0xFFCBD5E1);
       case InvestitureStatus.submittedForValidation:
         return AppColors.accent.withValues(alpha: 0.4);
+      case InvestitureStatus.clubApproved:
+      case InvestitureStatus.coordinatorApproved:
+      case InvestitureStatus.fieldApproved:
       case InvestitureStatus.approved:
         return AppColors.sacBlue.withValues(alpha: 0.4);
       case InvestitureStatus.rejected:
@@ -89,6 +95,9 @@ class InvestitureStatusBadge extends StatelessWidget {
             : const Color(0xFF64748B);
       case InvestitureStatus.submittedForValidation:
         return AppColors.accentDark;
+      case InvestitureStatus.clubApproved:
+      case InvestitureStatus.coordinatorApproved:
+      case InvestitureStatus.fieldApproved:
       case InvestitureStatus.approved:
         return isDark
             ? AppColors.statusInfoTextDark
@@ -106,6 +115,9 @@ class InvestitureStatusBadge extends StatelessWidget {
         return HugeIcons.strokeRoundedClock01;
       case InvestitureStatus.submittedForValidation:
         return HugeIcons.strokeRoundedSent;
+      case InvestitureStatus.clubApproved:
+      case InvestitureStatus.coordinatorApproved:
+      case InvestitureStatus.fieldApproved:
       case InvestitureStatus.approved:
         return HugeIcons.strokeRoundedCheckmarkCircle01;
       case InvestitureStatus.rejected:

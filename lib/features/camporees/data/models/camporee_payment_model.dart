@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/camporee_payment.dart';
+import '../../../../core/utils/json_helpers.dart';
 
 /// Modelo de pago de camporee para la capa de datos
 class CamporeePaymentModel extends Equatable {
@@ -29,19 +30,19 @@ class CamporeePaymentModel extends Equatable {
 
   factory CamporeePaymentModel.fromJson(Map<String, dynamic> json) {
     return CamporeePaymentModel(
-      id: (json['id'] ?? json['payment_id']) as int,
-      camporeeId: json['camporee_id'] as int? ?? 0,
-      memberId: (json['member_id'] ?? json['user_id'] ?? '') as String,
-      amount: (json['amount'] as num).toDouble(),
-      paymentType: json['payment_type'] as String? ?? 'cash',
-      reference: json['reference'] as String?,
-      status: json['status'] as String? ?? 'pending',
+      id: safeInt(json['id'] ?? json['payment_id']),
+      camporeeId: safeInt(json['camporee_id']),
+      memberId: safeString(json['member_id'] ?? json['user_id']),
+      amount: safeDouble(json['amount']),
+      paymentType: safeString(json['payment_type'], 'cash'),
+      reference: safeStringOrNull(json['reference']),
+      status: safeString(json['status'], 'pending'),
       paymentDate: json['payment_date'] != null
-          ? DateTime.tryParse(json['payment_date'] as String)
+          ? DateTime.tryParse(safeString(json['payment_date']))
           : null,
-      notes: json['notes'] as String?,
+      notes: safeStringOrNull(json['notes']),
       createdAt: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'] as String)
+          ? DateTime.tryParse(safeString(json['created_at']))
           : null,
     );
   }
@@ -99,16 +100,14 @@ class CamporeeEnrolledClubModel extends Equatable {
     final section = json['club_section'] as Map<String, dynamic>?;
 
     return CamporeeEnrolledClubModel(
-      id: (json['id'] ?? json['enrollment_id']) as int,
-      camporeeId: json['camporee_id'] as int? ?? 0,
-      clubSectionId: (json['club_section_id'] ??
-              section?['id'] ??
-              0) as int,
-      clubName: club?['name'] as String? ?? json['club_name'] as String?,
+      id: safeInt(json['id'] ?? json['enrollment_id']),
+      camporeeId: safeInt(json['camporee_id']),
+      clubSectionId: safeInt(json['club_section_id'] ?? section?['id']),
+      clubName: safeStringOrNull(club?['name']) ?? safeStringOrNull(json['club_name']),
       sectionName:
-          section?['name'] as String? ?? json['section_name'] as String?,
+          safeStringOrNull(section?['name']) ?? safeStringOrNull(json['section_name']),
       enrolledAt: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'] as String)
+          ? DateTime.tryParse(safeString(json['created_at']))
           : null,
     );
   }

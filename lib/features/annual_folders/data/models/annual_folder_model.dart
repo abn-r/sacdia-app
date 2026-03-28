@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/annual_folder.dart';
+import '../../../../core/utils/json_helpers.dart';
 
 /// Modelo de evidencia de la carpeta anual
 class FolderEvidenceModel extends Equatable {
@@ -23,14 +24,14 @@ class FolderEvidenceModel extends Equatable {
 
   factory FolderEvidenceModel.fromJson(Map<String, dynamic> json) {
     return FolderEvidenceModel(
-      id: (json['id'] ?? json['evidence_id']) as int,
-      folderId: json['folder_id'] as int? ?? 0,
-      sectionId: json['section_id'] as int? ?? 0,
-      fileUrl: json['file_url'] as String? ?? '',
-      fileName: json['file_name'] as String? ?? '',
-      notes: json['notes'] as String?,
+      id: safeInt(json['id'] ?? json['evidence_id']),
+      folderId: safeInt(json['folder_id']),
+      sectionId: safeInt(json['section_id']),
+      fileUrl: safeString(json['file_url']),
+      fileName: safeString(json['file_name']),
+      notes: safeStringOrNull(json['notes']),
       uploadedAt: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'] as String)
+          ? DateTime.tryParse(safeString(json['created_at']))
           : null,
     );
   }
@@ -69,9 +70,9 @@ class FolderSectionModel extends Equatable {
   factory FolderSectionModel.fromJson(Map<String, dynamic> json) {
     final rawEvidences = json['evidences'] as List<dynamic>? ?? [];
     return FolderSectionModel(
-      id: (json['id'] ?? json['section_id']) as int,
-      name: json['name'] as String? ?? '',
-      description: json['description'] as String?,
+      id: safeInt(json['id'] ?? json['section_id']),
+      name: safeString(json['name']),
+      description: safeStringOrNull(json['description']),
       evidences: rawEvidences
           .map((e) => FolderEvidenceModel.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -114,15 +115,15 @@ class AnnualFolderModel extends Equatable {
   factory AnnualFolderModel.fromJson(Map<String, dynamic> json) {
     final rawSections = json['sections'] as List<dynamic>? ?? [];
     return AnnualFolderModel(
-      id: (json['id'] ?? json['folder_id']) as int,
-      enrollmentId: json['enrollment_id'] as int? ?? 0,
-      year: json['year'] as int? ?? DateTime.now().year,
-      status: json['status'] as String? ?? 'open',
+      id: safeInt(json['id'] ?? json['folder_id']),
+      enrollmentId: safeInt(json['enrollment_id']),
+      year: safeInt(json['year'], DateTime.now().year),
+      status: safeString(json['status'], 'open'),
       submittedAt: json['submitted_at'] != null
-          ? DateTime.tryParse(json['submitted_at'] as String)
+          ? DateTime.tryParse(safeString(json['submitted_at']))
           : null,
       createdAt: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'] as String)
+          ? DateTime.tryParse(safeString(json['created_at']))
           : null,
       sections: rawSections
           .map((s) => FolderSectionModel.fromJson(s as Map<String, dynamic>))
