@@ -56,7 +56,8 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
     if (_selectedRelationshipTypeId == null) {
       setState(() => _relationshipError = true);
     }
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
     if (_selectedRelationshipTypeId == null) return;
 
     setState(() => _isLoading = true);

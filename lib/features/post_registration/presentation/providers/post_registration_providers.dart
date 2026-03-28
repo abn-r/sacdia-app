@@ -10,7 +10,7 @@ import '../../domain/repositories/post_registration_repository.dart';
 
 /// Provider para el repositorio de post-registro
 final postRegistrationRepositoryProvider =
-    Provider<PostRegistrationRepository>((ref) {
+    Provider.autoDispose<PostRegistrationRepository>((ref) {
   final dio = ref.read(dioProvider);
   final networkInfo = ref.read(networkInfoProvider);
 
@@ -25,12 +25,12 @@ final postRegistrationRepositoryProvider =
 
 /// Provider para el estado de completitud del post-registro
 final completionStatusProvider =
-    AsyncNotifierProvider<CompletionStatusNotifier, CompletionStatus?>(() {
+    AsyncNotifierProvider.autoDispose<CompletionStatusNotifier, CompletionStatus?>(() {
   return CompletionStatusNotifier();
 });
 
 /// Notifier para el estado de completitud del post-registro
-class CompletionStatusNotifier extends AsyncNotifier<CompletionStatus?> {
+class CompletionStatusNotifier extends AutoDisposeAsyncNotifier<CompletionStatus?> {
   @override
   Future<CompletionStatus?> build() async {
     final result =
@@ -54,10 +54,10 @@ class CompletionStatusNotifier extends AsyncNotifier<CompletionStatus?> {
 }
 
 /// Provider para el paso actual del post-registro
-final currentStepProvider = StateProvider<int>((ref) => 1);
+final currentStepProvider = StateProvider.autoDispose<int>((ref) => 1);
 
 /// Provider para la foto de perfil temporal (path local)
-final selectedPhotoPathProvider = StateProvider<String?>((ref) => null);
+final selectedPhotoPathProvider = StateProvider.autoDispose<String?>((ref) => null);
 
 /// Provider para indicar si se está subiendo la foto
-final isUploadingPhotoProvider = StateProvider<bool>((ref) => false);
+final isUploadingPhotoProvider = StateProvider.autoDispose<bool>((ref) => false);

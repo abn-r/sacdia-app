@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/country_model.dart';
@@ -57,7 +58,7 @@ class ClubSelectionRemoteDataSourceImpl
     try {
       final options = await _authOptions();
       final response = await _dio.get(
-        '$_baseUrl/catalogs/countries',
+        '$_baseUrl${ApiEndpoints.catalogs}/countries',
         options: options,
       );
 
@@ -82,7 +83,7 @@ class ClubSelectionRemoteDataSourceImpl
     try {
       final options = await _authOptions();
       final response = await _dio.get(
-        '$_baseUrl/catalogs/unions?countryId=$countryId',
+        '$_baseUrl${ApiEndpoints.catalogs}/unions?countryId=$countryId',
         options: options,
       );
 
@@ -107,7 +108,7 @@ class ClubSelectionRemoteDataSourceImpl
     try {
       final options = await _authOptions();
       final response = await _dio.get(
-        '$_baseUrl/catalogs/local-fields?unionId=$unionId',
+        '$_baseUrl${ApiEndpoints.catalogs}/local-fields?unionId=$unionId',
         options: options,
       );
 
@@ -132,7 +133,7 @@ class ClubSelectionRemoteDataSourceImpl
     try {
       final options = await _authOptions();
       final response = await _dio.get(
-        '$_baseUrl/clubs',
+        '$_baseUrl${ApiEndpoints.clubs}',
         queryParameters: {'localFieldId': localFieldId},
         options: options,
       );
@@ -159,7 +160,7 @@ class ClubSelectionRemoteDataSourceImpl
     try {
       final options = await _authOptions();
       final response = await _dio.get(
-        '$_baseUrl/clubs/$clubId/sections',
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections',
         options: options,
       );
 
@@ -198,7 +199,7 @@ class ClubSelectionRemoteDataSourceImpl
     try {
       final options = await _authOptions();
       final response = await _dio.get(
-        '$_baseUrl/classes',
+        '$_baseUrl${ApiEndpoints.classes}',
         queryParameters: {'clubTypeId': clubTypeId},
         options: options,
       );
@@ -232,7 +233,7 @@ class ClubSelectionRemoteDataSourceImpl
     try {
       final options = await _authOptions();
       final response = await _dio.post(
-        '$_baseUrl/users/$userId/post-registration/step-3/complete',
+        '$_baseUrl${ApiEndpoints.users}/$userId/post-registration/step-3/complete',
         data: {
           'country_id': countryId,
           'union_id': unionId,

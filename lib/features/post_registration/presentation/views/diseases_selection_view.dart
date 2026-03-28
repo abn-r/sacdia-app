@@ -5,6 +5,7 @@ import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../data/models/disease_model.dart';
 import '../providers/personal_info_providers.dart';
 import '../widgets/searchable_selection_list.dart';
 
@@ -23,7 +24,6 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
   void initState() {
     super.initState();
     // Pre-cargar enfermedades del usuario al entrar a la vista.
-    // El notifier ya sincroniza selectedDiseasesProvider en su build().
     Future.microtask(() {
       ref.read(userDiseasesProvider.notifier).refresh();
     });
@@ -78,6 +78,21 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
 
   @override
   Widget build(BuildContext context) {
+    // Seed selection state the first time user diseases load from the API.
+    // The guard `prev?.value == null` ensures this only fires once on
+    // the loading→data transition, not on every rebuild. Because
+    // userDiseasesProvider is .autoDispose, it resets when the screen is
+    // left, so re-entering the screen will re-seed correctly.
+    ref.listen<AsyncValue<List<DiseaseModel>>>(
+      userDiseasesProvider,
+      (prev, next) {
+        if (prev?.value == null && next.value != null) {
+          ref.read(selectedDiseasesProvider.notifier).state =
+              next.value!.map((d) => d.id).toList();
+        }
+      },
+    );
+
     final diseasesAsync = ref.watch(diseasesCatalogProvider);
     final userDiseasesAsync = ref.watch(userDiseasesProvider);
     final selectedIds = ref.watch(selectedDiseasesProvider);

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http_parser/http_parser.dart';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/completion_status_model.dart';
@@ -44,7 +45,7 @@ class PostRegistrationRemoteDataSourceImpl
     try {
       final options = await _authOptions();
       final response = await _dio.get(
-        '$_baseUrl/auth/profile/completion-status',
+        '$_baseUrl${ApiEndpoints.auth}/profile/completion-status',
         options: options,
       );
 
@@ -90,7 +91,7 @@ class PostRegistrationRemoteDataSourceImpl
       });
 
       final response = await _dio.post(
-        '$_baseUrl/users/$userId/profile-picture',
+        '$_baseUrl${ApiEndpoints.users}/$userId/profile-picture',
         data: formData,
         options: options,
       );
@@ -115,7 +116,7 @@ class PostRegistrationRemoteDataSourceImpl
     try {
       final options = await _authOptions();
       final response = await _dio.delete(
-        '$_baseUrl/users/$userId/profile-picture',
+        '$_baseUrl${ApiEndpoints.users}/$userId/profile-picture',
         options: options,
       );
 
@@ -136,7 +137,7 @@ class PostRegistrationRemoteDataSourceImpl
     try {
       final options = await _authOptions();
       final response = await _dio.get(
-        '$_baseUrl/users/$userId/post-registration/photo-status',
+        '$_baseUrl${ApiEndpoints.users}/$userId/post-registration/photo-status',
         options: options,
       );
 
@@ -159,7 +160,7 @@ class PostRegistrationRemoteDataSourceImpl
     try {
       final options = await _authOptions();
       final response = await _dio.post(
-        '$_baseUrl/users/$userId/post-registration/step-1/complete',
+        '$_baseUrl${ApiEndpoints.users}/$userId/post-registration/step-1/complete',
         options: options,
       );
 
