@@ -1,7 +1,8 @@
-/// Constantes para la integración del mapa (flutter_map + CartoDB tiles).
+/// Constantes para la integración del mapa (google_maps_flutter).
 ///
 /// ─────────────────────────────────────────────────────────────────
-/// No se requiere API Key para el mapa — se usan tiles de CartoDB (Voyager).
+/// Se usa Google Maps (google_maps_flutter). Requiere API Key configurada
+/// en AndroidManifest.xml y AppDelegate.swift.
 /// El geocoding usa los geocoders nativos del dispositivo:
 ///   - iOS: CLGeocoder (Apple)
 ///   - Android: Android Geocoder (Google Play Services)

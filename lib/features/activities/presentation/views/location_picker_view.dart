@@ -51,7 +51,7 @@ class _NominatimPlace {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Pantalla de selección de ubicación con flutter_map (CartoDB Voyager tiles).
+/// Pantalla de selección de ubicación con google_maps_flutter.
 ///
 /// Muestra un mapa a pantalla completa con:
 /// - Barra de búsqueda en la parte superior con autocompletado en tiempo real

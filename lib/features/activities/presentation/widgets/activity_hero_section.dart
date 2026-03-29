@@ -15,7 +15,7 @@ import '../../domain/entities/activity.dart';
 /// Designed to be used inside a [FlexibleSpaceBar] background so it fills
 /// edge-to-edge behind the AppBar (no border radius, full bleed).
 ///
-/// - platform 0 (Presencial): flutter_map with location pin, or fallback card.
+/// - platform 0 (Presencial): google_maps_flutter with location pin, or fallback card.
 /// - platform 1 (Virtual): full-width image (16:9), or solid icon card.
 /// - platform 2 (Híbrido): image with a floating "Join Meet" chip overlay.
 ///
