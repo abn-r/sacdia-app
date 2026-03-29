@@ -138,6 +138,32 @@ class _RequirementDetailViewState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Detalle del requisito",
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: c.textSecondary,
+                                letterSpacing: 0.8,
+                              ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          requirement.name,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: c.text,
+                                height: 1.25,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 16),
                   // Meta card con descripcion y metricas
                   _RequirementMetaCard(requirement: requirement),
 
@@ -392,15 +418,16 @@ class _RequirementMetaCard extends StatelessWidget {
             const SizedBox(height: 10),
           ],
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _MetaItem(
-                icon: HugeIcons.strokeRoundedStar,
-                label: 'Puntos',
-                value: '${requirement.pointValue} pts',
-                color: AppColors.accent,
-                context: context,
-              ),
-              const SizedBox(width: 24),
+              // _MetaItem(
+              //   icon: HugeIcons.strokeRoundedStar,
+              //   label: 'Puntos clase',
+              //   value: '${requirement.pointValue} pts',
+              //   color: AppColors.accent,
+              //   context: context,
+              // ),
+              // const SizedBox(width: 24),
               _MetaItem(
                 icon: HugeIcons.strokeRoundedFiles01,
                 label: 'Limite archivos',
@@ -408,7 +435,7 @@ class _RequirementMetaCard extends StatelessWidget {
                 color: c.textSecondary,
                 context: context,
               ),
-              const SizedBox(width: 24),
+              const SizedBox(width: 40),
               _MetaItem(
                 icon: HugeIcons.strokeRoundedTag01,
                 label: 'Tipo',
@@ -462,7 +489,7 @@ class _MetaItem extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: context.sac.textTertiary,
               ),
@@ -473,7 +500,7 @@ class _MetaItem extends StatelessWidget {
         Text(
           value,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 18,
             fontWeight: FontWeight.w700,
             color: color,
           ),

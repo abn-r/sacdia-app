@@ -50,6 +50,7 @@ class ClassDetailWithProgressView extends ConsumerWidget {
           data: (classWithProgress) => _ClassBody(
             classWithProgress: classWithProgress,
             classId: classId,
+            classColor: AppColors.classColor(classWithProgress.name),
           ),
         ),
       ),
@@ -62,10 +63,12 @@ class ClassDetailWithProgressView extends ConsumerWidget {
 class _ClassBody extends StatefulWidget {
   final ClassWithProgress classWithProgress;
   final int classId;
+  final Color classColor;
 
   const _ClassBody({
     required this.classWithProgress,
     required this.classId,
+    required this.classColor,
   });
 
   @override
@@ -255,6 +258,7 @@ class _ClassBodyState extends State<_ClassBody> {
                     child: _ModuleSection(
                       module: module,
                       classId: widget.classId,
+                      classColor: widget.classColor,
                     ),
                   );
                 },
@@ -442,8 +446,13 @@ class _CompactStat extends StatelessWidget {
 class _ModuleSection extends StatefulWidget {
   final ClassModuleDetail module;
   final int classId;
+  final Color classColor;
 
-  const _ModuleSection({required this.module, required this.classId});
+  const _ModuleSection({
+    required this.module,
+    required this.classId,
+    required this.classColor,
+  });
 
   @override
   State<_ModuleSection> createState() => _ModuleSectionState();
@@ -488,7 +497,7 @@ class _ModuleSectionState extends State<_ModuleSection> {
                     decoration: BoxDecoration(
                       color: isComplete
                           ? AppColors.secondary
-                          : AppColors.primary,
+                          : widget.classColor,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: isComplete
@@ -541,7 +550,7 @@ class _ModuleSectionState extends State<_ModuleSection> {
                                   valueColor: AlwaysStoppedAnimation<Color>(
                                     isComplete
                                         ? AppColors.secondary
-                                        : AppColors.primary,
+                                        : widget.classColor,
                                   ),
                                 ),
                               ),
@@ -554,7 +563,7 @@ class _ModuleSectionState extends State<_ModuleSection> {
                                 fontWeight: FontWeight.w600,
                                 color: isComplete
                                     ? AppColors.secondary
-                                    : AppColors.primary,
+                                    : widget.classColor,
                               ),
                             ),
                           ],

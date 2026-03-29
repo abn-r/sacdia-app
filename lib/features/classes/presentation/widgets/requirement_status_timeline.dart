@@ -91,11 +91,10 @@ class RequirementStatusTimeline extends StatelessWidget {
           // Connecting line between steps (not after the last one)
           if (i < steps.length - 1)
             Expanded(
-              child: Padding(
-                // Offset vertically to align with the center of the 32px circle
-                padding: const EdgeInsets.only(bottom: 46),
-                child: Align(
-                  alignment: Alignment.center,
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 15),
                   child: Container(
                     height: 2,
                     color: steps[i].isCompleted

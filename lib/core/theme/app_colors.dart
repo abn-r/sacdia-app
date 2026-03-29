@@ -196,15 +196,66 @@ class AppColors {
   // COLORES DE CATEGORÍAS DE HONORES
   // ═══════════════════════════════════════════════════════════
 
-  static const Color catAdra = Color(0xFF2E3C8C);
-  static const Color catagropecuarias = Color(0xFF592715);
-  static const Color catCienciasSalud = Color(0xFF4C1C59);
-  static const Color catDomesticas = Color(0xFFF2B807);
-  static const Color catHabilidadesManuales = Color(0xFF6A9AD9);
-  static const Color catMisioneras = Color(0xFF292B9C);
-  static const Color catNaturaleza = Color(0xFFFFFFFF);
-  static const Color catProfesionales = Color(0xFFEE1C25);
-  static const Color catRecreativas = Color(0xFF2C9E3F);
+  static const Color catAdra = Color(0xFFE53935);
+  static const Color catagropecuarias = Color(0xFF8BC34A);
+  static const Color catCienciasSalud = Color(0xFF0288D1);
+  static const Color catDomesticas = Color(0xFFFF8F00);
+  static const Color catHabilidadesManuales = Color(0xFF6D4C41);
+  static const Color catMisioneras = Color(0xFF7B1FA2);
+  static const Color catNaturaleza = Color(0xFF2E7D32);
+  static const Color catProfesionales = Color(0xFF37474F);
+  static const Color catRecreativas = Color(0xFFE91E63);
+
+  // ═══════════════════════════════════════════════════════════
+  // HELPER: Resolución de color por nombre de clase progresiva
+  // ═══════════════════════════════════════════════════════════
+
+  /// Devuelve el color de marca de una clase progresiva por nombre.
+  /// Retorna [primary] si el nombre no está en el mapa.
+  static Color classColor(String name) => _classColorMap[name] ?? primary;
+
+  /// Devuelve la ruta del asset local del logo de la clase, o null si no existe.
+  static String? classLogoAsset(String name) => _classLogoMap[name];
+
+  static const Map<String, String> _classLogoMap = {
+    // Aventureros
+    'Corderitos': 'assets/img/logos-clases/AV-01.png',
+    'Aves Madrugadoras': 'assets/img/logos-clases/AV-02.png',
+    'Abejitas Industriosas': 'assets/img/logos-clases/AV-03.png',
+    'Rayos de Sol': 'assets/img/logos-clases/AV-04.png',
+    'Constructores': 'assets/img/logos-clases/AV-05.png',
+    'Manos Ayudadoras': 'assets/img/logos-clases/AV-06.png',
+    // Conquistadores
+    'Amigo': 'assets/img/logos-clases/CQ-01.png',
+    'Compañero': 'assets/img/logos-clases/CQ-02.png',
+    'Explorador': 'assets/img/logos-clases/CQ-03.png',
+    'Orientador': 'assets/img/logos-clases/CQ-04.png',
+    'Viajero': 'assets/img/logos-clases/CQ-05.png',
+    'Guía': 'assets/img/logos-clases/CQ-06.png',
+    // Guías Mayores
+    'Guía Mayor': 'assets/img/logos-clases/GM-01.png',
+    'Guía Avanzado': 'assets/img/logos-clases/GM-02.png',
+    'Guía Instructor': 'assets/img/logos-clases/GM-03.png',
+  };
+
+  static const Map<String, Color> _classColorMap = {
+    // Aventureros
+    'Corderitos': colorCorderitos,
+    'Aves Madrugadoras': colorCastores,
+    'Abejitas Industriosas': colorAbejas,
+    'Rayos de Sol': colorRayos,
+    'Constructores': colorConstructores,
+    'Manos Ayudadoras': colorManos,
+    // Conquistadores
+    'Amigo': colorAmigo,
+    'Compañero': colorCompanero,
+    'Explorador': colorExplorador,
+    'Orientador': colorOrientador,
+    'Viajero': colorViajero,
+    'Guía': colorGuia,
+    // Guías Mayores
+    'Guía Mayor': colorGuiaMayor,
+  };
 
   // ═══════════════════════════════════════════════════════════
   // COMPATIBILIDAD - Nombres antiguos mapeados a nuevos

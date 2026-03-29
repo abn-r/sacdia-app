@@ -9,46 +9,6 @@ import 'package:sacdia_app/features/classes/presentation/providers/classes_provi
 import 'package:sacdia_app/features/classes/presentation/views/class_detail_with_progress_view.dart';
 import 'package:sacdia_app/features/classes/presentation/views/classes_list_view.dart';
 
-/// Map class names to their brand colours (same palette as ClassStatusCircles).
-const Map<String, Color> _classColors = {
-  // Aventureros
-  'Corderitos': AppColors.colorCorderitos,
-  'Aves Madrugadoras': AppColors.colorCastores,
-  'Abejitas Industriosas': AppColors.colorAbejas,
-  'Rayos de Sol': AppColors.colorRayos,
-  'Constructores': AppColors.colorConstructores,
-  'Manos Ayudadoras': AppColors.colorManos,
-  // Conquistadores
-  'Amigo': AppColors.colorAmigo,
-  'Compañero': AppColors.colorCompanero,
-  'Explorador': AppColors.colorExplorador,
-  'Orientador': AppColors.colorOrientador,
-  'Viajero': AppColors.colorViajero,
-  'Guía': AppColors.colorGuia,
-  // Guías Mayores
-  'Guía Mayor': AppColors.colorGuiaMayor,
-};
-
-/// Mapeo de nombre de clase → asset local del logo.
-const Map<String, String> _classLogos = {
-  // Aventureros
-  'Corderitos': 'assets/img/logos-clases/AV-01.png',
-  'Aves Madrugadoras': 'assets/img/logos-clases/AV-02.png',
-  'Abejitas Industriosas': 'assets/img/logos-clases/AV-03.png',
-  'Rayos de Sol': 'assets/img/logos-clases/AV-04.png',
-  'Constructores': 'assets/img/logos-clases/AV-05.png',
-  'Manos Ayudadoras': 'assets/img/logos-clases/AV-06.png',
-  // Conquistadores
-  'Amigo': 'assets/img/logos-clases/CQ-01.png',
-  'Compañero': 'assets/img/logos-clases/CQ-02.png',
-  'Explorador': 'assets/img/logos-clases/CQ-03.png',
-  'Orientador': 'assets/img/logos-clases/CQ-04.png',
-  'Viajero': 'assets/img/logos-clases/CQ-05.png',
-  'Guía': 'assets/img/logos-clases/CQ-06.png',
-  // Guías Mayores
-  'Guía Mayor': 'assets/img/logos-clases/GM-01.png',
-};
-
 /// Section of the profile view that shows the user's enrolled progressive
 /// classes in a 3-column grid, visually consistent with [ProfileHonorsSection].
 class ProfileClassesSection extends ConsumerWidget {
@@ -219,9 +179,8 @@ class _ClassGridItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final classColor =
-        _classColors[progressiveClass.name] ?? AppColors.primary;
-    final logoAsset = _classLogos[progressiveClass.name];
+    final classColor = AppColors.classColor(progressiveClass.name);
+    final logoAsset = AppColors.classLogoAsset(progressiveClass.name);
 
     final progress = progressiveClass.overallProgress ?? 0;
     final isInvested = progressiveClass.investitureStatus == 'INVESTIDO';
