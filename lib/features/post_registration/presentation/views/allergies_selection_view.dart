@@ -109,7 +109,13 @@ class _AllergiesSelectionViewState
             tooltip: 'Actualizar',
           ),
           TextButton.icon(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () async {
+              final ids = ref.read(selectedAllergiesProvider);
+              await ref
+                  .read(userAllergiesProvider.notifier)
+                  .saveAll(ids);
+              if (context.mounted) Navigator.of(context).pop();
+            },
             icon: const HugeIcon(
               icon: HugeIcons.strokeRoundedTick02,
               size: 20,

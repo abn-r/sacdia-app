@@ -108,7 +108,13 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
             tooltip: 'Actualizar',
           ),
           TextButton.icon(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () async {
+              final ids = ref.read(selectedDiseasesProvider);
+              await ref
+                  .read(userDiseasesProvider.notifier)
+                  .saveAll(ids);
+              if (context.mounted) Navigator.of(context).pop();
+            },
             icon: const HugeIcon(
               icon: HugeIcons.strokeRoundedTick02,
               size: 20,

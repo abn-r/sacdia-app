@@ -124,6 +124,23 @@ class UserAllergiesNotifier
     });
   }
 
+  /// Guarda la lista completa de alergias seleccionadas en la API
+  Future<void> saveAll(List<int> allergyIds) async {
+    state = const AsyncValue.loading();
+
+    state = await AsyncValue.guard(() async {
+      final authState = ref.read(authNotifierProvider);
+      final userId = authState.valueOrNull?.id;
+
+      if (userId == null) throw Exception('Usuario no autenticado');
+
+      final dataSource = ref.read(personalInfoDataSourceProvider);
+      await dataSource.saveUserAllergies(userId, allergyIds);
+
+      return await dataSource.getUserAllergies(userId);
+    });
+  }
+
   /// Recarga la lista de alergias del usuario
   Future<void> refresh() async {
     state = const AsyncValue.loading();
@@ -180,6 +197,23 @@ class UserDiseasesNotifier
       final currentIds = ref.read(selectedDiseasesProvider);
       ref.read(selectedDiseasesProvider.notifier).state =
           currentIds.where((id) => id != diseaseId).toList();
+
+      return await dataSource.getUserDiseases(userId);
+    });
+  }
+
+  /// Guarda la lista completa de enfermedades seleccionadas en la API
+  Future<void> saveAll(List<int> diseaseIds) async {
+    state = const AsyncValue.loading();
+
+    state = await AsyncValue.guard(() async {
+      final authState = ref.read(authNotifierProvider);
+      final userId = authState.valueOrNull?.id;
+
+      if (userId == null) throw Exception('Usuario no autenticado');
+
+      final dataSource = ref.read(personalInfoDataSourceProvider);
+      await dataSource.saveUserDiseases(userId, diseaseIds);
 
       return await dataSource.getUserDiseases(userId);
     });
@@ -252,6 +286,23 @@ class UserMedicinesNotifier
       final currentIds = ref.read(selectedMedicinesProvider);
       ref.read(selectedMedicinesProvider.notifier).state =
           currentIds.where((id) => id != medicineId).toList();
+
+      return await dataSource.getUserMedicines(userId);
+    });
+  }
+
+  /// Guarda la lista completa de medicamentos seleccionados en la API
+  Future<void> saveAll(List<int> medicineIds) async {
+    state = const AsyncValue.loading();
+
+    state = await AsyncValue.guard(() async {
+      final authState = ref.read(authNotifierProvider);
+      final userId = authState.valueOrNull?.id;
+
+      if (userId == null) throw Exception('Usuario no autenticado');
+
+      final dataSource = ref.read(personalInfoDataSourceProvider);
+      await dataSource.saveUserMedicines(userId, medicineIds);
 
       return await dataSource.getUserMedicines(userId);
     });

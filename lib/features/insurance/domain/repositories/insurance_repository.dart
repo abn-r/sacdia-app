@@ -47,4 +47,9 @@ abstract class InsuranceRepository {
     String? evidenceMimeType,
   });
 
+  /// Obtiene seguros que vencen en los próximos [days] días.
+  Future<Either<Failure, List<MemberInsurance>>> getExpiringInsurance({
+    required int days,
+  });
+
 }
