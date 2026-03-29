@@ -271,19 +271,15 @@ final searchQueryProvider = StateProvider.autoDispose<String>((ref) => '');
 /// Currently selected category ID for catalog filtering. null = "Todas".
 final selectedCategoryProvider = StateProvider.autoDispose<int?>((ref) => null);
 
-/// Fix 2: fetches ALL honors ONCE from the network and caches the result.
+/// Fetches ALL honors ONCE from the network via the grouped-by-category endpoint
+/// (single DB query, no pagination loop) and flattens the result into a plain list.
 /// Category filtering and text search are done locally in [filteredHonorsProvider].
 /// Consumers that need a network refresh should invalidate this provider directly.
 ///
 /// Not autoDispose so it survives tab switches in the catalog without re-fetching.
 final allHonorsProvider = FutureProvider<List<Honor>>((ref) async {
-  final getHonors = ref.read(getHonorsProvider);
-  final result = await getHonors(const GetHonorsParams());
-
-  return result.fold(
-    (failure) => throw Exception(failure.message),
-    (honors) => honors,
-  );
+  final groupsAsync = await ref.watch(honorsGroupedByCategoryProvider.future);
+  return groupsAsync.expand((group) => group.honors).toList();
 });
 
 /// All honors filtered by search query and selected category.
@@ -385,14 +381,22 @@ final honorRequirementsProvider = FutureProvider.autoDispose
 });
 
 /// Provider para el progreso del usuario en los requisitos de una especialidad.
-/// Keyed by honorId — el userId lo deriva el backend del JWT.
+/// Keyed by honorId.
 ///
 /// Nota: no es autoDispose para que el catálogo pueda leer el progreso de los
 /// honors inscritos sin re-fetchear al cambiar de pestaña.
 final userHonorProgressProvider = FutureProvider
     .family<List<UserHonorRequirementProgress>, int>((ref, honorId) async {
+  final userId = await ref.watch(
+    authNotifierProvider.selectAsync((user) => user?.id),
+  );
+
+  if (userId == null) {
+    throw Exception('Usuario no autenticado');
+  }
+
   final useCase = ref.read(getUserHonorProgressProvider);
-  final result = await useCase(GetUserHonorProgressParams(honorId: honorId));
+  final result = await useCase(GetUserHonorProgressParams(userId: userId, honorId: honorId));
 
   return result.fold(
     (failure) => throw Exception(failure.message),

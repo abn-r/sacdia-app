@@ -336,11 +336,9 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
     return RefreshIndicator(
       color: AppColors.sacBlue,
       onRefresh: () async {
+        ref.invalidate(honorsGroupedByCategoryProvider);
         ref.invalidate(allHonorsProvider);
-        ref.invalidate(filteredHonorsProvider);
         ref.invalidate(userHonorsProvider);
-        // userHonorStatsLocalProvider recomputes automatically when
-        // userHonorsProvider is invalidated — no explicit invalidation needed.
       },
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -374,8 +372,8 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
           const SizedBox(height: 24),
           FilledButton.icon(
             onPressed: () {
+              ref.invalidate(honorsGroupedByCategoryProvider);
               ref.invalidate(allHonorsProvider);
-              ref.invalidate(filteredHonorsProvider);
               ref.invalidate(userHonorsProvider);
             },
             icon: const Icon(Icons.refresh, size: 18),
