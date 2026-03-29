@@ -11,7 +11,7 @@ class SlaStatCard extends StatelessWidget {
   final String title;
   final SlaStat stat;
   final Color accentColor;
-  final List<dynamic> icon;
+  final List<List<dynamic>> icon;
 
   const SlaStatCard({
     super.key,

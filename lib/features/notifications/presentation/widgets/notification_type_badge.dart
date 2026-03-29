@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/icon_helper.dart';
 import '../../domain/entities/notification_item.dart';
 
 /// Badge visual que identifica el tipo/target de una notificación.
@@ -73,7 +74,7 @@ class NotificationTypeBadge extends StatelessWidget {
 }
 
 class _BadgeConfig {
-  final IconData icon;
+  final HugeIconData icon;
   final Color iconColor;
   final Color backgroundColor;
 

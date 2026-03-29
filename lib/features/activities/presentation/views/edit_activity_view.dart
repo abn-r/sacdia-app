@@ -472,7 +472,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
               hint: activityTypesAsync.isLoading
                   ? 'Cargando tipos...'
                   : 'Seleccionar tipo de actividad',
-              icon: Icons.label_rounded,
+              icon: HugeIcons.strokeRoundedLabel,
               selectedName: _selectedActivityTypeName,
               enabled: !isLoading &&
                   !activityTypesAsync.isLoading &&

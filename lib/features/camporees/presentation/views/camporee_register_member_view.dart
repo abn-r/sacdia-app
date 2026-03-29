@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 
@@ -391,7 +392,7 @@ class _CamporeeRegisterMemberViewState
 class _FieldLabel extends StatelessWidget {
   final String label;
   final bool required;
-  final dynamic icon;
+  final HugeIconData icon;
 
   const _FieldLabel({
     required this.label,

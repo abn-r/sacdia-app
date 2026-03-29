@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -366,7 +367,7 @@ class _DetailBody extends ConsumerWidget {
 // ── Detail Row ─────────────────────────────────────────────────────────────────
 
 class _DetailRow extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
   final String value;
 
@@ -543,7 +544,7 @@ class _InsuranceBadge extends StatelessWidget {
 // ── Section Title ──────────────────────────────────────────────────────────────
 
 class _SectionTitle extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
 
   const _SectionTitle({required this.icon, required this.label});

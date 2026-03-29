@@ -10,6 +10,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sacdia_app/core/constants/maps_constants.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
@@ -600,7 +601,7 @@ class _LocationBottomCard extends StatelessWidget {
 
 /// Botón redondo flotante sobre el mapa.
 class _MapIconButton extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final VoidCallback onPressed;
   final String tooltip;
 
@@ -1017,7 +1018,7 @@ class _SearchEmptyHint extends StatelessWidget {
 
 /// Mensaje genérico de estado (sin resultados / error de red).
 class _SearchStatusMessage extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String title;
   final String subtitle;
   final SacColors c;

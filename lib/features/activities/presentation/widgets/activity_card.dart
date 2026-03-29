@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
@@ -151,8 +152,7 @@ class ActivityCard extends StatelessWidget {
 }
 
 class _MetaItem extends StatelessWidget {
-  // ignore: prefer_typing_uninitialized_variables
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
   final SacColors c;
 

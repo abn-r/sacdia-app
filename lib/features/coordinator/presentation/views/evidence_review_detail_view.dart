@@ -400,7 +400,7 @@ class _StatusBadge extends StatelessWidget {
 
 class _Section extends StatelessWidget {
   final String title;
-  final List<dynamic> icon;
+  final List<List<dynamic>> icon;
   final Widget child;
 
   const _Section({

@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
@@ -262,7 +263,7 @@ class _DetailBody extends StatelessWidget {
 class _TransferStatusConfig {
   final Color bg;
   final Color fg;
-  final dynamic icon;
+  final HugeIconData icon;
 
   const _TransferStatusConfig({
     required this.bg,
@@ -272,7 +273,7 @@ class _TransferStatusConfig {
 }
 
 class _DetailRow extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
   final String value;
 

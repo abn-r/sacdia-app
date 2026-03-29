@@ -682,7 +682,6 @@ class _ClubEnrollmentCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final actionState = ref.watch(camporeeClubApprovalNotifierProvider(_key));
-    final c = context.sac;
 
     return _ApprovalCard(
       icon: HugeIcons.strokeRoundedBuilding01,
@@ -970,7 +969,7 @@ class _PaymentEnrollmentCard extends ConsumerWidget {
 // ── Shared approval card ──────────────────────────────────────────────────────
 
 class _ApprovalCard extends StatelessWidget {
-  final List<dynamic> icon;
+  final List<List<dynamic>> icon;
   final Color iconColor;
   final String title;
   final String? subtitle;

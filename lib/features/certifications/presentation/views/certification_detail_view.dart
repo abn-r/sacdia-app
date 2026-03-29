@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -278,7 +279,7 @@ class _StatsRow extends StatelessWidget {
 }
 
 class _StatItem extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String value;
   final String label;
 
@@ -609,7 +610,7 @@ class _ModuleTreeCardState extends State<_ModuleTreeCard> {
 // ── Section Title ─────────────────────────────────────────────────────────────
 
 class _SectionTitle extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
 
   const _SectionTitle({required this.icon, required this.label});

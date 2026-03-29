@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
@@ -240,7 +241,7 @@ class _TimePickerSheetState extends State<_TimePickerSheet> {
 
 /// Cabecera de sección con icono y label, usada en create y edit activity.
 class ActivitySectionHeader extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
 
   const ActivitySectionHeader({
@@ -286,7 +287,7 @@ class ActivitySectionHeader extends StatelessWidget {
 class ActivityPickerField extends StatelessWidget {
   final String label;
   final String hint;
-  final dynamic icon;
+  final HugeIconData icon;
   final String? selectedName;
   final VoidCallback? onTap;
   final bool enabled;
@@ -873,7 +874,7 @@ class _ActivityPickerBody extends StatelessWidget {
 }
 
 class _ActivityImageSourceButton extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
   final bool enabled;
   final VoidCallback onTap;

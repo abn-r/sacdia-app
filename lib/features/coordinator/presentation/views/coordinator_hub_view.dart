@@ -203,7 +203,7 @@ class _SummaryTile extends StatelessWidget {
   final String label;
   final int count;
   final Color color;
-  final List<dynamic> icon;
+  final List<List<dynamic>> icon;
 
   const _SummaryTile({
     required this.label,
@@ -299,7 +299,7 @@ class _SummarySkeleton extends StatelessWidget {
 // ── Navigation card ───────────────────────────────────────────────────────────
 
 class _NavCard extends StatelessWidget {
-  final List<dynamic> icon;
+  final List<List<dynamic>> icon;
   final Color color;
   final String title;
   final String subtitle;

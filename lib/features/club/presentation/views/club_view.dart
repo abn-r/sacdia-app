@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -592,7 +593,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
 
 /// Cabecera de sección con icono y label — mismo estilo que create_activity_view.
 class _SectionHeader extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
 
   const _SectionHeader({required this.icon, required this.label});
@@ -630,7 +631,7 @@ class _SectionHeader extends StatelessWidget {
 
 /// Fila de información de solo lectura.
 class _InfoRow extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
   final String value;
   final String? subValue;

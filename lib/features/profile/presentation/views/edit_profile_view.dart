@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/utils/app_logger.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -796,7 +797,7 @@ class _AvatarHeader extends StatelessWidget {
 
 /// Encabezado de sección con icono y etiqueta uppercase.
 class _SectionHeader extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
 
   const _SectionHeader({required this.icon, required this.label});
@@ -930,7 +931,7 @@ class _GenderChip extends StatelessWidget {
 /// Campo de selección de fecha con indicador de error inline (F3).
 class _DatePickerField extends StatelessWidget {
   final String label;
-  final dynamic icon;
+  final HugeIconData icon;
   final DateTime? date;
   final String? errorText;
   final VoidCallback onTap;

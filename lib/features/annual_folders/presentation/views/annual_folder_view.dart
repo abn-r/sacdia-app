@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -813,7 +814,7 @@ class _UploadEvidenceSheetState
   InputDecoration _inputDecoration({
     required String hintText,
     required BuildContext context,
-    dynamic icon,
+    HugeIconData? icon,
   }) {
     final c = context.sac;
     return InputDecoration(

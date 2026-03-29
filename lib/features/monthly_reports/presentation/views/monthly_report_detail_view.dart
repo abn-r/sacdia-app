@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/app_logger.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -328,7 +329,7 @@ class _AutoDataGrid extends StatelessWidget {
 }
 
 class _StatCard extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
   final String value;
 
@@ -461,7 +462,7 @@ class _ManualDataCard extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
   final String value;
   final Color? valueColor;

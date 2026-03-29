@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -166,7 +167,7 @@ class _ClubDetailBody extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _SectionHeader extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
 
   const _SectionHeader({required this.icon, required this.label});
@@ -203,7 +204,7 @@ class _SectionHeader extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
   final String value;
   final Color? valueColor;
