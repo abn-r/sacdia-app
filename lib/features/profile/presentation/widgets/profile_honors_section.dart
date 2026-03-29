@@ -156,9 +156,6 @@ class _CategorySection extends StatelessWidget {
         _categoryColors[categoryName] ?? AppColors.sacBlack;
     final categoryIcon = _categoryIcons[categoryName] ?? Icons.star;
 
-    final isNature = categoryName == 'Naturaleza' ||
-        categoryName == 'Estudio de la naturaleza';
-
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Column(
@@ -169,15 +166,11 @@ class _CategorySection extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border(
                 top: BorderSide(
-                  color: isNature
-                      ? AppColors.sacBlack.withAlpha(80)
-                      : categoryColor.withAlpha(80),
+                  color: categoryColor.withAlpha(80),
                   width: 1.5,
                 ),
                 bottom: BorderSide(
-                  color: isNature
-                      ? AppColors.sacBlack.withAlpha(80)
-                      : categoryColor.withAlpha(80),
+                  color: categoryColor.withAlpha(80),
                   width: 1.5,
                 ),
               ),
@@ -195,7 +188,7 @@ class _CategorySection extends StatelessWidget {
                   ),
                   child: Icon(
                     categoryIcon,
-                    color: isNature ? AppColors.sacBlack : Colors.white,
+                    color: Colors.white,
                     size: 22,
                   ),
                 ),
@@ -206,7 +199,7 @@ class _CategorySection extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 17,
-                      color: isNature ? AppColors.sacBlack : categoryColor,
+                      color: categoryColor,
                     ),
                   ),
                 ),
@@ -218,9 +211,7 @@ class _CategorySection extends StatelessWidget {
                     color: categoryColor.withAlpha(20),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: isNature
-                          ? AppColors.sacBlack.withAlpha(60)
-                          : categoryColor.withAlpha(60),
+                      color: categoryColor.withAlpha(60),
                     ),
                   ),
                   child: Text(
@@ -228,7 +219,7 @@ class _CategorySection extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: isNature ? AppColors.sacBlack : categoryColor,
+                      color: categoryColor,
                     ),
                   ),
                 ),
@@ -286,61 +277,69 @@ class _HonorGridItem extends StatelessWidget {
     final isCompleted = userHonor.validate;
     final imageUrl = userHonor.honorImageUrl;
 
-    return Column(
-      children: [
-        Expanded(
-          child: AspectRatio(
-            aspectRatio: 1.0,
-            child: Stack(
-              children: [
-                imageUrl != null && imageUrl.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        fit: BoxFit.contain,
-                        errorWidget: (_, __, ___) => _InitialsBox(
+    return GestureDetector(
+      onTap: () => context.push(
+        RouteNames.honorEvidencePath(
+          userHonor.honorId.toString(),
+          userHonor.id.toString(),
+        ),
+      ),
+      child: Column(
+        children: [
+          Expanded(
+            child: AspectRatio(
+              aspectRatio: 1.0,
+              child: Stack(
+                children: [
+                  imageUrl != null && imageUrl.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.contain,
+                          errorWidget: (_, __, ___) => _InitialsBox(
+                            initials: initials,
+                            categoryColor: categoryColor,
+                          ),
+                        )
+                      : _InitialsBox(
                           initials: initials,
                           categoryColor: categoryColor,
                         ),
-                      )
-                    : _InitialsBox(
-                        initials: initials,
-                        categoryColor: categoryColor,
-                      ),
-                if (isCompleted)
-                  Positioned(
-                    top: 2,
-                    right: 2,
-                    child: Container(
-                      padding: const EdgeInsets.all(3),
-                      decoration: const BoxDecoration(
-                        color: AppColors.secondary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.check,
-                        color: Colors.white,
-                        size: 10,
+                  if (isCompleted)
+                    Positioned(
+                      top: 2,
+                      right: 2,
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: const BoxDecoration(
+                          color: AppColors.secondary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 10,
+                        ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 5),
-        Text(
-          name,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: context.sac.text,
-            height: 1.2,
+          const SizedBox(height: 5),
+          Text(
+            name,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: context.sac.text,
+              height: 1.2,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
