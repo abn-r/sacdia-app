@@ -1,7 +1,5 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -18,7 +16,6 @@ abstract class ProfileRemoteDataSource {
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'ProfileDS';
 
@@ -26,26 +23,13 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String?> _getToken() async {
-    return await _secureStorage.read(key: 'auth_token');
-  }
+        _baseUrl = baseUrl;
 
   @override
   Future<UserDetailModel> getUserProfile(String userId) async {
     try {
-      final token = await _getToken();
-      if (token == null) {
-        throw AuthException(message: 'No hay sesión activa');
-      }
-
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.auth}/me',
-        options: Options(headers: {
-          'Authorization': 'Bearer $token',
-        }),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -80,17 +64,9 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     Map<String, dynamic> data,
   ) async {
     try {
-      final token = await _getToken();
-      if (token == null) {
-        throw AuthException(message: 'No hay sesión activa');
-      }
-
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.users}/$userId',
         data: data,
-        options: Options(headers: {
-          'Authorization': 'Bearer $token',
-        }),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -117,11 +93,6 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   @override
   Future<String> updateProfilePicture(String userId, String filePath) async {
     try {
-      final token = await _getToken();
-      if (token == null) {
-        throw AuthException(message: 'No hay sesión activa');
-      }
-
       final file = File(filePath);
       final fileName = file.path.split('/').last;
 
@@ -136,7 +107,6 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         '$_baseUrl${ApiEndpoints.users}/$userId/profile-picture',
         data: formData,
         options: Options(headers: {
-          'Authorization': 'Bearer $token',
           'Content-Type': 'multipart/form-data',
         }),
       );

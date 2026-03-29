@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -18,7 +17,6 @@ abstract class DashboardRemoteDataSource {
 class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'DashboardDS';
 
@@ -26,25 +24,13 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) throw AuthException(message: 'No hay sesión activa');
-    return token;
-  }
-
-  Options _authOptions(String token) =>
-      Options(headers: {'Authorization': 'Bearer $token'});
+        _baseUrl = baseUrl;
 
   @override
   Future<DashboardSummaryModel> getDashboardSummary() async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.dashboard}/summary',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

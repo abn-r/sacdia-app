@@ -1,6 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -48,6 +46,13 @@ abstract class InsuranceRemoteDataSource {
     String? evidenceMimeType,
   });
 
+  /// Obtiene seguros que vencen en los próximos [days] días.
+  ///
+  /// Llama a GET /insurance/expiring?days_ahead=[days].
+  Future<List<MemberInsuranceModel>> getExpiringInsurance({
+    required int days,
+  });
+
 }
 
 /// Implementación de la fuente de datos remota para seguros.
@@ -62,7 +67,6 @@ abstract class InsuranceRemoteDataSource {
 class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'InsuranceDS';
 
@@ -70,17 +74,7 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) throw AuthException(message: 'No hay sesión activa');
-    return token;
-  }
-
-  Options _authOptions(String token) =>
-      Options(headers: {'Authorization': 'Bearer $token'});
+        _baseUrl = baseUrl;
 
   // ── GET /clubs/:clubId/sections/:sectionId/members/insurance ────────
 
@@ -90,10 +84,8 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
     required int sectionId,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/members/insurance',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -124,10 +116,8 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
     required String memberId,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$memberId/insurance',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -164,8 +154,6 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
     String? evidenceMimeType,
   }) async {
     try {
-      final token = await _getAuthToken();
-
       final dynamic requestData;
 
       if (evidenceFilePath != null &&
@@ -207,11 +195,6 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
         '$_baseUrl${ApiEndpoints.users}/$memberId/insurance',
         data: requestData,
         options: Options(
-          headers: {
-            'Authorization': 'Bearer $token',
-            if (requestData is! FormData)
-              'Content-Type': 'application/json',
-          },
           sendTimeout: const Duration(minutes: 2),
           receiveTimeout: const Duration(minutes: 2),
         ),
@@ -259,8 +242,6 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
     String? evidenceMimeType,
   }) async {
     try {
-      final token = await _getAuthToken();
-
       final dynamic requestData;
 
       if (evidenceFilePath != null &&
@@ -296,9 +277,6 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
         '$_baseUrl${ApiEndpoints.insurance}/$insuranceId',
         data: requestData,
         options: Options(
-          headers: {
-            'Authorization': 'Bearer $token',
-          },
           sendTimeout: const Duration(minutes: 2),
           receiveTimeout: const Duration(minutes: 2),
         ),
@@ -326,6 +304,39 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
       );
     } catch (e) {
       AppLogger.e('Error en updateInsurance', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /insurance/expiring ───────────────────────────────────────────────────
+
+  @override
+  Future<List<MemberInsuranceModel>> getExpiringInsurance({
+    required int days,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.insurance}/expiring',
+        queryParameters: {'days_ahead': days},
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = response.data;
+        final List<dynamic> rawList = body is List
+            ? body
+            : (body as Map<String, dynamic>)['data'] as List<dynamic>? ?? [];
+        return rawList
+            .map((e) =>
+                MemberInsuranceModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+
+      throw ServerException(
+        message: 'Error al obtener los seguros por vencer',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getExpiringInsurance', tag: _tag, error: e);
       _rethrow(e);
     }
   }

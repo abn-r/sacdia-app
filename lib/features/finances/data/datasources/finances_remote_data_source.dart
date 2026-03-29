@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -48,7 +47,6 @@ abstract class FinancesRemoteDataSource {
 class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'FinancesDS';
 
@@ -56,17 +54,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) throw AuthException(message: 'No hay sesión activa');
-    return token;
-  }
-
-  Options _authOptions(String token) =>
-      Options(headers: {'Authorization': 'Bearer $token'});
+        _baseUrl = baseUrl;
 
   // ── GET /clubs/:clubId/finances?year=&month= ──────────────────────────────
 
@@ -77,11 +65,9 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
     required int month,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/finances',
         queryParameters: {'year': year, 'month': month},
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -105,10 +91,8 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
   @override
   Future<FinanceSummaryModel> getSummary({required int clubId}) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/finances/summary',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -134,10 +118,8 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
   Future<FinanceTransactionModel> getTransaction(
       {required int financeId}) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.finances}/$financeId',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -171,7 +153,6 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
     String? notes,
   }) async {
     try {
-      final token = await _getAuthToken();
       final body = {
         'finance_category_id': categoryId,
         'amount': amount.toInt(),
@@ -185,7 +166,6 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/finances',
         data: body,
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -217,7 +197,6 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
     String? notes,
   }) async {
     try {
-      final token = await _getAuthToken();
       final body = <String, dynamic>{
         if (categoryId != null) 'finance_category_id': categoryId,
         if (amount != null) 'amount': amount.toInt(),
@@ -231,7 +210,6 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.finances}/$financeId',
         data: body,
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -256,10 +234,8 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
   @override
   Future<void> deleteTransaction({required int financeId}) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.delete(
         '$_baseUrl${ApiEndpoints.finances}/$financeId',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 ||
@@ -283,10 +259,8 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
   @override
   Future<List<FinanceCategoryModel>> getCategories() async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.finances}/categories',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

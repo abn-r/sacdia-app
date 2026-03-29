@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -120,7 +119,6 @@ abstract class CoordinatorRemoteDataSource {
 class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'CoordinatorDS';
 
@@ -128,19 +126,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) {
-      throw AuthException(message: 'No hay sesion activa');
-    }
-    return token;
-  }
-
-  Options _authOptions(String token) =>
-      Options(headers: {'Authorization': 'Bearer $token'});
+        _baseUrl = baseUrl;
 
   Never _rethrow(Object e) {
     if (e is DioException) {
@@ -207,10 +193,8 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
   @override
   Future<SlaDashboardModel> getSlaDashboard() async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.adminAnalytics}/sla-dashboard',
-        options: _authOptions(token),
       );
 
       if (_isOk(response.statusCode)) {
@@ -238,7 +222,6 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
     EvidenceReviewType? type,
   }) async {
     try {
-      final token = await _getAuthToken();
       final queryParams = <String, dynamic>{
         'page': page,
         'limit': limit,
@@ -250,7 +233,6 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.evidenceReview}/pending',
         queryParameters: queryParams,
-        options: _authOptions(token),
       );
 
       if (_isOk(response.statusCode)) {
@@ -274,10 +256,8 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
     required String id,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.evidenceReview}/${type.apiValue}/$id',
-        options: _authOptions(token),
       );
 
       if (_isOk(response.statusCode)) {
@@ -305,7 +285,6 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
     String? comment,
   }) async {
     try {
-      final token = await _getAuthToken();
       final body = <String, dynamic>{};
       if (comment != null && comment.isNotEmpty) {
         body['comment'] = comment;
@@ -314,7 +293,6 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.evidenceReview}/${type.apiValue}/$id/approve',
         data: body,
-        options: _authOptions(token),
       );
 
       if (_isOk(response.statusCode)) return;
@@ -337,11 +315,9 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
     required String rejectionReason,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.evidenceReview}/${type.apiValue}/$id/reject',
         data: {'reason': rejectionReason},
-        options: _authOptions(token),
       );
 
       if (_isOk(response.statusCode)) return;
@@ -363,11 +339,9 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
     required EvidenceReviewType type,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.evidenceReview}/bulk-approve',
         data: {'ids': ids, 'type': type.apiValue},
-        options: _authOptions(token),
       );
 
       if (_isOk(response.statusCode)) return;
@@ -390,7 +364,6 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
     required String rejectionReason,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.evidenceReview}/bulk-reject',
         data: {
@@ -398,7 +371,6 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
           'type': type.apiValue,
           'reason': rejectionReason,
         },
-        options: _authOptions(token),
       );
 
       if (_isOk(response.statusCode)) return;
@@ -419,11 +391,9 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
     bool activeOnly = true,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}',
         queryParameters: activeOnly ? {'active': 'true'} : {},
-        options: _authOptions(token),
       );
 
       if (_isOk(response.statusCode)) {
@@ -448,10 +418,8 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
   @override
   Future<List<CamporeeItemModel>> listUnionCamporees() async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/union',
-        options: _authOptions(token),
       );
 
       if (_isOk(response.statusCode)) {
@@ -478,10 +446,8 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
     int camporeeId,
   ) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/pending',
-        options: _authOptions(token),
       );
 
       if (_isOk(response.statusCode)) {
@@ -510,10 +476,8 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
     int camporeeId,
   ) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/union/$camporeeId/pending',
-        options: _authOptions(token),
       );
 
       if (_isOk(response.statusCode)) {
@@ -544,11 +508,9 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
     required CamporeeScope scope,
   }) async {
     try {
-      final token = await _getAuthToken();
       final prefix = _scopePrefix(scope);
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.camporees}$prefix/$camporeeId/clubs/$camporeeClubId/approve',
-        options: _authOptions(token),
       );
 
       if (_isOk(response.statusCode)) return;
@@ -572,14 +534,12 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
     String? rejectionReason,
   }) async {
     try {
-      final token = await _getAuthToken();
       final prefix = _scopePrefix(scope);
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.camporees}$prefix/$camporeeId/clubs/$camporeeClubId/reject',
         data: rejectionReason != null
             ? {'rejection_reason': rejectionReason}
             : <String, dynamic>{},
-        options: _authOptions(token),
       );
 
       if (_isOk(response.statusCode)) return;
@@ -602,11 +562,9 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
     required CamporeeScope scope,
   }) async {
     try {
-      final token = await _getAuthToken();
       final prefix = _scopePrefix(scope);
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.camporees}$prefix/$camporeeId/members/$camporeeMemberId/approve',
-        options: _authOptions(token),
       );
 
       if (_isOk(response.statusCode)) return;
@@ -630,14 +588,12 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
     String? rejectionReason,
   }) async {
     try {
-      final token = await _getAuthToken();
       final prefix = _scopePrefix(scope);
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.camporees}$prefix/$camporeeId/members/$camporeeMemberId/reject',
         data: rejectionReason != null
             ? {'rejection_reason': rejectionReason}
             : <String, dynamic>{},
-        options: _authOptions(token),
       );
 
       if (_isOk(response.statusCode)) return;
@@ -658,12 +614,10 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
     required String camporeePaymentId,
   }) async {
     try {
-      final token = await _getAuthToken();
       // Payment approval route does NOT use camporeeId prefix.
       // PATCH /camporees/payments/:camporeePaymentId/approve
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.camporees}/payments/$camporeePaymentId/approve',
-        options: _authOptions(token),
       );
 
       if (_isOk(response.statusCode)) return;
@@ -685,13 +639,11 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
     String? rejectionReason,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.camporees}/payments/$camporeePaymentId/reject',
         data: rejectionReason != null
             ? {'rejection_reason': rejectionReason}
             : <String, dynamic>{},
-        options: _authOptions(token),
       );
 
       if (_isOk(response.statusCode)) return;

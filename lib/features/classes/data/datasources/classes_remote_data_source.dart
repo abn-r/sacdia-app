@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -57,11 +56,10 @@ abstract class ClassesRemoteDataSource {
 /// Implementacion de la fuente de datos remota de clases progresivas.
 ///
 /// Utiliza Dio para llamadas REST al backend SACDIA.
-/// Auth token se lee desde [FlutterSecureStorage].
+/// Auth token es inyectado automáticamente por [AuthInterceptor].
 class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'ClassesDS';
 
@@ -69,19 +67,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) {
-      throw AuthException(message: 'No hay sesion activa');
-    }
-    return token;
-  }
-
-  Options _authOptions(String token) =>
-      Options(headers: {'Authorization': 'Bearer $token'});
+        _baseUrl = baseUrl;
 
   Never _rethrow(Object e) {
     if (e is DioException) {
@@ -109,14 +95,12 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   @override
   Future<void> enrollUser(String userId, int classId, int yearId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.users}/$userId/classes/enroll',
         data: {
           'class_id': classId,
           'ecclesiastical_year_id': yearId,
         },
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 ||
@@ -140,12 +124,10 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   @override
   Future<List<ClassModel>> getClasses({int? clubTypeId}) async {
     try {
-      final token = await _getAuthToken();
       final queryParams = clubTypeId != null ? '?clubTypeId=$clubTypeId' : '';
 
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.classes}$queryParams',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -173,10 +155,8 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   @override
   Future<ClassModel> getClassById(int classId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.classes}/$classId',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -196,10 +176,8 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   @override
   Future<List<ClassModuleModel>> getClassModules(int classId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.classes}/$classId/modules',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -223,10 +201,8 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   @override
   Future<List<ClassModel>> getUserClasses(String userId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$userId/classes',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -265,10 +241,8 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   Future<ClassProgressModel> getUserClassProgress(
       String userId, int classId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/progress',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -294,11 +268,9 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     Map<String, dynamic> progressData,
   ) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/progress',
         data: progressData,
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -328,12 +300,9 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   Future<ClassWithProgressModel> getClassWithProgress(
       String userId, int classId) async {
     try {
-      final token = await _getAuthToken();
-
       // Intentar obtener progreso detallado en un solo endpoint
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/progress',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -347,12 +316,10 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
         // Si no, obtener la clase y los modulos por separado y combinar
         final classResponse = await _dio.get(
           '$_baseUrl${ApiEndpoints.classes}/$classId',
-          options: _authOptions(token),
         );
 
         final modulesResponse = await _dio.get(
           '$_baseUrl${ApiEndpoints.classes}/$classId/modules',
-          options: _authOptions(token),
         );
 
         if (classResponse.statusCode == 200 &&
@@ -386,10 +353,8 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   Future<void> submitRequirement(
       String userId, int classId, int requirementId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/sections/$requirementId/submit',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 ||
@@ -420,8 +385,6 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     void Function(double)? onProgress,
   }) async {
     try {
-      final token = await _getAuthToken();
-
       final formData = FormData.fromMap({
         'file': await MultipartFile.fromFile(
           filePath,
@@ -435,7 +398,6 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
         data: formData,
         options: Options(
           headers: {
-            'Authorization': 'Bearer $token',
             'Content-Type': 'multipart/form-data',
           },
           sendTimeout: const Duration(minutes: 2),
@@ -481,10 +443,8 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     required String fileId,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.delete(
         '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/sections/$requirementId/files/$fileId',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 ||

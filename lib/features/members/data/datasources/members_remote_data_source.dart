@@ -1,6 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -47,7 +45,6 @@ abstract class MembersRemoteDataSource {
 class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'MembersDS';
 
@@ -55,16 +52,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String?> _getToken() async {
-    return await _secureStorage.read(key: 'auth_token');
-  }
-
-  Map<String, String> _authHeaders(String token) => {
-        'Authorization': 'Bearer $token',
-      };
+        _baseUrl = baseUrl;
 
   /// Desenvuelve la respuesta de la API que puede venir como
   /// { "status": "success", "data": [...] } o directamente como [...]
@@ -116,7 +104,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
 
   final Map<String, String> _clubRoleIdsByName = {};
 
-  Future<String?> _resolveClubRoleId(String role, String token) async {
+  Future<String?> _resolveClubRoleId(String role) async {
     for (final candidate in _roleLookupCandidates(role)) {
       final cached = _clubRoleIdsByName[candidate];
       if (cached != null && cached.isNotEmpty) {
@@ -128,7 +116,6 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.catalogs}/roles',
         queryParameters: const {'category': 'CLUB'},
-        options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -169,12 +156,8 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
     required int sectionId,
   }) async {
     try {
-      final token = await _getToken();
-      if (token == null) throw AuthException(message: 'No hay sesión activa');
-
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/members',
-        options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -202,12 +185,8 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
   @override
   Future<ClubMemberModel> getMemberDetail(String userId) async {
     try {
-      final token = await _getToken();
-      if (token == null) throw AuthException(message: 'No hay sesión activa');
-
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$userId',
-        options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -239,9 +218,6 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
     required int sectionId,
   }) async {
     try {
-      final token = await _getToken();
-      if (token == null) throw AuthException(message: 'No hay sesión activa');
-
       // El backend actualmente expone miembros; las solicitudes de ingreso
       // se obtienen filtrando por estado pendiente o desde un endpoint
       // dedicado cuando esté disponible. Por ahora consultamos el endpoint
@@ -250,7 +226,6 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/members',
         queryParameters: {'status': 'pending'},
-        options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -287,13 +262,9 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
   @override
   Future<JoinRequestModel> approveJoinRequest(String assignmentId) async {
     try {
-      final token = await _getToken();
-      if (token == null) throw AuthException(message: 'No hay sesión activa');
-
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.clubRoles}/$assignmentId',
         data: {'status': 'approved'},
-        options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -320,13 +291,9 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
   @override
   Future<JoinRequestModel> rejectJoinRequest(String assignmentId) async {
     try {
-      final token = await _getToken();
-      if (token == null) throw AuthException(message: 'No hay sesión activa');
-
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.clubRoles}/$assignmentId',
         data: {'status': 'rejected'},
-        options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -358,10 +325,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
     required String role,
   }) async {
     try {
-      final token = await _getToken();
-      if (token == null) throw AuthException(message: 'No hay sesión activa');
-
-      final roleId = await _resolveClubRoleId(role, token);
+      final roleId = await _resolveClubRoleId(role);
       final payload = <String, dynamic>{
         'user_id': userId,
         'club_section_id': sectionId,
@@ -379,7 +343,6 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/roles',
         data: payload,
-        options: Options(headers: _authHeaders(token)),
       );
 
       return response.statusCode == 200 || response.statusCode == 201;
@@ -398,12 +361,8 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
   @override
   Future<bool> removeClubRole(String assignmentId) async {
     try {
-      final token = await _getToken();
-      if (token == null) throw AuthException(message: 'No hay sesión activa');
-
       final response = await _dio.delete(
         '$_baseUrl${ApiEndpoints.clubRoles}/$assignmentId',
-        options: Options(headers: _authHeaders(token)),
       );
 
       return response.statusCode == 200 ||

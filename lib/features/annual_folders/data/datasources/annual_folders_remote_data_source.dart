@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -27,7 +26,6 @@ class AnnualFoldersRemoteDataSourceImpl
     implements AnnualFoldersRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'AnnualFoldersDS';
 
@@ -35,17 +33,7 @@ class AnnualFoldersRemoteDataSourceImpl
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) throw AuthException(message: 'No hay sesion activa');
-    return token;
-  }
-
-  Options _authOptions(String token) =>
-      Options(headers: {'Authorization': 'Bearer $token'});
+        _baseUrl = baseUrl;
 
   Never _rethrow(Object e) {
     if (e is DioException) {
@@ -75,10 +63,8 @@ class AnnualFoldersRemoteDataSourceImpl
   @override
   Future<AnnualFolderModel> getFolderByEnrollment(int enrollmentId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.annualFolders}/enrollment/$enrollmentId',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -109,7 +95,6 @@ class AnnualFoldersRemoteDataSourceImpl
     String? notes,
   }) async {
     try {
-      final token = await _getAuthToken();
       final body = <String, dynamic>{
         'section_id': sectionId,
         'file_url': fileUrl,
@@ -120,7 +105,6 @@ class AnnualFoldersRemoteDataSourceImpl
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.annualFolders}/$folderId/evidences',
         data: body,
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -145,10 +129,8 @@ class AnnualFoldersRemoteDataSourceImpl
   @override
   Future<void> deleteEvidence(int evidenceId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.delete(
         '$_baseUrl${ApiEndpoints.annualFolders}/evidences/$evidenceId',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 ||
@@ -171,10 +153,8 @@ class AnnualFoldersRemoteDataSourceImpl
   @override
   Future<AnnualFolderModel> submitFolder(int folderId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.annualFolders}/$folderId/submit',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

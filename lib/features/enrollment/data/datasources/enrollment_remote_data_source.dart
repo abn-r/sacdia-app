@@ -1,6 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -33,7 +31,6 @@ abstract class EnrollmentRemoteDataSource {
 class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'EnrollmentDS';
 
@@ -41,18 +38,7 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) throw AuthException(message: 'No hay sesión activa');
-    return token;
-  }
-
-  Map<String, String> _authHeaders(String token) => {
-        'Authorization': 'Bearer $token',
-      };
+        _baseUrl = baseUrl;
 
   Map<String, dynamic> _unwrapMap(dynamic body) {
     if (body is Map<String, dynamic>) {
@@ -76,7 +62,6 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
   }) async {
     try {
       AppLogger.i('Creando inscripción en sección $sectionId', tag: _tag);
-      final token = await _getAuthToken();
 
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/enrollments',
@@ -84,7 +69,6 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
           'address': address,
           'meeting_days': meetingDays,
         },
-        options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -115,11 +99,9 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
   }) async {
     try {
       AppLogger.i('Obteniendo inscripción activa en sección $sectionId', tag: _tag);
-      final token = await _getAuthToken();
 
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/enrollments/current',
-        options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -159,7 +141,6 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
   }) async {
     try {
       AppLogger.i('Actualizando inscripción $enrollmentId', tag: _tag);
-      final token = await _getAuthToken();
 
       final data = <String, dynamic>{};
       if (address != null) data['address'] = address;
@@ -168,7 +149,6 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/enrollments/$enrollmentId',
         data: data,
-        options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

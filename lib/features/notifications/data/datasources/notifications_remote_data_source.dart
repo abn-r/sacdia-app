@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/notification_model.dart';
@@ -25,7 +24,6 @@ class NotificationsRemoteDataSourceImpl
     implements NotificationsRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'NotificationsDS';
 
@@ -33,19 +31,7 @@ class NotificationsRemoteDataSourceImpl
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) {
-      throw AuthException(message: 'No hay sesion activa');
-    }
-    return token;
-  }
-
-  Options _authOptions(String token) =>
-      Options(headers: {'Authorization': 'Bearer $token'});
+        _baseUrl = baseUrl;
 
   Never _rethrow(Object e) {
     if (e is DioException) {
@@ -81,14 +67,12 @@ class NotificationsRemoteDataSourceImpl
     int limit = 20,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl/notifications/history',
         queryParameters: {
           'page': page,
           'limit': limit,
         },
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

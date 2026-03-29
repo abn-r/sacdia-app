@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -24,7 +23,6 @@ abstract class ValidationRemoteDataSource {
 class ValidationRemoteDataSourceImpl implements ValidationRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'ValidationDS';
 
@@ -32,18 +30,7 @@ class ValidationRemoteDataSourceImpl implements ValidationRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) throw AuthException(message: 'No hay sesión activa');
-    return token;
-  }
-
-  Map<String, String> _authHeaders(String token) => {
-        'Authorization': 'Bearer $token',
-      };
+        _baseUrl = baseUrl;
 
   Map<String, dynamic> _unwrapMap(dynamic body) {
     if (body is Map<String, dynamic>) {
@@ -73,15 +60,12 @@ class ValidationRemoteDataSourceImpl implements ValidationRemoteDataSource {
   }) async {
     try {
       AppLogger.i('Enviando a revisión: ${entityType.slug}/$entityId', tag: _tag);
-      final token = await _getAuthToken();
-
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.validation}/submit',
         data: {
           'entity_type': entityType.slug,
           'entity_id': entityId,
         },
-        options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -114,11 +98,8 @@ class ValidationRemoteDataSourceImpl implements ValidationRemoteDataSource {
       AppLogger.i(
           'Obteniendo historial de validación: ${entityType.slug}/$entityId',
           tag: _tag);
-      final token = await _getAuthToken();
-
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.validation}/${entityType.slug}/$entityId/history',
-        options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -149,11 +130,8 @@ class ValidationRemoteDataSourceImpl implements ValidationRemoteDataSource {
       {required String userId}) async {
     try {
       AppLogger.i('Verificando elegibilidad para usuario $userId', tag: _tag);
-      final token = await _getAuthToken();
-
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.validation}/eligibility/$userId',
-        options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

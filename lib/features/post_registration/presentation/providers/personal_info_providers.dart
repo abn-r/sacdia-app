@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../data/datasources/personal_info_remote_data_source.dart';
 import '../../data/models/emergency_contact_model.dart';
 import '../../data/models/legal_representative_model.dart';
@@ -19,7 +18,6 @@ final personalInfoDataSourceProvider =
   return PersonalInfoRemoteDataSourceImpl(
     dio: dio,
     baseUrl: baseUrl,
-    secureStorage: const FlutterSecureStorage(),
   );
 });
 

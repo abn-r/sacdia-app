@@ -1,6 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -34,7 +32,6 @@ class ClubSelectionRemoteDataSourceImpl
     implements ClubSelectionRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'ClubSelectionDS';
 
@@ -42,24 +39,13 @@ class ClubSelectionRemoteDataSourceImpl
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<Options> _authOptions() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) {
-      throw AuthException(message: 'No hay sesión activa');
-    }
-    return Options(headers: {'Authorization': 'Bearer $token'});
-  }
+        _baseUrl = baseUrl;
 
   @override
   Future<List<CountryModel>> getCountries() async {
     try {
-      final options = await _authOptions();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.catalogs}/countries',
-        options: options,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -81,10 +67,8 @@ class ClubSelectionRemoteDataSourceImpl
   @override
   Future<List<UnionModel>> getUnionsByCountry(int countryId) async {
     try {
-      final options = await _authOptions();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.catalogs}/unions?countryId=$countryId',
-        options: options,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -106,10 +90,8 @@ class ClubSelectionRemoteDataSourceImpl
   @override
   Future<List<LocalFieldModel>> getLocalFieldsByUnion(int unionId) async {
     try {
-      final options = await _authOptions();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.catalogs}/local-fields?unionId=$unionId',
-        options: options,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -131,11 +113,9 @@ class ClubSelectionRemoteDataSourceImpl
   @override
   Future<List<ClubModel>> getClubsByLocalField(int localFieldId) async {
     try {
-      final options = await _authOptions();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}',
         queryParameters: {'localFieldId': localFieldId},
-        options: options,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -158,10 +138,8 @@ class ClubSelectionRemoteDataSourceImpl
   @override
   Future<List<ClubSectionModel>> getClubSections(int clubId) async {
     try {
-      final options = await _authOptions();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections',
-        options: options,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -197,11 +175,9 @@ class ClubSelectionRemoteDataSourceImpl
   @override
   Future<List<ClassModel>> getClassesByClubType(int clubTypeId) async {
     try {
-      final options = await _authOptions();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.classes}',
         queryParameters: {'clubTypeId': clubTypeId},
-        options: options,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -231,7 +207,6 @@ class ClubSelectionRemoteDataSourceImpl
     required int classId,
   }) async {
     try {
-      final options = await _authOptions();
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.users}/$userId/post-registration/step-3/complete',
         data: {
@@ -241,7 +216,6 @@ class ClubSelectionRemoteDataSourceImpl
           'club_section_id': clubSectionId,
           'class_id': classId,
         },
-        options: options,
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {

@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -51,7 +50,6 @@ abstract class InventoryRemoteDataSource {
 class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'InventoryDS';
 
@@ -59,27 +57,15 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) throw AuthException(message: 'No hay sesión activa');
-    return token;
-  }
-
-  Options _authOptions(String token) =>
-      Options(headers: {'Authorization': 'Bearer $token'});
+        _baseUrl = baseUrl;
 
   // ── GET /inventory/catalogs/inventory-categories ──────────────────────────
 
   @override
   Future<List<InventoryCategoryModel>> getCategories() async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.inventory}/catalogs/inventory-categories',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -108,10 +94,8 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
   @override
   Future<List<InventoryItemModel>> getItems({required int clubId}) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.inventory}/clubs/$clubId/inventory',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -140,10 +124,8 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
   @override
   Future<InventoryItemModel> getItem({required int itemId}) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.inventory}/inventory/$itemId',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -181,7 +163,6 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
     String? notes,
   }) async {
     try {
-      final token = await _getAuthToken();
       final body = <String, dynamic>{
         'name': name,
         'inventory_category_id': categoryId,
@@ -204,7 +185,6 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.inventory}/clubs/$clubId/inventory',
         data: body,
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -242,7 +222,6 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
     String? notes,
   }) async {
     try {
-      final token = await _getAuthToken();
       final body = <String, dynamic>{
         if (name != null) 'name': name,
         if (categoryId != null) 'inventory_category_id': categoryId,
@@ -263,7 +242,6 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.inventory}/inventory/$itemId',
         data: body,
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -288,10 +266,8 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
   @override
   Future<void> deleteItem({required int itemId}) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.delete(
         '$_baseUrl${ApiEndpoints.inventory}/inventory/$itemId',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 ||

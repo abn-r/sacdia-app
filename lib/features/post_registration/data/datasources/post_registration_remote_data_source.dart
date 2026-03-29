@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http_parser/http_parser.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
@@ -21,7 +20,6 @@ class PostRegistrationRemoteDataSourceImpl
     implements PostRegistrationRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'PostRegistrationDS';
 
@@ -29,24 +27,13 @@ class PostRegistrationRemoteDataSourceImpl
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<Options> _authOptions() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) {
-      throw AuthException(message: 'No hay sesión activa');
-    }
-    return Options(headers: {'Authorization': 'Bearer $token'});
-  }
+        _baseUrl = baseUrl;
 
   @override
   Future<CompletionStatusModel> getCompletionStatus() async {
     try {
-      final options = await _authOptions();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.auth}/profile/completion-status',
-        options: options,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -69,9 +56,6 @@ class PostRegistrationRemoteDataSourceImpl
     required String filePath,
   }) async {
     try {
-      final options = await _authOptions();
-      options.contentType = 'multipart/form-data';
-
       final String extension = filePath.contains('.')
           ? filePath.split('.').last.toLowerCase()
           : 'jpg';
@@ -93,7 +77,7 @@ class PostRegistrationRemoteDataSourceImpl
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.users}/$userId/profile-picture',
         data: formData,
-        options: options,
+        options: Options(contentType: 'multipart/form-data'),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -114,10 +98,8 @@ class PostRegistrationRemoteDataSourceImpl
   @override
   Future<void> deleteProfilePicture({required String userId}) async {
     try {
-      final options = await _authOptions();
       final response = await _dio.delete(
         '$_baseUrl${ApiEndpoints.users}/$userId/profile-picture',
-        options: options,
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {
@@ -135,10 +117,8 @@ class PostRegistrationRemoteDataSourceImpl
   @override
   Future<bool> getPhotoStatus({required String userId}) async {
     try {
-      final options = await _authOptions();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$userId/post-registration/photo-status',
-        options: options,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -158,10 +138,8 @@ class PostRegistrationRemoteDataSourceImpl
   @override
   Future<void> completeStep1(String userId) async {
     try {
-      final options = await _authOptions();
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.users}/$userId/post-registration/step-1/complete',
-        options: options,
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {

@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -20,7 +19,6 @@ abstract class TransferRemoteDataSource {
 class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'TransferDS';
 
@@ -28,18 +26,7 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) throw AuthException(message: 'No hay sesión activa');
-    return token;
-  }
-
-  Map<String, String> _authHeaders(String token) => {
-        'Authorization': 'Bearer $token',
-      };
+        _baseUrl = baseUrl;
 
   Map<String, dynamic> _unwrapMap(dynamic body) {
     if (body is Map<String, dynamic>) {
@@ -68,15 +55,12 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
     try {
       AppLogger.i('Creando solicitud de traslado a sección $toSectionId',
           tag: _tag);
-      final token = await _getAuthToken();
-
       final data = <String, dynamic>{'to_section_id': toSectionId};
       if (reason != null && reason.isNotEmpty) data['reason'] = reason;
 
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.requests}/transfers',
         data: data,
-        options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -106,11 +90,8 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
   Future<List<TransferRequestModel>> getMyTransferRequests() async {
     try {
       AppLogger.i('Obteniendo solicitudes de traslado', tag: _tag);
-      final token = await _getAuthToken();
-
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.requests}/transfers',
-        options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -140,11 +121,8 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
   Future<TransferRequestModel> getTransferRequest(int requestId) async {
     try {
       AppLogger.i('Obteniendo detalle de solicitud $requestId', tag: _tag);
-      final token = await _getAuthToken();
-
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.requests}/transfers/$requestId',
-        options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -79,7 +78,6 @@ abstract class CamporeesRemoteDataSource {
 class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'CamporeesDS';
 
@@ -87,19 +85,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) {
-      throw AuthException(message: 'No hay sesion activa');
-    }
-    return token;
-  }
-
-  Options _authOptions(String token) =>
-      Options(headers: {'Authorization': 'Bearer $token'});
+        _baseUrl = baseUrl;
 
   Never _rethrow(Object e) {
     if (e is DioException) {
@@ -129,14 +115,12 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
   @override
   Future<List<CamporeeModel>> getCamporees({bool? active}) async {
     try {
-      final token = await _getAuthToken();
       final queryParams = <String, dynamic>{};
       if (active != null) queryParams['active'] = active;
 
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -172,10 +156,8 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
   @override
   Future<CamporeeModel> getCamporeeDetail(int camporeeId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -202,7 +184,6 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     int? insuranceId,
   }) async {
     try {
-      final token = await _getAuthToken();
       final body = <String, dynamic>{
         'user_id': userId,
         'camporee_type': camporeeType,
@@ -213,7 +194,6 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/register',
         data: body,
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -235,10 +215,8 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
   @override
   Future<List<CamporeeMemberModel>> getCamporeeMembers(int camporeeId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/members',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -273,10 +251,8 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
   @override
   Future<void> removeMember(int camporeeId, String userId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.delete(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/members/$userId',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 ||
@@ -302,11 +278,9 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     required int clubSectionId,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/clubs',
         data: {'club_section_id': clubSectionId},
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -329,10 +303,8 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
   Future<List<CamporeeEnrolledClubModel>> getEnrolledClubs(
       int camporeeId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/clubs',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -375,7 +347,6 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     String? notes,
   }) async {
     try {
-      final token = await _getAuthToken();
       final body = <String, dynamic>{
         'amount': amount,
         'payment_type': paymentType,
@@ -389,7 +360,6 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/members/$memberId/payments',
         data: body,
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -414,10 +384,8 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
     String memberId,
   ) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/members/$memberId/payments',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -453,10 +421,8 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
   Future<List<CamporeePaymentModel>> getCamporeePayments(
       int camporeeId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/payments',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

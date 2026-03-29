@@ -1,6 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -32,13 +30,11 @@ abstract class EvidenceFolderRemoteDataSource {
 /// Implementación de la fuente de datos remota de carpeta de evidencias.
 ///
 /// Utiliza Dio para llamadas REST al backend SACDIA.
-/// Auth token se lee desde [FlutterSecureStorage] siguiendo el mismo patrón
-/// que el resto de datasources de la aplicación.
+/// Auth token es inyectado automáticamente por [AuthInterceptor].
 class EvidenceFolderRemoteDataSourceImpl
     implements EvidenceFolderRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'EvidenceFolderDS';
 
@@ -46,17 +42,7 @@ class EvidenceFolderRemoteDataSourceImpl
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) throw AuthException(message: 'No hay sesión activa');
-    return token;
-  }
-
-  Options _authOptions(String token) =>
-      Options(headers: {'Authorization': 'Bearer $token'});
+        _baseUrl = baseUrl;
 
   // ── GET /club-sections/:id/evidence-folder ─────────────────────────────────
 
@@ -64,10 +50,8 @@ class EvidenceFolderRemoteDataSourceImpl
   Future<EvidenceFolderModel> getEvidenceFolder(
       String clubSectionId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubSections}/$clubSectionId/evidence-folder',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -94,10 +78,8 @@ class EvidenceFolderRemoteDataSourceImpl
   Future<void> submitSection(
       String clubSectionId, String sectionId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.clubSections}/$clubSectionId/evidence-folder/sections/$sectionId/submit',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) return;
@@ -124,8 +106,6 @@ class EvidenceFolderRemoteDataSourceImpl
     void Function(double)? onProgress,
   }) async {
     try {
-      final token = await _getAuthToken();
-
       final formData = FormData.fromMap({
         'file': await MultipartFile.fromFile(
           filePath,
@@ -139,7 +119,6 @@ class EvidenceFolderRemoteDataSourceImpl
         data: formData,
         options: Options(
           headers: {
-            'Authorization': 'Bearer $token',
             'Content-Type': 'multipart/form-data',
           },
           sendTimeout: const Duration(minutes: 2),
@@ -184,10 +163,8 @@ class EvidenceFolderRemoteDataSourceImpl
     required String fileId,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.delete(
         '$_baseUrl${ApiEndpoints.clubSections}/$clubSectionId/evidence-folder/sections/$sectionId/files/$fileId',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 ||

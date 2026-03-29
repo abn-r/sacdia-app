@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -54,7 +53,6 @@ class CertificationsRemoteDataSourceImpl
     implements CertificationsRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'CertificationsDS';
 
@@ -62,19 +60,7 @@ class CertificationsRemoteDataSourceImpl
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) {
-      throw AuthException(message: 'No hay sesion activa');
-    }
-    return token;
-  }
-
-  Options _authOptions(String token) =>
-      Options(headers: {'Authorization': 'Bearer $token'});
+        _baseUrl = baseUrl;
 
   Never _rethrow(Object e) {
     if (e is DioException) {
@@ -102,10 +88,8 @@ class CertificationsRemoteDataSourceImpl
   @override
   Future<List<CertificationModel>> getCertifications() async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.certifications}/certifications',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -131,10 +115,8 @@ class CertificationsRemoteDataSourceImpl
   Future<CertificationDetailModel> getCertificationDetail(
       int certificationId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.certifications}/certifications/$certificationId',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -157,10 +139,8 @@ class CertificationsRemoteDataSourceImpl
   Future<List<UserCertificationModel>> getUserCertifications(
       String userId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.certifications}/users/$userId/certifications',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -186,10 +166,8 @@ class CertificationsRemoteDataSourceImpl
   Future<CertificationProgressModel> getCertificationProgress(
       String userId, int certificationId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.certifications}/users/$userId/certifications/$certificationId/progress',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -211,11 +189,9 @@ class CertificationsRemoteDataSourceImpl
   @override
   Future<void> enrollCertification(String userId, int certificationId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.certifications}/users/$userId/certifications/enroll',
         data: {'certification_id': certificationId},
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 ||
@@ -244,7 +220,6 @@ class CertificationsRemoteDataSourceImpl
     bool completed,
   ) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.certifications}/users/$userId/certifications/$certificationId/progress',
         data: {
@@ -252,7 +227,6 @@ class CertificationsRemoteDataSourceImpl
           'section_id': sectionId,
           'completed': completed,
         },
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -274,10 +248,8 @@ class CertificationsRemoteDataSourceImpl
   Future<void> unenrollCertification(
       String userId, int certificationId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.delete(
         '$_baseUrl${ApiEndpoints.certifications}/users/$userId/certifications/$certificationId',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 ||

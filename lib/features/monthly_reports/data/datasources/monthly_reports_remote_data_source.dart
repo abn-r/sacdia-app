@@ -26,7 +26,6 @@ class MonthlyReportsRemoteDataSourceImpl
     implements MonthlyReportsRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'MonthlyReportsDS';
 
@@ -34,17 +33,7 @@ class MonthlyReportsRemoteDataSourceImpl
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) throw AuthException(message: 'No hay sesion activa');
-    return token;
-  }
-
-  Options _authOptions(String token) =>
-      Options(headers: {'Authorization': 'Bearer $token'});
+        _baseUrl = baseUrl;
 
   Never _rethrow(Object e) {
     if (e is DioException) {
@@ -97,11 +86,9 @@ class MonthlyReportsRemoteDataSourceImpl
     required int year,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.monthlyReports}/preview/$enrollmentId',
         queryParameters: {'month': month, 'year': year},
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -124,10 +111,8 @@ class MonthlyReportsRemoteDataSourceImpl
   Future<List<MonthlyReportModel>> getReportsByEnrollment(
       int enrollmentId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.monthlyReports}/enrollment/$enrollmentId',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -149,10 +134,8 @@ class MonthlyReportsRemoteDataSourceImpl
   @override
   Future<MonthlyReportModel> getReportDetail(int reportId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.monthlyReports}/$reportId',
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -173,13 +156,11 @@ class MonthlyReportsRemoteDataSourceImpl
   @override
   Future<String> getReportPdfUrl(int reportId) async {
     try {
-      final token = await _getAuthToken();
       // The PDF endpoint may return a redirect or a JSON with a url field.
       // We disable followRedirects to capture the Location header if present.
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.monthlyReports}/$reportId/pdf',
         options: Options(
-          headers: {'Authorization': 'Bearer $token'},
           followRedirects: false,
           validateStatus: (status) =>
               status != null && (status < 400 || status == 302),
@@ -203,8 +184,11 @@ class MonthlyReportsRemoteDataSourceImpl
         if (data is String) return data;
       }
 
-      // Fallback: build the URL with token as query param
-      return '$_baseUrl${ApiEndpoints.monthlyReports}/$reportId/pdf?token=$token';
+      // Fallback: build URL with token as query param (for direct browser/webview access)
+      const storage = FlutterSecureStorage();
+      final token = await storage.read(key: 'auth_token');
+      final base = '$_baseUrl${ApiEndpoints.monthlyReports}/$reportId/pdf';
+      return token != null ? '$base?token=$token' : base;
     } catch (e) {
       AppLogger.e('Error en getReportPdfUrl', tag: _tag, error: e);
       _rethrow(e);

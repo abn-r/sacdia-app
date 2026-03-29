@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -94,7 +93,6 @@ abstract class UnitsRemoteDataSource {
 class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'UnitsDS';
 
@@ -102,19 +100,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  // ── Auth ──────────────────────────────────────────────────────────────────
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) throw AuthException(message: 'No hay sesión activa');
-    return token;
-  }
-
-  Options _authOptions(String token) =>
-      Options(headers: {'Authorization': 'Bearer $token'});
+        _baseUrl = baseUrl;
 
   String _unitsBase(int clubId) => '$_baseUrl${ApiEndpoints.clubs}/$clubId/units';
 
@@ -123,10 +109,8 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
   @override
   Future<List<UnitModel>> getClubUnits({required int clubId}) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         _unitsBase(clubId),
-        options: _authOptions(token),
       );
 
       _assertSuccess(response, 'Error al obtener las unidades del club');
@@ -153,10 +137,8 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
     required int unitId,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '${_unitsBase(clubId)}/$unitId',
-        options: _authOptions(token),
       );
 
       _assertSuccess(response, 'Error al obtener el detalle de la unidad');
@@ -183,7 +165,6 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
     int? clubSectionId,
   }) async {
     try {
-      final token = await _getAuthToken();
       final body = <String, dynamic>{
         'name': name,
         'captain_id': captainId,
@@ -198,7 +179,6 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
       final response = await _dio.post(
         _unitsBase(clubId),
         data: body,
-        options: _authOptions(token),
       );
 
       _assertSuccess(response, 'Error al crear la unidad');
@@ -227,7 +207,6 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
     bool? active,
   }) async {
     try {
-      final token = await _getAuthToken();
       final body = <String, dynamic>{
         if (name != null) 'name': name,
         if (captainId != null) 'captain_id': captainId,
@@ -243,7 +222,6 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
       final response = await _dio.patch(
         '${_unitsBase(clubId)}/$unitId',
         data: body,
-        options: _authOptions(token),
       );
 
       _assertSuccess(response, 'Error al actualizar la unidad');
@@ -261,10 +239,8 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
   @override
   Future<void> deleteUnit({required int clubId, required int unitId}) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.delete(
         '${_unitsBase(clubId)}/$unitId',
-        options: _authOptions(token),
       );
       _assertSuccess(response, 'Error al eliminar la unidad');
     } catch (e) {
@@ -282,11 +258,9 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
     required String userId,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.post(
         '${_unitsBase(clubId)}/$unitId/members',
         data: {'user_id': userId},
-        options: _authOptions(token),
       );
 
       _assertSuccess(response, 'Error al agregar el miembro a la unidad');
@@ -308,10 +282,8 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
     required int memberId,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.delete(
         '${_unitsBase(clubId)}/$unitId/members/$memberId',
-        options: _authOptions(token),
       );
       _assertSuccess(response, 'Error al remover el miembro de la unidad');
     } catch (e) {
@@ -328,10 +300,8 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
     required int unitId,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '${_unitsBase(clubId)}/$unitId/weekly-records',
-        options: _authOptions(token),
       );
 
       _assertSuccess(response, 'Error al obtener los registros semanales');
@@ -363,7 +333,6 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
     required int points,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.post(
         '${_unitsBase(clubId)}/$unitId/weekly-records',
         data: {
@@ -373,7 +342,6 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
           'punctuality': punctuality,
           'points': points,
         },
-        options: _authOptions(token),
       );
 
       _assertSuccess(response, 'Error al crear el registro semanal');
@@ -399,7 +367,6 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
     bool? active,
   }) async {
     try {
-      final token = await _getAuthToken();
       final body = <String, dynamic>{
         if (attendance != null) 'attendance': attendance,
         if (punctuality != null) 'punctuality': punctuality,
@@ -410,7 +377,6 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
       final response = await _dio.patch(
         '${_unitsBase(clubId)}/$unitId/weekly-records/$recordId',
         data: body,
-        options: _authOptions(token),
       );
 
       _assertSuccess(response, 'Error al actualizar el registro semanal');

@@ -1,6 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -29,7 +27,6 @@ abstract class ClubRemoteDataSource {
 class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'ClubDS';
 
@@ -37,22 +34,7 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  // ── Auth helpers ─────────────────────────────────────────────────────────
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) {
-      throw AuthException(message: 'No hay sesión activa');
-    }
-    return token;
-  }
-
-  Map<String, String> _authHeaders(String token) => {
-        'Authorization': 'Bearer $token',
-      };
+        _baseUrl = baseUrl;
 
   // ── Helpers de respuesta ─────────────────────────────────────────────────
 
@@ -73,11 +55,9 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
   Future<ClubInfoModel> getClub(String clubId) async {
     try {
       AppLogger.i('Obteniendo club: $clubId', tag: _tag);
-      final token = await _getAuthToken();
 
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId',
-        options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -109,11 +89,9 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
   }) async {
     try {
       AppLogger.i('Obteniendo sección: $sectionId del club $clubId', tag: _tag);
-      final token = await _getAuthToken();
 
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId',
-        options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -149,12 +127,9 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
         'Actualizando sección: $sectionId del club $clubId',
         tag: _tag,
       );
-      final token = await _getAuthToken();
-
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId',
         data: data ?? {},
-        options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

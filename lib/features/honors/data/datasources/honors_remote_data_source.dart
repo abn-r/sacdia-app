@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -65,7 +64,6 @@ abstract class HonorsRemoteDataSource {
 class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'HonorsDS';
 
@@ -73,24 +71,13 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) {
-      throw AuthException(message: 'No hay sesión activa');
-    }
-    return token;
-  }
+        _baseUrl = baseUrl;
 
   @override
   Future<List<HonorCategoryModel>> getHonorCategories() async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.honors}/categories',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -114,8 +101,6 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   @override
   Future<List<HonorModel>> getHonors({int? categoryId, int? clubTypeId, int? skillLevel}) async {
     try {
-      final token = await _getAuthToken();
-
       final queryParams = <String>[];
       if (categoryId != null) queryParams.add('categoryId=$categoryId');
       if (clubTypeId != null) queryParams.add('clubTypeId=$clubTypeId');
@@ -124,7 +109,6 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
 
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.honors}$queryString',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -151,10 +135,8 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   @override
   Future<HonorModel> getHonorById(int honorId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.honors}/$honorId',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -175,10 +157,8 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   @override
   Future<List<UserHonorModel>> getUserHonors(String userId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$userId/honors',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -202,10 +182,8 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   @override
   Future<Map<String, dynamic>> getUserHonorStats(String userId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$userId/honors/stats',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -226,10 +204,8 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   @override
   Future<UserHonorModel> enrollUserInHonor(String userId, int honorId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.users}/$userId/honors/$honorId',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -250,11 +226,9 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   @override
   Future<UserHonorModel> updateUserHonor(String userId, int honorId, Map<String, dynamic> data) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.users}/$userId/honors/$honorId',
         data: data,
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -275,10 +249,8 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   @override
   Future<void> deleteUserHonor(String userId, int honorId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.delete(
         '$_baseUrl${ApiEndpoints.users}/$userId/honors/$honorId',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {
@@ -297,11 +269,9 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   @override
   Future<UserHonorModel> registerUserHonor(RegisterUserHonorParams params) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.users}/${params.userId}/honors',
         data: params.toJson(),
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -328,10 +298,8 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   @override
   Future<List<HonorGroupModel>> getHonorsGroupedByCategory() async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.honors}/grouped-by-category',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -358,10 +326,8 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   @override
   Future<List<HonorRequirementModel>> getHonorRequirements(int honorId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.honors}/$honorId/requirements',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -394,11 +360,9 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   Future<List<UserHonorRequirementProgressModel>> getUserHonorProgress(
       int honorId) async {
     try {
-      final token = await _getAuthToken();
       // New API: GET /honors/:honorId/progress — userId derived from JWT
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.honors}/$honorId/progress',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -434,7 +398,6 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     String? notes,
   }) async {
     try {
-      final token = await _getAuthToken();
       final body = <String, dynamic>{
         'completed': completed,
         if (notes != null) 'notes': notes,
@@ -443,7 +406,6 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.honors}/$honorId/progress/$requirementId',
         data: body,
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -473,13 +435,11 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       int honorId,
       List<Map<String, dynamic>> updates) async {
     try {
-      final token = await _getAuthToken();
       // New API: PATCH /honors/:honorId/progress/bulk
       // Body: { items: [{ requirementId, completed, notes? }] }
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.honors}/$honorId/progress/bulk',
         data: {'items': updates},
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -515,8 +475,6 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     required String fileName,
   }) async {
     try {
-      final token = await _getAuthToken();
-
       final formData = FormData.fromMap({
         'images': await MultipartFile.fromFile(
           file.path,
@@ -529,7 +487,6 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
         data: formData,
         options: Options(
           headers: {
-            'Authorization': 'Bearer $token',
             'Content-Type': 'multipart/form-data',
           },
           sendTimeout: const Duration(minutes: 2),

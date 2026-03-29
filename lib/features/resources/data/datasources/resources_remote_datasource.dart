@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -28,7 +27,6 @@ abstract class ResourcesRemoteDataSource {
 class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'ResourcesDS';
 
@@ -36,16 +34,7 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) {
-      throw AuthException(message: 'No hay sesión activa');
-    }
-    return token;
-  }
+        _baseUrl = baseUrl;
 
   @override
   Future<PaginatedResourcesModel> getVisibleResources({
@@ -56,8 +45,6 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
     String? search,
   }) async {
     try {
-      final token = await _getAuthToken();
-
       final queryParams = <String, dynamic>{
         'page': page,
         'limit': limit,
@@ -69,7 +56,6 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.resources}/me',
         queryParameters: queryParams,
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -96,10 +82,8 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
   @override
   Future<ResourceModel> getResource(String id) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.resources}/me/$id',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -126,10 +110,8 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
   @override
   Future<String> getSignedUrl(String id) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.resources}/me/$id/signed-url',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -160,10 +142,8 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
   @override
   Future<List<ResourceCategoryModel>> getCategories() async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.resourceCategories}',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
