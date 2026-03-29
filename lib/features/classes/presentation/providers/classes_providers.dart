@@ -86,6 +86,7 @@ final enrollPreviousClassUseCaseProvider =
 /// Provider para las clases de un usuario.
 final userClassesProvider =
     FutureProvider.autoDispose<List<ProgressiveClass>>((ref) async {
+  ref.keepAlive();
   final userId = await ref.watch(
     authNotifierProvider.selectAsync((user) => user?.id),
   );

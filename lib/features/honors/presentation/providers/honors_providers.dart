@@ -69,6 +69,7 @@ final registerUserHonorProvider = Provider<RegisterUserHonor>((ref) {
 
 /// Provider para las categorías de especialidades
 final honorCategoriesProvider = FutureProvider.autoDispose<List<HonorCategory>>((ref) async {
+  ref.keepAlive();
   final getHonorCategories = ref.read(getHonorCategoriesProvider);
   final result = await getHonorCategories(const NoParams());
 
@@ -83,18 +84,6 @@ final honorsProvider = FutureProvider.autoDispose
     .family<List<Honor>, GetHonorsParams>((ref, params) async {
   final getHonors = ref.read(getHonorsProvider);
   final result = await getHonors(params);
-
-  return result.fold(
-    (failure) => throw Exception(failure.message),
-    (honors) => honors,
-  );
-});
-
-/// Provider para especialidades por categoría
-final honorsByCategoryProvider =
-    FutureProvider.autoDispose.family<List<Honor>, int>((ref, categoryId) async {
-  final getHonors = ref.read(getHonorsProvider);
-  final result = await getHonors(GetHonorsParams(categoryId: categoryId));
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -153,29 +142,9 @@ final userHonorStatsLocalProvider =
   });
 });
 
-/// Provider para estadísticas de especialidades del usuario (API call)
-final userHonorStatsProvider =
-    FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
-  // Fix 1: use selectAsync — rebuilds only when userId changes.
-  final userId = await ref.watch(
-    authNotifierProvider.selectAsync((user) => user?.id),
-  );
-
-  if (userId == null) {
-    throw Exception('Usuario no autenticado');
-  }
-
-  final repository = ref.read(honorsRepositoryProvider);
-  final result = await repository.getUserHonorStats(userId);
-
-  return result.fold(
-    (failure) => throw Exception(failure.message),
-    (stats) => stats,
-  );
-});
-
 /// Provider para especialidades agrupadas por categoría
 final honorsGroupedByCategoryProvider = FutureProvider.autoDispose<List<HonorGroup>>((ref) async {
+  ref.keepAlive();
   final repository = ref.read(honorsRepositoryProvider);
   final result = await repository.getHonorsGroupedByCategory();
   return result.fold(

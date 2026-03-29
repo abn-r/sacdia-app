@@ -34,6 +34,7 @@ final certificationsRepositoryProvider =
 /// Provider para el catálogo completo de certificaciones.
 final certificationsProvider =
     FutureProvider.autoDispose<List<Certification>>((ref) async {
+  ref.keepAlive();
   final repository = ref.read(certificationsRepositoryProvider);
   final result = await repository.getCertifications();
 
