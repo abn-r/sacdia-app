@@ -22,17 +22,13 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, UserEntity?>> getCurrentUser() async {
-    if (await networkInfo.isConnected) {
-      try {
-        final userModel = await remoteDataSource.getCurrentUser();
-        return Right(userModel);
-      } on core_exceptions.AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    try {
+      final userModel = await remoteDataSource.getCurrentUser();
+      return Right(userModel);
+    } on core_exceptions.AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -41,20 +37,16 @@ class AuthRepositoryImpl implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    if (await networkInfo.isConnected) {
-      try {
-        final user = await remoteDataSource.signInWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
-        return Right(user);
-      } on core_exceptions.AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    try {
+      final user = await remoteDataSource.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      return Right(user);
+    } on core_exceptions.AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -66,23 +58,19 @@ class AuthRepositoryImpl implements AuthRepository {
     required String paternalSurname,
     required String maternalSurname,
   }) async {
-    if (await networkInfo.isConnected) {
-      try {
-        final user = await remoteDataSource.signUpWithEmailAndPassword(
-          email: email,
-          password: password,
-          name: name,
-          paternalSurname: paternalSurname,
-          maternalSurname: maternalSurname,
-        );
-        return Right(user);
-      } on core_exceptions.AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    try {
+      final user = await remoteDataSource.signUpWithEmailAndPassword(
+        email: email,
+        password: password,
+        name: name,
+        paternalSurname: paternalSurname,
+        maternalSurname: maternalSurname,
+      );
+      return Right(user);
+    } on core_exceptions.AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -101,69 +89,53 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, void>> resetPassword(String email) async {
-    if (await networkInfo.isConnected) {
-      try {
-        await remoteDataSource.resetPassword(email);
-        return const Right(null);
-      } on core_exceptions.AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    try {
+      await remoteDataSource.resetPassword(email);
+      return const Right(null);
+    } on core_exceptions.AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
   @override
   Future<Either<Failure, UserEntity>> updatePassword(String newPassword) async {
-    if (await networkInfo.isConnected) {
-      try {
-        final user = await remoteDataSource.updatePassword(newPassword);
-        return Right(user);
-      } on core_exceptions.AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    try {
+      final user = await remoteDataSource.updatePassword(newPassword);
+      return Right(user);
+    } on core_exceptions.AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
   @override
   Future<Either<Failure, UserEntity>> signInWithGoogle() async {
-    if (await networkInfo.isConnected) {
-      try {
-        final user = await remoteDataSource.signInWithGoogle();
-        return Right(user);
-      } on core_exceptions.OAuthFlowInitiatedException catch (e) {
-        return Left(OAuthFlowInitiatedFailure(provider: e.provider));
-      } on core_exceptions.AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    try {
+      final user = await remoteDataSource.signInWithGoogle();
+      return Right(user);
+    } on core_exceptions.OAuthFlowInitiatedException catch (e) {
+      return Left(OAuthFlowInitiatedFailure(provider: e.provider));
+    } on core_exceptions.AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
   @override
   Future<Either<Failure, UserEntity>> signInWithApple() async {
-    if (await networkInfo.isConnected) {
-      try {
-        final user = await remoteDataSource.signInWithApple();
-        return Right(user);
-      } on core_exceptions.OAuthFlowInitiatedException catch (e) {
-        return Left(OAuthFlowInitiatedFailure(provider: e.provider));
-      } on core_exceptions.AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    try {
+      final user = await remoteDataSource.signInWithApple();
+      return Right(user);
+    } on core_exceptions.OAuthFlowInitiatedException catch (e) {
+      return Left(OAuthFlowInitiatedFailure(provider: e.provider));
+    } on core_exceptions.AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -172,20 +144,16 @@ class AuthRepositoryImpl implements AuthRepository {
     required String sessionToken,
     required String provider,
   }) async {
-    if (await networkInfo.isConnected) {
-      try {
-        final user = await remoteDataSource.handleOAuthCallback(
-          sessionToken: sessionToken,
-          provider: provider,
-        );
-        return Right(user);
-      } on core_exceptions.AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    try {
+      final user = await remoteDataSource.handleOAuthCallback(
+        sessionToken: sessionToken,
+        provider: provider,
+      );
+      return Right(user);
+    } on core_exceptions.AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -196,33 +164,25 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, void>> switchContext(String assignmentId) async {
-    if (await networkInfo.isConnected) {
-      try {
-        await remoteDataSource.switchContext(assignmentId);
-        return const Right(null);
-      } on core_exceptions.AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    try {
+      await remoteDataSource.switchContext(assignmentId);
+      return const Right(null);
+    } on core_exceptions.AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
   @override
   Future<Either<Failure, bool>> getCompletionStatus() async {
-    if (await networkInfo.isConnected) {
-      try {
-        final status = await remoteDataSource.getCompletionStatus();
-        return Right(status);
-      } on core_exceptions.AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    try {
+      final status = await remoteDataSource.getCompletionStatus();
+      return Right(status);
+    } on core_exceptions.AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 }

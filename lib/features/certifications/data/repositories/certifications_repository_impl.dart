@@ -21,11 +21,6 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
 
-  Future<bool> get _isConnected => networkInfo.isConnected;
-
-  Left<Failure, T> _networkFailure<T>() =>
-      const Left(NetworkFailure(message: 'No hay conexion a internet'));
-
   Left<Failure, T> _serverFailure<T>(ServerException e) =>
       Left(ServerFailure(message: e.message, code: e.code));
 
@@ -39,7 +34,6 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
 
   @override
   Future<Either<Failure, List<Certification>>> getCertifications() async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final models = await remoteDataSource.getCertifications();
       return Right(models.map((m) => m.toEntity()).toList());
@@ -55,7 +49,6 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
   @override
   Future<Either<Failure, CertificationDetail>> getCertificationDetail(
       int certificationId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final model =
           await remoteDataSource.getCertificationDetail(certificationId);
@@ -72,7 +65,6 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
   @override
   Future<Either<Failure, List<UserCertification>>> getUserCertifications(
       String userId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final models = await remoteDataSource.getUserCertifications(userId);
       return Right(models.map((m) => m.toEntity()).toList());
@@ -88,7 +80,6 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
   @override
   Future<Either<Failure, CertificationProgress>> getCertificationProgress(
       String userId, int certificationId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final model = await remoteDataSource.getCertificationProgress(
           userId, certificationId);
@@ -105,7 +96,6 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
   @override
   Future<Either<Failure, void>> enrollCertification(
       String userId, int certificationId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.enrollCertification(userId, certificationId);
       return const Right(null);
@@ -126,7 +116,6 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
     int sectionId,
     bool completed,
   ) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final result = await remoteDataSource.updateSectionProgress(
         userId,
@@ -148,7 +137,6 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
   @override
   Future<Either<Failure, void>> unenrollCertification(
       String userId, int certificationId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.unenrollCertification(userId, certificationId);
       return const Right(null);

@@ -16,11 +16,6 @@ class MonthlyReportsRepositoryImpl implements MonthlyReportsRepository {
     required this.networkInfo,
   });
 
-  Future<bool> get _isConnected => networkInfo.isConnected;
-
-  Left<Failure, T> _networkFailure<T>() =>
-      const Left(NetworkFailure(message: 'No hay conexion a internet'));
-
   Left<Failure, T> _serverFailure<T>(ServerException e) =>
       Left(ServerFailure(message: e.message, code: e.code));
 
@@ -36,7 +31,6 @@ class MonthlyReportsRepositoryImpl implements MonthlyReportsRepository {
     required int month,
     required int year,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final model = await remoteDataSource.getPreview(
         enrollmentId,
@@ -56,7 +50,6 @@ class MonthlyReportsRepositoryImpl implements MonthlyReportsRepository {
   @override
   Future<Either<Failure, List<MonthlyReport>>> getReportsByEnrollment(
       int enrollmentId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final models =
           await remoteDataSource.getReportsByEnrollment(enrollmentId);
@@ -73,7 +66,6 @@ class MonthlyReportsRepositoryImpl implements MonthlyReportsRepository {
   @override
   Future<Either<Failure, MonthlyReport>> getReportDetail(
       int reportId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final model = await remoteDataSource.getReportDetail(reportId);
       return Right(model.toEntity());
@@ -88,7 +80,6 @@ class MonthlyReportsRepositoryImpl implements MonthlyReportsRepository {
 
   @override
   Future<Either<Failure, String>> getReportPdfUrl(int reportId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final url = await remoteDataSource.getReportPdfUrl(reportId);
       return Right(url);

@@ -16,11 +16,6 @@ class RoleAssignmentsRepositoryImpl implements RoleAssignmentsRepository {
     required this.networkInfo,
   });
 
-  Future<bool> get _isConnected => networkInfo.isConnected;
-
-  Left<Failure, T> _networkFailure<T>() =>
-      const Left(NetworkFailure(message: 'No hay conexion a internet'));
-
   Left<Failure, T> _serverFailure<T>(ServerException e) =>
       Left(ServerFailure(message: e.message, code: e.code));
 
@@ -32,7 +27,6 @@ class RoleAssignmentsRepositoryImpl implements RoleAssignmentsRepository {
 
   @override
   Future<Either<Failure, List<RoleAssignment>>> getAssignments() async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final models = await remoteDataSource.getAssignments();
       return Right(models.map((m) => m.toEntity()).toList());

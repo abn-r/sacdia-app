@@ -19,19 +19,15 @@ class PostRegistrationRepositoryImpl implements PostRegistrationRepository {
 
   @override
   Future<Either<Failure, CompletionStatus>> getCompletionStatus() async {
-    if (await networkInfo.isConnected) {
-      try {
-        final status = await remoteDataSource.getCompletionStatus();
-        return Right(status);
-      } on core_exceptions.ServerException catch (e) {
-        return Left(ServerFailure(message: e.message, code: e.code));
-      } on core_exceptions.AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    try {
+      final status = await remoteDataSource.getCompletionStatus();
+      return Right(status);
+    } on core_exceptions.ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on core_exceptions.AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -40,22 +36,18 @@ class PostRegistrationRepositoryImpl implements PostRegistrationRepository {
     required String userId,
     required String filePath,
   }) async {
-    if (await networkInfo.isConnected) {
-      try {
-        final url = await remoteDataSource.uploadProfilePicture(
-          userId: userId,
-          filePath: filePath,
-        );
-        return Right(url);
-      } on core_exceptions.ServerException catch (e) {
-        return Left(ServerFailure(message: e.message, code: e.code));
-      } on core_exceptions.AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    try {
+      final url = await remoteDataSource.uploadProfilePicture(
+        userId: userId,
+        filePath: filePath,
+      );
+      return Right(url);
+    } on core_exceptions.ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on core_exceptions.AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -63,19 +55,15 @@ class PostRegistrationRepositoryImpl implements PostRegistrationRepository {
   Future<Either<Failure, void>> deleteProfilePicture({
     required String userId,
   }) async {
-    if (await networkInfo.isConnected) {
-      try {
-        await remoteDataSource.deleteProfilePicture(userId: userId);
-        return const Right(null);
-      } on core_exceptions.ServerException catch (e) {
-        return Left(ServerFailure(message: e.message, code: e.code));
-      } on core_exceptions.AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    try {
+      await remoteDataSource.deleteProfilePicture(userId: userId);
+      return const Right(null);
+    } on core_exceptions.ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on core_exceptions.AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -83,37 +71,29 @@ class PostRegistrationRepositoryImpl implements PostRegistrationRepository {
   Future<Either<Failure, bool>> getPhotoStatus({
     required String userId,
   }) async {
-    if (await networkInfo.isConnected) {
-      try {
-        final hasPhoto = await remoteDataSource.getPhotoStatus(userId: userId);
-        return Right(hasPhoto);
-      } on core_exceptions.ServerException catch (e) {
-        return Left(ServerFailure(message: e.message, code: e.code));
-      } on core_exceptions.AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    try {
+      final hasPhoto = await remoteDataSource.getPhotoStatus(userId: userId);
+      return Right(hasPhoto);
+    } on core_exceptions.ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on core_exceptions.AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
   @override
   Future<Either<Failure, void>> completeStep1(String userId) async {
-    if (await networkInfo.isConnected) {
-      try {
-        await remoteDataSource.completeStep1(userId);
-        return const Right(null);
-      } on core_exceptions.ServerException catch (e) {
-        return Left(ServerFailure(message: e.message, code: e.code));
-      } on core_exceptions.AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    try {
+      await remoteDataSource.completeStep1(userId);
+      return const Right(null);
+    } on core_exceptions.ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on core_exceptions.AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 }

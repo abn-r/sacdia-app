@@ -20,12 +20,6 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
     required this.networkInfo,
   });
 
-  // TODO: The networkInfo.isConnected check pattern below is used across all 24
-  // repository impls in this project. It costs 10-200ms per request on Android
-  // (connectivity_plus) and is redundant — Dio's connectTimeout and the
-  // ErrorInterceptor already handle offline scenarios. Remove it from all repos
-  // when doing a broader cleanup pass.
-
   @override
   Future<Either<Failure, List<Activity>>> getClubActivities(
     int clubId, {
@@ -49,10 +43,6 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
 
   @override
   Future<Either<Failure, Activity>> getActivityById(int activityId) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final activityModel = await remoteDataSource.getActivityById(activityId);
       return Right(activityModel.toEntity());
@@ -67,10 +57,6 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
 
   @override
   Future<Either<Failure, List<Attendance>>> getActivityAttendance(int activityId) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final attendanceModels = await remoteDataSource.getActivityAttendance(activityId);
       final attendances = attendanceModels.map((model) => model.toEntity()).toList();
@@ -89,10 +75,6 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
     required int clubId,
     required CreateActivityRequest request,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final activityModel = await remoteDataSource.createActivity(
         clubId: clubId,
@@ -126,10 +108,6 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
     Set<String> clearFields = const {},
     List<int>? clubSectionIds,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final activityModel = await remoteDataSource.updateActivity(
         activityId: activityId,
@@ -160,10 +138,6 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
 
   @override
   Future<Either<Failure, void>> deleteActivity(int activityId) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       await remoteDataSource.deleteActivity(activityId);
       return const Right(null);
@@ -181,10 +155,6 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
     int activityId,
     List<String> userIds,
   ) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final recordedCount = await remoteDataSource.registerAttendance(
         activityId,
@@ -205,10 +175,6 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
     int activityId,
     File imageFile,
   ) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final url = await remoteDataSource.uploadActivityImage(activityId, imageFile);
       return Right(url);

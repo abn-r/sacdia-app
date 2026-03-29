@@ -23,9 +23,6 @@ class MembersRepositoryImpl implements MembersRepository {
     required int clubId,
     required int sectionId,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final members = await remoteDataSource.getClubMembers(
         clubId: clubId,
@@ -43,9 +40,6 @@ class MembersRepositoryImpl implements MembersRepository {
 
   @override
   Future<Either<Failure, ClubMember>> getMemberDetail(String userId) async {
-    if (!await networkInfo.isConnected) {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final member = await remoteDataSource.getMemberDetail(userId);
       return Right(member);
@@ -63,9 +57,6 @@ class MembersRepositoryImpl implements MembersRepository {
     required int clubId,
     required int sectionId,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final requests = await remoteDataSource.getJoinRequests(
         clubId: clubId,
@@ -84,9 +75,6 @@ class MembersRepositoryImpl implements MembersRepository {
   @override
   Future<Either<Failure, JoinRequest>> approveJoinRequest(
       String assignmentId) async {
-    if (!await networkInfo.isConnected) {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final request = await remoteDataSource.approveJoinRequest(assignmentId);
       return Right(request);
@@ -102,9 +90,6 @@ class MembersRepositoryImpl implements MembersRepository {
   @override
   Future<Either<Failure, JoinRequest>> rejectJoinRequest(
       String assignmentId) async {
-    if (!await networkInfo.isConnected) {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final request = await remoteDataSource.rejectJoinRequest(assignmentId);
       return Right(request);
@@ -124,9 +109,6 @@ class MembersRepositoryImpl implements MembersRepository {
     required String userId,
     required String role,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final result = await remoteDataSource.assignClubRole(
         clubId: clubId,
@@ -146,9 +128,6 @@ class MembersRepositoryImpl implements MembersRepository {
 
   @override
   Future<Either<Failure, bool>> removeClubRole(String assignmentId) async {
-    if (!await networkInfo.isConnected) {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final result = await remoteDataSource.removeClubRole(assignmentId);
       return Right(result);

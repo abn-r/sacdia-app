@@ -22,9 +22,6 @@ class TransferRepositoryImpl implements TransferRepository {
     required int toSectionId,
     String? reason,
   }) async {
-    if (!await _networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'Sin conexión a internet'));
-    }
     try {
       final model = await _remoteDataSource.createTransferRequest(
         toSectionId: toSectionId,
@@ -42,9 +39,6 @@ class TransferRepositoryImpl implements TransferRepository {
 
   @override
   Future<Either<Failure, List<TransferRequest>>> getMyTransferRequests() async {
-    if (!await _networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'Sin conexión a internet'));
-    }
     try {
       final models = await _remoteDataSource.getMyTransferRequests();
       return Right(models);
@@ -60,9 +54,6 @@ class TransferRepositoryImpl implements TransferRepository {
   @override
   Future<Either<Failure, TransferRequest>> getTransferRequest(
       int requestId) async {
-    if (!await _networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'Sin conexión a internet'));
-    }
     try {
       final model = await _remoteDataSource.getTransferRequest(requestId);
       return Right(model);

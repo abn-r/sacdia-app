@@ -24,9 +24,6 @@ class EnrollmentRepositoryImpl implements EnrollmentRepository {
     required String address,
     required List<String> meetingDays,
   }) async {
-    if (!await _networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'Sin conexión a internet'));
-    }
     try {
       final model = await _remoteDataSource.createEnrollment(
         clubId: clubId,
@@ -49,9 +46,6 @@ class EnrollmentRepositoryImpl implements EnrollmentRepository {
     required String clubId,
     required int sectionId,
   }) async {
-    if (!await _networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'Sin conexión a internet'));
-    }
     try {
       final model = await _remoteDataSource.getCurrentEnrollment(
         clubId: clubId,
@@ -75,9 +69,6 @@ class EnrollmentRepositoryImpl implements EnrollmentRepository {
     String? address,
     List<String>? meetingDays,
   }) async {
-    if (!await _networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'Sin conexión a internet'));
-    }
     try {
       final model = await _remoteDataSource.updateEnrollment(
         clubId: clubId,

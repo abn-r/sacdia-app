@@ -25,9 +25,6 @@ class UnitsRepositoryImpl implements UnitsRepository {
   Future<Either<Failure, List<Unit>>> getClubUnits({
     required int clubId,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final models = await remoteDataSource.getClubUnits(clubId: clubId);
       return Right(models.map((m) => m.toEntity()).toList());
@@ -45,9 +42,6 @@ class UnitsRepositoryImpl implements UnitsRepository {
     required int clubId,
     required int unitId,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.getUnitDetail(
         clubId: clubId,
@@ -74,9 +68,6 @@ class UnitsRepositoryImpl implements UnitsRepository {
     required int clubTypeId,
     int? clubSectionId,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.createUnit(
         clubId: clubId,
@@ -111,9 +102,6 @@ class UnitsRepositoryImpl implements UnitsRepository {
     int? clubSectionId,
     bool? active,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.updateUnit(
         clubId: clubId,
@@ -142,9 +130,6 @@ class UnitsRepositoryImpl implements UnitsRepository {
     required int clubId,
     required int unitId,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       await remoteDataSource.deleteUnit(clubId: clubId, unitId: unitId);
       return const Right(null);
@@ -165,9 +150,6 @@ class UnitsRepositoryImpl implements UnitsRepository {
     required int unitId,
     required String userId,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.addUnitMember(
         clubId: clubId,
@@ -190,9 +172,6 @@ class UnitsRepositoryImpl implements UnitsRepository {
     required int unitId,
     required int memberId,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       await remoteDataSource.removeUnitMember(
         clubId: clubId,
@@ -216,9 +195,6 @@ class UnitsRepositoryImpl implements UnitsRepository {
     required int clubId,
     required int unitId,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final models = await remoteDataSource.getWeeklyRecords(
         clubId: clubId,
@@ -244,9 +220,6 @@ class UnitsRepositoryImpl implements UnitsRepository {
     required int punctuality,
     required int points,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.createWeeklyRecord(
         clubId: clubId,
@@ -277,9 +250,6 @@ class UnitsRepositoryImpl implements UnitsRepository {
     int? points,
     bool? active,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.updateWeeklyRecord(
         clubId: clubId,

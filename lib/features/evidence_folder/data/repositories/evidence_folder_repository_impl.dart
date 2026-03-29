@@ -24,10 +24,6 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
   @override
   Future<Either<Failure, EvidenceFolder>> getEvidenceFolder(
       String clubSectionId) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(
-          NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model =
           await remoteDataSource.getEvidenceFolder(clubSectionId);
@@ -44,10 +40,6 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
   @override
   Future<Either<Failure, void>> submitSection(
       String clubSectionId, String sectionId) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(
-          NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       await remoteDataSource.submitSection(clubSectionId, sectionId);
       return const Right(null);
@@ -69,10 +61,6 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
     required String mimeType,
     void Function(double)? onProgress,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(
-          NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.uploadFile(
         clubSectionId: clubSectionId,
@@ -98,10 +86,6 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
     required String sectionId,
     required String fileId,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(
-          NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       await remoteDataSource.deleteFile(
         clubSectionId: clubSectionId,

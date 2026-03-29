@@ -19,19 +19,15 @@ class DashboardRepositoryImpl implements DashboardRepository {
 
   @override
   Future<Either<Failure, DashboardSummary>> getDashboardSummary() async {
-    if (await networkInfo.isConnected) {
-      try {
-        final dashboardData = await remoteDataSource.getDashboardSummary();
-        return Right(dashboardData);
-      } on AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } on ServerException catch (e) {
-        return Left(ServerFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(UnexpectedFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    try {
+      final dashboardData = await remoteDataSource.getDashboardSummary();
+      return Right(dashboardData);
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
     }
   }
 }

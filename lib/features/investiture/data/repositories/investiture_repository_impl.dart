@@ -19,11 +19,6 @@ class InvestitureRepositoryImpl implements InvestitureRepository {
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
 
-  Future<bool> get _isConnected => networkInfo.isConnected;
-
-  Left<Failure, T> _networkFailure<T>() =>
-      const Left(NetworkFailure(message: 'No hay conexion a internet'));
-
   Left<Failure, T> _serverFailure<T>(ServerException e) =>
       Left(ServerFailure(message: e.message, code: e.code));
 
@@ -41,7 +36,6 @@ class InvestitureRepositoryImpl implements InvestitureRepository {
     required int clubId,
     String? comments,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.submitForValidation(
         enrollmentId: enrollmentId,
@@ -64,7 +58,6 @@ class InvestitureRepositoryImpl implements InvestitureRepository {
     required String action,
     String? comments,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.validateEnrollment(
         enrollmentId: enrollmentId,
@@ -86,7 +79,6 @@ class InvestitureRepositoryImpl implements InvestitureRepository {
     required int enrollmentId,
     String? comments,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.markAsInvestido(
         enrollmentId: enrollmentId,
@@ -109,7 +101,6 @@ class InvestitureRepositoryImpl implements InvestitureRepository {
     int page = 1,
     int limit = 20,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final models = await remoteDataSource.getPendingInvestitures(
         localFieldId: localFieldId,
@@ -131,7 +122,6 @@ class InvestitureRepositoryImpl implements InvestitureRepository {
   Future<Either<Failure, List<InvestitureHistoryEntry>>> getInvestitureHistory({
     required int enrollmentId,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final models = await remoteDataSource.getInvestitureHistory(
         enrollmentId: enrollmentId,

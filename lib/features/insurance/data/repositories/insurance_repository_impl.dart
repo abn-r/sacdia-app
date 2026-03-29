@@ -22,9 +22,6 @@ class InsuranceRepositoryImpl implements InsuranceRepository {
     required int clubId,
     required int sectionId,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final models = await remoteDataSource.getMembersInsurance(
         clubId: clubId,
@@ -44,9 +41,6 @@ class InsuranceRepositoryImpl implements InsuranceRepository {
   Future<Either<Failure, MemberInsurance>> getMemberInsuranceDetail({
     required String memberId,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model =
           await remoteDataSource.getMemberInsuranceDetail(memberId: memberId);
@@ -73,9 +67,6 @@ class InsuranceRepositoryImpl implements InsuranceRepository {
     String? evidenceFileName,
     String? evidenceMimeType,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.createInsurance(
         memberId: memberId,
@@ -112,9 +103,6 @@ class InsuranceRepositoryImpl implements InsuranceRepository {
     String? evidenceFileName,
     String? evidenceMimeType,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.updateInsurance(
         insuranceId: insuranceId,
@@ -138,4 +126,20 @@ class InsuranceRepositoryImpl implements InsuranceRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, List<MemberInsurance>>> getExpiringInsurance({
+    required int days,
+  }) async {
+    try {
+      final models =
+          await remoteDataSource.getExpiringInsurance(days: days);
+      return Right(models.map((m) => m.toEntity()).toList());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
 }

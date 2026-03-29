@@ -20,9 +20,6 @@ class InventoryRepositoryImpl implements InventoryRepository {
   @override
   Future<Either<Failure, List<InventoryItem>>> getItems(
       {required int clubId}) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final models = await remoteDataSource.getItems(clubId: clubId);
       return Right(models.map((m) => m.toEntity()).toList());
@@ -38,9 +35,6 @@ class InventoryRepositoryImpl implements InventoryRepository {
   @override
   Future<Either<Failure, InventoryItem>> getItem(
       {required int itemId}) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.getItem(itemId: itemId);
       return Right(model.toEntity());
@@ -68,9 +62,6 @@ class InventoryRepositoryImpl implements InventoryRepository {
     String? assignedTo,
     String? notes,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.createItem(
         clubId: clubId,
@@ -111,9 +102,6 @@ class InventoryRepositoryImpl implements InventoryRepository {
     String? assignedTo,
     String? notes,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.updateItem(
         itemId: itemId,
@@ -141,9 +129,6 @@ class InventoryRepositoryImpl implements InventoryRepository {
 
   @override
   Future<Either<Failure, void>> deleteItem({required int itemId}) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       await remoteDataSource.deleteItem(itemId: itemId);
       return const Right(null);
@@ -158,9 +143,6 @@ class InventoryRepositoryImpl implements InventoryRepository {
 
   @override
   Future<Either<Failure, List<InventoryCategory>>> getCategories() async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final models = await remoteDataSource.getCategories();
       return Right(models.map((m) => m.toEntity()).toList());

@@ -16,11 +16,6 @@ class AnnualFoldersRepositoryImpl implements AnnualFoldersRepository {
     required this.networkInfo,
   });
 
-  Future<bool> get _isConnected => networkInfo.isConnected;
-
-  Left<Failure, T> _networkFailure<T>() =>
-      const Left(NetworkFailure(message: 'No hay conexion a internet'));
-
   Left<Failure, T> _serverFailure<T>(ServerException e) =>
       Left(ServerFailure(message: e.message, code: e.code));
 
@@ -33,7 +28,6 @@ class AnnualFoldersRepositoryImpl implements AnnualFoldersRepository {
   @override
   Future<Either<Failure, AnnualFolder>> getFolderByEnrollment(
       int enrollmentId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final model = await remoteDataSource.getFolderByEnrollment(enrollmentId);
       return Right(model.toEntity());
@@ -54,7 +48,6 @@ class AnnualFoldersRepositoryImpl implements AnnualFoldersRepository {
     required String fileName,
     String? notes,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final model = await remoteDataSource.uploadEvidence(
         folderId,
@@ -75,7 +68,6 @@ class AnnualFoldersRepositoryImpl implements AnnualFoldersRepository {
 
   @override
   Future<Either<Failure, void>> deleteEvidence(int evidenceId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.deleteEvidence(evidenceId);
       return const Right(null);
@@ -90,7 +82,6 @@ class AnnualFoldersRepositoryImpl implements AnnualFoldersRepository {
 
   @override
   Future<Either<Failure, AnnualFolder>> submitFolder(int folderId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final model = await remoteDataSource.submitFolder(folderId);
       return Right(model.toEntity());

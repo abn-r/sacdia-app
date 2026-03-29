@@ -22,12 +22,6 @@ class ClubRepositoryImpl implements ClubRepository {
 
   @override
   Future<Either<Failure, ClubInfo>> getClub(String clubId) async {
-    if (!await _networkInfo.isConnected) {
-      return const Left(
-        NetworkFailure(message: 'Sin conexión a internet'),
-      );
-    }
-
     try {
       final model = await _remoteDataSource.getClub(clubId);
       return Right(model);
@@ -47,12 +41,6 @@ class ClubRepositoryImpl implements ClubRepository {
     required String clubId,
     required int sectionId,
   }) async {
-    if (!await _networkInfo.isConnected) {
-      return const Left(
-        NetworkFailure(message: 'Sin conexión a internet'),
-      );
-    }
-
     try {
       final model = await _remoteDataSource.getClubSection(
         clubId: clubId,
@@ -83,12 +71,6 @@ class ClubRepositoryImpl implements ClubRepository {
     double? lat,
     double? long,
   }) async {
-    if (!await _networkInfo.isConnected) {
-      return const Left(
-        NetworkFailure(message: 'Sin conexión a internet'),
-      );
-    }
-
     // Construir el payload solo con los campos que vienen no-null
     final data = <String, dynamic>{};
     if (name != null) data['name'] = name;

@@ -25,9 +25,6 @@ class FinancesRepositoryImpl implements FinancesRepository {
     required int year,
     required int month,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.getFinances(
         clubId: clubId,
@@ -47,9 +44,6 @@ class FinancesRepositoryImpl implements FinancesRepository {
   @override
   Future<Either<Failure, FinanceSummary>> getSummary(
       {required int clubId}) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.getSummary(clubId: clubId);
       return Right(model.toEntity());
@@ -65,9 +59,6 @@ class FinancesRepositoryImpl implements FinancesRepository {
   @override
   Future<Either<Failure, FinanceTransaction>> getTransaction(
       {required int financeId}) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.getTransaction(financeId: financeId);
       return Right(model.toEntity());
@@ -91,9 +82,6 @@ class FinancesRepositoryImpl implements FinancesRepository {
     required int month,
     String? notes,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.createTransaction(
         clubId: clubId,
@@ -124,9 +112,6 @@ class FinancesRepositoryImpl implements FinancesRepository {
     DateTime? date,
     String? notes,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.updateTransaction(
         financeId: financeId,
@@ -149,9 +134,6 @@ class FinancesRepositoryImpl implements FinancesRepository {
   @override
   Future<Either<Failure, void>> deleteTransaction(
       {required int financeId}) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       await remoteDataSource.deleteTransaction(financeId: financeId);
       return const Right(null);
@@ -166,9 +148,6 @@ class FinancesRepositoryImpl implements FinancesRepository {
 
   @override
   Future<Either<Failure, List<FinanceCategory>>> getCategories() async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final models = await remoteDataSource.getCategories();
       return Right(models.map((m) => m.toEntity()).toList());

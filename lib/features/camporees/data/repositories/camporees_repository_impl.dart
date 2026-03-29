@@ -20,11 +20,6 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
 
-  Future<bool> get _isConnected => networkInfo.isConnected;
-
-  Left<Failure, T> _networkFailure<T>() =>
-      const Left(NetworkFailure(message: 'No hay conexion a internet'));
-
   Left<Failure, T> _serverFailure<T>(ServerException e) =>
       Left(ServerFailure(message: e.message, code: e.code));
 
@@ -38,7 +33,6 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
 
   @override
   Future<Either<Failure, List<Camporee>>> getCamporees({bool? active}) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final models = await remoteDataSource.getCamporees(active: active);
       return Right(models.map((m) => m.toEntity()).toList());
@@ -53,7 +47,6 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
 
   @override
   Future<Either<Failure, Camporee>> getCamporeeDetail(int camporeeId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final model = await remoteDataSource.getCamporeeDetail(camporeeId);
       return Right(model.toEntity());
@@ -74,7 +67,6 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
     String? clubName,
     int? insuranceId,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final model = await remoteDataSource.registerMember(
         camporeeId,
@@ -96,7 +88,6 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
   @override
   Future<Either<Failure, List<CamporeeMember>>> getCamporeeMembers(
       int camporeeId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final models = await remoteDataSource.getCamporeeMembers(camporeeId);
       return Right(models.map((m) => m.toEntity()).toList());
@@ -112,7 +103,6 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
   @override
   Future<Either<Failure, void>> removeMember(
       int camporeeId, String userId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.removeMember(camporeeId, userId);
       return const Right(null);
@@ -132,7 +122,6 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
     int camporeeId, {
     required int clubSectionId,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final model = await remoteDataSource.enrollClub(
         camporeeId,
@@ -151,7 +140,6 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
   @override
   Future<Either<Failure, List<CamporeeEnrolledClub>>> getEnrolledClubs(
       int camporeeId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final models = await remoteDataSource.getEnrolledClubs(camporeeId);
       return Right(models.map((m) => m.toEntity()).toList());
@@ -174,7 +162,6 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
     DateTime? paymentDate,
     String? notes,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final model = await remoteDataSource.createPayment(
         camporeeId,
@@ -200,7 +187,6 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
     int camporeeId,
     String memberId,
   ) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final models =
           await remoteDataSource.getMemberPayments(camporeeId, memberId);
@@ -217,7 +203,6 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
   @override
   Future<Either<Failure, List<CamporeePayment>>> getCamporeePayments(
       int camporeeId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final models = await remoteDataSource.getCamporeePayments(camporeeId);
       return Right(models.map((m) => m.toEntity()).toList());

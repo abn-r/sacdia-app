@@ -24,10 +24,6 @@ class HonorsRepositoryImpl implements HonorsRepository {
 
   @override
   Future<Either<Failure, List<HonorCategory>>> getHonorCategories() async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final categoryModels = await remoteDataSource.getHonorCategories();
       final categories = categoryModels.map((model) => model.toEntity()).toList();
@@ -47,10 +43,6 @@ class HonorsRepositoryImpl implements HonorsRepository {
     int? clubTypeId,
     int? skillLevel,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final honorModels = await remoteDataSource.getHonors(
         categoryId: categoryId,
@@ -70,10 +62,6 @@ class HonorsRepositoryImpl implements HonorsRepository {
 
   @override
   Future<Either<Failure, Honor>> getHonorById(int honorId) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final honorModel = await remoteDataSource.getHonorById(honorId);
       return Right(honorModel.toEntity());
@@ -88,10 +76,6 @@ class HonorsRepositoryImpl implements HonorsRepository {
 
   @override
   Future<Either<Failure, List<UserHonor>>> getUserHonors(String userId) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final userHonorModels = await remoteDataSource.getUserHonors(userId);
       final userHonors = userHonorModels.map((model) => model.toEntity()).toList();
@@ -107,10 +91,6 @@ class HonorsRepositoryImpl implements HonorsRepository {
 
   @override
   Future<Either<Failure, Map<String, dynamic>>> getUserHonorStats(String userId) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final stats = await remoteDataSource.getUserHonorStats(userId);
       return Right(stats);
@@ -125,10 +105,6 @@ class HonorsRepositoryImpl implements HonorsRepository {
 
   @override
   Future<Either<Failure, UserHonor>> enrollUserInHonor(String userId, int honorId) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final userHonorModel = await remoteDataSource.enrollUserInHonor(userId, honorId);
       return Right(userHonorModel.toEntity());
@@ -147,10 +123,6 @@ class HonorsRepositoryImpl implements HonorsRepository {
     int honorId,
     Map<String, dynamic> data,
   ) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final userHonorModel = await remoteDataSource.updateUserHonor(userId, honorId, data);
       return Right(userHonorModel.toEntity());
@@ -165,10 +137,6 @@ class HonorsRepositoryImpl implements HonorsRepository {
 
   @override
   Future<Either<Failure, void>> deleteUserHonor(String userId, int honorId) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       await remoteDataSource.deleteUserHonor(userId, honorId);
       return const Right(null);
@@ -185,10 +153,6 @@ class HonorsRepositoryImpl implements HonorsRepository {
   Future<Either<Failure, UserHonor>> registerUserHonor(
     RegisterUserHonorParams params,
   ) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final model = await remoteDataSource.registerUserHonor(params);
       return Right(model.toEntity());
@@ -203,10 +167,6 @@ class HonorsRepositoryImpl implements HonorsRepository {
 
   @override
   Future<Either<Failure, List<HonorGroup>>> getHonorsGroupedByCategory() async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final groupModels = await remoteDataSource.getHonorsGroupedByCategory();
       final groups = groupModels.map((model) => model.toEntity()).toList();
@@ -223,10 +183,6 @@ class HonorsRepositoryImpl implements HonorsRepository {
   @override
   Future<Either<Failure, List<HonorRequirement>>> getHonorRequirements(
       int honorId) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final requirementModels =
           await remoteDataSource.getHonorRequirements(honorId);
@@ -245,10 +201,6 @@ class HonorsRepositoryImpl implements HonorsRepository {
   @override
   Future<Either<Failure, List<UserHonorRequirementProgress>>> getUserHonorProgress(
       int honorId) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final models = await remoteDataSource.getUserHonorProgress(honorId);
       final entities = models.map((m) => m.toEntity()).toList();
@@ -269,10 +221,6 @@ class HonorsRepositoryImpl implements HonorsRepository {
     required bool completed,
     String? notes,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final model = await remoteDataSource.updateRequirementProgress(
         honorId: honorId,
@@ -294,10 +242,6 @@ class HonorsRepositoryImpl implements HonorsRepository {
   Future<Either<Failure, List<UserHonorRequirementProgress>>> bulkUpdateRequirementProgress(
       int honorId,
       List<Map<String, dynamic>> updates) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final models = await remoteDataSource.bulkUpdateRequirementProgress(
           honorId, updates);

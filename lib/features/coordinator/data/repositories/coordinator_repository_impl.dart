@@ -20,11 +20,6 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
 
   // ── Helpers ───────────────────────────────────────────────────────────────────
 
-  Future<bool> get _isConnected => networkInfo.isConnected;
-
-  Left<Failure, T> _networkFailure<T>() =>
-      const Left(NetworkFailure(message: 'No hay conexion a internet'));
-
   Left<Failure, T> _serverFailure<T>(ServerException e) =>
       Left(ServerFailure(message: e.message, code: e.code));
 
@@ -38,7 +33,6 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
 
   @override
   Future<Either<Failure, SlaDashboard>> getSlaDashboard() async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final model = await remoteDataSource.getSlaDashboard();
       return Right(model.toEntity());
@@ -59,7 +53,6 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
     int limit = 20,
     EvidenceReviewType? type,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final models = await remoteDataSource.getPendingEvidence(
         page: page,
@@ -81,7 +74,6 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
     required EvidenceReviewType type,
     required String id,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final model = await remoteDataSource.getEvidenceDetail(
         type: type,
@@ -103,7 +95,6 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
     required String id,
     String? comment,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.approveEvidence(
         type: type,
@@ -126,7 +117,6 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
     required String id,
     required String rejectionReason,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.rejectEvidence(
         type: type,
@@ -148,7 +138,6 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
     required List<String> ids,
     required EvidenceReviewType type,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.bulkApproveEvidence(ids: ids, type: type);
       return const Right(null);
@@ -167,7 +156,6 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
     required EvidenceReviewType type,
     required String rejectionReason,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.bulkRejectEvidence(
         ids: ids,
@@ -190,7 +178,6 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
   Future<Either<Failure, List<CamporeeItem>>> listLocalCamporees({
     bool activeOnly = true,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final models = await remoteDataSource.listLocalCamporees(
         activeOnly: activeOnly,
@@ -207,7 +194,6 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
 
   @override
   Future<Either<Failure, List<CamporeeItem>>> listUnionCamporees() async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final models = await remoteDataSource.listUnionCamporees();
       return Right(models.map((m) => m.toEntity()).toList());
@@ -226,7 +212,6 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
   Future<Either<Failure, CamporeePendingApprovals>> getLocalCamporeePending(
     int camporeeId,
   ) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final model = await remoteDataSource.getLocalCamporeePending(camporeeId);
       return Right(model.toEntity());
@@ -243,7 +228,6 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
   Future<Either<Failure, CamporeePendingApprovals>> getUnionCamporeePending(
     int camporeeId,
   ) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final model = await remoteDataSource.getUnionCamporeePending(camporeeId);
       return Right(model.toEntity());
@@ -264,7 +248,6 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
     required int camporeeClubId,
     required CamporeeScope scope,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.approveCamporeeClub(
         camporeeId: camporeeId,
@@ -288,7 +271,6 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
     required CamporeeScope scope,
     String? rejectionReason,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.rejectCamporeeClub(
         camporeeId: camporeeId,
@@ -314,7 +296,6 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
     required int camporeeMemberId,
     required CamporeeScope scope,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.approveCamporeeMember(
         camporeeId: camporeeId,
@@ -338,7 +319,6 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
     required CamporeeScope scope,
     String? rejectionReason,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.rejectCamporeeMember(
         camporeeId: camporeeId,
@@ -362,7 +342,6 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
   Future<Either<Failure, void>> approveCamporeePayment({
     required String camporeePaymentId,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.approveCamporeePayment(
         camporeePaymentId: camporeePaymentId,
@@ -382,7 +361,6 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
     required String camporeePaymentId,
     String? rejectionReason,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.rejectCamporeePayment(
         camporeePaymentId: camporeePaymentId,

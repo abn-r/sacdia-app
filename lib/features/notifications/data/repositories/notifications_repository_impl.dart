@@ -16,11 +16,6 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
     required this.networkInfo,
   });
 
-  Future<bool> get _isConnected => networkInfo.isConnected;
-
-  Left<Failure, T> _networkFailure<T>() =>
-      const Left(NetworkFailure(message: 'No hay conexion a internet'));
-
   Left<Failure, T> _serverFailure<T>(ServerException e) =>
       Left(ServerFailure(message: e.message, code: e.code));
 
@@ -36,7 +31,6 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
     int page = 1,
     int limit = 20,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final result = await remoteDataSource.getHistory(
         page: page,

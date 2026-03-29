@@ -26,10 +26,6 @@ class ResourcesRepositoryImpl implements ResourcesRepository {
     int? categoryId,
     String? search,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final model = await remoteDataSource.getVisibleResources(
         page: page,
@@ -50,10 +46,6 @@ class ResourcesRepositoryImpl implements ResourcesRepository {
 
   @override
   Future<Either<Failure, Resource>> getResource(String id) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final model = await remoteDataSource.getResource(id);
       return Right(model.toEntity());
@@ -68,10 +60,6 @@ class ResourcesRepositoryImpl implements ResourcesRepository {
 
   @override
   Future<Either<Failure, String>> getSignedUrl(String id) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final url = await remoteDataSource.getSignedUrl(id);
       return Right(url);
@@ -86,10 +74,6 @@ class ResourcesRepositoryImpl implements ResourcesRepository {
 
   @override
   Future<Either<Failure, List<ResourceCategory>>> getCategories() async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final categoryModels = await remoteDataSource.getCategories();
       final categories =

@@ -22,9 +22,6 @@ class ValidationRepositoryImpl implements ValidationRepository {
     required ValidationEntityType entityType,
     required int entityId,
   }) async {
-    if (!await _networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'Sin conexión a internet'));
-    }
     try {
       final model = await _remoteDataSource.submitForReview(
         entityType: entityType,
@@ -45,9 +42,6 @@ class ValidationRepositoryImpl implements ValidationRepository {
     required ValidationEntityType entityType,
     required int entityId,
   }) async {
-    if (!await _networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'Sin conexión a internet'));
-    }
     try {
       final models = await _remoteDataSource.getValidationHistory(
         entityType: entityType,
@@ -67,9 +61,6 @@ class ValidationRepositoryImpl implements ValidationRepository {
   Future<Either<Failure, EligibilityResult>> checkEligibility({
     required String userId,
   }) async {
-    if (!await _networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'Sin conexión a internet'));
-    }
     try {
       final model = await _remoteDataSource.checkEligibility(userId: userId);
       return Right(model);

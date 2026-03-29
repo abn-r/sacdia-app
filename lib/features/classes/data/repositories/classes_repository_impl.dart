@@ -22,11 +22,6 @@ class ClassesRepositoryImpl implements ClassesRepository {
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
 
-  Future<bool> get _isConnected => networkInfo.isConnected;
-
-  Left<Failure, T> _networkFailure<T>() =>
-      const Left(NetworkFailure(message: 'No hay conexion a internet'));
-
   Left<Failure, T> _serverFailure<T>(ServerException e) =>
       Left(ServerFailure(message: e.message, code: e.code));
 
@@ -41,7 +36,6 @@ class ClassesRepositoryImpl implements ClassesRepository {
   @override
   Future<Either<Failure, List<ProgressiveClass>>> getClasses(
       {int? clubTypeId}) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final models =
           await remoteDataSource.getClasses(clubTypeId: clubTypeId);
@@ -57,7 +51,6 @@ class ClassesRepositoryImpl implements ClassesRepository {
 
   @override
   Future<Either<Failure, ProgressiveClass>> getClassById(int classId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final model = await remoteDataSource.getClassById(classId);
       return Right(model.toEntity());
@@ -73,7 +66,6 @@ class ClassesRepositoryImpl implements ClassesRepository {
   @override
   Future<Either<Failure, List<ClassModule>>> getClassModules(
       int classId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final models = await remoteDataSource.getClassModules(classId);
       return Right(models.map((m) => m.toEntity()).toList());
@@ -89,7 +81,6 @@ class ClassesRepositoryImpl implements ClassesRepository {
   @override
   Future<Either<Failure, List<ProgressiveClass>>> getUserClasses(
       String userId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final models = await remoteDataSource.getUserClasses(userId);
       return Right(models.map((m) => m.toEntity()).toList());
@@ -105,7 +96,6 @@ class ClassesRepositoryImpl implements ClassesRepository {
   @override
   Future<Either<Failure, ClassProgress>> getUserClassProgress(
       String userId, int classId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final model =
           await remoteDataSource.getUserClassProgress(userId, classId);
@@ -125,7 +115,6 @@ class ClassesRepositoryImpl implements ClassesRepository {
     int classId,
     Map<String, dynamic> progressData,
   ) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final model = await remoteDataSource.updateUserClassProgress(
           userId, classId, progressData);
@@ -144,7 +133,6 @@ class ClassesRepositoryImpl implements ClassesRepository {
   @override
   Future<Either<Failure, void>> enrollUser(
       String userId, int classId, int ecclesiasticalYearId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.enrollUser(userId, classId, ecclesiasticalYearId);
       return const Right(null);
@@ -162,7 +150,6 @@ class ClassesRepositoryImpl implements ClassesRepository {
   @override
   Future<Either<Failure, ClassWithProgress>> getClassWithProgress(
       String userId, int classId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final model =
           await remoteDataSource.getClassWithProgress(userId, classId);
@@ -179,7 +166,6 @@ class ClassesRepositoryImpl implements ClassesRepository {
   @override
   Future<Either<Failure, void>> submitRequirement(
       String userId, int classId, int requirementId) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.submitRequirement(userId, classId, requirementId);
       return const Right(null);
@@ -202,7 +188,6 @@ class ClassesRepositoryImpl implements ClassesRepository {
     required String mimeType,
     void Function(double)? onProgress,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final model = await remoteDataSource.uploadRequirementFile(
         userId: userId,
@@ -230,7 +215,6 @@ class ClassesRepositoryImpl implements ClassesRepository {
     required int requirementId,
     required String fileId,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.deleteRequirementFile(
         userId: userId,
