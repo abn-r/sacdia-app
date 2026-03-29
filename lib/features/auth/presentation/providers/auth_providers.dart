@@ -15,6 +15,7 @@ import '../../domain/usecases/sign_in_with_google.dart';
 import '../../domain/usecases/sign_out.dart';
 import '../../domain/usecases/sign_up.dart';
 import '../../domain/usecases/switch_context.dart';
+import '../../domain/usecases/update_password.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/notifications/push_notification_provider.dart';
@@ -63,6 +64,11 @@ final signOutProvider = Provider<SignOut>((ref) {
 /// Provider para el caso de uso de cambio de contexto
 final switchContextProvider = Provider<SwitchContext>((ref) {
   return SwitchContext(ref.read(authRepositoryProvider));
+});
+
+/// Provider para el caso de uso de actualización de contraseña
+final updatePasswordProvider = Provider<UpdatePassword>((ref) {
+  return UpdatePassword(ref.read(authRepositoryProvider));
 });
 
 /// Provider para el caso de uso de OAuth con Google
@@ -425,6 +431,40 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     );
 
     return true;
+  }
+
+  /// Actualiza la contraseña del usuario autenticado.
+  ///
+  /// Requiere la contraseña actual para re-autenticación en el backend.
+  /// Retorna null en caso de éxito, o un mensaje de error localizado.
+  Future<String?> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    AppLogger.i('Cambio de contraseña iniciado', tag: _tag);
+
+    final result = await ref.read(updatePasswordProvider)(
+      UpdatePasswordParams(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      ),
+    );
+
+    return result.fold(
+      (failure) {
+        final msg = failure is AuthFailure
+            ? failure.message
+            : 'Error al cambiar la contraseña';
+        AppLogger.w('Cambio de contraseña fallido: $msg', tag: _tag);
+        return msg;
+      },
+      (user) {
+        AppLogger.i('Contraseña actualizada correctamente', tag: _tag);
+        _cacheUser(user);
+        state = AsyncValue.data(user);
+        return null;
+      },
+    );
   }
 
   /// Cerrar sesión

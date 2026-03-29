@@ -54,7 +54,10 @@ class AuthInterceptor extends QueuedInterceptor {
     /// La instancia principal de Dio (con interceptores). Se mantiene para
     /// reintentar la petición original después del refresh.
     Dio? dio,
-  })  : _secureStorage = secureStorage ?? const FlutterSecureStorage(),
+  })  : _secureStorage = secureStorage ?? const FlutterSecureStorage(
+          aOptions: AndroidOptions(encryptedSharedPreferences: true),
+          iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device),
+        ),
         _refreshDio = _buildRefreshDio();
 
   static Dio _buildRefreshDio() {

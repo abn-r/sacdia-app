@@ -91,6 +91,8 @@ class EvidenceStagingManager extends StatefulWidget {
 }
 
 class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
+  static const int _maxFileSizeBytes = 10 * 1024 * 1024; // 10 MB
+
   final _picker = ImagePicker();
 
   /// Combined list: remote files first, then locally staged files.
@@ -162,9 +164,30 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
 
       if (pickedFiles.isEmpty || !mounted) return;
 
+      // Validate file sizes before staging.
+      final validFiles = <XFile>[];
+      int skippedCount = 0;
+      for (final picked in pickedFiles) {
+        final size = await picked.length();
+        if (size > _maxFileSizeBytes) {
+          skippedCount++;
+        } else {
+          validFiles.add(picked);
+        }
+      }
+
+      if (skippedCount > 0 && mounted) {
+        _showErrorSnackbar(
+          context, // ignore: use_build_context_synchronously
+          '$skippedCount ${skippedCount == 1 ? 'imagen excede' : 'imágenes exceden'} el límite de 10 MB y no se agregó.',
+        );
+      }
+
+      if (validFiles.isEmpty || !mounted) return;
+
       // I-3: Never mutate _allFiles in place — always create a new list.
       setState(() {
-        final newFiles = pickedFiles.map((picked) {
+        final newFiles = validFiles.map((picked) {
           final mimeType = picked.name.toLowerCase().endsWith('.png')
               ? 'image/png'
               : 'image/jpeg';
@@ -195,10 +218,26 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
       );
       if (result == null || result.files.isEmpty || !mounted) return;
 
+      // Validate file sizes before staging.
+      final validPdfs =
+          result.files.where((pf) => pf.path != null).toList();
+      final oversized = validPdfs.where((pf) => pf.size > _maxFileSizeBytes);
+      final acceptedPdfs =
+          validPdfs.where((pf) => pf.size <= _maxFileSizeBytes).toList();
+
+      if (oversized.isNotEmpty && mounted) {
+        final count = oversized.length;
+        _showErrorSnackbar(
+          context, // ignore: use_build_context_synchronously
+          '$count ${count == 1 ? 'PDF excede' : 'PDFs exceden'} el límite de 10 MB y no se agregó.',
+        );
+      }
+
+      if (acceptedPdfs.isEmpty || !mounted) return;
+
       // I-3: Never mutate _allFiles in place — always create a new list.
       setState(() {
-        final newFiles = result.files
-            .where((pf) => pf.path != null)
+        final newFiles = acceptedPdfs
             .map((pf) => StagedFile.local(
                   localPath: pf.path!,
                   name: pf.name,

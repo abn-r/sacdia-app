@@ -32,7 +32,8 @@ abstract class AuthRepository {
   Future<Either<Failure, void>> resetPassword(String email);
   
   /// Actualiza la contraseña del usuario
-  Future<Either<Failure, UserEntity>> updatePassword(String newPassword);
+  Future<Either<Failure, UserEntity>> updatePassword(
+      String currentPassword, String newPassword);
 
   /// Inicia sesión con Google OAuth
   Future<Either<Failure, UserEntity>> signInWithGoogle();

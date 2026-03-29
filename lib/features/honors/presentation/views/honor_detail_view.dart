@@ -473,7 +473,21 @@ class _MaterialCardState extends State<_MaterialCard> {
     setState(() => _isLaunching = true);
 
     try {
-      final uri = Uri.parse(widget.materialUrl);
+      final uri = Uri.tryParse(widget.materialUrl);
+      if (uri == null || !['http', 'https'].contains(uri.scheme)) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('No se pudo abrir el material'),
+              backgroundColor: AppColors.primary,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+          );
+        }
+        return;
+      }
       final canLaunch = await canLaunchUrl(uri);
       if (canLaunch) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);

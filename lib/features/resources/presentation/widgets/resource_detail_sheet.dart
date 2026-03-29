@@ -68,7 +68,7 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
 
   Future<void> _launchUrl(String rawUrl) async {
     final uri = Uri.tryParse(rawUrl);
-    if (uri == null) {
+    if (uri == null || !['http', 'https'].contains(uri.scheme)) {
       _showError('URL no válida');
       return;
     }

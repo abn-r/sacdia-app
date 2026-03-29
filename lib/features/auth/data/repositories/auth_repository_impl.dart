@@ -100,9 +100,11 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, UserEntity>> updatePassword(String newPassword) async {
+  Future<Either<Failure, UserEntity>> updatePassword(
+      String currentPassword, String newPassword) async {
     try {
-      final user = await remoteDataSource.updatePassword(newPassword);
+      final user =
+          await remoteDataSource.updatePassword(currentPassword, newPassword);
       return Right(user);
     } on core_exceptions.AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));

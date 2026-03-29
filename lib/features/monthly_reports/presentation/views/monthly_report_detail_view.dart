@@ -97,7 +97,18 @@ class _PdfButton extends ConsumerWidget {
     try {
       final pdfUrlAsync =
           await ref.read(monthlyReportPdfUrlProvider(reportId).future);
-      final uri = Uri.parse(pdfUrlAsync);
+      final uri = Uri.tryParse(pdfUrlAsync);
+      if (uri == null || !['http', 'https'].contains(uri.scheme)) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No se pudo abrir el PDF'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return;
+      }
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else if (context.mounted) {
@@ -166,7 +177,8 @@ class _ReportDetail extends ConsumerWidget {
             try {
               final url = await ref
                   .read(monthlyReportPdfUrlProvider(reportId).future);
-              final uri = Uri.parse(url);
+              final uri = Uri.tryParse(url);
+              if (uri == null || !['http', 'https'].contains(uri.scheme)) return;
               if (await canLaunchUrl(uri)) {
                 await launchUrl(uri,
                     mode: LaunchMode.externalApplication);

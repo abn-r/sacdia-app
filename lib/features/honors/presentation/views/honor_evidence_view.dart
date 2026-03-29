@@ -356,7 +356,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
 
   Future<void> _launchUrl(String url) async {
     final uri = Uri.tryParse(url);
-    if (uri == null) return;
+    if (uri == null || !['http', 'https'].contains(uri.scheme)) return;
     try {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (_) {

@@ -36,6 +36,146 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     });
   }
 
+  Future<void> _showChangePasswordDialog() async {
+    final currentCtrl = TextEditingController();
+    final newCtrl = TextEditingController();
+    final confirmCtrl = TextEditingController();
+    bool currentObscure = true;
+    bool newObscure = true;
+    bool confirmObscure = true;
+    String? errorText;
+
+    final submitted = await showDialog<bool>(
+      context: context,
+      barrierColor: context.sac.barrierColor,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              title: const Text('Cambiar contraseña'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: currentCtrl,
+                    obscureText: currentObscure,
+                    textInputAction: TextInputAction.next,
+                    decoration: InputDecoration(
+                      labelText: 'Contraseña actual',
+                      suffixIcon: IconButton(
+                        icon: Icon(currentObscure
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined),
+                        onPressed: () => setDialogState(
+                            () => currentObscure = !currentObscure),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: newCtrl,
+                    obscureText: newObscure,
+                    textInputAction: TextInputAction.next,
+                    decoration: InputDecoration(
+                      labelText: 'Nueva contraseña',
+                      suffixIcon: IconButton(
+                        icon: Icon(newObscure
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined),
+                        onPressed: () =>
+                            setDialogState(() => newObscure = !newObscure),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: confirmCtrl,
+                    obscureText: confirmObscure,
+                    textInputAction: TextInputAction.done,
+                    decoration: InputDecoration(
+                      labelText: 'Confirmar nueva contraseña',
+                      suffixIcon: IconButton(
+                        icon: Icon(confirmObscure
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined),
+                        onPressed: () => setDialogState(
+                            () => confirmObscure = !confirmObscure),
+                      ),
+                    ),
+                  ),
+                  if (errorText != null) ...[
+                    const SizedBox(height: 10),
+                    Text(
+                      errorText!,
+                      style: const TextStyle(
+                          color: AppColors.error, fontSize: 13),
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: () async {
+                    final current = currentCtrl.text.trim();
+                    final next = newCtrl.text.trim();
+                    final confirm = confirmCtrl.text.trim();
+
+                    if (current.isEmpty || next.isEmpty || confirm.isEmpty) {
+                      setDialogState(
+                          () => errorText = 'Completá todos los campos.');
+                      return;
+                    }
+                    if (next != confirm) {
+                      setDialogState(() =>
+                          errorText = 'Las contraseñas nuevas no coinciden.');
+                      return;
+                    }
+                    if (next.length < 8) {
+                      setDialogState(() => errorText =
+                          'La contraseña debe tener al menos 8 caracteres.');
+                      return;
+                    }
+                    Navigator.pop(ctx, true);
+                  },
+                  child: const Text('Cambiar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (submitted != true || !mounted) return;
+
+    final error = await ref
+        .read(authNotifierProvider.notifier)
+        .updatePassword(
+          currentPassword: currentCtrl.text.trim(),
+          newPassword: newCtrl.text.trim(),
+        );
+
+    currentCtrl.dispose();
+    newCtrl.dispose();
+    confirmCtrl.dispose();
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(error ?? 'Contraseña actualizada correctamente.'),
+        backgroundColor: error != null ? AppColors.error : AppColors.success,
+        behavior: SnackBarBehavior.floating,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
   void _showThemeDialog() {
     showDialog<void>(
       context: context,
@@ -194,8 +334,16 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           const SizedBox(height: 24),
 
           // ── CUENTA ────────────────────────────────────────────────
+          _SectionHeader(title: 'CUENTA'),
           _GroupContainer(
             children: [
+              SettingTile(
+                icon: HugeIcons.strokeRoundedLockPassword,
+                title: 'Cambiar contraseña',
+                iconColor: AppColors.primary,
+                onTap: _showChangePasswordDialog,
+              ),
+              _groupDivider(),
               SettingTile(
                 icon: HugeIcons.strokeRoundedLogout01,
                 title: 'Cerrar sesión',

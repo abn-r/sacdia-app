@@ -39,7 +39,8 @@ abstract class AuthRemoteDataSource {
   Future<void> resetPassword(String email);
 
   /// Actualiza la contraseña del usuario
-  Future<UserModel> updatePassword(String newPassword);
+  Future<UserModel> updatePassword(
+      String currentPassword, String newPassword);
 
   /// Inicia sesión con Google OAuth
   Future<UserModel> signInWithGoogle();
@@ -83,7 +84,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   })  : _dio = dio,
         _baseUrl = baseUrl,
         _authStateController = StreamController<bool>.broadcast(),
-        _secureStorage = const FlutterSecureStorage() {
+        _secureStorage = const FlutterSecureStorage(
+          aOptions: AndroidOptions(encryptedSharedPreferences: true),
+          iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device),
+        ) {
     _checkInitialAuthState();
   }
 
@@ -566,7 +570,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<UserModel> updatePassword(String newPassword) async {
+  Future<UserModel> updatePassword(
+      String currentPassword, String newPassword) async {
     try {
       final token = await _secureStorage.read(key: 'auth_token');
       if (token == null) {
@@ -575,7 +580,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       await _dio.post(
         '$_baseUrl${ApiEndpoints.auth}/update-password',
-        data: {'password': newPassword},
+        data: {
+          'currentPassword': currentPassword,
+          'password': newPassword,
+        },
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
