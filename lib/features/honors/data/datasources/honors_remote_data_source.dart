@@ -101,27 +101,46 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   @override
   Future<List<HonorModel>> getHonors({int? categoryId, int? clubTypeId, int? skillLevel}) async {
     try {
-      final queryParams = <String>[];
-      if (categoryId != null) queryParams.add('categoryId=$categoryId');
-      if (clubTypeId != null) queryParams.add('clubTypeId=$clubTypeId');
-      if (skillLevel != null) queryParams.add('skillLevel=$skillLevel');
-      final queryString = queryParams.isNotEmpty ? '?${queryParams.join('&')}' : '';
+      final baseParams = <String>['limit=100'];
+      if (categoryId != null) baseParams.add('categoryId=$categoryId');
+      if (clubTypeId != null) baseParams.add('clubTypeId=$clubTypeId');
+      if (skillLevel != null) baseParams.add('skillLevel=$skillLevel');
 
-      final response = await _dio.get(
-        '$_baseUrl${ApiEndpoints.honors}$queryString',
-      );
+      final allHonors = <HonorModel>[];
+      int page = 1;
+      bool hasNextPage = true;
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        // API returns paginated response: { data: [...], total, page, limit }
+      while (hasNextPage) {
+        final queryString = '?${baseParams.join('&')}&page=$page';
+        final response = await _dio.get(
+          '$_baseUrl${ApiEndpoints.honors}$queryString',
+        );
+
+        if (response.statusCode != 200 && response.statusCode != 201) {
+          throw ServerException(
+            message: 'Error al obtener especialidades',
+            code: response.statusCode,
+          );
+        }
+
         final raw = response.data;
-        final List<dynamic> data =
-            raw is Map ? (raw['data'] as List<dynamic>) : raw as List<dynamic>;
-        return data
-            .map((json) => HonorModel.fromJson(json as Map<String, dynamic>))
-            .toList();
+        final List<dynamic> data;
+        if (raw is Map) {
+          data = raw['data'] as List<dynamic>;
+          final meta = raw['meta'] as Map<String, dynamic>?;
+          hasNextPage = meta?['hasNextPage'] as bool? ?? false;
+        } else {
+          data = raw as List<dynamic>;
+          hasNextPage = false;
+        }
+
+        allHonors.addAll(
+          data.map((json) => HonorModel.fromJson(json as Map<String, dynamic>)),
+        );
+        page++;
       }
 
-      throw ServerException(message: 'Error al obtener especialidades', code: response.statusCode);
+      return allHonors;
     } catch (e) {
       AppLogger.e('Error en getHonors', tag: _tag, error: e);
       if (e is DioException) {
