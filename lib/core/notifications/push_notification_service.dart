@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/app_logger.dart';
@@ -36,6 +37,9 @@ class PushNotificationService {
 
   final Dio _dio;
   final SharedPreferences _prefs;
+  final _secureStorage = const FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  );
 
   /// Optional navigator key used to show snackbars and navigate on
   /// notification tap. Set this from your MaterialApp's navigatorKey or
@@ -109,7 +113,7 @@ class PushNotificationService {
 
   /// Unregister the FCM token from the backend. Call this on logout.
   Future<void> unregisterToken() async {
-    final token = _prefs.getString(_tokenPrefKey);
+    final token = await _secureStorage.read(key: _tokenPrefKey);
     if (token == null || token.isEmpty) {
       AppLogger.i(
         'No hay token FCM registrado, saltando unregister',
@@ -124,7 +128,7 @@ class PushNotificationService {
         '/fcm-tokens/by-token',
         data: {'token': token},
       );
-      await _prefs.remove(_tokenPrefKey);
+      await _secureStorage.delete(key: _tokenPrefKey);
       AppLogger.i('Token FCM desregistrado', tag: _tag);
     } on DioException catch (e) {
       // Non-critical: a stale token in the backend won't cause harm.
@@ -134,10 +138,10 @@ class PushNotificationService {
         error: e,
       );
       // Still remove locally so we don't keep retrying a bad token.
-      await _prefs.remove(_tokenPrefKey);
+      await _secureStorage.delete(key: _tokenPrefKey);
     } catch (e) {
       AppLogger.w('Error inesperado al desregistrar token', tag: _tag, error: e);
-      await _prefs.remove(_tokenPrefKey);
+      await _secureStorage.delete(key: _tokenPrefKey);
     }
   }
 
@@ -257,7 +261,7 @@ class PushNotificationService {
 
   Future<void> _registerTokenWithBackend(String token) async {
     // Avoid re-registering the same token unnecessarily.
-    final savedToken = _prefs.getString(_tokenPrefKey);
+    final savedToken = await _secureStorage.read(key: _tokenPrefKey);
     if (savedToken == token) {
       AppLogger.i('Token FCM ya registrado, sin cambios', tag: _tag);
       return;
@@ -269,7 +273,7 @@ class PushNotificationService {
         '/fcm-tokens',
         data: {'token': token},
       );
-      await _prefs.setString(_tokenPrefKey, token);
+      await _secureStorage.write(key: _tokenPrefKey, value: token);
       AppLogger.i('Token FCM registrado exitosamente', tag: _tag);
     } on DioException catch (e) {
       AppLogger.w(
@@ -345,6 +349,6 @@ class PushNotificationService {
   Future<String?> getToken() => FirebaseMessaging.instance.getToken();
 
   /// Returns the token that was last successfully registered with the backend.
-  String? get registeredToken => _prefs.getString(_tokenPrefKey);
+  Future<String?> get registeredToken => _secureStorage.read(key: _tokenPrefKey);
 }
 

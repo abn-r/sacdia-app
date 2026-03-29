@@ -364,7 +364,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String password,
   }) async {
     try {
-      AppLogger.i('Login: $email', tag: _tag);
+      AppLogger.i('Login iniciado', tag: _tag);
 
       final response = await _dio.post('$_baseUrl${ApiEndpoints.auth}/login', data: {
         'email': email,
@@ -405,7 +405,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final needsPostRegistration =
           responseData['needsPostRegistration'] as bool? ?? true;
 
-      AppLogger.i('Login exitoso: $email', tag: _tag);
+      AppLogger.i('Login exitoso', tag: _tag);
       return UserModel(
         id: userId,
         email: userData?['email'] as String? ?? email,
@@ -438,7 +438,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String maternalSurname,
   }) async {
     try {
-      AppLogger.i('Registro: $email', tag: _tag);
+      AppLogger.i('Registro iniciado', tag: _tag);
 
       final response = await _dio.post('$_baseUrl${ApiEndpoints.auth}/register', data: {
         'email': email,
@@ -543,7 +543,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> resetPassword(String email) async {
     try {
-      AppLogger.i('Recuperación de contraseña: $email', tag: _tag);
+      AppLogger.i('Recuperación de contraseña solicitada', tag: _tag);
 
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.auth}/request-password-reset',
@@ -573,23 +573,23 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw AuthException(message: 'No hay sesión activa');
       }
 
-      _dio.options.headers['Authorization'] = 'Bearer $token';
-
-      await _dio.post('$_baseUrl${ApiEndpoints.auth}/update-password', data: {
-        'password': newPassword,
-      });
-
-      return UserModel(
-        id: 'current-user-id',
-        email: 'usuario@ejemplo.com',
-        name: 'Usuario Actual',
-        postRegisterComplete: true,
+      await _dio.post(
+        '$_baseUrl${ApiEndpoints.auth}/update-password',
+        data: {'password': newPassword},
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
+
+      final user = await getCurrentUser();
+      if (user == null) {
+        throw AuthException(message: 'No se pudo obtener el usuario actualizado');
+      }
+      return user;
     } catch (e) {
       if (e is DioException) {
         throw AuthException(
             message: e.message ?? 'Error al actualizar contraseña');
       }
+      if (e is AuthException) rethrow;
       throw AuthException(message: e.toString());
     }
   }

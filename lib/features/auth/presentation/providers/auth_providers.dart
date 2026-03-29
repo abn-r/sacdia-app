@@ -120,8 +120,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         if (failure is NetworkFailure || failure is ServerFailure) {
           AppLogger.w('Sin conectividad, intentando caché', tag: _tag);
           if (cachedId != null && cachedEmail != null) {
-            AppLogger.i('Sesión restaurada desde caché: $cachedEmail',
-                tag: _tag);
+            AppLogger.i('Sesión restaurada desde caché', tag: _tag);
             // Session restored from cache — initialize FCM so token is
             // registered even when the backend was temporarily unreachable.
             ref.read(pushNotificationServiceProvider).initialize();
@@ -142,7 +141,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       },
       (user) {
         if (user != null) {
-          AppLogger.i('Usuario autenticado: ${user.email}', tag: _tag);
+          AppLogger.i('Usuario autenticado', tag: _tag);
           _cacheUser(user);
           // User already authenticated on startup — register FCM token.
           ref.read(pushNotificationServiceProvider).initialize();
@@ -151,7 +150,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         AppLogger.w('Servidor respondió sin usuario, intentando caché',
             tag: _tag);
         if (cachedId != null && cachedEmail != null) {
-          AppLogger.i('Sesión restaurada desde caché: $cachedEmail', tag: _tag);
+          AppLogger.i('Sesión restaurada desde caché', tag: _tag);
           ref.read(pushNotificationServiceProvider).initialize();
           return UserEntity(
             id: cachedId,
@@ -198,7 +197,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
   /// Iniciar sesión con email y contraseña
   Future<bool> signIn({required String email, required String password}) async {
-    AppLogger.i('Login iniciado: $email', tag: _tag);
+    AppLogger.i('Login iniciado', tag: _tag);
     state = const AsyncValue.loading();
 
     final result = await ref.read(signInProvider)(
@@ -214,7 +213,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         return AsyncValue.error(errorMessage, StackTrace.current);
       },
       (user) {
-        AppLogger.i('Login exitoso: ${user.email}', tag: _tag);
+        AppLogger.i('Login exitoso', tag: _tag);
         ref.read(sharedPreferencesProvider).setBool('user_manually_logged_out', false);
         _cacheUser(user);
         // Register FCM token after successful login (fire-and-forget).
@@ -313,7 +312,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         state = AsyncValue.error(failure.message, StackTrace.current);
       },
       (user) {
-        AppLogger.i('OAuth completado: ${user.email}', tag: _tag);
+        AppLogger.i('OAuth completado', tag: _tag);
         _cacheUser(user);
         state = AsyncValue.data(user);
         // Register FCM token after OAuth login (fire-and-forget).

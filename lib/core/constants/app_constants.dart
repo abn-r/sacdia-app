@@ -1,11 +1,13 @@
+import 'package:flutter/foundation.dart';
+
 /// Constantes generales de la aplicación
 class AppConstants {
   AppConstants._();
 
   // API
   static const String apiBaseUrlDefineKey = 'API_BASE_URL';
-  // For local development, override via --dart-define=API_BASE_URL=http://192.168.100.7:3000/api/v1
-  static const String defaultBaseUrl = 'http://localhost:3000/api/v1'; // 'https://sacdia-backend.onrender.com/api/v1';
+  // Local dev: --dart-define=API_BASE_URL=http://localhost:3000/api/v1
+  static const String defaultBaseUrl = 'https://sacdia-backend.onrender.com/api/v1';
   static final String baseUrl = resolveBaseUrl();
 
   static String resolveBaseUrl({String? override}) {
@@ -16,7 +18,11 @@ class AppConstants {
             ))
         .trim();
 
-    return candidate.isEmpty ? defaultBaseUrl : candidate;
+    final resolvedUrl = candidate.isEmpty ? defaultBaseUrl : candidate;
+    if (kReleaseMode && !resolvedUrl.startsWith('https://')) {
+      throw StateError('Production builds must use HTTPS');
+    }
+    return resolvedUrl;
   }
 
   // Timeouts (en segundos)

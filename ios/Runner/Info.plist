@@ -14,8 +14,6 @@
 	<!-- Permisos de ubicación requeridos por google_maps_flutter y geocoding -->
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>SACDIA necesita acceso a tu ubicacion para mostrar el mapa y seleccionar el lugar de la actividad.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>SACDIA necesita acceso a tu ubicacion para mostrar el mapa y seleccionar el lugar de la actividad.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
