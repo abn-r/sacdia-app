@@ -200,9 +200,9 @@ class HonorsRepositoryImpl implements HonorsRepository {
 
   @override
   Future<Either<Failure, List<UserHonorRequirementProgress>>> getUserHonorProgress(
-      int honorId) async {
+      String userId, int honorId) async {
     try {
-      final models = await remoteDataSource.getUserHonorProgress(honorId);
+      final models = await remoteDataSource.getUserHonorProgress(userId, honorId);
       final entities = models.map((m) => m.toEntity()).toList();
       return Right(entities);
     } on ServerException catch (e) {

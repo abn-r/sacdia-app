@@ -30,8 +30,8 @@ abstract class HonorsRemoteDataSource {
   Future<List<HonorRequirementModel>> getHonorRequirements(int honorId);
 
   /// Obtiene el progreso del usuario por requisito para una especialidad inscrita.
-  /// GET /honors/:honorId/progress — userId deriva del JWT
-  Future<List<UserHonorRequirementProgressModel>> getUserHonorProgress(int honorId);
+  /// GET /users/:userId/honors/:honorId/requirements/progress
+  Future<List<UserHonorRequirementProgressModel>> getUserHonorProgress(String userId, int honorId);
 
   /// Actualiza el progreso de un requisito individual.
   /// PATCH /honors/:honorId/progress/:requirementId
@@ -377,16 +377,16 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
 
   @override
   Future<List<UserHonorRequirementProgressModel>> getUserHonorProgress(
-      int honorId) async {
+      String userId, int honorId) async {
     try {
-      // New API: GET /honors/:honorId/progress — userId derived from JWT
       final response = await _dio.get(
-        '$_baseUrl${ApiEndpoints.honors}/$honorId/progress',
+        '$_baseUrl${ApiEndpoints.users}/$userId${ApiEndpoints.honors}/$honorId/requirements/progress',
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final raw = response.data as Map<String, dynamic>;
-        final List<dynamic> items = raw['data'] as List<dynamic>;
+        final data = raw['data'] as Map<String, dynamic>;
+        final List<dynamic> items = data['requirements'] as List<dynamic>;
         return items
             .map((json) => UserHonorRequirementProgressModel.fromJson(
                 json as Map<String, dynamic>))

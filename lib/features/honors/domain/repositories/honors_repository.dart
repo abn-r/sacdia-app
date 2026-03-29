@@ -55,9 +55,8 @@ abstract class HonorsRepository {
       int honorId);
 
   /// Obtiene el progreso del usuario por requisito para una especialidad inscrita.
-  /// El userId se deriva del JWT — no se pasa explícitamente.
   Future<Either<Failure, List<UserHonorRequirementProgress>>> getUserHonorProgress(
-      int honorId);
+      String userId, int honorId);
 
   /// Actualiza el progreso de un requisito individual.
   Future<Either<Failure, UserHonorRequirementProgress>> updateRequirementProgress({

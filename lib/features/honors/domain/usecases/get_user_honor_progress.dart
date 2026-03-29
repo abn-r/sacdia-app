@@ -17,15 +17,17 @@ class GetUserHonorProgress
   @override
   Future<Either<Failure, List<UserHonorRequirementProgress>>> call(
       GetUserHonorProgressParams params) async {
-    return await repository.getUserHonorProgress(params.honorId);
+    return await repository.getUserHonorProgress(params.userId, params.honorId);
   }
 }
 
 /// Parámetros para obtener el progreso de requisitos de usuario
 class GetUserHonorProgressParams {
+  final String userId;
   final int honorId;
 
   const GetUserHonorProgressParams({
+    required this.userId,
     required this.honorId,
   });
 }
