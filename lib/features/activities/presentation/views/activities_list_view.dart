@@ -56,13 +56,23 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
   bool _isChronologicalView = false;
   bool _shouldScrollToToday = false;
   late final List<DateTime> _days;
+  late final int _todayIndex;
   late final ScrollController _dateScrollController;
   late final ScrollController _chronoScrollController;
+  late DateTime _visibleMonth;
+  bool _showTodayButton = false;
+
+  static const double _dateItemWidth = 52.0;
+  static const double _dateItemHorizontalMargin = 4.0;
 
   @override
   void initState() {
     super.initState();
     _days = _buildDays();
+    final now = DateTime.now();
+    _selectedDate = DateTime(now.year, now.month, now.day);
+    _visibleMonth = DateTime(now.year, now.month);
+    _todayIndex = _days.indexWhere((d) => _isSameDay(d, now));
     _dateScrollController = ScrollController();
     _chronoScrollController = ScrollController();
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToToday());
@@ -92,17 +102,101 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
   }
 
   List<DateTime> _buildDays() {
-    final today = DateTime.now();
-    final start = today.subtract(const Duration(days: 7));
-    return List.generate(21, (i) => start.add(Duration(days: i)));
+    final now = DateTime.now();
+    final start = DateTime(now.year, 1, 1);
+    final end = DateTime(now.year, 12, 31);
+    final count = end.difference(start).inDays + 1;
+    return List.generate(count, (i) => start.add(Duration(days: i)));
   }
 
-  void _scrollToToday() {
+  double _offsetForIndex(int index) {
+    const itemTotalWidth = _dateItemWidth + _dateItemHorizontalMargin * 2;
+    final viewportWidth =
+        _dateScrollController.hasClients ? _dateScrollController.position.viewportDimension : 334.0;
+    final offset = index * itemTotalWidth - (viewportWidth / 2) + (itemTotalWidth / 2);
+    return offset.clamp(0.0, double.infinity);
+  }
+
+  void _scrollToToday({bool animate = false}) {
     if (!_dateScrollController.hasClients) return;
-    const itemWidth = 60.0;
-    const todayIndex = 7;
-    final offset = (todayIndex * itemWidth) - 80.0;
-    _dateScrollController.jumpTo(offset.clamp(0.0, double.infinity));
+    final offset = _offsetForIndex(_todayIndex);
+    if (animate) {
+      _dateScrollController.animateTo(
+        offset,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      _dateScrollController.jumpTo(offset);
+    }
+  }
+
+  void _scrollToIndex(int index, {bool animate = true}) {
+    if (!_dateScrollController.hasClients) return;
+    final offset = _offsetForIndex(index);
+    if (animate) {
+      _dateScrollController.animateTo(
+        offset,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      _dateScrollController.jumpTo(offset);
+    }
+  }
+
+  void _onDateStripScroll() {
+    if (!_dateScrollController.hasClients) return;
+    const itemTotalWidth = _dateItemWidth + _dateItemHorizontalMargin * 2;
+    final scrollOffset = _dateScrollController.offset;
+    final viewportWidth = _dateScrollController.position.viewportDimension;
+    final centerOffset = scrollOffset + viewportWidth / 2;
+    final centerIndex = (centerOffset / itemTotalWidth).round().clamp(0, _days.length - 1);
+    final centeredDay = _days[centerIndex];
+    final newMonth = DateTime(centeredDay.year, centeredDay.month);
+
+    final todayOffset = _offsetForIndex(_todayIndex);
+    final isAwayFromToday = (scrollOffset - todayOffset).abs() > itemTotalWidth * 1.5;
+
+    if (newMonth != _visibleMonth || isAwayFromToday != _showTodayButton) {
+      setState(() {
+        _visibleMonth = newMonth;
+        _showTodayButton = isAwayFromToday;
+      });
+    }
+  }
+
+  Future<void> _openDatePicker(BuildContext context) async {
+    final now = DateTime.now();
+    final yearStart = DateTime(now.year, 1, 1);
+    final yearEnd = DateTime(now.year, 12, 31);
+    final initial = _selectedDate ?? DateTime(now.year, now.month, now.day);
+
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial.isBefore(yearStart)
+          ? yearStart
+          : initial.isAfter(yearEnd)
+              ? yearEnd
+              : initial,
+      firstDate: yearStart,
+      lastDate: yearEnd,
+      locale: const Locale('es'),
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: Theme.of(ctx).colorScheme.copyWith(
+                primary: AppColors.primary,
+              ),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked == null) return;
+    final pickedDay = DateTime(picked.year, picked.month, picked.day);
+    final idx = _days.indexWhere((d) => _isSameDay(d, pickedDay));
+    if (idx < 0) return;
+    setState(() => _selectedDate = pickedDay);
+    _scrollToIndex(idx);
   }
 
   bool _isSameDay(DateTime a, DateTime b) =>
@@ -217,7 +311,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                         ),
                         Text(
                           _capitalizeFirst(
-                            DateFormat('MMMM yyyy', 'es').format(today),
+                            DateFormat('MMMM yyyy', 'es').format(_visibleMonth),
                           ),
                           style: TextStyle(
                             fontSize: 13,
@@ -227,7 +321,6 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 12),
                   if (_canCreateActivities())
                     GestureDetector(
                       onTap: () {
@@ -325,91 +418,165 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                     ? const SizedBox(height: 0)
                     : Column(
                         children: [
-                          SizedBox(
-                            height: 76,
-                            child: ListView.builder(
-                              controller: _dateScrollController,
-                              scrollDirection: Axis.horizontal,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
-                              itemCount: _days.length,
-                              itemBuilder: (context, index) {
-                                final day = _days[index];
-                                final isToday = _isSameDay(day, today);
-                                final isSelected = _selectedDate != null &&
-                                    _isSameDay(day, _selectedDate!);
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: SizedBox(
+                                  height: 76,
+                                  child: NotificationListener<ScrollNotification>(
+                                    onNotification: (notification) {
+                                      if (notification is ScrollUpdateNotification ||
+                                          notification is ScrollEndNotification) {
+                                        _onDateStripScroll();
+                                      }
+                                      return false;
+                                    },
+                                    child: ListView.builder(
+                                      controller: _dateScrollController,
+                                      scrollDirection: Axis.horizontal,
+                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                      itemCount: _days.length,
+                                      itemBuilder: (context, index) {
+                                        final day = _days[index];
+                                        final isToday = _isSameDay(day, today);
+                                        final isSelected = _selectedDate != null &&
+                                            _isSameDay(day, _selectedDate!);
 
-                                return GestureDetector(
-                                  onTap: () => setState(() {
-                                    _selectedDate = isSelected ? null : day;
-                                  }),
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 200),
-                                    width: 52,
-                                    margin: const EdgeInsets.symmetric(
-                                        horizontal: 4, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? AppColors.primary
-                                          : isToday
-                                              ? AppColors.primaryLight
-                                              : c.surface,
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                        color: isToday && !isSelected
-                                            ? AppColors.primary
-                                                .withOpacity(0.35)
-                                            : Colors.transparent,
-                                        width: 1.5,
-                                      ),
-                                      boxShadow: isSelected
-                                          ? [
-                                              BoxShadow(
-                                                color: AppColors.primary
-                                                    .withOpacity(0.28),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 3),
-                                              )
-                                            ]
-                                          : null,
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          DateFormat('EEE', 'es')
-                                              .format(day)
-                                              .substring(0, 2)
-                                              .toUpperCase(),
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w600,
-                                            color: isSelected
-                                                ? Colors.white.withOpacity(0.8)
-                                                : c.textTertiary,
+                                        return GestureDetector(
+                                          onTap: () => setState(() {
+                                            _selectedDate = day;
+                                          }),
+                                          child: AnimatedContainer(
+                                            duration: const Duration(milliseconds: 200),
+                                            width: 52,
+                                            margin: const EdgeInsets.symmetric(
+                                                horizontal: 4, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: isSelected
+                                                  ? AppColors.primary
+                                                  : isToday
+                                                      ? AppColors.primaryLight
+                                                      : c.surface,
+                                              borderRadius: BorderRadius.circular(16),
+                                              border: Border.all(
+                                                color: isToday && !isSelected
+                                                    ? AppColors.primary.withOpacity(0.35)
+                                                    : Colors.transparent,
+                                                width: 1.5,
+                                              ),
+                                              boxShadow: isSelected
+                                                  ? [
+                                                      BoxShadow(
+                                                        color: AppColors.primary
+                                                            .withOpacity(0.28),
+                                                        blurRadius: 8,
+                                                        offset: const Offset(0, 3),
+                                                      )
+                                                    ]
+                                                  : null,
+                                            ),
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  DateFormat('EEE', 'es')
+                                                      .format(day)
+                                                      .substring(0, 2)
+                                                      .toUpperCase(),
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: isSelected
+                                                        ? Colors.white.withOpacity(0.8)
+                                                        : c.textTertiary,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  DateFormat('d').format(day),
+                                                  style: TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.w700,
+                                                    height: 1,
+                                                    color: isSelected
+                                                        ? Colors.white
+                                                        : isToday
+                                                            ? AppColors.primary
+                                                            : c.text,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          DateFormat('d').format(day),
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w700,
-                                            height: 1,
-                                            color: isSelected
-                                                ? Colors.white
-                                                : isToday
-                                                    ? AppColors.primary
-                                                    : c.text,
-                                          ),
-                                        ),
-                                      ],
+                                        );
+                                      },
                                     ),
                                   ),
-                                );
-                              },
-                            ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(right: 12),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () => _openDatePicker(context),
+                                      child: Container(
+                                        width: 44,
+                                        height: 44,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primaryLight,
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: AppColors.primary.withOpacity(0.25),
+                                          ),
+                                        ),
+                                        child: Center(
+                                          child: HugeIcon(
+                                            icon: HugeIcons.strokeRoundedCalendar02,
+                                            size: 20,
+                                            color: AppColors.primary,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    if (_showTodayButton) ...[
+                                      const SizedBox(height: 4),
+                                      GestureDetector(
+                                        onTap: () {
+                                          final now = DateTime.now();
+                                          setState(() {
+                                            _selectedDate = DateTime(now.year, now.month, now.day);
+                                            _showTodayButton = false;
+                                            _visibleMonth = DateTime(now.year, now.month);
+                                          });
+                                          _scrollToToday(animate: true);
+                                        },
+                                        child: Container(
+                                          width: 44,
+                                          height: 24,
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primary,
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: const Center(
+                                            child: Text(
+                                              'Hoy',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 14),
                         ],
