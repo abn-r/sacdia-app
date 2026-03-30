@@ -6,6 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -1015,7 +1016,7 @@ class _JointActivityReadOnlyBadge extends StatelessWidget {
 class _ReadOnlyInfoField extends StatelessWidget {
   final String label;
   final String value;
-  final IconData icon;
+  final HugeIconData icon;
 
   const _ReadOnlyInfoField({
     required this.label,
@@ -1048,7 +1049,7 @@ class _ReadOnlyInfoField extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
           child: Row(
             children: [
-              Icon(icon, size: 20, color: c.textSecondary),
+              HugeIcon(icon: icon, size: 20, color: c.textSecondary),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(

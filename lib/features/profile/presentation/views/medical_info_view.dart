@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/post_registration/presentation/providers/personal_info_providers.dart';
@@ -373,7 +374,7 @@ class MedicalInfoView extends ConsumerWidget {
 }
 
 class _MedicalSectionCard extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String title;
   final Color iconColor;
   final Widget body;

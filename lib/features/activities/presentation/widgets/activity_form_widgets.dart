@@ -344,8 +344,8 @@ class ActivityPickerField extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
             child: Row(
               children: [
-                Icon(
-                  icon as IconData,
+                HugeIcon(
+                  icon: icon,
                   size: 20,
                   color: hasValue ? AppColors.primary : c.textSecondary,
                 ),

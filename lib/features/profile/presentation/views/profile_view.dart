@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/app_logger.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -1058,7 +1059,7 @@ class _ProfileHeaderCard extends StatelessWidget {
 /// Single meta row used inside the header left column.
 /// Shows a small HugeIcon on the left and a text label on the right.
 class _MetaRow extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String text;
 
   const _MetaRow({

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 /// Widget reutilizable para campos de texto en vistas de autenticación
 class AuthTextField extends StatefulWidget {
   final TextEditingController controller;
   final String hintText;
-  final dynamic icon;
+  final HugeIconData icon;
   final bool obscureText;
   final TextInputType keyboardType;
   final String? Function(String?)? validator;

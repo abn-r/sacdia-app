@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 import '../../domain/entities/activity.dart';
 
@@ -142,7 +143,7 @@ class ActivityMetadataGrid extends StatelessWidget {
 // ── _MetaCell ─────────────────────────────────────────────────────────────────
 
 class _MetaCell extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
   final String value;
   final Color? accentColor;
