@@ -10,7 +10,17 @@ abstract class EnrollmentRepository {
     required String clubId,
     required int sectionId,
     required String address,
-    required List<String> meetingDays,
+    double? lat,
+    double? long,
+    required List<MeetingSchedule> meetingSchedule,
+    int? soulsTarget,
+    bool? fee,
+    double? feeAmount,
+    String? directorId,
+    List<String> deputyDirectorIds,
+    String? secretaryId,
+    String? treasurerId,
+    String? secretaryTreasurerId,
   });
 
   /// Obtiene la inscripción activa del usuario en la sección.
@@ -23,8 +33,18 @@ abstract class EnrollmentRepository {
   Future<Either<Failure, Enrollment>> updateEnrollment({
     required String clubId,
     required int sectionId,
-    required int enrollmentId,
+    required String enrollmentId,
     String? address,
-    List<String>? meetingDays,
+    double? lat,
+    double? long,
+    List<MeetingSchedule>? meetingSchedule,
+    int? soulsTarget,
+    bool? fee,
+    double? feeAmount,
+    String? directorId,
+    List<String>? deputyDirectorIds,
+    String? secretaryId,
+    String? treasurerId,
+    String? secretaryTreasurerId,
   });
 }

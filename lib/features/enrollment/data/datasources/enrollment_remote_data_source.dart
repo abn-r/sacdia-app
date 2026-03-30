@@ -1,7 +1,11 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
+
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../../domain/entities/enrollment.dart';
 import '../models/enrollment_model.dart';
 
 /// Interfaz de la fuente de datos remota de inscripciones.
@@ -10,7 +14,17 @@ abstract class EnrollmentRemoteDataSource {
     required String clubId,
     required int sectionId,
     required String address,
-    required List<String> meetingDays,
+    double? lat,
+    double? long,
+    required List<MeetingSchedule> meetingSchedule,
+    int? soulsTarget,
+    bool? fee,
+    double? feeAmount,
+    String? directorId,
+    List<String> deputyDirectorIds,
+    String? secretaryId,
+    String? treasurerId,
+    String? secretaryTreasurerId,
   });
 
   Future<EnrollmentModel?> getCurrentEnrollment({
@@ -21,9 +35,19 @@ abstract class EnrollmentRemoteDataSource {
   Future<EnrollmentModel> updateEnrollment({
     required String clubId,
     required int sectionId,
-    required int enrollmentId,
+    required String enrollmentId,
     String? address,
-    List<String>? meetingDays,
+    double? lat,
+    double? long,
+    List<MeetingSchedule>? meetingSchedule,
+    int? soulsTarget,
+    bool? fee,
+    double? feeAmount,
+    String? directorId,
+    List<String>? deputyDirectorIds,
+    String? secretaryId,
+    String? treasurerId,
+    String? secretaryTreasurerId,
   });
 }
 
@@ -53,22 +77,85 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
     return {};
   }
 
+  /// Construye el payload para crear/actualizar una inscripción.
+  ///
+  /// meeting_schedule se serializa como JSON string para backward compatibility
+  /// con el backend actual que espera meeting_days como String.
+  /// Cuando el backend actualice el DTO, se puede enviar directo como lista.
+  Map<String, dynamic> _buildPayload({
+    required String address,
+    double? lat,
+    double? long,
+    required List<MeetingSchedule> meetingSchedule,
+    int? soulsTarget,
+    bool? fee,
+    double? feeAmount,
+    String? directorId,
+    List<String>? deputyDirectorIds,
+    String? secretaryId,
+    String? treasurerId,
+    String? secretaryTreasurerId,
+  }) {
+    final daysList = meetingSchedule.map((s) => s.day).toList();
+    final scheduleJson = meetingSchedule.map((s) => s.toJson()).toList();
+
+    return {
+      'address': address,
+      // Legacy field: plain day names for current backend
+      'meeting_days': daysList.join(', '),
+      // Extended field: structured schedule (ignored by current backend, ready for upgrade)
+      'meeting_schedule': jsonEncode(scheduleJson),
+      if (lat != null) 'lat': lat,
+      if (long != null) 'long': long,
+      if (soulsTarget != null) 'souls_target': soulsTarget,
+      if (fee != null) 'fee': fee,
+      if (feeAmount != null) 'fee_amount': feeAmount,
+      if (directorId != null) 'director_id': directorId,
+      if (deputyDirectorIds != null && deputyDirectorIds.isNotEmpty)
+        'deputy_director_ids': deputyDirectorIds,
+      if (secretaryId != null) 'secretary_id': secretaryId,
+      if (treasurerId != null) 'treasurer_id': treasurerId,
+      if (secretaryTreasurerId != null)
+        'secretary_treasurer_id': secretaryTreasurerId,
+    };
+  }
+
   @override
   Future<EnrollmentModel> createEnrollment({
     required String clubId,
     required int sectionId,
     required String address,
-    required List<String> meetingDays,
+    double? lat,
+    double? long,
+    required List<MeetingSchedule> meetingSchedule,
+    int? soulsTarget,
+    bool? fee,
+    double? feeAmount,
+    String? directorId,
+    List<String> deputyDirectorIds = const [],
+    String? secretaryId,
+    String? treasurerId,
+    String? secretaryTreasurerId,
   }) async {
     try {
       AppLogger.i('Creando inscripción en sección $sectionId', tag: _tag);
 
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/enrollments',
-        data: {
-          'address': address,
-          'meeting_days': meetingDays,
-        },
+        data: _buildPayload(
+          address: address,
+          lat: lat,
+          long: long,
+          meetingSchedule: meetingSchedule,
+          soulsTarget: soulsTarget,
+          fee: fee,
+          feeAmount: feeAmount,
+          directorId: directorId,
+          deputyDirectorIds: deputyDirectorIds,
+          secretaryId: secretaryId,
+          treasurerId: treasurerId,
+          secretaryTreasurerId: secretaryTreasurerId,
+        ),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -117,7 +204,6 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
         code: response.statusCode,
       );
     } on DioException catch (e) {
-      // 404 = no hay inscripción activa
       if (e.response?.statusCode == 404) return null;
       AppLogger.e('DioException en getCurrentEnrollment', tag: _tag, error: e);
       throw ServerException(
@@ -135,16 +221,45 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
   Future<EnrollmentModel> updateEnrollment({
     required String clubId,
     required int sectionId,
-    required int enrollmentId,
+    required String enrollmentId,
     String? address,
-    List<String>? meetingDays,
+    double? lat,
+    double? long,
+    List<MeetingSchedule>? meetingSchedule,
+    int? soulsTarget,
+    bool? fee,
+    double? feeAmount,
+    String? directorId,
+    List<String>? deputyDirectorIds,
+    String? secretaryId,
+    String? treasurerId,
+    String? secretaryTreasurerId,
   }) async {
     try {
       AppLogger.i('Actualizando inscripción $enrollmentId', tag: _tag);
 
       final data = <String, dynamic>{};
-      if (address != null) data['address'] = address;
-      if (meetingDays != null) data['meeting_days'] = meetingDays;
+      if (address != null) {
+        data['address'] = address;
+        if (lat != null) data['lat'] = lat;
+        if (long != null) data['long'] = long;
+      }
+      if (meetingSchedule != null) {
+        data['meeting_days'] =
+            meetingSchedule.map((s) => s.day).join(', ');
+        data['meeting_schedule'] =
+            jsonEncode(meetingSchedule.map((s) => s.toJson()).toList());
+      }
+      if (soulsTarget != null) data['souls_target'] = soulsTarget;
+      if (fee != null) data['fee'] = fee;
+      if (feeAmount != null) data['fee_amount'] = feeAmount;
+      if (directorId != null) data['director_id'] = directorId;
+      if (deputyDirectorIds != null) data['deputy_director_ids'] = deputyDirectorIds;
+      if (secretaryId != null) data['secretary_id'] = secretaryId;
+      if (treasurerId != null) data['treasurer_id'] = treasurerId;
+      if (secretaryTreasurerId != null) {
+        data['secretary_treasurer_id'] = secretaryTreasurerId;
+      }
 
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/enrollments/$enrollmentId',

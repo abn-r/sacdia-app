@@ -22,14 +22,34 @@ class EnrollmentRepositoryImpl implements EnrollmentRepository {
     required String clubId,
     required int sectionId,
     required String address,
-    required List<String> meetingDays,
+    double? lat,
+    double? long,
+    required List<MeetingSchedule> meetingSchedule,
+    int? soulsTarget,
+    bool? fee,
+    double? feeAmount,
+    String? directorId,
+    List<String> deputyDirectorIds = const [],
+    String? secretaryId,
+    String? treasurerId,
+    String? secretaryTreasurerId,
   }) async {
     try {
       final model = await _remoteDataSource.createEnrollment(
         clubId: clubId,
         sectionId: sectionId,
         address: address,
-        meetingDays: meetingDays,
+        lat: lat,
+        long: long,
+        meetingSchedule: meetingSchedule,
+        soulsTarget: soulsTarget,
+        fee: fee,
+        feeAmount: feeAmount,
+        directorId: directorId,
+        deputyDirectorIds: deputyDirectorIds,
+        secretaryId: secretaryId,
+        treasurerId: treasurerId,
+        secretaryTreasurerId: secretaryTreasurerId,
       );
       return Right(model);
     } on AuthException catch (e) {
@@ -65,9 +85,19 @@ class EnrollmentRepositoryImpl implements EnrollmentRepository {
   Future<Either<Failure, Enrollment>> updateEnrollment({
     required String clubId,
     required int sectionId,
-    required int enrollmentId,
+    required String enrollmentId,
     String? address,
-    List<String>? meetingDays,
+    double? lat,
+    double? long,
+    List<MeetingSchedule>? meetingSchedule,
+    int? soulsTarget,
+    bool? fee,
+    double? feeAmount,
+    String? directorId,
+    List<String>? deputyDirectorIds,
+    String? secretaryId,
+    String? treasurerId,
+    String? secretaryTreasurerId,
   }) async {
     try {
       final model = await _remoteDataSource.updateEnrollment(
@@ -75,7 +105,17 @@ class EnrollmentRepositoryImpl implements EnrollmentRepository {
         sectionId: sectionId,
         enrollmentId: enrollmentId,
         address: address,
-        meetingDays: meetingDays,
+        lat: lat,
+        long: long,
+        meetingSchedule: meetingSchedule,
+        soulsTarget: soulsTarget,
+        fee: fee,
+        feeAmount: feeAmount,
+        directorId: directorId,
+        deputyDirectorIds: deputyDirectorIds,
+        secretaryId: secretaryId,
+        treasurerId: treasurerId,
+        secretaryTreasurerId: secretaryTreasurerId,
       );
       return Right(model);
     } on AuthException catch (e) {

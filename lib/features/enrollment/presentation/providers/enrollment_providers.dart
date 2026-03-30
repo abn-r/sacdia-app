@@ -61,7 +61,7 @@ final currentEnrollmentProvider =
   );
 });
 
-// ── Create / Update notifier ──────────────────────────────────────────────────
+// ── Form state ────────────────────────────────────────────────────────────────
 
 class EnrollmentFormState {
   final bool isLoading;
@@ -88,6 +88,8 @@ class EnrollmentFormState {
   }
 }
 
+// ── Create / Update notifier ──────────────────────────────────────────────────
+
 class EnrollmentFormNotifier
     extends AutoDisposeNotifier<EnrollmentFormState> {
   @override
@@ -97,7 +99,17 @@ class EnrollmentFormNotifier
     required String clubId,
     required int sectionId,
     required String address,
-    required List<String> meetingDays,
+    double? lat,
+    double? long,
+    required List<MeetingSchedule> meetingSchedule,
+    int? soulsTarget,
+    bool? fee,
+    double? feeAmount,
+    String? directorId,
+    List<String> deputyDirectorIds = const [],
+    String? secretaryId,
+    String? treasurerId,
+    String? secretaryTreasurerId,
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
@@ -107,7 +119,17 @@ class EnrollmentFormNotifier
         clubId: clubId,
         sectionId: sectionId,
         address: address,
-        meetingDays: meetingDays,
+        lat: lat,
+        long: long,
+        meetingSchedule: meetingSchedule,
+        soulsTarget: soulsTarget,
+        fee: fee,
+        feeAmount: feeAmount,
+        directorId: directorId,
+        deputyDirectorIds: deputyDirectorIds,
+        secretaryId: secretaryId,
+        treasurerId: treasurerId,
+        secretaryTreasurerId: secretaryTreasurerId,
       ),
     );
 
@@ -118,7 +140,6 @@ class EnrollmentFormNotifier
       },
       (enrollment) {
         state = state.copyWith(isLoading: false, result: enrollment);
-        // Invalidate so the card refreshes after creation
         ref.invalidate(currentEnrollmentProvider);
         return true;
       },
@@ -128,9 +149,19 @@ class EnrollmentFormNotifier
   Future<bool> update({
     required String clubId,
     required int sectionId,
-    required int enrollmentId,
+    required String enrollmentId,
     String? address,
-    List<String>? meetingDays,
+    double? lat,
+    double? long,
+    List<MeetingSchedule>? meetingSchedule,
+    int? soulsTarget,
+    bool? fee,
+    double? feeAmount,
+    String? directorId,
+    List<String>? deputyDirectorIds,
+    String? secretaryId,
+    String? treasurerId,
+    String? secretaryTreasurerId,
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
@@ -140,7 +171,17 @@ class EnrollmentFormNotifier
       sectionId: sectionId,
       enrollmentId: enrollmentId,
       address: address,
-      meetingDays: meetingDays,
+      lat: lat,
+      long: long,
+      meetingSchedule: meetingSchedule,
+      soulsTarget: soulsTarget,
+      fee: fee,
+      feeAmount: feeAmount,
+      directorId: directorId,
+      deputyDirectorIds: deputyDirectorIds,
+      secretaryId: secretaryId,
+      treasurerId: treasurerId,
+      secretaryTreasurerId: secretaryTreasurerId,
     );
 
     return result.fold(
