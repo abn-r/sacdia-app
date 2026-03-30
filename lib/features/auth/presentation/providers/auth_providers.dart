@@ -123,7 +123,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
     return result.fold(
       (failure) {
-        if (failure is NetworkFailure || failure is ServerFailure) {
+        if (failure is NetworkFailure) {
           AppLogger.w('Sin conectividad, intentando caché', tag: _tag);
           if (cachedId != null && cachedEmail != null) {
             AppLogger.i('Sesión restaurada desde caché', tag: _tag);
@@ -153,21 +153,10 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
           ref.read(pushNotificationServiceProvider).initialize();
           return user;
         }
-        AppLogger.w('Servidor respondió sin usuario, intentando caché',
+        // Server responded but returned no user — session is invalid.
+        // Do NOT restore from cache: the server explicitly rejected the token.
+        AppLogger.w('Servidor respondió sin usuario, redirigiendo a login',
             tag: _tag);
-        if (cachedId != null && cachedEmail != null) {
-          AppLogger.i('Sesión restaurada desde caché', tag: _tag);
-          ref.read(pushNotificationServiceProvider).initialize();
-          return UserEntity(
-            id: cachedId,
-            email: cachedEmail,
-            name: cachedName,
-            avatar: cachedAvatar,
-            postRegisterComplete:
-                prefs.getBool('cached_post_register_complete') ?? false,
-          );
-        }
-        AppLogger.i('Sin caché, redirigiendo a login', tag: _tag);
         return null;
       },
     );
@@ -465,6 +454,27 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         return null;
       },
     );
+  }
+
+  /// Called by AuthInterceptor when the refresh token is dead.
+  ///
+  /// Clears all local tokens and cached PII then sets state to null so
+  /// GoRouter redirects to login. Does NOT make any API calls (logout
+  /// endpoint, FCM unregister) because the tokens are already invalid.
+  void expireSession() {
+    AppLogger.w('Sesión expirada por interceptor, limpiando estado local', tag: _tag);
+
+    final secureStorage = ref.read(secureStorageProvider);
+    secureStorage.delete('cached_user_id');
+    secureStorage.delete('cached_user_email');
+    secureStorage.delete('cached_user_name');
+    secureStorage.delete('cached_user_avatar');
+    secureStorage.delete('cached_post_register_complete');
+
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.remove('cached_post_register_complete');
+
+    state = const AsyncValue.data(null);
   }
 
   /// Cerrar sesión

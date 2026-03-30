@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../constants/app_constants.dart';
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/logger_interceptor.dart';
@@ -16,7 +17,7 @@ import 'interceptors/error_interceptor.dart';
 /// validation. Revisit certificate pinning if the backend moves to a
 /// dedicated host with a stable certificate or uses a public-key pin.
 class DioClient {
-  static Dio createDio() {
+  static Dio createDio({VoidCallback? onAuthExpired}) {
     final dio = Dio(BaseOptions(
       baseUrl: AppConstants.baseUrl,
       connectTimeout: Duration(seconds: AppConstants.connectTimeout),
@@ -36,7 +37,7 @@ class DioClient {
       // AuthInterceptor ANTES de ErrorInterceptor: Dio procesa onError en
       // orden forward (0→1→2→3), así AuthInterceptor intercepta el 401 y
       // refresca el token antes de que ErrorInterceptor lance AuthException.
-      AuthInterceptor(dio: dio),
+      AuthInterceptor(dio: dio, onAuthExpired: onAuthExpired),
       ErrorInterceptor(),
       // RetryInterceptor después de AuthInterceptor para que los reintentos
       // incluyan los headers de autenticación actualizados.

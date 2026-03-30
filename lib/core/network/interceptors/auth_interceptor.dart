@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../constants/app_constants.dart';
@@ -49,11 +50,16 @@ class AuthInterceptor extends QueuedInterceptor {
     '/auth/reset-password',
   ];
 
+  /// Called once when the refresh token is dead and the session cannot be
+  /// recovered. Use this to invalidate the auth state without making API calls.
+  final VoidCallback? onAuthExpired;
+
   AuthInterceptor({
     FlutterSecureStorage? secureStorage,
     /// La instancia principal de Dio (con interceptores). Se mantiene para
     /// reintentar la petición original después del refresh.
     Dio? dio,
+    this.onAuthExpired,
   })  : _secureStorage = secureStorage ?? const FlutterSecureStorage(
           aOptions: AndroidOptions(encryptedSharedPreferences: true),
           iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device),
@@ -128,6 +134,7 @@ class AuthInterceptor extends QueuedInterceptor {
           'Refresh/retry fallido en segundo intento, descartando sesión',
           tag: _tag);
       await _clearTokens();
+      onAuthExpired?.call();
       return handler.next(err);
     }
 
@@ -138,6 +145,7 @@ class AuthInterceptor extends QueuedInterceptor {
     if (!refreshed) {
       AppLogger.w('Refresh reactivo fallido, limpiando tokens', tag: _tag);
       await _clearTokens();
+      onAuthExpired?.call();
       return handler.next(err);
     }
 
