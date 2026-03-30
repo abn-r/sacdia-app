@@ -89,8 +89,6 @@ class _LocationPickerViewState extends State<LocationPickerView> {
   String _resolvedAddress = 'Cargando dirección...';
   bool _isResolvingAddress = false;
 
-  /// Temporizador para evitar llamadas excesivas a geocoding mientras
-  /// el usuario arrastra el mapa.
   Timer? _geocodeDebounce;
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -102,15 +100,12 @@ class _LocationPickerViewState extends State<LocationPickerView> {
         const LatLng(MapsConstants.defaultLat, MapsConstants.defaultLong);
 
     if (widget.initialLocation == null) {
-      // Sin ubicación previa → intentar centrar en ubicación del usuario
       _moveToUserLocation();
     } else {
       _resolveAddressForLatLng(_currentCenter);
     }
   }
 
-  /// Obtiene la ubicación del usuario y mueve la cámara ahí.
-  /// Si falla (permisos, GPS off, timeout), usa la ubicación por defecto.
   Future<void> _moveToUserLocation() async {
     try {
       LocationPermission permission = await Geolocator.checkPermission();
@@ -135,7 +130,6 @@ class _LocationPickerViewState extends State<LocationPickerView> {
       final userLatLng = LatLng(position.latitude, position.longitude);
       setState(() => _currentCenter = userLatLng);
 
-      // Mover cámara cuando el controller esté listo
       final controller = await _mapCompleter.future;
       controller.animateCamera(
         CameraUpdate.newLatLng(userLatLng),
