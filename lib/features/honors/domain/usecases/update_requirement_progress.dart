@@ -18,12 +18,13 @@ class UpdateRequirementProgress
   Future<Either<Failure, List<UserHonorRequirementProgress>>> call(
       UpdateRequirementProgressParams params) async {
     return await repository.bulkUpdateRequirementProgress(
-        params.honorId, params.updates);
+        params.userId, params.honorId, params.updates);
   }
 }
 
 /// Parámetros para actualizar el progreso de requisitos en batch
 class UpdateRequirementProgressParams {
+  final String userId;
   final int honorId;
 
   /// Lista de actualizaciones. Cada mapa debe tener:
@@ -33,6 +34,7 @@ class UpdateRequirementProgressParams {
   final List<Map<String, dynamic>> updates;
 
   const UpdateRequirementProgressParams({
+    required this.userId,
     required this.honorId,
     required this.updates,
   });

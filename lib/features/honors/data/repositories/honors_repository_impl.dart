@@ -240,11 +240,12 @@ class HonorsRepositoryImpl implements HonorsRepository {
 
   @override
   Future<Either<Failure, List<UserHonorRequirementProgress>>> bulkUpdateRequirementProgress(
+      String userId,
       int honorId,
       List<Map<String, dynamic>> updates) async {
     try {
       final models = await remoteDataSource.bulkUpdateRequirementProgress(
-          honorId, updates);
+          userId, honorId, updates);
       final entities = models.map((m) => m.toEntity()).toList();
       return Right(entities);
     } on ServerException catch (e) {

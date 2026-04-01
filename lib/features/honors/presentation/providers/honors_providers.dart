@@ -316,37 +316,41 @@ final filteredHonorsProvider =
 
 /// Combines catalog honors with user honors to determine display status.
 /// Returns a list of tuples: (Honor, UserHonor?) for rendering cards.
-final honorsWithStatusProvider =
-    FutureProvider.autoDispose<List<({Honor honor, UserHonor? userHonor})>>(
-        (ref) async {
-  // filteredHonorsProvider is a Provider<AsyncValue<List<Honor>>>, a
-  // synchronous derivation of allHonorsProvider. We await allHonorsProvider
-  // first so this FutureProvider stays in loading state while the network
-  // request is in flight, then apply the in-memory filter from
-  // filteredHonorsProvider (which is already computed at this point).
-  await ref.watch(allHonorsProvider.future);
-
-  // At this point allHonorsProvider has resolved, so filteredHonorsProvider
-  // is guaranteed to hold AsyncValue.data. If it somehow carries an error
-  // (shouldn't happen, but defensive), re-throw it.
+///
+/// Synchronous derivation: filters and search changes do NOT trigger loading
+/// states or network requests — they re-compute locally from already-fetched
+/// data. The provider passes through AsyncValue states from its upstream
+/// dependencies (allHonorsProvider, userHonorsProvider) so the UI shows
+/// loading/error only during the initial fetch.
+final honorsWithStatusProvider = Provider.autoDispose<
+    AsyncValue<List<({Honor honor, UserHonor? userHonor})>>>((ref) {
   final filteredAsync = ref.watch(filteredHonorsProvider);
-  final honors = filteredAsync.when(
-    data: (list) => list,
-    loading: () => <Honor>[],       // unreachable after awaiting allHonors
-    error: (err, st) => throw err,
-  );
+  final userHonorsAsync = ref.watch(userHonorsProvider);
 
-  // Fix 3: await the future so we never flash an empty list while
-  // userHonorsProvider is still loading.
-  final userHonors = await ref.watch(userHonorsProvider.future);
+  // If either upstream is loading or errored, propagate that state
+  if (filteredAsync is AsyncLoading || userHonorsAsync is AsyncLoading) {
+    return const AsyncValue.loading();
+  }
+  if (filteredAsync is AsyncError) {
+    return AsyncValue.error(
+        (filteredAsync as AsyncError).error, StackTrace.current);
+  }
+  if (userHonorsAsync is AsyncError) {
+    return AsyncValue.error(userHonorsAsync.error!, userHonorsAsync.stackTrace!);
+  }
 
-  return honors.map((honor) {
+  final honors = filteredAsync.valueOrNull ?? [];
+  final userHonors = userHonorsAsync.valueOrNull ?? [];
+
+  final result = honors.map((honor) {
     final uh = userHonors.cast<UserHonor?>().firstWhere(
           (u) => u!.honorId == honor.id,
           orElse: () => null,
         );
     return (honor: honor, userHonor: uh);
   }).toList();
+
+  return AsyncValue.data(result);
 });
 
 // ── Requirements providers ─────────────────────────────────────────────────
@@ -439,8 +443,15 @@ class RequirementProgressNotifier
   Future<bool> bulkUpdate(List<Map<String, dynamic>> updates) async {
     state = const AsyncValue.loading();
 
+    final userId = ref.read(authNotifierProvider).valueOrNull?.id;
+    if (userId == null) {
+      state = AsyncValue.error('Usuario no autenticado', StackTrace.current);
+      return false;
+    }
+
     final result = await ref.read(updateRequirementProgressProvider)(
       UpdateRequirementProgressParams(
+        userId: userId,
         honorId: arg,
         updates: updates,
       ),

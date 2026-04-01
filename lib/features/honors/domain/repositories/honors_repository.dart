@@ -69,6 +69,7 @@ abstract class HonorsRepository {
   /// Actualiza el progreso de múltiples requisitos en una sola operación.
   /// [updates] es una lista de mapas con requirementId, completed y notes opcional.
   Future<Either<Failure, List<UserHonorRequirementProgress>>> bulkUpdateRequirementProgress(
+      String userId,
       int honorId,
       List<Map<String, dynamic>> updates);
 }

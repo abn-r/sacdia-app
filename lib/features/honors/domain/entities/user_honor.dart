@@ -28,6 +28,7 @@ class UserHonor extends Equatable {
   final String? honorName;
   final String? honorImageUrl;
   final String? honorCategoryName;
+  final int? honorCategoryId;
   final int? honorSkillLevel;
 
   const UserHonor({
@@ -48,6 +49,7 @@ class UserHonor extends Equatable {
     this.honorName,
     this.honorImageUrl,
     this.honorCategoryName,
+    this.honorCategoryId,
     this.honorSkillLevel,
   });
 
@@ -55,7 +57,7 @@ class UserHonor extends Equatable {
 
   /// Display status combines backend validation_status with evidence presence.
   /// Backend stores: in_progress | pending_review | approved | rejected (lowercase or uppercase).
-  /// Display adds: inscripto (in_progress + no evidence) vs en_progreso (in_progress + evidence)
+  /// Display adds: inscrito (in_progress + no evidence) vs en_progreso (in_progress + evidence)
   String get displayStatus {
     final vs = validationStatus.toUpperCase();
     if (vs == 'APPROVED') return 'validado';
@@ -65,7 +67,7 @@ class UserHonor extends Equatable {
     if (images.isNotEmpty || (document != null && document!.isNotEmpty)) {
       return 'en_progreso';
     }
-    return 'inscripto';
+    return 'inscrito';
   }
 
   /// Color for the current display status (use for border-left, badges, headers).
@@ -78,7 +80,7 @@ class UserHonor extends Equatable {
       case 'en_progreso':
       case 'rechazado':
         return AppColors.sacRed;
-      case 'inscripto':
+      case 'inscrito':
         return AppColors.sacBlue;
       default:
         return AppColors.sacGrey;
@@ -96,7 +98,7 @@ class UserHonor extends Equatable {
         return 'En progreso';
       case 'rechazado':
         return 'Rechazada';
-      case 'inscripto':
+      case 'inscrito':
         return 'Inscrito — sin evidencia';
       default:
         return 'Disponible';
@@ -145,6 +147,7 @@ class UserHonor extends Equatable {
         honorName,
         honorImageUrl,
         honorCategoryName,
+        honorCategoryId,
         honorSkillLevel,
       ];
 }

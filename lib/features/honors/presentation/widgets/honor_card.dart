@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor.dart';
@@ -9,7 +10,7 @@ import '../../domain/entities/user_honor.dart';
 ///
 /// Renders all 6 states:
 /// - Available (not enrolled): no border-left, chevron-right
-/// - Inscripto: blue border-left, "inscrita — sin evidencia"
+/// - inscrito: blue border-left, "inscrita — sin evidencia"
 /// - En progreso: red border-left, "En progreso"
 /// - Enviado: yellow border-left, "Enviada — en revision"
 /// - Validado: green border-left, gold star badge
@@ -66,7 +67,7 @@ class HonorCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: Ink(
             decoration: BoxDecoration(
-              color: const Color(0xFFFAFBFB),
+              color: context.sac.surface,
               borderRadius: BorderRadius.circular(12),
             ),
             child: ClipRRect(
@@ -112,10 +113,10 @@ class HonorCard extends StatelessWidget {
                                 children: [
                                   Text(
                                     honor.name,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
-                                      color: AppColors.sacBlack,
+                                      color: context.sac.text,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -124,7 +125,9 @@ class HonorCard extends StatelessWidget {
                                       _displayStatus != null) ...[
                                     const SizedBox(height: 3),
                                     Text(
-                                      userHonor!.statusLabel,
+                                      _isCompleted
+                                          ? 'Completada ✓'
+                                          : userHonor!.statusLabel,
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: _statusColor,
@@ -200,54 +203,78 @@ class HonorCard extends StatelessWidget {
   }
 
   Widget _buildIconArea() {
-    if (_isCompleted) {
-      // Validado: solid green with white checkmark
-      return Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: AppColors.sacGreen,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Icon(
-          Icons.check_rounded,
-          color: Colors.white,
-          size: 24,
-        ),
-      );
-    }
+    // Oval dimensions: wider than tall (eye/patch shape)
+    const double iconWidth = 58.0;
+    const double iconHeight = 44.0;
+    final borderRadius = BorderRadius.all(
+      Radius.elliptical(iconWidth / 2, iconHeight / 2),
+    );
 
-    // Enrolled states: light tinted background with honor image
-    // Available: #F0F4F5 background with honor image
-    final bgColor = _isEnrolled
-        ? _statusColor!.withAlpha(25)
-        : const Color(0xFFF0F4F5);
-
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: honor.imageUrl != null && honor.imageUrl!.isNotEmpty
-          ? Padding(
-              padding: const EdgeInsets.all(2),
+    // Always show the honor image, with a check overlay when completed
+    final imageWidget = honor.imageUrl != null && honor.imageUrl!.isNotEmpty
+        ? ClipRRect(
+            borderRadius: borderRadius,
+            child: SizedBox(
+              width: iconWidth,
+              height: iconHeight,
               child: CachedNetworkImage(
                 imageUrl: honor.imageUrl!,
-                fit: BoxFit.contain,
-                errorWidget: (_, __, ___) => Icon(
-                  Icons.emoji_events_outlined,
-                  color: _statusColor ?? AppColors.sacGrey,
-                  size: 22,
+                fit: BoxFit.cover,
+                errorWidget: (_, __, ___) => Container(
+                  color: const Color(0xFFF0F4F5),
+                  child: Icon(
+                    Icons.emoji_events_outlined,
+                    color: _statusColor ?? AppColors.sacGrey,
+                    size: 24,
+                  ),
                 ),
               ),
-            )
-          : Icon(
+            ),
+          )
+        : Container(
+            width: iconWidth,
+            height: iconHeight,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F4F5),
+              borderRadius: borderRadius,
+            ),
+            child: Icon(
               Icons.emoji_events_outlined,
               color: _statusColor ?? AppColors.sacGrey,
-              size: 22,
+              size: 24,
             ),
+          );
+
+    if (!_isCompleted) return imageWidget;
+
+    // Completed: show image with a small green check badge overlay
+    return SizedBox(
+      width: iconWidth + 4,
+      height: iconHeight + 4,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Center(child: imageWidget),
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              width: 18,
+              height: 18,
+              decoration: BoxDecoration(
+                color: AppColors.sacGreen,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 1.5),
+              ),
+              child: const Icon(
+                Icons.check_rounded,
+                color: Colors.white,
+                size: 11,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

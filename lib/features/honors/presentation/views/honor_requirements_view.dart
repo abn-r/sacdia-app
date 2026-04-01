@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_requirement.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor_requirement_progress.dart';
+import 'package:sacdia_app/features/honors/domain/utils/honor_category_colors.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 
 // ── Local state helpers ───────────────────────────────────────────────────────
@@ -158,6 +159,14 @@ class _HonorRequirementsViewState
   }
 
   Future<void> _saveChanges(List<HonorRequirement> requirements) async {
+    // Resolve category color here for use in the SnackBar.
+    final honor = ref
+        .read(allHonorsProvider)
+        .valueOrNull
+        ?.where((h) => h.id == widget.honorId)
+        .firstOrNull;
+    final categoryColor = getCategoryColor(categoryId: honor?.categoryId);
+
     setState(() => _saving = true);
 
     final updates = <Map<String, dynamic>>[];
@@ -195,7 +204,7 @@ class _HonorRequirementsViewState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Progreso guardado correctamente'),
-          backgroundColor: AppColors.sacGreen,
+          backgroundColor: categoryColor,
           behavior: SnackBarBehavior.floating,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -214,6 +223,13 @@ class _HonorRequirementsViewState
     final progressAsync =
         ref.watch(userHonorProgressProvider(widget.honorId));
 
+    // Resolve the category color from the honor entity.
+    final honorsAsync = ref.watch(allHonorsProvider);
+    final honor = honorsAsync.valueOrNull
+        ?.where((h) => h.id == widget.honorId)
+        .firstOrNull;
+    final categoryColor = getCategoryColor(categoryId: honor?.categoryId);
+
     return PopScope(
       canPop: !_hasUnsavedChanges,
       onPopInvokedWithResult: (didPop, result) async {
@@ -223,7 +239,7 @@ class _HonorRequirementsViewState
           builder: (ctx) => AlertDialog(
             title: const Text('Cambios sin guardar'),
             content: const Text(
-              'Tenés cambios sin guardar. ¿Seguro que querés salir?',
+              'Tienes cambios sin guardar. ¿Seguro que quieres salir?',
             ),
             actions: [
               TextButton(
@@ -247,7 +263,10 @@ class _HonorRequirementsViewState
         backgroundColor: context.sac.background,
         body: Column(
           children: [
-            _DarkHeader(honorName: widget.honorName),
+            _DarkHeader(
+              honorName: widget.honorName,
+              categoryColor: categoryColor,
+            ),
 
             // ── Body ─────────────────────────────────────────────
             Expanded(
@@ -289,6 +308,7 @@ class _HonorRequirementsViewState
                           _ProgressSection(
                             completed: displayCompleted,
                             total: totalRequirements,
+                            categoryColor: categoryColor,
                           ),
 
                           // Requirements list
@@ -312,6 +332,7 @@ class _HonorRequirementsViewState
                                   requirement: req,
                                   state: state,
                                   controller: _controllers[req.id],
+                                  categoryColor: categoryColor,
                                   onToggle: () => _toggleRequirement(req.id),
                                   onToggleExpand: () => _toggleExpand(req.id),
                                   onToggleNotes: () => _toggleNotes(req.id),
@@ -324,6 +345,7 @@ class _HonorRequirementsViewState
                           _SaveBar(
                             hasChanges: _hasUnsavedChanges,
                             saving: _saving,
+                            categoryColor: categoryColor,
                             onSave: () => _saveChanges(requirements),
                           ),
                         ],
@@ -344,13 +366,17 @@ class _HonorRequirementsViewState
 
 class _DarkHeader extends StatelessWidget {
   final String honorName;
+  final Color categoryColor;
 
-  const _DarkHeader({required this.honorName});
+  const _DarkHeader({
+    required this.honorName,
+    required this.categoryColor,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.sacBlack,
+      color: categoryColor,
       child: SafeArea(
         bottom: false,
         child: Padding(
@@ -411,10 +437,12 @@ class _DarkHeader extends StatelessWidget {
 class _ProgressSection extends StatelessWidget {
   final int completed;
   final int total;
+  final Color categoryColor;
 
   const _ProgressSection({
     required this.completed,
     required this.total,
+    required this.categoryColor,
   });
 
   @override
@@ -441,10 +469,10 @@ class _ProgressSection extends StatelessWidget {
               ),
               Text(
                 '$percentage%',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.sacGreen,
+                  color: categoryColor,
                 ),
               ),
             ],
@@ -455,9 +483,8 @@ class _ProgressSection extends StatelessWidget {
             child: LinearProgressIndicator(
               value: fraction,
               minHeight: 8,
-              backgroundColor: AppColors.sacGreen.withValues(alpha: 0.15),
-              valueColor:
-                  const AlwaysStoppedAnimation<Color>(AppColors.sacGreen),
+              backgroundColor: categoryColor.withValues(alpha: 0.15),
+              valueColor: AlwaysStoppedAnimation<Color>(categoryColor),
             ),
           ),
         ],
@@ -472,6 +499,7 @@ class _RequirementRow extends StatelessWidget {
   final HonorRequirement requirement;
   final _RequirementState state;
   final TextEditingController? controller;
+  final Color categoryColor;
   final VoidCallback onToggle;
   final VoidCallback onToggleExpand;
   final VoidCallback onToggleNotes;
@@ -480,6 +508,7 @@ class _RequirementRow extends StatelessWidget {
     required this.requirement,
     required this.state,
     required this.controller,
+    required this.categoryColor,
     required this.onToggle,
     required this.onToggleExpand,
     required this.onToggleNotes,
@@ -503,11 +532,11 @@ class _RequirementRow extends StatelessWidget {
                 child: Checkbox(
                   value: state.completed,
                   onChanged: (_) => onToggle(),
-                  activeColor: AppColors.sacGreen,
+                  activeColor: categoryColor,
                   checkColor: Colors.white,
                   side: BorderSide(
                     color: state.completed
-                        ? AppColors.sacGreen
+                        ? categoryColor
                         : context.sac.border,
                     width: 1.5,
                   ),
@@ -573,10 +602,10 @@ class _RequirementRow extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 4),
                           child: Text(
                             state.expanded ? 'Ver menos' : 'Ver mas',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.sacBlue,
+                              color: categoryColor,
                             ),
                           ),
                         ),
@@ -596,7 +625,7 @@ class _RequirementRow extends StatelessWidget {
                         : Icons.notes_outlined,
                     size: 18,
                     color: state.showNotes
-                        ? AppColors.sacBlue
+                        ? categoryColor
                         : context.sac.textTertiary,
                   ),
                 ),
@@ -634,8 +663,8 @@ class _RequirementRow extends StatelessWidget {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(
-                        color: AppColors.sacBlue, width: 1.5),
+                    borderSide: BorderSide(
+                        color: categoryColor, width: 1.5),
                   ),
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -662,11 +691,13 @@ class _RequirementRow extends StatelessWidget {
 class _SaveBar extends StatelessWidget {
   final bool hasChanges;
   final bool saving;
+  final Color categoryColor;
   final VoidCallback onSave;
 
   const _SaveBar({
     required this.hasChanges,
     required this.saving,
+    required this.categoryColor,
     required this.onSave,
   });
 
@@ -694,7 +725,7 @@ class _SaveBar extends StatelessWidget {
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor:
-                hasChanges ? AppColors.sacGreen : context.sac.surfaceVariant,
+                hasChanges ? categoryColor : context.sac.surfaceVariant,
             foregroundColor:
                 hasChanges ? Colors.white : context.sac.textTertiary,
             padding: const EdgeInsets.symmetric(vertical: 14),

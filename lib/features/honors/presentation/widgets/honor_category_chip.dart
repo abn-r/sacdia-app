@@ -1,25 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Horizontal category filter chip for the honors catalog.
 ///
 /// Active state: solid sacBlue background with white text.
-/// Inactive state: #F4F6F7 background with #64748B text.
+/// Inactive state: surfaceVariant background with textSecondary text (theme-aware).
 /// No icons, no emojis — text only per design spec.
 class HonorCategoryChip extends StatelessWidget {
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
+  final Color? activeColor;
 
   const HonorCategoryChip({
     super.key,
     required this.label,
     required this.isSelected,
     required this.onTap,
+    this.activeColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final chipColor = activeColor ?? AppColors.sacBlue;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -28,8 +32,8 @@ class HonorCategoryChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.sacBlue
-              : const Color(0xFFF4F6F7),
+              ? chipColor
+              : context.sac.surfaceVariant,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Text(
@@ -39,7 +43,7 @@ class HonorCategoryChip extends StatelessWidget {
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
             color: isSelected
                 ? Colors.white
-                : const Color(0xFF64748B),
+                : context.sac.textSecondary,
           ),
         ),
       ),

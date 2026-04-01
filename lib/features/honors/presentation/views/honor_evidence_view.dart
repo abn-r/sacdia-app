@@ -3,26 +3,38 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../domain/utils/honor_category_colors.dart';
+
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../validation/domain/entities/validation.dart';
-import '../../../validation/presentation/providers/validation_providers.dart';
+import '../../../validation/presentation/providers/validation_providers.dart'
+    show submitValidationProvider, SubmitValidationState;
 import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor.dart';
 import '../providers/honors_providers.dart';
 
+// ── Design tokens ─────────────────────────────────────────────────────────────
+
+const _kScreenPad = 20.0;
+const _kSectionGap = 16.0;
+const _kHeroHeight = 200.0;
+
 /// Evidence & progress screen for an enrolled honor.
 ///
-/// Header color adapts to validation status.
-/// Shows: status card, material download, evidence grid, action buttons.
+/// Minimalist gamified design (Duolingo-inspired) consistent with
+/// [HonorDetailView]. Category color drives the hero gradient accent;
+/// status is surfaced as a pill badge only.
 ///
 /// Integration with validation feature:
 /// - Uses [SubmitValidationNotifier] from `features/validation/` for submit
@@ -73,7 +85,11 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
       );
     }
 
-    // Find the honor catalog entry for metadata (name, image, materialUrl)
+    // Find the honor catalog entry for metadata (name, image, materialUrl).
+    // Watching allHonorsProvider triggers the fetch if not already loaded
+    // (e.g. when navigating from profile instead of catalog).
+    // The evidence view renders immediately with userHonor data;
+    // the material card appears once allHonorsProvider resolves.
     final honor = honorsAsync.maybeWhen(
       data: (honors) {
         try {
@@ -94,8 +110,8 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
           onAddEvidence: _showFilePickerOptions,
           onDeleteEvidence: (imageUrl) =>
               _deleteEvidenceFile(userHonor, imageUrl),
-          onViewEvidence: (imageUrl) =>
-              _openEvidenceFile(imageUrl),
+          onViewEvidence: _openEvidenceFile,
+          onOpenMaterial: _launchUrl,
         ),
         if (_isUploading)
           Container(
@@ -256,7 +272,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('No hay sesión activa'),
+            content: Text('No hay sesion activa'),
             backgroundColor: AppColors.sacRed,
           ),
         );
@@ -345,8 +361,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
 
   void _openEvidenceFile(String url) {
     final lower = url.toLowerCase();
-    final isPdf =
-        lower.endsWith('.pdf') || lower.contains('/pdf');
+    final isPdf = lower.endsWith('.pdf') || lower.contains('/pdf');
     if (isPdf) {
       _launchUrl(url);
     } else {
@@ -381,6 +396,7 @@ class _EvidenceBody extends StatelessWidget {
   final VoidCallback onAddEvidence;
   final void Function(String imageUrl) onDeleteEvidence;
   final void Function(String url) onViewEvidence;
+  final Future<void> Function(String url) onOpenMaterial;
 
   const _EvidenceBody({
     required this.userHonor,
@@ -389,152 +405,126 @@ class _EvidenceBody extends StatelessWidget {
     required this.onAddEvidence,
     required this.onDeleteEvidence,
     required this.onViewEvidence,
+    required this.onOpenMaterial,
   });
-
-  Color get _headerColor => userHonor.statusColor;
 
   @override
   Widget build(BuildContext context) {
+    final categoryColor = getCategoryColor(categoryId: honor?.categoryId);
+
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: CustomScrollView(
-        slivers: [
-          // ── Header ──────────────────────────────────────────────
-          SliverAppBar(
-            expandedHeight: 160,
-            pinned: true,
-            backgroundColor: _headerColor,
-            foregroundColor: Colors.white,
-            title: const Text(
-              'Mi especialidad',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                color: _headerColor,
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 56, 20, 16),
-                    child: Row(
-                      children: [
-                        // Honor icon
-                        Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withAlpha(38),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: honor?.imageUrl != null
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: CachedNetworkImage(
-                                    imageUrl: honor!.imageUrl!,
-                                    fit: BoxFit.contain,
-                                    errorWidget: (_, __, ___) => const Icon(
-                                      Icons.emoji_events_outlined,
-                                      color: Colors.white,
-                                      size: 28,
-                                    ),
-                                  ),
-                                )
-                              : const Icon(
-                                  Icons.emoji_events_outlined,
-                                  color: Colors.white,
-                                  size: 28,
-                                ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                honor?.name ??
-                                    userHonor.honorName ??
-                                    'Especialidad',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              // Status badge pill
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 3,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withAlpha(51),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  userHonor.statusLabel,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+      backgroundColor: context.sac.background,
+      body: Stack(
+        children: [
+          // ── Scrollable content ────────────────────────────────────
+          CustomScrollView(
+            slivers: [
+              // Hero SliverAppBar
+              SliverAppBar(
+                expandedHeight: _kHeroHeight,
+                pinned: true,
+                backgroundColor: categoryColor,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                leading: GestureDetector(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    context.pop();
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 18,
                     ),
                   ),
                 ),
+                // Category name or "Mi especialidad" as compact title
+                title: Text(
+                  'Mi especialidad',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                actions: [
+                  _StatusPill(status: userHonor.displayStatus),
+                  const SizedBox(width: 12),
+                ],
+                flexibleSpace: FlexibleSpaceBar(
+                  background: _HeroSection(
+                    honor: honor,
+                    userHonor: userHonor,
+                    categoryColor: categoryColor,
+                  ),
+                ),
               ),
-            ),
+
+              // ── Body cards ─────────────────────────────────────────
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: _kScreenPad,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 20),
+
+                      // Material download (only when URL available)
+                      if (honor?.materialUrl != null &&
+                          honor!.materialUrl!.isNotEmpty) ...[
+                        _MaterialCard(
+                          materialUrl: honor!.materialUrl!,
+                          categoryColor: categoryColor,
+                          onOpen: onOpenMaterial,
+                        ),
+                        const SizedBox(height: _kSectionGap),
+                      ],
+
+                      // Evidence section card
+                      _EvidenceSectionCard(
+                        userHonor: userHonor,
+                        categoryColor: categoryColor,
+                        onAddEvidence: onAddEvidence,
+                        onDeleteEvidence: onDeleteEvidence,
+                        onViewEvidence: onViewEvidence,
+                      ),
+                      const SizedBox(height: _kSectionGap),
+
+                      // Rejection card (only when rejected)
+                      if (userHonor.displayStatus == 'rechazado') ...[
+                        _RejectionCard(
+                          reason: userHonor.rejectionReason,
+                        ),
+                        const SizedBox(height: _kSectionGap),
+                      ],
+
+                      // Bottom clearance for floating CTA
+                      const SizedBox(height: 100),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
 
-          // ── Body ────────────────────────────────────────────────
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Status card
-                  _StatusMessageCard(userHonor: userHonor),
-                  const SizedBox(height: 20),
-
-                  // Material download (only when URL available)
-                  if (honor?.materialUrl != null &&
-                      honor!.materialUrl!.isNotEmpty) ...[
-                    _MaterialCard(
-                      materialUrl: honor!.materialUrl!,
-                      onOpen: onViewEvidence,
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-
-                  // Evidence section
-                  _EvidenceSection(
-                    userHonor: userHonor,
-                    onAddEvidence: onAddEvidence,
-                    onDeleteEvidence: onDeleteEvidence,
-                    onViewEvidence: onViewEvidence,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Action buttons (status-based)
-                  _ActionButtons(
-                    userHonor: userHonor,
-                    onSubmit: onSubmit,
-                    onAddEvidence: onAddEvidence,
-                  ),
-                ],
-              ),
+          // ── Floating CTA bar ──────────────────────────────────────
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: _BottomCtaBar(
+              userHonor: userHonor,
+              categoryColor: categoryColor,
+              onSubmit: onSubmit,
+              onAddEvidence: onAddEvidence,
             ),
           ),
         ],
@@ -543,75 +533,171 @@ class _EvidenceBody extends StatelessWidget {
   }
 }
 
-// ── Status Message Card ───────────────────────────────────────────────────────
+// ── Hero Section ───────────────────────────────────────────────────────────────
 
-class _StatusMessageCard extends StatelessWidget {
+class _HeroSection extends StatelessWidget {
+  final Honor? honor;
   final UserHonor userHonor;
+  final Color categoryColor;
 
-  const _StatusMessageCard({required this.userHonor});
+  const _HeroSection({
+    required this.honor,
+    required this.userHonor,
+    required this.categoryColor,
+  });
 
-  (IconData, String) get _statusContent {
-    switch (userHonor.displayStatus) {
-      case 'inscripto':
-        return (
-          Icons.info_outline_rounded,
-          'Descarga el material, completa las actividades con tu instructor y subi la evidencia',
-        );
-      case 'en_progreso':
-        return (
-          Icons.upload_file_rounded,
-          'Tienes evidencia cargada. Cuando estes listo, enviala a revision',
-        );
-      case 'enviado':
-        return (
-          Icons.hourglass_top_rounded,
-          'Tu evidencia fue enviada. Un coordinador la revisara pronto',
-        );
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            categoryColor,
+            categoryColor.withValues(alpha: 0.72),
+          ],
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              // Honor badge image — oval shape, no border
+              _HonorBadge(honor: honor),
+              const SizedBox(height: 12),
+
+              // Honor name
+              Text(
+                honor?.name ?? userHonor.honorName ?? 'Especialidad',
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
+                  height: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Honor Badge ────────────────────────────────────────────────────────────────
+
+class _HonorBadge extends StatelessWidget {
+  final Honor? honor;
+
+  const _HonorBadge({required this.honor});
+
+  @override
+  Widget build(BuildContext context) {
+    // Oval shape: 80w x 62h, no border, subtle shadow
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(Radius.elliptical(40, 31)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.20),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.all(Radius.elliptical(40, 31)),
+        child: SizedBox(
+          width: 80,
+          height: 62,
+          child: honor?.imageUrl != null && honor!.imageUrl!.isNotEmpty
+              ? CachedNetworkImage(
+                  imageUrl: honor!.imageUrl!,
+                  fit: BoxFit.contain,
+                  errorWidget: (_, __, ___) => Container(
+                    color: Colors.white.withValues(alpha: 0.20),
+                    child: const Icon(
+                      Icons.emoji_events_outlined,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
+                )
+              : Container(
+                  color: Colors.white.withValues(alpha: 0.20),
+                  child: const Icon(
+                    Icons.emoji_events_outlined,
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Status Pill ────────────────────────────────────────────────────────────────
+
+class _StatusPill extends StatelessWidget {
+  final String status;
+
+  const _StatusPill({required this.status});
+
+  Color _bgColor() {
+    switch (status) {
       case 'validado':
-        return (
-          Icons.check_circle_outline_rounded,
-          'Especialidad completada!',
-        );
+        return AppColors.sacGreen;
+      case 'enviado':
+        return AppColors.sacYellow;
       case 'rechazado':
-        return (
-          Icons.error_outline_rounded,
-          'Tu evidencia fue rechazada: ${userHonor.rejectionReason ?? "Sin motivo especificado"}. Podes corregir y reenviar',
-        );
+        return AppColors.sacRed;
+      case 'en_progreso':
+        return Colors.white.withValues(alpha: 0.30);
       default:
-        return (Icons.info_outline_rounded, '');
+        return Colors.white.withValues(alpha: 0.25);
+    }
+  }
+
+  String _label() {
+    switch (status) {
+      case 'validado':
+        return 'Validada';
+      case 'enviado':
+        return 'En revision';
+      case 'en_progreso':
+        return 'En progreso';
+      case 'rechazado':
+        return 'Rechazada';
+      default:
+        return 'Inscrita';
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final (icon, message) = _statusContent;
-
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: userHonor.statusColor.withAlpha(20),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: userHonor.statusColor.withAlpha(51),
-          width: 1,
-        ),
+        color: _bgColor(),
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: userHonor.statusColor, size: 22),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyle(
-                fontSize: 13,
-                height: 1.5,
-                color: userHonor.statusColor,
-              ),
-            ),
-          ),
-        ],
+      child: Text(
+        _label(),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.3,
+        ),
       ),
     );
   }
@@ -621,10 +707,12 @@ class _StatusMessageCard extends StatelessWidget {
 
 class _MaterialCard extends StatelessWidget {
   final String materialUrl;
-  final void Function(String url) onOpen;
+  final Color categoryColor;
+  final Future<void> Function(String url) onOpen;
 
   const _MaterialCard({
     required this.materialUrl,
+    required this.categoryColor,
     required this.onOpen,
   });
 
@@ -635,26 +723,34 @@ class _MaterialCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFFF0F8FF),
-          borderRadius: BorderRadius.circular(12),
+          color: context.sac.surface,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: context.sac.shadow,
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
+            // PDF icon in colored circle
             Container(
-              width: 40,
-              height: 40,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                color: AppColors.sacBlue,
-                borderRadius: BorderRadius.circular(10),
+                color: categoryColor.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.picture_as_pdf_rounded,
-                color: Colors.white,
+                color: categoryColor,
                 size: 22,
               ),
             ),
-            const SizedBox(width: 12),
-            const Expanded(
+            const SizedBox(width: 14),
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -663,23 +759,23 @@ class _MaterialCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.sacBlack,
+                      color: context.sac.text,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
                     'Descargar PDF',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF64748B),
+                      color: context.sac.textSecondary,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.download_rounded,
-              color: AppColors.sacBlue,
+              color: categoryColor,
               size: 22,
             ),
           ],
@@ -689,16 +785,18 @@ class _MaterialCard extends StatelessWidget {
   }
 }
 
-// ── Evidence Section ──────────────────────────────────────────────────────────
+// ── Evidence Section Card ─────────────────────────────────────────────────────
 
-class _EvidenceSection extends StatelessWidget {
+class _EvidenceSectionCard extends StatelessWidget {
   final UserHonor userHonor;
+  final Color categoryColor;
   final VoidCallback onAddEvidence;
   final void Function(String imageUrl) onDeleteEvidence;
   final void Function(String url) onViewEvidence;
 
-  const _EvidenceSection({
+  const _EvidenceSectionCard({
     required this.userHonor,
+    required this.categoryColor,
     required this.onAddEvidence,
     required this.onDeleteEvidence,
     required this.onViewEvidence,
@@ -706,101 +804,243 @@ class _EvidenceSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final canEdit = userHonor.canSubmit; // in_progress or rejected
-
-    // Total cells: images + optional add-button cell
+    // canEdit: user may add or delete evidence (in_progress or rejected)
+    final canEdit = userHonor.canSubmit;
     final showAddCell = canEdit && userHonor.evidenceCount < 10;
-    final itemCount = userHonor.images.length + (showAddCell ? 1 : 0);
+    final hasEvidence = userHonor.images.isNotEmpty;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Evidencia',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.sacBlack,
-              ),
-            ),
-            Text(
-              '${userHonor.evidenceCount}/10',
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xFF64748B),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-
-        // 3-column evidence grid
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-            childAspectRatio: 1,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.sac.surface,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: context.sac.shadow,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-          itemCount: itemCount,
-          itemBuilder: (context, index) {
-            // Last cell: add-evidence button
-            if (index == userHonor.images.length && showAddCell) {
-              return _AddEvidenceCell(onTap: onAddEvidence);
-            }
-
-            // Evidence thumbnail
-            final imageUrl = userHonor.images[index];
-            return _EvidenceThumbnail(
-              imageUrl: imageUrl,
-              canDelete: canEdit,
-              onDelete: () => onDeleteEvidence(imageUrl),
-              onTap: () => onViewEvidence(imageUrl),
-            );
-          },
-        ),
-
-        // Empty state when no evidence and can't add (e.g. enviado/validado)
-        if (itemCount == 0)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Column(
-              children: [
-                Icon(
-                  Icons.photo_library_outlined,
-                  color: Color(0xFF94A3B8),
-                  size: 32,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section header row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Evidencia',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: context.sac.text,
                 ),
-                SizedBox(height: 8),
-                Text(
-                  'Sin evidencia cargada',
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: categoryColor.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${userHonor.evidenceCount}/10',
                   style: TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF64748B),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: categoryColor,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-      ],
+          const SizedBox(height: 10),
+
+          // Grid or empty state
+          if (!hasEvidence && !showAddCell)
+            _EmptyEvidenceState(
+              categoryColor: categoryColor,
+              canAdd: false,
+              onAdd: onAddEvidence,
+            )
+          else if (!hasEvidence && showAddCell)
+            _EmptyEvidenceState(
+              categoryColor: categoryColor,
+              canAdd: true,
+              onAdd: onAddEvidence,
+            )
+          else
+            _EvidenceGrid(
+              images: userHonor.images,
+              showAddCell: showAddCell,
+              canDelete: canEdit,
+              categoryColor: categoryColor,
+              onAddEvidence: onAddEvidence,
+              onDeleteEvidence: onDeleteEvidence,
+              onViewEvidence: onViewEvidence,
+            ),
+        ],
+      ),
     );
   }
 }
 
+// ── Empty Evidence State ───────────────────────────────────────────────────────
+
+class _EmptyEvidenceState extends StatelessWidget {
+  final Color categoryColor;
+  final bool canAdd;
+  final VoidCallback onAdd;
+
+  const _EmptyEvidenceState({
+    required this.categoryColor,
+    required this.canAdd,
+    required this.onAdd,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 32),
+      decoration: BoxDecoration(
+        color: context.sac.surfaceVariant,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: context.sac.borderLight,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.photo_library_outlined,
+            color: context.sac.textTertiary,
+            size: 40,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Subi tu primera evidencia',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: context.sac.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Fotos, imagenes o documentos PDF',
+            style: TextStyle(
+              fontSize: 12,
+              color: context.sac.textTertiary,
+            ),
+          ),
+          if (canAdd) ...[
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: onAdd,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: categoryColor,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add_rounded, color: Colors.white, size: 18),
+                    SizedBox(width: 6),
+                    Text(
+                      'Agregar evidencia',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ── Evidence Grid ──────────────────────────────────────────────────────────────
+
+class _EvidenceGrid extends StatelessWidget {
+  final List<String> images;
+  final bool showAddCell;
+  final bool canDelete;
+  final Color categoryColor;
+  final VoidCallback onAddEvidence;
+  final void Function(String imageUrl) onDeleteEvidence;
+  final void Function(String url) onViewEvidence;
+
+  const _EvidenceGrid({
+    required this.images,
+    required this.showAddCell,
+    required this.canDelete,
+    required this.categoryColor,
+    required this.onAddEvidence,
+    required this.onDeleteEvidence,
+    required this.onViewEvidence,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final itemCount = images.length + (showAddCell ? 1 : 0);
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        childAspectRatio: 1,
+      ),
+      itemCount: itemCount,
+      itemBuilder: (context, index) {
+        // Last cell: add-evidence button
+        if (index == images.length && showAddCell) {
+          return _AddEvidenceCell(
+            categoryColor: categoryColor,
+            onTap: onAddEvidence,
+          );
+        }
+
+        final imageUrl = images[index];
+        return _EvidenceThumbnail(
+          imageUrl: imageUrl,
+          canDelete: canDelete,
+          onDelete: () => onDeleteEvidence(imageUrl),
+          onTap: () => onViewEvidence(imageUrl),
+        );
+      },
+    );
+  }
+}
+
+// ── Add Evidence Cell ──────────────────────────────────────────────────────────
+
 class _AddEvidenceCell extends StatelessWidget {
+  final Color categoryColor;
   final VoidCallback onTap;
 
-  const _AddEvidenceCell({required this.onTap});
+  const _AddEvidenceCell({
+    required this.categoryColor,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -808,24 +1048,40 @@ class _AddEvidenceCell extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFFAFBFB),
-          borderRadius: BorderRadius.circular(10),
+          color: categoryColor.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFFE1E6E7),
+            color: categoryColor.withValues(alpha: 0.40),
             width: 1.5,
+            // Dashed border via CustomPainter is complex; a solid colored
+            // border with low-opacity fill communicates "add" clearly.
           ),
         ),
-        child: const Center(
-          child: Icon(
-            Icons.add_rounded,
-            color: Color(0xFFCBD5E1),
-            size: 28,
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.add_rounded,
+              color: categoryColor,
+              size: 28,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'Agregar',
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+                color: categoryColor,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
+
+// ── Evidence Thumbnail ─────────────────────────────────────────────────────────
 
 class _EvidenceThumbnail extends StatelessWidget {
   final String imageUrl;
@@ -850,6 +1106,7 @@ class _EvidenceThumbnail extends StatelessWidget {
       onTap: onTap,
       onLongPress: canDelete
           ? () {
+              HapticFeedback.mediumImpact();
               showDialog(
                 context: context,
                 builder: (ctx) => AlertDialog(
@@ -878,14 +1135,14 @@ class _EvidenceThumbnail extends StatelessWidget {
             }
           : null,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         child: Stack(
           fit: StackFit.expand,
           children: [
             // File content
             if (_isPdf)
               Container(
-                color: const Color(0xFFFFF0F0),
+                color: AppColors.sacRed.withAlpha(20),
                 child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -910,22 +1167,26 @@ class _EvidenceThumbnail extends StatelessWidget {
               CachedNetworkImage(
                 imageUrl: imageUrl,
                 fit: BoxFit.cover,
-                placeholder: (_, __) => Container(
-                  color: const Color(0xFFF0F4F5),
-                  child: const Center(
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                placeholder: (_, __) => Builder(
+                  builder: (context) => Container(
+                    color: context.sac.surfaceVariant,
+                    child: const Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
                     ),
                   ),
                 ),
-                errorWidget: (_, __, ___) => Container(
-                  color: const Color(0xFFF0F4F5),
-                  child: const Icon(
-                    Icons.broken_image_rounded,
-                    color: AppColors.sacGrey,
-                    size: 24,
+                errorWidget: (_, __, ___) => Builder(
+                  builder: (context) => Container(
+                    color: context.sac.surfaceVariant,
+                    child: Icon(
+                      Icons.broken_image_rounded,
+                      color: context.sac.textTertiary,
+                      size: 24,
+                    ),
                   ),
                 ),
               ),
@@ -949,6 +1210,27 @@ class _EvidenceThumbnail extends StatelessWidget {
                   ),
                 ),
               ),
+
+            // Long-press hint overlay (subtle gradient at bottom)
+            if (canDelete)
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  height: 28,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.35),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -956,15 +1238,86 @@ class _EvidenceThumbnail extends StatelessWidget {
   }
 }
 
-// ── Action Buttons ────────────────────────────────────────────────────────────
+// ── Rejection Card ────────────────────────────────────────────────────────────
 
-class _ActionButtons extends ConsumerWidget {
+class _RejectionCard extends StatelessWidget {
+  final String? reason;
+
+  const _RejectionCard({this.reason});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.sacRed.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: AppColors.sacRed.withValues(alpha: 0.25),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.warning_amber_rounded,
+            color: AppColors.sacRed,
+            size: 22,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Evidencia rechazada',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.sacRed,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  reason?.isNotEmpty == true
+                      ? reason!
+                      : 'Sin motivo especificado',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    height: 1.5,
+                    color: AppColors.sacRed,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Podes corregir y reenviar',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.sacRed.withValues(alpha: 0.70),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Bottom CTA Bar ────────────────────────────────────────────────────────────
+
+class _BottomCtaBar extends ConsumerWidget {
   final UserHonor userHonor;
+  final Color categoryColor;
   final VoidCallback onSubmit;
   final VoidCallback onAddEvidence;
 
-  const _ActionButtons({
+  const _BottomCtaBar({
     required this.userHonor,
+    required this.categoryColor,
     required this.onSubmit,
     required this.onAddEvidence,
   });
@@ -973,83 +1326,65 @@ class _ActionButtons extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final submitState = ref.watch(submitValidationProvider);
 
-    switch (userHonor.displayStatus) {
-      case 'inscripto':
-        // No evidence yet — single "Subir evidencia" button
-        return SizedBox(
-          width: double.infinity,
-          child: FilledButton.icon(
-            onPressed: onAddEvidence,
-            icon: const Icon(Icons.upload_rounded, size: 18),
-            label: const Text('Subir evidencia'),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.sacBlue,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        color: context.sac.surface,
+        boxShadow: [
+          BoxShadow(
+            color: context.sac.shadow,
+            blurRadius: 16,
+            offset: const Offset(0, -4),
           ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+          child: _buildCtaButton(context, submitState),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCtaButton(
+      BuildContext context, SubmitValidationState submitState) {
+    switch (userHonor.displayStatus) {
+      case 'inscrito':
+        // No evidence yet — prompt to upload
+        return _CtaButton(
+          label: 'Subir evidencia',
+          icon: Icons.upload_rounded,
+          color: categoryColor,
+          onPressed: onAddEvidence,
         );
 
       case 'en_progreso':
-        // Has evidence — "Enviar a revision" (primary) + "Subir mas" (outline)
-        return Column(
-          children: [
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: submitState.isLoading ? null : onSubmit,
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.sacGreen,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: submitState.isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text('Enviar a revision'),
-              ),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: onAddEvidence,
-                icon: const Icon(Icons.add_rounded, size: 18),
-                label: const Text('Subir mas'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.sacBlue,
-                  side: const BorderSide(color: AppColors.sacBlue),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
-          ],
+        // Has evidence, not submitted — send for review
+        return _CtaButton(
+          label: 'Enviar a revision',
+          icon: Icons.send_rounded,
+          color: categoryColor,
+          isLoading: submitState.isLoading,
+          onPressed: submitState.isLoading ? null : onSubmit,
         );
 
       case 'enviado':
-        // Under review — no action buttons
-        return const SizedBox.shrink();
+        // Under review — disabled
+        return _CtaButton(
+          label: 'Enviada — en revision',
+          icon: Icons.hourglass_top_rounded,
+          color: AppColors.sacGrey,
+          onPressed: null,
+        );
 
       case 'validado':
-        // Completed — "Ver insignia" navigates to completion screen
-        return SizedBox(
-          width: double.infinity,
-          child: FilledButton.icon(
+        // Completed — navigate to completion screen
+        return Builder(
+          builder: (context) => _CtaButton(
+            label: 'Especialidad completada',
+            icon: Icons.emoji_events_rounded,
+            color: AppColors.sacGreen,
             onPressed: () {
               context.push(
                 RouteNames.honorCompletionPath(
@@ -1058,39 +1393,84 @@ class _ActionButtons extends ConsumerWidget {
                 ),
               );
             },
-            icon: const Icon(Icons.emoji_events_rounded, size: 18),
-            label: const Text('Ver insignia'),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.sacGreen,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
           ),
         );
 
       case 'rechazado':
-        // Rejected — "Corregir y reenviar" opens file picker
-        return SizedBox(
-          width: double.infinity,
-          child: FilledButton(
-            onPressed: onAddEvidence,
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.sacGreen,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text('Corregir y reenviar'),
-          ),
+        // Rejected — correct and resubmit
+        return _CtaButton(
+          label: 'Corregir y reenviar',
+          icon: Icons.refresh_rounded,
+          color: categoryColor,
+          onPressed: onAddEvidence,
         );
 
       default:
         return const SizedBox.shrink();
     }
+  }
+}
+
+// ── CTA Button ────────────────────────────────────────────────────────────────
+
+class _CtaButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback? onPressed;
+  final bool isLoading;
+
+  const _CtaButton({
+    required this.label,
+    required this.icon,
+    required this.color,
+    this.onPressed,
+    this.isLoading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDisabled = onPressed == null && !isLoading;
+
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: FilledButton(
+        onPressed: isLoading ? null : onPressed,
+        style: FilledButton.styleFrom(
+          backgroundColor: isDisabled ? AppColors.sacGrey : color,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: AppColors.sacGrey,
+          disabledForegroundColor: Colors.white.withValues(alpha: 0.70),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: Colors.white,
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
   }
 }

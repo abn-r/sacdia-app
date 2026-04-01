@@ -6,9 +6,11 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import '../../domain/entities/honor.dart';
+import '../../domain/utils/honor_category_colors.dart';
 import '../../domain/entities/user_honor.dart';
 import '../providers/honors_providers.dart';
 import '../widgets/honor_card.dart';
@@ -55,10 +57,8 @@ class _HonorCardWithProgress extends ConsumerWidget {
       completedCount: stats.total > 0 ? stats.completed : null,
       totalRequirements: stats.total > 0 ? stats.total : null,
       onTap: () => context.push(
-        RouteNames.honorEvidencePath(
-          honor.id.toString(),
-          userHonor!.id.toString(),
-        ),
+        RouteNames.honorDetailPath(honor.id.toString()),
+        extra: honor,
       ),
     );
   }
@@ -103,7 +103,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
     final statsAsync = ref.watch(userHonorStatsLocalProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.sac.background,
       body: Column(
         children: [
           // ── Dark header ──────────────────────────────────────────
@@ -146,7 +146,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
     );
 
     return Container(
-      color: AppColors.sacBlack,
+      color: context.sac.surface,
       child: SafeArea(
         bottom: false,
         child: Padding(
@@ -160,23 +160,22 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                   // Back button
                   GestureDetector(
                     onTap: () => context.pop(),
-                    child: const Padding(
+                    child: Padding(
                       padding: EdgeInsets.only(right: 12),
-                      child: Icon(
-                        Icons.arrow_back_rounded,
-                        color: Colors.white,
-                        size: 24,
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedArrowLeft01,
+                        color: context.sac.text,
+                        size: 22,
                       ),
                     ),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Especialidades',
                       style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.sacRed),
                     ),
                   ),
                   // Completed/total badge pill
@@ -198,7 +197,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.sacGreen,
+                                color: Colors.white,
                               ),
                             ),
                             TextSpan(
@@ -282,6 +281,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
               child: HonorCategoryChip(
                 label: 'Todas',
                 isSelected: selectedCategory == null,
+                activeColor: AppColors.sacRed,
                 onTap: () {
                   ref.read(selectedCategoryProvider.notifier).state = null;
                 },
@@ -295,6 +295,10 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
             child: HonorCategoryChip(
               label: category.name,
               isSelected: selectedCategory == category.id,
+              activeColor: getCategoryColor(
+                categoryId: category.id,
+                categoryName: category.name,
+              ),
               onTap: () {
                 final current = ref.read(selectedCategoryProvider);
                 ref.read(selectedCategoryProvider.notifier).state =
@@ -321,11 +325,11 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
               color: AppColors.sacGrey,
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'No hay especialidades en esta categoria',
               style: TextStyle(
                 fontSize: 16,
-                color: Color(0xFF64748B),
+                color: context.sac.textSecondary,
               ),
             ),
           ],
@@ -365,9 +369,13 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
             color: AppColors.sacRed,
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Error al cargar especialidades',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: context.sac.text,
+            ),
           ),
           const SizedBox(height: 24),
           FilledButton.icon(

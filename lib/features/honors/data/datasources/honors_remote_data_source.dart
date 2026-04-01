@@ -43,8 +43,9 @@ abstract class HonorsRemoteDataSource {
   });
 
   /// Actualiza el progreso de múltiples requisitos en una sola operación.
-  /// PATCH /honors/:honorId/progress/bulk
+  /// PATCH /users/:userId/honors/:honorId/requirements/progress/batch
   Future<List<UserHonorRequirementProgressModel>> bulkUpdateRequirementProgress(
+      String userId,
       int honorId,
       List<Map<String, dynamic>> updates);
 
@@ -350,9 +351,10 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // New API: { data: [...] } — flat array directly under 'data'
+        // API returns: { data: { honor_id, total_requirements, requirements: [...] } }
         final raw = response.data as Map<String, dynamic>;
-        final List<dynamic> requirements = raw['data'] as List<dynamic>;
+        final data = raw['data'] as Map<String, dynamic>;
+        final List<dynamic> requirements = data['requirements'] as List<dynamic>;
         return requirements
             .map((json) =>
                 HonorRequirementModel.fromJson(json as Map<String, dynamic>))
@@ -451,19 +453,21 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
 
   @override
   Future<List<UserHonorRequirementProgressModel>> bulkUpdateRequirementProgress(
+      String userId,
       int honorId,
       List<Map<String, dynamic>> updates) async {
     try {
-      // New API: PATCH /honors/:honorId/progress/bulk
-      // Body: { items: [{ requirementId, completed, notes? }] }
+      // API: PATCH /users/:userId/honors/:honorId/requirements/progress/batch
+      // Body: { requirements: [{ requirementId, completed, notes? }] }
       final response = await _dio.patch(
-        '$_baseUrl${ApiEndpoints.honors}/$honorId/progress/bulk',
-        data: {'items': updates},
+        '$_baseUrl${ApiEndpoints.users}/$userId${ApiEndpoints.honors}/$honorId/requirements/progress/batch',
+        data: {'requirements': updates},
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final raw = response.data as Map<String, dynamic>;
-        final List<dynamic> items = raw['data'] as List<dynamic>;
+        final data = raw['data'] as Map<String, dynamic>;
+        final List<dynamic> items = data['requirements'] as List<dynamic>;
         return items
             .map((json) => UserHonorRequirementProgressModel.fromJson(
                 json as Map<String, dynamic>))

@@ -37,6 +37,7 @@ class UserHonorModel extends Equatable {
   final String? honorName;
   final String? honorImageUrl;
   final String? honorCategoryName;
+  final int? honorCategoryId;
   final int? honorSkillLevel;
 
   const UserHonorModel({
@@ -57,6 +58,7 @@ class UserHonorModel extends Equatable {
     this.honorName,
     this.honorImageUrl,
     this.honorCategoryName,
+    this.honorCategoryId,
     this.honorSkillLevel,
   });
 
@@ -102,6 +104,7 @@ class UserHonorModel extends Equatable {
     String? honorName;
     String? honorImageUrl;
     String? honorCategoryName;
+    int? honorCategoryId;
     int? honorSkillLevel;
     final nestedHonor = json['honors'] as Map<String, dynamic>?;
     if (nestedHonor != null) {
@@ -111,6 +114,7 @@ class UserHonorModel extends Equatable {
       final nestedCategory =
           nestedHonor['honors_categories'] as Map<String, dynamic>?;
       honorCategoryName = safeStringOrNull(nestedCategory?['name']);
+      honorCategoryId = safeIntOrNull(nestedCategory?['honor_category_id']);
     }
 
     return UserHonorModel(
@@ -132,6 +136,7 @@ class UserHonorModel extends Equatable {
       honorName: honorName,
       honorImageUrl: honorImageUrl,
       honorCategoryName: honorCategoryName,
+      honorCategoryId: honorCategoryId,
       honorSkillLevel: honorSkillLevel,
     );
   }
@@ -176,6 +181,7 @@ class UserHonorModel extends Equatable {
       honorName: honorName,
       honorImageUrl: honorImageUrl,
       honorCategoryName: honorCategoryName,
+      honorCategoryId: honorCategoryId,
       honorSkillLevel: honorSkillLevel,
     );
   }
@@ -199,6 +205,7 @@ class UserHonorModel extends Equatable {
     String? honorName,
     String? honorImageUrl,
     String? honorCategoryName,
+    int? honorCategoryId,
     int? honorSkillLevel,
   }) {
     return UserHonorModel(
@@ -219,6 +226,7 @@ class UserHonorModel extends Equatable {
       honorName: honorName ?? this.honorName,
       honorImageUrl: honorImageUrl ?? this.honorImageUrl,
       honorCategoryName: honorCategoryName ?? this.honorCategoryName,
+      honorCategoryId: honorCategoryId ?? this.honorCategoryId,
       honorSkillLevel: honorSkillLevel ?? this.honorSkillLevel,
     );
   }
@@ -242,6 +250,7 @@ class UserHonorModel extends Equatable {
         honorName,
         honorImageUrl,
         honorCategoryName,
+        honorCategoryId,
         honorSkillLevel,
       ];
 }
