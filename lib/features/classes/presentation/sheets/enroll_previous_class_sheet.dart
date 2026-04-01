@@ -468,7 +468,7 @@ class _EnrollPreviousClassSheetState
         setState(() {
           _isSubmitting = false;
           _submitError = is409
-              ? 'Ya estás inscripto en esta clase'
+              ? 'Ya estás inscrito en esta clase'
               : failure.message;
         });
       },

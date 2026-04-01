@@ -11,7 +11,7 @@ class ClassModel extends Equatable {
   final String? imageUrl;
 
   /// Estado de investidura proveniente del enrollment.
-  /// Valores posibles: null (no inscripto), 'PENDIENTE', 'INVESTIDO', etc.
+  /// Valores posibles: null (no inscrito), 'PENDIENTE', 'INVESTIDO', etc.
   final String? investitureStatus;
 
   /// Progreso general de 0 a 100, proveniente del enrollment.

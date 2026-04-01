@@ -127,7 +127,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
                     if (current.isEmpty || next.isEmpty || confirm.isEmpty) {
                       setDialogState(
-                          () => errorText = 'Completá todos los campos.');
+                          () => errorText = 'Completa todos los campos.');
                       return;
                     }
                     if (next != confirm) {

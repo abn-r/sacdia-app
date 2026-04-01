@@ -9,10 +9,10 @@ import '../../../classes/presentation/providers/classes_providers.dart';
 
 /// Los tres estados visuales que puede tener un logo de clase progresiva.
 enum _ClassState {
-  /// El usuario no está inscripto en esta clase.
+  /// El usuario no está inscrito en esta clase.
   notEnrolled,
 
-  /// El usuario está inscripto pero aún no fue investido (en progreso).
+  /// El usuario está inscrito pero aún no fue investido (en progreso).
   inProgress,
 
   /// El usuario fue investido o alcanzó ≥ 80 % de progreso.
@@ -288,7 +288,7 @@ class _ClassLogo extends StatelessWidget {
     }
 
     // inProgress y notEnrolled: desaturamos con ColorFiltered (grayscale real)
-    // y diferenciamos con opacidad: 50 % en progreso, 25 % no inscripto.
+    // y diferenciamos con opacidad: 50 % en progreso, 25 % no inscrito.
     final opacity = state == _ClassState.inProgress ? 0.5 : 0.25;
 
     return Opacity(

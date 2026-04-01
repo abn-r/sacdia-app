@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -17,7 +16,6 @@ import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_text_field.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../post_registration/presentation/providers/post_registration_providers.dart';
-import '../../../post_registration/presentation/providers/personal_info_providers.dart';
 import '../providers/profile_providers.dart';
 
 /// Vista para editar el perfil del usuario.
@@ -57,15 +55,20 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
   String? _birthdateError;
   String? _baptismDateError;
 
+  bool _dataLoaded = false;
+
   @override
   void initState() {
     super.initState();
+    // Try loading immediately in case data is already cached
     _loadProfileData();
   }
 
   void _loadProfileData() {
+    if (_dataLoaded) return;
     final profile = ref.read(profileNotifierProvider).value;
     if (profile != null) {
+      _dataLoaded = true;
       _nameController.text = profile.name;
       _paternalSurnameController.text = profile.paternalSurname ?? '';
       _maternalSurnameController.text = profile.maternalSurname ?? '';
@@ -73,8 +76,12 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
       _addressController.text = profile.address ?? '';
 
       // Pre-populate personal info fields (F3)
-      _selectedGender = profile.gender;
-      _birthdate = profile.birthDate;
+      setState(() {
+        _selectedGender = profile.gender;
+        _birthdate = profile.birthDate;
+        _baptized = profile.baptized;
+        _baptismDate = profile.baptismDate;
+      });
     }
   }
 
@@ -191,7 +198,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
     if (_baptized) {
       if (_baptismDate == null) {
-        newBaptismDateError = 'Ingresá la fecha de bautismo';
+        newBaptismDateError = 'Ingresa la fecha de bautismo';
         valid = false;
       } else if (_birthdate != null && _baptismDate!.isBefore(_birthdate!)) {
         newBaptismDateError =
@@ -215,47 +222,35 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
     setState(() => _isLoading = true);
 
-    bool basicSuccess = false;
-    bool personalSuccess = false;
+    bool success = false;
 
-    // Step 1: save basic profile fields
-    final data = {
+    // Unified update: all fields in a single PATCH /users/:userId
+    final data = <String, dynamic>{
       'name': _nameController.text.trim(),
-      'p_lastname': _paternalSurnameController.text.trim(),
-      'm_lastname': _maternalSurnameController.text.trim(),
+      'paternal_last_name': _paternalSurnameController.text.trim(),
+      'maternal_last_name': _maternalSurnameController.text.trim(),
       'phone': _phoneController.text.trim(),
       'address': _addressController.text.trim(),
     };
 
-    basicSuccess =
-        await ref.read(profileNotifierProvider.notifier).updateProfile(data);
-
-    // Step 2: save personal info fields (F3)
-    final user = ref.read(authNotifierProvider).valueOrNull;
-    if (user != null) {
-      try {
-        await ref.read(personalInfoDataSourceProvider).updatePersonalInfo(
-              user.id,
-              gender: _selectedGender,
-              birthdate: _birthdate?.toUtc().toIso8601String(),
-              baptized: _baptized,
-              baptismDate:
-                  _baptized ? _baptismDate?.toUtc().toIso8601String() : null,
-            );
-        personalSuccess = true;
-      } catch (e) {
-        AppLogger.e('Error al guardar info personal', tag: _tag, error: e);
-        personalSuccess = false;
-      }
-    } else {
-      personalSuccess = true; // No user ID, skip silently
+    // Add personal info fields (F3)
+    if (_selectedGender != null) data['gender'] = _selectedGender;
+    if (_birthdate != null) {
+      data['birthday'] = _birthdate!.toUtc().toIso8601String();
     }
+    data['baptism'] = _baptized;
+    if (_baptized && _baptismDate != null) {
+      data['baptism_date'] = _baptismDate!.toUtc().toIso8601String();
+    }
+
+    success =
+        await ref.read(profileNotifierProvider.notifier).updateProfile(data);
 
     setState(() => _isLoading = false);
 
     if (!mounted) return;
 
-    if (basicSuccess && personalSuccess) {
+    if (success) {
       ref.invalidate(profileNotifierProvider);
       // Invalidate auth state so any widget reading authNotifierProvider
       // (navbars, dashboard greetings, etc.) reflects the updated name/avatar
@@ -267,21 +262,9 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
         HugeIcons.strokeRoundedCheckmarkCircle02,
       );
       Navigator.pop(context);
-    } else if (!basicSuccess && !personalSuccess) {
-      _showSnackbar(
-        'Error al actualizar el perfil e información personal',
-        AppColors.error,
-        HugeIcons.strokeRoundedAlert02,
-      );
-    } else if (!basicSuccess) {
-      _showSnackbar(
-        'Error al actualizar el perfil',
-        AppColors.error,
-        HugeIcons.strokeRoundedAlert02,
-      );
     } else {
       _showSnackbar(
-        'Error al actualizar la información personal',
+        'Error al actualizar el perfil',
         AppColors.error,
         HugeIcons.strokeRoundedAlert02,
       );
@@ -377,6 +360,11 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     final profileState = ref.watch(profileNotifierProvider);
     final profile = profileState.value;
     final hPad = Responsive.horizontalPadding(context);
+
+    // Load data when provider resolves (handles async timing)
+    if (!_dataLoaded && profile != null) {
+      _loadProfileData();
+    }
 
     return Scaffold(
       backgroundColor: context.sac.surfaceVariant,
@@ -479,54 +467,6 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
                     const SizedBox(height: 24),
 
-                    // ── 3. Sección: Contacto ───────────────────────
-                    _SectionHeader(
-                      icon: HugeIcons.strokeRoundedCall,
-                      label: 'Contacto',
-                    ),
-                    const SizedBox(height: 10),
-                    _FormCard(
-                      children: [
-                        SacTextField(
-                          controller: _phoneController,
-                          label: 'Teléfono',
-                          hint: '+52 55 1234 5678',
-                          prefixIcon: HugeIcons.strokeRoundedCall,
-                          keyboardType: TextInputType.phone,
-                          textInputAction: TextInputAction.next,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                              RegExp(r'[\d\s\+\-\(\)]'),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // ── 4. Sección: Ubicación ──────────────────────
-                    _SectionHeader(
-                      icon: HugeIcons.strokeRoundedLocation01,
-                      label: 'Ubicación',
-                    ),
-                    const SizedBox(height: 10),
-                    _FormCard(
-                      children: [
-                        SacTextField(
-                          controller: _addressController,
-                          label: 'Dirección',
-                          hint: 'Tu dirección completa',
-                          prefixIcon: HugeIcons.strokeRoundedLocation01,
-                          maxLines: 3,
-                          textCapitalization: TextCapitalization.sentences,
-                          textInputAction: TextInputAction.done,
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 24),
-
                     // ── 5. Sección: Información Personal (F3) ─────
                     _SectionHeader(
                       icon: HugeIcons.strokeRoundedUser,
@@ -623,13 +563,6 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
                       isLoading: _isLoading,
                       onPressed:
                           (_isLoading || _isUploadingPhoto) ? null : _saveProfile,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    SacButton.outline(
-                      text: 'Cancelar',
-                      onPressed: () => Navigator.pop(context),
                     ),
 
                     const SizedBox(height: 32),
@@ -832,36 +765,6 @@ class _SectionHeader extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// Contenedor blanco redondeado que agrupa campos de formulario.
-class _FormCard extends StatelessWidget {
-  final List<Widget> children;
-
-  const _FormCard({required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: context.sac.background,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: context.sac.border, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: children,
-      ),
     );
   }
 }

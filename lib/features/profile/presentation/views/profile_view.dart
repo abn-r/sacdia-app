@@ -113,7 +113,7 @@ class _SettingsSheet extends StatelessWidget {
                   SettingTile(
                     icon: HugeIcons.strokeRoundedFirstAidKit,
                     title: 'Información Médica',
-                    subtitle: 'Alergias, enfermedades y contactos',
+                    subtitle: 'Alergias, enfermedades, medicamentos y contactos de emergencia',
                     iconColor: AppColors.error,
                     onTap: () {
                       Navigator.pop(context);
@@ -512,6 +512,7 @@ class _ProfileScrollBody extends StatelessWidget {
                 name: profile.fullName,
                 avatar: profile.avatar,
                 roles: profile.roles,
+                gender: profile.gender,
                 clubName: profile.clubName,
                 clubType: profile.clubType,
                 currentClass: profile.currentClass,
@@ -824,6 +825,7 @@ class _ProfileHeaderCard extends StatelessWidget {
   final String name;
   final String? avatar;
   final List<String> roles;
+  final String? gender;
   final String? clubName;
   final String? clubType;
   final String? currentClass;
@@ -834,6 +836,7 @@ class _ProfileHeaderCard extends StatelessWidget {
   const _ProfileHeaderCard({
     required this.name,
     required this.roles,
+    this.gender,
     this.avatar,
     this.clubName,
     this.clubType,
@@ -850,7 +853,7 @@ class _ProfileHeaderCard extends StatelessWidget {
     const double avatarRadius = 50.0;
     const double fallbackFontSize = 32.0;
     final roleLabel =
-        roles.isNotEmpty ? RoleUtils.translateList(roles) : null;
+        roles.isNotEmpty ? RoleUtils.translateList(roles, gender: gender) : null;
 
     final c = context.sac;
 

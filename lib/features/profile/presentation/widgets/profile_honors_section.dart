@@ -4,36 +4,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/features/honors/domain/utils/honor_category_colors.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 
-/// Category color and icon map – mirrors the reference implementation but uses
-/// AppColors constants already defined in the design system.
-const Map<String, Color> _categoryColors = {
-  'ADRA': AppColors.catAdra,
-  'Agropecuarias': AppColors.catagropecuarias,
-  'Ciencias de la Salud': AppColors.catCienciasSalud,
-  'Domésticas': AppColors.catDomesticas,
-  'Habilidades Manuales': AppColors.catHabilidadesManuales,
-  'Misioneras': AppColors.catMisioneras,
-  'Naturaleza': AppColors.catNaturaleza,
-  'Profesionales': AppColors.catProfesionales,
-  'Recreativas': AppColors.catRecreativas,
-};
-
 const Map<String, IconData> _categoryIcons = {
   'ADRA': Icons.volunteer_activism,
-  'Agropecuarias': Icons.agriculture,
+  'Actividades Agropecuarias': Icons.agriculture,
   'Ciencias de la Salud': Icons.medical_services,
-  'Domésticas': Icons.home,
-  'Habilidades Manuales': Icons.handyman,
-  'Misioneras': Icons.public,
-  'Naturaleza': Icons.forest,
-  'Profesionales': Icons.work,
-  'Recreativas': Icons.sports_handball,
+  'Artes Domésticas': Icons.home,
+  'Artes y Actividades Manuales': Icons.handyman,
+  'Crecimiento Espiritual, Actividades Misioneras y Herencia': Icons.public,
+  'Estudio de la Naturaleza': Icons.forest,
+  'Actividades Vocacionales': Icons.work,
+  'Actividades Recreativas': Icons.sports_handball,
 };
 
 /// Section of the profile view that shows the user's earned / in-progress
@@ -117,6 +104,7 @@ class ProfileHonorsSection extends ConsumerWidget {
             ...sortedEntries.map((entry) {
               return _CategorySection(
                 categoryName: entry.key,
+                categoryId: entry.value.first.honorCategoryId,
                 userHonors: entry.value,
               );
             }),
@@ -143,17 +131,21 @@ class ProfileHonorsSection extends ConsumerWidget {
 
 class _CategorySection extends StatelessWidget {
   final String categoryName;
+  final int? categoryId;
   final List<UserHonor> userHonors;
 
   const _CategorySection({
     required this.categoryName,
+    this.categoryId,
     required this.userHonors,
   });
 
   @override
   Widget build(BuildContext context) {
-    final categoryColor =
-        _categoryColors[categoryName] ?? AppColors.sacBlack;
+    final categoryColor = getCategoryColor(
+      categoryId: categoryId,
+      categoryName: categoryName,
+    );
     final categoryIcon = _categoryIcons[categoryName] ?? Icons.star;
 
     return Padding(
@@ -279,9 +271,8 @@ class _HonorGridItem extends StatelessWidget {
 
     return GestureDetector(
       onTap: () => context.push(
-        RouteNames.honorEvidencePath(
+        RouteNames.honorDetailPath(
           userHonor.honorId.toString(),
-          userHonor.id.toString(),
         ),
       ),
       child: Column(
