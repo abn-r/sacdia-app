@@ -10,7 +10,7 @@ class InvestiturePending extends Equatable {
   final DateTime? submittedAt;
   final String? comments;
 
-  // Datos del usuario inscripto
+  // Datos del usuario inscrito
   final String userId;
   final String userName;
   final String? userLastName;

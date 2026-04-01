@@ -76,7 +76,7 @@ class _EvidenceSectionDetailViewState
           builder: (ctx) => AlertDialog(
             title: const Text('Archivos sin enviar'),
             content: const Text(
-              'Tenés archivos sin enviar. ¿Seguro que querés salir?',
+              'Tienes archivos sin enviar. ¿Seguro que quieres salir?',
             ),
             actions: [
               TextButton(

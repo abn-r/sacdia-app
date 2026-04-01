@@ -160,7 +160,7 @@ class TransactionDetailView extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         title: const Text('Eliminar movimiento'),
         content: const Text(
-          '¿Estás seguro de que querés eliminar este movimiento? Esta acción no se puede deshacer.',
+          '¿Estás seguro de que quieres eliminar este movimiento? Esta acción no se puede deshacer.',
         ),
         actions: [
           TextButton(

@@ -16,9 +16,9 @@ import 'certification_progress_view.dart';
 /// Vista de detalle de certificación.
 ///
 /// Muestra nombre, descripción, árbol de módulos → secciones.
-/// Si el usuario está inscripto: indicadores de progreso por módulo y botón
+/// Si el usuario está inscrito: indicadores de progreso por módulo y botón
 /// para navegar a la vista de progreso detallada.
-/// Si no está inscripto: CTA de inscripción.
+/// Si no está inscrito: CTA de inscripción.
 class CertificationDetailView extends ConsumerWidget {
   final int certificationId;
 
@@ -342,7 +342,7 @@ class _EnrolledCTA extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Badge inscripto + progreso
+        // Badge inscrito + progreso
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(16),
@@ -366,7 +366,7 @@ class _EnrolledCTA extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Estás inscripto',
+                      'Estás inscrito',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,

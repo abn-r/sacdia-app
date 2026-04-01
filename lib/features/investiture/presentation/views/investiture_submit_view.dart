@@ -147,7 +147,7 @@ class _InfoBanner extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Enviá el enrollment de cada miembro cuando hayas verificado que cumple todos los requisitos. El coordinador recibirá la solicitud para aprobarla.',
+              'Envía el enrollment de cada miembro cuando hayas verificado que cumple todos los requisitos. El coordinador recibirá la solicitud para aprobarla.',
               style: TextStyle(
                 fontSize: 12,
                 color: AppColors.accentDark,

@@ -153,7 +153,7 @@ class _NotificationsInboxViewState
             ),
             const SizedBox(height: 16),
             Text(
-              'No tenés notificaciones',
+              'No tienes notificaciones',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: c.text,

@@ -759,7 +759,7 @@ class _UploadEvidenceSheetState
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
-                      return 'Ingresá la URL del archivo';
+                      return 'Ingresa la URL del archivo';
                     }
                     return null;
                   },
@@ -777,7 +777,7 @@ class _UploadEvidenceSheetState
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
-                      return 'Ingresá el nombre del archivo';
+                      return 'Ingresa el nombre del archivo';
                     }
                     return null;
                   },

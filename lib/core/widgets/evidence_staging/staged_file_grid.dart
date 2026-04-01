@@ -84,7 +84,7 @@ class StagedFileGrid extends StatelessWidget {
           const SizedBox(height: 4),
           Center(
             child: Text(
-              'Tenés $excess ${excess == 1 ? 'archivo' : 'archivos'} de más, eliminá algunos para continuar',
+              'Tienes $excess ${excess == 1 ? 'archivo' : 'archivos'} de más, eliminá algunos para continuar',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 12,

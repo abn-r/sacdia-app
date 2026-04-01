@@ -95,7 +95,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
       builder: (dialogContext) => AlertDialog(
         title: const Text('Eliminar actividad'),
         content: const Text(
-          '¿Estás seguro que querés eliminar esta actividad? Esta acción no se puede deshacer.',
+          '¿Estás seguro que quieres eliminar esta actividad? Esta acción no se puede deshacer.',
         ),
         actions: [
           TextButton(

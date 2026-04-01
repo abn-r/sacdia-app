@@ -60,7 +60,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
       final code = e.response?.statusCode;
       if (code == 403) {
         throw AuthException(
-          message: 'No tenés permiso para realizar esta acción',
+          message: 'No tienes permiso para realizar esta acción',
           code: code,
         );
       }

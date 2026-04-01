@@ -298,7 +298,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
     if (_isOverLimit) {
       _showErrorSnackbar(
         context,
-        'Tenés archivos de más. Eliminá algunos para continuar.',
+        'Tienes archivos de más. Eliminá algunos para continuar.',
       );
       return;
     }

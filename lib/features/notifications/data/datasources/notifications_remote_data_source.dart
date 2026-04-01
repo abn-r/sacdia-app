@@ -39,7 +39,7 @@ class NotificationsRemoteDataSourceImpl
       final code = e.response?.statusCode;
       if (code == 403 || code == 401) {
         throw AuthException(
-          message: 'No tenés permiso para ver las notificaciones',
+          message: 'No tienes permiso para ver las notificaciones',
           code: code,
         );
       }
