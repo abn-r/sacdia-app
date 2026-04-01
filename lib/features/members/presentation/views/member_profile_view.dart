@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -8,32 +9,49 @@ import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/profile/presentation/widgets/info_section.dart';
 
 import '../../domain/entities/club_member.dart';
+import '../providers/members_providers.dart';
 
 /// Vista de perfil de miembro (solo lectura).
 ///
-/// Se usa tanto para miembros del club como para solicitantes de ingreso.
-/// No permite editar ningún dato por seguridad.
-class MemberProfileView extends StatelessWidget {
-  final ClubMember? member;
+/// Recibe un [ClubMember] con los datos básicos de la lista y carga en segundo
+/// plano el detalle completo vía [memberDetailProvider]. Si el usuario tiene
+/// permiso de salud, también muestra la sección médica.
+class MemberProfileView extends ConsumerWidget {
+  final ClubMember member;
   final String? title;
-  final bool isLoading;
-  final String? error;
 
   const MemberProfileView({
     super.key,
-    this.member,
+    required this.member,
     this.title,
-    this.isLoading = false,
-    this.error,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = context.sac;
     final hPad = Responsive.horizontalPadding(context);
+
+    final detailAsync = ref.watch(memberDetailProvider(member.userId));
+    final authUser = ref.watch(
+      authNotifierProvider.select((v) => v.valueOrNull),
+    );
+
+    final canViewMedical = canByPermissionOrLegacyRole(
+      authUser,
+      requiredPermissions: const {'health:read', 'users:read_detail'},
+      legacyRoles: const {
+        'director',
+        'deputy_director',
+        'secretary',
+        'treasurer',
+        'counselor',
+      },
+    );
 
     return Scaffold(
       backgroundColor: c.background,
@@ -57,7 +75,6 @@ class MemberProfileView extends StatelessWidget {
           ),
         ),
         centerTitle: true,
-        // Read-only lock indicator
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
@@ -83,29 +100,36 @@ class MemberProfileView extends StatelessWidget {
         ],
       ),
       body: SafeArea(
-        child: _buildBody(context, c, hPad),
+        child: detailAsync.when(
+          skipLoadingOnReload: true,
+          loading: () => const Center(child: SacLoading()),
+          error: (error, _) => _ErrorState(message: error.toString()),
+          data: (fullDetail) => _ProfileScrollBody(
+            detail: fullDetail,
+            hPad: hPad,
+            canViewMedical: canViewMedical,
+          ),
+        ),
       ),
     );
   }
+}
 
-  Widget _buildBody(BuildContext context, SacColors c, double hPad) {
-    if (isLoading) {
-      return const Center(child: SacLoading());
-    }
+// ── Scroll body ───────────────────────────────────────────────────────────────
 
-    if (error != null) {
-      return _ErrorState(message: error!);
-    }
+class _ProfileScrollBody extends StatelessWidget {
+  final ClubMember detail;
+  final double hPad;
+  final bool canViewMedical;
 
-    if (member == null) {
-      return Center(
-        child: Text(
-          'No se pudo cargar el perfil',
-          style: TextStyle(color: c.textSecondary),
-        ),
-      );
-    }
+  const _ProfileScrollBody({
+    required this.detail,
+    required this.hPad,
+    required this.canViewMedical,
+  });
 
+  @override
+  Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: hPad),
       child: Column(
@@ -113,72 +137,20 @@ class MemberProfileView extends StatelessWidget {
         children: [
           const SizedBox(height: 16),
 
-          // ── Header ───────────────────────────────────────────────────
-          _MemberProfileHeader(member: member!),
+          _MemberProfileHeader(member: detail),
 
           const SizedBox(height: 24),
 
-          // ── Información personal ──────────────────────────────────────
-          InfoSection(
-            title: 'Información Personal',
-            items: [
-              InfoItem(
-                icon: HugeIcons.strokeRoundedUser,
-                label: 'Nombre completo',
-                value: member!.fullName,
-              ),
-              if (member!.email != null)
-                InfoItem(
-                  icon: HugeIcons.strokeRoundedMail01,
-                  label: 'Correo electrónico',
-                  value: member!.email,
-                ),
-              if (member!.phone != null)
-                InfoItem(
-                  icon: HugeIcons.strokeRoundedCall,
-                  label: 'Teléfono',
-                  value: member!.phone,
-                ),
-              if (member!.birthDate != null)
-                InfoItem(
-                  icon: HugeIcons.strokeRoundedBirthdayCake,
-                  label: 'Fecha de nacimiento',
-                  value: DateFormat('dd/MM/yyyy').format(member!.birthDate!),
-                ),
-              if (member!.gender != null)
-                InfoItem(
-                  icon: HugeIcons.strokeRoundedUser,
-                  label: 'Género',
-                  value: member!.gender,
-                ),
-            ],
-          ),
+          _PersonalInfoSection(detail: detail),
 
           const SizedBox(height: 20),
 
-          // ── Información del club ──────────────────────────────────────
-          InfoSection(
-            title: 'Información del Club',
-            items: [
-              if (member!.clubRole != null)
-                InfoItem(
-                  icon: HugeIcons.strokeRoundedLabel,
-                  label: 'Cargo en el club',
-                  value: RoleUtils.translate(member!.clubRole),
-                ),
-              if (member!.currentClass != null)
-                InfoItem(
-                  icon: HugeIcons.strokeRoundedSchool,
-                  label: 'Clase progresiva',
-                  value: member!.currentClass,
-                ),
-              InfoItem(
-                icon: HugeIcons.strokeRoundedTicketStar,
-                label: 'Estado de inscripción',
-                value: member!.isEnrolled ? 'Inscrito' : 'No inscrito',
-              ),
-            ],
-          ),
+          _ClubInfoSection(detail: detail),
+
+          if (canViewMedical) ...[
+            const SizedBox(height: 20),
+            _MedicalInfoSection(userId: detail.userId),
+          ],
 
           const SizedBox(height: 32),
         ],
@@ -187,7 +159,526 @@ class MemberProfileView extends StatelessWidget {
   }
 }
 
-/// Header del perfil de miembro: avatar grande + nombre + badges
+// ── Personal info section ─────────────────────────────────────────────────────
+
+class _PersonalInfoSection extends StatelessWidget {
+  final ClubMember detail;
+
+  const _PersonalInfoSection({required this.detail});
+
+  @override
+  Widget build(BuildContext context) {
+    return InfoSection(
+      title: 'Información Personal',
+      items: [
+        InfoItem(
+          icon: HugeIcons.strokeRoundedUser,
+          label: 'Nombre completo',
+          value: detail.fullName,
+        ),
+        if (detail.email != null)
+          InfoItem(
+            icon: HugeIcons.strokeRoundedMail01,
+            label: 'Correo electrónico',
+            value: detail.email,
+          ),
+        if (detail.phone != null)
+          InfoItem(
+            icon: HugeIcons.strokeRoundedCall,
+            label: 'Teléfono',
+            value: detail.phone,
+          ),
+        if (detail.birthDate != null)
+          InfoItem(
+            icon: HugeIcons.strokeRoundedBirthdayCake,
+            label: 'Fecha de nacimiento',
+            value: DateFormat('dd/MM/yyyy').format(detail.birthDate!),
+          ),
+        if (detail.gender != null)
+          InfoItem(
+            icon: HugeIcons.strokeRoundedUser,
+            label: 'Género',
+            value: detail.gender,
+          ),
+        if (detail.address != null && detail.address!.isNotEmpty)
+          InfoItem(
+            icon: HugeIcons.strokeRoundedLocation01,
+            label: 'Dirección',
+            value: detail.address,
+          ),
+        if (detail.blood != null && detail.blood!.isNotEmpty)
+          InfoItem(
+            icon: HugeIcons.strokeRoundedBlood,
+            label: 'Grupo sanguíneo',
+            value: detail.blood,
+          ),
+      ],
+    );
+  }
+}
+
+// ── Club info section ─────────────────────────────────────────────────────────
+
+class _ClubInfoSection extends StatelessWidget {
+  final ClubMember detail;
+
+  const _ClubInfoSection({required this.detail});
+
+  @override
+  Widget build(BuildContext context) {
+    String? baptismValue;
+    if (detail.baptism == true) {
+      if (detail.baptismDate != null) {
+        baptismValue =
+            'Sí · ${DateFormat('dd/MM/yyyy').format(detail.baptismDate!)}';
+      } else {
+        baptismValue = 'Sí';
+      }
+    } else if (detail.baptism == false) {
+      baptismValue = 'No';
+    }
+
+    return InfoSection(
+      title: 'Información del Club',
+      items: [
+        if (detail.clubRole != null)
+          InfoItem(
+            icon: HugeIcons.strokeRoundedLabel,
+            label: 'Cargo en el club',
+            value:
+                RoleUtils.translate(detail.clubRole, gender: detail.gender),
+          ),
+        if (detail.currentClass != null)
+          InfoItem(
+            icon: HugeIcons.strokeRoundedSchool,
+            label: 'Clase progresiva',
+            value: detail.currentClass,
+          ),
+        InfoItem(
+          icon: HugeIcons.strokeRoundedTicketStar,
+          label: 'Estado de inscripción',
+          value: detail.isEnrolled ? 'Inscrito' : 'No inscrito',
+        ),
+        if (baptismValue != null)
+          InfoItem(
+            icon: HugeIcons.strokeRoundedWaterEnergy,
+            label: 'Bautizado',
+            value: baptismValue,
+          ),
+      ],
+    );
+  }
+}
+
+// ── Medical info section (role-restricted) ────────────────────────────────────
+
+class _MedicalInfoSection extends ConsumerWidget {
+  final String userId;
+
+  const _MedicalInfoSection({required this.userId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.sac;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Row(
+            children: [
+              Text(
+                'INFORMACIÓN MÉDICA',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: c.textTertiary,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  'Confidencial',
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.error,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        _MedicalCard(
+          icon: HugeIcons.strokeRoundedFirstAidKit,
+          title: 'Alergias',
+          iconColor: AppColors.error,
+          child: _AllergiesBody(userId: userId),
+        ),
+        const SizedBox(height: 10),
+        _MedicalCard(
+          icon: HugeIcons.strokeRoundedHealth,
+          title: 'Enfermedades',
+          iconColor: AppColors.accent,
+          child: _DiseasesBody(userId: userId),
+        ),
+        const SizedBox(height: 10),
+        _MedicalCard(
+          icon: HugeIcons.strokeRoundedMedicine01,
+          title: 'Medicamentos',
+          iconColor: AppColors.secondary,
+          child: _MedicinesBody(userId: userId),
+        ),
+        const SizedBox(height: 10),
+        _MedicalCard(
+          icon: HugeIcons.strokeRoundedContactBook,
+          title: 'Contactos de Emergencia',
+          iconColor: AppColors.primary,
+          child: _EmergencyContactsBody(userId: userId),
+        ),
+      ],
+    );
+  }
+}
+
+class _MedicalCard extends StatelessWidget {
+  final List<List<dynamic>> icon;
+  final String title;
+  final Color iconColor;
+  final Widget child;
+
+  const _MedicalCard({
+    required this.icon,
+    required this.title,
+    required this.iconColor,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: c.border, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: HugeIcon(
+                      icon: icon,
+                      color: iconColor,
+                      size: 18,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: c.text,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Divider(height: 1, thickness: 1, color: c.borderLight),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: child,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Medical body widgets ──────────────────────────────────────────────────────
+
+class _AllergiesBody extends ConsumerWidget {
+  final String userId;
+
+  const _AllergiesBody({required this.userId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(memberAllergiesProvider(userId));
+
+    return async.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 4),
+        child: SacLoadingSmall(),
+      ),
+      error: (e, _) => _MedicalError(
+        onRetry: () => ref.invalidate(memberAllergiesProvider(userId)),
+      ),
+      data: (allergies) => allergies.isEmpty
+          ? _EmptyLabel('Sin alergias registradas')
+          : _ChipWrap(
+              items: allergies.map((a) => a.name).toList(),
+              chipColor: AppColors.errorLight,
+              textColor: AppColors.errorDark,
+              borderColor: AppColors.error.withValues(alpha: 0.3),
+            ),
+    );
+  }
+}
+
+class _DiseasesBody extends ConsumerWidget {
+  final String userId;
+
+  const _DiseasesBody({required this.userId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(memberDiseasesProvider(userId));
+
+    return async.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 4),
+        child: SacLoadingSmall(),
+      ),
+      error: (e, _) => _MedicalError(
+        onRetry: () => ref.invalidate(memberDiseasesProvider(userId)),
+      ),
+      data: (diseases) => diseases.isEmpty
+          ? _EmptyLabel('Sin enfermedades registradas')
+          : _ChipWrap(
+              items: diseases.map((d) => d.name).toList(),
+              chipColor: AppColors.accentLight,
+              textColor: AppColors.accentDark,
+              borderColor: AppColors.accent.withValues(alpha: 0.3),
+            ),
+    );
+  }
+}
+
+class _MedicinesBody extends ConsumerWidget {
+  final String userId;
+
+  const _MedicinesBody({required this.userId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(memberMedicinesProvider(userId));
+
+    return async.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 4),
+        child: SacLoadingSmall(),
+      ),
+      error: (e, _) => _MedicalError(
+        onRetry: () => ref.invalidate(memberMedicinesProvider(userId)),
+      ),
+      data: (medicines) => medicines.isEmpty
+          ? _EmptyLabel('Sin medicamentos registrados')
+          : _ChipWrap(
+              items: medicines.map((m) => m.name).toList(),
+              chipColor: AppColors.secondaryLight,
+              textColor: AppColors.secondaryDark,
+              borderColor: AppColors.secondary.withValues(alpha: 0.3),
+            ),
+    );
+  }
+}
+
+class _EmergencyContactsBody extends ConsumerWidget {
+  final String userId;
+
+  const _EmergencyContactsBody({required this.userId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.sac;
+    final async = ref.watch(memberEmergencyContactsProvider(userId));
+
+    return async.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 4),
+        child: SacLoadingSmall(),
+      ),
+      error: (e, _) => _MedicalError(
+        onRetry: () => ref.invalidate(memberEmergencyContactsProvider(userId)),
+      ),
+      data: (contacts) {
+        if (contacts.isEmpty) {
+          return _EmptyLabel('Sin contactos de emergencia registrados');
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: contacts.map((contact) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedUser,
+                        color: AppColors.primaryDark,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          contact.name,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: c.text,
+                          ),
+                        ),
+                        Text(
+                          '${contact.relationshipTypeName ?? contact.relationshipTypeId} · ${contact.phone}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: c.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+}
+
+// ── Shared micro-widgets ──────────────────────────────────────────────────────
+
+class _ChipWrap extends StatelessWidget {
+  final List<String> items;
+  final Color chipColor;
+  final Color textColor;
+  final Color borderColor;
+
+  const _ChipWrap({
+    required this.items,
+    required this.chipColor,
+    required this.textColor,
+    required this.borderColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: items.map((name) {
+        return Chip(
+          label: Text(
+            name,
+            style: TextStyle(
+              fontSize: 12,
+              color: textColor,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          backgroundColor: chipColor,
+          side: BorderSide(color: borderColor),
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _EmptyLabel extends StatelessWidget {
+  final String text;
+
+  const _EmptyLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: 14,
+        color: context.sac.textTertiary,
+        fontStyle: FontStyle.italic,
+      ),
+    );
+  }
+}
+
+class _MedicalError extends StatelessWidget {
+  final VoidCallback onRetry;
+
+  const _MedicalError({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const HugeIcon(
+          icon: HugeIcons.strokeRoundedAlert02,
+          size: 16,
+          color: AppColors.error,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            'Error al cargar',
+            style: TextStyle(fontSize: 13, color: AppColors.error),
+          ),
+        ),
+        TextButton(
+          onPressed: onRetry,
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.primary,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: const Text('Reintentar', style: TextStyle(fontSize: 12)),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+
 class _MemberProfileHeader extends StatelessWidget {
   final ClubMember member;
 
@@ -200,7 +691,6 @@ class _MemberProfileHeader extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Avatar
         Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
@@ -234,10 +724,7 @@ class _MemberProfileHeader extends StatelessWidget {
                 : null,
           ),
         ),
-
         const SizedBox(width: 16),
-
-        // Name + badges
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -260,7 +747,8 @@ class _MemberProfileHeader extends StatelessWidget {
                 children: [
                   if (member.clubRole != null)
                     SacBadge(
-                      label: RoleUtils.translate(member.clubRole),
+                      label: RoleUtils.translate(
+                          member.clubRole, gender: member.gender),
                       variant: SacBadgeVariant.primary,
                     ),
                   if (member.currentClass != null)
@@ -283,6 +771,8 @@ class _MemberProfileHeader extends StatelessWidget {
     );
   }
 }
+
+// ── Error state ───────────────────────────────────────────────────────────────
 
 class _ErrorState extends StatelessWidget {
   final String message;

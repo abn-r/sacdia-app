@@ -2,6 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../post_registration/data/datasources/personal_info_remote_data_source.dart';
+import '../../../post_registration/data/models/allergy_model.dart';
+import '../../../post_registration/data/models/disease_model.dart';
+import '../../../post_registration/data/models/emergency_contact_model.dart';
+import '../../../post_registration/data/models/medicine_model.dart';
 import '../../data/datasources/members_remote_data_source.dart';
 import '../../data/repositories/members_repository_impl.dart';
 import '../../domain/entities/club_member.dart';
@@ -438,3 +443,59 @@ int _classOrder(String className) {
   };
   return order[className] ?? 99;
 }
+
+// ── Member detail provider ─────────────────────────────────────────────────────
+
+/// Obtiene el detalle completo de un miembro por su userId.
+/// Keyed por userId — se cachea de forma independiente por cada miembro visitado.
+final memberDetailProvider =
+    FutureProvider.autoDispose.family<ClubMember, String>((ref, userId) async {
+  final repo = ref.read(membersRepositoryProvider);
+  final result = await repo.getMemberDetail(userId);
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (member) => member,
+  );
+});
+
+// ── Medical data providers scoped to a specific userId ────────────────────────
+
+/// Provider del data source de información personal reutilizable fuera del módulo
+/// de post-registro (no expone autoDispose para poder ser usado en family providers).
+final _personalInfoDsProvider = Provider<PersonalInfoRemoteDataSource>((ref) {
+  final dio = ref.read(dioProvider);
+  final baseUrl = ref.read(apiBaseUrlProvider);
+  return PersonalInfoRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+});
+
+/// Alergias de un usuario específico (solo lectura, para vista de perfil de miembro).
+final memberAllergiesProvider =
+    FutureProvider.autoDispose.family<List<AllergyModel>, String>(
+        (ref, userId) async {
+  final ds = ref.read(_personalInfoDsProvider);
+  return ds.getUserAllergies(userId);
+});
+
+/// Enfermedades de un usuario específico (solo lectura, para vista de perfil de miembro).
+final memberDiseasesProvider =
+    FutureProvider.autoDispose.family<List<DiseaseModel>, String>(
+        (ref, userId) async {
+  final ds = ref.read(_personalInfoDsProvider);
+  return ds.getUserDiseases(userId);
+});
+
+/// Medicamentos de un usuario específico (solo lectura, para vista de perfil de miembro).
+final memberMedicinesProvider =
+    FutureProvider.autoDispose.family<List<MedicineModel>, String>(
+        (ref, userId) async {
+  final ds = ref.read(_personalInfoDsProvider);
+  return ds.getUserMedicines(userId);
+});
+
+/// Contactos de emergencia de un usuario específico (solo lectura, para vista de perfil de miembro).
+final memberEmergencyContactsProvider =
+    FutureProvider.autoDispose.family<List<EmergencyContactModel>, String>(
+        (ref, userId) async {
+  final ds = ref.read(_personalInfoDsProvider);
+  return ds.getEmergencyContacts(userId);
+});

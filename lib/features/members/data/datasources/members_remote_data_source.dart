@@ -4,7 +4,6 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/club_member_model.dart';
 import '../models/join_request_model.dart';
-import '../../domain/entities/join_request.dart';
 
 /// Interfaz de la fuente de datos remota para miembros
 abstract class MembersRemoteDataSource {
@@ -218,14 +217,8 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
     required int sectionId,
   }) async {
     try {
-      // El backend actualmente expone miembros; las solicitudes de ingreso
-      // se obtienen filtrando por estado pendiente o desde un endpoint
-      // dedicado cuando esté disponible. Por ahora consultamos el endpoint
-      // de miembros con parámetro de estado, o retornamos lista vacía si
-      // el endpoint aún no existe.
       final response = await _dio.get(
-        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/members',
-        queryParameters: {'status': 'pending'},
+        '$_baseUrl${ApiEndpoints.clubSections}/$sectionId${ApiEndpoints.membershipRequests}',
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -236,11 +229,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       }
 
       final list = _unwrapList(response.data);
-      // Filtrar sólo registros con status pending si la API los incluye todos
-      return list
-          .map((json) => JoinRequestModel.fromJson(json))
-          .where((r) => r.status == JoinRequestStatus.pending)
-          .toList();
+      return list.map((json) => JoinRequestModel.fromJson(json)).toList();
     } on DioException catch (e) {
       // Si es 404 u otro error de recurso no encontrado, retornar lista vacía
       if (e.response?.statusCode == 404 || e.response?.statusCode == 400) {
@@ -262,9 +251,8 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
   @override
   Future<JoinRequestModel> approveJoinRequest(String assignmentId) async {
     try {
-      final response = await _dio.patch(
-        '$_baseUrl${ApiEndpoints.clubRoles}/$assignmentId',
-        data: {'status': 'approved'},
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.clubSections}/$assignmentId/approve',
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -291,9 +279,8 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
   @override
   Future<JoinRequestModel> rejectJoinRequest(String assignmentId) async {
     try {
-      final response = await _dio.patch(
-        '$_baseUrl${ApiEndpoints.clubRoles}/$assignmentId',
-        data: {'status': 'rejected'},
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.clubSections}/$assignmentId/reject',
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
