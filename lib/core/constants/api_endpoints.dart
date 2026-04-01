@@ -25,6 +25,7 @@ class ApiEndpoints {
 
   // ── Club Sections ─────────────────────────────────────────────────────────
   static const String clubSections = '/club-sections';
+  static const String membershipRequests = '/membership-requests';
 
   // ── Club Roles ────────────────────────────────────────────────────────────
   static const String clubRoles = '/club-roles';

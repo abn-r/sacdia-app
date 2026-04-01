@@ -196,7 +196,7 @@ class AppColors {
   // COLORES DE CATEGORÍAS DE HONORES
   // ═══════════════════════════════════════════════════════════
 
-  static const Color catAdra = Color(0xFFE53935);
+  static const Color catAdra = Color.fromARGB(255, 70, 16, 150);
   static const Color catagropecuarias = Color(0xFF8BC34A);
   static const Color catCienciasSalud = Color(0xFF0288D1);
   static const Color catDomesticas = Color(0xFFFF8F00);

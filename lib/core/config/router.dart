@@ -1136,7 +1136,7 @@ class _ActiveClassDetailShell extends ConsumerWidget {
               child: Padding(
                 padding: EdgeInsets.all(32),
                 child: Text(
-                  'No tenés ninguna clase asignada. Inscribite en un club para comenzar.',
+                  'No tienes ninguna clase asignada. Inscríbete en un club para comenzar.',
                   textAlign: TextAlign.center,
                 ),
               ),
