@@ -5,7 +5,8 @@ const String _tag = 'EvidenceFileModel';
 
 /// Modelo de datos para [EvidenceFile].
 ///
-/// Mapea la respuesta JSON de la API al dominio y viceversa.
+/// Mapea la respuesta JSON del módulo AnnualFolders al dominio y viceversa.
+/// Campos AnnualFolders: evidence_id, file_url, file_name, uploaded_by, created_at.
 class EvidenceFileModel extends EvidenceFile {
   const EvidenceFileModel({
     required super.id,
@@ -17,23 +18,36 @@ class EvidenceFileModel extends EvidenceFile {
   });
 
   factory EvidenceFileModel.fromJson(Map<String, dynamic> json) {
+    final fileName =
+        (json['file_name'] ?? json['fileName'] ?? '').toString();
+
     return EvidenceFileModel(
-      id: (json['id'] ?? json['file_id'] ?? '').toString(),
-      url: (json['url'] ?? json['file_url'] ?? '').toString(),
-      fileName: (json['file_name'] ?? json['fileName'] ?? '').toString(),
-      type: evidenceFileTypeFromString(
-        json['file_type'] ?? json['type'] ?? '',
+      // AnnualFolders usa evidence_id; fallback al campo genérico id/file_id
+      id: (json['evidence_id'] ?? json['id'] ?? json['file_id'] ?? '')
+          .toString(),
+      // AnnualFolders usa file_url; fallback a url
+      url: (json['file_url'] ?? json['url'] ?? '').toString(),
+      fileName: fileName,
+      // AnnualFolders no envía file_type — se deriva de la extensión del nombre
+      type: _typeFromFileName(
+        fileName,
+        fallback: json['file_type'] ?? json['type'],
       ),
-      uploadedByName: (json['uploaded_by_name'] ??
+      // AnnualFolders usa uploaded_by (string con el nombre directamente)
+      uploadedByName: (json['uploaded_by'] ??
+              json['uploaded_by_name'] ??
               json['uploadedByName'] ??
               'Desconocido')
           .toString(),
+      // AnnualFolders usa created_at; fallback a uploaded_at
       uploadedAt: () {
-        final raw = json['uploaded_at'] ?? json['uploadedAt'];
+        final raw = json['created_at'] ?? json['uploaded_at'] ?? json['uploadedAt'];
         if (raw != null) {
           final parsed = DateTime.tryParse(raw.toString());
           if (parsed == null) {
-            AppLogger.w('Failed to parse date: $raw, using DateTime.now()', tag: _tag);
+            AppLogger.w(
+                'Failed to parse date: $raw, using DateTime.now()',
+                tag: _tag);
           }
           return parsed ?? DateTime.now();
         }
@@ -42,14 +56,29 @@ class EvidenceFileModel extends EvidenceFile {
     );
   }
 
+  /// Deriva [EvidenceFileType] de la extensión del nombre de archivo.
+  /// Acepta un [fallback] string por si el JSON incluye un campo explícito.
+  static EvidenceFileType _typeFromFileName(
+    String fileName, {
+    dynamic fallback,
+  }) {
+    if (fallback != null) {
+      return evidenceFileTypeFromString(fallback.toString());
+    }
+    final ext = fileName.contains('.')
+        ? fileName.split('.').last.toLowerCase()
+        : '';
+    return ext == 'pdf' ? EvidenceFileType.pdf : EvidenceFileType.image;
+  }
+
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'url': url,
+      'evidence_id': id,
+      'file_url': url,
       'file_name': fileName,
       'file_type': type == EvidenceFileType.pdf ? 'pdf' : 'image',
-      'uploaded_by_name': uploadedByName,
-      'uploaded_at': uploadedAt.toIso8601String(),
+      'uploaded_by': uploadedByName,
+      'created_at': uploadedAt.toIso8601String(),
     };
   }
 

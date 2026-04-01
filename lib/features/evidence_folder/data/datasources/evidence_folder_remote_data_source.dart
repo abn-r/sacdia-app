@@ -7,29 +7,39 @@ import '../models/evidence_folder_model.dart';
 
 /// Interfaz para la fuente de datos remota de carpeta de evidencias.
 abstract class EvidenceFolderRemoteDataSource {
+  /// Obtiene la carpeta anual de una sección de club.
+  ///
+  /// Usa el endpoint de conveniencia que acepta [clubSectionId] como integer.
   Future<EvidenceFolderModel> getEvidenceFolder(String clubSectionId);
 
-  Future<void> submitSection(String clubSectionId, String sectionId);
+  /// Envía la carpeta completa a validación.
+  ///
+  /// [folderId] es el UUID de annual_folder_id.
+  Future<void> submitFolder(String folderId);
 
+  /// Sube un archivo de evidencia a la sección especificada.
+  ///
+  /// [folderId] es el UUID de annual_folder_id.
+  /// [sectionId] es el UUID de la sección dentro de la carpeta anual.
   Future<EvidenceFileModel> uploadFile({
-    required String clubSectionId,
+    required String folderId,
     required String sectionId,
     required String filePath,
     required String fileName,
     required String mimeType,
+    String? notes,
     void Function(double)? onProgress,
   });
 
-  Future<void> deleteFile({
-    required String clubSectionId,
-    required String sectionId,
-    required String fileId,
-  });
+  /// Elimina un archivo de evidencia.
+  ///
+  /// Solo requiere [evidenceId] (UUID).
+  Future<void> deleteFile({required String evidenceId});
 }
 
 /// Implementación de la fuente de datos remota de carpeta de evidencias.
 ///
-/// Utiliza Dio para llamadas REST al backend SACDIA.
+/// Consume los endpoints del módulo AnnualFolders en el backend SACDIA.
 /// Auth token es inyectado automáticamente por [AuthInterceptor].
 class EvidenceFolderRemoteDataSourceImpl
     implements EvidenceFolderRemoteDataSource {
@@ -44,21 +54,22 @@ class EvidenceFolderRemoteDataSourceImpl
   })  : _dio = dio,
         _baseUrl = baseUrl;
 
-  // ── GET /club-sections/:id/evidence-folder ─────────────────────────────────
+  // ── GET /club-sections/:sectionId/annual-folder ───────────────────────────
 
   @override
   Future<EvidenceFolderModel> getEvidenceFolder(
       String clubSectionId) async {
     try {
       final response = await _dio.get(
-        '$_baseUrl${ApiEndpoints.clubSections}/$clubSectionId/evidence-folder',
+        '$_baseUrl${ApiEndpoints.clubSections}/$clubSectionId/annual-folder',
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final body = response.data as Map<String, dynamic>;
         // El backend puede envolver en { data: {...} }
-        final folderJson =
-            body.containsKey('data') ? body['data'] as Map<String, dynamic> : body;
+        final folderJson = body.containsKey('data')
+            ? body['data'] as Map<String, dynamic>
+            : body;
         return EvidenceFolderModel.fromJson(folderJson);
       }
 
@@ -72,50 +83,56 @@ class EvidenceFolderRemoteDataSourceImpl
     }
   }
 
-  // ── POST /club-sections/:id/evidence-folder/sections/:sectionId/submit ─────
+  // ── POST /annual-folders/:folderId/submit ─────────────────────────────────
 
   @override
-  Future<void> submitSection(
-      String clubSectionId, String sectionId) async {
+  Future<void> submitFolder(String folderId) async {
     try {
       final response = await _dio.post(
-        '$_baseUrl${ApiEndpoints.clubSections}/$clubSectionId/evidence-folder/sections/$sectionId/submit',
+        '$_baseUrl${ApiEndpoints.annualFolders}/$folderId/submit',
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) return;
 
       throw ServerException(
-        message: 'Error al enviar la sección a validación',
+        message: 'Error al enviar la carpeta a validación',
         code: response.statusCode,
       );
     } catch (e) {
-      AppLogger.e('Error en submitSection', tag: _tag, error: e);
+      AppLogger.e('Error en submitFolder', tag: _tag, error: e);
       _rethrow(e);
     }
   }
 
-  // ── POST /club-sections/:id/evidence-folder/sections/:sectionId/files ──────
+  // ── POST /annual-folders/:folderId/sections/:sectionId/evidences ──────────
 
   @override
   Future<EvidenceFileModel> uploadFile({
-    required String clubSectionId,
+    required String folderId,
     required String sectionId,
     required String filePath,
     required String fileName,
     required String mimeType,
+    String? notes,
     void Function(double)? onProgress,
   }) async {
     try {
-      final formData = FormData.fromMap({
+      final formFields = <String, dynamic>{
         'file': await MultipartFile.fromFile(
           filePath,
           filename: fileName,
           contentType: DioMediaType.parse(mimeType),
         ),
-      });
+      };
+
+      if (notes != null && notes.isNotEmpty) {
+        formFields['notes'] = notes;
+      }
+
+      final formData = FormData.fromMap(formFields);
 
       final response = await _dio.post(
-        '$_baseUrl${ApiEndpoints.clubSections}/$clubSectionId/evidence-folder/sections/$sectionId/files',
+        '$_baseUrl${ApiEndpoints.annualFolders}/$folderId/sections/$sectionId/evidences',
         data: formData,
         options: Options(
           headers: {
@@ -154,17 +171,13 @@ class EvidenceFolderRemoteDataSourceImpl
     }
   }
 
-  // ── DELETE /club-sections/:id/evidence-folder/sections/:sectionId/files/:fileId
+  // ── DELETE /annual-folders/evidences/:evidenceId ──────────────────────────
 
   @override
-  Future<void> deleteFile({
-    required String clubSectionId,
-    required String sectionId,
-    required String fileId,
-  }) async {
+  Future<void> deleteFile({required String evidenceId}) async {
     try {
       final response = await _dio.delete(
-        '$_baseUrl${ApiEndpoints.clubSections}/$clubSectionId/evidence-folder/sections/$sectionId/files/$fileId',
+        '$_baseUrl${ApiEndpoints.annualFolders}/evidences/$evidenceId',
       );
 
       if (response.statusCode == 200 ||
@@ -183,7 +196,7 @@ class EvidenceFolderRemoteDataSourceImpl
     }
   }
 
-  // ── Error helper ─────────────────────────────────────────────────────────────
+  // ── Error helper ──────────────────────────────────────────────────────────
 
   Never _rethrow(Object e) {
     if (e is DioException) {

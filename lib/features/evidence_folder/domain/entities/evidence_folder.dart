@@ -4,6 +4,10 @@ import 'evidence_section.dart';
 
 /// Representa el estado general de la carpeta de evidencias del club.
 class EvidenceFolder extends Equatable {
+  /// UUID de la carpeta anual (annual_folder_id). Necesario para operaciones
+  /// de subida, envío y eliminación contra los endpoints de AnnualFolders.
+  final String folderId;
+
   final String id;
   final String name;
   final String? description;
@@ -39,6 +43,7 @@ class EvidenceFolder extends Equatable {
   final String? status;
 
   const EvidenceFolder({
+    required this.folderId,
     required this.id,
     required this.name,
     this.description,
@@ -95,6 +100,7 @@ class EvidenceFolder extends Equatable {
 
   @override
   List<Object?> get props => [
+        folderId,
         id,
         name,
         description,

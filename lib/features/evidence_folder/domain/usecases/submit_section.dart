@@ -5,30 +5,25 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../repositories/evidence_folder_repository.dart';
 
-class SubmitSectionParams extends Equatable {
-  final String clubSectionId;
-  final String sectionId;
+class SubmitFolderParams extends Equatable {
+  final String folderId;
 
-  const SubmitSectionParams({
-    required this.clubSectionId,
-    required this.sectionId,
-  });
+  const SubmitFolderParams({required this.folderId});
 
   @override
-  List<Object?> get props => [clubSectionId, sectionId];
+  List<Object?> get props => [folderId];
 }
 
-/// Caso de uso: enviar una sección a validación (pendiente → enviado).
-class SubmitSection implements UseCase<void, SubmitSectionParams> {
+/// Caso de uso: enviar la carpeta completa a validación.
+///
+/// AnnualFolders opera sobre la carpeta entera, no por sección individual.
+class SubmitFolder implements UseCase<void, SubmitFolderParams> {
   final EvidenceFolderRepository _repository;
 
-  SubmitSection(this._repository);
+  SubmitFolder(this._repository);
 
   @override
-  Future<Either<Failure, void>> call(SubmitSectionParams params) async {
-    return _repository.submitSection(
-      params.clubSectionId,
-      params.sectionId,
-    );
+  Future<Either<Failure, void>> call(SubmitFolderParams params) async {
+    return _repository.submitFolder(params.folderId);
   }
 }

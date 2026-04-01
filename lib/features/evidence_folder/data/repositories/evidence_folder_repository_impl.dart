@@ -38,10 +38,9 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
   }
 
   @override
-  Future<Either<Failure, void>> submitSection(
-      String clubSectionId, String sectionId) async {
+  Future<Either<Failure, void>> submitFolder(String folderId) async {
     try {
-      await remoteDataSource.submitSection(clubSectionId, sectionId);
+      await remoteDataSource.submitFolder(folderId);
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
@@ -54,20 +53,22 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
 
   @override
   Future<Either<Failure, EvidenceFile>> uploadFile({
-    required String clubSectionId,
+    required String folderId,
     required String sectionId,
     required String filePath,
     required String fileName,
     required String mimeType,
+    String? notes,
     void Function(double)? onProgress,
   }) async {
     try {
       final model = await remoteDataSource.uploadFile(
-        clubSectionId: clubSectionId,
+        folderId: folderId,
         sectionId: sectionId,
         filePath: filePath,
         fileName: fileName,
         mimeType: mimeType,
+        notes: notes,
         onProgress: onProgress,
       );
       return Right(model.toEntity());
@@ -81,17 +82,10 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
   }
 
   @override
-  Future<Either<Failure, void>> deleteFile({
-    required String clubSectionId,
-    required String sectionId,
-    required String fileId,
-  }) async {
+  Future<Either<Failure, void>> deleteFile(
+      {required String evidenceId}) async {
     try {
-      await remoteDataSource.deleteFile(
-        clubSectionId: clubSectionId,
-        sectionId: sectionId,
-        fileId: fileId,
-      );
+      await remoteDataSource.deleteFile(evidenceId: evidenceId);
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));

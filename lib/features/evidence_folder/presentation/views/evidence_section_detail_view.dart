@@ -242,17 +242,14 @@ class _EvidenceSectionDetailViewState
                           .read(evidenceSectionNotifierProvider(
                                   widget.clubSectionId)
                               .notifier)
-                          .deleteFile(
-                            sectionId: widget.section.id,
-                            fileId: fileId,
-                          );
+                          .deleteFile(fileId: fileId);
                     },
                     onSubmit: () async {
                       final success = await ref
                           .read(evidenceSectionNotifierProvider(
                                   widget.clubSectionId)
                               .notifier)
-                          .submit(widget.section.id);
+                          .submitFolder();
                       if (success && mounted) {
                         // ignore: use_build_context_synchronously
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -263,7 +260,7 @@ class _EvidenceSectionDetailViewState
                                     color: Colors.white, size: 18),
                                 SizedBox(width: 8),
                                 Text(
-                                    'Sección enviada a validación exitosamente'),
+                                    'Carpeta enviada a validación exitosamente'),
                               ],
                             ),
                             backgroundColor: AppColors.secondary,
