@@ -1,127 +1,68 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/utils/icon_helper.dart';
 import '../providers/inventory_providers.dart';
 
-/// Header con resumen estadístico del inventario.
+// ── Compact stats row ───────────────────────────────────────────────────────────
+
+/// Fila compacta de estadísticas del inventario.
 ///
-/// Sigue el design system "Scout Vibrante":
-/// fondo de surface con borde sutil, icono en contenedor de acento,
-/// sin gradientes, tokens de color semánticos via `context.sac`.
-class InventorySummaryHeader extends StatelessWidget {
+/// Muestra tres chips: total de ítems, valor estimado y un mini anillo
+/// de salud basado en la proporción de ítems en buen estado.
+/// Altura máxima: ~80px.
+class InventoryStatsRow extends StatelessWidget {
   final InventorySummary summary;
 
-  const InventorySummaryHeader({super.key, required this.summary});
+  const InventoryStatsRow({super.key, required this.summary});
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final healthRatio = summary.totalItems > 0
+        ? summary.buenoCount / summary.totalItems
+        : 0.0;
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-        border: Border.all(color: c.border),
-        boxShadow: [
-          BoxShadow(
-            color: c.shadow,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Row(
         children: [
-          // Title row
-          Row(
-            children: [
-              // Icon container — standard app pattern
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.primarySurface,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-                ),
-                child: const Center(
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedPackageAdd,
-                    size: 20,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 10),
-
-              // Title
-              Text(
-                'Resumen del Inventario',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: c.text,
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-            ],
+          // Total items chip
+          _StatChip(
+            icon: HugeIcons.strokeRoundedPackage,
+            value: summary.totalItems.toString(),
+            label: 'artículos',
+            iconColor: AppColors.primary,
+            bgColor: AppColors.primarySurface,
+            borderColor: AppColors.primary.withValues(alpha: 0.25),
           ),
+          const SizedBox(width: 8),
 
-          const SizedBox(height: 12),
+          // Value chip — only when there's data
+          if (summary.totalValue > 0) ...[
+            _StatChip(
+              icon: HugeIcons.strokeRoundedMoney01,
+              value: '\$${_formatValue(summary.totalValue)}',
+              label: 'valor est.',
+              iconColor: AppColors.accent,
+              bgColor: AppColors.accent.withValues(alpha: 0.10),
+              borderColor: AppColors.accent.withValues(alpha: 0.30),
+            ),
+            const SizedBox(width: 8),
+          ],
 
-          // Stats row
-          Row(
-            children: [
-              _StatChip(
-                label: 'Total',
-                value: summary.totalItems.toString(),
-                icon: HugeIcons.strokeRoundedPackage,
-                color: c.text,
-                subtitleColor: c.textSecondary,
-                backgroundColor: c.surfaceVariant,
-                borderColor: c.border,
-              ),
-              const SizedBox(width: 10),
-              if (summary.totalValue > 0)
-                _StatChip(
-                  label: 'Valor est.',
-                  value: '\$${_formatValue(summary.totalValue)}',
-                  icon: HugeIcons.strokeRoundedMoney01,
-                  color: AppColors.accent,
-                  subtitleColor: AppColors.accentDark,
-                  backgroundColor: AppColors.accent.withValues(alpha: 0.10),
-                  borderColor: AppColors.accent.withValues(alpha: 0.30),
-                ),
-            ],
-          ),
-
-          const SizedBox(height: 10),
-
-          // Condition breakdown
-          Row(
-            children: [
-              _ConditionPill(
-                label: 'Bueno',
-                count: summary.buenoCount,
-                color: AppColors.secondary,
-              ),
-              const SizedBox(width: 8),
-              _ConditionPill(
-                label: 'Regular',
-                count: summary.regularCount,
-                color: AppColors.accent,
-              ),
-              const SizedBox(width: 8),
-              _ConditionPill(
-                label: 'Malo',
-                count: summary.maloCount,
-                color: AppColors.error,
-              ),
-            ],
+          // Health ring chip
+          _HealthRingChip(
+            ratio: healthRatio,
+            buenoCount: summary.buenoCount,
+            totalItems: summary.totalItems,
+            c: c,
           ),
         ],
       ),
@@ -136,53 +77,147 @@ class InventorySummaryHeader extends StatelessWidget {
 }
 
 class _StatChip extends StatelessWidget {
-  final String label;
+  final HugeIconData icon;
   final String value;
-  final List<List<dynamic>> icon;
-  final Color color;
-  final Color subtitleColor;
-  final Color backgroundColor;
+  final String label;
+  final Color iconColor;
+  final Color bgColor;
   final Color borderColor;
 
   const _StatChip({
-    required this.label,
-    required this.value,
     required this.icon,
-    required this.color,
-    required this.subtitleColor,
-    required this.backgroundColor,
+    required this.value,
+    required this.label,
+    required this.iconColor,
+    required this.bgColor,
     required this.borderColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOut,
+      builder: (context, opacity, child) => Opacity(
+        opacity: opacity,
+        child: child,
+      ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+          border: Border.all(color: borderColor),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            HugeIcon(icon: icon, size: 16, color: iconColor),
+            const SizedBox(width: 6),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: iconColor,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                    height: 1.1,
+                  ),
+                ),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: iconColor.withValues(alpha: 0.7),
+                    fontSize: 10,
+                    height: 1.1,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HealthRingChip extends StatelessWidget {
+  final double ratio;
+  final int buenoCount;
+  final int totalItems;
+  final SacColors c;
+
+  const _HealthRingChip({
+    required this.ratio,
+    required this.buenoCount,
+    required this.totalItems,
+    required this.c,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final pct = (ratio * 100).round();
+    final ringColor = ratio >= 0.8
+        ? AppColors.secondary
+        : ratio >= 0.5
+            ? AppColors.accent
+            : AppColors.error;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: backgroundColor,
+        color: ringColor.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-        border: Border.all(color: borderColor),
+        border: Border.all(color: ringColor.withValues(alpha: 0.30)),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          HugeIcon(icon: icon, size: 16, color: color),
-          const SizedBox(width: 6),
+          SizedBox(
+            width: 28,
+            height: 28,
+            child: CustomPaint(
+              painter: _RingPainter(
+                ratio: ratio,
+                color: ringColor,
+                trackColor: ringColor.withValues(alpha: 0.18),
+              ),
+              child: Center(
+                child: Text(
+                  '$pct%',
+                  style: TextStyle(
+                    fontSize: 7,
+                    fontWeight: FontWeight.w800,
+                    color: ringColor,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 7),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                value,
+                '$buenoCount/$totalItems',
                 style: TextStyle(
-                  color: color,
+                  color: ringColor,
                   fontWeight: FontWeight.w800,
-                  fontSize: 16,
+                  fontSize: 13,
+                  height: 1.1,
                 ),
               ),
               Text(
-                label,
+                'en buen estado',
                 style: TextStyle(
-                  color: subtitleColor,
-                  fontSize: 10,
+                  color: ringColor.withValues(alpha: 0.7),
+                  fontSize: 9,
+                  height: 1.1,
                 ),
               ),
             ],
@@ -193,50 +228,60 @@ class _StatChip extends StatelessWidget {
   }
 }
 
-class _ConditionPill extends StatelessWidget {
-  final String label;
-  final int count;
+/// Painter del mini anillo de salud.
+class _RingPainter extends CustomPainter {
+  final double ratio;
   final Color color;
+  final Color trackColor;
 
-  const _ConditionPill({
-    required this.label,
-    required this.count,
+  const _RingPainter({
+    required this.ratio,
     required this.color,
+    required this.trackColor,
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-        border: Border.all(color: color.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 5),
-          Text(
-            '$label: $count',
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.w700,
-              fontSize: 11,
-            ),
-          ),
-        ],
-      ),
-    );
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final radius = math.min(cx, cy) - 2.5;
+    const strokeWidth = 3.5;
+
+    // Track
+    final trackPaint = Paint()
+      ..color = trackColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawCircle(Offset(cx, cy), radius, trackPaint);
+
+    // Progress arc
+    if (ratio > 0) {
+      final arcPaint = Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round;
+
+      canvas.drawArc(
+        Rect.fromCircle(center: Offset(cx, cy), radius: radius),
+        -math.pi / 2,
+        ratio * 2 * math.pi,
+        false,
+        arcPaint,
+      );
+    }
   }
+
+  @override
+  bool shouldRepaint(_RingPainter old) =>
+      old.ratio != ratio || old.color != color;
 }
 
-/// Widget de barra de filtros para el listado de inventario.
+// ── Filter bar (unchanged API) ──────────────────────────────────────────────────
+
+/// Widget de barra de búsqueda + botón de filtros para el inventario.
 class InventoryFilterBar extends StatelessWidget {
   final TextEditingController searchController;
   final ValueChanged<String> onSearchChanged;
@@ -295,9 +340,7 @@ class InventoryFilterBar extends StatelessWidget {
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: context.sac.border,
-                  ),
+                  borderSide: BorderSide(color: context.sac.border),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -366,6 +409,102 @@ class _FilterButton extends StatelessWidget {
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Category chips (inline, horizontal scroll) ──────────────────────────────────
+
+/// Barra de chips de categoría con scroll horizontal.
+///
+/// Siempre visible debajo del search bar — reemplaza el panel de categorías
+/// del filter sheet. Chip "Todas" siempre primero.
+class InventoryCategoryChips extends ConsumerWidget {
+  const InventoryCategoryChips({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final categoriesAsync = ref.watch(inventoryCategoriesProvider);
+    final filters = ref.watch(inventoryFiltersProvider);
+
+    return SizedBox(
+      height: 40,
+      child: categoriesAsync.when(
+        loading: () => const SizedBox.shrink(),
+        error: (_, __) => const SizedBox.shrink(),
+        data: (cats) => ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: cats.length + 1, // +1 for "Todas"
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              final isSelected = filters.categoryId == null;
+              return _CategoryChip(
+                label: 'Todas',
+                isSelected: isSelected,
+                onTap: () {
+                  ref.read(inventoryFiltersProvider.notifier).state =
+                      filters.copyWith(clearCategory: true);
+                },
+              );
+            }
+            final cat = cats[index - 1];
+            final isSelected = filters.categoryId == cat.id;
+            return _CategoryChip(
+              label: cat.name,
+              isSelected: isSelected,
+              onTap: () {
+                ref.read(inventoryFiltersProvider.notifier).state =
+                    filters.copyWith(categoryId: cat.id);
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _CategoryChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _CategoryChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary
+              : context.sac.surfaceVariant,
+          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : context.sac.border,
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: isSelected ? Colors.white : context.sac.textSecondary,
+            ),
+          ),
         ),
       ),
     );

@@ -5,13 +5,18 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/utils/icon_helper.dart';
 import '../../domain/entities/inventory_item.dart';
 import '../providers/inventory_providers.dart';
 import '../widgets/condition_badge.dart';
 import 'add_inventory_item_sheet.dart';
 
 /// Pantalla de detalle de un ítem del inventario.
+///
+/// Botones de editar/eliminar en la zona del pulgar (barra inferior),
+/// no en el AppBar. Hero animation en la foto desde la lista.
 class InventoryItemDetailView extends ConsumerWidget {
   final InventoryItem item;
 
@@ -36,47 +41,32 @@ class InventoryItemDetailView extends ConsumerWidget {
               ),
         ),
         centerTitle: false,
-        actions: [
-          if (canManage)
-            IconButton(
-              onPressed: deleteState.isLoading
-                  ? null
-                  : () => _confirmDelete(context, ref),
-              icon: deleteState.isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: AppColors.error),
-                    )
-                  : HugeIcon(
-                      icon: HugeIcons.strokeRoundedDelete02,
-                      size: 22,
-                      color: AppColors.error,
-                    ),
-            ),
-          if (canManage)
-            IconButton(
-              onPressed: () => _openEdit(context),
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedEdit01,
-                size: 22,
-                color: context.sac.textSecondary,
-              ),
-            ),
-        ],
       ),
+
+      // Action bar at bottom — thumb zone
+      bottomNavigationBar: canManage
+          ? _BottomActionBar(
+              item: item,
+              isDeleting: deleteState.isLoading,
+              onEdit: () => _openEdit(context),
+              onDelete: () => _confirmDelete(context, ref),
+            )
+          : null,
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Photo hero
-            _PhotoSection(photoUrl: item.photoUrl),
+            // Photo hero — tag matches thumbnail tag in item card
+            Hero(
+              tag: 'inv-photo-${item.id}',
+              child: _PhotoSection(photoUrl: item.photoUrl),
+            ),
 
             const SizedBox(height: 20),
 
-            // Title + condition
+            // Title + condition badge
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -97,10 +87,9 @@ class InventoryItemDetailView extends ConsumerWidget {
 
             const SizedBox(height: 8),
 
-            // Category
+            // Category tag
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: AppColors.primarySurface,
                 borderRadius: BorderRadius.circular(8),
@@ -114,7 +103,8 @@ class InventoryItemDetailView extends ConsumerWidget {
               ),
             ),
 
-            if (item.description != null && item.description!.isNotEmpty) ...[
+            if (item.description != null &&
+                item.description!.isNotEmpty) ...[
               const SizedBox(height: 16),
               Text(
                 item.description!,
@@ -127,7 +117,7 @@ class InventoryItemDetailView extends ConsumerWidget {
 
             const SizedBox(height: 20),
 
-            // Info cards
+            // Primary info card
             _InfoCard(
               children: [
                 _InfoRow(
@@ -146,14 +136,14 @@ class InventoryItemDetailView extends ConsumerWidget {
                   _InfoRow(
                     icon: HugeIcons.strokeRoundedCalendar01,
                     label: 'Fecha de adquisición',
-                    value: DateFormat('dd/MM/yyyy').format(item.purchaseDate!.toLocal()),
+                    value: DateFormat('dd/MM/yyyy')
+                        .format(item.purchaseDate!.toLocal()),
                   ),
                 if (item.estimatedValue != null)
                   _InfoRow(
                     icon: HugeIcons.strokeRoundedMoney01,
                     label: 'Valor estimado',
-                    value:
-                        '\$${item.estimatedValue!.toStringAsFixed(2)}',
+                    value: '\$${item.estimatedValue!.toStringAsFixed(2)}',
                     valueColor: AppColors.secondary,
                   ),
               ],
@@ -258,19 +248,103 @@ class InventoryItemDetailView extends ConsumerWidget {
                 Navigator.pop(context);
               } else if (!success && context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('No se pudo eliminar el artículo'),
+                  const SnackBar(
+                    content: Text('No se pudo eliminar el artículo'),
                     backgroundColor: AppColors.error,
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
               }
             },
-            style: FilledButton.styleFrom(
-                backgroundColor: AppColors.error),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text('Eliminar'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Bottom action bar ───────────────────────────────────────────────────────────
+
+class _BottomActionBar extends StatelessWidget {
+  final InventoryItem item;
+  final bool isDeleting;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _BottomActionBar({
+    required this.item,
+    required this.isDeleting,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+        decoration: BoxDecoration(
+          color: context.sac.surface,
+          border: Border(top: BorderSide(color: context.sac.border)),
+        ),
+        child: Row(
+          children: [
+            // Delete button
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: isDeleting ? null : onDelete,
+                icon: isDeleting
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.error,
+                        ),
+                      )
+                    : const HugeIcon(
+                        icon: HugeIcons.strokeRoundedDelete02,
+                        size: 18,
+                        color: AppColors.error,
+                      ),
+                label: const Text('Eliminar'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.error,
+                  side: const BorderSide(color: AppColors.error),
+                  minimumSize: const Size(0, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 12),
+
+            // Edit button
+            Expanded(
+              flex: 2,
+              child: FilledButton.icon(
+                onPressed: onEdit,
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedEdit01,
+                  size: 18,
+                  color: Colors.white,
+                ),
+                label: const Text('Editar artículo'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  minimumSize: const Size(0, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -293,15 +367,17 @@ class _PhotoSection extends StatelessWidget {
           width: double.infinity,
           height: 220,
           fit: BoxFit.cover,
-          errorWidget: (_, __, ___) => _Placeholder(),
+          errorWidget: (_, __, ___) => const _PhotoPlaceholder(),
         ),
       );
     }
-    return _Placeholder();
+    return const _PhotoPlaceholder();
   }
 }
 
-class _Placeholder extends StatelessWidget {
+class _PhotoPlaceholder extends StatelessWidget {
+  const _PhotoPlaceholder();
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -316,7 +392,7 @@ class _Placeholder extends StatelessWidget {
         children: [
           HugeIcon(
             icon: HugeIcons.strokeRoundedBoxingBag,
-            size: 56,
+            size: 52,
             color: AppColors.primary.withValues(alpha: 0.4),
           ),
           const SizedBox(height: 8),
@@ -344,10 +420,10 @@ class _InfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
+        color: context.sac.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
         border: Border.all(
-          color: Theme.of(context).dividerColor.withValues(alpha: 0.4),
+          color: context.sac.border.withValues(alpha: 0.7),
         ),
       ),
       child: Column(
@@ -358,7 +434,7 @@ class _InfoCard extends StatelessWidget {
               thickness: 0.5,
               indent: 16,
               endIndent: 16,
-              color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
+              color: context.sac.border.withValues(alpha: 0.5),
             );
           }
           return children[i ~/ 2];
@@ -371,7 +447,7 @@ class _InfoCard extends StatelessWidget {
 // ── Info row ────────────────────────────────────────────────────────────────────
 
 class _InfoRow extends StatelessWidget {
-  final List<List<dynamic>> icon;
+  final HugeIconData icon;
   final String label;
   final String value;
   final Color? valueColor;
@@ -396,7 +472,7 @@ class _InfoRow extends StatelessWidget {
           HugeIcon(
             icon: icon,
             size: 18,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            color: context.sac.textSecondary,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -406,9 +482,7 @@ class _InfoRow extends StatelessWidget {
                 Text(
                   label,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurfaceVariant,
+                        color: context.sac.textTertiary,
                         fontSize: 11,
                       ),
                 ),
@@ -417,7 +491,7 @@ class _InfoRow extends StatelessWidget {
                   value,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: valueColor,
+                        color: valueColor ?? context.sac.text,
                       ),
                 ),
               ],
