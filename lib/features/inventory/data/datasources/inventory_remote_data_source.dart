@@ -8,7 +8,10 @@ import '../models/inventory_category_model.dart';
 import '../models/inventory_item_model.dart';
 
 abstract class InventoryRemoteDataSource {
-  Future<List<InventoryItemModel>> getItems({required int clubId});
+  Future<List<InventoryItemModel>> getItems({
+    required int clubId,
+    required String instanceType,
+  });
 
   Future<InventoryItemModel> getItem({required int itemId});
 
@@ -92,10 +95,14 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
   // ── GET /inventory/clubs/:clubId/inventory ────────────────────────────────
 
   @override
-  Future<List<InventoryItemModel>> getItems({required int clubId}) async {
+  Future<List<InventoryItemModel>> getItems({
+    required int clubId,
+    required String instanceType,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.inventory}/clubs/$clubId/inventory',
+        queryParameters: {'instanceType': instanceType},
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

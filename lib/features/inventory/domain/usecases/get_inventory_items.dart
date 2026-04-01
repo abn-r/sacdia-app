@@ -7,11 +7,15 @@ import '../repositories/inventory_repository.dart';
 
 class GetInventoryItemsParams extends Equatable {
   final int clubId;
+  final String instanceType;
 
-  const GetInventoryItemsParams({required this.clubId});
+  const GetInventoryItemsParams({
+    required this.clubId,
+    required this.instanceType,
+  });
 
   @override
-  List<Object?> get props => [clubId];
+  List<Object?> get props => [clubId, instanceType];
 }
 
 class GetInventoryItems {
@@ -21,6 +25,9 @@ class GetInventoryItems {
 
   Future<Either<Failure, List<InventoryItem>>> call(
       GetInventoryItemsParams params) {
-    return repository.getItems(clubId: params.clubId);
+    return repository.getItems(
+      clubId: params.clubId,
+      instanceType: params.instanceType,
+    );
   }
 }

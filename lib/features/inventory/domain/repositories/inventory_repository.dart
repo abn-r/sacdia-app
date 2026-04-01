@@ -9,6 +9,7 @@ abstract class InventoryRepository {
   /// Devuelve los ítems del inventario del club.
   Future<Either<Failure, List<InventoryItem>>> getItems({
     required int clubId,
+    required String instanceType,
   });
 
   /// Devuelve un ítem por su ID.

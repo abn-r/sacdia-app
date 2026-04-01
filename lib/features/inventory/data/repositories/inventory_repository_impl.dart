@@ -18,10 +18,15 @@ class InventoryRepositoryImpl implements InventoryRepository {
   });
 
   @override
-  Future<Either<Failure, List<InventoryItem>>> getItems(
-      {required int clubId}) async {
+  Future<Either<Failure, List<InventoryItem>>> getItems({
+    required int clubId,
+    required String instanceType,
+  }) async {
     try {
-      final models = await remoteDataSource.getItems(clubId: clubId);
+      final models = await remoteDataSource.getItems(
+        clubId: clubId,
+        instanceType: instanceType,
+      );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));

@@ -60,12 +60,35 @@ final getInventoryCategoriesUseCaseProvider =
   return GetInventoryCategories(ref.read(inventoryRepositoryProvider));
 });
 
-// ── Club ID helper ──────────────────────────────────────────────────────────────
+// ── Club context helpers ────────────────────────────────────────────────────────
 
 /// Obtiene el clubId del contexto activo del usuario.
 final inventoryClubIdProvider = FutureProvider.autoDispose<int?>((ref) async {
   final context = await ref.watch(clubContextProvider.future);
   return context?.clubId;
+});
+
+/// Maps the human-readable club type name to the backend instanceType query
+/// param expected by GET /inventory/clubs/:clubId/inventory.
+String mapClubTypeToInstanceType(String? clubTypeName) {
+  switch (clubTypeName?.toLowerCase()) {
+    case 'aventureros':
+      return 'adv';
+    case 'conquistadores':
+      return 'pathf';
+    case 'guías mayores':
+    case 'guias mayores':
+      return 'mg';
+    default:
+      return 'pathf'; // safe default
+  }
+}
+
+/// Derives the instanceType string from the active club context.
+final inventoryInstanceTypeProvider =
+    FutureProvider.autoDispose<String>((ref) async {
+  final context = await ref.watch(clubContextProvider.future);
+  return mapClubTypeToInstanceType(context?.clubTypeName);
 });
 
 // ── Permission helper ───────────────────────────────────────────────────────────
@@ -116,8 +139,12 @@ final inventoryItemsProvider =
   final clubId = await ref.watch(inventoryClubIdProvider.future);
   if (clubId == null) return [];
 
+  final instanceType = await ref.watch(inventoryInstanceTypeProvider.future);
+
   final useCase = ref.read(getInventoryItemsUseCaseProvider);
-  final result = await useCase(GetInventoryItemsParams(clubId: clubId));
+  final result = await useCase(
+    GetInventoryItemsParams(clubId: clubId, instanceType: instanceType),
+  );
 
   return result.fold(
     (failure) => throw Exception(failure.message),
