@@ -58,7 +58,9 @@ class EvidenceSectionModel extends EvidenceSection {
             0)
         : _parseInt(json['earned_points'] ?? json['earnedPoints'] ?? 0);
 
-    final evaluatedByName = (evaluation?['evaluated_by'] ??
+    // Backend sends 'evaluator' (formatted name), fallback to legacy keys
+    final evaluatedByName = (evaluation?['evaluator'] ??
+            evaluation?['evaluated_by'] ??
             evaluation?['evaluatedBy'] ??
             json['evaluated_by_name'] ??
             json['evaluatedByName'])
@@ -70,19 +72,24 @@ class EvidenceSectionModel extends EvidenceSection {
           json['evaluatedAt']?.toString(),
     );
 
+    // ── Submission por sección ──────────────────────────────────────────────
+    final submission = json['submission'] as Map<String, dynamic>?;
+
     final evaluationNotes = (evaluation?['notes'] ??
             json['evaluation_notes'] ??
             json['evaluationNotes'])
         ?.toString();
 
     // ── Status derivado ─────────────────────────────────────────────────────
-    // AnnualFolders no expone status por sección. Lo derivamos:
-    //  - Si hay evaluation -> evaluated
-    //  - Si folder status es submitted/under_evaluation -> enviado/underEvaluation
-    //  - Fallback al campo legacy string si existe
-    //  - Default -> pendiente
+    // Prioridad:
+    //  1. Si hay evaluation -> evaluated
+    //  2. submission_status == 'submitted' (campo por sección del nuevo endpoint)
+    //  3. Campo legacy string 'status' en el JSON de la sección
+    //  4. Derivado desde folder status (backward compat)
+    //  5. Default -> pendiente
     final derivedStatus = _deriveStatus(
       jsonStatus: json['status']?.toString(),
+      submissionStatus: json['submission_status']?.toString(),
       folderStatus: folderStatus,
       hasEvaluation: evaluation != null,
     );
@@ -102,11 +109,14 @@ class EvidenceSectionModel extends EvidenceSection {
       maxFiles: _parseInt(json['max_files'] ?? json['maxFiles'] ?? 10),
       status: derivedStatus,
       files: files,
-      submittedByName: (json['submitted_by_name'] ??
+      submittedByName: (submission?['submitted_by'] ??
+              json['submitted_by_name'] ??
               json['submittedByName'])
           ?.toString(),
       submittedAt: _parseDate(
-          json['submitted_at']?.toString() ?? json['submittedAt']?.toString()),
+          submission?['submitted_at']?.toString() ??
+          json['submitted_at']?.toString() ??
+          json['submittedAt']?.toString()),
       validatedByName: (json['validated_by_name'] ??
               json['validatedByName'])
           ?.toString(),
@@ -123,18 +133,32 @@ class EvidenceSectionModel extends EvidenceSection {
 
   static EvidenceSectionStatus _deriveStatus({
     required String? jsonStatus,
+    required String? submissionStatus,
     required String? folderStatus,
     required bool hasEvaluation,
   }) {
-    // Si la sección tiene evaluación asignada, está evaluated
+    // 1. Si la sección tiene evaluación asignada, está evaluated
     if (hasEvaluation) return EvidenceSectionStatus.evaluated;
 
-    // Si hay un status explícito en el JSON (legacy o futuro campo), usarlo
+    // 2. submission_status a nivel de sección (campo nuevo del backend)
+    if (submissionStatus != null && submissionStatus.isNotEmpty) {
+      if (submissionStatus == 'submitted') {
+        return EvidenceSectionStatus.enviado;
+      }
+      // 'pending' con folderStatus 'submitted' → backward compat:
+      // si la carpeta entera fue enviada, la sección también está enviada
+      if (submissionStatus == 'pending' &&
+          folderStatus?.toLowerCase() == 'submitted') {
+        return EvidenceSectionStatus.enviado;
+      }
+    }
+
+    // 3. Si hay un status explícito en el JSON de la sección (legacy), usarlo
     if (jsonStatus != null && jsonStatus.isNotEmpty) {
       return evidenceSectionStatusFromString(jsonStatus);
     }
 
-    // Derivar desde el status de la carpeta padre
+    // 4. Derivar desde el status de la carpeta padre (backward compat)
     switch (folderStatus?.toLowerCase()) {
       case 'submitted':
         return EvidenceSectionStatus.enviado;

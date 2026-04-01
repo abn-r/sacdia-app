@@ -42,6 +42,10 @@ final submitFolderUseCaseProvider = Provider<SubmitFolder>((ref) {
   return SubmitFolder(ref.read(evidenceFolderRepositoryProvider));
 });
 
+final submitSectionUseCaseProvider = Provider<SubmitSection>((ref) {
+  return SubmitSection(ref.read(evidenceFolderRepositoryProvider));
+});
+
 final uploadEvidenceFileUseCaseProvider =
     Provider<UploadEvidenceFile>((ref) {
   return UploadEvidenceFile(ref.read(evidenceFolderRepositoryProvider));
@@ -145,6 +149,43 @@ class EvidenceSectionNotifier
 
     final result = await ref.read(submitFolderUseCaseProvider)(
       SubmitFolderParams(folderId: folderId),
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+        return false;
+      },
+      (_) {
+        state = state.copyWith(isLoading: false, success: true);
+        ref.invalidate(evidenceFolderProvider(_clubSectionId));
+        return true;
+      },
+    );
+  }
+
+  /// Envía una sección individual a validación.
+  ///
+  /// [sectionId] es el UUID de la sección dentro de la carpeta anual.
+  Future<bool> submitSection(String sectionId) async {
+    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+
+    final String folderId;
+    try {
+      folderId = _resolveFolderId();
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString(),
+      );
+      return false;
+    }
+
+    final result = await ref.read(submitSectionUseCaseProvider)(
+      SubmitSectionParams(folderId: folderId, sectionId: sectionId),
     );
 
     return result.fold(

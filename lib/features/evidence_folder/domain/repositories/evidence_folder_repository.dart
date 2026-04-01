@@ -19,6 +19,15 @@ abstract class EvidenceFolderRepository {
   /// [folderId] es el UUID de annual_folder_id.
   Future<Either<Failure, void>> submitFolder(String folderId);
 
+  /// Envía una sección individual a validación.
+  ///
+  /// [folderId] es el UUID de annual_folder_id.
+  /// [sectionId] es el UUID de la sección dentro de la carpeta anual.
+  Future<Either<Failure, void>> submitSection({
+    required String folderId,
+    required String sectionId,
+  });
+
   /// Sube un archivo de evidencia a la sección especificada.
   ///
   /// [folderId] es el UUID de annual_folder_id (necesario para la URL).

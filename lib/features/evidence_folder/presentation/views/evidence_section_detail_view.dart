@@ -99,9 +99,10 @@ class _EvidenceSectionDetailViewState
         backgroundColor: c.background,
         appBar: AppBar(
           title: Text(
-            widget.section.name,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            'Sección',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w700,
+                  color: AppColors.sacRed
                 ),
             overflow: TextOverflow.ellipsis,
           ),
@@ -114,100 +115,113 @@ class _EvidenceSectionDetailViewState
         ),
         body: Stack(
           children: [
-            CustomScrollView(
+            SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Descripción + métricas
-                      _SectionMetaCard(section: widget.section),
-
-                      const SizedBox(height: 16),
-
-                      // Timeline de estado
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                        child: Text(
-                          'Flujo de estado',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: c.text,
-                              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Bloque de título — igual al patrón de clases
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Detalle de la sección',
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: c.textSecondary,
+                                    letterSpacing: 0.8,
+                                  ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: StatusTimeline(
-                          currentStatus: widget.section.status,
-                          submittedByName: widget.section.submittedByName,
-                          submittedAt: widget.section.submittedAt,
-                          validatedByName: widget.section.validatedByName,
-                          validatedAt: widget.section.validatedAt,
-                          evaluatedByName: widget.section.evaluatedByName,
-                          evaluatedAt: widget.section.evaluatedAt,
-                          evaluationNotes: widget.section.evaluationNotes,
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.section.name,
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: c.text,
+                                    height: 1.25,
+                                  ),
                         ),
-                      ),
+                      ],
+                    ),
+                  ),
 
-                      // Resultado de evaluación (solo lectura, si existe)
-                      if (widget.section.status ==
-                              EvidenceSectionStatus.evaluated ||
-                          widget.section.evaluatedByName != null) ...[
-                        const SizedBox(height: 24),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                          child: Text(
-                            'Resultado de evaluación',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
-                                ?.copyWith(
+                  const SizedBox(height: 16),
+
+                  // Descripción + métricas
+                  _SectionMetaCard(section: widget.section),
+
+                  const SizedBox(height: 26),
+
+                  // Timeline de estado
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                    child: Text(
+                      'Flujo de estado',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: c.text,
+                          ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: StatusTimeline(
+                      currentStatus: widget.section.status,
+                      submittedByName: widget.section.submittedByName,
+                      submittedAt: widget.section.submittedAt,
+                      validatedByName: widget.section.validatedByName,
+                      validatedAt: widget.section.validatedAt,
+                      evaluatedByName: widget.section.evaluatedByName,
+                      evaluatedAt: widget.section.evaluatedAt,
+                      evaluationNotes: widget.section.evaluationNotes,
+                    ),
+                  ),
+
+                  // Resultado de evaluación (solo lectura, si existe)
+                  if (widget.section.status ==
+                          EvidenceSectionStatus.evaluated ||
+                      widget.section.evaluatedByName != null) ...[
+                    const SizedBox(height: 24),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                      child: Text(
+                        'Resultado de evaluación',
+                        style:
+                            Theme.of(context).textTheme.titleSmall?.copyWith(
                                   fontWeight: FontWeight.w700,
                                   color: c.text,
                                 ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Padding(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 16),
-                          child: _EvaluationResultCard(
-                              section: widget.section),
-                        ),
-                      ],
-
-                      const SizedBox(height: 24),
-
-                      // Archivos de evidencia header
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                        child: Text(
-                          'Archivos de evidencia',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: c.text,
-                              ),
-                        ),
                       ),
-                    ],
-                  ),
-                ),
+                    ),
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: _EvaluationResultCard(section: widget.section),
+                    ),
+                  ],
 
-                // I-2: EvidenceStagingManager goes inside the body,
-                // NOT bottomNavigationBar. It manages its own action
-                // bar internally — no GlobalKey needed.
-                SliverFillRemaining(
-                  hasScrollBody: true,
-                  child: EvidenceStagingManager(
+                  const SizedBox(height: 24),
+
+                  // Archivos de evidencia header
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: Text(
+                      'Archivos de evidencia',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: c.text,
+                          ),
+                    ),
+                  ),
+
+                  // EvidenceStagingManager en modo embebido — crece con su
+                  // contenido sin reclamar su propia área de scroll.
+                  EvidenceStagingManager(
+                    embeddedMode: true,
                     existingFiles: widget.section.files
                         .map(StagedFile.fromEvidenceFile)
                         .toList(),
@@ -249,7 +263,7 @@ class _EvidenceSectionDetailViewState
                           .read(evidenceSectionNotifierProvider(
                                   widget.clubSectionId)
                               .notifier)
-                          .submitFolder();
+                          .submitSection(widget.section.id);
                       if (success && mounted) {
                         // ignore: use_build_context_synchronously
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -259,8 +273,10 @@ class _EvidenceSectionDetailViewState
                                 Icon(Icons.check_circle_rounded,
                                     color: Colors.white, size: 18),
                                 SizedBox(width: 8),
-                                Text(
-                                    'Carpeta enviada a validación exitosamente'),
+                                Expanded(
+                                  child: Text(
+                                      'Sección enviada a validación exitosamente'),
+                                ),
                               ],
                             ),
                             backgroundColor: AppColors.secondary,
@@ -287,8 +303,12 @@ class _EvidenceSectionDetailViewState
                       return 'evidencia_${index}_$truncated.$ext';
                     },
                   ),
-                ),
-              ],
+
+                  SizedBox(
+                    height: widget.section.files.isEmpty ? 8 : 16,
+                  ),
+                ],
+              ),
             ),
 
             // Loading overlay
@@ -362,6 +382,7 @@ class _SectionMetaCard extends StatelessWidget {
             const SizedBox(height: 10),
           ],
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _MetaItem(
                 icon: HugeIcons.strokeRoundedStar,
@@ -421,7 +442,7 @@ class _MetaItem extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: context.sac.textTertiary,
               ),
@@ -432,7 +453,7 @@ class _MetaItem extends StatelessWidget {
         Text(
           value,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 18,
             fontWeight: FontWeight.w700,
             color: color,
           ),

@@ -6,10 +6,11 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/evidence_section.dart';
 
-/// Timeline visual del flujo de estados de una sección:
+/// Timeline horizontal del flujo de estados de una sección:
 /// Pendiente → Enviado → Validado → En evaluación → Evaluado.
 ///
-/// Cada paso muestra nombre, fecha (si aplica) y actor (si aplica).
+/// Muestra los pasos como círculos conectados por líneas horizontales,
+/// con etiquetas debajo de cada dot. Solo el paso activo muestra el sublabel.
 class StatusTimeline extends StatelessWidget {
   final EvidenceSectionStatus currentStatus;
   final String? submittedByName;
@@ -45,9 +46,6 @@ class StatusTimeline extends StatelessWidget {
     final c = context.sac;
     final dateFormat = DateFormat('d MMM yyyy, HH:mm', 'es');
 
-    // Determinar si los pasos "evaluación" aplican para este flujo.
-    // Solo se muestran cuando la sección ya pasó a ese estado o tiene datos de
-    // evaluación; evita mostrar pasos vacíos en el flujo normal.
     final showEvaluation = _hasEvaluationStep;
 
     final steps = [
@@ -55,7 +53,7 @@ class StatusTimeline extends StatelessWidget {
         label: 'Pendiente',
         sublabel: 'En espera de evidencias',
         icon: HugeIcons.strokeRoundedClock01,
-        isCompleted: true, // siempre fue pendiente alguna vez
+        isCompleted: true,
         isActive: currentStatus == EvidenceSectionStatus.pendiente,
         activeColor: AppColors.accent,
       ),
@@ -123,89 +121,112 @@ class StatusTimeline extends StatelessWidget {
       ],
     ];
 
-    return Column(
-      children: List.generate(steps.length, (index) {
-        final step = steps[index];
-        final isLast = index == steps.length - 1;
+    // The dot diameter used throughout the layout.
+    const double dotSize = 28.0;
 
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Dot + vertical line
-            Column(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: List.generate(steps.length * 2 - 1, (index) {
+          // Even indices → step nodes; odd indices → connecting lines.
+          if (index.isOdd) {
+            final stepIndex = index ~/ 2;
+            final step = steps[stepIndex];
+            // Expanded connector fills available space between steps.
+            return Expanded(
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: dotSize,
+                    child: Center(
+                      child: Container(
+                        height: 2,
+                        color: step.isCompleted
+                            ? step.activeColor
+                            : context.sac.border,
+                      ),
+                    ),
+                  ),
+                  // Empty space below to match label area height.
+                  const SizedBox(height: 4 + 14 + 2 + 11),
+                ],
+              ),
+            );
+          }
+
+          final stepIndex = index ~/ 2;
+          final step = steps[stepIndex];
+          final c = context.sac;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Dot
+              Container(
+                width: dotSize,
+                height: dotSize,
+                decoration: BoxDecoration(
+                  color: step.isCompleted || step.isActive
+                      ? step.activeColor
+                      : c.surfaceVariant,
+                  shape: BoxShape.circle,
+                  border: Border.all(
                     color: step.isCompleted || step.isActive
                         ? step.activeColor
-                        : c.surfaceVariant,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: step.isCompleted || step.isActive
-                          ? step.activeColor
-                          : c.border,
-                      width: 2,
-                    ),
-                  ),
-                  child: Center(
-                    child: HugeIcon(
-                      icon: step.icon,
-                      size: 16,
-                      color: step.isCompleted || step.isActive
-                          ? Colors.white
-                          : c.textTertiary,
-                    ),
+                        : c.border,
+                    width: 2,
                   ),
                 ),
-                if (!isLast)
-                  Container(
-                    width: 2,
-                    height: 36,
-                    color: step.isCompleted ? step.activeColor : c.border,
+                child: Center(
+                  child: HugeIcon(
+                    icon: step.icon,
+                    size: 14,
+                    color: step.isCompleted || step.isActive
+                        ? Colors.white
+                        : c.textTertiary,
                   ),
-              ],
-            ),
-            const SizedBox(width: 12),
-
-            // Labels
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(
-                    top: 6, bottom: isLast ? 0 : 28),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      step.label,
-                      style:
-                          Theme.of(context).textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: step.isActive
-                                    ? step.activeColor
-                                    : step.isCompleted
-                                        ? step.activeColor.withValues(
-                                            alpha: 0.8)
-                                        : c.textTertiary,
-                              ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      step.sublabel,
-                      style:
-                          Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: c.textSecondary,
-                                height: 1.35,
-                              ),
-                    ),
-                  ],
                 ),
               ),
-            ),
-          ],
-        );
-      }),
+
+              const SizedBox(height: 4),
+
+              // Main label
+              Text(
+                step.label,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  height: 1.2,
+                  color: step.isActive
+                      ? step.activeColor
+                      : step.isCompleted
+                          ? step.activeColor.withValues(alpha: 0.8)
+                          : c.textTertiary,
+                ),
+              ),
+
+              // Sublabel — only visible for the active step
+              if (step.isActive) ...[
+                const SizedBox(height: 2),
+                Text(
+                  step.sublabel,
+                  textAlign: TextAlign.center,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10,
+                    height: 1.3,
+                    color: c.textSecondary,
+                  ),
+                ),
+              ],
+            ],
+          );
+        }),
+      ),
     );
   }
 

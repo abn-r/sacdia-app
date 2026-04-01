@@ -52,6 +52,26 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
   }
 
   @override
+  Future<Either<Failure, void>> submitSection({
+    required String folderId,
+    required String sectionId,
+  }) async {
+    try {
+      await remoteDataSource.submitSection(
+        folderId: folderId,
+        sectionId: sectionId,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, EvidenceFile>> uploadFile({
     required String folderId,
     required String sectionId,

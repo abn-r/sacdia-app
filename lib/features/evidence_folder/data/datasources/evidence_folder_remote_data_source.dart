@@ -17,6 +17,15 @@ abstract class EvidenceFolderRemoteDataSource {
   /// [folderId] es el UUID de annual_folder_id.
   Future<void> submitFolder(String folderId);
 
+  /// Envía una sección individual a validación.
+  ///
+  /// [folderId] es el UUID de annual_folder_id.
+  /// [sectionId] es el UUID de la sección dentro de la carpeta anual.
+  Future<void> submitSection({
+    required String folderId,
+    required String sectionId,
+  });
+
   /// Sube un archivo de evidencia a la sección especificada.
   ///
   /// [folderId] es el UUID de annual_folder_id.
@@ -100,6 +109,30 @@ class EvidenceFolderRemoteDataSourceImpl
       );
     } catch (e) {
       AppLogger.e('Error en submitFolder', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── POST /annual-folders/:folderId/sections/:sectionId/submit ────────────
+
+  @override
+  Future<void> submitSection({
+    required String folderId,
+    required String sectionId,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.annualFolders}/$folderId/sections/$sectionId/submit',
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) return;
+
+      throw ServerException(
+        message: 'Error al enviar la sección a validación',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en submitSection', tag: _tag, error: e);
       _rethrow(e);
     }
   }
