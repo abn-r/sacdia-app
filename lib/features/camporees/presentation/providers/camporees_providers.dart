@@ -306,7 +306,7 @@ final camporeeAllPaymentsProvider =
   );
 });
 
-/// Provider para los clubes inscriptos en un camporee.
+/// Provider para los clubes inscritos en un camporee.
 final camporeeEnrolledClubsProvider =
     FutureProvider.autoDispose.family<List<CamporeeEnrolledClub>, int>(
         (ref, camporeeId) async {

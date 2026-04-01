@@ -211,7 +211,7 @@ class _CamporeeRegisterMemberViewState
                       caseSensitive: false,
                     );
                     if (!uuidRegex.hasMatch(value.trim())) {
-                      return 'Ingresá un UUID válido';
+                      return 'Ingresa un UUID válido';
                     }
                     return null;
                   },
@@ -287,7 +287,7 @@ class _CamporeeRegisterMemberViewState
                     if (value != null && value.isNotEmpty) {
                       final parsed = int.tryParse(value);
                       if (parsed == null || parsed <= 0) {
-                        return 'Ingresá un ID de seguro válido';
+                        return 'Ingresa un ID de seguro válido';
                       }
                     }
                     return null;

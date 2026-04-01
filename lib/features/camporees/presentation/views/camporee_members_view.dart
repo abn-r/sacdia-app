@@ -203,7 +203,7 @@ class CamporeeMembersView extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         title: const Text('Remover miembro'),
         content: Text(
-          '¿Querés remover a "${member.userName ?? member.userId}" del camporee?',
+          '¿Quieres remover a "${member.userName ?? member.userId}" del camporee?',
         ),
         actions: [
           TextButton(

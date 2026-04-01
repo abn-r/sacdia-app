@@ -36,7 +36,7 @@ abstract class CamporeesRepository {
     required int clubSectionId,
   });
 
-  /// Obtiene los clubes inscriptos en un camporee.
+  /// Obtiene los clubes inscritos en un camporee.
   Future<Either<Failure, List<CamporeeEnrolledClub>>> getEnrolledClubs(
       int camporeeId);
 

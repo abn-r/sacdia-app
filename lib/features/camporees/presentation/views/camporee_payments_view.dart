@@ -560,11 +560,11 @@ class _CamporeePaymentFormSheetState
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
-                      return 'Ingresá el monto';
+                      return 'Ingresa el monto';
                     }
                     final parsed = double.tryParse(v.trim().replaceAll(',', '.'));
                     if (parsed == null || parsed <= 0) {
-                      return 'Ingresá un monto válido';
+                      return 'Ingresa un monto válido';
                     }
                     return null;
                   },

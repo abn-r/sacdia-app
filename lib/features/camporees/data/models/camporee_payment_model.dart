@@ -77,7 +77,7 @@ class CamporeePaymentModel extends Equatable {
       ];
 }
 
-/// Modelo del club inscripto en un camporee
+/// Modelo del club inscrito en un camporee
 class CamporeeEnrolledClubModel extends Equatable {
   final int id;
   final int camporeeId;

@@ -186,11 +186,11 @@ class _CamporeeEnrollClubViewState
                     ),
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) {
-                        return 'Ingresá el ID de sección';
+                        return 'Ingresa el ID de sección';
                       }
                       final parsed = int.tryParse(v.trim());
                       if (parsed == null || parsed <= 0) {
-                        return 'Ingresá un ID válido';
+                        return 'Ingresa un ID válido';
                       }
                       return null;
                     },
@@ -210,9 +210,9 @@ class _CamporeeEnrollClubViewState
 
           const SizedBox(height: 24),
 
-          // ── Lista de clubes inscriptos ───────────────────────────────
+          // ── Lista de clubes inscritos ────────────────────────────────
           Text(
-            'Clubes inscriptos',
+            'Clubes inscritos',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
@@ -253,7 +253,7 @@ class _CamporeeEnrollClubViewState
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          'No hay clubes inscriptos aún',
+                          'No hay clubes inscritos aún',
                           style: TextStyle(
                             fontSize: 14,
                             color: c.textSecondary,
@@ -331,7 +331,7 @@ class _CamporeeEnrollClubViewState
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: const Text(
-                                    'Inscripto',
+                                    'inscrito',
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
@@ -368,7 +368,7 @@ class _CamporeeEnrollClubViewState
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Club inscripto exitosamente'),
+          content: const Text('Club inscrito exitosamente'),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(

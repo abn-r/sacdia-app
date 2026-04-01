@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-/// Entidad de miembro inscripto en un camporee
+/// Entidad de miembro inscrito en un camporee
 class CamporeeMember extends Equatable {
   final int camporeeMemberId;
   final String userId;

@@ -43,7 +43,7 @@ abstract class CamporeesRemoteDataSource {
     required int clubSectionId,
   });
 
-  /// Obtiene los clubes inscriptos en un camporee.
+  /// Obtiene los clubes inscritos en un camporee.
   /// GET /api/v1/camporees/:camporeeId/clubs
   Future<List<CamporeeEnrolledClubModel>> getEnrolledClubs(int camporeeId);
 
@@ -326,7 +326,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al obtener clubes inscriptos',
+          message: 'Error al obtener clubes inscritos',
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getEnrolledClubs', tag: _tag, error: e);
