@@ -12,6 +12,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../profile/presentation/providers/profile_providers.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/club_info_card.dart';
 import '../widgets/current_class_card.dart';
@@ -31,6 +32,9 @@ class DashboardView extends ConsumerWidget {
     final dashboardState = ref.watch(dashboardNotifierProvider);
     final authAvatar = ref.watch(
       authNotifierProvider.select((v) => v.valueOrNull?.avatar),
+    );
+    final userGender = ref.watch(
+      profileNotifierProvider.select((v) => v.valueOrNull?.gender),
     );
 
     final c = context.sac;
@@ -108,7 +112,10 @@ class DashboardView extends ConsumerWidget {
                           ClubInfoCard(
                             clubName: dashboard.clubName,
                             clubType: dashboard.clubType,
-                            userRole: RoleUtils.translate(dashboard.userRole),
+                            userRole: RoleUtils.translate(
+                              dashboard.userRole,
+                              gender: userGender,
+                            ),
                           ),
                           const SizedBox(height: 16),
 

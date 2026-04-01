@@ -375,7 +375,7 @@ class _EmptyBody extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'No tenés roles asignados en ningún club. '
+              'No tienes roles asignados en ningún club. '
               'Los administradores pueden asignarte roles desde el panel de administración.',
               style: TextStyle(fontSize: 14, color: c.textSecondary),
               textAlign: TextAlign.center,

@@ -94,7 +94,7 @@ class ClubSectionModel extends ClubSection {
       phone: json['phone'] as String?,
       email: json['email'] as String?,
       website: json['website'] as String?,
-      logoUrl: json['logo_url'] ?? json['image'] as String?,
+      logoUrl: json['logo_url'] as String? ?? json['image'] as String?,
       address: json['address'] as String?,
       lat: lat,
       long: long,

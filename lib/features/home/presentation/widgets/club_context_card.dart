@@ -11,6 +11,7 @@ import '../../../../core/widgets/sac_card.dart';
 import '../../../auth/domain/entities/authorization_snapshot.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../club/presentation/providers/club_providers.dart';
+import '../../../profile/presentation/providers/profile_providers.dart';
 
 /// Card que muestra el club/sección activo y permite cambiar de contexto.
 ///
@@ -38,7 +39,13 @@ class _ClubContextCardState extends ConsumerState<ClubContextCard> {
     if (assignments.isEmpty) return const SizedBox.shrink();
 
     final activeGrant = authorization?.activeGrant;
-    final activeRoleName = RoleUtils.translate(activeGrant?.roleName);
+    final userGender = ref.watch(
+      profileNotifierProvider.select((v) => v.valueOrNull?.gender),
+    );
+    final activeRoleName = RoleUtils.translate(
+      activeGrant?.roleName,
+      gender: userGender,
+    );
 
     // Try to get the club type name from the section data
     final sectionAsync = ref.watch(currentClubSectionProvider);
@@ -147,8 +154,12 @@ class _ClubContextCardState extends ConsumerState<ClubContextCard> {
 
     String? selectedAssignmentId;
 
+    final userGender = ref.read(
+      profileNotifierProvider.select((v) => v.valueOrNull?.gender),
+    );
+
     final actions = displayAssignments.map((grant) {
-      final roleName = RoleUtils.translate(grant.roleName);
+      final roleName = RoleUtils.translate(grant.roleName, gender: userGender);
       final isActive = grant.assignmentId == activeAssignmentId;
 
       return CupertinoActionSheetAction(

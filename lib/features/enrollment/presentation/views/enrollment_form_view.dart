@@ -187,8 +187,14 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
     for (final member in members) {
       final role = member.clubRole?.toLowerCase().trim() ?? '';
 
-      // Deputy directors (up to 2)
-      if ((role == 'deputy_director' || role.contains('subdirector') ||
+      // Deputy directors (up to 2).
+      // Canonical backend value is 'deputy_director' (underscore). We also
+      // match the hyphenated form 'deputy-director' and the Spanish alias
+      // 'subdirector' / 'sub_director' as defensive fallbacks.
+      if ((role == 'deputy_director' ||
+              role == 'deputy-director' ||
+              role.contains('deputy') ||
+              role.contains('subdirector') ||
               role.contains('sub_director')) &&
           newDeputyIds.length < 2 &&
           !newDeputyIds.contains(member.userId)) {

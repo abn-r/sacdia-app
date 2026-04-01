@@ -45,7 +45,7 @@ class EnrollmentStatusCard extends ConsumerWidget {
           return _PendingCard(
             showButton: canEnroll,
             subtitle: canEnroll
-                ? 'Completá la inscripción para este año'
+                ? 'Completa la inscripción para este año'
                 : 'El club aún no ha completado la inscripción para este año',
             onTap: canEnroll
                 ? () => clubContextAsync.whenData(
@@ -197,7 +197,7 @@ class _ActiveCard extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      'Inscripto ${enrollment.year}',
+                      'inscrito ${enrollment.year}',
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
