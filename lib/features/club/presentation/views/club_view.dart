@@ -71,14 +71,16 @@ class _ClubViewState extends ConsumerState<ClubView> {
     _websiteController.text = section.website ?? '';
     _logoUrlController.text = section.logoUrl ?? '';
 
-    if (section.lat != null && section.long != null) {
-      _selectedLocation = LocationPickerResult(
-        name: section.address ?? '',
-        lat: section.lat!,
-        long: section.long!,
-      );
-    } else {
-      _selectedLocation = null;
+    final newLocation = (section.lat != null && section.long != null)
+        ? LocationPickerResult(
+            name: section.address ?? '',
+            lat: section.lat!,
+            long: section.long!,
+          )
+        : null;
+
+    if (_selectedLocation != newLocation) {
+      setState(() => _selectedLocation = newLocation);
     }
   }
 
@@ -265,13 +267,14 @@ class _ClubViewState extends ConsumerState<ClubView> {
               return _EmptyBody(c: c);
             }
 
-            // Poblar campos la primera vez que llegan los datos
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (_loadedSection == null ||
-                  _loadedSection!.id != section.id) {
-                _populateFields(section);
-              }
-            });
+            // Poblar campos la primera vez que llegan los datos o cuando
+            // cambia la sección. Se llama desde postFrameCallback para no
+            // mutar estado durante el build.
+            if (_loadedSection == null || _loadedSection!.id != section.id) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) _populateFields(section);
+              });
+            }
 
             return _buildBody(context, c, section, isUpdating);
           },

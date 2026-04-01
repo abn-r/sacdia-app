@@ -34,7 +34,8 @@ abstract class FinancesRepository {
     required DateTime date,
     required int year,
     required int month,
-    String? notes,
+    required int clubSectionId,
+    required int clubTypeId,
   });
 
   /// Actualiza un movimiento existente.
@@ -44,7 +45,6 @@ abstract class FinancesRepository {
     double? amount,
     String? description,
     DateTime? date,
-    String? notes,
   });
 
   /// Desactiva (soft-delete) un movimiento.

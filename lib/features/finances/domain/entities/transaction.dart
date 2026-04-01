@@ -26,6 +26,7 @@ class FinanceTransaction extends Equatable {
   final int month;
   final FinanceCategory category;
   final String registeredByName;
+  final String? registeredByPhoto;
   final DateTime registeredAt;
   final String? modifiedByName;
   final DateTime? modifiedAt;
@@ -41,6 +42,7 @@ class FinanceTransaction extends Equatable {
     required this.month,
     required this.category,
     required this.registeredByName,
+    this.registeredByPhoto,
     required this.registeredAt,
     this.modifiedByName,
     this.modifiedAt,
@@ -58,6 +60,7 @@ class FinanceTransaction extends Equatable {
         month,
         category,
         registeredByName,
+        registeredByPhoto,
         registeredAt,
         modifiedByName,
         modifiedAt,

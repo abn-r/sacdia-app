@@ -114,6 +114,9 @@ final selectedMonthProvider =
   SelectedMonthNotifier.new,
 );
 
+/// Period selection for the finance line chart (1M, 3M, 6M, 1A, Todo)
+final selectedPeriodProvider = StateProvider.autoDispose<String>((ref) => '1M');
+
 // ── Club ID helper ─────────────────────────────────────────────────────────────
 
 /// Obtiene el clubId desde el contexto del usuario.
@@ -229,6 +232,22 @@ class TransactionFormNotifier extends AutoDisposeNotifier<TransactionFormState> 
   @override
   TransactionFormState build() => const TransactionFormState();
 
+  /// Maps the human-readable club type name (from ClubContext) to the integer
+  /// id expected by the backend CreateFinanceDto.
+  int _clubTypeIdFromName(String? name) {
+    switch (name?.toLowerCase().trim()) {
+      case 'aventureros':
+        return 1;
+      case 'conquistadores':
+        return 2;
+      case 'guías mayores':
+      case 'guias mayores':
+        return 3;
+      default:
+        return 2; // fallback to Conquistadores
+    }
+  }
+
   Future<bool> save({
     required int clubId,
     required int categoryId,
@@ -237,20 +256,19 @@ class TransactionFormNotifier extends AutoDisposeNotifier<TransactionFormState> 
     required DateTime date,
     required int year,
     required int month,
-    String? notes,
     int? existingId, // non-null → update
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
     if (existingId != null) {
-      // Update
+      // Update — backend only accepts amount, description, finance_category_id,
+      // finance_date, post_closing_note. No notes field.
       final result = await ref.read(updateTransactionUseCaseProvider)(
         UpdateTransactionParams(
           financeId: existingId,
           categoryId: categoryId,
           amount: amount,
           description: description,
-          notes: notes,
         ),
       );
 
@@ -268,7 +286,11 @@ class TransactionFormNotifier extends AutoDisposeNotifier<TransactionFormState> 
         },
       );
     } else {
-      // Create
+      // Create — resolve club_section_id and club_type_id from ClubContext.
+      final clubContext = await ref.read(clubContextProvider.future);
+      final clubSectionId = clubContext?.sectionId ?? 0;
+      final clubTypeId = _clubTypeIdFromName(clubContext?.clubTypeName);
+
       final result = await ref.read(createTransactionUseCaseProvider)(
         CreateTransactionParams(
           clubId: clubId,
@@ -278,7 +300,8 @@ class TransactionFormNotifier extends AutoDisposeNotifier<TransactionFormState> 
           date: date,
           year: year,
           month: month,
-          notes: notes,
+          clubSectionId: clubSectionId,
+          clubTypeId: clubTypeId,
         ),
       );
 

@@ -681,7 +681,7 @@ class AppTheme {
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.darkSurface,
         selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.darkTextTertiary,
+        unselectedItemColor: AppColors.darkTextSecondary,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
       ),
@@ -697,21 +697,21 @@ class AppTheme {
             return const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: AppColors.primary,
+              color: Colors.white,
             );
           }
           return const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w400,
-            color: AppColors.darkTextTertiary,
+            color: AppColors.darkTextSecondary,
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(color: AppColors.primary, size: 24);
+            return const IconThemeData(color: Colors.white, size: 24);
           }
           return const IconThemeData(
-            color: AppColors.darkTextTertiary,
+            color: AppColors.darkText,
             size: 24,
           );
         }),

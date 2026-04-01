@@ -2,6 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../classes/data/datasources/classes_remote_data_source.dart';
+import '../../../classes/domain/entities/progressive_class.dart';
+import '../../../honors/data/datasources/honors_remote_data_source.dart';
+import '../../../honors/domain/entities/user_honor.dart';
 import '../../../post_registration/data/datasources/personal_info_remote_data_source.dart';
 import '../../../post_registration/data/models/allergy_model.dart';
 import '../../../post_registration/data/models/disease_model.dart';
@@ -498,4 +502,40 @@ final memberEmergencyContactsProvider =
         (ref, userId) async {
   final ds = ref.read(_personalInfoDsProvider);
   return ds.getEmergencyContacts(userId);
+});
+
+// ── Classes and honors data providers for member profile ─────────────────────
+
+/// Data source de clases reutilizable desde el módulo de miembros.
+final _classesDsForMembersProvider = Provider<ClassesRemoteDataSource>((ref) {
+  return ClassesRemoteDataSourceImpl(
+    dio: ref.read(dioProvider),
+    baseUrl: ref.read(apiBaseUrlProvider),
+  );
+});
+
+/// Data source de especialidades reutilizable desde el módulo de miembros.
+final _honorsDsForMembersProvider = Provider<HonorsRemoteDataSource>((ref) {
+  return HonorsRemoteDataSourceImpl(
+    dio: ref.read(dioProvider),
+    baseUrl: ref.read(apiBaseUrlProvider),
+  );
+});
+
+/// Clases progresivas de un usuario específico (solo lectura, para vista de perfil de miembro).
+final memberClassesProvider =
+    FutureProvider.autoDispose.family<List<ProgressiveClass>, String>(
+        (ref, userId) async {
+  final ds = ref.read(_classesDsForMembersProvider);
+  final models = await ds.getUserClasses(userId);
+  return models.map((m) => m.toEntity()).toList();
+});
+
+/// Especialidades de un usuario específico (solo lectura, para vista de perfil de miembro).
+final memberHonorsProvider =
+    FutureProvider.autoDispose.family<List<UserHonor>, String>(
+        (ref, userId) async {
+  final ds = ref.read(_honorsDsForMembersProvider);
+  final models = await ds.getUserHonors(userId);
+  return models.map((m) => m.toEntity()).toList();
 });

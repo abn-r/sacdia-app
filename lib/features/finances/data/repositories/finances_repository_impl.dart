@@ -80,7 +80,8 @@ class FinancesRepositoryImpl implements FinancesRepository {
     required DateTime date,
     required int year,
     required int month,
-    String? notes,
+    required int clubSectionId,
+    required int clubTypeId,
   }) async {
     try {
       final model = await remoteDataSource.createTransaction(
@@ -91,7 +92,8 @@ class FinancesRepositoryImpl implements FinancesRepository {
         date: date,
         year: year,
         month: month,
-        notes: notes,
+        clubSectionId: clubSectionId,
+        clubTypeId: clubTypeId,
       );
       return Right(model.toEntity());
     } on ServerException catch (e) {
@@ -110,7 +112,6 @@ class FinancesRepositoryImpl implements FinancesRepository {
     double? amount,
     String? description,
     DateTime? date,
-    String? notes,
   }) async {
     try {
       final model = await remoteDataSource.updateTransaction(
@@ -119,7 +120,6 @@ class FinancesRepositoryImpl implements FinancesRepository {
         amount: amount,
         description: description,
         date: date,
-        notes: notes,
       );
       return Right(model.toEntity());
     } on ServerException catch (e) {

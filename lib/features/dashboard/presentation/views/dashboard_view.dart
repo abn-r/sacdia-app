@@ -106,7 +106,6 @@ class DashboardView extends ConsumerWidget {
 
                           // Enrollment status banner
                           const EnrollmentStatusCard(),
-                          const SizedBox(height: 16),
 
                           // Club info
                           ClubInfoCard(

@@ -16,6 +16,9 @@ import 'package:sacdia_app/features/profile/presentation/widgets/info_section.da
 import '../../domain/entities/club_member.dart';
 import '../providers/members_providers.dart';
 
+import '../../../classes/domain/entities/progressive_class.dart';
+import '../../../honors/domain/entities/user_honor.dart';
+
 /// Vista de perfil de miembro (solo lectura).
 ///
 /// Recibe un [ClubMember] con los datos básicos de la lista y carga en segundo
@@ -147,6 +150,12 @@ class _ProfileScrollBody extends StatelessWidget {
 
           _ClubInfoSection(detail: detail),
 
+          const SizedBox(height: 20),
+          _ClassesSection(userId: detail.userId),
+
+          const SizedBox(height: 20),
+          _SpecialtiesSection(userId: detail.userId),
+
           if (canViewMedical) ...[
             const SizedBox(height: 20),
             _MedicalInfoSection(userId: detail.userId),
@@ -266,6 +275,264 @@ class _ClubInfoSection extends StatelessWidget {
             value: baptismValue,
           ),
       ],
+    );
+  }
+}
+
+// ── Classes section ───────────────────────────────────────────────────────────
+
+class _ClassesSection extends ConsumerWidget {
+  final String userId;
+
+  const _ClassesSection({required this.userId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return _MedicalCard(
+      icon: HugeIcons.strokeRoundedSchool,
+      title: 'Clases Progresivas',
+      iconColor: AppColors.sacBlue,
+      child: _ClassesSectionBody(userId: userId),
+    );
+  }
+}
+
+class _ClassesSectionBody extends ConsumerWidget {
+  final String userId;
+
+  const _ClassesSectionBody({required this.userId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(memberClassesProvider(userId));
+
+    return async.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 4),
+        child: SacLoadingSmall(),
+      ),
+      error: (e, _) => _MedicalError(
+        onRetry: () => ref.invalidate(memberClassesProvider(userId)),
+      ),
+      data: (classes) {
+        if (classes.isEmpty) {
+          return _EmptyLabel('Sin clases registradas');
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: classes.map((c) => _ClassItem(progressiveClass: c)).toList(),
+        );
+      },
+    );
+  }
+}
+
+class _ClassItem extends StatelessWidget {
+  final ProgressiveClass progressiveClass;
+
+  const _ClassItem({required this.progressiveClass});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final classColor = AppColors.classColor(progressiveClass.name);
+    final logoAsset = AppColors.classLogoAsset(progressiveClass.name);
+    final progress = progressiveClass.overallProgress;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: classColor.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: logoAsset != null
+                ? Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: Image.asset(logoAsset, fit: BoxFit.contain),
+                  )
+                : Center(
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedSchool,
+                      color: classColor,
+                      size: 18,
+                    ),
+                  ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  progressiveClass.name,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: c.text,
+                  ),
+                ),
+                if (progress != null)
+                  Text(
+                    'Progreso: $progress%',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: c.textSecondary,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (progressiveClass.investitureStatus != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: _investitureColor(progressiveClass.investitureStatus!)
+                    .withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                _investitureLabel(progressiveClass.investitureStatus!),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: _investitureColor(progressiveClass.investitureStatus!),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Color _investitureColor(String status) {
+    switch (status.toUpperCase()) {
+      case 'INVESTIDO':
+        return AppColors.secondary;
+      case 'PENDIENTE':
+        return AppColors.accent;
+      default:
+        return AppColors.sacBlue;
+    }
+  }
+
+  String _investitureLabel(String status) {
+    switch (status.toUpperCase()) {
+      case 'INVESTIDO':
+        return 'Investido';
+      case 'PENDIENTE':
+        return 'Pendiente';
+      default:
+        return status;
+    }
+  }
+}
+
+// ── Specialties section ────────────────────────────────────────────────────────
+
+class _SpecialtiesSection extends ConsumerWidget {
+  final String userId;
+
+  const _SpecialtiesSection({required this.userId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return _MedicalCard(
+      icon: HugeIcons.strokeRoundedMedal01,
+      title: 'Especialidades',
+      iconColor: AppColors.accent,
+      child: _SpecialtiesSectionBody(userId: userId),
+    );
+  }
+}
+
+class _SpecialtiesSectionBody extends ConsumerWidget {
+  final String userId;
+
+  const _SpecialtiesSectionBody({required this.userId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(memberHonorsProvider(userId));
+
+    return async.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 4),
+        child: SacLoadingSmall(),
+      ),
+      error: (e, _) => _MedicalError(
+        onRetry: () => ref.invalidate(memberHonorsProvider(userId)),
+      ),
+      data: (honors) {
+        if (honors.isEmpty) {
+          return _EmptyLabel('Sin especialidades registradas');
+        }
+
+        final validated = honors.where((h) => h.isCompleted).toList();
+        final inProgress = honors.where((h) => !h.isCompleted).toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (validated.isNotEmpty) ...[
+              _SpecialtiesSubheader(
+                label: 'Completadas · ${validated.length}',
+                color: AppColors.secondary,
+              ),
+              const SizedBox(height: 6),
+              _ChipWrap(
+                items: validated
+                    .map((h) => h.honorName ?? 'Especialidad')
+                    .toList(),
+                chipColor: AppColors.secondaryLight,
+                textColor: AppColors.secondaryDark,
+                borderColor: AppColors.secondary.withValues(alpha: 0.3),
+              ),
+            ],
+            if (validated.isNotEmpty && inProgress.isNotEmpty)
+              const SizedBox(height: 10),
+            if (inProgress.isNotEmpty) ...[
+              _SpecialtiesSubheader(
+                label: 'En progreso · ${inProgress.length}',
+                color: AppColors.accentDark,
+              ),
+              const SizedBox(height: 6),
+              _ChipWrap(
+                items: inProgress
+                    .map((h) => h.honorName ?? 'Especialidad')
+                    .toList(),
+                chipColor: AppColors.accentLight,
+                textColor: AppColors.accentDark,
+                borderColor: AppColors.accent.withValues(alpha: 0.3),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SpecialtiesSubheader extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _SpecialtiesSubheader({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        color: color,
+        letterSpacing: 0.3,
+      ),
     );
   }
 }

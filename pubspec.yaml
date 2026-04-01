@@ -14,9 +14,10 @@ dependencies:
     sdk: flutter
 
   # UI
-  cupertino_icons: ^1.0.8
-  flutter_svg: ^2.2.0
   cached_network_image: ^3.4.1
+  cupertino_icons: ^1.0.8
+  fl_chart: ^0.69.0
+  flutter_svg: ^2.2.0
   hugeicons: ^1.1.5
   loading_animation_widget: ^1.3.0
   

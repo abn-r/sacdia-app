@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -216,7 +217,7 @@ class _AmountHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final isIncome = transaction.type.isIncome;
     final formatted = NumberFormat.currency(
-      locale: 'es',
+      locale: 'en_US',
       symbol: '\$',
       decimalDigits: 2,
     ).format(transaction.amount);
@@ -312,7 +313,7 @@ class _DetailCard extends StatelessWidget {
 }
 
 class _DetailRow extends StatelessWidget {
-  final List<List<dynamic>> icon;
+  final HugeIconData icon;
   final String label;
   final String value;
   final bool multiline;

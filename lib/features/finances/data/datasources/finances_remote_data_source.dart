@@ -27,7 +27,8 @@ abstract class FinancesRemoteDataSource {
     required DateTime date,
     required int year,
     required int month,
-    String? notes,
+    required int clubSectionId,
+    required int clubTypeId,
   });
 
   Future<FinanceTransactionModel> updateTransaction({
@@ -36,7 +37,6 @@ abstract class FinancesRemoteDataSource {
     double? amount,
     String? description,
     DateTime? date,
-    String? notes,
   });
 
   Future<void> deleteTransaction({required int financeId});
@@ -150,7 +150,8 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
     required DateTime date,
     required int year,
     required int month,
-    String? notes,
+    required int clubSectionId,
+    required int clubTypeId,
   }) async {
     try {
       final body = {
@@ -160,7 +161,8 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
         'finance_date': '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
         'year': year,
         'month': month,
-        if (notes != null && notes.isNotEmpty) 'notes': notes,
+        'club_section_id': clubSectionId,
+        'club_type_id': clubTypeId,
       };
 
       final response = await _dio.post(
@@ -194,7 +196,6 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
     double? amount,
     String? description,
     DateTime? date,
-    String? notes,
   }) async {
     try {
       final body = <String, dynamic>{
@@ -204,7 +205,6 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
         if (date != null)
           'finance_date':
               '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
-        if (notes != null) 'notes': notes,
       };
 
       final response = await _dio.patch(

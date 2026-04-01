@@ -372,7 +372,7 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Probá con otro filtro o búsqueda',
+                'Prueba con otro filtro o búsqueda',
                 style: TextStyle(fontSize: 13, color: c.textSecondary),
               ),
             ],

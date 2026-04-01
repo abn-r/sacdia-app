@@ -27,14 +27,17 @@ class _QuickAccessItemConfig {
 }
 
 const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
-  // Coordination hub — requires coordinator or admin global role
+  // Coordination hub — requires coordinator or admin GLOBAL role only.
+  // investiture:validate is intentionally excluded from requiredPermissions
+  // because club directors also hold that permission; the gate must be
+  // role-based (global grant), not permission-based.
   _QuickAccessItemConfig(
     label: 'Coordinación',
     icon: HugeIcons.strokeRoundedAnalytics01,
     color: AppColors.info,
     route: RouteNames.coordinator,
-    requiredPermissions: {'coordinator:access', 'investiture:validate'},
-    legacyRoles: {'coordinator', 'admin'},
+    requiredPermissions: const {},
+    legacyRoles: {'coordinator', 'admin', 'super_admin', 'assistant_admin'},
   ),
   // Administrative: member list — requires users:read_detail (counselor and above)
   _QuickAccessItemConfig(
@@ -152,7 +155,11 @@ class QuickAccessGrid extends ConsumerWidget {
     }
 
     final filteredItems = _quickAccessItemsConfig.where((item) {
-      if (item.requiredPermissions.isEmpty) return true;
+      // An item is ungated only when neither permissions nor legacy roles are
+      // configured — i.e. it is visible to every authenticated user.
+      if (item.requiredPermissions.isEmpty && item.legacyRoles.isEmpty) {
+        return true;
+      }
       return canByPermissionOrLegacyRole(
         user,
         requiredPermissions: item.requiredPermissions,

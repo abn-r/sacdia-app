@@ -76,8 +76,9 @@ class ClubSectionModel extends ClubSection {
         ? rawClubTypeId
         : (int.tryParse(rawClubTypeId?.toString() ?? '') ?? 0);
 
-    // Determine display name from nested club_type or slug fallback
-    final clubTypeNested = json['club_type'] as Map<String, dynamic>?;
+    // Determine display name from nested club_types (Prisma relation key is plural)
+    // or fall back to the slug map when a legacy 'club_type' key is present.
+    final clubTypeNested = (json['club_types'] ?? json['club_type']) as Map<String, dynamic>?;
     final clubTypeName = clubTypeNested?['name'] as String? ??
         _clubTypeDisplayNames[clubTypeNested?['slug']] ??
         '';

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
@@ -13,10 +12,11 @@ import '../../domain/entities/enrollment.dart';
 import '../providers/enrollment_providers.dart';
 import '../views/enrollment_form_view.dart';
 
-/// Card/banner que muestra el estado de inscripción anual del usuario.
+/// Banner de advertencia para la inscripción anual del club.
 ///
-/// - Sin inscripción activa: muestra aviso con botón para inscribirse.
-/// - Con inscripción activa: muestra dirección, días de reunión y año.
+/// - Sin inscripción (`null`) o con estado `pending`/`inactive`: muestra aviso
+///   con botón para completar la inscripción.
+/// - Con inscripción `active`: no renderiza nada (`SizedBox.shrink()`).
 ///
 /// Se usa en el dashboard o en la vista del club.
 class EnrollmentStatusCard extends ConsumerWidget {
@@ -40,9 +40,17 @@ class EnrollmentStatusCard extends ConsumerWidget {
       ),
       error: (_, __) => const SizedBox.shrink(),
       data: (enrollment) {
+        // ── Inscripción activa: no mostrar nada ──────────────────────────────
+        if (enrollment != null &&
+            enrollment.status == EnrollmentStatus.active) {
+          return const SizedBox.shrink();
+        }
+
         if (enrollment == null) {
           // ── No hay inscripción activa ─────────────────────────────────────
-          return _PendingCard(
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: _PendingCard(
             showButton: canEnroll,
             subtitle: canEnroll
                 ? 'Completa la inscripción para este año'
@@ -62,11 +70,35 @@ class EnrollmentStatusCard extends ConsumerWidget {
                       },
                     )
                 : null,
+            ),
           );
         }
 
-        // ── Inscripción activa ────────────────────────────────────────────
-        return _ActiveCard(enrollment: enrollment);
+        // ── Inscripción existe pero no está activa (pending / inactive) ───
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: _PendingCard(
+            showButton: canEnroll,
+            subtitle: canEnroll
+                ? 'La inscripción para este año requiere atención'
+                : 'La inscripción del club para este año no está activa',
+            onTap: canEnroll
+                ? () => clubContextAsync.whenData(
+                      (ctx) {
+                        if (ctx == null) return;
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => EnrollmentFormView(
+                              clubId: ctx.clubId.toString(),
+                              sectionId: ctx.sectionId,
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                : null,
+          ),
+        );
       },
     );
   }
@@ -152,132 +184,3 @@ class _PendingCard extends StatelessWidget {
   }
 }
 
-// ── Active card ───────────────────────────────────────────────────────────────
-
-class _ActiveCard extends StatelessWidget {
-  final Enrollment enrollment;
-
-  const _ActiveCard({required this.enrollment});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final days = (enrollment.meetingDays as List<String>).join(', ');
-
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.secondaryLight,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.secondary.withValues(alpha: 0.4)),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.secondary.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Center(
-              child: HugeIcon(
-                icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                color: AppColors.secondaryDark,
-                size: 20,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      'inscrito ${enrollment.year}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.secondaryDark,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        'Activo',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                if (enrollment.address != null) ...[
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedLocation01,
-                        color: AppColors.secondaryDark.withValues(alpha: 0.7),
-                        size: 12,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          enrollment.address ?? '',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color:
-                                AppColors.secondaryDark.withValues(alpha: 0.8),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-                if (days.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedCalendar01,
-                        color: AppColors.secondaryDark.withValues(alpha: 0.7),
-                        size: 12,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          days,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color:
-                                AppColors.secondaryDark.withValues(alpha: 0.8),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

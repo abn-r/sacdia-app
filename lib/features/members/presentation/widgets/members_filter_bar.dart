@@ -201,6 +201,7 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
     final selected = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (_) => _PickerSheet(
         title: 'Filtrar por clase',
         options: classes,
@@ -221,6 +222,7 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
     final selected = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (_) => _PickerSheet(
         title: 'Filtrar por cargo',
         options: roles,
@@ -336,63 +338,76 @@ class _PickerSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: c.surfaceVariant,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 12),
-          Center(
-            child: Container(
-              width: 36,
-              height: 5,
-              decoration: BoxDecoration(
-                color: c.border,
-                borderRadius: BorderRadius.circular(3),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: c.text,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          ...options.map((option) {
-            final label = labelBuilder?.call(option) ?? option;
-            final isSelected = option == selected;
-            return ListTile(
-              title: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight:
-                      isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isSelected ? AppColors.primary : c.text,
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+    final maxHeight = MediaQuery.of(context).size.height * 0.8;
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      child: Container(
+        decoration: BoxDecoration(
+          color: c.surfaceVariant,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Center(
+              child: Container(
+                width: 36,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: c.border,
+                  borderRadius: BorderRadius.circular(3),
                 ),
               ),
-              trailing: isSelected
-                  ? const HugeIcon(
-                      icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                      color: AppColors.primary,
-                      size: 20,
-                    )
-                  : null,
-              onTap: () => Navigator.pop(context, option),
-            );
-          }),
-          SizedBox(height: 16 + MediaQuery.of(context).padding.bottom),
-        ],
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: c.text,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  ...options.map((option) {
+                    final label = labelBuilder?.call(option) ?? option;
+                    final isSelected = option == selected;
+                    return ListTile(
+                      title: Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w400,
+                          color: isSelected ? AppColors.primary : c.text,
+                        ),
+                      ),
+                      trailing: isSelected
+                          ? const HugeIcon(
+                              icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                              color: AppColors.primary,
+                              size: 20,
+                            )
+                          : null,
+                      onTap: () => Navigator.pop(context, option),
+                    );
+                  }),
+                  SizedBox(height: 16 + bottomInset),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
