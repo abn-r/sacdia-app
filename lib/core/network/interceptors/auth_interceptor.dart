@@ -174,6 +174,9 @@ class AuthInterceptor extends QueuedInterceptor {
       // y no genere un segundo ciclo de refresh.
       final retryDio = Dio(BaseOptions(
         baseUrl: AppConstants.baseUrl,
+        connectTimeout: Duration(seconds: AppConstants.connectTimeout),
+        sendTimeout: Duration(seconds: AppConstants.sendTimeout),
+        receiveTimeout: Duration(seconds: AppConstants.receiveTimeout),
         validateStatus: (s) => s != null,
       ));
 

@@ -101,6 +101,9 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
           'class_id': classId,
           'ecclesiastical_year_id': yearId,
         },
+        options: Options(
+          receiveTimeout: const Duration(seconds: 30),
+        ),
       );
 
       if (response.statusCode == 200 ||

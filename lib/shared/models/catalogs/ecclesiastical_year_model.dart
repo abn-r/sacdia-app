@@ -20,10 +20,14 @@ class EcclesiasticalYearModel extends Equatable {
   factory EcclesiasticalYearModel.fromJson(Map<String, dynamic> json) {
     return EcclesiasticalYearModel(
       ecclesiasticalYearId: json['ecclesiastical_year_id'] as int,
-      name: json['name'] as String,
-      startDate: DateTime.parse(json['start_date'] as String),
-      endDate: DateTime.parse(json['end_date'] as String),
-      active: json['active'] as bool,
+      name: (json['name'] as String?) ?? '',
+      startDate: json['start_date'] != null
+          ? DateTime.parse(json['start_date'] as String)
+          : DateTime(2000),
+      endDate: json['end_date'] != null
+          ? DateTime.parse(json['end_date'] as String)
+          : DateTime(2000),
+      active: (json['active'] as bool?) ?? false,
     );
   }
 

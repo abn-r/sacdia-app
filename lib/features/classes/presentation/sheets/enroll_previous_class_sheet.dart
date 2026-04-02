@@ -1,14 +1,15 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/classes/domain/entities/progressive_class.dart';
 import 'package:sacdia_app/features/classes/domain/usecases/enroll_previous_class.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
+import 'package:sacdia_app/features/classes/presentation/widgets/enroll_previous_class_skeleton.dart';
 import 'package:sacdia_app/providers/catalogs_provider.dart';
 import 'package:sacdia_app/shared/models/catalogs/ecclesiastical_year_model.dart';
 
@@ -16,7 +17,8 @@ import 'package:sacdia_app/shared/models/catalogs/ecclesiastical_year_model.dart
 /// unirse a la aplicación.
 ///
 /// Flujo:
-/// 1. Carga el catálogo de clases filtradas por el tipo de club activo.
+/// 1. Carga el catálogo completo de clases (todas las categorías: Aventureros,
+///    Conquistadores, Guías Mayores) sin filtrar por tipo de club activo.
 /// 2. Carga el año eclesiástico actual para asociar la inscripción.
 /// 3. El usuario selecciona una clase y confirma.
 /// 4. Se invoca [EnrollPreviousClass]; al éxito se invalida [userClassesProvider]
@@ -41,16 +43,20 @@ class _EnrollPreviousClassSheetState
     final user = authState.value;
     final c = context.sac;
 
-    // Derivar el clubTypeId del grant activo del usuario.
-    final clubTypeId = user?.authorization?.activeGrant?.sectionId;
-
-    // Si el usuario no tiene contexto de club activo, mostrar mensaje informativo.
-    if (user == null || clubTypeId == null) {
+    // Si el usuario no está autenticado, mostrar mensaje informativo.
+    if (user == null) {
       return _buildNoClubMessage(context, c);
     }
 
-    final classesAsync = ref.watch(classesByClubTypeProvider(clubTypeId));
+    // Carga TODAS las clases del catálogo sin filtrar por tipo de club,
+    // ya que el usuario puede haber completado clases de cualquier categoría.
+    final classesAsync = ref.watch(allClassesProvider);
     final yearAsync = ref.watch(currentEcclesiasticalYearProvider);
+
+    // Show the shimmer skeleton while either provider is still loading.
+    // Both load in parallel and the skeleton covers the entire content area
+    // below the header, so there is no half-loaded intermediate state.
+    final isLoading = classesAsync.isLoading || yearAsync.isLoading;
 
     return SafeArea(
       child: Padding(
@@ -66,9 +72,13 @@ class _EnrollPreviousClassSheetState
           children: [
             _buildHeader(context, c),
             const SizedBox(height: 20),
-            _buildYearInfo(context, c, yearAsync),
-            const SizedBox(height: 16),
-            _buildClassList(context, c, classesAsync, yearAsync),
+            if (isLoading)
+              const EnrollPreviousClassSkeleton()
+            else ...[
+              _buildYearInfo(context, c, yearAsync),
+              const SizedBox(height: 16),
+              _buildClassList(context, c, classesAsync, yearAsync),
+            ],
           ],
         ),
       ),
@@ -131,10 +141,9 @@ class _EnrollPreviousClassSheetState
     AsyncValue<EcclesiasticalYearModel?> yearAsync,
   ) {
     return yearAsync.when(
-      loading: () => const SizedBox(
-        height: 36,
-        child: Center(child: SizedBox(width: 20, height: 20, child: SacLoading())),
-      ),
+      // Unreachable: loading state is handled at the build level via
+      // EnrollPreviousClassSkeleton before _buildYearInfo is ever called.
+      loading: () => const SizedBox.shrink(),
       error: (_, __) => Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
@@ -224,10 +233,9 @@ class _EnrollPreviousClassSheetState
     AsyncValue<EcclesiasticalYearModel?> yearAsync,
   ) {
     return classesAsync.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 32),
-        child: Center(child: SacLoading()),
-      ),
+      // Unreachable: loading state is handled at the build level via
+      // EnrollPreviousClassSkeleton before _buildClassList is ever called.
+      loading: () => const SizedBox.shrink(),
       error: (error, _) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Column(
@@ -255,14 +263,7 @@ class _EnrollPreviousClassSheetState
             SacButton.outline(
               text: 'Reintentar',
               icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: () {
-                final authState = ref.read(authNotifierProvider);
-                final clubTypeId =
-                    authState.value?.authorization?.activeGrant?.sectionId;
-                if (clubTypeId != null) {
-                  ref.invalidate(classesByClubTypeProvider(clubTypeId));
-                }
-              },
+              onPressed: () => ref.invalidate(allClassesProvider),
             ),
           ],
         ),
@@ -273,7 +274,7 @@ class _EnrollPreviousClassSheetState
             padding: const EdgeInsets.symmetric(vertical: 32),
             child: Center(
               child: Text(
-                'No hay clases disponibles para tu tipo de club',
+                'No hay clases disponibles en el catálogo',
                 style: TextStyle(fontSize: 14, color: c.textSecondary),
                 textAlign: TextAlign.center,
               ),
@@ -283,7 +284,7 @@ class _EnrollPreviousClassSheetState
 
         final year = yearAsync.valueOrNull;
         final canSubmit =
-            _selectedClass != null && year != null && !_isSubmitting;
+            _selectedClass != null && year != null && year.ecclesiasticalYearId > 0 && !_isSubmitting;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -308,6 +309,8 @@ class _EnrollPreviousClassSheetState
                 itemBuilder: (context, index) {
                   final cls = classes[index];
                   final isSelected = _selectedClass?.id == cls.id;
+                  final classColor = AppColors.classColor(cls.name);
+                  final logoAsset = AppColors.classLogoAsset(cls.name);
 
                   return InkWell(
                     onTap: _isSubmitting
@@ -340,6 +343,58 @@ class _EnrollPreviousClassSheetState
                                 ? AppColors.primary
                                 : c.textTertiary,
                             size: 20,
+                          ),
+                          const SizedBox(width: 10),
+                          // Class logo
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: classColor.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: cls.imageUrl != null
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: CachedNetworkImage(
+                                      imageUrl: cls.imageUrl!,
+                                      fit: BoxFit.cover,
+                                      errorWidget: (_, __, ___) =>
+                                          logoAsset != null
+                                              ? Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(5),
+                                                  child: Image.asset(
+                                                    logoAsset,
+                                                    fit: BoxFit.contain,
+                                                  ),
+                                                )
+                                              : Center(
+                                                  child: HugeIcon(
+                                                    icon: HugeIcons
+                                                        .strokeRoundedSchool,
+                                                    color: classColor,
+                                                    size: 18,
+                                                  ),
+                                                ),
+                                    ),
+                                  )
+                                : logoAsset != null
+                                    ? Padding(
+                                        padding: const EdgeInsets.all(5),
+                                        child: Image.asset(
+                                          logoAsset,
+                                          fit: BoxFit.contain,
+                                        ),
+                                      )
+                                    : Center(
+                                        child: HugeIcon(
+                                          icon:
+                                              HugeIcons.strokeRoundedSchool,
+                                          color: classColor,
+                                          size: 18,
+                                        ),
+                                      ),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
@@ -418,7 +473,7 @@ class _EnrollPreviousClassSheetState
             ),
             const SizedBox(height: 16),
             Text(
-              'Seleccioná un club activo para inscribir clases',
+              'Debés iniciar sesión para inscribir una clase anterior',
               style: TextStyle(
                 fontSize: 15,
                 color: c.textSecondary,
