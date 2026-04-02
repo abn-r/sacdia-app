@@ -187,8 +187,11 @@ const _financeEditorRoles = {
 };
 
 /// Devuelve true si el usuario puede gestionar transacciones.
+/// Usa selectAsync para evitar rebuilds por cambios no relacionados al objeto UserEntity.
 final canManageFinancesProvider = FutureProvider.autoDispose<bool>((ref) async {
-  final authState = await ref.watch(authNotifierProvider.future);
+  final authState = await ref.watch(
+    authNotifierProvider.selectAsync((u) => u),
+  );
   if (authState == null) return false;
 
   return canByPermissionOrLegacyRole(

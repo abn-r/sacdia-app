@@ -106,13 +106,24 @@ final userClassesProvider =
 
 /// Provider para listar clases del catálogo filtradas por tipo de club.
 ///
-/// Usado en [EnrollPreviousClassSheet] para mostrar las clases disponibles
-/// según el tipo de club del usuario activo.
+/// Usado cuando se necesita listar clases de un tipo específico.
 final classesByClubTypeProvider =
     FutureProvider.autoDispose.family<List<ProgressiveClass>, int>(
         (ref, clubTypeId) async {
   final dataSource = ref.read(classesRemoteDataSourceProvider);
   final models = await dataSource.getClasses(clubTypeId: clubTypeId);
+  return models.map((m) => m.toEntity()).toList();
+});
+
+/// Provider para listar TODAS las clases del catálogo sin filtro por tipo de club.
+///
+/// Usado en [EnrollPreviousClassSheet] para mostrar todas las clases disponibles
+/// del sistema (Aventureros, Conquistadores, Guías Mayores) ya que el usuario
+/// puede haber completado clases de cualquier categoría en el pasado.
+final allClassesProvider =
+    FutureProvider.autoDispose<List<ProgressiveClass>>((ref) async {
+  final dataSource = ref.read(classesRemoteDataSourceProvider);
+  final models = await dataSource.getClasses();
   return models.map((m) => m.toEntity()).toList();
 });
 

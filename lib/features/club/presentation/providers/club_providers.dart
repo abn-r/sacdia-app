@@ -64,8 +64,11 @@ const _editableRoles = {'director', 'subdirector', 'deputy_director'};
 /// Devuelve true si el usuario actual puede editar el club.
 ///
 /// Lee los roles del metadata del usuario autenticado.
+/// Usa selectAsync para evitar rebuilds por cambios no relacionados al objeto UserEntity.
 final canEditClubProvider = FutureProvider.autoDispose<bool>((ref) async {
-  final authState = await ref.watch(authNotifierProvider.future);
+  final authState = await ref.watch(
+    authNotifierProvider.selectAsync((u) => u),
+  );
   if (authState == null) return false;
 
   return canByPermissionOrLegacyRole(
@@ -83,11 +86,12 @@ final canEditClubProvider = FutureProvider.autoDispose<bool>((ref) async {
 /// Carga la sección de club del usuario actual.
 /// Depende de [clubContextProvider] del módulo de miembros (fuente de verdad del contexto).
 ///
-/// Sin autoDispose: se mantiene vivo durante toda la sesión igual que
-/// [clubContextProvider], evitando re-fetches redundantes entre listeners
-/// (_EvidenceFolderShell, ClubDetailView, etc.).
+/// autoDispose + keepAlive: permanece vivo durante la sesión evitando re-fetches
+/// redundantes entre listeners (_EvidenceFolderShell, ClubDetailView, etc.), y se
+/// limpia correctamente al invalidarse en logout.
 final currentClubSectionProvider =
-    FutureProvider<ClubSection?>((ref) async {
+    FutureProvider.autoDispose<ClubSection?>((ref) async {
+  ref.keepAlive();
   final context = await ref.watch(clubContextProvider.future);
   if (context == null) return null;
 

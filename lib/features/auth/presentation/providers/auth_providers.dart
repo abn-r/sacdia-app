@@ -32,10 +32,13 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final dio = ref.read(dioProvider);
   final baseUrl = ref.read(apiBaseUrlProvider);
 
+  final secureStorage = ref.read(secureStorageProvider);
+
   return AuthRepositoryImpl(
     remoteDataSource: AuthRemoteDataSourceImpl(
       dio: dio,
       baseUrl: baseUrl,
+      secureStorage: secureStorage,
     ),
     networkInfo: networkInfo,
   );

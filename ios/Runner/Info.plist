@@ -11,6 +11,9 @@
 	<string>SACDIA necesita acceso a la camara para tomar una foto para la actividad.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>SACDIA necesita permiso para guardar imagenes en tu galeria.</string>
+	<!-- Google Maps API key — set GOOGLE_MAPS_API_KEY in Xcode build settings or via xcconfig -->
+	<key>GOOGLE_MAPS_API_KEY</key>
+	<string>$(GOOGLE_MAPS_API_KEY)</string>
 	<!-- Permisos de ubicación requeridos por google_maps_flutter y geocoding -->
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>SACDIA necesita acceso a tu ubicacion para mostrar el mapa y seleccionar el lugar de la actividad.</string>

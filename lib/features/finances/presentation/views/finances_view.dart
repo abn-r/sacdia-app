@@ -7,13 +7,13 @@ import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/finance_month.dart';
 import '../../domain/entities/transaction.dart';
 import '../providers/finances_providers.dart';
 import '../widgets/balance_header_card.dart';
 import '../widgets/closed_period_banner.dart';
 import '../widgets/finance_line_chart.dart';
+import '../widgets/finances_loading_skeleton.dart';
 import '../widgets/transaction_tile.dart';
 import 'add_transaction_sheet.dart';
 import 'all_transactions_view.dart';
@@ -32,7 +32,6 @@ class FinancesView extends ConsumerWidget {
     final financeMonthAsync = ref.watch(financeMonthProvider);
     final summaryAsync = ref.watch(financeSummaryProvider);
     final canManageAsync = ref.watch(canManageFinancesProvider);
-    final selected = ref.watch(selectedMonthProvider);
 
     final isOpen = financeMonthAsync.valueOrNull?.isOpen ?? true;
     final canManage = canManageAsync.valueOrNull ?? false;
@@ -97,7 +96,7 @@ class FinancesView extends ConsumerWidget {
               // ── Body ──────────────────────────────────────────────────────
               SliverToBoxAdapter(
                 child: financeMonthAsync.when(
-                  loading: () => _LoadingBody(selected: selected),
+                  loading: () => const FinancesLoadingSkeleton(),
                   error: (e, _) => _ErrorBody(
                     message: e.toString().replaceFirst('Exception: ', ''),
                     onRetry: () {
@@ -253,35 +252,6 @@ class _FinanceBody extends ConsumerWidget {
       SacSharedAxisRoute(
         builder: (_) => const AllTransactionsView(),
       ),
-    );
-  }
-}
-
-// ── Loading body ───────────────────────────────────────────────────────────────
-
-class _LoadingBody extends StatelessWidget {
-  final SelectedMonth selected;
-
-  const _LoadingBody({required this.selected});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          height: 160,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF2E3D7C), Color(0xFF1A2456)],
-            ),
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: const Center(child: SacLoading()),
-        ),
-        const SizedBox(height: 200),
-        const SacLoading(),
-      ],
     );
   }
 }

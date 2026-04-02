@@ -8,7 +8,11 @@ import GoogleMaps
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    GMSServices.provideAPIKey("AIzaSyAQoO0HmAfSdbRs-T0cqtCXEGNn7TtMGZk")
+    if let mapsKey = Bundle.main.infoDictionary?["GOOGLE_MAPS_API_KEY"] as? String, !mapsKey.isEmpty {
+      GMSServices.provideAPIKey(mapsKey)
+    } else {
+      GMSServices.provideAPIKey("AIzaSyAQoO0HmAfSdbRs-T0cqtCXEGNn7TtMGZk")
+    }
 
     // Forzar renderer OpenGL en simuladores — Metal no renderiza en iOS Simulator
     #if targetEnvironment(simulator)

@@ -94,7 +94,8 @@ final honorsProvider = FutureProvider.autoDispose
 /// Provider para las especialidades de un usuario.
 /// keepAlive: el provider se mantiene vivo mientras el árbol esté montado,
 /// evitando re-fetches al cambiar de tab y eliminando el retry loop 429.
-final userHonorsProvider = FutureProvider<List<UserHonor>>((ref) async {
+final userHonorsProvider = FutureProvider.autoDispose<List<UserHonor>>((ref) async {
+  ref.keepAlive();
   // Fix 1: use selectAsync to avoid watching the full auth state object.
   // This provider only rebuilds when the userId itself changes, not on every
   // auth state field update.
@@ -276,8 +277,10 @@ final selectedCategoryProvider = StateProvider.autoDispose<int?>((ref) => null);
 /// Category filtering and text search are done locally in [filteredHonorsProvider].
 /// Consumers that need a network refresh should invalidate this provider directly.
 ///
-/// Not autoDispose so it survives tab switches in the catalog without re-fetching.
-final allHonorsProvider = FutureProvider<List<Honor>>((ref) async {
+/// autoDispose + keepAlive: survives tab switches without re-fetching, and is
+/// properly disposed on logout when ref.invalidate(allHonorsProvider) is called.
+final allHonorsProvider = FutureProvider.autoDispose<List<Honor>>((ref) async {
+  ref.keepAlive();
   final groupsAsync = await ref.watch(honorsGroupedByCategoryProvider.future);
   return groupsAsync.expand((group) => group.honors).toList();
 });
@@ -387,10 +390,11 @@ final honorRequirementsProvider = FutureProvider.autoDispose
 /// Provider para el progreso del usuario en los requisitos de una especialidad.
 /// Keyed by honorId.
 ///
-/// Nota: no es autoDispose para que el catálogo pueda leer el progreso de los
-/// honors inscritos sin re-fetchear al cambiar de pestaña.
-final userHonorProgressProvider = FutureProvider
+/// autoDispose + keepAlive: sobrevive cambios de pestaña sin re-fetchear, y se
+/// limpia correctamente en logout cuando se invalida explícitamente.
+final userHonorProgressProvider = FutureProvider.autoDispose
     .family<List<UserHonorRequirementProgress>, int>((ref, honorId) async {
+  ref.keepAlive();
   final userId = await ref.watch(
     authNotifierProvider.selectAsync((user) => user?.id),
   );

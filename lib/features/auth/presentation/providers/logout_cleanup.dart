@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/app_logger.dart';
 import '../../../activities/presentation/providers/activities_providers.dart';
+import '../../../club/presentation/providers/club_providers.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../../../enrollment/presentation/providers/enrollment_providers.dart';
 import '../../../honors/presentation/providers/honors_providers.dart';
@@ -27,16 +28,18 @@ import '../../../profile/presentation/providers/profile_providers.dart';
 /// auth_providers.dart).
 ///
 /// Providers invalidados:
-///   - dashboardNotifierProvider   AsyncNotifierProvider  (non-autoDispose)
-///   - userHonorsProvider          FutureProvider         (non-autoDispose)
-///   - clubContextProvider         FutureProvider         (non-autoDispose)
-///   - profileNotifierProvider     AsyncNotifierProvider  (non-autoDispose)
-///   - currentEnrollmentProvider   FutureProvider         (non-autoDispose)
-///   - clubActivitiesProvider      FutureProvider.autoDispose + keepAlive (club-specific)
+///   - dashboardNotifierProvider   AsyncNotifierProvider          (non-autoDispose)
+///   - userHonorsProvider          FutureProvider.autoDispose     + keepAlive (user-specific)
+///   - clubContextProvider         FutureProvider                 (non-autoDispose)
+///   - profileNotifierProvider     AsyncNotifierProvider.autoDispose + keepAlive (user-specific)
+///   - currentEnrollmentProvider   FutureProvider                 (non-autoDispose)
+///   - currentClubSectionProvider  FutureProvider.autoDispose     + keepAlive (club-specific)
+///   - clubActivitiesProvider      FutureProvider.autoDispose     + keepAlive (club-specific)
 void clearUserStateOnLogout(WidgetRef ref) {
   ref.invalidate(dashboardNotifierProvider);
   ref.invalidate(userHonorsProvider);
   ref.invalidate(clubContextProvider);
+  ref.invalidate(currentClubSectionProvider);
   ref.invalidate(profileNotifierProvider);
   ref.invalidate(currentEnrollmentProvider);
   ref.invalidate(clubActivitiesProvider);

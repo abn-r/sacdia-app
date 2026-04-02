@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/storage/secure_storage.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/user_model.dart';
 
@@ -73,7 +74,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
   final StreamController<bool> _authStateController;
-  final FlutterSecureStorage _secureStorage;
+  final SecureStorage _secureStorage;
 
   static const _tag = 'AuthDS';
   bool _attemptedContextAutoActivation = false;
@@ -81,13 +82,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   AuthRemoteDataSourceImpl({
     required Dio dio,
     required String baseUrl,
+    required SecureStorage secureStorage,
   })  : _dio = dio,
         _baseUrl = baseUrl,
-        _authStateController = StreamController<bool>.broadcast(),
-        _secureStorage = const FlutterSecureStorage(
-          aOptions: AndroidOptions(encryptedSharedPreferences: true),
-          iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device),
-        ) {
+        _secureStorage = secureStorage,
+        _authStateController = StreamController<bool>.broadcast() {
     _checkInitialAuthState();
   }
 
@@ -97,7 +96,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   /// stream authStateChanges con un valor inicial sin generar tráfico HTTP.
   Future<void> _checkInitialAuthState() async {
     try {
-      final token = await _secureStorage.read(key: 'auth_token');
+      final token = await _secureStorage.read(AppConstants.tokenKey);
       _authStateController.add(token != null);
     } catch (e) {
       AppLogger.w('Error al leer token local en estado inicial',
@@ -112,26 +111,24 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     int? expiresAt,
     String? tokenType,
   }) async {
-    await _secureStorage.write(key: 'auth_token', value: token);
+    await _secureStorage.write(AppConstants.tokenKey, token);
     if (refreshToken != null) {
-      await _secureStorage.write(
-          key: 'auth_refresh_token', value: refreshToken);
+      await _secureStorage.write(AppConstants.refreshTokenKey, refreshToken);
     }
     if (expiresAt != null) {
-      await _secureStorage.write(
-          key: 'auth_expires_at', value: expiresAt.toString());
+      await _secureStorage.write(AppConstants.expiresAtKey, expiresAt.toString());
     }
     if (tokenType != null) {
-      await _secureStorage.write(key: 'auth_token_type', value: tokenType);
+      await _secureStorage.write(AppConstants.tokenTypeKey, tokenType);
     }
     _authStateController.add(true);
   }
 
   Future<void> _clearToken() async {
-    await _secureStorage.delete(key: 'auth_token');
-    await _secureStorage.delete(key: 'auth_refresh_token');
-    await _secureStorage.delete(key: 'auth_expires_at');
-    await _secureStorage.delete(key: 'auth_token_type');
+    await _secureStorage.delete(AppConstants.tokenKey);
+    await _secureStorage.delete(AppConstants.refreshTokenKey);
+    await _secureStorage.delete(AppConstants.expiresAtKey);
+    await _secureStorage.delete(AppConstants.tokenTypeKey);
     _authStateController.add(false);
   }
 
@@ -148,8 +145,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   Future<void> _persistCompletionCache(bool value) async {
     await _secureStorage.write(
-      key: 'cached_post_register_complete',
-      value: value.toString(),
+      'cached_post_register_complete',
+      value.toString(),
     );
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('cached_post_register_complete', value);
@@ -162,7 +159,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return sharedValue;
     }
     final secureValue = await _secureStorage.read(
-      key: 'cached_post_register_complete',
+      'cached_post_register_complete',
     );
     return _parseBool(secureValue) ?? false;
   }
@@ -227,7 +224,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<UserModel?> getCurrentUser() async {
     try {
-      final token = await _secureStorage.read(key: 'auth_token');
+      final token = await _secureStorage.read(AppConstants.tokenKey);
       if (token == null) return null;
 
       final response = await _dio.get(
@@ -507,8 +504,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     AppLogger.i('Cerrando sesión', tag: _tag);
 
     // Read tokens before clearing — needed to notify the server.
-    final token = await _secureStorage.read(key: 'auth_token');
-    final refreshToken = await _secureStorage.read(key: 'auth_refresh_token');
+    final token = await _secureStorage.read(AppConstants.tokenKey);
+    final refreshToken = await _secureStorage.read(AppConstants.refreshTokenKey);
 
     // Always clear local state first, regardless of network outcome.
     await _clearToken();
@@ -573,7 +570,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<UserModel> updatePassword(
       String currentPassword, String newPassword) async {
     try {
-      final token = await _secureStorage.read(key: 'auth_token');
+      final token = await _secureStorage.read(AppConstants.tokenKey);
       if (token == null) {
         throw AuthException(message: 'No hay sesión activa');
       }
@@ -606,30 +603,28 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      final keysToRemove = [
+      // Clear known auth keys from secure storage explicitly.
+      const secureKeys = [
+        AppConstants.tokenKey,
+        AppConstants.refreshTokenKey,
+        AppConstants.expiresAtKey,
+        AppConstants.tokenTypeKey,
+        'cached_post_register_complete',
+      ];
+      for (final key in secureKeys) {
+        await _secureStorage.delete(key);
+      }
+
+      // Clear known auth keys from SharedPreferences explicitly.
+      const prefKeys = [
         'auth-token',
         'auth-refresh-token',
         'auth-type',
-        // Legacy snake_case keys — remove during migration window.
         'refresh_token',
+        'cached_post_register_complete',
       ];
-
-      for (final key in keysToRemove) {
+      for (final key in prefKeys) {
         await prefs.remove(key);
-      }
-
-      final allKeys = prefs.getKeys();
-      for (final key in allKeys) {
-        if (key.contains('auth')) {
-          await prefs.remove(key);
-        }
-      }
-
-      final secureKeys = await _secureStorage.readAll();
-      for (final entry in secureKeys.entries) {
-        if (entry.key.contains('auth')) {
-          await _secureStorage.delete(key: entry.key);
-        }
       }
     } catch (e) {
       AppLogger.e('Error al limpiar datos persistentes', tag: _tag, error: e);
@@ -815,7 +810,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<bool> hasLocalToken() async {
     try {
-      final token = await _secureStorage.read(key: 'auth_token');
+      final token = await _secureStorage.read(AppConstants.tokenKey);
       return token != null;
     } catch (e) {
       AppLogger.e('Error al verificar token local', tag: _tag, error: e);
@@ -825,7 +820,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<void> switchContext(String assignmentId) async {
-    final token = await _secureStorage.read(key: 'auth_token');
+    final token = await _secureStorage.read(AppConstants.tokenKey);
     if (token == null) {
       throw AuthException(message: 'No hay sesión activa');
     }
@@ -846,7 +841,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<bool> getCompletionStatus() async {
     try {
-      final token = await _secureStorage.read(key: 'auth_token');
+      final token = await _secureStorage.read(AppConstants.tokenKey);
       if (token == null) {
         throw AuthException(message: 'No hay sesión activa');
       }

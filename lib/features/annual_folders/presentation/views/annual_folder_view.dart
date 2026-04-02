@@ -5,10 +5,10 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import '../../domain/entities/annual_folder.dart';
 import '../providers/annual_folders_providers.dart';
+import '../widgets/annual_folder_loading_skeleton.dart';
 
 /// Vista principal de la carpeta anual de un enrollment.
 class AnnualFolderView extends ConsumerWidget {
@@ -49,7 +49,7 @@ class AnnualFolderView extends ConsumerWidget {
         ),
       ),
       body: folderAsync.when(
-        loading: () => const Center(child: SacLoading()),
+        loading: () => const AnnualFolderLoadingSkeleton(),
         error: (e, _) => _ErrorBody(
           message: e.toString().replaceFirst('Exception: ', ''),
           onRetry: () =>

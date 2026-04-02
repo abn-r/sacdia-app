@@ -19,7 +19,7 @@
              See: https://developers.google.com/maps/api-security-best-practices -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAQoO0HmAfSdbRs-T0cqtCXEGNn7TtMGZk"/>
+            android:value="${GOOGLE_MAPS_API_KEY}"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -41,20 +41,24 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- Deep link para OAuth callbacks: io.sacdia.app://auth/callback -->
-            <!-- NOTE: autoVerify is intentionally omitted here. This intent-filter uses a
-                 custom scheme (io.sacdia.app://), NOT an https:// App Link. Android's
-                 autoVerify mechanism only applies to https:// App Links backed by
-                 assetlinks.json — setting it on a custom scheme has no security effect.
-                 To fully mitigate VULN-013, migrate OAuth callbacks to an https:// App Link:
-                   1. Add a new intent-filter with android:scheme="https"
-                      android:host="sacdia-backend.onrender.com" and android:autoVerify="true"
-                   2. Publish assetlinks.json at:
-                      https://sacdia-backend.onrender.com/.well-known/assetlinks.json
-                      with the app's SHA-256 release certificate fingerprint.
-                   3. Update the OAuth redirect_uri in the backend and app to use the https URL.
-                   4. Test with: adb shell pm get-app-links --user cur com.sacdia.app
+            <!-- Verified App Link for OAuth callback (preferred) -->
+            <!-- REQUIRED: Publish assetlinks.json at:
+                   https://sacdia-backend.onrender.com/.well-known/assetlinks.json
+                 with the app's SHA-256 release certificate fingerprint before this filter
+                 can be auto-verified by Android.
+                 Test with: adb shell pm get-app-links --user cur com.sacdia.app
                  See: https://developer.android.com/training/app-links/verify-android-applinks -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="sacdia-backend.onrender.com"
+                    android:pathPrefix="/api/auth/callback" />
+            </intent-filter>
+            <!-- TODO: Remove custom scheme after App Links verification is complete and backend redirect URI is updated -->
+            <!-- Deep link para OAuth callbacks: io.sacdia.app://auth/callback -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>

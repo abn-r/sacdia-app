@@ -59,10 +59,13 @@ Future<void> _initializeFirebaseAndPrintDebugTokens() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
-    // TODO: Switch to AndroidProvider.playIntegrity and AppleProvider.appAttest for production builds
     await FirebaseAppCheck.instance.activate(
-      androidProvider: AndroidProvider.debug,
-      appleProvider: AppleProvider.debug,
+      androidProvider: kDebugMode
+          ? AndroidProvider.debug
+          : AndroidProvider.playIntegrity,
+      appleProvider: kDebugMode
+          ? AppleProvider.debug
+          : AppleProvider.appAttest,
     );
 
     if (kDebugMode) AppLogger.i('Firebase initialized', tag: tag);
@@ -129,13 +132,17 @@ Future<void> _checkAndCleanSessionAtStartup() async {
   }
 }
 
-/// Unified scroll behavior — iOS-inspired bouncing physics on all platforms.
+/// Unified scroll behavior — platform-aware physics (bouncing on iOS/macOS, clamping on Android).
 class _AppScrollBehavior extends ScrollBehavior {
   @override
   ScrollPhysics getScrollPhysics(BuildContext context) {
-    return const BouncingScrollPhysics(
-      parent: AlwaysScrollableScrollPhysics(),
-    );
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+        return const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
+      default:
+        return const ClampingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
+    }
   }
 }
 

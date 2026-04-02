@@ -7,7 +7,7 @@ import 'dio_provider.dart';
 
 /// Provider para el datasource de catálogos
 final catalogsDataSourceProvider = Provider<CatalogsRemoteDataSource>((ref) {
-  final dio = ref.watch(dioProvider);
+  final dio = ref.read(dioProvider);
   return CatalogsRemoteDataSourceImpl(
     dio: dio,
     baseUrl: AppConstants.baseUrl,

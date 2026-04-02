@@ -6,9 +6,9 @@ import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/member_insurance.dart';
 import '../providers/insurance_providers.dart';
+import '../widgets/insurance_loading_skeleton.dart';
 import '../widgets/insurance_summary_header.dart';
 import '../widgets/member_insurance_card.dart';
 import 'insurance_detail_view.dart';
@@ -558,23 +558,7 @@ class _SortSheet extends StatelessWidget {
 class _LoadingBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          height: 140,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF183651), Color(0xFF1E6B5C)],
-            ),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: const Center(child: SacLoading(color: Colors.white54)),
-        ),
-        const SizedBox(height: 180),
-        const SacLoading(),
-      ],
-    );
+    return const InsuranceLoadingSkeleton();
   }
 }
 

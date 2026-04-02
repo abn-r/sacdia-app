@@ -42,7 +42,7 @@ final updateUserProfileProvider = Provider<UpdateUserProfile>((ref) {
 });
 
 /// Notifier para manejar el perfil del usuario
-class ProfileNotifier extends AsyncNotifier<UserDetail?> {
+class ProfileNotifier extends AutoDisposeAsyncNotifier<UserDetail?> {
   @override
   Future<UserDetail?> build() async {
     // Solo reaccionar a cambios en el ID del usuario (evita cascadas por cambios de metadata).
@@ -116,6 +116,7 @@ class ProfileNotifier extends AsyncNotifier<UserDetail?> {
 }
 
 /// Provider para el notifier del perfil
-final profileNotifierProvider = AsyncNotifierProvider<ProfileNotifier, UserDetail?>(() {
+final profileNotifierProvider =
+    AsyncNotifierProvider.autoDispose<ProfileNotifier, UserDetail?>(() {
   return ProfileNotifier();
 });

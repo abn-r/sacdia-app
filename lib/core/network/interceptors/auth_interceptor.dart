@@ -207,7 +207,10 @@ class AuthInterceptor extends QueuedInterceptor {
     // Si ya hay un refresh en curso, esperar su resultado sin iniciar otro.
     if (_refreshCompleter != null) {
       AppLogger.d('Refresh ya en curso, esperando resultado…', tag: _tag);
-      return _refreshCompleter!.future;
+      return _refreshCompleter!.future.timeout(
+        const Duration(seconds: 30),
+        onTimeout: () => false,
+      );
     }
 
     _refreshCompleter = Completer<bool>();

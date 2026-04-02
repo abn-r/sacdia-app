@@ -7,8 +7,8 @@ import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
-import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_progress_bar.dart';
+import '../widgets/evidence_folder_loading_skeleton.dart';
 import '../../domain/entities/evidence_folder.dart';
 import '../../domain/entities/evidence_section.dart';
 import '../providers/evidence_folder_providers.dart';
@@ -40,7 +40,7 @@ class EvidenceFolderView extends ConsumerWidget {
       backgroundColor: c.background,
       body: SafeArea(
         child: folderAsync.when(
-          loading: () => const Center(child: SacLoading()),
+          loading: () => const EvidenceFolderLoadingSkeleton(),
           error: (error, _) => _ErrorBody(
             message: error.toString().replaceFirst('Exception: ', ''),
             onRetry: () =>

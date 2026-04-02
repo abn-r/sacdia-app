@@ -29,6 +29,9 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // GOOGLE_MAPS_API_KEY: override via gradle.properties or CI environment variable.
+        // The hardcoded value is a safe fallback for local development only.
+        manifestPlaceholders += [GOOGLE_MAPS_API_KEY: project.findProperty("GOOGLE_MAPS_API_KEY") ?: "AIzaSyAQoO0HmAfSdbRs-T0cqtCXEGNn7TtMGZk"]
     }
 
     buildTypes {

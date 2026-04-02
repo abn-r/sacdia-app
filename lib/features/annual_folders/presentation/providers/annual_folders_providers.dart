@@ -30,6 +30,7 @@ final annualFoldersRepositoryProvider =
 final annualFolderByEnrollmentProvider =
     FutureProvider.autoDispose.family<AnnualFolder, int>(
         (ref, enrollmentId) async {
+  ref.keepAlive();
   final repo = ref.read(annualFoldersRepositoryProvider);
   final result = await repo.getFolderByEnrollment(enrollmentId);
   return result.fold(
