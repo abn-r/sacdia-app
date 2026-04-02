@@ -124,11 +124,11 @@ class ActivityCard extends StatelessWidget {
             spacing: 14,
             runSpacing: 6,
             children: [
-              if (activity.createdAt != null)
+              if (activity.activityDate != null)
                 _MetaItem(
                   icon: HugeIcons.strokeRoundedCalendar01,
                   label: DateFormat('d MMM yyyy', 'es')
-                      .format(activity.createdAt!.toLocal()),
+                      .format(activity.activityDate!.toLocal()),
                   c: c,
                 ),
               if (activity.activityTime != null)

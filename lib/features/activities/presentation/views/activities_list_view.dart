@@ -7,7 +7,6 @@ import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import 'package:sacdia_app/providers/catalogs_provider.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
@@ -16,6 +15,7 @@ import '../../../members/presentation/providers/members_providers.dart';
 
 import '../../domain/entities/activity.dart';
 import '../providers/activities_providers.dart';
+import '../widgets/activities_loading_skeleton.dart';
 import '../widgets/activity_card.dart';
 import 'activity_detail_view.dart';
 import 'create_activity_view.dart';
@@ -206,15 +206,15 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
       s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
   List<dynamic> _buildChronoItems(List<Activity> activities) {
-    final withDates = activities.where((a) => a.createdAt != null).toList()
-      ..sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
-    final noDates = activities.where((a) => a.createdAt == null).toList();
+    final withDates = activities.where((a) => a.activityDate != null).toList()
+      ..sort((a, b) => a.activityDate!.compareTo(b.activityDate!));
+    final noDates = activities.where((a) => a.activityDate == null).toList();
 
     final items = <dynamic>[];
     DateTime? lastDay;
 
     for (final a in withDates) {
-      final local = a.createdAt!.toLocal();
+      final local = a.activityDate!.toLocal();
       final day = DateTime(local.year, local.month, local.day);
       if (lastDay == null || !_isSameDay(day, lastDay)) {
         items.add(day);
@@ -807,7 +807,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                     child: content,
                   );
                 },
-                loading: () => const Center(child: SacLoading()),
+                loading: () => const ActivitiesLoadingSkeleton(),
                 error: (error, stack) => Center(
                   child: Padding(
                     padding: const EdgeInsets.all(32),
