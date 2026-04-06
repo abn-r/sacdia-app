@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../entities/honor.dart';
 import '../entities/honor_category.dart';
 import '../entities/honor_group.dart';
 import '../entities/honor_requirement.dart';
+import '../entities/requirement_evidence.dart';
 import '../entities/user_honor.dart';
 import '../entities/user_honor_requirement_progress.dart';
 import '../usecases/register_user_honor.dart';
@@ -72,4 +75,35 @@ abstract class HonorsRepository {
       String userId,
       int honorId,
       List<Map<String, dynamic>> updates);
+
+  /// Sube un archivo de evidencia para un requisito específico de una especialidad.
+  Future<Either<Failure, RequirementEvidence>> uploadRequirementEvidence(
+    String userId,
+    int honorId,
+    int requirementId,
+    File file,
+  );
+
+  /// Agrega un enlace como evidencia de un requisito.
+  Future<Either<Failure, RequirementEvidence>> addRequirementEvidenceLink(
+    String userId,
+    int honorId,
+    int requirementId,
+    String url,
+  );
+
+  /// Obtiene todas las evidencias de un requisito de especialidad.
+  Future<Either<Failure, List<RequirementEvidence>>> getRequirementEvidences(
+    String userId,
+    int honorId,
+    int requirementId,
+  );
+
+  /// Elimina una evidencia de un requisito de especialidad.
+  Future<Either<Failure, void>> deleteRequirementEvidence(
+    String userId,
+    int honorId,
+    int requirementId,
+    int evidenceId,
+  );
 }

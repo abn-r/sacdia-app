@@ -1,7 +1,10 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/user_honor_requirement_progress.dart';
+import 'requirement_evidence_model.dart';
 
-/// Modelo de progreso de requisito de especialidad por usuario para la capa de datos
+/// Modelo de progreso de requisito de especialidad por usuario para la capa de datos.
+///
+/// Incluye soporte para respuesta textual ([textResponse]) y evidencias adjuntas ([evidences]).
 class UserHonorRequirementProgressModel extends Equatable {
   final int requirementId;
   final int requirementNumber;
@@ -10,6 +13,8 @@ class UserHonorRequirementProgressModel extends Equatable {
   final bool hasSubItems;
   final String? notes;
   final DateTime? completedAt;
+  final String? textResponse;
+  final List<RequirementEvidenceModel> evidences;
 
   const UserHonorRequirementProgressModel({
     required this.requirementId,
@@ -19,6 +24,8 @@ class UserHonorRequirementProgressModel extends Equatable {
     this.hasSubItems = false,
     this.notes,
     this.completedAt,
+    this.textResponse,
+    this.evidences = const [],
   });
 
   /// Crea una instancia desde JSON
@@ -31,6 +38,16 @@ class UserHonorRequirementProgressModel extends Equatable {
       completedAt = DateTime.tryParse(rawCompletedAt);
     }
 
+    // Parse evidences array
+    List<RequirementEvidenceModel> evidences = const [];
+    final rawEvidences = json['evidences'];
+    if (rawEvidences is List) {
+      evidences = rawEvidences
+          .whereType<Map<String, dynamic>>()
+          .map((e) => RequirementEvidenceModel.fromJson(e))
+          .toList();
+    }
+
     return UserHonorRequirementProgressModel(
       requirementId: json['requirement_id'] as int,
       requirementNumber: json['requirement_number'] as int,
@@ -39,6 +56,8 @@ class UserHonorRequirementProgressModel extends Equatable {
       hasSubItems: (json['has_sub_items'] as bool?) ?? false,
       notes: json['notes'] as String?,
       completedAt: completedAt,
+      textResponse: json['text_response'] as String?,
+      evidences: evidences,
     );
   }
 
@@ -52,6 +71,8 @@ class UserHonorRequirementProgressModel extends Equatable {
       'has_sub_items': hasSubItems,
       'notes': notes,
       'completed_at': completedAt?.toIso8601String(),
+      'text_response': textResponse,
+      'evidences': evidences.map((e) => e.toJson()).toList(),
     };
   }
 
@@ -64,6 +85,8 @@ class UserHonorRequirementProgressModel extends Equatable {
     bool? hasSubItems,
     String? notes,
     DateTime? completedAt,
+    String? textResponse,
+    List<RequirementEvidenceModel>? evidences,
   }) {
     return UserHonorRequirementProgressModel(
       requirementId: requirementId ?? this.requirementId,
@@ -73,6 +96,8 @@ class UserHonorRequirementProgressModel extends Equatable {
       hasSubItems: hasSubItems ?? this.hasSubItems,
       notes: notes ?? this.notes,
       completedAt: completedAt ?? this.completedAt,
+      textResponse: textResponse ?? this.textResponse,
+      evidences: evidences ?? this.evidences,
     );
   }
 
@@ -86,6 +111,8 @@ class UserHonorRequirementProgressModel extends Equatable {
       hasSubItems: hasSubItems,
       notes: notes,
       completedAt: completedAt,
+      textResponse: textResponse,
+      evidences: evidences.map((e) => e.toEntity()).toList(),
     );
   }
 
@@ -98,5 +125,7 @@ class UserHonorRequirementProgressModel extends Equatable {
         hasSubItems,
         notes,
         completedAt,
+        textResponse,
+        evidences,
       ];
 }

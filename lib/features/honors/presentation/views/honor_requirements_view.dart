@@ -8,44 +8,51 @@ import 'package:sacdia_app/features/honors/domain/entities/honor_requirement.dar
 import 'package:sacdia_app/features/honors/domain/entities/user_honor_requirement_progress.dart';
 import 'package:sacdia_app/features/honors/domain/utils/honor_category_colors.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
+import 'package:sacdia_app/features/honors/presentation/widgets/choice_group_header.dart';
+import 'package:sacdia_app/features/honors/presentation/widgets/requirement_tree_item.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 
 // ── Local state helpers ───────────────────────────────────────────────────────
 
-/// Tracks local state for a single requirement row.
+/// Per-requirement mutable state owned by the view.
 class _RequirementState {
   final bool completed;
   final String notes;
-  final bool expanded;
-  final bool showNotes;
+  final String textResponse;
+  final bool childrenExpanded;
 
   const _RequirementState({
     required this.completed,
     required this.notes,
-    this.expanded = false,
-    this.showNotes = false,
+    required this.textResponse,
+    this.childrenExpanded = true,
   });
 
   _RequirementState copyWith({
     bool? completed,
     String? notes,
-    bool? expanded,
-    bool? showNotes,
+    String? textResponse,
+    bool? childrenExpanded,
   }) {
     return _RequirementState(
       completed: completed ?? this.completed,
       notes: notes ?? this.notes,
-      expanded: expanded ?? this.expanded,
-      showNotes: showNotes ?? this.showNotes,
+      textResponse: textResponse ?? this.textResponse,
+      childrenExpanded: childrenExpanded ?? this.childrenExpanded,
     );
   }
 }
 
 // ── View ──────────────────────────────────────────────────────────────────────
 
-/// Vista de checklist de requisitos de una especialidad inscrita.
+/// Hierarchical checklist view for an enrolled honor's requirements.
 ///
-/// Muestra la lista de requisitos con checkboxes, notas opcionales
-/// y un botón "Guardar cambios" que persiste los cambios via [RequirementProgressNotifier].
+/// Top-level requirements are rendered with [RequirementTreeItem] at depth=0.
+/// When a requirement has children ([HonorRequirement.hasSubItems] == true),
+/// they are rendered inline below the parent as depth=1 items.
+/// Choice groups show a [ChoiceGroupHeader] before their children.
+///
+/// Progress is saved via [RequirementProgressNotifier.bulkUpdate].
 class HonorRequirementsView extends ConsumerStatefulWidget {
   final int honorId;
   final int userHonorId;
@@ -68,11 +75,15 @@ class _HonorRequirementsViewState
   /// Map from requirementId → local mutable state.
   final Map<int, _RequirementState> _localState = {};
 
-  /// TextEditingControllers keyed by requirementId.
-  final Map<int, TextEditingController> _controllers = {};
+  /// TextEditingControllers for notes, keyed by requirementId.
+  final Map<int, TextEditingController> _notesControllers = {};
 
-  /// Snapshot of completed+notes at last save — used to detect dirty state.
-  final Map<int, ({bool completed, String notes})> _savedSnapshot = {};
+  /// TextEditingControllers for text responses, keyed by requirementId.
+  final Map<int, TextEditingController> _responseControllers = {};
+
+  /// Snapshot of state at last save — used for dirty detection.
+  final Map<int, ({bool completed, String notes, String textResponse})>
+      _savedSnapshot = {};
 
   bool _saving = false;
 
@@ -80,7 +91,10 @@ class _HonorRequirementsViewState
 
   @override
   void dispose() {
-    for (final c in _controllers.values) {
+    for (final c in _notesControllers.values) {
+      c.dispose();
+    }
+    for (final c in _responseControllers.values) {
       c.dispose();
     }
     super.dispose();
@@ -88,30 +102,48 @@ class _HonorRequirementsViewState
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  /// Initialise local state from the server progress list, once per load.
+  /// Initialise local state from server data, once per provider load.
+  /// Handles both top-level requirements and their nested children.
   void _initLocalState(
     List<HonorRequirement> requirements,
     List<UserHonorRequirementProgress> progressList,
   ) {
     if (_localState.isNotEmpty) return;
 
-    // Build lookup map requirementId → progress item
     final progressMap = <int, UserHonorRequirementProgress>{};
     for (final item in progressList) {
       progressMap[item.requirementId] = item;
     }
 
-    for (final req in requirements) {
+    void initReq(HonorRequirement req) {
       final p = progressMap[req.id];
       final completed = p?.completed ?? false;
       final notes = p?.notes ?? '';
+      final textResponse = p?.textResponse ?? '';
 
       _localState[req.id] = _RequirementState(
         completed: completed,
         notes: notes,
+        textResponse: textResponse,
+        // Expand children by default so the checklist is immediately visible.
+        childrenExpanded: true,
       );
-      _controllers[req.id] = TextEditingController(text: notes);
-      _savedSnapshot[req.id] = (completed: completed, notes: notes);
+      _notesControllers[req.id] = TextEditingController(text: notes);
+      _responseControllers[req.id] =
+          TextEditingController(text: textResponse);
+      _savedSnapshot[req.id] = (
+        completed: completed,
+        notes: notes,
+        textResponse: textResponse,
+      );
+
+      for (final child in req.children) {
+        initReq(child);
+      }
+    }
+
+    for (final req in requirements) {
+      initReq(req);
     }
   }
 
@@ -120,15 +152,39 @@ class _HonorRequirementsViewState
       final snap = _savedSnapshot[entry.key];
       if (snap == null) return true;
       if (entry.value.completed != snap.completed) return true;
-      if ((_controllers[entry.key]?.text ?? entry.value.notes) != snap.notes) {
-        return true;
-      }
+      final currentNotes = _notesControllers[entry.key]?.text ?? '';
+      if (currentNotes != snap.notes) return true;
+      final currentResponse = _responseControllers[entry.key]?.text ?? '';
+      if (currentResponse != snap.textResponse) return true;
     }
     return false;
   }
 
-  int get _localCompletedCount =>
-      _localState.values.where((s) => s.completed).length;
+  /// Count all requirements including children (for the denominator).
+  int _countTotal(List<HonorRequirement> requirements) {
+    int count = 0;
+    for (final req in requirements) {
+      count++;
+      count += req.children.length;
+    }
+    return count;
+  }
+
+  /// Count completed across all requirements including children.
+  int _countCompletedAll(List<HonorRequirement> requirements) {
+    int count = 0;
+    void walk(HonorRequirement req) {
+      if (_localState[req.id]?.completed == true) count++;
+      for (final child in req.children) {
+        walk(child);
+      }
+    }
+
+    for (final req in requirements) {
+      walk(req);
+    }
+    return count;
+  }
 
   void _toggleRequirement(int requirementId) {
     setState(() {
@@ -137,29 +193,35 @@ class _HonorRequirementsViewState
       _localState[requirementId] =
           current.copyWith(completed: !current.completed);
     });
-    HapticFeedback.selectionClick();
   }
 
-  void _toggleExpand(int requirementId) {
+  void _toggleChildrenExpand(int requirementId) {
     setState(() {
       final current = _localState[requirementId];
       if (current == null) return;
-      _localState[requirementId] =
-          current.copyWith(expanded: !current.expanded);
+      _localState[requirementId] = current.copyWith(
+        childrenExpanded: !current.childrenExpanded,
+      );
     });
   }
 
-  void _toggleNotes(int requirementId) {
-    setState(() {
-      final current = _localState[requirementId];
-      if (current == null) return;
-      _localState[requirementId] =
-          current.copyWith(showNotes: !current.showNotes);
-    });
+  /// Collect all requirement IDs recursively.
+  List<int> _allRequirementIds(List<HonorRequirement> requirements) {
+    final ids = <int>[];
+    void walk(HonorRequirement req) {
+      ids.add(req.id);
+      for (final child in req.children) {
+        walk(child);
+      }
+    }
+
+    for (final req in requirements) {
+      walk(req);
+    }
+    return ids;
   }
 
   Future<void> _saveChanges(List<HonorRequirement> requirements) async {
-    // Resolve category color here for use in the SnackBar.
     final honor = ref
         .read(allHonorsProvider)
         .valueOrNull
@@ -169,15 +231,17 @@ class _HonorRequirementsViewState
 
     setState(() => _saving = true);
 
+    final allIds = _allRequirementIds(requirements);
     final updates = <Map<String, dynamic>>[];
-    for (final req in requirements) {
-      final s = _localState[req.id];
-      final ctrl = _controllers[req.id];
+
+    for (final id in allIds) {
+      final s = _localState[id];
       if (s == null) continue;
       updates.add({
-        'requirementId': req.id,
+        'requirementId': id,
         'completed': s.completed,
-        'notes': ctrl?.text ?? s.notes,
+        'notes': _notesControllers[id]?.text ?? s.notes,
+        'textResponse': _responseControllers[id]?.text ?? s.textResponse,
       });
     }
 
@@ -190,14 +254,13 @@ class _HonorRequirementsViewState
     setState(() => _saving = false);
 
     if (success) {
-      // Update saved snapshot so dirty detection resets.
-      for (final req in requirements) {
-        final s = _localState[req.id];
-        final ctrl = _controllers[req.id];
+      for (final id in allIds) {
+        final s = _localState[id];
         if (s == null) continue;
-        _savedSnapshot[req.id] = (
+        _savedSnapshot[id] = (
           completed: s.completed,
-          notes: ctrl?.text ?? s.notes,
+          notes: _notesControllers[id]?.text ?? s.notes,
+          textResponse: _responseControllers[id]?.text ?? s.textResponse,
         );
       }
 
@@ -223,12 +286,15 @@ class _HonorRequirementsViewState
     final progressAsync =
         ref.watch(userHonorProgressProvider(widget.honorId));
 
-    // Resolve the category color from the honor entity.
     final honorsAsync = ref.watch(allHonorsProvider);
     final honor = honorsAsync.valueOrNull
         ?.where((h) => h.id == widget.honorId)
         .firstOrNull;
     final categoryColor = getCategoryColor(categoryId: honor?.categoryId);
+
+    // Resolve userId for evidence operations.
+    final userId =
+        ref.watch(authNotifierProvider).valueOrNull?.id ?? '';
 
     return PopScope(
       canPop: !_hasUnsavedChanges,
@@ -248,8 +314,7 @@ class _HonorRequirementsViewState
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                style: TextButton.styleFrom(
-                    foregroundColor: Colors.red),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
                 child: const Text('Salir'),
               ),
             ],
@@ -268,7 +333,6 @@ class _HonorRequirementsViewState
               categoryColor: categoryColor,
             ),
 
-            // ── Body ─────────────────────────────────────────────
             Expanded(
               child: requirementsAsync.when(
                 loading: () => const _LoadingBody(),
@@ -276,15 +340,15 @@ class _HonorRequirementsViewState
                   message: err.toString().replaceAll('Exception: ', ''),
                   onRetry: () {
                     ref.invalidate(honorRequirementsProvider(widget.honorId));
-                    ref.invalidate(
-                        userHonorProgressProvider(widget.honorId));
+                    ref.invalidate(userHonorProgressProvider(widget.honorId));
                   },
                 ),
                 data: (requirements) {
                   return progressAsync.when(
                     loading: () => const _LoadingBody(),
                     error: (err, _) => _ErrorBody(
-                      message: err.toString().replaceAll('Exception: ', ''),
+                      message:
+                          err.toString().replaceAll('Exception: ', ''),
                       onRetry: () {
                         ref.invalidate(
                             userHonorProgressProvider(widget.honorId));
@@ -293,28 +357,27 @@ class _HonorRequirementsViewState
                     data: (progressList) {
                       _initLocalState(requirements, progressList);
 
-                      final totalRequirements = requirements.length;
-                      final serverCompletedCount =
-                          progressList.where((p) => p.completed).length;
-
-                      // Use local count if we have local state, else server count.
-                      final displayCompleted = _localState.isNotEmpty
-                          ? _localCompletedCount
-                          : serverCompletedCount;
+                      final totalAll = _localState.isNotEmpty
+                          ? _countTotal(requirements)
+                          : progressList.length;
+                      final completedAll = _localState.isNotEmpty
+                          ? _countCompletedAll(requirements)
+                          : progressList.where((p) => p.completed).length;
 
                       return Column(
                         children: [
-                          // Progress section
+                          // Progress bar
                           _ProgressSection(
-                            completed: displayCompleted,
-                            total: totalRequirements,
+                            completed: completedAll,
+                            total: totalAll,
                             categoryColor: categoryColor,
                           ),
 
-                          // Requirements list
+                          // Hierarchical requirements list
                           Expanded(
                             child: ListView.separated(
-                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
+                              padding: const EdgeInsets.fromLTRB(
+                                  16, 8, 16, 120),
                               itemCount: requirements.length,
                               separatorBuilder: (_, __) => Divider(
                                 height: 1,
@@ -322,26 +385,17 @@ class _HonorRequirementsViewState
                                 color: context.sac.divider,
                               ),
                               itemBuilder: (context, index) {
-                                final req = requirements[index];
-                                final state = _localState[req.id] ??
-                                    const _RequirementState(
-                                      completed: false,
-                                      notes: '',
-                                    );
-                                return _RequirementRow(
-                                  requirement: req,
-                                  state: state,
-                                  controller: _controllers[req.id],
+                                return _buildRequirementBlock(
+                                  context,
+                                  requirements[index],
+                                  depth: 0,
+                                  userId: userId,
                                   categoryColor: categoryColor,
-                                  onToggle: () => _toggleRequirement(req.id),
-                                  onToggleExpand: () => _toggleExpand(req.id),
-                                  onToggleNotes: () => _toggleNotes(req.id),
                                 );
                               },
                             ),
                           ),
 
-                          // Save button — floating above content
                           _SaveBar(
                             hasChanges: _hasUnsavedChanges,
                             saving: _saving,
@@ -358,6 +412,150 @@ class _HonorRequirementsViewState
           ],
         ),
       ),
+    );
+  }
+
+  // ── Tree builder ──────────────────────────────────────────────────────────
+
+  /// Builds a requirement block: the item itself + optional children tree.
+  Widget _buildRequirementBlock(
+    BuildContext context,
+    HonorRequirement req, {
+    required int depth,
+    required String userId,
+    required Color categoryColor,
+  }) {
+    final state = _localState[req.id] ??
+        const _RequirementState(
+          completed: false,
+          notes: '',
+          textResponse: '',
+        );
+
+    final hasChildren = req.hasSubItems && req.children.isNotEmpty;
+
+    // Count completed children for ChoiceGroupHeader.
+    int completedChildCount = 0;
+    if (hasChildren) {
+      for (final child in req.children) {
+        if (_localState[child.id]?.completed == true) completedChildCount++;
+      }
+    }
+
+    // Evidence count: use the synchronous cached value if already loaded.
+    // RequirementTreeItem watches the provider reactively so the badge updates
+    // live — here we only need the snapshot to drive the warning guard.
+    final evidenceCount = ref
+        .read(requirementEvidenceProvider((
+          userId: userId,
+          honorId: widget.honorId,
+          requirementId: req.id,
+        )))
+        .valueOrNull
+        ?.length ?? 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // The requirement row itself.
+        Stack(
+          children: [
+            RequirementTreeItem(
+              requirement: req,
+              completed: state.completed,
+              textResponse: state.textResponse,
+              responseController: _responseControllers[req.id],
+              depth: depth,
+              userId: userId,
+              honorId: widget.honorId,
+              categoryColor: categoryColor,
+              evidenceCount: evidenceCount,
+              onToggle: () => _toggleRequirement(req.id),
+            ),
+
+            // Expand/collapse chevron for items with children.
+            if (hasChildren)
+              Positioned(
+                right: 0,
+                top: 10,
+                child: GestureDetector(
+                  onTap: () => _toggleChildrenExpand(req.id),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(
+                      state.childrenExpanded
+                          ? Icons.keyboard_arrow_up_rounded
+                          : Icons.keyboard_arrow_down_rounded,
+                      size: 20,
+                      color: categoryColor,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+
+        // Children block (shown when expanded).
+        if (hasChildren && state.childrenExpanded) ...[
+          // Choice group header if applicable.
+          if (req.isChoiceGroup && req.choiceMin != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 24),
+              child: ChoiceGroupHeader(
+                choiceMin: req.choiceMin!,
+                totalChildren: req.children.length,
+                completedChildren: completedChildCount,
+              ),
+            ),
+
+          // Thin vertical line connecting children.
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Indent track line.
+                Container(
+                  width: 24,
+                  margin: const EdgeInsets.only(left: 11),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      left: BorderSide(
+                        color: categoryColor.withValues(alpha: 0.25),
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Children list.
+                Expanded(
+                  child: Column(
+                    children: [
+                      for (int i = 0; i < req.children.length; i++) ...[
+                        if (i > 0)
+                          Divider(
+                            height: 1,
+                            thickness: 1,
+                            indent: 0,
+                            endIndent: 0,
+                            color: context.sac.divider,
+                          ),
+                        _buildRequirementBlock(
+                          context,
+                          req.children[i],
+                          depth: depth + 1,
+                          userId: userId,
+                          categoryColor: categoryColor,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
@@ -491,199 +689,6 @@ class _ProgressSection extends StatelessWidget {
       ),
     );
   }
-}
-
-// ── Requirement Row ───────────────────────────────────────────────────────────
-
-class _RequirementRow extends StatelessWidget {
-  final HonorRequirement requirement;
-  final _RequirementState state;
-  final TextEditingController? controller;
-  final Color categoryColor;
-  final VoidCallback onToggle;
-  final VoidCallback onToggleExpand;
-  final VoidCallback onToggleNotes;
-
-  const _RequirementRow({
-    required this.requirement,
-    required this.state,
-    required this.controller,
-    required this.categoryColor,
-    required this.onToggle,
-    required this.onToggleExpand,
-    required this.onToggleNotes,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Main row: checkbox + number + text ─────────────
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Checkbox
-              SizedBox(
-                width: 24,
-                height: 24,
-                child: Checkbox(
-                  value: state.completed,
-                  onChanged: (_) => onToggle(),
-                  activeColor: categoryColor,
-                  checkColor: Colors.white,
-                  side: BorderSide(
-                    color: state.completed
-                        ? categoryColor
-                        : context.sac.border,
-                    width: 1.5,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  visualDensity: VisualDensity.compact,
-                ),
-              ),
-              const SizedBox(width: 10),
-
-              // Requirement number badge
-              Container(
-                margin: const EdgeInsets.only(top: 1),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                decoration: BoxDecoration(
-                  color: AppColors.sacBlack.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Text(
-                  '${requirement.requirementNumber}.',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: context.sac.textSecondary,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Requirement text with expand toggle
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    GestureDetector(
-                      onTap: onToggleExpand,
-                      child: Text(
-                        requirement.text,
-                        maxLines: state.expanded ? null : 3,
-                        overflow: state.expanded
-                            ? TextOverflow.visible
-                            : TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.55,
-                          color: state.completed
-                              ? context.sac.textTertiary
-                              : context.sac.text,
-                          decoration: state.completed
-                              ? TextDecoration.lineThrough
-                              : TextDecoration.none,
-                          decorationColor: context.sac.textTertiary,
-                        ),
-                      ),
-                    ),
-                    if (_needsExpandToggle(requirement.text))
-                      GestureDetector(
-                        onTap: onToggleExpand,
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            state.expanded ? 'Ver menos' : 'Ver mas',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: categoryColor,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-
-              // Notes toggle icon
-              GestureDetector(
-                onTap: onToggleNotes,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 8, top: 1),
-                  child: Icon(
-                    state.showNotes
-                        ? Icons.notes_rounded
-                        : Icons.notes_outlined,
-                    size: 18,
-                    color: state.showNotes
-                        ? categoryColor
-                        : context.sac.textTertiary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          // ── Notes TextField (conditional) ─────────────────
-          if (state.showNotes)
-            Padding(
-              padding: const EdgeInsets.only(top: 10, left: 34),
-              child: TextField(
-                controller: controller,
-                maxLines: 3,
-                minLines: 1,
-                maxLength: 2000,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: context.sac.text,
-                  height: 1.5,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'Agregar nota (opcional)',
-                  hintStyle: TextStyle(
-                    fontSize: 12,
-                    color: context.sac.textTertiary,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: context.sac.border),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: context.sac.border),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                        color: categoryColor, width: 1.5),
-                  ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  isDense: true,
-                  counterStyle: TextStyle(
-                    fontSize: 10,
-                    color: context.sac.textTertiary,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  /// Heuristic: only show expand toggle when text is likely to exceed 3 lines
-  /// (roughly 120 characters is a safe threshold for ~13sp text at 320dp width).
-  bool _needsExpandToggle(String text) => text.length > 120;
 }
 
 // ── Save Bar ──────────────────────────────────────────────────────────────────
@@ -839,7 +844,9 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              message.isNotEmpty ? message : 'No se pudieron cargar los requisitos',
+              message.isNotEmpty
+                  ? message
+                  : 'No se pudieron cargar los requisitos',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,

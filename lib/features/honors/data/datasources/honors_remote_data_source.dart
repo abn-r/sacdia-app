@@ -9,6 +9,7 @@ import '../models/honor_model.dart';
 import '../models/honor_category_model.dart';
 import '../models/honor_group_model.dart';
 import '../models/honor_requirement_model.dart';
+import '../models/requirement_evidence_model.dart';
 import '../models/user_honor_requirement_progress_model.dart';
 import '../models/user_honor_model.dart';
 
@@ -59,6 +60,47 @@ abstract class HonorsRemoteDataSource {
     required File file,
     required String fileName,
   });
+
+  /// Sube un archivo de evidencia para un requisito específico de una especialidad.
+  ///
+  /// POST /users/:userId/honors/:honorId/requirements/:requirementId/evidence/upload
+  /// Envía el archivo como multipart/form-data con el campo `file`.
+  Future<RequirementEvidenceModel> uploadRequirementEvidence(
+    String userId,
+    int honorId,
+    int requirementId,
+    File file,
+  );
+
+  /// Agrega un enlace como evidencia de un requisito.
+  ///
+  /// POST /users/:userId/honors/:honorId/requirements/:requirementId/evidence/link
+  /// Body JSON: { "url": url }
+  Future<RequirementEvidenceModel> addRequirementEvidenceLink(
+    String userId,
+    int honorId,
+    int requirementId,
+    String url,
+  );
+
+  /// Obtiene todas las evidencias de un requisito de especialidad.
+  ///
+  /// GET /users/:userId/honors/:honorId/requirements/:requirementId/evidence
+  Future<List<RequirementEvidenceModel>> getRequirementEvidences(
+    String userId,
+    int honorId,
+    int requirementId,
+  );
+
+  /// Elimina una evidencia de un requisito de especialidad.
+  ///
+  /// DELETE /users/:userId/honors/:honorId/requirements/:requirementId/evidence/:evidenceId
+  Future<void> deleteRequirementEvidence(
+    String userId,
+    int honorId,
+    int requirementId,
+    int evidenceId,
+  );
 }
 
 /// Implementación de la fuente de datos remota de especialidades
@@ -525,6 +567,157 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       );
     } catch (e) {
       AppLogger.e('Error en uploadHonorFile', tag: _tag, error: e);
+      if (e is DioException) {
+        throw ServerException(
+          message: e.message ?? 'Error de conexión',
+          code: e.response?.statusCode,
+        );
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<RequirementEvidenceModel> uploadRequirementEvidence(
+    String userId,
+    int honorId,
+    int requirementId,
+    File file,
+  ) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          file.path,
+          filename: file.path.split('/').last,
+        ),
+      });
+
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.users}/$userId/honors/$honorId/requirements/$requirementId/evidence/upload',
+        data: formData,
+        options: Options(
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          sendTimeout: const Duration(minutes: 2),
+          receiveTimeout: const Duration(minutes: 2),
+        ),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return RequirementEvidenceModel.fromJson(
+            response.data as Map<String, dynamic>);
+      }
+
+      throw ServerException(
+        message: 'Error al subir evidencia de requisito',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en uploadRequirementEvidence', tag: _tag, error: e);
+      if (e is DioException) {
+        throw ServerException(
+          message: e.message ?? 'Error de conexión',
+          code: e.response?.statusCode,
+        );
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<RequirementEvidenceModel> addRequirementEvidenceLink(
+    String userId,
+    int honorId,
+    int requirementId,
+    String url,
+  ) async {
+    try {
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.users}/$userId/honors/$honorId/requirements/$requirementId/evidence/link',
+        data: {'url': url},
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return RequirementEvidenceModel.fromJson(
+            response.data as Map<String, dynamic>);
+      }
+
+      throw ServerException(
+        message: 'Error al agregar enlace de evidencia',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en addRequirementEvidenceLink', tag: _tag, error: e);
+      if (e is DioException) {
+        throw ServerException(
+          message: e.message ?? 'Error de conexión',
+          code: e.response?.statusCode,
+        );
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<List<RequirementEvidenceModel>> getRequirementEvidences(
+    String userId,
+    int honorId,
+    int requirementId,
+  ) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.users}/$userId/honors/$honorId/requirements/$requirementId/evidence',
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final List<dynamic> data = response.data as List<dynamic>;
+        return data
+            .map((json) =>
+                RequirementEvidenceModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+
+      throw ServerException(
+        message: 'Error al obtener evidencias del requisito',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getRequirementEvidences', tag: _tag, error: e);
+      if (e is DioException) {
+        throw ServerException(
+          message: e.message ?? 'Error de conexión',
+          code: e.response?.statusCode,
+        );
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<void> deleteRequirementEvidence(
+    String userId,
+    int honorId,
+    int requirementId,
+    int evidenceId,
+  ) async {
+    try {
+      final response = await _dio.delete(
+        '$_baseUrl${ApiEndpoints.users}/$userId/honors/$honorId/requirements/$requirementId/evidence/$evidenceId',
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw ServerException(
+          message: 'Error al eliminar evidencia del requisito',
+          code: response.statusCode,
+        );
+      }
+    } catch (e) {
+      AppLogger.e('Error en deleteRequirementEvidence', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
           message: e.message ?? 'Error de conexión',

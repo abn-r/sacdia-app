@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -6,6 +8,7 @@ import '../../domain/entities/honor.dart';
 import '../../domain/entities/honor_category.dart';
 import '../../domain/entities/honor_group.dart';
 import '../../domain/entities/honor_requirement.dart';
+import '../../domain/entities/requirement_evidence.dart';
 import '../../domain/entities/user_honor.dart';
 import '../../domain/entities/user_honor_requirement_progress.dart';
 import '../../domain/repositories/honors_repository.dart';
@@ -248,6 +251,86 @@ class HonorsRepositoryImpl implements HonorsRepository {
           userId, honorId, updates);
       final entities = models.map((m) => m.toEntity()).toList();
       return Right(entities);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, RequirementEvidence>> uploadRequirementEvidence(
+    String userId,
+    int honorId,
+    int requirementId,
+    File file,
+  ) async {
+    try {
+      final model = await remoteDataSource.uploadRequirementEvidence(
+          userId, honorId, requirementId, file);
+      return Right(model.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, RequirementEvidence>> addRequirementEvidenceLink(
+    String userId,
+    int honorId,
+    int requirementId,
+    String url,
+  ) async {
+    try {
+      final model = await remoteDataSource.addRequirementEvidenceLink(
+          userId, honorId, requirementId, url);
+      return Right(model.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<RequirementEvidence>>> getRequirementEvidences(
+    String userId,
+    int honorId,
+    int requirementId,
+  ) async {
+    try {
+      final models = await remoteDataSource.getRequirementEvidences(
+          userId, honorId, requirementId);
+      final entities = models.map((m) => m.toEntity()).toList();
+      return Right(entities);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteRequirementEvidence(
+    String userId,
+    int honorId,
+    int requirementId,
+    int evidenceId,
+  ) async {
+    try {
+      await remoteDataSource.deleteRequirementEvidence(
+          userId, honorId, requirementId, evidenceId);
+      return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on AuthException catch (e) {

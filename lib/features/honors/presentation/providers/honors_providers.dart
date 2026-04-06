@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
@@ -8,9 +10,11 @@ import '../../domain/entities/honor.dart';
 import '../../domain/entities/honor_category.dart';
 import '../../domain/entities/honor_group.dart';
 import '../../domain/entities/honor_requirement.dart';
+import '../../domain/entities/requirement_evidence.dart';
 import '../../domain/entities/user_honor.dart';
 import '../../domain/entities/user_honor_requirement_progress.dart';
 import '../../domain/repositories/honors_repository.dart';
+import '../../domain/usecases/delete_requirement_evidence.dart';
 import '../../domain/usecases/get_honor_categories.dart';
 import '../../domain/usecases/get_honor_requirements.dart';
 import '../../domain/usecases/get_honors.dart';
@@ -19,6 +23,7 @@ import '../../domain/usecases/get_user_honors.dart';
 import '../../domain/usecases/register_user_honor.dart';
 import '../../domain/usecases/start_honor.dart';
 import '../../domain/usecases/update_requirement_progress.dart';
+import '../../domain/usecases/upload_requirement_evidence.dart';
 
 /// Provider para el data source remoto de especialidades
 final honorsRemoteDataSourceProvider = Provider<HonorsRemoteDataSource>((ref) {
@@ -481,4 +486,164 @@ final requirementProgressNotifierProvider = AsyncNotifierProvider.autoDispose
     .family<RequirementProgressNotifier, List<UserHonorRequirementProgress>?,
         int>(() {
   return RequirementProgressNotifier();
+});
+
+// ── Evidence use case providers ───────────────────────────────────────────────
+
+/// Provider para el caso de uso de subir evidencia de requisito
+final uploadRequirementEvidenceProvider =
+    Provider<UploadRequirementEvidence>((ref) {
+  return UploadRequirementEvidence(ref.read(honorsRepositoryProvider));
+});
+
+/// Provider para el caso de uso de eliminar evidencia de requisito
+final deleteRequirementEvidenceProvider =
+    Provider<DeleteRequirementEvidence>((ref) {
+  return DeleteRequirementEvidence(ref.read(honorsRepositoryProvider));
+});
+
+// ── Evidence providers ────────────────────────────────────────────────────────
+
+/// Tipo del parámetro compuesto para [requirementEvidenceProvider].
+typedef RequirementEvidenceParams = ({
+  String userId,
+  int honorId,
+  int requirementId,
+});
+
+/// Provider para las evidencias de un requisito específico de una especialidad.
+///
+/// autoDispose.family keyed por (userId, honorId, requirementId).
+/// Llama al repositorio directamente — no existe caso de uso independiente.
+final requirementEvidenceProvider = FutureProvider.autoDispose
+    .family<List<RequirementEvidence>, RequirementEvidenceParams>(
+  (ref, params) async {
+    final repo = ref.watch(honorsRepositoryProvider);
+    final result = await repo.getRequirementEvidences(
+      params.userId,
+      params.honorId,
+      params.requirementId,
+    );
+    return result.fold(
+      (failure) => throw Exception(failure.message),
+      (evidences) => evidences,
+    );
+  },
+);
+
+// ── RequirementEvidenceNotifier ───────────────────────────────────────────────
+
+/// Notifier para manejar operaciones de evidencia sobre un requisito específico.
+///
+/// Keyed por [RequirementEvidenceParams] (userId, honorId, requirementId).
+/// Tras cada operación exitosa invalida [requirementEvidenceProvider] y
+/// [userHonorProgressProvider] para mantener la UI sincronizada.
+class RequirementEvidenceNotifier extends AutoDisposeFamilyAsyncNotifier<
+    List<RequirementEvidence>?, RequirementEvidenceParams> {
+  @override
+  Future<List<RequirementEvidence>?> build(
+      RequirementEvidenceParams arg) async => null;
+
+  /// Sube un archivo de evidencia (imagen o documento) para el requisito.
+  Future<bool> uploadEvidence({
+    required String userId,
+    required int honorId,
+    required int requirementId,
+    required File file,
+  }) async {
+    state = const AsyncValue.loading();
+
+    final result = await ref.read(uploadRequirementEvidenceProvider)(
+      UploadRequirementEvidenceParams(
+        userId: userId,
+        honorId: honorId,
+        requirementId: requirementId,
+        file: file,
+      ),
+    );
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (evidence) {
+        state = AsyncValue.data([evidence]);
+        ref.invalidate(requirementEvidenceProvider(arg));
+        ref.invalidate(userHonorProgressProvider(honorId));
+        return true;
+      },
+    );
+  }
+
+  /// Agrega un enlace externo como evidencia para el requisito.
+  Future<bool> addLink({
+    required String userId,
+    required int honorId,
+    required int requirementId,
+    required String url,
+  }) async {
+    state = const AsyncValue.loading();
+
+    final repo = ref.read(honorsRepositoryProvider);
+    final result = await repo.addRequirementEvidenceLink(
+      userId,
+      honorId,
+      requirementId,
+      url,
+    );
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (evidence) {
+        state = AsyncValue.data([evidence]);
+        ref.invalidate(requirementEvidenceProvider(arg));
+        ref.invalidate(userHonorProgressProvider(honorId));
+        return true;
+      },
+    );
+  }
+
+  /// Elimina una evidencia del requisito.
+  Future<bool> deleteEvidence({
+    required String userId,
+    required int honorId,
+    required int requirementId,
+    required int evidenceId,
+  }) async {
+    state = const AsyncValue.loading();
+
+    final result = await ref.read(deleteRequirementEvidenceProvider)(
+      DeleteRequirementEvidenceParams(
+        userId: userId,
+        honorId: honorId,
+        requirementId: requirementId,
+        evidenceId: evidenceId,
+      ),
+    );
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (_) {
+        state = const AsyncValue.data(null);
+        ref.invalidate(requirementEvidenceProvider(arg));
+        ref.invalidate(userHonorProgressProvider(honorId));
+        return true;
+      },
+    );
+  }
+}
+
+/// Provider para [RequirementEvidenceNotifier].
+/// Es autoDispose.family keyed por [RequirementEvidenceParams].
+final requirementEvidenceNotifierProvider = AsyncNotifierProvider.autoDispose
+    .family<RequirementEvidenceNotifier, List<RequirementEvidence>?,
+        RequirementEvidenceParams>(() {
+  return RequirementEvidenceNotifier();
 });
