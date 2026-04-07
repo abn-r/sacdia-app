@@ -442,17 +442,23 @@ class _HonorRequirementsViewState
       }
     }
 
-    // Evidence count: use the synchronous cached value if already loaded.
-    // RequirementTreeItem watches the provider reactively so the badge updates
-    // live — here we only need the snapshot to drive the warning guard.
-    final evidenceCount = ref
-        .read(requirementEvidenceProvider((
-          userId: userId,
-          honorId: widget.honorId,
-          requirementId: req.id,
-        )))
+    // Evidence count: derived from the progress data already loaded by
+    // userHonorProgressProvider — no separate API call needed here.
+    // The backend's getUserProgress response includes the evidences array
+    // per requirement inline, so _initLocalState already has this data.
+    // RequirementTreeItem watches requirementEvidenceProvider reactively so
+    // the badge updates live after the sheet is opened.
+    final progressMap = ref
+        .read(userHonorProgressProvider(widget.honorId))
         .valueOrNull
-        ?.length ?? 0;
+        ?.fold<Map<int, int>>(
+          {},
+          (map, p) {
+            map[p.requirementId] = p.evidences.length;
+            return map;
+          },
+        ) ?? {};
+    final evidenceCount = progressMap[req.id] ?? 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

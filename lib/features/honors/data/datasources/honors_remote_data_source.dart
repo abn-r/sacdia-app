@@ -674,7 +674,9 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final List<dynamic> data = response.data as List<dynamic>;
+        // API returns: { status: 'success', data: [...] }
+        final raw = response.data as Map<String, dynamic>;
+        final List<dynamic> data = raw['data'] as List<dynamic>;
         return data
             .map((json) =>
                 RequirementEvidenceModel.fromJson(json as Map<String, dynamic>))
