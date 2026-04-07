@@ -10,7 +10,6 @@ import 'package:sacdia_app/features/honors/domain/utils/honor_category_colors.da
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/choice_group_header.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/requirement_tree_item.dart';
-import '../../../auth/presentation/providers/auth_providers.dart';
 
 // ── Local state helpers ───────────────────────────────────────────────────────
 
@@ -292,10 +291,6 @@ class _HonorRequirementsViewState
         .firstOrNull;
     final categoryColor = getCategoryColor(categoryId: honor?.categoryId);
 
-    // Resolve userId for evidence operations.
-    final userId =
-        ref.watch(authNotifierProvider).valueOrNull?.id ?? '';
-
     return PopScope(
       canPop: !_hasUnsavedChanges,
       onPopInvokedWithResult: (didPop, result) async {
@@ -389,7 +384,6 @@ class _HonorRequirementsViewState
                                   context,
                                   requirements[index],
                                   depth: 0,
-                                  userId: userId,
                                   categoryColor: categoryColor,
                                 );
                               },
@@ -422,7 +416,6 @@ class _HonorRequirementsViewState
     BuildContext context,
     HonorRequirement req, {
     required int depth,
-    required String userId,
     required Color categoryColor,
   }) {
     final state = _localState[req.id] ??
@@ -442,24 +435,6 @@ class _HonorRequirementsViewState
       }
     }
 
-    // Evidence count: derived from the progress data already loaded by
-    // userHonorProgressProvider — no separate API call needed here.
-    // The backend's getUserProgress response includes the evidences array
-    // per requirement inline, so _initLocalState already has this data.
-    // RequirementTreeItem watches requirementEvidenceProvider reactively so
-    // the badge updates live after the sheet is opened.
-    final progressMap = ref
-        .read(userHonorProgressProvider(widget.honorId))
-        .valueOrNull
-        ?.fold<Map<int, int>>(
-          {},
-          (map, p) {
-            map[p.requirementId] = p.evidences.length;
-            return map;
-          },
-        ) ?? {};
-    final evidenceCount = progressMap[req.id] ?? 0;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -472,10 +447,7 @@ class _HonorRequirementsViewState
               textResponse: state.textResponse,
               responseController: _responseControllers[req.id],
               depth: depth,
-              userId: userId,
-              honorId: widget.honorId,
               categoryColor: categoryColor,
-              evidenceCount: evidenceCount,
               onToggle: () => _toggleRequirement(req.id),
             ),
 
@@ -550,7 +522,6 @@ class _HonorRequirementsViewState
                           context,
                           req.children[i],
                           depth: depth + 1,
-                          userId: userId,
                           categoryColor: categoryColor,
                         ),
                       ],

@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_requirement.dart';
-import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
-import 'package:sacdia_app/features/honors/presentation/widgets/evidence_upload_sheet.dart';
 
 /// A single row in the hierarchical requirements tree.
 ///
@@ -16,12 +13,12 @@ import 'package:sacdia_app/features/honors/presentation/widgets/evidence_upload_
 ///   - Display label badge ("1", "a", etc.)
 ///   - Expandable text (3-line clamp with "Ver más")
 ///   - Optional text-response text field (shown when requirement has or gains a response)
-///   - Evidence indicator icon button that opens [EvidenceUploadSheet]
+///   - Subtle indicator when [requiresEvidence] is true (informational only, no blocking)
 ///   - Optional reference text accordion
 ///
 /// Local expand/collapse and showNotes state live inside this widget.
 /// Completion state is owned by the parent view and passed in as [completed].
-class RequirementTreeItem extends ConsumerStatefulWidget {
+class RequirementTreeItem extends StatefulWidget {
   final HonorRequirement requirement;
 
   /// Current completion status from parent state map.
@@ -36,17 +33,8 @@ class RequirementTreeItem extends ConsumerStatefulWidget {
   /// Depth level — 0 = top-level, 1 = sub-item. Drives left indentation.
   final int depth;
 
-  /// Authenticated user ID — needed for evidence operations.
-  final String userId;
-
-  /// Honor ID — needed for evidence operations.
-  final int honorId;
-
   /// Category color used for accent elements (checkbox, labels, etc.).
   final Color categoryColor;
-
-  /// Number of evidence items already attached (from local progress state).
-  final int evidenceCount;
 
   /// Called when the user taps the checkbox.
   final VoidCallback onToggle;
@@ -56,21 +44,17 @@ class RequirementTreeItem extends ConsumerStatefulWidget {
     required this.requirement,
     required this.completed,
     required this.depth,
-    required this.userId,
-    required this.honorId,
     required this.categoryColor,
     this.textResponse,
     this.responseController,
-    this.evidenceCount = 0,
     required this.onToggle,
   });
 
   @override
-  ConsumerState<RequirementTreeItem> createState() =>
-      _RequirementTreeItemState();
+  State<RequirementTreeItem> createState() => _RequirementTreeItemState();
 }
 
-class _RequirementTreeItemState extends ConsumerState<RequirementTreeItem> {
+class _RequirementTreeItemState extends State<RequirementTreeItem> {
   bool _textExpanded = false;
   bool _showResponse = false;
   bool _referenceExpanded = false;
@@ -82,14 +66,6 @@ class _RequirementTreeItemState extends ConsumerState<RequirementTreeItem> {
     _showResponse = widget.textResponse != null && widget.textResponse!.isNotEmpty;
   }
 
-  // ── Evidence params ───────────────────────────────────────────────────────
-
-  RequirementEvidenceParams get _evidenceParams => (
-        userId: widget.userId,
-        honorId: widget.honorId,
-        requirementId: widget.requirement.id,
-      );
-
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   double get _indentLeft => widget.depth * 24.0;
@@ -97,50 +73,14 @@ class _RequirementTreeItemState extends ConsumerState<RequirementTreeItem> {
   bool get _needsExpandToggle => widget.requirement.text.length > 120;
 
   void _handleToggle() {
-    // If the requirement needs evidence and has none, warn before completing.
-    if (widget.requirement.requiresEvidence &&
-        !widget.completed &&
-        widget.evidenceCount == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Este requisito exige evidencia antes de marcarse como completado.',
-          ),
-          backgroundColor: AppColors.warning,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 3),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
-      return;
-    }
-
     HapticFeedback.selectionClick();
     widget.onToggle();
-  }
-
-  void _openEvidenceSheet() {
-    HapticFeedback.lightImpact();
-    showEvidenceUploadSheet(
-      context: context,
-      userId: widget.userId,
-      honorId: widget.honorId,
-      requirementId: widget.requirement.id,
-      categoryColor: widget.categoryColor,
-    );
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    // Watch evidence count reactively so the badge updates after sheet closes.
-    final evidenceAsync =
-        ref.watch(requirementEvidenceProvider(_evidenceParams));
-    final evidences = evidenceAsync.valueOrNull ?? [];
-    final totalEvidence = evidences.length;
-
     final req = widget.requirement;
 
     return Padding(
@@ -290,13 +230,19 @@ class _RequirementTreeItemState extends ConsumerState<RequirementTreeItem> {
                       ),
                     ),
 
-                    // Evidence button
-                    _EvidenceBadgeButton(
-                      evidenceCount: totalEvidence,
-                      requiresEvidence: req.requiresEvidence,
-                      categoryColor: widget.categoryColor,
-                      onTap: _openEvidenceSheet,
-                    ),
+                    // requiresEvidence indicator (informational only)
+                    if (req.requiresEvidence)
+                      Tooltip(
+                        message: 'Requiere demostración',
+                        child: Padding(
+                          padding: const EdgeInsets.all(2),
+                          child: Icon(
+                            Icons.camera_alt_outlined,
+                            size: 16,
+                            color: context.sac.textTertiary,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ],
@@ -306,10 +252,9 @@ class _RequirementTreeItemState extends ConsumerState<RequirementTreeItem> {
           // ── Text response field ───────────────────────────────────────────
           if (_showResponse)
             Padding(
-              padding: EdgeInsets.only(
+              padding: const EdgeInsets.only(
                 left: 40,
                 bottom: 10,
-                right: widget.requirement.requiresEvidence ? 48 : 0,
               ),
               child: TextField(
                 controller: widget.responseController,
@@ -362,74 +307,6 @@ class _RequirementTreeItemState extends ConsumerState<RequirementTreeItem> {
               onToggle: () =>
                   setState(() => _referenceExpanded = !_referenceExpanded),
               indentLeft: 40,
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Evidence badge button ─────────────────────────────────────────────────────
-
-/// Icon button that shows an attachment icon with an evidence count badge.
-///
-/// Color is [categoryColor] when [requiresEvidence] is true, grey otherwise.
-class _EvidenceBadgeButton extends StatelessWidget {
-  final int evidenceCount;
-  final bool requiresEvidence;
-  final Color categoryColor;
-  final VoidCallback onTap;
-
-  const _EvidenceBadgeButton({
-    required this.evidenceCount,
-    required this.requiresEvidence,
-    required this.categoryColor,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final Color iconColor =
-        requiresEvidence ? categoryColor : context.sac.textTertiary;
-    final bool hasBadge = evidenceCount > 0;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(2),
-            child: Icon(
-              hasBadge
-                  ? Icons.attach_file_rounded
-                  : Icons.attach_file_rounded,
-              size: 18,
-              color: hasBadge ? categoryColor : iconColor,
-            ),
-          ),
-          if (hasBadge)
-            Positioned(
-              top: -3,
-              right: -4,
-              child: Container(
-                width: 14,
-                height: 14,
-                decoration: BoxDecoration(
-                  color: categoryColor,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    '$evidenceCount',
-                    style: const TextStyle(
-                      fontSize: 8,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
             ),
         ],
       ),
