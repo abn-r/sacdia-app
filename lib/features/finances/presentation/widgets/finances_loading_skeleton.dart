@@ -180,10 +180,10 @@ class _FinancesLoadingSkeletonState extends State<FinancesLoadingSkeleton>
           ),
           const SizedBox(height: 16),
 
-          // Chart body area
+          // Chart body area — matches the SizedBox(height: 180) in _ChartView
           _SkeletonBox(
             width: double.infinity,
-            height: 160,
+            height: 180,
             borderRadius: const BorderRadius.all(Radius.circular(8)),
             shimmerValue: sv,
           ),
@@ -281,9 +281,10 @@ class _FinancesLoadingSkeletonState extends State<FinancesLoadingSkeleton>
               const SizedBox(height: 4),
               _SkeletonBox(width: 50, height: 10, shimmerValue: sv),
               const SizedBox(height: 4),
+              // registeredBy row: CircleAvatar(r:6) + name text ≈ 12px
               _SkeletonBox(
                 width: 60,
-                height: 9,
+                height: 12,
                 borderRadius: const BorderRadius.all(Radius.circular(4)),
                 shimmerValue: sv,
               ),

@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/finance_month.dart';
 import '../../domain/entities/finance_summary.dart';
-import '../../domain/entities/transaction.dart';
 import '../providers/finances_providers.dart';
 import 'period_selector.dart';
 
