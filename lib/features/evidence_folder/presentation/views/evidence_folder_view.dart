@@ -58,7 +58,7 @@ class EvidenceFolderView extends ConsumerWidget {
 
 // ── Body cuando hay datos ──────────────────────────────────────────────────────
 
-class _FolderBody extends StatelessWidget {
+class _FolderBody extends ConsumerStatefulWidget {
   final EvidenceFolder folder;
   final String clubSectionId;
 
@@ -68,8 +68,112 @@ class _FolderBody extends StatelessWidget {
   });
 
   @override
+  ConsumerState<_FolderBody> createState() => _FolderBodyState();
+}
+
+class _FolderBodyState extends ConsumerState<_FolderBody> {
+  /// Tracks which sectionId is currently being submitted (null = none).
+  String? _submittingSectionId;
+
+  Future<void> _handleSectionSubmit(EvidenceSection section) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Enviar sección a validación'),
+        content: Text(
+          '¿Confirmás que querés enviar la sección "${section.name}" a validación?\n\n'
+          'No podrás modificar los archivos hasta que el campo local la revise.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.sacBlue,
+            ),
+            child: const Text('Enviar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _submittingSectionId = section.id);
+
+    final success = await ref
+        .read(evidenceSectionNotifierProvider(widget.clubSectionId).notifier)
+        .submitSection(section.id);
+
+    if (!mounted) return;
+
+    setState(() => _submittingSectionId = null);
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_rounded,
+                  color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                    'Sección "${section.name}" enviada a validación exitosamente'),
+              ),
+            ],
+          ),
+          backgroundColor: AppColors.secondary,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    } else {
+      final errorMsg = ref
+          .read(evidenceSectionNotifierProvider(widget.clubSectionId))
+          .errorMessage;
+      if (errorMsg != null && errorMsg.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline_rounded,
+                    color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Expanded(child: Text(errorMsg)),
+              ],
+            ),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    }
+  }
+
+  void _openSectionDetail(EvidenceSection section) {
+    Navigator.push(
+      context,
+      SacSharedAxisRoute(
+        builder: (_) => EvidenceSectionDetailView(
+          section: section,
+          folderIsOpen: widget.folder.isOpen,
+          clubSectionId: widget.clubSectionId,
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final folder = widget.folder;
 
     return RefreshIndicator(
       color: AppColors.primary,
@@ -142,7 +246,12 @@ class _FolderBody extends StatelessWidget {
                   index: index,
                   child: SectionCard(
                     section: section,
-                    onTap: () => _openSectionDetail(context, section),
+                    folderIsOpen: folder.isOpen,
+                    onTap: () => _openSectionDetail(section),
+                    onSubmit: folder.isOpen && section.canSubmit
+                        ? () => _handleSectionSubmit(section)
+                        : null,
+                    isSubmitting: _submittingSectionId == section.id,
                   ),
                 );
               },
@@ -156,19 +265,6 @@ class _FolderBody extends StatelessWidget {
                 : const SizedBox(height: 32),
           ),
         ],
-      ),
-    );
-  }
-
-  void _openSectionDetail(BuildContext context, EvidenceSection section) {
-    Navigator.push(
-      context,
-      SacSharedAxisRoute(
-        builder: (_) => EvidenceSectionDetailView(
-          section: section,
-          folderIsOpen: folder.isOpen,
-          clubSectionId: clubSectionId,
-        ),
       ),
     );
   }
