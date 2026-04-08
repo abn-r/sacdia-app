@@ -610,6 +610,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         AppConstants.expiresAtKey,
         AppConstants.tokenTypeKey,
         'cached_post_register_complete',
+        AppConstants.cachedUserId,
+        AppConstants.cachedUserEmail,
+        AppConstants.cachedUserName,
+        AppConstants.cachedUserAvatar,
+        AppConstants.cachedActiveAssignmentId,
+        AppConstants.cachedActiveRoleName,
+        AppConstants.cachedActiveClubName,
+        AppConstants.cachedActiveClubType,
       ];
       for (final key in secureKeys) {
         await _secureStorage.delete(key);

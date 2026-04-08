@@ -340,9 +340,13 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               authNotifierProvider.select((v) => v.valueOrNull),
             );
 
+            final activeRoleName =
+                authUser?.authorization?.activeGrant?.roleName;
+
             return _ProfileScrollBody(
               profile: profile,
               authUser: authUser,
+              activeRoleName: activeRoleName,
               isUploadingPhoto: _isUploadingPhoto,
               hPad: hPad,
               onChangePhoto: _isUploadingPhoto ? null : _changePhoto,
@@ -426,6 +430,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 class _ProfileScrollBody extends StatelessWidget {
   final UserDetail profile;
   final UserEntity? authUser;
+  /// Raw club role name from the active grant (e.g. "director", "instructor").
+  /// Null when the user has no active club assignment.
+  final String? activeRoleName;
   final bool isUploadingPhoto;
   final double hPad;
   final VoidCallback? onChangePhoto;
@@ -437,6 +444,7 @@ class _ProfileScrollBody extends StatelessWidget {
   const _ProfileScrollBody({
     required this.profile,
     required this.authUser,
+    required this.activeRoleName,
     required this.isUploadingPhoto,
     required this.hPad,
     required this.onRefresh,
@@ -511,7 +519,7 @@ class _ProfileScrollBody extends StatelessWidget {
               child: _ProfileHeaderCard(
                 name: profile.fullName,
                 avatar: profile.avatar,
-                roles: profile.roles,
+                clubRole: activeRoleName,
                 gender: profile.gender,
                 clubName: profile.clubName,
                 clubType: profile.clubType,
@@ -824,7 +832,9 @@ class _ProfileFirstLoadSkeleton extends StatelessWidget {
 class _ProfileHeaderCard extends StatelessWidget {
   final String name;
   final String? avatar;
-  final List<String> roles;
+  /// Raw club role name from the active grant (e.g. "director", "instructor").
+  /// Null when the user has no active club assignment — row is hidden in that case.
+  final String? clubRole;
   final String? gender;
   final String? clubName;
   final String? clubType;
@@ -835,7 +845,7 @@ class _ProfileHeaderCard extends StatelessWidget {
 
   const _ProfileHeaderCard({
     required this.name,
-    required this.roles,
+    required this.clubRole,
     this.gender,
     this.avatar,
     this.clubName,
@@ -852,8 +862,8 @@ class _ProfileHeaderCard extends StatelessWidget {
     // Fixed avatar radius for the side-by-side layout — compact but readable.
     const double avatarRadius = 50.0;
     const double fallbackFontSize = 32.0;
-    final roleLabel =
-        roles.isNotEmpty ? RoleUtils.translateList(roles, gender: gender) : null;
+    final translated = RoleUtils.translate(clubRole, gender: gender);
+    final roleLabel = translated.isNotEmpty ? translated : null;
 
     final c = context.sac;
 

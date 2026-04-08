@@ -41,6 +41,18 @@ class AppConstants {
   static const String themeKey = 'app_theme';
   static const String localeKey = 'app_locale';
 
+  // Caché de PII de usuario (SecureStorage)
+  static const String cachedUserId = 'cached_user_id';
+  static const String cachedUserEmail = 'cached_user_email';
+  static const String cachedUserName = 'cached_user_name';
+  static const String cachedUserAvatar = 'cached_user_avatar';
+
+  // Caché del grant activo (SecureStorage) — elimina la race condition en cold start
+  static const String cachedActiveAssignmentId = 'cached_active_assignment_id';
+  static const String cachedActiveRoleName = 'cached_active_role_name';
+  static const String cachedActiveClubName = 'cached_active_club_name';
+  static const String cachedActiveClubType = 'cached_active_club_type';
+
   // Dimensiones
   static const double paddingXS = 4.0;
   static const double paddingS = 8.0;

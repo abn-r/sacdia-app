@@ -390,6 +390,23 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
     switch (sheetResult) {
       case UploadSheetResult.continueSubmit:
       case UploadSheetResult.continuePartial:
+        // Guard: at least one file must have been uploaded (now or previously)
+        final hasCompletedFiles =
+            _allFiles.any((f) => f.status == StagedFileStatus.completed);
+        final hasRemoteFiles =
+            _allFiles.any((f) => f.status == StagedFileStatus.uploaded);
+
+        if (!hasCompletedFiles && !hasRemoteFiles) {
+          if (mounted) {
+            // ignore: use_build_context_synchronously
+            _showErrorSnackbar(
+              context,
+              'No se pudo subir ningún archivo. Reintentá antes de enviar.',
+            );
+          }
+          break;
+        }
+
         // Remove local files that were completed (they're now on server)
         setState(() {
           _allFiles = _allFiles.where((f) {

@@ -6,6 +6,7 @@ import '../../../../core/utils/app_logger.dart';
 import '../../../../providers/storage_provider.dart';
 import '../../data/datasources/auth_remote_data_source.dart';
 import '../../data/repositories/auth_repository_impl.dart';
+import '../../domain/entities/authorization_snapshot.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/usecases/get_current_user.dart';
@@ -113,12 +114,19 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       return null;
     }
 
-    // Pre-read PII from SecureStorage before the fold (read is async).
+    // Pre-read PII and active grant from SecureStorage before the fold (reads are async).
     final secureStorage = ref.read(secureStorageProvider);
-    final cachedId = await secureStorage.read('cached_user_id');
-    final cachedEmail = await secureStorage.read('cached_user_email');
-    final cachedName = await secureStorage.read('cached_user_name');
-    final cachedAvatar = await secureStorage.read('cached_user_avatar');
+    final cachedId = await secureStorage.read(AppConstants.cachedUserId);
+    final cachedEmail = await secureStorage.read(AppConstants.cachedUserEmail);
+    final cachedName = await secureStorage.read(AppConstants.cachedUserName);
+    final cachedAvatar = await secureStorage.read(AppConstants.cachedUserAvatar);
+    final cachedAssignmentId =
+        await secureStorage.read(AppConstants.cachedActiveAssignmentId);
+    final cachedRoleName =
+        await secureStorage.read(AppConstants.cachedActiveRoleName);
+    final cachedClubType =
+        await secureStorage.read(AppConstants.cachedActiveClubType);
+    // cachedActiveClubName is reserved for future use — not read yet.
     final prefs = ref.read(sharedPreferencesProvider);
 
     AppLogger.i('Token encontrado, validando con /auth/me', tag: _tag);
@@ -133,11 +141,29 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
             // Session restored from cache — initialize FCM so token is
             // registered even when the backend was temporarily unreachable.
             ref.read(pushNotificationServiceProvider).initialize();
+
+            // Reconstruct active grant from cached flat strings so widgets
+            // render with the correct role immediately (no "Usuario" flash).
+            AuthorizationSnapshot? cachedAuthorization;
+            if (cachedAssignmentId != null) {
+              final cachedGrant = AuthorizationGrant(
+                assignmentId: cachedAssignmentId,
+                roleName: cachedRoleName,
+                clubTypeName: cachedClubType,
+                status: 'active',
+              );
+              cachedAuthorization = AuthorizationSnapshot(
+                clubAssignments: [cachedGrant],
+                activeAssignmentId: cachedAssignmentId,
+              );
+            }
+
             return UserEntity(
               id: cachedId,
               email: cachedEmail,
               name: cachedName,
               avatar: cachedAvatar,
+              authorization: cachedAuthorization,
               postRegisterComplete:
                   prefs.getBool('cached_post_register_complete') ?? false,
             );
@@ -174,15 +200,15 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   void _cacheUser(UserEntity user) {
     final secureStorage = ref.read(secureStorageProvider);
     // Fire-and-forget: cache writes are best-effort for offline restoration.
-    secureStorage.write('cached_user_id', user.id);
-    secureStorage.write('cached_user_email', user.email);
+    secureStorage.write(AppConstants.cachedUserId, user.id);
+    secureStorage.write(AppConstants.cachedUserEmail, user.email);
     if (user.name != null) {
-      secureStorage.write('cached_user_name', user.name!);
+      secureStorage.write(AppConstants.cachedUserName, user.name!);
     }
     if (user.avatar != null) {
-      secureStorage.write('cached_user_avatar', user.avatar!);
+      secureStorage.write(AppConstants.cachedUserAvatar, user.avatar!);
     } else {
-      secureStorage.delete('cached_user_avatar');
+      secureStorage.delete(AppConstants.cachedUserAvatar);
     }
     secureStorage.write(
       'cached_post_register_complete',
@@ -191,6 +217,32 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     // Keep non-PII flag in SharedPreferences for synchronous router reads.
     ref.read(sharedPreferencesProvider)
         .setBool('cached_post_register_complete', user.postRegisterComplete);
+
+    // Cache active grant fields so the UI can render the correct role on the
+    // next cold start before the /auth/me response arrives.
+    final activeGrant = user.authorization?.activeGrant;
+    if (activeGrant?.assignmentId != null) {
+      secureStorage.write(
+          AppConstants.cachedActiveAssignmentId, activeGrant!.assignmentId!);
+      if (activeGrant.roleName != null) {
+        secureStorage.write(AppConstants.cachedActiveRoleName, activeGrant.roleName!);
+      } else {
+        secureStorage.delete(AppConstants.cachedActiveRoleName);
+      }
+      if (activeGrant.clubTypeName != null) {
+        secureStorage.write(AppConstants.cachedActiveClubType, activeGrant.clubTypeName!);
+      } else {
+        secureStorage.delete(AppConstants.cachedActiveClubType);
+      }
+      // cachedActiveClubName reserved for future use (club display name not yet in grant)
+      secureStorage.delete(AppConstants.cachedActiveClubName);
+    } else {
+      // No active grant — clear any stale cached grant data.
+      secureStorage.delete(AppConstants.cachedActiveAssignmentId);
+      secureStorage.delete(AppConstants.cachedActiveRoleName);
+      secureStorage.delete(AppConstants.cachedActiveClubName);
+      secureStorage.delete(AppConstants.cachedActiveClubType);
+    }
   }
 
   /// Iniciar sesión con email y contraseña
@@ -468,11 +520,15 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     AppLogger.w('Sesión expirada por interceptor, limpiando estado local', tag: _tag);
 
     final secureStorage = ref.read(secureStorageProvider);
-    secureStorage.delete('cached_user_id');
-    secureStorage.delete('cached_user_email');
-    secureStorage.delete('cached_user_name');
-    secureStorage.delete('cached_user_avatar');
+    secureStorage.delete(AppConstants.cachedUserId);
+    secureStorage.delete(AppConstants.cachedUserEmail);
+    secureStorage.delete(AppConstants.cachedUserName);
+    secureStorage.delete(AppConstants.cachedUserAvatar);
     secureStorage.delete('cached_post_register_complete');
+    secureStorage.delete(AppConstants.cachedActiveAssignmentId);
+    secureStorage.delete(AppConstants.cachedActiveRoleName);
+    secureStorage.delete(AppConstants.cachedActiveClubName);
+    secureStorage.delete(AppConstants.cachedActiveClubType);
 
     final prefs = ref.read(sharedPreferencesProvider);
     prefs.remove('cached_post_register_complete');
@@ -504,13 +560,17 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         prefs.setBool('user_manually_logged_out', true);
         prefs.remove('cached_post_register_complete');
 
-        // PII is stored in SecureStorage — clear all cached PII on sign-out.
+        // PII and active grant are stored in SecureStorage — clear all on sign-out.
         final secureStorage = ref.read(secureStorageProvider);
-        secureStorage.delete('cached_user_id');
-        secureStorage.delete('cached_user_email');
-        secureStorage.delete('cached_user_name');
-        secureStorage.delete('cached_user_avatar');
+        secureStorage.delete(AppConstants.cachedUserId);
+        secureStorage.delete(AppConstants.cachedUserEmail);
+        secureStorage.delete(AppConstants.cachedUserName);
+        secureStorage.delete(AppConstants.cachedUserAvatar);
         secureStorage.delete('cached_post_register_complete');
+        secureStorage.delete(AppConstants.cachedActiveAssignmentId);
+        secureStorage.delete(AppConstants.cachedActiveRoleName);
+        secureStorage.delete(AppConstants.cachedActiveClubName);
+        secureStorage.delete(AppConstants.cachedActiveClubType);
 
         return true;
       },
