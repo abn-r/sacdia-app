@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../data/models/paginated_transactions_response.dart';
 import '../entities/finance_category.dart';
 import '../entities/finance_month.dart';
 import '../entities/finance_summary.dart';
@@ -52,4 +53,20 @@ abstract class FinancesRepository {
 
   /// Devuelve las categorías disponibles.
   Future<Either<Failure, List<FinanceCategory>>> getCategories();
+
+  /// Devuelve una página de transacciones con filtros opcionales.
+  ///
+  /// Usado por la pantalla "All Transactions" con paginación infinita.
+  Future<Either<Failure, PaginatedTransactionsResponse>>
+      getTransactionsPaginated({
+    required int clubId,
+    required int page,
+    required int limit,
+    String? type,
+    String? search,
+    String? startDate,
+    String? endDate,
+    String? sortBy,
+    String? sortOrder,
+  });
 }

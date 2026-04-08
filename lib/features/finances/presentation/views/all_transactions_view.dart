@@ -1,32 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
-
 import '../../../../core/animations/page_transitions.dart';
-import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/transaction.dart';
 import '../providers/finances_providers.dart';
+import '../widgets/date_group_header.dart';
+import '../widgets/range_bottom_sheet.dart';
+import '../widgets/sort_bottom_sheet.dart';
+import '../widgets/transaction_search_field.dart';
 import '../widgets/transaction_tile.dart';
+import '../widgets/transaction_type_tabs.dart';
 import 'add_transaction_sheet.dart';
 import 'transaction_detail_view.dart';
 
-// ── Filter enum ────────────────────────────────────────────────────────────────
-
-enum _TxFilter { all, income, expense }
-
 // ── View ───────────────────────────────────────────────────────────────────────
 
-/// Pantalla que muestra TODAS las transacciones del mes seleccionado.
+/// Full-screen view listing ALL club transactions with server-side search,
+/// type filtering, date range, sort, and infinite scroll pagination.
 ///
-/// Reutiliza [financeMonthProvider] — sin llamadas adicionales al backend.
-/// Incluye un control segmentado (Todo / Ingresos / Egresos) para filtrar
-/// client-side, agrupación por fecha y el mismo FAB de la pantalla principal.
+/// Pushed from [FinancesView] via `SacSharedAxisRoute`.
+/// [initialMonth] seeds the first range filter to that month.
 class AllTransactionsView extends ConsumerStatefulWidget {
-  const AllTransactionsView({super.key});
+  final SelectedMonth initialMonth;
+
+  const AllTransactionsView({
+    super.key,
+    required this.initialMonth,
+  });
 
   @override
   ConsumerState<AllTransactionsView> createState() =>
@@ -34,178 +37,43 @@ class AllTransactionsView extends ConsumerStatefulWidget {
 }
 
 class _AllTransactionsViewState extends ConsumerState<AllTransactionsView> {
-  _TxFilter _filter = _TxFilter.all;
+  final ScrollController _scrollController = ScrollController();
 
   @override
-  Widget build(BuildContext context) {
-    final financeMonthAsync = ref.watch(financeMonthProvider);
-    final canManageAsync = ref.watch(canManageFinancesProvider);
-    final selected = ref.watch(selectedMonthProvider);
-
-    final isOpen = financeMonthAsync.valueOrNull?.isOpen ?? true;
-    final canManage = canManageAsync.valueOrNull ?? false;
-    final showFab = canManage && isOpen;
-
-    // Month subtitle: "Marzo 2026"
-    final monthLabel = DateFormat('MMMM yyyy', 'es')
-        .format(DateTime(selected.year, selected.month));
-    final capitalizedMonth =
-        monthLabel[0].toUpperCase() + monthLabel.substring(1);
-
-    return Scaffold(
-      backgroundColor: context.sac.background,
-      floatingActionButton: showFab
-          ? _AddFab(onTap: () => _openAddSheet(context))
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      body: SafeArea(
-        child: RefreshIndicator(
-          color: AppColors.primary,
-          onRefresh: () async => ref.invalidate(financeMonthProvider),
-          child: CustomScrollView(
-            physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics()),
-            slivers: [
-              // ── App bar ─────────────────────────────────────────────────
-              SliverAppBar(
-                pinned: true,
-                expandedHeight: 0,
-                backgroundColor: context.sac.background,
-                surfaceTintColor: Colors.transparent,
-                leading: IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: HugeIcon(
-                    icon: HugeIcons.strokeRoundedArrowLeft01,
-                    size: 22,
-                    color: context.sac.text,
-                  ),
-                ),
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Transacciones',
-                      style:
-                          Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: context.sac.text,
-                              ),
-                    ),
-                    Text(
-                      capitalizedMonth,
-                      style:
-                          Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: context.sac.textTertiary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                    ),
-                  ],
-                ),
-                centerTitle: false,
-              ),
-
-              // ── Filter tabs ─────────────────────────────────────────────
-              SliverToBoxAdapter(
-                child: _FilterTabs(
-                  selected: _filter,
-                  onChanged: (f) => setState(() => _filter = f),
-                ),
-              ),
-
-              // ── Body ────────────────────────────────────────────────────
-              SliverToBoxAdapter(
-                child: financeMonthAsync.when(
-                  loading: () => const Padding(
-                    padding: EdgeInsets.only(top: 80),
-                    child: Center(child: SacLoading()),
-                  ),
-                  error: (e, _) => _ErrorBody(
-                    message: e.toString().replaceFirst('Exception: ', ''),
-                    onRetry: () => ref.invalidate(financeMonthProvider),
-                  ),
-                  data: (financeMonth) {
-                    final all = financeMonth?.transactions ?? [];
-                    final filtered = _applyFilter(all);
-                    if (filtered.isEmpty) {
-                      return _EmptyState(filter: _filter);
-                    }
-                    return Column(
-                      children: [
-                        ..._buildGroupedTransactions(context, filtered),
-                        const SizedBox(height: 80),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+    // Seed the filter with the month selected in FinancesView.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(allTransactionsFilterNotifierProvider.notifier)
+          .initWithMonth(widget.initialMonth);
+    });
   }
 
-  // ── Filter logic ─────────────────────────────────────────────────────────
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
+  }
 
-  List<FinanceTransaction> _applyFilter(List<FinanceTransaction> all) {
-    switch (_filter) {
-      case _TxFilter.all:
-        return all;
-      case _TxFilter.income:
-        return all.where((t) => t.type.isIncome).toList();
-      case _TxFilter.expense:
-        return all.where((t) => t.type.isExpense).toList();
+  void _onScroll() {
+    final pos = _scrollController.position;
+    final state = ref.read(allTransactionsFilterNotifierProvider);
+    if (pos.pixels >= pos.maxScrollExtent - 200 &&
+        state.hasNextPage &&
+        !state.isLoadingMore) {
+      ref
+          .read(allTransactionsFilterNotifierProvider.notifier)
+          .loadNextPage();
     }
   }
 
-  // ── Grouped transactions builder ─────────────────────────────────────────
+  // ── Navigation helpers ────────────────────────────────────────────────────
 
-  List<Widget> _buildGroupedTransactions(
-    BuildContext context,
-    List<FinanceTransaction> transactions,
-  ) {
-    final grouped = <DateTime, List<FinanceTransaction>>{};
-    for (final tx in transactions) {
-      final key = DateTime(
-          tx.date.toLocal().year, tx.date.toLocal().month, tx.date.toLocal().day);
-      grouped.putIfAbsent(key, () => []).add(tx);
-    }
-
-    final sortedDates = grouped.keys.toList()
-      ..sort((a, b) => b.compareTo(a));
-
-    final widgets = <Widget>[];
-    var globalIndex = 0;
-
-    for (final date in sortedDates) {
-      final dayTx = grouped[date]!;
-      final dailyTotal = dayTx.fold<double>(
-        0,
-        (sum, tx) =>
-            sum + (tx.type.isIncome ? tx.amount : -tx.amount),
-      );
-
-      widgets.add(_DateGroupHeader(date: date, dailyTotal: dailyTotal));
-
-      for (final tx in dayTx) {
-        widgets.add(
-          StaggeredListItem(
-            index: globalIndex++,
-            child: TransactionTile(
-              transaction: tx,
-              onTap: () => _openDetail(context, tx),
-            ),
-          ),
-        );
-      }
-    }
-
-    return widgets;
-  }
-
-  // ── Navigation ───────────────────────────────────────────────────────────
-
-  void _openDetail(BuildContext context, FinanceTransaction t) {
+  void _openDetail(FinanceTransaction t) {
     Navigator.push(
       context,
       SacSharedAxisRoute(
@@ -214,51 +82,124 @@ class _AllTransactionsViewState extends ConsumerState<AllTransactionsView> {
     );
   }
 
-  void _openAddSheet(BuildContext context) {
+  void _openAddSheet() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const AddTransactionSheet(),
+    ).then((_) {
+      // Refresh the list after adding a transaction.
+      ref
+          .read(allTransactionsFilterNotifierProvider.notifier)
+          .reset();
+    });
+  }
+
+  void _openSortSheet() {
+    final filter =
+        ref.read(allTransactionsFilterNotifierProvider).filter;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => SortBottomSheet(
+        currentSortBy: filter.sortBy,
+        currentSortOrder: filter.sortOrder,
+        onApply: (sortBy, sortOrder) {
+          ref
+              .read(allTransactionsFilterNotifierProvider.notifier)
+              .updateSort(sortBy: sortBy, sortOrder: sortOrder);
+        },
+      ),
     );
   }
-}
 
-// ── Filter tabs ────────────────────────────────────────────────────────────────
+  void _openRangeSheet() {
+    final filter =
+        ref.read(allTransactionsFilterNotifierProvider).filter;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => RangeBottomSheet(
+        currentPreset: filter.rangePreset,
+        currentStart: filter.startDate,
+        currentEnd: filter.endDate,
+        onApply: (preset, start, end) {
+          ref
+              .read(allTransactionsFilterNotifierProvider.notifier)
+              .updateRange(
+                preset: preset,
+                startDate: start,
+                endDate: end,
+              );
+        },
+      ),
+    );
+  }
 
-class _FilterTabs extends StatelessWidget {
-  final _TxFilter selected;
-  final ValueChanged<_TxFilter> onChanged;
-
-  const _FilterTabs({required this.selected, required this.onChanged});
+  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      child: Container(
-        height: 36,
-        decoration: BoxDecoration(
-          color: context.sac.surfaceVariant,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
+    final txState = ref.watch(allTransactionsFilterNotifierProvider);
+    final canManage = ref.watch(canManageFinancesProvider).valueOrNull ?? false;
+    final financeMonth = ref.watch(financeMonthProvider).valueOrNull;
+    final isOpen = financeMonth?.isOpen ?? true;
+    final showFab = canManage && isOpen;
+    final rangeLabel = ref.watch(allTransactionsRangeLabelProvider);
+
+    return Scaffold(
+      backgroundColor: context.sac.background,
+      floatingActionButton:
+          showFab ? _AddFab(onTap: _openAddSheet) : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      body: SafeArea(
+        child: Column(
           children: [
-            _Tab(
-              label: 'Todo',
-              isSelected: selected == _TxFilter.all,
-              onTap: () => onChanged(_TxFilter.all),
+            // ── Custom App Bar ────────────────────────────────────────
+            _AllTransactionsAppBar(
+              rangeLabel: rangeLabel,
+              onSortTap: _openSortSheet,
+              onRangeTap: _openRangeSheet,
             ),
-            _Tab(
-              label: 'Ingresos',
-              isSelected: selected == _TxFilter.income,
-              onTap: () => onChanged(_TxFilter.income),
+
+            // ── Search field (always visible) ─────────────────────────
+            TransactionSearchField(
+              initialValue: txState.filter.search ?? '',
+              onSearch: (value) => ref
+                  .read(allTransactionsFilterNotifierProvider.notifier)
+                  .updateSearch(value),
             ),
-            _Tab(
-              label: 'Egresos',
-              isSelected: selected == _TxFilter.expense,
-              onTap: () => onChanged(_TxFilter.expense),
+
+            // ── Segmented tabs ────────────────────────────────────────
+            TransactionTypeTabs(
+              selected: txState.filter.type,
+              onChanged: (type) => ref
+                  .read(allTransactionsFilterNotifierProvider.notifier)
+                  .updateType(type),
+            ),
+
+            // ── Transaction list ──────────────────────────────────────
+            Expanded(
+              child: RefreshIndicator(
+                color: AppColors.primary,
+                onRefresh: () async {
+                  ref
+                      .read(allTransactionsFilterNotifierProvider
+                          .notifier)
+                      .reset();
+                },
+                child: _TransactionListBody(
+                  txState: txState,
+                  scrollController: _scrollController,
+                  onTransactionTap: _openDetail,
+                ),
+              ),
             ),
           ],
         ),
@@ -267,96 +208,231 @@ class _FilterTabs extends StatelessWidget {
   }
 }
 
-class _Tab extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
+// ── App Bar ────────────────────────────────────────────────────────────────────
 
-  const _Tab({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
+class _AllTransactionsAppBar extends StatelessWidget {
+  final String rangeLabel;
+  final VoidCallback onSortTap;
+  final VoidCallback onRangeTap;
+
+  const _AllTransactionsAppBar({
+    required this.rangeLabel,
+    required this.onSortTap,
+    required this.onRangeTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeInOut,
-          margin: const EdgeInsets.all(3),
-          decoration: BoxDecoration(
-            color: isSelected ? context.sac.surface : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: context.sac.shadow,
-                      blurRadius: 6,
-                      offset: const Offset(0, 1),
-                    ),
-                  ]
-                : null,
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight:
-                  isSelected ? FontWeight.w600 : FontWeight.w400,
-              color: isSelected
-                  ? context.sac.text
-                  : context.sac.textTertiary,
+    return Container(
+      color: context.sac.background,
+      padding: const EdgeInsets.only(right: 8),
+      child: Row(
+        children: [
+          // Back button
+          IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowLeft01,
+              size: 22,
+              color: context.sac.text,
             ),
           ),
-        ),
+          // Title + range subtitle
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Transacciones',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: context.sac.text,
+                  ),
+                ),
+                Text(
+                  rangeLabel,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    color: context.sac.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Sort icon
+          IconButton(
+            onPressed: onSortTap,
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedSortByDown02,
+              size: 22,
+              color: context.sac.textSecondary,
+            ),
+          ),
+          // Range icon
+          IconButton(
+            onPressed: onRangeTap,
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedCalendar03,
+              size: 22,
+              color: context.sac.textSecondary,
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-// ── Date group header ──────────────────────────────────────────────────────────
+// ── Transaction list body ──────────────────────────────────────────────────────
 
-class _DateGroupHeader extends StatelessWidget {
-  final DateTime date;
-  final double dailyTotal;
+class _TransactionListBody extends StatelessWidget {
+  final AllTransactionsState txState;
+  final ScrollController scrollController;
+  final ValueChanged<FinanceTransaction> onTransactionTap;
 
-  const _DateGroupHeader({required this.date, required this.dailyTotal});
+  const _TransactionListBody({
+    required this.txState,
+    required this.scrollController,
+    required this.onTransactionTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    final dateLabel = DateFormat('EEEE, d MMMM', 'es').format(date);
-    final capitalizedDate =
-        dateLabel[0].toUpperCase() + dateLabel.substring(1);
-    final totalFormatted = NumberFormat.currency(
-      locale: 'en_US',
-      symbol: '\$',
-      decimalDigits: 2,
-    ).format(dailyTotal.abs());
+    // Full-page loading (first page fetch)
+    if (txState.isLoading) {
+      return const Center(child: SacLoading());
+    }
 
+    // Full-page error
+    if (txState.errorMessage != null && txState.transactions.isEmpty) {
+      return _ErrorState(
+        message: txState.errorMessage!,
+        onRetry: () {}, // pull-to-refresh handles this
+      );
+    }
+
+    // Empty state
+    if (txState.transactions.isEmpty) {
+      return _EmptyState(
+        hasActiveSearch: txState.filter.search != null &&
+            txState.filter.search!.isNotEmpty,
+      );
+    }
+
+    // Build grouped list
+    final grouped = _groupByDate(txState.transactions);
+    final sortedDates = grouped.keys.toList()
+      ..sort((a, b) => b.compareTo(a));
+
+    final items = <_ListItem>[];
+    for (final date in sortedDates) {
+      final dayTx = grouped[date]!;
+      final dailyTotal = dayTx.fold<double>(
+        0,
+        (sum, tx) => sum + (tx.type.isIncome ? tx.amount : -tx.amount),
+      );
+      items.add(_ListItem.header(date: date, dailyTotal: dailyTotal));
+      for (final tx in dayTx) {
+        items.add(_ListItem.transaction(tx));
+      }
+    }
+
+    return ListView.builder(
+      controller: scrollController,
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
+      itemCount: items.length + (txState.isLoadingMore ? 1 : 1), // +1 for bottom clearance
+      itemBuilder: (context, index) {
+        // Bottom clearance / load-more indicator
+        if (index == items.length) {
+          if (txState.isLoadingMore) {
+            return const _LoadMoreIndicator();
+          }
+          return const SizedBox(height: 80);
+        }
+
+        final item = items[index];
+        if (item.isHeader) {
+          return DateGroupHeader(
+            date: item.date!,
+            dailyTotal: item.dailyTotal!,
+          );
+        }
+        return TransactionTile(
+          transaction: item.transaction!,
+          onTap: () => onTransactionTap(item.transaction!),
+        );
+      },
+    );
+  }
+
+  Map<DateTime, List<FinanceTransaction>> _groupByDate(
+    List<FinanceTransaction> transactions,
+  ) {
+    final grouped = <DateTime, List<FinanceTransaction>>{};
+    for (final tx in transactions) {
+      final local = tx.date.toLocal();
+      final key = DateTime(local.year, local.month, local.day);
+      grouped.putIfAbsent(key, () => []).add(tx);
+    }
+    return grouped;
+  }
+}
+
+/// Simple discriminated union for list items to avoid two separate lists.
+class _ListItem {
+  final bool isHeader;
+  final DateTime? date;
+  final double? dailyTotal;
+  final FinanceTransaction? transaction;
+
+  const _ListItem._({
+    required this.isHeader,
+    this.date,
+    this.dailyTotal,
+    this.transaction,
+  });
+
+  factory _ListItem.header({
+    required DateTime date,
+    required double dailyTotal,
+  }) =>
+      _ListItem._(isHeader: true, date: date, dailyTotal: dailyTotal);
+
+  factory _ListItem.transaction(FinanceTransaction tx) =>
+      _ListItem._(isHeader: false, transaction: tx);
+}
+
+// ── Load more indicator ────────────────────────────────────────────────────────
+
+class _LoadMoreIndicator extends StatelessWidget {
+  const _LoadMoreIndicator();
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+      padding: const EdgeInsets.symmetric(vertical: 20),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            capitalizedDate,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: c.textSecondary,
+          const SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: AppColors.primary,
             ),
           ),
+          const SizedBox(width: 10),
           Text(
-            totalFormatted,
+            'Cargando más\u2026',
             style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: c.textTertiary,
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+              color: context.sac.textTertiary,
             ),
           ),
         ],
@@ -368,89 +444,101 @@ class _DateGroupHeader extends StatelessWidget {
 // ── Empty state ────────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
-  final _TxFilter filter;
+  final bool hasActiveSearch;
 
-  const _EmptyState({required this.filter});
+  const _EmptyState({required this.hasActiveSearch});
 
   @override
   Widget build(BuildContext context) {
-    final label = switch (filter) {
-      _TxFilter.all => 'Sin movimientos este mes',
-      _TxFilter.income => 'Sin ingresos este mes',
-      _TxFilter.expense => 'Sin egresos este mes',
-    };
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 40),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedMoneyReceive01,
-            size: 56,
-            color: context.sac.textTertiary,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: context.sac.textSecondary,
-                ),
-          ),
-        ],
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedSearch01,
+              size: 56,
+              color: context.sac.textTertiary,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'No se encontraron transacciones',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: context.sac.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              hasActiveSearch
+                  ? 'Probá con otros términos o cambiá el rango de fechas.'
+                  : 'No hay transacciones para el rango seleccionado.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+                color: context.sac.textTertiary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-// ── Error body ─────────────────────────────────────────────────────────────────
+// ── Error state ────────────────────────────────────────────────────────────────
 
-class _ErrorBody extends StatelessWidget {
+class _ErrorState extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
 
-  const _ErrorBody({required this.message, required this.onRetry});
+  const _ErrorState({required this.message, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(40),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedAlert02,
-            size: 56,
-            color: AppColors.error,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Error al cargar transacciones',
-            style: Theme.of(context).textTheme.titleMedium,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            message,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: context.sac.textSecondary,
-                ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: onRetry,
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedRefresh,
-              size: 18,
-              color: Colors.white,
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedAlert02,
+              size: 56,
+              color: AppColors.error,
             ),
-            label: const Text('Reintentar'),
-            style:
-                FilledButton.styleFrom(backgroundColor: AppColors.primary),
-          ),
-        ],
+            const SizedBox(height: 16),
+            Text(
+              'Error al cargar transacciones',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: context.sac.text,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              style: TextStyle(
+                fontSize: 13,
+                color: context.sac.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Deslizá hacia abajo para reintentar.',
+              style: TextStyle(
+                fontSize: 12,
+                color: context.sac.textTertiary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -490,3 +578,4 @@ class _AddFab extends StatelessWidget {
     );
   }
 }
+

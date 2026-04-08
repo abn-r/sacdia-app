@@ -9,6 +9,7 @@ import '../../domain/entities/finance_summary.dart';
 import '../../domain/entities/transaction.dart';
 import '../../domain/repositories/finances_repository.dart';
 import '../datasources/finances_remote_data_source.dart';
+import '../models/paginated_transactions_response.dart';
 
 class FinancesRepositoryImpl implements FinancesRepository {
   final FinancesRemoteDataSource remoteDataSource;
@@ -151,6 +152,41 @@ class FinancesRepositoryImpl implements FinancesRepository {
     try {
       final models = await remoteDataSource.getCategories();
       return Right(models.map((m) => m.toEntity()).toList());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, PaginatedTransactionsResponse>>
+      getTransactionsPaginated({
+    required int clubId,
+    required int page,
+    required int limit,
+    String? type,
+    String? search,
+    String? startDate,
+    String? endDate,
+    String? sortBy,
+    String? sortOrder,
+  }) async {
+    try {
+      final response = await remoteDataSource.getTransactionsPaginated(
+        clubId: clubId,
+        page: page,
+        limit: limit,
+        type: type,
+        search: search,
+        startDate: startDate,
+        endDate: endDate,
+        sortBy: sortBy,
+        sortOrder: sortOrder,
+      );
+      return Right(response);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on AuthException catch (e) {

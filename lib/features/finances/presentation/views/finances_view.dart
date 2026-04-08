@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
-
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -12,6 +10,7 @@ import '../../domain/entities/transaction.dart';
 import '../providers/finances_providers.dart';
 import '../widgets/balance_header_card.dart';
 import '../widgets/closed_period_banner.dart';
+import '../widgets/date_group_header.dart';
 import '../widgets/finance_line_chart.dart';
 import '../widgets/finances_loading_skeleton.dart';
 import '../widgets/transaction_tile.dart';
@@ -218,7 +217,7 @@ class _FinanceBody extends ConsumerWidget {
             (tx.type == TransactionType.income ? tx.amount : -tx.amount),
       );
 
-      widgets.add(_DateGroupHeader(date: date, dailyTotal: dailyTotal));
+      widgets.add(DateGroupHeader(date: date, dailyTotal: dailyTotal));
 
       for (final tx in dayTransactions) {
         widgets.add(
@@ -248,9 +247,13 @@ class _FinanceBody extends ConsumerWidget {
   }
 
   void _openFullTransactionList(BuildContext context) {
+    // Pass the currently selected month so AllTransactionsView seeds its
+    // date range filter to that month on first open.
+    final selected = ProviderScope.containerOf(context)
+        .read(selectedMonthProvider);
     Navigator.of(context).push(
       SacSharedAxisRoute(
-        builder: (_) => const AllTransactionsView(),
+        builder: (_) => AllTransactionsView(initialMonth: selected),
       ),
     );
   }
@@ -427,52 +430,6 @@ class _TransactionsSectionHeader extends StatelessWidget {
                 fontWeight: FontWeight.w500,
                 color: c.textTertiary,
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Date group header ──────────────────────────────────────────────────────────
-
-class _DateGroupHeader extends StatelessWidget {
-  final DateTime date;
-  final double dailyTotal;
-
-  const _DateGroupHeader({required this.date, required this.dailyTotal});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final dateLabel = DateFormat('EEEE, d MMMM', 'es').format(date);
-    final capitalizedDate = dateLabel[0].toUpperCase() + dateLabel.substring(1);
-    final totalFormatted = NumberFormat.currency(
-      locale: 'en_US',
-      symbol: '\$',
-      decimalDigits: 2,
-    ).format(dailyTotal.abs());
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            capitalizedDate,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: c.textSecondary,
-            ),
-          ),
-          Text(
-            totalFormatted,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: c.textTertiary,
             ),
           ),
         ],

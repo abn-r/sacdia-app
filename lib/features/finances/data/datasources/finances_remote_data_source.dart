@@ -6,6 +6,7 @@ import '../../../../core/utils/app_logger.dart';
 import '../models/finance_category_model.dart';
 import '../models/finance_month_model.dart';
 import '../models/finance_summary_model.dart';
+import '../models/paginated_transactions_response.dart';
 import '../models/transaction_model.dart';
 
 abstract class FinancesRemoteDataSource {
@@ -42,6 +43,21 @@ abstract class FinancesRemoteDataSource {
   Future<void> deleteTransaction({required int financeId});
 
   Future<List<FinanceCategoryModel>> getCategories();
+
+  /// Paginated, filterable, sortable transaction list.
+  ///
+  /// Backs the "All Transactions" screen.
+  Future<PaginatedTransactionsResponse> getTransactionsPaginated({
+    required int clubId,
+    required int page,
+    required int limit,
+    String? type,
+    String? search,
+    String? startDate,
+    String? endDate,
+    String? sortBy,
+    String? sortOrder,
+  });
 }
 
 class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
@@ -280,6 +296,52 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
       );
     } catch (e) {
       AppLogger.e('Error en getCategories', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /clubs/:clubId/finances/transactions ─────────────────────────────
+
+  @override
+  Future<PaginatedTransactionsResponse> getTransactionsPaginated({
+    required int clubId,
+    required int page,
+    required int limit,
+    String? type,
+    String? search,
+    String? startDate,
+    String? endDate,
+    String? sortBy,
+    String? sortOrder,
+  }) async {
+    try {
+      final params = <String, dynamic>{
+        'page': page,
+        'limit': limit,
+        if (type != null && type.isNotEmpty) 'type': type,
+        if (search != null && search.isNotEmpty) 'search': search,
+        if (startDate != null) 'startDate': startDate,
+        if (endDate != null) 'endDate': endDate,
+        if (sortBy != null) 'sortBy': sortBy,
+        if (sortOrder != null) 'sortOrder': sortOrder,
+      };
+
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId${ApiEndpoints.finances}/transactions',
+        queryParameters: params,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = response.data as Map<String, dynamic>;
+        return PaginatedTransactionsResponse.fromJson(body);
+      }
+
+      throw ServerException(
+        message: 'Error al obtener transacciones',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getTransactionsPaginated', tag: _tag, error: e);
       _rethrow(e);
     }
   }
