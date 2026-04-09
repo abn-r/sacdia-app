@@ -214,6 +214,8 @@ class _MemberHeaderCard extends StatelessWidget {
                       ? CachedNetworkImage(
                           imageUrl: insurance.memberPhotoUrl!,
                           fit: BoxFit.cover,
+                          memCacheWidth: 180,
+                          memCacheHeight: 180,
                           placeholder: (context, url) => const Center(child: CircularProgressIndicator.adaptive()),
                           errorWidget: (context, url, error) =>
                               _AvatarFallback(initials: initials, color: statusColor),

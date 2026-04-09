@@ -425,45 +425,48 @@ class _CategoryRow extends StatelessWidget {
           ),
         ] else ...[
           // Controles: -1 | valor/max | +1
-          Opacity(
-            opacity: isDisabled ? 0.4 : 1.0,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _SmallAdjustButton(
-                  label: '-1',
-                  isNegative: true,
-                  isDisabled: isDisabled || points <= 0,
-                  onPressed: () => onAdjust(-1),
+          // Note: Opacity widget avoided — compositing layer overhead.
+          // Alpha is applied per-child; _SmallAdjustButton handles its own disabled state.
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _SmallAdjustButton(
+                label: '-1',
+                isNegative: true,
+                isDisabled: isDisabled || points <= 0,
+                onPressed: () => onAdjust(-1),
+              ),
+              const SizedBox(width: 6),
+              // Valor actual / max
+              Container(
+                constraints: const BoxConstraints(minWidth: 52),
+                alignment: Alignment.center,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isDisabled
+                      ? AppColors.primarySurface.withValues(alpha: 0.4)
+                      : AppColors.primarySurface,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                const SizedBox(width: 6),
-                // Valor actual / max
-                Container(
-                  constraints: const BoxConstraints(minWidth: 52),
-                  alignment: Alignment.center,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: AppColors.primarySurface,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '$points/${category.maxPoints}',
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
+                child: Text(
+                  '$points/${category.maxPoints}',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: isDisabled
+                            ? AppColors.primary.withValues(alpha: 0.4)
+                            : AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
-                const SizedBox(width: 6),
-                _SmallAdjustButton(
-                  label: '+1',
-                  isNegative: false,
-                  isDisabled: isDisabled || points >= category.maxPoints,
-                  onPressed: () => onAdjust(1),
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 6),
+              _SmallAdjustButton(
+                label: '+1',
+                isNegative: false,
+                isDisabled: isDisabled || points >= category.maxPoints,
+                onPressed: () => onAdjust(1),
+              ),
+            ],
           ),
         ],
       ],

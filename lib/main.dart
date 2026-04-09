@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'core/config/cache_config.dart';
 import 'core/config/router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
@@ -38,6 +39,10 @@ Future<void> main() async {
   // frame y el handshake con el servidor de AppCheck puede tomar ~1-2 s.
   WidgetsBinding.instance.addPostFrameCallback((_) {
     _initializeFirebaseExtras();
+    // Eagerly initialize the app-wide image cache manager so the first
+    // honors/profile screen doesn't pay the singleton creation cost.
+    // SacCacheManager: 500 objects / 30-day stalePeriod (see cache_config.dart).
+    SacCacheManager.instance;
   });
 
   // Ejecutamos la aplicación con la configuración inicial

@@ -15,6 +15,7 @@ dependencies:
 
   # UI
   cached_network_image: ^3.4.1
+  flutter_cache_manager: ^3.4.1
   cupertino_icons: ^1.0.8
   fl_chart: ^0.69.0
   flutter_svg: ^2.2.0

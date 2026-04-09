@@ -732,6 +732,8 @@ class _CreatorAvatar extends StatelessWidget {
           width: size,
           height: size,
           fit: BoxFit.cover,
+          memCacheWidth: 108,
+          memCacheHeight: 108,
           errorWidget: (_, __, ___) => _buildInitials(context, initial),
         ),
       );

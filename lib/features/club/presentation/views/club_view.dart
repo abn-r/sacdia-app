@@ -848,6 +848,8 @@ class _LogoPreview extends StatelessWidget {
         child: CachedNetworkImage(
           imageUrl: logoUrl,
           fit: BoxFit.cover,
+          memCacheWidth: 300,
+          memCacheHeight: 300,
           errorWidget: (_, __, ___) => Center(
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedImage01,

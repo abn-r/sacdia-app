@@ -622,6 +622,8 @@ class _HonorBadge extends StatelessWidget {
               ? CachedNetworkImage(
                   imageUrl: honor!.imageUrl!,
                   fit: BoxFit.contain,
+                  memCacheWidth: 240,
+                  memCacheHeight: 186,
                   errorWidget: (_, __, ___) => Container(
                     color: Colors.white.withValues(alpha: 0.20),
                     child: const Icon(

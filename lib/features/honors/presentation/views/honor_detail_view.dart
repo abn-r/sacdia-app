@@ -539,6 +539,8 @@ class _BadgeImage extends StatelessWidget {
       return CachedNetworkImage(
         imageUrl: honor.imageUrl!,
         fit: BoxFit.contain,
+        memCacheWidth: 390,
+        memCacheHeight: 390,
         errorWidget: (_, __, ___) => HugeIcon(
           icon: HugeIcons.strokeRoundedAward01,
           size: 36,
@@ -1532,6 +1534,8 @@ class _EvidenceSection extends StatelessWidget {
                         width: 56,
                         height: 56,
                         fit: BoxFit.cover,
+                        memCacheWidth: 168,
+                        memCacheHeight: 168,
                         errorWidget: (_, __, ___) => Container(
                           width: 56,
                           height: 56,

@@ -98,6 +98,8 @@ class WelcomeHeader extends StatelessWidget {
                     ? CachedNetworkImage(
                         imageUrl: userAvatar!,
                         fit: BoxFit.cover,
+                        memCacheWidth: 132,
+                        memCacheHeight: 132,
                         placeholder: (_, __) => _AvatarFallback(
                           initial: firstName,
                         ),
