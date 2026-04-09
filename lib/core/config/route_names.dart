@@ -135,6 +135,13 @@ class RouteNames {
   // Bandeja de notificaciones
   static const String notificationsInbox = '/notifications';
 
+  // Miembro del Mes — historial
+  static const String memberOfMonthHistory =
+      '/units/member-of-month/:clubId/:sectionId';
+
+  static String memberOfMonthHistoryPath(int clubId, int sectionId) =>
+      '/units/member-of-month/$clubId/$sectionId';
+
   // Pagos de camporee (miembro)
   static const String camporeePayments =
       '/camporee/:camporeeId/member/:memberId/payments';

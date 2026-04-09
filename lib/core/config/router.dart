@@ -32,6 +32,7 @@ import 'package:sacdia_app/features/camporees/presentation/views/camporee_member
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_register_member_view.dart';
 import 'package:sacdia_app/features/transfers/presentation/views/transfer_request_detail_view.dart';
 import 'package:sacdia_app/features/transfers/presentation/views/transfer_requests_view.dart';
+import 'package:sacdia_app/features/units/presentation/views/member_of_month_history_view.dart';
 import 'package:sacdia_app/features/units/presentation/views/units_list_view.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_payments_view.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_enroll_club_view.dart';
@@ -862,6 +863,25 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
 
+      // Miembro del Mes — Historial
+      GoRoute(
+        path: RouteNames.memberOfMonthHistory,
+        pageBuilder: (context, state) {
+          final clubId =
+              int.tryParse(state.pathParameters['clubId'] ?? '') ?? 0;
+          final sectionId =
+              int.tryParse(state.pathParameters['sectionId'] ?? '') ?? 0;
+          return _sharedAxisBuild(
+            context,
+            state,
+            MemberOfMonthHistoryView(
+              clubId: clubId,
+              sectionId: sectionId,
+            ),
+          );
+        },
+      ),
+
       // OAuth callback deep link — io.sacdia.app://auth/callback?session_token=...&provider=...
       //
       // GoRouter intercepts the deep link automatically because:
@@ -1118,9 +1138,9 @@ class _EvidenceFolderShell extends ConsumerWidget {
     return clubSectionAsync.when(
       loading: () => Scaffold(
         body: Center(
-          child: LoadingAnimationWidget.inkDrop(
+          child: LoadingAnimationWidget.waveDots(
             color: AppColors.primary,
-            size: 50,
+            size: 30,
           ),
         ),
       ),
@@ -1289,9 +1309,9 @@ class _OAuthCallbackScreenState extends ConsumerState<_OAuthCallbackScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            LoadingAnimationWidget.inkDrop(
+            LoadingAnimationWidget.waveDots(
               color: AppColors.primary,
-              size: 50,
+              size: 30,
             ),
             const SizedBox(height: 24),
             Text(

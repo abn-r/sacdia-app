@@ -362,6 +362,15 @@ class PushNotificationService {
     RouteNames.coordinatorCamporeeApprovals,
   };
 
+  // ── Notification type handlers ───────────────────���───────────────────────
+
+  /// Notification types that require custom navigation logic beyond simple
+  /// route pushing. These types are resolved by [_handleTypedNotification].
+  static const Set<String> _handledNotificationTypes = {
+    'member_of_month',
+    'member_of_month_director',
+  };
+
   /// RegExp patterns for routes that carry path parameters.
   ///
   /// Each pattern must match the entire route string (anchored with ^ and $).
@@ -382,6 +391,8 @@ class PushNotificationService {
     RegExp(r'^/club/[\w\-]+$'),
     // /transfer/<integer>
     RegExp(r'^/transfer/\d+$'),
+    // /units/member-of-month/<clubId>/<sectionId>
+    RegExp(r'^/units/member-of-month/\d+/\d+$'),
     // /notifications (already static, included for completeness via parametric path)
   ];
 
@@ -401,6 +412,14 @@ class PushNotificationService {
     );
 
     final data = message.data;
+
+    // Check for typed notification first (member_of_month, etc.)
+    final type = data['type'] as String?;
+    if (type != null && _handledNotificationTypes.contains(type)) {
+      _handleTypedNotification(type, data);
+      return;
+    }
+
     final route = data['route'] as String?;
 
     if (route == null || route.isEmpty) return;
@@ -424,6 +443,54 @@ class PushNotificationService {
     // The payload 'route' must match a registered GoRouter path
     // (e.g. '/home/dashboard', '/home/classes', '/camporee/42').
     navigator.pushNamed(route);
+  }
+
+  /// Handles notification types that require custom navigation logic.
+  ///
+  /// Supported types:
+  /// - `member_of_month`: navigate to member of month history for the section.
+  ///   Payload: `{ type, club_id, section_id, month, year }`
+  /// - `member_of_month_director`: navigate to the section's units list.
+  ///   Payload: `{ type, club_id, section_id, month, year }`
+  void _handleTypedNotification(String type, Map<String, dynamic> data) {
+    final navigator = navigatorKey?.currentState;
+    if (navigator == null) return;
+
+    AppLogger.i('Manejando notificación tipada: $type', tag: _tag);
+
+    switch (type) {
+      case 'member_of_month':
+        // Navigate to member of month history screen
+        // The route carries club_id and section_id as query params.
+        final clubId = _parseInt(data['club_id']);
+        final sectionId = _parseInt(data['section_id']);
+        if (clubId == null || sectionId == null) {
+          AppLogger.w(
+            'Notificación member_of_month sin club_id/section_id válidos',
+            tag: _tag,
+          );
+          return;
+        }
+        navigator.pushNamed(
+          RouteNames.memberOfMonthHistory,
+          arguments: {'club_id': clubId, 'section_id': sectionId},
+        );
+
+      case 'member_of_month_director':
+        // Navigate to the units list for the section
+        navigator.pushNamed(RouteNames.homeUnits);
+
+      default:
+        AppLogger.w('Tipo de notificación no manejado: $type', tag: _tag);
+    }
+  }
+
+  static int? _parseInt(dynamic v) {
+    if (v == null) return null;
+    if (v is int) return v;
+    if (v is double) return v.toInt();
+    if (v is String) return int.tryParse(v);
+    return null;
   }
 
   // ── Debug helpers ─────────────────────────────────────────────────────────
