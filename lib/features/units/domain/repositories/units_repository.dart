@@ -81,7 +81,9 @@ abstract class UnitsRepository {
     required int unitId,
     required String userId,
     required int week,
+    required int year,
     required int attendance,
+    int punctuality = 0,
     List<Map<String, int>> scores = const [],
   });
 

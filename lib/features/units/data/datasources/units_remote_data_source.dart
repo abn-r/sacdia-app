@@ -75,7 +75,9 @@ abstract class UnitsRemoteDataSource {
     required int unitId,
     required String userId,
     required int week,
+    required int year,
     required int attendance,
+    int punctuality = 0,
     List<Map<String, int>> scores = const [],
   });
 
@@ -353,14 +355,18 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
     required int unitId,
     required String userId,
     required int week,
+    required int year,
     required int attendance,
+    int punctuality = 0,
     List<Map<String, int>> scores = const [],
   }) async {
     try {
       final body = <String, dynamic>{
         'user_id': userId,
         'week': week,
+        'year': year,
         'attendance': attendance,
+        'punctuality': punctuality,
         if (scores.isNotEmpty) 'scores': scores,
       };
 

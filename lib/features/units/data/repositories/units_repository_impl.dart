@@ -218,7 +218,9 @@ class UnitsRepositoryImpl implements UnitsRepository {
     required int unitId,
     required String userId,
     required int week,
+    required int year,
     required int attendance,
+    int punctuality = 0,
     List<Map<String, int>> scores = const [],
   }) async {
     try {
@@ -227,7 +229,9 @@ class UnitsRepositoryImpl implements UnitsRepository {
         unitId: unitId,
         userId: userId,
         week: week,
+        year: year,
         attendance: attendance,
+        punctuality: punctuality,
         scores: scores,
       );
       return Right(model.toEntity());

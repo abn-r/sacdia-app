@@ -19,6 +19,10 @@ class WeeklyRecord {
   final String userId;
   final int week;
 
+  /// Año al que pertenece el registro (ISO 8601, puede diferir de calendar year
+  /// para semanas que cruzan el fin de año).
+  final int year;
+
   /// Puntos de asistencia para la semana.
   final int attendance;
 
@@ -46,6 +50,7 @@ class WeeklyRecord {
     required this.recordId,
     required this.userId,
     required this.week,
+    required this.year,
     required this.attendance,
     required this.punctuality,
     required this.points,

@@ -272,10 +272,10 @@ class UnitsNotifier extends Notifier<UnitsState> {
 
   /// Carga las categorías de puntuación para el campo local del club.
   ///
-  /// El resultado se cachea en el estado — llamadas posteriores son no-ops
-  /// si ya están cargadas.
-  Future<void> loadCategories(int localFieldId) async {
-    if (state.categories.isNotEmpty) return; // ya cargadas
+  /// El resultado se cachea en el estado. Pasá [forceRefresh] en true para
+  /// ignorar el cache y volver a consultar la API.
+  Future<void> loadCategories(int localFieldId, {bool forceRefresh = false}) async {
+    if (state.categories.isNotEmpty && !forceRefresh) return; // ya cargadas
 
     state = state.copyWith(isLoadingCategories: true);
 
@@ -464,9 +464,10 @@ class UnitsNotifier extends Notifier<UnitsState> {
 
     final now = DateTime.now();
     final week = _isoWeekNumber(now);
+    final year = _isoWeekYear(now);
 
     final useCase = ref.read(createWeeklyRecordUseCaseProvider);
-    bool allOk = true;
+    final failures = <String>[];
 
     for (final entry in pendingScores.entries) {
       final memberId = entry.key;
@@ -481,35 +482,41 @@ class UnitsNotifier extends Notifier<UnitsState> {
       final totalPoints =
           memberCategoryScores.values.fold(0, (a, b) => a + b);
       final attendance = totalPoints > 0 ? 1 : 0;
+      // punctuality se usa el mismo valor que attendance por defecto
+      final punctuality = attendance;
 
-      final result = await useCase.call(CreateWeeklyRecordParams(
-        clubId: ctx.clubId,
-        unitId: unit.id,
-        userId: memberId,
-        week: week,
-        attendance: attendance,
-        scores: scores,
-      ));
+      try {
+        final result = await useCase.call(CreateWeeklyRecordParams(
+          clubId: ctx.clubId,
+          unitId: unit.id,
+          userId: memberId,
+          week: week,
+          year: year,
+          attendance: attendance,
+          punctuality: punctuality,
+          scores: scores,
+        ));
 
-      result.fold(
-        (failure) {
-          allOk = false;
-          state = state.copyWith(
-            isSaving: false,
-            errorMessage: failure.message,
-          );
-        },
-        (_) {},
+        result.fold(
+          (failure) => failures.add(memberId),
+          (_) {},
+        );
+      } catch (_) {
+        failures.add(memberId);
+      }
+    }
+
+    if (failures.isNotEmpty) {
+      state = state.copyWith(
+        isSaving: false,
+        errorMessage:
+            'Falló el registro para ${failures.length} miembro${failures.length == 1 ? '' : 's'}',
       );
-
-      if (!allOk) break;
+      return false;
     }
 
-    if (allOk) {
-      state = state.copyWith(isSaving: false, isSavedToday: true);
-    }
-
-    return allOk;
+    state = state.copyWith(isSaving: false, isSavedToday: true);
+    return true;
   }
 
   /// Reinicia los puntos pendientes a 0 para todos los miembros y categorías.
@@ -544,10 +551,24 @@ class UnitsNotifier extends Notifier<UnitsState> {
   }
 
   /// Calcula el número de semana ISO 8601 para una fecha dada.
+  ///
+  /// ISO 8601: la semana empieza el lunes, y la semana 1 es la que contiene
+  /// el primer jueves del año. Esto coincide con el cálculo del backend.
   int _isoWeekNumber(DateTime date) {
-    final dayOfYear =
-        date.difference(DateTime(date.year, 1, 1)).inDays + 1;
-    return ((dayOfYear - 1) ~/ 7) + 1;
+    // Ajustar al jueves de la misma semana ISO
+    final thursday = date.add(Duration(days: DateTime.thursday - date.weekday));
+    final jan1 = DateTime(thursday.year, 1, 1);
+    final dayOfYear = thursday.difference(jan1).inDays;
+    return (dayOfYear ~/ 7) + 1;
+  }
+
+  /// Retorna el año ISO 8601 para una fecha dada.
+  ///
+  /// Para semanas que cruzan el fin de año (ej. semana 1 de enero que pertenece
+  /// al año anterior), el año ISO puede diferir del año calendario.
+  int _isoWeekYear(DateTime date) {
+    final thursday = date.add(Duration(days: DateTime.thursday - date.weekday));
+    return thursday.year;
   }
 }
 
