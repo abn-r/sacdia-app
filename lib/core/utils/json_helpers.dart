@@ -22,6 +22,15 @@ int? safeIntOrNull(dynamic value) {
   return null;
 }
 
+/// Alias for [safeIntOrNull] — provided for consistency with the
+/// private `_parseInt` helpers previously scattered across models.
+///
+/// Returns null when [value] is null or cannot be parsed.
+int? parseInt(dynamic value, {int? defaultValue}) {
+  final result = safeIntOrNull(value);
+  return result ?? defaultValue;
+}
+
 /// Safe string parsing — returns [value].toString() for non-null non-String values.
 String safeString(dynamic value, [String fallback = '']) {
   if (value is String) return value;

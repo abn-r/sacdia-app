@@ -1,3 +1,4 @@
+import '../../../../core/utils/json_helpers.dart';
 import '../../domain/entities/weekly_record.dart';
 
 // ── Score model ───────────────────────────────────────────────────────────────
@@ -17,19 +18,11 @@ class WeeklyRecordScoreModel extends WeeklyRecordScore {
 
   factory WeeklyRecordScoreModel.fromJson(Map<String, dynamic> json) {
     return WeeklyRecordScoreModel(
-      categoryId: _parseInt(json['category_id']) ?? 0,
+      categoryId: parseInt(json['category_id']) ?? 0,
       categoryName: json['category_name']?.toString() ?? '',
-      points: _parseInt(json['points']) ?? 0,
-      maxPoints: _parseInt(json['max_points']) ?? 0,
+      points: parseInt(json['points']) ?? 0,
+      maxPoints: parseInt(json['max_points']) ?? 0,
     );
-  }
-
-  static int? _parseInt(dynamic v) {
-    if (v == null) return null;
-    if (v is int) return v;
-    if (v is double) return v.toInt();
-    if (v is String) return int.tryParse(v);
-    return null;
   }
 }
 
@@ -83,13 +76,13 @@ class WeeklyRecordModel extends WeeklyRecord {
         .toList();
 
     return WeeklyRecordModel(
-      recordId: _parseInt(json['record_id']) ?? 0,
+      recordId: parseInt(json['record_id']) ?? 0,
       userId: (json['user_id'] ?? users['user_id'] ?? '').toString(),
-      week: _parseInt(json['week']) ?? 0,
-      year: _parseInt(json['year']) ?? DateTime.now().year,
-      attendance: _parseInt(json['attendance']) ?? 0,
-      punctuality: _parseInt(json['punctuality']) ?? 0,
-      points: _parseInt(json['points']) ?? 0,
+      week: parseInt(json['week']) ?? 0,
+      year: parseInt(json['year']) ?? DateTime.now().year,
+      attendance: parseInt(json['attendance']) ?? 0,
+      punctuality: parseInt(json['punctuality']) ?? 0,
+      points: parseInt(json['points']) ?? 0,
       active: json['active'] as bool? ?? true,
       userName: users['name']?.toString(),
       userLastName: users['paternal_last_name']?.toString(),
@@ -124,13 +117,4 @@ class WeeklyRecordModel extends WeeklyRecord {
         scores: scores,
       );
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
-
-  static int? _parseInt(dynamic v) {
-    if (v == null) return null;
-    if (v is int) return v;
-    if (v is double) return v.toInt();
-    if (v is String) return int.tryParse(v);
-    return null;
-  }
 }

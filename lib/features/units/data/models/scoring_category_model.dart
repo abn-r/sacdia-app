@@ -1,3 +1,4 @@
+import '../../../../core/utils/json_helpers.dart';
 import '../../domain/entities/scoring_category.dart';
 
 /// Modelo de datos para una categoría de puntuación.
@@ -27,11 +28,11 @@ class ScoringCategoryModel extends ScoringCategory {
 
   factory ScoringCategoryModel.fromJson(Map<String, dynamic> json) {
     return ScoringCategoryModel(
-      scoringCategoryId: _parseInt(json['scoring_category_id']) ?? 0,
+      scoringCategoryId: parseInt(json['scoring_category_id']) ?? 0,
       name: json['name']?.toString() ?? '',
-      maxPoints: _parseInt(json['max_points']) ?? 0,
+      maxPoints: parseInt(json['max_points']) ?? 0,
       originLevel: json['origin_level']?.toString() ?? 'LOCAL_FIELD',
-      originId: _parseInt(json['origin_id']) ?? 0,
+      originId: parseInt(json['origin_id']) ?? 0,
       active: json['active'] as bool? ?? true,
       readonly: json['readonly'] as bool? ?? false,
     );
@@ -57,13 +58,4 @@ class ScoringCategoryModel extends ScoringCategory {
         readonly: readonly,
       );
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
-
-  static int? _parseInt(dynamic v) {
-    if (v == null) return null;
-    if (v is int) return v;
-    if (v is double) return v.toInt();
-    if (v is String) return int.tryParse(v);
-    return null;
-  }
 }

@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../models/member_of_month_history_response_model.dart';
 import '../models/member_of_month_model.dart';
 import '../models/scoring_category_model.dart';
 import '../models/unit_member_model.dart';
@@ -106,7 +107,7 @@ abstract class UnitsRemoteDataSource {
   });
 
   /// Retorna el historial paginado de Miembros del Mes de una sección.
-  Future<Map<String, dynamic>> getMemberOfMonthHistory({
+  Future<MemberOfMonthHistoryResponseModel> getMemberOfMonthHistory({
     required int clubId,
     required int sectionId,
     int page = 1,
@@ -488,7 +489,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
   // ── GET /clubs/:clubId/sections/:sectionId/member-of-month/history ─────────
 
   @override
-  Future<Map<String, dynamic>> getMemberOfMonthHistory({
+  Future<MemberOfMonthHistoryResponseModel> getMemberOfMonthHistory({
     required int clubId,
     required int sectionId,
     int page = 1,
@@ -504,8 +505,10 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
           response, 'Error al obtener el historial de miembro del mes');
 
       final body = response.data;
-      if (body is Map<String, dynamic>) return body;
-      return {'data': body, 'pagination': {}};
+      final json = body is Map<String, dynamic>
+          ? body
+          : <String, dynamic>{'data': body, 'pagination': {}};
+      return MemberOfMonthHistoryResponseModel.fromJson(json);
     } catch (e) {
       AppLogger.e('Error en getMemberOfMonthHistory', tag: _tag, error: e);
       _rethrow(e);

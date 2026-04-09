@@ -1,3 +1,4 @@
+import '../../../../core/utils/json_helpers.dart';
 import '../../domain/entities/member_of_month.dart';
 
 /// Modelo de un ganador individual del Miembro del Mes.
@@ -23,7 +24,7 @@ class MemberOfMonthEntryModel extends MemberOfMonthEntry {
       userId: json['user_id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       photoUrl: json['photo_url']?.toString(),
-      totalPoints: _parseInt(json['total_points']) ?? 0,
+      totalPoints: parseInt(json['total_points']) ?? 0,
     );
   }
 
@@ -40,14 +41,6 @@ class MemberOfMonthEntryModel extends MemberOfMonthEntry {
         photoUrl: photoUrl,
         totalPoints: totalPoints,
       );
-
-  static int? _parseInt(dynamic v) {
-    if (v == null) return null;
-    if (v is int) return v;
-    if (v is double) return v.toInt();
-    if (v is String) return int.tryParse(v);
-    return null;
-  }
 }
 
 /// Modelo del Miembro del Mes para un mes/año dado.
@@ -77,8 +70,8 @@ class MemberOfMonthModel extends MemberOfMonth {
         .toList();
 
     return MemberOfMonthModel(
-      month: _parseInt(json['month']) ?? 0,
-      year: _parseInt(json['year']) ?? 0,
+      month: parseInt(json['month']) ?? 0,
+      year: parseInt(json['year']) ?? 0,
       members: members,
     );
   }
@@ -108,12 +101,4 @@ class MemberOfMonthModel extends MemberOfMonth {
                 ))
             .toList(),
       );
-
-  static int? _parseInt(dynamic v) {
-    if (v == null) return null;
-    if (v is int) return v;
-    if (v is double) return v.toInt();
-    if (v is String) return int.tryParse(v);
-    return null;
-  }
 }

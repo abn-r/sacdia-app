@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart' hide Unit;
 
 import '../../../../core/errors/failures.dart';
 import '../entities/member_of_month.dart';
+import '../entities/member_of_month_history_response.dart';
 import '../entities/scoring_category.dart';
 import '../entities/unit.dart';
 import '../entities/unit_member.dart';
@@ -113,7 +114,7 @@ abstract class UnitsRepository {
   });
 
   /// Retorna el historial paginado de Miembros del Mes de una sección.
-  Future<Either<Failure, Map<String, dynamic>>> getMemberOfMonthHistory({
+  Future<Either<Failure, MemberOfMonthHistoryResponse>> getMemberOfMonthHistory({
     required int clubId,
     required int sectionId,
     int page = 1,

@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../entities/member_of_month_history_response.dart';
 import '../repositories/units_repository.dart';
 
 class GetMemberOfMonthHistoryParams extends Equatable {
@@ -27,7 +28,7 @@ class GetMemberOfMonthHistory {
 
   const GetMemberOfMonthHistory(this._repository);
 
-  Future<Either<Failure, Map<String, dynamic>>> call(
+  Future<Either<Failure, MemberOfMonthHistoryResponse>> call(
     GetMemberOfMonthHistoryParams params,
   ) {
     return _repository.getMemberOfMonthHistory(

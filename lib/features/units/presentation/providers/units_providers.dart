@@ -4,7 +4,6 @@ import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../data/datasources/units_remote_data_source.dart';
-import '../../data/models/member_of_month_model.dart';
 import '../../data/repositories/units_repository_impl.dart';
 import '../../domain/entities/member_of_month.dart';
 import '../../domain/entities/scoring_category.dart';
@@ -665,34 +664,19 @@ class MemberOfMonthHistoryNotifier
         errorMessage: failure.message,
       ),
       (response) {
-        final rawData = response['data'] as List<dynamic>? ?? [];
-        final newItems = rawData
-            .whereType<Map<String, dynamic>>()
-            .map((json) => MemberOfMonthModel.fromJson(json).toEntity())
-            .toList();
-
-        final pagination = response['pagination'] as Map<String, dynamic>? ?? {};
-        final total = _parseInt(pagination['total']) ?? 0;
-        final totalLoaded = state.items.length + newItems.length;
+        final totalLoaded = state.items.length + response.data.length;
 
         state = state.copyWith(
-          items: [...state.items, ...newItems],
+          items: [...state.items, ...response.data],
           currentPage: nextPage,
-          totalItems: total,
+          totalItems: response.total,
           isLoading: false,
-          hasMore: totalLoaded < total,
+          hasMore: totalLoaded < response.total,
         );
       },
     );
   }
 
-  static int? _parseInt(dynamic v) {
-    if (v == null) return null;
-    if (v is int) return v;
-    if (v is double) return v.toInt();
-    if (v is String) return int.tryParse(v);
-    return null;
-  }
 }
 
 /// Provider para el historial del Miembro del Mes.

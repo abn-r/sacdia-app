@@ -4,6 +4,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
 import '../../domain/entities/member_of_month.dart';
+import '../../domain/entities/member_of_month_history_response.dart';
 import '../../domain/entities/scoring_category.dart';
 import '../../domain/entities/unit.dart';
 import '../../domain/entities/unit_member.dart';
@@ -315,20 +316,21 @@ class UnitsRepositoryImpl implements UnitsRepository {
   }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> getMemberOfMonthHistory({
+  Future<Either<Failure, MemberOfMonthHistoryResponse>>
+      getMemberOfMonthHistory({
     required int clubId,
     required int sectionId,
     int page = 1,
     int limit = 12,
   }) async {
     try {
-      final result = await remoteDataSource.getMemberOfMonthHistory(
+      final model = await remoteDataSource.getMemberOfMonthHistory(
         clubId: clubId,
         sectionId: sectionId,
         page: page,
         limit: limit,
       );
-      return Right(result);
+      return Right(model.toEntity());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on AuthException catch (e) {
