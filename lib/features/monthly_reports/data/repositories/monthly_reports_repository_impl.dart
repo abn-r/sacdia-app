@@ -79,10 +79,10 @@ class MonthlyReportsRepositoryImpl implements MonthlyReportsRepository {
   }
 
   @override
-  Future<Either<Failure, String>> getReportPdfUrl(int reportId) async {
+  Future<Either<Failure, String>> downloadReportPdf(int reportId) async {
     try {
-      final url = await remoteDataSource.getReportPdfUrl(reportId);
-      return Right(url);
+      final localPath = await remoteDataSource.downloadReportPdf(reportId);
+      return Right(localPath);
     } on ServerException catch (e) {
       return _serverFailure(e);
     } on AuthException catch (e) {

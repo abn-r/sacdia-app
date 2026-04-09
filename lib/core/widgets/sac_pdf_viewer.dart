@@ -5,20 +5,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
 
+/// A full-screen PDF viewer that accepts either a local file path or a public
+/// remote URL.
+///
+/// - Local path (starts with '/'): displayed directly without any network request.
+/// - Remote URL (http/https): downloaded using a plain Dio instance.
+///   These should be publicly accessible URLs (e.g. Cloudflare R2 signed URLs)
+///   that do NOT require authentication headers.
+///
+/// IMPORTANT: Never pass backend URLs that require a Bearer token to this
+/// widget. Authenticated PDFs must be downloaded by the data source layer
+/// (using the injected authenticated Dio client) and the resulting local path
+/// must be passed here instead.
 class SacPdfViewer extends StatefulWidget {
-  final String pdfUrl;
+  /// Either a local absolute file path or a public http/https URL.
+  final String pdfSource;
   final String? title;
 
   const SacPdfViewer({
     super.key,
-    required this.pdfUrl,
+    required this.pdfSource,
     this.title,
   });
 
-  static void show(BuildContext context, {required String pdfUrl, String? title}) {
+  static void show(
+    BuildContext context, {
+    required String pdfSource,
+    String? title,
+  }) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => SacPdfViewer(pdfUrl: pdfUrl, title: title),
+        builder: (_) => SacPdfViewer(pdfSource: pdfSource, title: title),
       ),
     );
   }
@@ -34,21 +51,58 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
   int _currentPage = 0;
   int _totalPages = 0;
 
+  /// Tracks whether this widget created the temp file (so we own cleanup).
+  bool _ownsTempFile = false;
+
+  bool get _isLocalPath => widget.pdfSource.startsWith('/');
+
   @override
   void initState() {
     super.initState();
-    _downloadPdf();
+    if (_isLocalPath) {
+      _useLocalFile();
+    } else {
+      _downloadPdf();
+    }
   }
 
+  @override
+  void dispose() {
+    _deleteTempFile();
+    super.dispose();
+  }
+
+  /// Uses the already-local file directly — no download needed.
+  void _useLocalFile() {
+    final file = File(widget.pdfSource);
+    if (file.existsSync()) {
+      setState(() {
+        _localPath = widget.pdfSource;
+        _loading = false;
+      });
+    } else {
+      setState(() {
+        _error = 'El archivo PDF no se encontró en el dispositivo';
+        _loading = false;
+      });
+    }
+  }
+
+  /// Downloads a publicly accessible PDF URL (no auth required).
+  /// Use only for public signed URLs such as Cloudflare R2 pre-signed links.
   Future<void> _downloadPdf() async {
     try {
       final dir = await getTemporaryDirectory();
-      final filename = 'sacdia_pdf_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final filename =
+          'sacdia_pdf_${DateTime.now().millisecondsSinceEpoch}.pdf';
       final filePath = '${dir.path}/$filename';
 
-      await Dio().download(widget.pdfUrl, filePath);
+      // Plain Dio is intentional here: this path is only reached for public
+      // signed URLs that do not require an Authorization header.
+      await Dio().download(widget.pdfSource, filePath);
 
       if (mounted) {
+        _ownsTempFile = true;
         setState(() {
           _localPath = filePath;
           _loading = false;
@@ -61,6 +115,20 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
           _loading = false;
         });
       }
+    }
+  }
+
+  Future<void> _deleteTempFile() async {
+    if (!_ownsTempFile) return;
+    final path = _localPath;
+    if (path == null) return;
+    try {
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (_) {
+      // Cleanup failure is non-fatal — temp files are evicted by the OS anyway.
     }
   }
 
@@ -83,7 +151,10 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
                 'Pagina ${_currentPage + 1} de $_totalPages',
                 style: TextStyle(
                   fontSize: 11,
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.6),
                 ),
               ),
           ],
@@ -126,7 +197,11 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
                   _loading = true;
                   _error = null;
                 });
-                _downloadPdf();
+                if (_isLocalPath) {
+                  _useLocalFile();
+                } else {
+                  _downloadPdf();
+                }
               },
               child: const Text('Reintentar'),
             ),

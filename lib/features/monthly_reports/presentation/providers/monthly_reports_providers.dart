@@ -90,13 +90,14 @@ final monthlyReportDetailProvider =
   );
 });
 
-/// URL del PDF de un informe mensual.
-final monthlyReportPdfUrlProvider =
+/// Descarga el PDF de un informe mensual y devuelve la ruta local del archivo
+/// temporal. El token JWT se envía en el header Authorization — nunca en la URL.
+final monthlyReportPdfProvider =
     FutureProvider.autoDispose.family<String, int>((ref, reportId) async {
   final repo = ref.read(monthlyReportsRepositoryProvider);
-  final result = await repo.getReportPdfUrl(reportId);
+  final result = await repo.downloadReportPdf(reportId);
   return result.fold(
     (failure) => throw Exception(failure.message),
-    (url) => url,
+    (localPath) => localPath,
   );
 });

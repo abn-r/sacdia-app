@@ -7,7 +7,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/app_logger.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 
 import '../../domain/entities/monthly_report.dart';
 import '../providers/monthly_reports_providers.dart';
@@ -71,8 +71,9 @@ class MonthlyReportDetailView extends ConsumerWidget {
 // The backend endpoint (GET /monthly-reports/:reportId/pdf) generates the PDF
 // on demand and streams raw application/pdf bytes — it does not return a signed
 // URL or a JSON payload. There is no pdfUrl field in the detail response.
-// monthlyReportPdfUrlProvider constructs the authenticated URL that is passed
-// to url_launcher so the OS can open or download the PDF. The provider is only
+// monthlyReportPdfProvider downloads the PDF via the authenticated Dio client
+// (Bearer token in Authorization header, never in the URL), saves it to a temp
+// file, and passes the local path to SacPdfViewer. The provider is only
 // invoked on user interaction (tap), never at page load.
 
 class _PdfButton extends ConsumerWidget {
@@ -95,32 +96,31 @@ class _PdfButton extends ConsumerWidget {
 
   Future<void> _openPdf(BuildContext context, WidgetRef ref) async {
     try {
-      final pdfUrlAsync =
-          await ref.read(monthlyReportPdfUrlProvider(reportId).future);
-      final uri = Uri.tryParse(pdfUrlAsync);
-      if (uri == null || !['http', 'https'].contains(uri.scheme)) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No se pudo abrir el PDF'),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-        return;
-      }
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else if (context.mounted) {
+      // Show a loading indicator while downloading.
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('No se pudo abrir el PDF'),
+            content: Text('Descargando PDF…'),
+            duration: Duration(seconds: 30),
             behavior: SnackBarBehavior.floating,
           ),
         );
       }
+
+      final localPath =
+          await ref.read(monthlyReportPdfProvider(reportId).future);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        SacPdfViewer.show(
+          context,
+          pdfSource: localPath,
+          title: 'Informe mensual',
+        );
+      }
     } catch (e) {
       if (context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -171,20 +171,45 @@ class _ReportDetail extends ConsumerWidget {
 
         // ── PDF button at bottom ────────────────────────────────────────
         SacButton.outline(
-          text: 'Descargar PDF',
+          text: 'Ver PDF',
           icon: HugeIcons.strokeRoundedPdf01,
           onPressed: () async {
             try {
-              final url = await ref
-                  .read(monthlyReportPdfUrlProvider(reportId).future);
-              final uri = Uri.tryParse(url);
-              if (uri == null || !['http', 'https'].contains(uri.scheme)) return;
-              if (await canLaunchUrl(uri)) {
-                await launchUrl(uri,
-                    mode: LaunchMode.externalApplication);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Descargando PDF…'),
+                    duration: Duration(seconds: 30),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+
+              final localPath = await ref
+                  .read(monthlyReportPdfProvider(reportId).future);
+
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                SacPdfViewer.show(
+                  context,
+                  pdfSource: localPath,
+                  title: 'Informe mensual',
+                );
               }
             } catch (e) {
-              AppLogger.w('Error al abrir PDF del informe mensual', tag: _tag, error: e);
+              AppLogger.w('Error al abrir PDF del informe mensual',
+                  tag: _tag, error: e);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Error al obtener el PDF: ${e.toString().replaceFirst("Exception: ", "")}',
+                    ),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
             }
           },
         ),

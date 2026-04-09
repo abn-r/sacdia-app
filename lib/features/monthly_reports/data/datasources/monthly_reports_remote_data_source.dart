@@ -1,5 +1,7 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -17,8 +19,9 @@ abstract class MonthlyReportsRemoteDataSource {
 
   Future<MonthlyReportModel> getReportDetail(int reportId);
 
-  /// Devuelve la URL del PDF (redirige o devuelve una URL directa).
-  Future<String> getReportPdfUrl(int reportId);
+  /// Descarga el PDF del informe usando el cliente autenticado y devuelve
+  /// la ruta local del archivo temporal.
+  Future<String> downloadReportPdf(int reportId);
 }
 
 /// Implementación del data source remoto de informes mensuales
@@ -154,43 +157,35 @@ class MonthlyReportsRemoteDataSourceImpl
   // ── GET /api/v1/monthly-reports/:reportId/pdf ────────────────────────────
 
   @override
-  Future<String> getReportPdfUrl(int reportId) async {
+  Future<String> downloadReportPdf(int reportId) async {
     try {
-      // The PDF endpoint may return a redirect or a JSON with a url field.
-      // We disable followRedirects to capture the Location header if present.
-      final response = await _dio.get(
+      final dir = await getTemporaryDirectory();
+      final filename =
+          'sacdia_report_${reportId}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final filePath = '${dir.path}/$filename';
+
+      // Download PDF bytes via the authenticated Dio client.
+      // AuthInterceptor will attach the Bearer token in the Authorization
+      // header, so the JWT never appears in the URL or query parameters.
+      await _dio.download(
         '$_baseUrl${ApiEndpoints.monthlyReports}/$reportId/pdf',
+        filePath,
         options: Options(
-          followRedirects: false,
-          validateStatus: (status) =>
-              status != null && (status < 400 || status == 302),
+          // responseType is intentionally omitted: Dio.download() always
+          // streams the response body to disk and ignores responseType.
+          followRedirects: true,
+          validateStatus: (status) => status != null && status < 400,
         ),
       );
 
-      // If redirect (302), return the Location header
-      if (response.statusCode == 302) {
-        final location = response.headers.value('location');
-        if (location != null) return location;
+      final file = File(filePath);
+      if (!await file.exists() || await file.length() == 0) {
+        throw ServerException(message: 'El archivo PDF descargado está vacío');
       }
 
-      // If JSON response with url field
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = response.data;
-        if (data is Map) {
-          final url = data['url'] ?? data['pdf_url'] ?? data['download_url'];
-          if (url != null) return url.toString();
-        }
-        // If data is directly a string URL
-        if (data is String) return data;
-      }
-
-      // Fallback: build URL with token as query param (for direct browser/webview access)
-      const storage = FlutterSecureStorage();
-      final token = await storage.read(key: 'auth_token');
-      final base = '$_baseUrl${ApiEndpoints.monthlyReports}/$reportId/pdf';
-      return token != null ? '$base?token=$token' : base;
+      return filePath;
     } catch (e) {
-      AppLogger.e('Error en getReportPdfUrl', tag: _tag, error: e);
+      AppLogger.e('Error en downloadReportPdf', tag: _tag, error: e);
       _rethrow(e);
     }
   }

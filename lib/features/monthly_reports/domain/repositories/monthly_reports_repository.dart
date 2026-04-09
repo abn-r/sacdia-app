@@ -21,14 +21,13 @@ abstract class MonthlyReportsRepository {
   /// GET /api/v1/monthly-reports/:reportId
   Future<Either<Failure, MonthlyReport>> getReportDetail(int reportId);
 
-  /// Constructs the authenticated URL for downloading the monthly report PDF.
+  /// Downloads the monthly report PDF via the authenticated HTTP client and
+  /// returns the local file path of the saved temporary file.
   /// GET /api/v1/monthly-reports/:reportId/pdf
   ///
-  /// The backend endpoint streams raw PDF bytes (application/pdf) directly —
-  /// it does not return a signed URL or a JSON payload. The data source
-  /// constructs a URL with the auth token appended as a query parameter so
-  /// url_launcher can open it in an external browser/viewer. This call is
-  /// intentionally separate from getReportDetail because the detail response
-  /// contains no pdfUrl field; the PDF is generated on demand server-side.
-  Future<Either<Failure, String>> getReportPdfUrl(int reportId);
+  /// The Bearer token is sent in the Authorization header — never in the URL.
+  /// This call is intentionally separate from getReportDetail because the
+  /// detail response contains no pdfUrl field; the PDF is generated on demand
+  /// server-side.
+  Future<Either<Failure, String>> downloadReportPdf(int reportId);
 }

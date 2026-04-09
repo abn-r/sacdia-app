@@ -424,7 +424,7 @@ class _StagedFileCell extends StatelessWidget {
       if (file.isImage) {
         SacImageViewer.show(context, imageUrl: file.remoteUrl!, title: file.name);
       } else if (file.isPdf) {
-        SacPdfViewer.show(context, pdfUrl: file.remoteUrl!, title: file.name);
+        SacPdfViewer.show(context, pdfSource: file.remoteUrl!, title: file.name);
       }
     } else if (file.isLocal && file.localPath != null && file.isImage) {
       // Local images: full-screen preview with InteractiveViewer
