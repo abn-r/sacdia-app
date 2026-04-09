@@ -3,6 +3,8 @@ import 'package:dio/dio.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../models/member_of_month_model.dart';
+import '../models/scoring_category_model.dart';
 import '../models/unit_member_model.dart';
 import '../models/unit_model.dart';
 import '../models/weekly_record_model.dart';
@@ -65,25 +67,48 @@ abstract class UnitsRemoteDataSource {
   });
 
   /// Crea un registro semanal para un miembro de la unidad.
+  ///
+  /// [scores] es la lista de puntajes por categoría:
+  /// `[{ 'category_id': 1, 'points': 5 }, ...]`
   Future<WeeklyRecordModel> createWeeklyRecord({
     required int clubId,
     required int unitId,
     required String userId,
     required int week,
     required int attendance,
-    required int punctuality,
-    required int points,
+    List<Map<String, int>> scores = const [],
   });
 
   /// Actualiza un registro semanal existente.
+  ///
+  /// [scores] es la lista de puntajes por categoría (actualización parcial).
   Future<WeeklyRecordModel> updateWeeklyRecord({
     required int clubId,
     required int unitId,
     required int recordId,
     int? attendance,
-    int? punctuality,
-    int? points,
+    List<Map<String, int>>? scores,
     bool? active,
+  });
+
+  /// Retorna las categorías de puntuación activas para un campo local.
+  Future<List<ScoringCategoryModel>> getScoringCategories({
+    required int localFieldId,
+  });
+
+  /// Retorna el Miembro del Mes actual de una sección del club.
+  /// Retorna null si no hay datos para el mes actual.
+  Future<MemberOfMonthModel?> getMemberOfMonth({
+    required int clubId,
+    required int sectionId,
+  });
+
+  /// Retorna el historial paginado de Miembros del Mes de una sección.
+  Future<Map<String, dynamic>> getMemberOfMonthHistory({
+    required int clubId,
+    required int sectionId,
+    int page = 1,
+    int limit = 12,
   });
 }
 
@@ -329,19 +354,19 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
     required String userId,
     required int week,
     required int attendance,
-    required int punctuality,
-    required int points,
+    List<Map<String, int>> scores = const [],
   }) async {
     try {
+      final body = <String, dynamic>{
+        'user_id': userId,
+        'week': week,
+        'attendance': attendance,
+        if (scores.isNotEmpty) 'scores': scores,
+      };
+
       final response = await _dio.post(
         '${_unitsBase(clubId)}/$unitId/weekly-records',
-        data: {
-          'user_id': userId,
-          'week': week,
-          'attendance': attendance,
-          'punctuality': punctuality,
-          'points': points,
-        },
+        data: body,
       );
 
       _assertSuccess(response, 'Error al crear el registro semanal');
@@ -362,15 +387,13 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
     required int unitId,
     required int recordId,
     int? attendance,
-    int? punctuality,
-    int? points,
+    List<Map<String, int>>? scores,
     bool? active,
   }) async {
     try {
       final body = <String, dynamic>{
         if (attendance != null) 'attendance': attendance,
-        if (punctuality != null) 'punctuality': punctuality,
-        if (points != null) 'points': points,
+        if (scores != null && scores.isNotEmpty) 'scores': scores,
         if (active != null) 'active': active,
       };
 
@@ -385,6 +408,100 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
       return WeeklyRecordModel.fromJson(json);
     } catch (e) {
       AppLogger.e('Error en updateWeeklyRecord', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /local-fields/:fieldId/scoring-categories ─────────────────────────
+
+  @override
+  Future<List<ScoringCategoryModel>> getScoringCategories({
+    required int localFieldId,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl/local-fields/$localFieldId/scoring-categories',
+      );
+
+      _assertSuccess(response, 'Error al obtener las categorías de puntuación');
+
+      final body = response.data;
+      final List<dynamic> rawList = body is List
+          ? body
+          : (body as Map<String, dynamic>)['data'] as List<dynamic>? ?? [];
+
+      return rawList
+          .whereType<Map<String, dynamic>>()
+          .map((e) => ScoringCategoryModel.fromJson(e))
+          .toList();
+    } catch (e) {
+      AppLogger.e('Error en getScoringCategories', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /clubs/:clubId/sections/:sectionId/member-of-month ────────────────
+
+  @override
+  Future<MemberOfMonthModel?> getMemberOfMonth({
+    required int clubId,
+    required int sectionId,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/member-of-month',
+      );
+
+      _assertSuccess(response, 'Error al obtener el miembro del mes');
+
+      final body = response.data;
+      // Si el backend retorna null o un objeto sin members, no hay datos.
+      if (body == null) return null;
+
+      final json = body is Map<String, dynamic>
+          ? body
+          : (body['data'] as Map<String, dynamic>?);
+      if (json == null) return null;
+
+      final model = MemberOfMonthModel.fromJson(json);
+      // Si no hay miembros, la evaluación aún no corrió — tratar como null.
+      if (model.members.isEmpty) return null;
+
+      return model;
+    } on DioException catch (e) {
+      // 404 significa que no hay datos para el mes actual — retornar null.
+      if (e.response?.statusCode == 404) return null;
+      AppLogger.e('Error en getMemberOfMonth', tag: _tag, error: e);
+      _rethrow(e);
+    } catch (e) {
+      AppLogger.e('Error en getMemberOfMonth', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /clubs/:clubId/sections/:sectionId/member-of-month/history ─────────
+
+  @override
+  Future<Map<String, dynamic>> getMemberOfMonthHistory({
+    required int clubId,
+    required int sectionId,
+    int page = 1,
+    int limit = 12,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/member-of-month/history',
+        queryParameters: {'page': page, 'limit': limit},
+      );
+
+      _assertSuccess(
+          response, 'Error al obtener el historial de miembro del mes');
+
+      final body = response.data;
+      if (body is Map<String, dynamic>) return body;
+      return {'data': body, 'pagination': {}};
+    } catch (e) {
+      AppLogger.e('Error en getMemberOfMonthHistory', tag: _tag, error: e);
       _rethrow(e);
     }
   }

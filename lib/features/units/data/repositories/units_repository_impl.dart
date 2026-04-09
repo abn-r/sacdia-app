@@ -3,6 +3,8 @@ import 'package:dartz/dartz.dart' hide Unit;
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../domain/entities/member_of_month.dart';
+import '../../domain/entities/scoring_category.dart';
 import '../../domain/entities/unit.dart';
 import '../../domain/entities/unit_member.dart';
 import '../../domain/entities/weekly_record.dart';
@@ -217,8 +219,7 @@ class UnitsRepositoryImpl implements UnitsRepository {
     required String userId,
     required int week,
     required int attendance,
-    required int punctuality,
-    required int points,
+    List<Map<String, int>> scores = const [],
   }) async {
     try {
       final model = await remoteDataSource.createWeeklyRecord(
@@ -227,8 +228,7 @@ class UnitsRepositoryImpl implements UnitsRepository {
         userId: userId,
         week: week,
         attendance: attendance,
-        punctuality: punctuality,
-        points: points,
+        scores: scores,
       );
       return Right(model.toEntity());
     } on ServerException catch (e) {
@@ -246,8 +246,7 @@ class UnitsRepositoryImpl implements UnitsRepository {
     required int unitId,
     required int recordId,
     int? attendance,
-    int? punctuality,
-    int? points,
+    List<Map<String, int>>? scores,
     bool? active,
   }) async {
     try {
@@ -256,11 +255,76 @@ class UnitsRepositoryImpl implements UnitsRepository {
         unitId: unitId,
         recordId: recordId,
         attendance: attendance,
-        punctuality: punctuality,
-        points: points,
+        scores: scores,
         active: active,
       );
       return Right(model.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  // ── Scoring categories ─────────────────────────────────────────────────────
+
+  @override
+  Future<Either<Failure, List<ScoringCategory>>> getScoringCategories({
+    required int localFieldId,
+  }) async {
+    try {
+      final models = await remoteDataSource.getScoringCategories(
+        localFieldId: localFieldId,
+      );
+      return Right(models.map((m) => m.toEntity()).toList());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  // ── Member of the Month ────────────────────────────────────────────────────
+
+  @override
+  Future<Either<Failure, MemberOfMonth?>> getMemberOfMonth({
+    required int clubId,
+    required int sectionId,
+  }) async {
+    try {
+      final model = await remoteDataSource.getMemberOfMonth(
+        clubId: clubId,
+        sectionId: sectionId,
+      );
+      return Right(model?.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getMemberOfMonthHistory({
+    required int clubId,
+    required int sectionId,
+    int page = 1,
+    int limit = 12,
+  }) async {
+    try {
+      final result = await remoteDataSource.getMemberOfMonthHistory(
+        clubId: clubId,
+        sectionId: sectionId,
+        page: page,
+        limit: limit,
+      );
+      return Right(result);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on AuthException catch (e) {

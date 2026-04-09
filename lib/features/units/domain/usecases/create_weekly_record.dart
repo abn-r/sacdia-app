@@ -11,8 +11,10 @@ class CreateWeeklyRecordParams extends Equatable {
   final String userId;
   final int week;
   final int attendance;
-  final int punctuality;
-  final int points;
+
+  /// Puntajes por categoría dinámica.
+  /// Formato: `[{ 'category_id': 1, 'points': 5 }, ...]`
+  final List<Map<String, int>> scores;
 
   const CreateWeeklyRecordParams({
     required this.clubId,
@@ -20,13 +22,12 @@ class CreateWeeklyRecordParams extends Equatable {
     required this.userId,
     required this.week,
     required this.attendance,
-    required this.punctuality,
-    required this.points,
+    this.scores = const [],
   });
 
   @override
   List<Object> get props =>
-      [clubId, unitId, userId, week, attendance, punctuality, points];
+      [clubId, unitId, userId, week, attendance, scores];
 }
 
 /// Caso de uso: crea un registro semanal para un miembro de la unidad.
@@ -42,8 +43,7 @@ class CreateWeeklyRecord {
       userId: params.userId,
       week: params.week,
       attendance: params.attendance,
-      punctuality: params.punctuality,
-      points: params.points,
+      scores: params.scores,
     );
   }
 }

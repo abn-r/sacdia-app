@@ -10,8 +10,11 @@ class UpdateWeeklyRecordParams extends Equatable {
   final int unitId;
   final int recordId;
   final int? attendance;
-  final int? punctuality;
-  final int? points;
+
+  /// Puntajes por categoría (actualización parcial — solo las incluidas).
+  /// Formato: `[{ 'category_id': 1, 'points': 5 }, ...]`
+  final List<Map<String, int>>? scores;
+
   final bool? active;
 
   const UpdateWeeklyRecordParams({
@@ -19,14 +22,13 @@ class UpdateWeeklyRecordParams extends Equatable {
     required this.unitId,
     required this.recordId,
     this.attendance,
-    this.punctuality,
-    this.points,
+    this.scores,
     this.active,
   });
 
   @override
   List<Object?> get props =>
-      [clubId, unitId, recordId, attendance, punctuality, points, active];
+      [clubId, unitId, recordId, attendance, scores, active];
 }
 
 /// Caso de uso: actualiza un registro semanal existente.
@@ -41,8 +43,7 @@ class UpdateWeeklyRecord {
       unitId: params.unitId,
       recordId: params.recordId,
       attendance: params.attendance,
-      punctuality: params.punctuality,
-      points: params.points,
+      scores: params.scores,
       active: params.active,
     );
   }

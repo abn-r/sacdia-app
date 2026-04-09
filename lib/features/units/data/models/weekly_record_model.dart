@@ -1,5 +1,38 @@
 import '../../domain/entities/weekly_record.dart';
 
+// ── Score model ───────────────────────────────────────────────────────────────
+
+/// Modelo de un puntaje por categoría dentro de un registro semanal.
+///
+/// ```json
+/// { "category_id": 1, "category_name": "Puntualidad", "points": 5, "max_points": 5 }
+/// ```
+class WeeklyRecordScoreModel extends WeeklyRecordScore {
+  const WeeklyRecordScoreModel({
+    required super.categoryId,
+    required super.categoryName,
+    required super.points,
+    required super.maxPoints,
+  });
+
+  factory WeeklyRecordScoreModel.fromJson(Map<String, dynamic> json) {
+    return WeeklyRecordScoreModel(
+      categoryId: _parseInt(json['category_id']) ?? 0,
+      categoryName: json['category_name']?.toString() ?? '',
+      points: _parseInt(json['points']) ?? 0,
+      maxPoints: _parseInt(json['max_points']) ?? 0,
+    );
+  }
+
+  static int? _parseInt(dynamic v) {
+    if (v == null) return null;
+    if (v is int) return v;
+    if (v is double) return v.toInt();
+    if (v is String) return int.tryParse(v);
+    return null;
+  }
+}
+
 /// Modelo de datos para los registros semanales de una unidad.
 ///
 /// Respuesta esperada del backend:
@@ -34,10 +67,19 @@ class WeeklyRecordModel extends WeeklyRecord {
     super.userName,
     super.userLastName,
     super.userImage,
+    super.scores,
   });
 
   factory WeeklyRecordModel.fromJson(Map<String, dynamic> json) {
     final users = json['users'] as Map<String, dynamic>? ?? {};
+
+    // Parse enriched scores from backend
+    final rawScores = json['scores'] as List<dynamic>? ?? [];
+    final scores = rawScores
+        .whereType<Map<String, dynamic>>()
+        .map((s) => WeeklyRecordScoreModel.fromJson(s))
+        .cast<WeeklyRecordScore>()
+        .toList();
 
     return WeeklyRecordModel(
       recordId: _parseInt(json['record_id']) ?? 0,
@@ -50,6 +92,7 @@ class WeeklyRecordModel extends WeeklyRecord {
       userName: users['name']?.toString(),
       userLastName: users['paternal_last_name']?.toString(),
       userImage: users['user_image']?.toString(),
+      scores: scores,
     );
   }
 
@@ -74,6 +117,7 @@ class WeeklyRecordModel extends WeeklyRecord {
         userName: userName,
         userLastName: userLastName,
         userImage: userImage,
+        scores: scores,
       );
 
   // ── Helpers ───────────────────────────────────────────────────────────────
