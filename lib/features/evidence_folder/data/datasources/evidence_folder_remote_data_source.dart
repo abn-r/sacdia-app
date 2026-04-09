@@ -10,7 +10,7 @@ abstract class EvidenceFolderRemoteDataSource {
   /// Obtiene la carpeta anual de una sección de club.
   ///
   /// Usa el endpoint de conveniencia que acepta [clubSectionId] como integer.
-  Future<EvidenceFolderModel> getEvidenceFolder(String clubSectionId);
+  Future<EvidenceFolderModel> getEvidenceFolder(String clubSectionId, {CancelToken? cancelToken});
 
   /// Envía la carpeta completa a validación.
   ///
@@ -67,10 +67,11 @@ class EvidenceFolderRemoteDataSourceImpl
 
   @override
   Future<EvidenceFolderModel> getEvidenceFolder(
-      String clubSectionId) async {
+      String clubSectionId, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubSections}/$clubSectionId/annual-folder',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -87,6 +88,7 @@ class EvidenceFolderRemoteDataSourceImpl
         code: response.statusCode,
       );
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getEvidenceFolder', tag: _tag, error: e);
       _rethrow(e);
     }

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -33,8 +34,10 @@ final camporeesRepositoryProvider =
 /// Provider para la lista de camporees activos.
 final camporeesProvider =
     FutureProvider.autoDispose<List<Camporee>>((ref) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final repository = ref.read(camporeesRepositoryProvider);
-  final result = await repository.getCamporees(active: true);
+  final result = await repository.getCamporees(active: true, cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -68,8 +71,10 @@ final camporeeDetailProvider =
     if (cached != null) return cached;
   }
 
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final repository = ref.read(camporeesRepositoryProvider);
-  final result = await repository.getCamporeeDetail(camporeeId);
+  final result = await repository.getCamporeeDetail(camporeeId, cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -83,8 +88,10 @@ final camporeeDetailProvider =
 final camporeeMembersProvider =
     FutureProvider.autoDispose.family<List<CamporeeMember>, int>(
         (ref, camporeeId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final repository = ref.read(camporeesRepositoryProvider);
-  final result = await repository.getCamporeeMembers(camporeeId);
+  final result = await repository.getCamporeeMembers(camporeeId, cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -283,10 +290,13 @@ class CamporeePaymentParams {
 final camporeeMemberPaymentsProvider = FutureProvider.autoDispose
     .family<List<CamporeePayment>, CamporeePaymentParams>(
         (ref, params) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final repo = ref.read(camporeesRepositoryProvider);
   final result = await repo.getMemberPayments(
     params.camporeeId,
     params.memberId,
+    cancelToken: cancelToken,
   );
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -298,8 +308,10 @@ final camporeeMemberPaymentsProvider = FutureProvider.autoDispose
 final camporeeAllPaymentsProvider =
     FutureProvider.autoDispose.family<List<CamporeePayment>, int>(
         (ref, camporeeId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final repo = ref.read(camporeesRepositoryProvider);
-  final result = await repo.getCamporeePayments(camporeeId);
+  final result = await repo.getCamporeePayments(camporeeId, cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (payments) => payments,
@@ -310,8 +322,10 @@ final camporeeAllPaymentsProvider =
 final camporeeEnrolledClubsProvider =
     FutureProvider.autoDispose.family<List<CamporeeEnrolledClub>, int>(
         (ref, camporeeId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final repo = ref.read(camporeesRepositoryProvider);
-  final result = await repo.getEnrolledClubs(camporeeId);
+  final result = await repo.getEnrolledClubs(camporeeId, cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (clubs) => clubs,

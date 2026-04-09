@@ -11,11 +11,13 @@ abstract class InsuranceRemoteDataSource {
   Future<List<MemberInsuranceModel>> getMembersInsurance({
     required int clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   });
 
   /// Obtiene el detalle del seguro de un miembro.
   Future<MemberInsuranceModel> getMemberInsuranceDetail({
     required String memberId,
+    CancelToken? cancelToken,
   });
 
   /// Crea un nuevo registro de seguro para un miembro.
@@ -51,6 +53,7 @@ abstract class InsuranceRemoteDataSource {
   /// Llama a GET /insurance/expiring?days_ahead=[days].
   Future<List<MemberInsuranceModel>> getExpiringInsurance({
     required int days,
+    CancelToken? cancelToken,
   });
 
 }
@@ -82,10 +85,12 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
   Future<List<MemberInsuranceModel>> getMembersInsurance({
     required int clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/members/insurance',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -114,10 +119,12 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
   @override
   Future<MemberInsuranceModel> getMemberInsuranceDetail({
     required String memberId,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$memberId/insurance',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -313,11 +320,13 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
   @override
   Future<List<MemberInsuranceModel>> getExpiringInsurance({
     required int days,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.insurance}/expiring',
         queryParameters: {'days_ahead': days},
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -348,6 +357,7 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
 
   Never _rethrow(Object e) {
     if (e is DioException) {
+      if (e.type == DioExceptionType.cancel) throw e;
       final msg = _extractDioMessage(e);
       throw ServerException(message: msg, code: e.response?.statusCode);
     }

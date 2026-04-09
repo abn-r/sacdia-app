@@ -377,7 +377,8 @@ class _PickerSheet extends StatelessWidget {
             const SizedBox(height: 12),
             Flexible(
               child: ListView(
-                shrinkWrap: true,
+                // shrinkWrap removed: Flexible already provides a bounded
+                // height constraint, so ListView can scroll normally.
                 children: [
                   ...options.map((option) {
                     final label = labelBuilder?.call(option) ?? option;

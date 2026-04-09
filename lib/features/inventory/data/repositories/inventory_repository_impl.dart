@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -21,11 +22,13 @@ class InventoryRepositoryImpl implements InventoryRepository {
   Future<Either<Failure, List<InventoryItem>>> getItems({
     required int clubId,
     required String instanceType,
+    CancelToken? cancelToken,
   }) async {
     try {
       final models = await remoteDataSource.getItems(
         clubId: clubId,
         instanceType: instanceType,
+        cancelToken: cancelToken,
       );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
@@ -38,10 +41,15 @@ class InventoryRepositoryImpl implements InventoryRepository {
   }
 
   @override
-  Future<Either<Failure, InventoryItem>> getItem(
-      {required int itemId}) async {
+  Future<Either<Failure, InventoryItem>> getItem({
+    required int itemId,
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final model = await remoteDataSource.getItem(itemId: itemId);
+      final model = await remoteDataSource.getItem(
+        itemId: itemId,
+        cancelToken: cancelToken,
+      );
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
@@ -147,9 +155,13 @@ class InventoryRepositoryImpl implements InventoryRepository {
   }
 
   @override
-  Future<Either<Failure, List<InventoryCategory>>> getCategories() async {
+  Future<Either<Failure, List<InventoryCategory>>> getCategories({
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final models = await remoteDataSource.getCategories();
+      final models = await remoteDataSource.getCategories(
+        cancelToken: cancelToken,
+      );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));

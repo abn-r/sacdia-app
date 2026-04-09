@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -54,11 +55,14 @@ class MonthlyReportPreviewParams {
 final monthlyReportPreviewProvider = FutureProvider.autoDispose
     .family<MonthlyReportPreview, MonthlyReportPreviewParams>(
         (ref, params) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final repo = ref.read(monthlyReportsRepositoryProvider);
   final result = await repo.getPreview(
     params.enrollmentId,
     month: params.month,
     year: params.year,
+    cancelToken: cancelToken,
   );
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -70,8 +74,10 @@ final monthlyReportPreviewProvider = FutureProvider.autoDispose
 final monthlyReportsByEnrollmentProvider =
     FutureProvider.autoDispose.family<List<MonthlyReport>, int>(
         (ref, enrollmentId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final repo = ref.read(monthlyReportsRepositoryProvider);
-  final result = await repo.getReportsByEnrollment(enrollmentId);
+  final result = await repo.getReportsByEnrollment(enrollmentId, cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (reports) => reports,
@@ -82,8 +88,10 @@ final monthlyReportsByEnrollmentProvider =
 final monthlyReportDetailProvider =
     FutureProvider.autoDispose.family<MonthlyReport, int>(
         (ref, reportId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final repo = ref.read(monthlyReportsRepositoryProvider);
-  final result = await repo.getReportDetail(reportId);
+  final result = await repo.getReportDetail(reportId, cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (report) => report,
@@ -94,8 +102,10 @@ final monthlyReportDetailProvider =
 /// temporal. El token JWT se envía en el header Authorization — nunca en la URL.
 final monthlyReportPdfProvider =
     FutureProvider.autoDispose.family<String, int>((ref, reportId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final repo = ref.read(monthlyReportsRepositoryProvider);
-  final result = await repo.downloadReportPdf(reportId);
+  final result = await repo.downloadReportPdf(reportId, cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (localPath) => localPath,

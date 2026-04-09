@@ -330,35 +330,58 @@ class _AutoDataGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.6,
+    // Replaced GridView(shrinkWrap: true) with Column+Row since this grid
+    // always renders exactly 4 bounded stat cards inside a parent ListView.
+    // shrinkWrap inside a ListView causes O(n²) layout — Column is O(n).
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        _StatCard(
-          icon: HugeIcons.strokeRoundedCalendar01,
-          label: 'Actividades',
-          value: report.totalActivities?.toString() ?? '—',
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _StatCard(
+                  icon: HugeIcons.strokeRoundedCalendar01,
+                  label: 'Actividades',
+                  value: report.totalActivities?.toString() ?? '—',
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _StatCard(
+                  icon: HugeIcons.strokeRoundedUserMultiple,
+                  label: 'Asistencia total',
+                  value: report.totalAttendance?.toString() ?? '—',
+                ),
+              ),
+            ],
+          ),
         ),
-        _StatCard(
-          icon: HugeIcons.strokeRoundedUserMultiple,
-          label: 'Asistencia total',
-          value: report.totalAttendance?.toString() ?? '—',
-        ),
-        _StatCard(
-          icon: HugeIcons.strokeRoundedUser,
-          label: 'Miembros',
-          value: report.totalMembers?.toString() ?? '—',
-        ),
-        _StatCard(
-          icon: HugeIcons.strokeRoundedAnalytics01,
-          label: 'Tasa asistencia',
-          value: report.attendanceRate != null
-              ? '${report.attendanceRate!.toStringAsFixed(1)}%'
-              : '—',
+        const SizedBox(height: 12),
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _StatCard(
+                  icon: HugeIcons.strokeRoundedUser,
+                  label: 'Miembros',
+                  value: report.totalMembers?.toString() ?? '—',
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _StatCard(
+                  icon: HugeIcons.strokeRoundedAnalytics01,
+                  label: 'Tasa asistencia',
+                  value: report.attendanceRate != null
+                      ? '${report.attendanceRate!.toStringAsFixed(1)}%'
+                      : '—',
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

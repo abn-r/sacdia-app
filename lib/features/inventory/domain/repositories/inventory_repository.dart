@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../entities/inventory_category.dart';
@@ -10,11 +11,13 @@ abstract class InventoryRepository {
   Future<Either<Failure, List<InventoryItem>>> getItems({
     required int clubId,
     required String instanceType,
+    CancelToken? cancelToken,
   });
 
   /// Devuelve un ítem por su ID.
   Future<Either<Failure, InventoryItem>> getItem({
     required int itemId,
+    CancelToken? cancelToken,
   });
 
   /// Crea un nuevo ítem en el inventario.
@@ -53,5 +56,7 @@ abstract class InventoryRepository {
   Future<Either<Failure, void>> deleteItem({required int itemId});
 
   /// Devuelve las categorías de inventario disponibles.
-  Future<Either<Failure, List<InventoryCategory>>> getCategories();
+  Future<Either<Failure, List<InventoryCategory>>> getCategories({
+    CancelToken? cancelToken,
+  });
 }

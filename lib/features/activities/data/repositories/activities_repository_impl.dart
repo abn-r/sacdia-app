@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -24,11 +25,13 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
   Future<Either<Failure, List<Activity>>> getClubActivities(
     int clubId, {
     int? clubTypeId,
+    CancelToken? cancelToken,
   }) async {
     try {
       final activityModels = await remoteDataSource.getClubActivities(
         clubId,
         clubTypeId: clubTypeId,
+        cancelToken: cancelToken,
       );
       final activities = activityModels.map((model) => model.toEntity()).toList();
       return Right(activities);
@@ -42,9 +45,15 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
   }
 
   @override
-  Future<Either<Failure, Activity>> getActivityById(int activityId) async {
+  Future<Either<Failure, Activity>> getActivityById(
+    int activityId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final activityModel = await remoteDataSource.getActivityById(activityId);
+      final activityModel = await remoteDataSource.getActivityById(
+        activityId,
+        cancelToken: cancelToken,
+      );
       return Right(activityModel.toEntity());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
@@ -56,9 +65,15 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
   }
 
   @override
-  Future<Either<Failure, List<Attendance>>> getActivityAttendance(int activityId) async {
+  Future<Either<Failure, List<Attendance>>> getActivityAttendance(
+    int activityId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final attendanceModels = await remoteDataSource.getActivityAttendance(activityId);
+      final attendanceModels = await remoteDataSource.getActivityAttendance(
+        activityId,
+        cancelToken: cancelToken,
+      );
       final attendances = attendanceModels.map((model) => model.toEntity()).toList();
       return Right(attendances);
     } on ServerException catch (e) {

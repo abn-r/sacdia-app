@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -33,9 +34,13 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
   // ── Métodos ───────────────────────────────────────────────────────────────────
 
   @override
-  Future<Either<Failure, List<Certification>>> getCertifications() async {
+  Future<Either<Failure, List<Certification>>> getCertifications({
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final models = await remoteDataSource.getCertifications();
+      final models = await remoteDataSource.getCertifications(
+        cancelToken: cancelToken,
+      );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return _serverFailure(e);
@@ -48,10 +53,14 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
 
   @override
   Future<Either<Failure, CertificationDetail>> getCertificationDetail(
-      int certificationId) async {
+    int certificationId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final model =
-          await remoteDataSource.getCertificationDetail(certificationId);
+      final model = await remoteDataSource.getCertificationDetail(
+        certificationId,
+        cancelToken: cancelToken,
+      );
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return _serverFailure(e);
@@ -64,9 +73,14 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
 
   @override
   Future<Either<Failure, List<UserCertification>>> getUserCertifications(
-      String userId) async {
+    String userId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final models = await remoteDataSource.getUserCertifications(userId);
+      final models = await remoteDataSource.getUserCertifications(
+        userId,
+        cancelToken: cancelToken,
+      );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return _serverFailure(e);
@@ -79,10 +93,16 @@ class CertificationsRepositoryImpl implements CertificationsRepository {
 
   @override
   Future<Either<Failure, CertificationProgress>> getCertificationProgress(
-      String userId, int certificationId) async {
+    String userId,
+    int certificationId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
       final model = await remoteDataSource.getCertificationProgress(
-          userId, certificationId);
+        userId,
+        certificationId,
+        cancelToken: cancelToken,
+      );
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return _serverFailure(e);

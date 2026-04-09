@@ -8,10 +8,10 @@ import '../models/completion_status_model.dart';
 
 /// Interfaz para la fuente de datos remota de post-registro
 abstract class PostRegistrationRemoteDataSource {
-  Future<CompletionStatusModel> getCompletionStatus();
+  Future<CompletionStatusModel> getCompletionStatus({CancelToken? cancelToken});
   Future<String> uploadProfilePicture({required String userId, required String filePath});
   Future<void> deleteProfilePicture({required String userId});
-  Future<bool> getPhotoStatus({required String userId});
+  Future<bool> getPhotoStatus({required String userId, CancelToken? cancelToken});
   Future<void> completeStep1(String userId);
 }
 
@@ -30,10 +30,13 @@ class PostRegistrationRemoteDataSourceImpl
         _baseUrl = baseUrl;
 
   @override
-  Future<CompletionStatusModel> getCompletionStatus() async {
+  Future<CompletionStatusModel> getCompletionStatus({
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.auth}/profile/completion-status',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -43,6 +46,7 @@ class PostRegistrationRemoteDataSourceImpl
       throw ServerException(message: 'Error al obtener estado de completitud');
     } catch (e) {
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(message: e.message ?? 'Error de conexión');
       }
       if (e is AppException) rethrow;
@@ -115,10 +119,14 @@ class PostRegistrationRemoteDataSourceImpl
   }
 
   @override
-  Future<bool> getPhotoStatus({required String userId}) async {
+  Future<bool> getPhotoStatus({
+    required String userId,
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$userId/post-registration/photo-status',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -128,6 +136,7 @@ class PostRegistrationRemoteDataSourceImpl
       return false;
     } catch (e) {
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(message: e.message ?? 'Error de conexión');
       }
       if (e is AppException) rethrow;

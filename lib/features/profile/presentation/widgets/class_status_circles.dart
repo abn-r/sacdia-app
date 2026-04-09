@@ -265,12 +265,14 @@ class _ClassLogo extends StatelessWidget {
     };
   }
 
-  // Matriz de luminancia estándar para desaturar imágenes a escala de grises.
-  static const _grayscaleMatrix = <double>[
-    0.2126, 0.7152, 0.0722, 0, 0, // R
-    0.2126, 0.7152, 0.0722, 0, 0, // G
-    0.2126, 0.7152, 0.0722, 0, 0, // B
-    0,      0,      0,      1, 0, // A — se controla con Opacity wrapper
+  // Builds a grayscale+alpha matrix embedding opacity directly into the
+  // ColorFilter, avoiding an Opacity widget that would create an offscreen
+  // compositing layer. Row 3 (alpha) multiplier is set to [alpha].
+  static List<double> _grayscaleWithAlpha(double alpha) => <double>[
+    0.2126, 0.7152, 0.0722, 0,     0, // R
+    0.2126, 0.7152, 0.0722, 0,     0, // G
+    0.2126, 0.7152, 0.0722, 0,     0, // B
+    0,      0,      0,      alpha, 0, // A
   ];
 
   Widget _buildImage(SacColors c) {
@@ -289,20 +291,18 @@ class _ClassLogo extends StatelessWidget {
 
     // inProgress y notEnrolled: desaturamos con ColorFiltered (grayscale real)
     // y diferenciamos con opacidad: 50 % en progreso, 25 % no inscrito.
-    final opacity = state == _ClassState.inProgress ? 0.5 : 0.25;
+    // La opacidad se codifica en la fila alpha de la matriz — sin Opacity widget.
+    final alpha = state == _ClassState.inProgress ? 0.5 : 0.25;
 
-    return Opacity(
-      opacity: opacity,
-      child: ColorFiltered(
-        colorFilter: const ColorFilter.matrix(_grayscaleMatrix),
-        child: Image.asset(
-          assetPath,
-          fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => Icon(
-            Icons.shield_outlined,
-            color: c.textTertiary,
-            size: 24,
-          ),
+    return ColorFiltered(
+      colorFilter: ColorFilter.matrix(_grayscaleWithAlpha(alpha)),
+      child: Image.asset(
+        assetPath,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => Icon(
+          Icons.shield_outlined,
+          color: c.textTertiary,
+          size: 24,
         ),
       ),
     );

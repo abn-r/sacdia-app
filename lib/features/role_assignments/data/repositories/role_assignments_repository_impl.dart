@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -26,9 +27,13 @@ class RoleAssignmentsRepositoryImpl implements RoleAssignmentsRepository {
       Left(UnexpectedFailure(message: e.toString()));
 
   @override
-  Future<Either<Failure, List<RoleAssignment>>> getAssignments() async {
+  Future<Either<Failure, List<RoleAssignment>>> getAssignments({
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final models = await remoteDataSource.getAssignments();
+      final models = await remoteDataSource.getAssignments(
+        cancelToken: cancelToken,
+      );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return _serverFailure(e);

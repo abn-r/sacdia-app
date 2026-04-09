@@ -15,9 +15,13 @@ abstract class ValidationRemoteDataSource {
   Future<List<ValidationHistoryEntryModel>> getValidationHistory({
     required ValidationEntityType entityType,
     required int entityId,
+    CancelToken? cancelToken,
   });
 
-  Future<EligibilityResultModel> checkEligibility({required String userId});
+  Future<EligibilityResultModel> checkEligibility({
+    required String userId,
+    CancelToken? cancelToken,
+  });
 }
 
 class ValidationRemoteDataSourceImpl implements ValidationRemoteDataSource {
@@ -93,6 +97,7 @@ class ValidationRemoteDataSourceImpl implements ValidationRemoteDataSource {
   Future<List<ValidationHistoryEntryModel>> getValidationHistory({
     required ValidationEntityType entityType,
     required int entityId,
+    CancelToken? cancelToken,
   }) async {
     try {
       AppLogger.i(
@@ -100,6 +105,7 @@ class ValidationRemoteDataSourceImpl implements ValidationRemoteDataSource {
           tag: _tag);
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.validation}/${entityType.slug}/$entityId/history',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -112,6 +118,7 @@ class ValidationRemoteDataSourceImpl implements ValidationRemoteDataSource {
         code: response.statusCode,
       );
     } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('DioException en getValidationHistory', tag: _tag, error: e);
       throw ServerException(
         message: e.response?.data?['message'] ?? e.message ?? 'Error de red',
@@ -126,12 +133,15 @@ class ValidationRemoteDataSourceImpl implements ValidationRemoteDataSource {
   }
 
   @override
-  Future<EligibilityResultModel> checkEligibility(
-      {required String userId}) async {
+  Future<EligibilityResultModel> checkEligibility({
+    required String userId,
+    CancelToken? cancelToken,
+  }) async {
     try {
       AppLogger.i('Verificando elegibilidad para usuario $userId', tag: _tag);
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.validation}/eligibility/$userId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -143,6 +153,7 @@ class ValidationRemoteDataSourceImpl implements ValidationRemoteDataSource {
         code: response.statusCode,
       );
     } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('DioException en checkEligibility', tag: _tag, error: e);
       throw ServerException(
         message: e.response?.data?['message'] ?? e.message ?? 'Error de red',

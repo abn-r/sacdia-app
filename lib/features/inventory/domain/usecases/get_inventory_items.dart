@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
@@ -24,10 +25,13 @@ class GetInventoryItems {
   GetInventoryItems(this.repository);
 
   Future<Either<Failure, List<InventoryItem>>> call(
-      GetInventoryItemsParams params) {
+    GetInventoryItemsParams params, {
+    CancelToken? cancelToken,
+  }) {
     return repository.getItems(
       clubId: params.clubId,
       instanceType: params.instanceType,
+      cancelToken: cancelToken,
     );
   }
 }

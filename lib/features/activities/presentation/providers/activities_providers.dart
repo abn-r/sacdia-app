@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
@@ -95,12 +96,15 @@ final clubActivitiesProvider =
     FutureProvider.autoDispose.family<List<Activity>, ClubActivitiesParams>(
         (ref, params) async {
   ref.keepAlive();
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final getClubActivities = ref.read(getClubActivitiesProvider);
   final result = await getClubActivities(
     GetClubActivitiesParams(
       clubId: params.clubId,
       clubTypeId: params.clubTypeId,
     ),
+    cancelToken: cancelToken,
   );
 
   return result.fold(
@@ -117,6 +121,7 @@ final clubActivitiesProvider =
 final activityDetailProvider =
     FutureProvider.autoDispose.family<Activity, int>((ref, activityId) async {
   final link = ref.keepAlive();
+  final cancelToken = CancelToken();
   Timer? timer;
   ref.onCancel(() {
     timer = Timer(const Duration(minutes: 5), () {
@@ -128,9 +133,13 @@ final activityDetailProvider =
   });
   ref.onDispose(() {
     timer?.cancel();
+    cancelToken.cancel();
   });
   final getActivityDetail = ref.read(getActivityDetailProvider);
-  final result = await getActivityDetail(GetActivityDetailParams(activityId: activityId));
+  final result = await getActivityDetail(
+    GetActivityDetailParams(activityId: activityId),
+    cancelToken: cancelToken,
+  );
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -389,9 +398,12 @@ final updateActivityNotifierProvider =
 /// Retorna la lista de secciones (incluye la sección propia del director).
 final clubSectionsForActivityProvider =
     FutureProvider.autoDispose<List<ClubSectionModel>>((ref) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
   final ctx = await ref.watch(clubContextProvider.future);
   if (ctx == null) return const [];
 
   final dataSource = ref.read(activitiesRemoteDataSourceProvider);
-  return dataSource.getClubSections(ctx.clubId);
+  return dataSource.getClubSections(ctx.clubId, cancelToken: cancelToken);
 });

@@ -6,7 +6,7 @@ import '../models/annual_folder_model.dart';
 
 /// Interfaz para el data source remoto de carpetas anuales
 abstract class AnnualFoldersRemoteDataSource {
-  Future<AnnualFolderModel> getFolderByEnrollment(int enrollmentId);
+  Future<AnnualFolderModel> getFolderByEnrollment(int enrollmentId, {CancelToken? cancelToken});
 
   Future<FolderEvidenceModel> uploadEvidence(
     int folderId, {
@@ -61,10 +61,11 @@ class AnnualFoldersRemoteDataSourceImpl
   // ── GET /api/v1/annual-folders/enrollment/:enrollmentId ──────────────────
 
   @override
-  Future<AnnualFolderModel> getFolderByEnrollment(int enrollmentId) async {
+  Future<AnnualFolderModel> getFolderByEnrollment(int enrollmentId, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.annualFolders}/enrollment/$enrollmentId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -79,6 +80,7 @@ class AnnualFoldersRemoteDataSourceImpl
           message: 'Error al obtener la carpeta anual',
           code: response.statusCode);
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getFolderByEnrollment', tag: _tag, error: e);
       _rethrow(e);
     }

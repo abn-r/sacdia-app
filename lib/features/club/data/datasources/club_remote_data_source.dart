@@ -7,12 +7,13 @@ import '../models/club_info_model.dart';
 /// Interfaz para la fuente de datos remota del módulo de club.
 abstract class ClubRemoteDataSource {
   /// Obtiene el club contenedor.
-  Future<ClubInfoModel> getClub(String clubId);
+  Future<ClubInfoModel> getClub(String clubId, {CancelToken? cancelToken});
 
   /// Obtiene la sección de club por ID.
   Future<ClubSectionModel> getClubSection({
     required String clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   });
 
   /// Actualiza una sección de club (PATCH).
@@ -52,12 +53,13 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
   // ── Endpoints ────────────────────────────────────────────────────────────
 
   @override
-  Future<ClubInfoModel> getClub(String clubId) async {
+  Future<ClubInfoModel> getClub(String clubId, {CancelToken? cancelToken}) async {
     try {
       AppLogger.i('Obteniendo club: $clubId', tag: _tag);
 
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -70,6 +72,7 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
         code: response.statusCode,
       );
     } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('DioException en getClub', tag: _tag, error: e);
       throw ServerException(
         message: e.response?.data?['message'] ?? e.message ?? 'Error de red',
@@ -86,12 +89,14 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
   Future<ClubSectionModel> getClubSection({
     required String clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   }) async {
     try {
       AppLogger.i('Obteniendo sección: $sectionId del club $clubId', tag: _tag);
 
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -110,6 +115,7 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
         code: response.statusCode,
       );
     } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('DioException en getClubSection', tag: _tag, error: e);
       throw ServerException(
         message: e.response?.data?['message'] ?? e.message ?? 'Error de red',

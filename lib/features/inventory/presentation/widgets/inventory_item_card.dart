@@ -257,6 +257,8 @@ class _ItemThumbnail extends StatelessWidget {
           imageUrl: photoUrl!,
           width: size,
           height: size,
+          memCacheWidth: 180,  // 60 * 3 (max device pixel ratio)
+          memCacheHeight: 180, // 60 * 3
           fit: BoxFit.cover,
           placeholder: (_, __) => _Placeholder(size: size),
           errorWidget: (_, __, ___) => _Placeholder(size: size),

@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -100,6 +101,7 @@ class InvestitureRepositoryImpl implements InvestitureRepository {
     int? ecclesiasticalYearId,
     int page = 1,
     int limit = 20,
+    CancelToken? cancelToken,
   }) async {
     try {
       final models = await remoteDataSource.getPendingInvestitures(
@@ -107,6 +109,7 @@ class InvestitureRepositoryImpl implements InvestitureRepository {
         ecclesiasticalYearId: ecclesiasticalYearId,
         page: page,
         limit: limit,
+        cancelToken: cancelToken,
       );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
@@ -121,10 +124,12 @@ class InvestitureRepositoryImpl implements InvestitureRepository {
   @override
   Future<Either<Failure, List<InvestitureHistoryEntry>>> getInvestitureHistory({
     required int enrollmentId,
+    CancelToken? cancelToken,
   }) async {
     try {
       final models = await remoteDataSource.getInvestitureHistory(
         enrollmentId: enrollmentId,
+        cancelToken: cancelToken,
       );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {

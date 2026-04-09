@@ -11,15 +11,17 @@ abstract class MembersRemoteDataSource {
   Future<List<ClubMemberModel>> getClubMembers({
     required int clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   });
 
   /// Obtiene el perfil de un miembro específico
-  Future<ClubMemberModel> getMemberDetail(String userId);
+  Future<ClubMemberModel> getMemberDetail(String userId, {CancelToken? cancelToken});
 
   /// Obtiene solicitudes de ingreso al club
   Future<List<JoinRequestModel>> getJoinRequests({
     required int clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   });
 
   /// Aprueba una solicitud de ingreso
@@ -153,10 +155,12 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
   Future<List<ClubMemberModel>> getClubMembers({
     required int clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/members',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -169,6 +173,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       final list = _unwrapList(response.data);
       return list.map((json) => ClubMemberModel.fromJson(json)).toList();
     } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error al obtener miembros', tag: _tag, error: e);
       throw ServerException(
         message: e.response?.data?['message'] ?? 'Error al obtener miembros',
@@ -182,10 +187,11 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
   }
 
   @override
-  Future<ClubMemberModel> getMemberDetail(String userId) async {
+  Future<ClubMemberModel> getMemberDetail(String userId, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$userId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -198,6 +204,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       final json = _unwrapMap(response.data);
       return ClubMemberModel.fromJson(json);
     } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error al obtener detalle del miembro', tag: _tag, error: e);
       throw ServerException(
         message: e.response?.data?['message'] ??
@@ -215,10 +222,12 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
   Future<List<JoinRequestModel>> getJoinRequests({
     required int clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubSections}/$sectionId${ApiEndpoints.membershipRequests}',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -231,6 +240,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       final list = _unwrapList(response.data);
       return list.map((json) => JoinRequestModel.fromJson(json)).toList();
     } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
       // Si es 404 u otro error de recurso no encontrado, retornar lista vacía
       if (e.response?.statusCode == 404 || e.response?.statusCode == 400) {
         AppLogger.w('Endpoint de solicitudes no disponible', tag: _tag);

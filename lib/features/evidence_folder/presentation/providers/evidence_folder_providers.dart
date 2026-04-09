@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -63,9 +64,13 @@ final deleteEvidenceFileUseCaseProvider =
 /// autoDispose para liberar memoria al salir de la pantalla.
 final evidenceFolderProvider = FutureProvider.autoDispose
     .family<EvidenceFolder, String>((ref, clubSectionId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final useCase = ref.read(getEvidenceFolderUseCaseProvider);
-  final result =
-      await useCase(GetEvidenceFolderParams(clubSectionId: clubSectionId));
+  final result = await useCase(
+    GetEvidenceFolderParams(clubSectionId: clubSectionId),
+    cancelToken: cancelToken,
+  );
 
   return result.fold(
     (failure) => throw Exception(failure.message),

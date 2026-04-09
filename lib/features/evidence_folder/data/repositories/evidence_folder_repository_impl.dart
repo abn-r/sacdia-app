@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -23,10 +24,10 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
 
   @override
   Future<Either<Failure, EvidenceFolder>> getEvidenceFolder(
-      String clubSectionId) async {
+      String clubSectionId, {CancelToken? cancelToken}) async {
     try {
       final model =
-          await remoteDataSource.getEvidenceFolder(clubSectionId);
+          await remoteDataSource.getEvidenceFolder(clubSectionId, cancelToken: cancelToken);
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));

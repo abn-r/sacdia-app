@@ -386,7 +386,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                         boxShadow: _isChronologicalView
                             ? [
                                 BoxShadow(
-                                  color: AppColors.primary.withOpacity(0.3),
+                                  color: AppColors.primary.withValues(alpha: 0.3),
                                   blurRadius: 8,
                                   offset: const Offset(0, 3),
                                 )
@@ -461,7 +461,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                               borderRadius: BorderRadius.circular(16),
                                               border: Border.all(
                                                 color: isToday && !isSelected
-                                                    ? AppColors.primary.withOpacity(0.35)
+                                                    ? AppColors.primary.withValues(alpha: 0.35)
                                                     : Colors.transparent,
                                                 width: 1.5,
                                               ),
@@ -469,7 +469,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                   ? [
                                                       BoxShadow(
                                                         color: AppColors.primary
-                                                            .withOpacity(0.28),
+                                                            .withValues(alpha: 0.28),
                                                         blurRadius: 8,
                                                         offset: const Offset(0, 3),
                                                       )
@@ -488,7 +488,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                     fontSize: 10,
                                                     fontWeight: FontWeight.w600,
                                                     color: isSelected
-                                                        ? Colors.white.withOpacity(0.8)
+                                                        ? Colors.white.withValues(alpha: 0.8)
                                                         : c.textTertiary,
                                                   ),
                                                 ),
@@ -529,7 +529,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                           color: AppColors.primaryLight,
                                           borderRadius: BorderRadius.circular(12),
                                           border: Border.all(
-                                            color: AppColors.primary.withOpacity(0.25),
+                                            color: AppColors.primary.withValues(alpha: 0.25),
                                           ),
                                         ),
                                         child: Center(

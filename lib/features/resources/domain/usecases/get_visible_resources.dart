@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/paginated_resources.dart';
@@ -13,7 +14,7 @@ class GetVisibleResources
 
   @override
   Future<Either<Failure, PaginatedResources>> call(
-    GetVisibleResourcesParams params,
+    GetVisibleResourcesParams params, {CancelToken? cancelToken}
   ) async {
     return await repository.getVisibleResources(
       page: params.page,
@@ -21,6 +22,7 @@ class GetVisibleResources
       resourceType: params.resourceType,
       categoryId: params.categoryId,
       search: params.search,
+      cancelToken: cancelToken,
     );
   }
 }

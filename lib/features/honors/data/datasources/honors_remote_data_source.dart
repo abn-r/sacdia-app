@@ -15,24 +15,24 @@ import '../models/user_honor_model.dart';
 
 /// Interfaz para la fuente de datos remota de especialidades
 abstract class HonorsRemoteDataSource {
-  Future<List<HonorCategoryModel>> getHonorCategories();
-  Future<List<HonorModel>> getHonors({int? categoryId, int? clubTypeId, int? skillLevel});
-  Future<HonorModel> getHonorById(int honorId);
-  Future<List<UserHonorModel>> getUserHonors(String userId);
-  Future<Map<String, dynamic>> getUserHonorStats(String userId);
+  Future<List<HonorCategoryModel>> getHonorCategories({CancelToken? cancelToken});
+  Future<List<HonorModel>> getHonors({int? categoryId, int? clubTypeId, int? skillLevel, CancelToken? cancelToken});
+  Future<HonorModel> getHonorById(int honorId, {CancelToken? cancelToken});
+  Future<List<UserHonorModel>> getUserHonors(String userId, {CancelToken? cancelToken});
+  Future<Map<String, dynamic>> getUserHonorStats(String userId, {CancelToken? cancelToken});
   Future<UserHonorModel> enrollUserInHonor(String userId, int honorId);
   Future<UserHonorModel> updateUserHonor(String userId, int honorId, Map<String, dynamic> data);
   Future<void> deleteUserHonor(String userId, int honorId);
   Future<UserHonorModel> registerUserHonor(RegisterUserHonorParams params);
-  Future<List<HonorGroupModel>> getHonorsGroupedByCategory();
+  Future<List<HonorGroupModel>> getHonorsGroupedByCategory({CancelToken? cancelToken});
 
   /// Obtiene los requisitos del catálogo de una especialidad.
   /// GET /honors/:honorId/requirements — público
-  Future<List<HonorRequirementModel>> getHonorRequirements(int honorId);
+  Future<List<HonorRequirementModel>> getHonorRequirements(int honorId, {CancelToken? cancelToken});
 
   /// Obtiene el progreso del usuario por requisito para una especialidad inscrita.
   /// GET /users/:userId/honors/:honorId/requirements/progress
-  Future<List<UserHonorRequirementProgressModel>> getUserHonorProgress(String userId, int honorId);
+  Future<List<UserHonorRequirementProgressModel>> getUserHonorProgress(String userId, int honorId, {CancelToken? cancelToken});
 
   /// Actualiza el progreso de un requisito individual.
   /// PATCH /honors/:honorId/progress/:requirementId
@@ -89,8 +89,9 @@ abstract class HonorsRemoteDataSource {
   Future<List<RequirementEvidenceModel>> getRequirementEvidences(
     String userId,
     int honorId,
-    int requirementId,
-  );
+    int requirementId, {
+    CancelToken? cancelToken,
+  });
 
   /// Elimina una evidencia de un requisito de especialidad.
   ///
@@ -117,10 +118,11 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
         _baseUrl = baseUrl;
 
   @override
-  Future<List<HonorCategoryModel>> getHonorCategories() async {
+  Future<List<HonorCategoryModel>> getHonorCategories({CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.honors}/categories',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -134,6 +136,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en getHonorCategories', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
@@ -142,7 +145,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   }
 
   @override
-  Future<List<HonorModel>> getHonors({int? categoryId, int? clubTypeId, int? skillLevel}) async {
+  Future<List<HonorModel>> getHonors({int? categoryId, int? clubTypeId, int? skillLevel, CancelToken? cancelToken}) async {
     try {
       final baseParams = <String>['limit=100'];
       if (categoryId != null) baseParams.add('categoryId=$categoryId');
@@ -157,6 +160,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
         final queryString = '?${baseParams.join('&')}&page=$page';
         final response = await _dio.get(
           '$_baseUrl${ApiEndpoints.honors}$queryString',
+          cancelToken: cancelToken,
         );
 
         if (response.statusCode != 200 && response.statusCode != 201) {
@@ -187,6 +191,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en getHonors', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
@@ -195,10 +200,11 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   }
 
   @override
-  Future<HonorModel> getHonorById(int honorId) async {
+  Future<HonorModel> getHonorById(int honorId, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.honors}/$honorId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -209,6 +215,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en getHonorById', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
@@ -217,10 +224,11 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   }
 
   @override
-  Future<List<UserHonorModel>> getUserHonors(String userId) async {
+  Future<List<UserHonorModel>> getUserHonors(String userId, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$userId/honors',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -234,6 +242,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en getUserHonors', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
@@ -242,10 +251,11 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   }
 
   @override
-  Future<Map<String, dynamic>> getUserHonorStats(String userId) async {
+  Future<Map<String, dynamic>> getUserHonorStats(String userId, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$userId/honors/stats',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -256,6 +266,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en getUserHonorStats', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
@@ -358,10 +369,11 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   }
 
   @override
-  Future<List<HonorGroupModel>> getHonorsGroupedByCategory() async {
+  Future<List<HonorGroupModel>> getHonorsGroupedByCategory({CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.honors}/grouped-by-category',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -378,6 +390,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en getHonorsGroupedByCategory', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
@@ -386,10 +399,11 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   }
 
   @override
-  Future<List<HonorRequirementModel>> getHonorRequirements(int honorId) async {
+  Future<List<HonorRequirementModel>> getHonorRequirements(int honorId, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.honors}/$honorId/requirements',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -410,6 +424,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en getHonorRequirements', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
             message: e.message ?? 'Error de conexión',
             code: e.response?.statusCode);
@@ -421,10 +436,11 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
 
   @override
   Future<List<UserHonorRequirementProgressModel>> getUserHonorProgress(
-      String userId, int honorId) async {
+      String userId, int honorId, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$userId${ApiEndpoints.honors}/$honorId/requirements/progress',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -444,6 +460,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en getUserHonorProgress', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
             message: e.message ?? 'Error de conexión',
             code: e.response?.statusCode);
@@ -666,11 +683,13 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   Future<List<RequirementEvidenceModel>> getRequirementEvidences(
     String userId,
     int honorId,
-    int requirementId,
-  ) async {
+    int requirementId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$userId/honors/$honorId/requirements/$requirementId/evidence',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -690,6 +709,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en getRequirementEvidences', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
           message: e.message ?? 'Error de conexión',
           code: e.response?.statusCode,

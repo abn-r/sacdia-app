@@ -1001,6 +1001,8 @@ class _EvidenceGrid extends StatelessWidget {
     final itemCount = images.length + (showAddCell ? 1 : 0);
 
     return GridView.builder(
+      // shrinkWrap OK: lives inside SliverToBoxAdapter > Column (non-scrollable).
+      // Item count is bounded by the evidence images a user uploads per honor.
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

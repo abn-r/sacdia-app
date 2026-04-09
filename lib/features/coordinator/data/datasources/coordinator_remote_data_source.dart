@@ -11,19 +11,21 @@ import '../models/camporee_approval_model.dart';
 /// Interfaz para la fuente de datos remota del coordinador.
 abstract class CoordinatorRemoteDataSource {
   /// GET /admin/analytics/sla-dashboard
-  Future<SlaDashboardModel> getSlaDashboard();
+  Future<SlaDashboardModel> getSlaDashboard({CancelToken? cancelToken});
 
   /// GET /evidence-review/pending?page=1&limit=20&type=folder|class|honor
   Future<List<EvidenceReviewItemModel>> getPendingEvidence({
     int page = 1,
     int limit = 20,
     EvidenceReviewType? type,
+    CancelToken? cancelToken,
   });
 
   /// GET /evidence-review/:type/:id
   Future<EvidenceReviewItemModel> getEvidenceDetail({
     required EvidenceReviewType type,
     required String id,
+    CancelToken? cancelToken,
   });
 
   /// POST /evidence-review/:type/:id/approve
@@ -56,18 +58,29 @@ abstract class CoordinatorRemoteDataSource {
   // ── Camporee list ─────────────────────────────────────────────────────────
 
   /// GET /camporees?active=true
-  Future<List<CamporeeItemModel>> listLocalCamporees({bool activeOnly = true});
+  Future<List<CamporeeItemModel>> listLocalCamporees({
+    bool activeOnly = true,
+    CancelToken? cancelToken,
+  });
 
   /// GET /camporees/union
-  Future<List<CamporeeItemModel>> listUnionCamporees();
+  Future<List<CamporeeItemModel>> listUnionCamporees({
+    CancelToken? cancelToken,
+  });
 
   // ── Camporee pending approvals ────────────────────────────────────────────
 
   /// GET /camporees/:camporeeId/pending
-  Future<CamporeePendingApprovalsModel> getLocalCamporeePending(int camporeeId);
+  Future<CamporeePendingApprovalsModel> getLocalCamporeePending(
+    int camporeeId, {
+    CancelToken? cancelToken,
+  });
 
   /// GET /camporees/union/:camporeeId/pending
-  Future<CamporeePendingApprovalsModel> getUnionCamporeePending(int camporeeId);
+  Future<CamporeePendingApprovalsModel> getUnionCamporeePending(
+    int camporeeId, {
+    CancelToken? cancelToken,
+  });
 
   // ── Club enrollment approve/reject ────────────────────────────────────────
 
@@ -130,6 +143,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
 
   Never _rethrow(Object e) {
     if (e is DioException) {
+      if (e.type == DioExceptionType.cancel) throw e;
       final msg = _extractDioMessage(e);
       final code = e.response?.statusCode;
       if (code == 403) {
@@ -191,10 +205,11 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
   // ── GET /admin/analytics/sla-dashboard ──────────────────────────────────────
 
   @override
-  Future<SlaDashboardModel> getSlaDashboard() async {
+  Future<SlaDashboardModel> getSlaDashboard({CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.adminAnalytics}/sla-dashboard',
+        cancelToken: cancelToken,
       );
 
       if (_isOk(response.statusCode)) {
@@ -220,6 +235,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
     int page = 1,
     int limit = 20,
     EvidenceReviewType? type,
+    CancelToken? cancelToken,
   }) async {
     try {
       final queryParams = <String, dynamic>{
@@ -233,6 +249,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.evidenceReview}/pending',
         queryParameters: queryParams,
+        cancelToken: cancelToken,
       );
 
       if (_isOk(response.statusCode)) {
@@ -254,10 +271,12 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
   Future<EvidenceReviewItemModel> getEvidenceDetail({
     required EvidenceReviewType type,
     required String id,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.evidenceReview}/${type.apiValue}/$id',
+        cancelToken: cancelToken,
       );
 
       if (_isOk(response.statusCode)) {
@@ -389,11 +408,13 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
   @override
   Future<List<CamporeeItemModel>> listLocalCamporees({
     bool activeOnly = true,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}',
         queryParameters: activeOnly ? {'active': 'true'} : {},
+        cancelToken: cancelToken,
       );
 
       if (_isOk(response.statusCode)) {
@@ -416,10 +437,13 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
   // ── GET /camporees/union ─────────────────────────────────────────────────────
 
   @override
-  Future<List<CamporeeItemModel>> listUnionCamporees() async {
+  Future<List<CamporeeItemModel>> listUnionCamporees({
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/union',
+        cancelToken: cancelToken,
       );
 
       if (_isOk(response.statusCode)) {
@@ -443,11 +467,13 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
 
   @override
   Future<CamporeePendingApprovalsModel> getLocalCamporeePending(
-    int camporeeId,
-  ) async {
+    int camporeeId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/pending',
+        cancelToken: cancelToken,
       );
 
       if (_isOk(response.statusCode)) {
@@ -473,11 +499,13 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
 
   @override
   Future<CamporeePendingApprovalsModel> getUnionCamporeePending(
-    int camporeeId,
-  ) async {
+    int camporeeId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/union/$camporeeId/pending',
+        cancelToken: cancelToken,
       );
 
       if (_isOk(response.statusCode)) {

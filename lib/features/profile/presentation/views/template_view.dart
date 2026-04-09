@@ -322,7 +322,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             height: 60,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: sacRed.withOpacity(0.1),
+                              color: sacRed.withValues(alpha: 0.1),
                               border: Border.all(color: sacRed, width: 2),
                             ),
                             child: const Center(
@@ -545,6 +545,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           GridView.builder(
+            // shrinkWrap OK: mock/template view with compile-time constant
+            // honor lists per category. Lives inside SingleChildScrollView >
+            // Column — intrinsic height is required.
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),

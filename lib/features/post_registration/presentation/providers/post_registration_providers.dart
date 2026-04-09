@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
@@ -33,8 +34,11 @@ final completionStatusProvider =
 class CompletionStatusNotifier extends AutoDisposeAsyncNotifier<CompletionStatus?> {
   @override
   Future<CompletionStatus?> build() async {
-    final result =
-        await ref.read(postRegistrationRepositoryProvider).getCompletionStatus();
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
+    final result = await ref
+        .read(postRegistrationRepositoryProvider)
+        .getCompletionStatus(cancelToken: cancelToken);
     return result.fold(
       (failure) => null,
       (status) => status,

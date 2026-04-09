@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -21,10 +22,13 @@ class ClubRepositoryImpl implements ClubRepository {
   // ── getClub ───────────────────────────────────────────────────────────────
 
   @override
-  Future<Either<Failure, ClubInfo>> getClub(String clubId) async {
+  Future<Either<Failure, ClubInfo>> getClub(String clubId, {CancelToken? cancelToken}) async {
     try {
-      final model = await _remoteDataSource.getClub(clubId);
+      final model = await _remoteDataSource.getClub(clubId, cancelToken: cancelToken);
       return Right(model);
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      return Left(UnexpectedFailure(message: e.toString()));
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message));
     } on ServerException catch (e) {
@@ -40,13 +44,18 @@ class ClubRepositoryImpl implements ClubRepository {
   Future<Either<Failure, ClubSection>> getClubSection({
     required String clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   }) async {
     try {
       final model = await _remoteDataSource.getClubSection(
         clubId: clubId,
         sectionId: sectionId,
+        cancelToken: cancelToken,
       );
       return Right(model);
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      return Left(UnexpectedFailure(message: e.toString()));
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message));
     } on ServerException catch (e) {

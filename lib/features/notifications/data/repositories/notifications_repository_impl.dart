@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -30,11 +31,13 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
       getHistory({
     int page = 1,
     int limit = 20,
+    CancelToken? cancelToken,
   }) async {
     try {
       final result = await remoteDataSource.getHistory(
         page: page,
         limit: limit,
+        cancelToken: cancelToken,
       );
       final entities = result.items.map((m) => m.toEntity()).toList();
       return Right((

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -138,11 +139,17 @@ final financeMonthProvider =
   final selected = ref.watch(selectedMonthProvider);
   final useCase = ref.read(getFinancesUseCaseProvider);
 
-  final result = await useCase(GetFinancesParams(
-    clubId: clubIdAsync,
-    year: selected.year,
-    month: selected.month,
-  ));
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
+  final result = await useCase(
+    GetFinancesParams(
+      clubId: clubIdAsync,
+      year: selected.year,
+      month: selected.month,
+    ),
+    cancelToken: cancelToken,
+  );
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -158,7 +165,14 @@ final financeSummaryProvider =
   if (clubId == null) return null;
 
   final useCase = ref.read(getFinanceSummaryUseCaseProvider);
-  final result = await useCase(GetFinanceSummaryParams(clubId: clubId));
+
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
+  final result = await useCase(
+    GetFinanceSummaryParams(clubId: clubId),
+    cancelToken: cancelToken,
+  );
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -171,7 +185,11 @@ final financeSummaryProvider =
 final financeCategoriesProvider =
     FutureProvider.autoDispose<List<FinanceCategory>>((ref) async {
   final useCase = ref.read(getFinanceCategoriesUseCaseProvider);
-  final result = await useCase();
+
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
+  final result = await useCase(cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (cats) => cats,
@@ -361,7 +379,12 @@ final transactionFormNotifierProvider = NotifierProvider.autoDispose<
 final transactionDetailProvider =
     FutureProvider.autoDispose.family<FinanceTransaction, int>((ref, id) async {
   final repo = ref.read(financesRepositoryProvider);
-  final result = await repo.getTransaction(financeId: id);
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await repo.getTransaction(
+    financeId: id,
+    cancelToken: cancelToken,
+  );
   return result.fold(
     (failure) => throw Exception(failure.message),
     (t) => t,

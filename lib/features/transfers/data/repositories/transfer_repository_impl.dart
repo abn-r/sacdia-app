@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -38,9 +39,13 @@ class TransferRepositoryImpl implements TransferRepository {
   }
 
   @override
-  Future<Either<Failure, List<TransferRequest>>> getMyTransferRequests() async {
+  Future<Either<Failure, List<TransferRequest>>> getMyTransferRequests({
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final models = await _remoteDataSource.getMyTransferRequests();
+      final models = await _remoteDataSource.getMyTransferRequests(
+        cancelToken: cancelToken,
+      );
       return Right(models);
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message));
@@ -53,9 +58,14 @@ class TransferRepositoryImpl implements TransferRepository {
 
   @override
   Future<Either<Failure, TransferRequest>> getTransferRequest(
-      int requestId) async {
+    int requestId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final model = await _remoteDataSource.getTransferRequest(requestId);
+      final model = await _remoteDataSource.getTransferRequest(
+        requestId,
+        cancelToken: cancelToken,
+      );
       return Right(model);
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message));

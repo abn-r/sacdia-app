@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
@@ -44,8 +45,10 @@ final getClubSectionUseCaseProvider = Provider<GetClubSection>((ref) {
 /// Obtiene la información básica del club contenedor por su UUID.
 final clubInfoProvider =
     FutureProvider.autoDispose.family<ClubInfo, String>((ref, clubId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final useCase = ref.read(getClubInfoUseCaseProvider);
-  final result = await useCase(GetClubInfoParams(clubId: clubId));
+  final result = await useCase(GetClubInfoParams(clubId: clubId), cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (club) => club,
@@ -92,6 +95,9 @@ final canEditClubProvider = FutureProvider.autoDispose<bool>((ref) async {
 final currentClubSectionProvider =
     FutureProvider.autoDispose<ClubSection?>((ref) async {
   ref.keepAlive();
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
   final context = await ref.watch(clubContextProvider.future);
   if (context == null) return null;
 
@@ -101,6 +107,7 @@ final currentClubSectionProvider =
       clubId: context.clubId.toString(),
       sectionId: context.sectionId,
     ),
+    cancelToken: cancelToken,
   );
 
   return result.fold(

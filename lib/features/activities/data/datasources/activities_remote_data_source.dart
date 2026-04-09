@@ -14,8 +14,12 @@ abstract class ActivitiesRemoteDataSource {
   Future<List<ActivityModel>> getClubActivities(
     int clubId, {
     int? clubTypeId,
+    CancelToken? cancelToken,
   });
-  Future<ActivityModel> getActivityById(int activityId);
+  Future<ActivityModel> getActivityById(
+    int activityId, {
+    CancelToken? cancelToken,
+  });
   Future<ActivityModel> createActivity({
     required int clubId,
     required CreateActivityRequest request,
@@ -42,7 +46,10 @@ abstract class ActivitiesRemoteDataSource {
     List<int>? clubSectionIds,
   });
   Future<void> deleteActivity(int activityId);
-  Future<List<AttendanceModel>> getActivityAttendance(int activityId);
+  Future<List<AttendanceModel>> getActivityAttendance(
+    int activityId, {
+    CancelToken? cancelToken,
+  });
   Future<int> registerAttendance(int activityId, List<String> userIds);
 
   /// Sube una imagen para la actividad y devuelve la URL firmada resultante.
@@ -50,7 +57,10 @@ abstract class ActivitiesRemoteDataSource {
 
   /// Obtiene las secciones de un club (para el picker de actividades conjuntas).
   /// Llama a GET /api/v1/clubs/:clubId/sections
-  Future<List<ClubSectionModel>> getClubSections(int clubId);
+  Future<List<ClubSectionModel>> getClubSections(
+    int clubId, {
+    CancelToken? cancelToken,
+  });
 }
 
 /// Implementación de la fuente de datos remota de actividades
@@ -70,6 +80,7 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   Future<List<ActivityModel>> getClubActivities(
     int clubId, {
     int? clubTypeId,
+    CancelToken? cancelToken,
   }) async {
     try {
       final queryParams = <String, dynamic>{'active': 'true'};
@@ -78,6 +89,7 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/activities',
         queryParameters: queryParams,
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -100,10 +112,14 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   }
 
   @override
-  Future<ActivityModel> getActivityById(int activityId) async {
+  Future<ActivityModel> getActivityById(
+    int activityId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.activities}/$activityId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -122,10 +138,14 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   }
 
   @override
-  Future<List<AttendanceModel>> getActivityAttendance(int activityId) async {
+  Future<List<AttendanceModel>> getActivityAttendance(
+    int activityId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.activities}/$activityId/attendance',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -358,10 +378,14 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   }
 
   @override
-  Future<List<ClubSectionModel>> getClubSections(int clubId) async {
+  Future<List<ClubSectionModel>> getClubSections(
+    int clubId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

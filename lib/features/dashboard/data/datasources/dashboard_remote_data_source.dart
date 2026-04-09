@@ -8,7 +8,7 @@ import '../models/dashboard_summary_model.dart';
 /// Interfaz para la fuente de datos remota del dashboard
 abstract class DashboardRemoteDataSource {
   /// Obtiene el resumen del dashboard del usuario autenticado
-  Future<DashboardSummaryModel> getDashboardSummary();
+  Future<DashboardSummaryModel> getDashboardSummary({CancelToken? cancelToken});
 }
 
 /// Implementación de la fuente de datos remota del dashboard
@@ -27,10 +27,11 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
         _baseUrl = baseUrl;
 
   @override
-  Future<DashboardSummaryModel> getDashboardSummary() async {
+  Future<DashboardSummaryModel> getDashboardSummary({CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.dashboard}/summary',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

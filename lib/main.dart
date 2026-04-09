@@ -1,6 +1,5 @@
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -20,19 +19,26 @@ Future<void> main() async {
   // Aseguramos que las dependencias de Flutter estén inicializadas
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Paralelizamos operaciones independientes: orientación y SharedPreferences
+  // Paralelizamos operaciones independientes: orientación, SharedPreferences y
+  // Firebase.initializeApp() — este último DEBE ocurrir antes de runApp().
   final results = await Future.wait([
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]),
     SharedPreferences.getInstance(),
+    Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ),
   ]);
 
   final sharedPreferences = results[1] as SharedPreferences;
 
-  // Firebase se inicializa después de orientación y prefs
-  await _initializeFirebaseAndPrintDebugTokens();
+  // Diferimos la activación de AppCheck al post-frame: no bloquea el primer
+  // frame y el handshake con el servidor de AppCheck puede tomar ~1-2 s.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _initializeFirebaseExtras();
+  });
 
   // Ejecutamos la aplicación con la configuración inicial
   runApp(
@@ -45,20 +51,22 @@ Future<void> main() async {
     ),
   );
 
-  // La verificación de sesión no necesita bloquear el primer frame
+  // La verificación de sesión no necesita bloquear el primer frame.
+  // Reutilizamos la instancia ya cargada para evitar un segundo getInstance().
   WidgetsBinding.instance.addPostFrameCallback((_) {
-    _checkAndCleanSessionAtStartup();
+    _checkAndCleanSessionAtStartup(sharedPreferences);
   });
 }
 
-Future<void> _initializeFirebaseAndPrintDebugTokens() async {
-  const tag = 'FCMDebug';
-
+/// Activación de FirebaseAppCheck diferida al post-frame.
+///
+/// AppCheck no es requerido antes del primer frame; diferirlo elimina ~1-2 s
+/// del cold start. FCM (permisos, token, listeners) es manejado íntegramente
+/// por [PushNotificationService.initialize()] después de que el usuario
+/// se autentica — no se duplica aquí.
+Future<void> _initializeFirebaseExtras() async {
+  const tag = 'FirebaseExtras';
   try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-
     await FirebaseAppCheck.instance.activate(
       androidProvider: kDebugMode
           ? AndroidProvider.debug
@@ -67,47 +75,11 @@ Future<void> _initializeFirebaseAndPrintDebugTokens() async {
           ? AppleProvider.debug
           : AppleProvider.appAttest,
     );
-
-    if (kDebugMode) AppLogger.i('Firebase initialized', tag: tag);
+    if (kDebugMode) AppLogger.i('FirebaseAppCheck activado', tag: tag);
   } catch (e) {
     if (kDebugMode) {
-      AppLogger.w(
-        'Firebase no pudo inicializarse. Verifica google-services.json (Android) y GoogleService-Info.plist (iOS).',
-        tag: tag,
-        error: e,
-      );
+      AppLogger.w('FirebaseAppCheck no pudo activarse', tag: tag, error: e);
     }
-    return;
-  }
-
-  try {
-    final settings = await FirebaseMessaging.instance.getNotificationSettings();
-    NotificationSettings effectiveSettings = settings;
-
-    if (settings.authorizationStatus == AuthorizationStatus.notDetermined) {
-      effectiveSettings = await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-    }
-
-    if (kDebugMode) {
-      final fcmToken = await FirebaseMessaging.instance.getToken();
-      AppLogger.i(
-        'FCM permission: ${effectiveSettings.authorizationStatus.toString().split('.').last}',
-        tag: tag,
-      );
-      AppLogger.i('FCM_TOKEN: ${fcmToken ?? 'null'}', tag: tag);
-    }
-  } catch (e) {
-    if (kDebugMode) {
-      AppLogger.w('No fue posible obtener FCM token', tag: tag, error: e);
-    }
-  }
-
-  if (kDebugMode) {
-    AppLogger.i('Firebase initialized — JWT debug tokens available via AppAuthService', tag: tag);
   }
 }
 
@@ -117,16 +89,25 @@ Future<void> _initializeFirebaseAndPrintDebugTokens() async {
 /// verificamos si el access token almacenado localmente existe. La
 /// validación real contra el servidor ocurre en [AuthNotifier.build()]
 /// mediante GET /auth/me.
-Future<void> _checkAndCleanSessionAtStartup() async {
+///
+/// Recibe la instancia de [SharedPreferences] ya cargada en [main] para
+/// evitar un segundo [SharedPreferences.getInstance]. La limpieza de
+/// residuos de Supabase se ejecuta una única vez gracias al flag
+/// `supabase_migration_done`.
+Future<void> _checkAndCleanSessionAtStartup(SharedPreferences prefs) async {
   try {
-    final prefs = await SharedPreferences.getInstance();
-    final keys = prefs.getKeys();
+    // La limpieza de residuos de Supabase solo necesita ocurrir una vez.
+    if (prefs.getBool('supabase_migration_done') == true) return;
+
+    final keys = prefs.getKeys().toList();
     for (final key in keys) {
       // Eliminar residuos de sesiones Supabase previas
       if (key.contains('supabase')) {
         await prefs.remove(key);
       }
     }
+
+    await prefs.setBool('supabase_migration_done', true);
   } catch (e) {
     // Silenciar errores de verificación de sesión
   }
@@ -155,39 +136,43 @@ class MyApp extends ConsumerWidget {
     final themeMode = ref.watch(themeNotifierProvider);
     final router = ref.watch(routerProvider);
 
-    // Adaptar iconos del status bar al tema actual
+    // Adaptar iconos del status bar al tema actual.
+    // AnnotatedRegion is the declarative alternative to SystemChrome.setSystemUIOverlayStyle()
+    // inside build() — it only propagates when the widget tree actually changes instead of
+    // issuing a platform channel call on every rebuild.
     final isDark = themeMode == ThemeMode.dark ||
         (themeMode == ThemeMode.system &&
             MediaQuery.platformBrightnessOf(context) == Brightness.dark);
-    SystemChrome.setSystemUIOverlayStyle(
-      isDark
-          ? SystemUiOverlayStyle.light.copyWith(
-              statusBarColor: Colors.transparent,
-            )
-          : SystemUiOverlayStyle.dark.copyWith(
-              statusBarColor: Colors.transparent,
-            ),
-    );
+    final overlayStyle = isDark
+        ? SystemUiOverlayStyle.light.copyWith(
+            statusBarColor: Colors.transparent,
+          )
+        : SystemUiOverlayStyle.dark.copyWith(
+            statusBarColor: Colors.transparent,
+          );
 
-    return ScrollConfiguration(
-      behavior: _AppScrollBehavior(),
-      child: MaterialApp.router(
-        title: 'Sacdia App',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: themeMode,
-        routerConfig: router,
-        locale: const Locale('es'),
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('es'),
-          Locale('en'),
-        ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: overlayStyle,
+      child: ScrollConfiguration(
+        behavior: _AppScrollBehavior(),
+        child: MaterialApp.router(
+          title: 'Sacdia App',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeMode,
+          routerConfig: router,
+          locale: const Locale('es'),
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('es'),
+            Locale('en'),
+          ],
+        ),
       ),
     );
   }

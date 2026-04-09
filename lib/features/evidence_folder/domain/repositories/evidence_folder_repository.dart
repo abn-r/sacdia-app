@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../entities/evidence_folder.dart';
@@ -11,7 +12,7 @@ import '../entities/evidence_file.dart';
 abstract class EvidenceFolderRepository {
   /// Obtiene la carpeta de evidencias de una sección de club.
   Future<Either<Failure, EvidenceFolder>> getEvidenceFolder(
-      String clubSectionId);
+      String clubSectionId, {CancelToken? cancelToken});
 
   /// Envía la carpeta completa a validación.
   ///

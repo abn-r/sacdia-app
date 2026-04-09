@@ -162,7 +162,8 @@ class _UploadProgressSheetContentState
                 maxHeight: MediaQuery.of(context).size.height * 0.35,
               ),
               child: ListView.separated(
-                shrinkWrap: true,
+                // shrinkWrap removed: ConstrainedBox(maxHeight) provides a
+                // bounded height constraint — ListView can scroll normally.
                 itemCount: _files.length,
                 separatorBuilder: (_, __) => Divider(
                   height: 1,

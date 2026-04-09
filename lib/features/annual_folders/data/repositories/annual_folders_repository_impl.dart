@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -27,9 +28,9 @@ class AnnualFoldersRepositoryImpl implements AnnualFoldersRepository {
 
   @override
   Future<Either<Failure, AnnualFolder>> getFolderByEnrollment(
-      int enrollmentId) async {
+      int enrollmentId, {CancelToken? cancelToken}) async {
     try {
-      final model = await remoteDataSource.getFolderByEnrollment(enrollmentId);
+      final model = await remoteDataSource.getFolderByEnrollment(enrollmentId, cancelToken: cancelToken);
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return _serverFailure(e);

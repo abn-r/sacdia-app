@@ -45,6 +45,9 @@ class EvidenceFileGallery extends StatelessWidget {
         // ── Image grid ────────────────────────────────────────────────────
         if (imageFiles.isNotEmpty) ...[
           GridView.builder(
+            // shrinkWrap OK: imageFiles is a subset of evidence images per
+            // honor — naturally bounded. Lives inside a Column (non-scrollable)
+            // so intrinsic height is required.
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

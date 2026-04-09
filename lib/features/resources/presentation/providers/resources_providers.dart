@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../../providers/dio_provider.dart';
@@ -68,8 +69,10 @@ final resourceSearchProvider =
 /// Provider para las categorías de recursos
 final resourceCategoriesProvider =
     FutureProvider.autoDispose<List<ResourceCategory>>((ref) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final getCategories = ref.read(getResourceCategoriesProvider);
-  final result = await getCategories(const NoParams());
+  final result = await getCategories(const NoParams(), cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (categories) => categories,
@@ -79,6 +82,9 @@ final resourceCategoriesProvider =
 /// Provider para la primera página de recursos (con filtros activos)
 final resourcesProvider =
     FutureProvider.autoDispose<PaginatedResources>((ref) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
   final resourceType = ref.watch(selectedResourceTypeProvider);
   final categoryId = ref.watch(selectedResourceCategoryProvider);
   final search = ref.watch(resourceSearchProvider);
@@ -92,6 +98,7 @@ final resourcesProvider =
       categoryId: categoryId,
       search: search.isEmpty ? null : search,
     ),
+    cancelToken: cancelToken,
   );
 
   return result.fold(
@@ -142,6 +149,7 @@ class ResourcesListState {
 /// Notifier que gestiona la lista paginada de recursos con carga incremental
 class ResourcesListNotifier extends AutoDisposeNotifier<ResourcesListState> {
   static const int _pageSize = 20;
+  CancelToken? _cancelToken;
 
   @override
   ResourcesListState build() {
@@ -150,6 +158,8 @@ class ResourcesListNotifier extends AutoDisposeNotifier<ResourcesListState> {
     ref.watch(selectedResourceCategoryProvider);
     ref.watch(resourceSearchProvider);
 
+    ref.onDispose(() => _cancelToken?.cancel());
+
     // Diferir la primera carga para después del build
     Future.microtask(() => loadFirstPage());
 
@@ -157,6 +167,8 @@ class ResourcesListNotifier extends AutoDisposeNotifier<ResourcesListState> {
   }
 
   Future<void> loadFirstPage() async {
+    _cancelToken?.cancel();
+    _cancelToken = CancelToken();
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     final resourceType = ref.read(selectedResourceTypeProvider);
@@ -172,6 +184,7 @@ class ResourcesListNotifier extends AutoDisposeNotifier<ResourcesListState> {
         categoryId: categoryId,
         search: search.isEmpty ? null : search,
       ),
+      cancelToken: _cancelToken,
     );
 
     result.fold(
@@ -191,6 +204,8 @@ class ResourcesListNotifier extends AutoDisposeNotifier<ResourcesListState> {
   Future<void> loadNextPage() async {
     if (state.isLoadingMore || !state.hasMore) return;
 
+    _cancelToken?.cancel();
+    _cancelToken = CancelToken();
     state = state.copyWith(isLoadingMore: true);
 
     final nextPage = state.currentPage + 1;
@@ -207,6 +222,7 @@ class ResourcesListNotifier extends AutoDisposeNotifier<ResourcesListState> {
         categoryId: categoryId,
         search: search.isEmpty ? null : search,
       ),
+      cancelToken: _cancelToken,
     );
 
     result.fold(

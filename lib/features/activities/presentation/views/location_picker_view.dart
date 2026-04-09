@@ -800,6 +800,14 @@ class _LocationSearchDelegate extends SearchDelegate<_NominatimPlace?> {
   // ── SearchDelegate overrides ───────────────────────────────────────────────
 
   @override
+  void close(BuildContext context, _NominatimPlace? result) {
+    // Cancel any pending debounce timer on any dismissal path (back gesture,
+    // system back, or programmatic close) to prevent dangling async callbacks.
+    _debounce?.cancel();
+    super.close(context, result);
+  }
+
+  @override
   List<Widget> buildActions(BuildContext context) {
     return [
       if (query.isNotEmpty)
@@ -861,7 +869,7 @@ class _LocationSearchDelegate extends SearchDelegate<_NominatimPlace?> {
 
         if (_isLoading) {
           return Center(
-            child: LoadingAnimationWidget.inkDrop(
+            child: LoadingAnimationWidget.waveDots(
               color: AppColors.primary,
               size: 50,
             ),

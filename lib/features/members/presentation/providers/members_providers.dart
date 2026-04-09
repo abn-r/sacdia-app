@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
@@ -270,6 +271,9 @@ class MembersData {
 class MembersNotifier extends AutoDisposeAsyncNotifier<MembersData> {
   @override
   Future<MembersData> build() async {
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
+
     // ref.watch sobre clubContextProvider dispara rebuild automático
     // cuando el contexto del club cambia (login, cambio de club, etc.)
     final ctx = await ref.watch(clubContextProvider.future);
@@ -280,6 +284,7 @@ class MembersNotifier extends AutoDisposeAsyncNotifier<MembersData> {
         clubId: ctx.clubId,
         sectionId: ctx.sectionId,
       ),
+      cancelToken: cancelToken,
     );
 
     final requestsResult = await ref.read(getJoinRequestsUseCaseProvider)(
@@ -287,6 +292,7 @@ class MembersNotifier extends AutoDisposeAsyncNotifier<MembersData> {
         clubId: ctx.clubId,
         sectionId: ctx.sectionId,
       ),
+      cancelToken: cancelToken,
     );
 
     return MembersData(
@@ -454,8 +460,10 @@ int _classOrder(String className) {
 /// Keyed por userId — se cachea de forma independiente por cada miembro visitado.
 final memberDetailProvider =
     FutureProvider.autoDispose.family<ClubMember, String>((ref, userId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final repo = ref.read(membersRepositoryProvider);
-  final result = await repo.getMemberDetail(userId);
+  final result = await repo.getMemberDetail(userId, cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (member) => member,
@@ -526,8 +534,10 @@ final _honorsDsForMembersProvider = Provider<HonorsRemoteDataSource>((ref) {
 final memberClassesProvider =
     FutureProvider.autoDispose.family<List<ProgressiveClass>, String>(
         (ref, userId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final ds = ref.read(_classesDsForMembersProvider);
-  final models = await ds.getUserClasses(userId);
+  final models = await ds.getUserClasses(userId, cancelToken: cancelToken);
   return models.map((m) => m.toEntity()).toList();
 });
 
@@ -535,7 +545,9 @@ final memberClassesProvider =
 final memberHonorsProvider =
     FutureProvider.autoDispose.family<List<UserHonor>, String>(
         (ref, userId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final ds = ref.read(_honorsDsForMembersProvider);
-  final models = await ds.getUserHonors(userId);
+  final models = await ds.getUserHonors(userId, cancelToken: cancelToken);
   return models.map((m) => m.toEntity()).toList();
 });

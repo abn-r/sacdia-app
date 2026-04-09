@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
 import '../entities/role_assignment.dart';
 
@@ -6,5 +7,7 @@ import '../entities/role_assignment.dart';
 abstract class RoleAssignmentsRepository {
   /// Obtiene la lista de asignaciones del usuario autenticado.
   /// GET /api/v1/requests/assignments
-  Future<Either<Failure, List<RoleAssignment>>> getAssignments();
+  Future<Either<Failure, List<RoleAssignment>>> getAssignments({
+    CancelToken? cancelToken,
+  });
 }

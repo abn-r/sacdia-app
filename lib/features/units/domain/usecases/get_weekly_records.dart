@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
@@ -22,10 +23,11 @@ class GetWeeklyRecords {
   const GetWeeklyRecords(this._repository);
 
   Future<Either<Failure, List<WeeklyRecord>>> call(
-      GetWeeklyRecordsParams params) {
+      GetWeeklyRecordsParams params, {CancelToken? cancelToken}) {
     return _repository.getWeeklyRecords(
       clubId: params.clubId,
       unitId: params.unitId,
+      cancelToken: cancelToken,
     );
   }
 }

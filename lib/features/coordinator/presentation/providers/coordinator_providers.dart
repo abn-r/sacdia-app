@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
@@ -36,7 +37,9 @@ final coordinatorRepositoryProvider =
 final slaDashboardProvider =
     FutureProvider.autoDispose<SlaDashboard>((ref) async {
   final repository = ref.read(coordinatorRepositoryProvider);
-  final result = await repository.getSlaDashboard();
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await repository.getSlaDashboard(cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (dashboard) => dashboard,
@@ -56,7 +59,12 @@ final pendingEvidenceProvider = FutureProvider.autoDispose
     .family<List<EvidenceReviewItem>, EvidenceReviewType?>(
         (ref, type) async {
   final repository = ref.read(coordinatorRepositoryProvider);
-  final result = await repository.getPendingEvidence(type: type);
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await repository.getPendingEvidence(
+    type: type,
+    cancelToken: cancelToken,
+  );
   return result.fold(
     (failure) => throw Exception(failure.message),
     (list) => list,
@@ -71,9 +79,12 @@ typedef EvidenceDetailKey = ({EvidenceReviewType type, String id});
 final evidenceDetailProvider = FutureProvider.autoDispose
     .family<EvidenceReviewItem, EvidenceDetailKey>((ref, key) async {
   final repository = ref.read(coordinatorRepositoryProvider);
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final result = await repository.getEvidenceDetail(
     type: key.type,
     id: key.id,
+    cancelToken: cancelToken,
   );
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -178,7 +189,12 @@ final evidenceReviewNotifierProvider = NotifierProvider.autoDispose
 final localCamporeeListProvider =
     FutureProvider.autoDispose<List<CamporeeItem>>((ref) async {
   final repository = ref.read(coordinatorRepositoryProvider);
-  final result = await repository.listLocalCamporees(activeOnly: true);
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await repository.listLocalCamporees(
+    activeOnly: true,
+    cancelToken: cancelToken,
+  );
   return result.fold(
     (failure) => throw Exception(failure.message),
     (list) => list,
@@ -190,7 +206,9 @@ final localCamporeeListProvider =
 final unionCamporeeListProvider =
     FutureProvider.autoDispose<List<CamporeeItem>>((ref) async {
   final repository = ref.read(coordinatorRepositoryProvider);
-  final result = await repository.listUnionCamporees();
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await repository.listUnionCamporees(cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (list) => list,
@@ -218,12 +236,20 @@ final camporeePendingProvider = FutureProvider.autoDispose
     .family<CamporeePendingApprovals, CamporeePendingKey>(
         (ref, key) async {
   final repository = ref.read(coordinatorRepositoryProvider);
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final Either<Failure, CamporeePendingApprovals> result;
 
   if (key.scope == CamporeeScope.union) {
-    result = await repository.getUnionCamporeePending(key.camporeeId);
+    result = await repository.getUnionCamporeePending(
+      key.camporeeId,
+      cancelToken: cancelToken,
+    );
   } else {
-    result = await repository.getLocalCamporeePending(key.camporeeId);
+    result = await repository.getLocalCamporeePending(
+      key.camporeeId,
+      cancelToken: cancelToken,
+    );
   }
 
   return result.fold(

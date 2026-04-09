@@ -14,11 +14,18 @@ abstract class FinancesRemoteDataSource {
     required int clubId,
     required int year,
     required int month,
+    CancelToken? cancelToken,
   });
 
-  Future<FinanceSummaryModel> getSummary({required int clubId});
+  Future<FinanceSummaryModel> getSummary({
+    required int clubId,
+    CancelToken? cancelToken,
+  });
 
-  Future<FinanceTransactionModel> getTransaction({required int financeId});
+  Future<FinanceTransactionModel> getTransaction({
+    required int financeId,
+    CancelToken? cancelToken,
+  });
 
   Future<FinanceTransactionModel> createTransaction({
     required int clubId,
@@ -42,7 +49,9 @@ abstract class FinancesRemoteDataSource {
 
   Future<void> deleteTransaction({required int financeId});
 
-  Future<List<FinanceCategoryModel>> getCategories();
+  Future<List<FinanceCategoryModel>> getCategories({
+    CancelToken? cancelToken,
+  });
 
   /// Paginated, filterable, sortable transaction list.
   ///
@@ -57,6 +66,7 @@ abstract class FinancesRemoteDataSource {
     String? endDate,
     String? sortBy,
     String? sortOrder,
+    CancelToken? cancelToken,
   });
 }
 
@@ -79,11 +89,13 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
     required int clubId,
     required int year,
     required int month,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/finances',
         queryParameters: {'year': year, 'month': month},
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -105,10 +117,14 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
   // ── GET /clubs/:clubId/finances/summary ───────────────────────────────────
 
   @override
-  Future<FinanceSummaryModel> getSummary({required int clubId}) async {
+  Future<FinanceSummaryModel> getSummary({
+    required int clubId,
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/finances/summary',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -131,11 +147,14 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
   // ── GET /finances/:financeId ──────────────────────────────────────────────
 
   @override
-  Future<FinanceTransactionModel> getTransaction(
-      {required int financeId}) async {
+  Future<FinanceTransactionModel> getTransaction({
+    required int financeId,
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.finances}/$financeId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -273,10 +292,13 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
   // ── GET /finances/categories ──────────────────────────────────────────────
 
   @override
-  Future<List<FinanceCategoryModel>> getCategories() async {
+  Future<List<FinanceCategoryModel>> getCategories({
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.finances}/categories',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -313,6 +335,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
     String? endDate,
     String? sortBy,
     String? sortOrder,
+    CancelToken? cancelToken,
   }) async {
     try {
       final params = <String, dynamic>{
@@ -329,6 +352,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId${ApiEndpoints.finances}/transactions',
         queryParameters: params,
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -350,6 +374,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
 
   Never _rethrow(Object e) {
     if (e is DioException) {
+      if (e.type == DioExceptionType.cancel) throw e;
       final msg = _extractDioMessage(e);
       throw ServerException(message: msg, code: e.response?.statusCode);
     }

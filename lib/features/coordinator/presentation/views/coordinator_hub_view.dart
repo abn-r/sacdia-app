@@ -162,37 +162,60 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      crossAxisCount: 2,
-      mainAxisSpacing: 10,
-      crossAxisSpacing: 10,
-      childAspectRatio: 1.6,
+    // Replaced GridView(shrinkWrap: true) with Column+Row since the grid
+    // always renders exactly 4 bounded tiles inside a SliverChildListDelegate.
+    // Column layout is O(n) vs O(n²) for shrinkWrap.
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        _SummaryTile(
-          label: 'Investiduras',
-          count: sla.investiture.pending,
-          color: AppColors.primary,
-          icon: HugeIcons.strokeRoundedAward01,
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _SummaryTile(
+                  label: 'Investiduras',
+                  count: sla.investiture.pending,
+                  color: AppColors.primary,
+                  icon: HugeIcons.strokeRoundedAward01,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _SummaryTile(
+                  label: 'Evidencias',
+                  count: sla.evidence.pending,
+                  color: AppColors.accent,
+                  icon: HugeIcons.strokeRoundedFolder01,
+                ),
+              ),
+            ],
+          ),
         ),
-        _SummaryTile(
-          label: 'Evidencias',
-          count: sla.evidence.pending,
-          color: AppColors.accent,
-          icon: HugeIcons.strokeRoundedFolder01,
-        ),
-        _SummaryTile(
-          label: 'Camporees',
-          count: sla.camporee.pending,
-          color: AppColors.secondary,
-          icon: HugeIcons.strokeRoundedCalendar04,
-        ),
-        _SummaryTile(
-          label: 'Vencidos',
-          count: sla.totalOverdue,
-          color: AppColors.error,
-          icon: HugeIcons.strokeRoundedAlert02,
+        const SizedBox(height: 10),
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _SummaryTile(
+                  label: 'Camporees',
+                  count: sla.camporee.pending,
+                  color: AppColors.secondary,
+                  icon: HugeIcons.strokeRoundedCalendar04,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _SummaryTile(
+                  label: 'Vencidos',
+                  count: sla.totalOverdue,
+                  color: AppColors.error,
+                  icon: HugeIcons.strokeRoundedAlert02,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -276,22 +299,41 @@ class _SummarySkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    return GridView.count(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      crossAxisCount: 2,
-      mainAxisSpacing: 10,
-      crossAxisSpacing: 10,
-      childAspectRatio: 1.6,
-      children: List.generate(
-        4,
-        (_) => Container(
-          decoration: BoxDecoration(
-            color: c.border,
-            borderRadius: BorderRadius.circular(14),
+    // Replaced GridView(shrinkWrap: true) with Column+Row skeleton — 4
+    // bounded placeholder tiles inside a SliverChildListDelegate. O(n) layout.
+    // Fixed height matches the real _SummaryTile intrinsic height (~64px).
+    final tile = Container(
+      height: 64,
+      decoration: BoxDecoration(
+        color: c.border,
+        borderRadius: BorderRadius.circular(14),
+      ),
+    );
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: tile),
+              const SizedBox(width: 10),
+              Expanded(child: tile),
+            ],
           ),
         ),
-      ),
+        const SizedBox(height: 10),
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: tile),
+              const SizedBox(width: 10),
+              Expanded(child: tile),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

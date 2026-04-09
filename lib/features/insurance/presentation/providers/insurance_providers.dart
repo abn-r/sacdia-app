@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -76,10 +77,15 @@ final membersInsuranceProvider =
   if (ctx == null) return [];
 
   final useCase = ref.read(getMembersInsuranceUseCaseProvider);
-  final result = await useCase(GetMembersInsuranceParams(
-    clubId: ctx.clubId,
-    sectionId: ctx.sectionId,
-  ));
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await useCase(
+    GetMembersInsuranceParams(
+      clubId: ctx.clubId,
+      sectionId: ctx.sectionId,
+    ),
+    cancelToken: cancelToken,
+  );
 
   return result.fold(
     (failure) => throw Exception(failure.message),

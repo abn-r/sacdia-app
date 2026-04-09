@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
@@ -36,7 +37,9 @@ final certificationsProvider =
     FutureProvider.autoDispose<List<Certification>>((ref) async {
   ref.keepAlive();
   final repository = ref.read(certificationsRepositoryProvider);
-  final result = await repository.getCertifications();
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await repository.getCertifications(cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -59,8 +62,12 @@ final certificationDetailProvider =
     FutureProvider.autoDispose.family<CertificationDetail, int>(
         (ref, certificationId) async {
   final repository = ref.read(certificationsRepositoryProvider);
-  final result =
-      await repository.getCertificationDetail(certificationId);
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await repository.getCertificationDetail(
+    certificationId,
+    cancelToken: cancelToken,
+  );
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -80,7 +87,12 @@ final userCertificationsProvider =
   }
 
   final repository = ref.read(certificationsRepositoryProvider);
-  final result = await repository.getUserCertifications(userId);
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await repository.getUserCertifications(
+    userId,
+    cancelToken: cancelToken,
+  );
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -103,8 +115,13 @@ final certificationProgressProvider =
   }
 
   final repository = ref.read(certificationsRepositoryProvider);
-  final result =
-      await repository.getCertificationProgress(userId, certificationId);
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await repository.getCertificationProgress(
+    userId,
+    certificationId,
+    cancelToken: cancelToken,
+  );
 
   return result.fold(
     (failure) => throw Exception(failure.message),

@@ -11,9 +11,14 @@ abstract class TransferRemoteDataSource {
     String? reason,
   });
 
-  Future<List<TransferRequestModel>> getMyTransferRequests();
+  Future<List<TransferRequestModel>> getMyTransferRequests({
+    CancelToken? cancelToken,
+  });
 
-  Future<TransferRequestModel> getTransferRequest(int requestId);
+  Future<TransferRequestModel> getTransferRequest(
+    int requestId, {
+    CancelToken? cancelToken,
+  });
 }
 
 class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
@@ -87,11 +92,14 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
   }
 
   @override
-  Future<List<TransferRequestModel>> getMyTransferRequests() async {
+  Future<List<TransferRequestModel>> getMyTransferRequests({
+    CancelToken? cancelToken,
+  }) async {
     try {
       AppLogger.i('Obteniendo solicitudes de traslado', tag: _tag);
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.requests}/transfers',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -104,6 +112,7 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
         code: response.statusCode,
       );
     } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('DioException en getMyTransferRequests', tag: _tag, error: e);
       throw ServerException(
         message: e.response?.data?['message'] ?? e.message ?? 'Error de red',
@@ -118,11 +127,15 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
   }
 
   @override
-  Future<TransferRequestModel> getTransferRequest(int requestId) async {
+  Future<TransferRequestModel> getTransferRequest(
+    int requestId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
       AppLogger.i('Obteniendo detalle de solicitud $requestId', tag: _tag);
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.requests}/transfers/$requestId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -134,6 +147,7 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
         code: response.statusCode,
       );
     } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('DioException en getTransferRequest', tag: _tag, error: e);
       throw ServerException(
         message: e.response?.data?['message'] ?? e.message ?? 'Error de red',

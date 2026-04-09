@@ -1,9 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/constants/maps_constants.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -28,26 +26,42 @@ class ActivityHeroSection extends StatelessWidget {
 
   // ── map (platform 0) ───────────────────────────────────────────────────────
 
+  /// Builds a Static Maps API URL for the given coordinates.
+  ///
+  /// Uses scale=2 for retina quality and a red marker at the activity location.
+  /// The image is 600×300 logical pixels (1200×600 physical at 2× scale).
+  String _buildStaticMapUrl(double lat, double lng) {
+    return 'https://maps.googleapis.com/maps/api/staticmap'
+        '?center=$lat,$lng'
+        '&zoom=15'
+        '&size=600x300'
+        '&scale=2'
+        '&markers=color:red%7C$lat,$lng'
+        '&key=${MapsConstants.googleMapsApiKey}';
+  }
+
   Widget _buildMapHero(BuildContext context) {
     if (activity.hasLocation) {
-      final center = LatLng(activity.lat!, activity.longitude!);
-      return GoogleMap(
-        initialCameraPosition: CameraPosition(target: center, zoom: 15),
-        markers: {
-          Marker(
-            markerId: const MarkerId('activity'),
-            position: center,
+      final lat = activity.lat!;
+      final lng = activity.longitude!;
+
+      return GestureDetector(
+        onTap: () => _openInMaps(),
+        child: CachedNetworkImage(
+          imageUrl: _buildStaticMapUrl(lat, lng),
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          memCacheWidth: 1200,
+          memCacheHeight: 600,
+          placeholder: (context, url) => Container(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: const Center(
+              child: CircularProgressIndicator.adaptive(),
+            ),
           ),
-        },
-        zoomControlsEnabled: false,
-        scrollGesturesEnabled: false,
-        rotateGesturesEnabled: false,
-        tiltGesturesEnabled: false,
-        zoomGesturesEnabled: false,
-        myLocationButtonEnabled: false,
-        mapToolbarEnabled: false,
-        // liteModeEnabled solo funciona en Android, omitido para iOS
-        gestureRecognizers: const <Factory<OneSequenceGestureRecognizer>>{},
+          errorWidget: (context, url, error) => _buildLocationFallback(context),
+        ),
       );
     }
 

@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart' hide Unit;
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../entities/member_of_month.dart';
@@ -13,12 +14,14 @@ abstract class UnitsRepository {
   /// Retorna todas las unidades activas de un club.
   Future<Either<Failure, List<Unit>>> getClubUnits({
     required int clubId,
+    CancelToken? cancelToken,
   });
 
   /// Retorna el detalle de una unidad con sus miembros activos.
   Future<Either<Failure, Unit>> getUnitDetail({
     required int clubId,
     required int unitId,
+    CancelToken? cancelToken,
   });
 
   /// Crea una nueva unidad en el club.
@@ -71,6 +74,7 @@ abstract class UnitsRepository {
   Future<Either<Failure, List<WeeklyRecord>>> getWeeklyRecords({
     required int clubId,
     required int unitId,
+    CancelToken? cancelToken,
   });
 
   /// Crea un registro semanal para un miembro de la unidad.
@@ -103,6 +107,7 @@ abstract class UnitsRepository {
   /// Retorna las categorías de puntuación activas para un campo local.
   Future<Either<Failure, List<ScoringCategory>>> getScoringCategories({
     required int localFieldId,
+    CancelToken? cancelToken,
   });
 
   // ── Member of the Month ─────────────────────────────────────────────────
@@ -111,6 +116,7 @@ abstract class UnitsRepository {
   Future<Either<Failure, MemberOfMonth?>> getMemberOfMonth({
     required int clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   });
 
   /// Retorna el historial paginado de Miembros del Mes de una sección.
@@ -119,5 +125,6 @@ abstract class UnitsRepository {
     required int sectionId,
     int page = 1,
     int limit = 12,
+    CancelToken? cancelToken,
   });
 }

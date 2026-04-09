@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -31,8 +32,10 @@ final annualFolderByEnrollmentProvider =
     FutureProvider.autoDispose.family<AnnualFolder, int>(
         (ref, enrollmentId) async {
   ref.keepAlive();
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final repo = ref.read(annualFoldersRepositoryProvider);
-  final result = await repo.getFolderByEnrollment(enrollmentId);
+  final result = await repo.getFolderByEnrollment(enrollmentId, cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (folder) => folder,

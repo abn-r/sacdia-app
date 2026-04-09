@@ -33,11 +33,13 @@ abstract class InvestitureRemoteDataSource {
     int? ecclesiasticalYearId,
     int page = 1,
     int limit = 20,
+    CancelToken? cancelToken,
   });
 
   /// GET /api/v1/enrollments/:enrollmentId/investiture-history
   Future<List<InvestitureHistoryEntryModel>> getInvestitureHistory({
     required int enrollmentId,
+    CancelToken? cancelToken,
   });
 }
 
@@ -206,6 +208,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
     int? ecclesiasticalYearId,
     int page = 1,
     int limit = 20,
+    CancelToken? cancelToken,
   }) async {
     try {
       final queryParams = <String, dynamic>{
@@ -222,6 +225,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.investiture}/pending',
         queryParameters: queryParams,
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -246,6 +250,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
         code: response.statusCode,
       );
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getPendingInvestitures', tag: _tag, error: e);
       _rethrow(e);
     }
@@ -256,10 +261,12 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
   @override
   Future<List<InvestitureHistoryEntryModel>> getInvestitureHistory({
     required int enrollmentId,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.enrollments}/$enrollmentId/investiture-history',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -277,6 +284,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
         code: response.statusCode,
       );
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getInvestitureHistory', tag: _tag, error: e);
       _rethrow(e);
     }

@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
 import '../entities/certification.dart';
 import '../entities/certification_detail.dart';
@@ -8,19 +9,28 @@ import '../entities/certification_progress.dart';
 /// Repositorio de certificaciones (interfaz del dominio)
 abstract class CertificationsRepository {
   /// Obtiene el catálogo completo de certificaciones.
-  Future<Either<Failure, List<Certification>>> getCertifications();
+  Future<Either<Failure, List<Certification>>> getCertifications({
+    CancelToken? cancelToken,
+  });
 
   /// Obtiene el detalle de una certificación con módulos y secciones.
   Future<Either<Failure, CertificationDetail>> getCertificationDetail(
-      int certificationId);
+    int certificationId, {
+    CancelToken? cancelToken,
+  });
 
   /// Obtiene las certificaciones en las que un usuario está inscrito.
   Future<Either<Failure, List<UserCertification>>> getUserCertifications(
-      String userId);
+    String userId, {
+    CancelToken? cancelToken,
+  });
 
   /// Obtiene el progreso detallado de un usuario en una certificación.
   Future<Either<Failure, CertificationProgress>> getCertificationProgress(
-      String userId, int certificationId);
+    String userId,
+    int certificationId, {
+    CancelToken? cancelToken,
+  });
 
   /// Inscribe a un usuario en una certificación.
   Future<Either<Failure, void>> enrollCertification(

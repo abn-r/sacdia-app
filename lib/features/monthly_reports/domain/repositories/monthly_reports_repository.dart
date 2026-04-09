@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
 import '../entities/monthly_report.dart';
 
@@ -10,16 +11,17 @@ abstract class MonthlyReportsRepository {
     int enrollmentId, {
     required int month,
     required int year,
+    CancelToken? cancelToken,
   });
 
   /// Lista de informes de un enrollment.
   /// GET /api/v1/monthly-reports/enrollment/:enrollmentId
   Future<Either<Failure, List<MonthlyReport>>> getReportsByEnrollment(
-      int enrollmentId);
+      int enrollmentId, {CancelToken? cancelToken});
 
   /// Detalle de un informe.
   /// GET /api/v1/monthly-reports/:reportId
-  Future<Either<Failure, MonthlyReport>> getReportDetail(int reportId);
+  Future<Either<Failure, MonthlyReport>> getReportDetail(int reportId, {CancelToken? cancelToken});
 
   /// Downloads the monthly report PDF via the authenticated HTTP client and
   /// returns the local file path of the saved temporary file.
@@ -29,5 +31,5 @@ abstract class MonthlyReportsRepository {
   /// This call is intentionally separate from getReportDetail because the
   /// detail response contains no pdfUrl field; the PDF is generated on demand
   /// server-side.
-  Future<Either<Failure, String>> downloadReportPdf(int reportId);
+  Future<Either<Failure, String>> downloadReportPdf(int reportId, {CancelToken? cancelToken});
 }

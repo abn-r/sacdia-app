@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -22,13 +23,18 @@ class MembersRepositoryImpl implements MembersRepository {
   Future<Either<Failure, List<ClubMember>>> getClubMembers({
     required int clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   }) async {
     try {
       final members = await remoteDataSource.getClubMembers(
         clubId: clubId,
         sectionId: sectionId,
+        cancelToken: cancelToken,
       );
       return Right(members);
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      return Left(UnexpectedFailure(message: e.toString()));
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));
     } on ServerException catch (e) {
@@ -39,10 +45,13 @@ class MembersRepositoryImpl implements MembersRepository {
   }
 
   @override
-  Future<Either<Failure, ClubMember>> getMemberDetail(String userId) async {
+  Future<Either<Failure, ClubMember>> getMemberDetail(String userId, {CancelToken? cancelToken}) async {
     try {
-      final member = await remoteDataSource.getMemberDetail(userId);
+      final member = await remoteDataSource.getMemberDetail(userId, cancelToken: cancelToken);
       return Right(member);
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      return Left(UnexpectedFailure(message: e.toString()));
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));
     } on ServerException catch (e) {
@@ -56,13 +65,18 @@ class MembersRepositoryImpl implements MembersRepository {
   Future<Either<Failure, List<JoinRequest>>> getJoinRequests({
     required int clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   }) async {
     try {
       final requests = await remoteDataSource.getJoinRequests(
         clubId: clubId,
         sectionId: sectionId,
+        cancelToken: cancelToken,
       );
       return Right(requests);
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      return Left(UnexpectedFailure(message: e.toString()));
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));
     } on ServerException catch (e) {

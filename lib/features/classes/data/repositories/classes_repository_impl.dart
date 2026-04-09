@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -35,11 +36,14 @@ class ClassesRepositoryImpl implements ClassesRepository {
 
   @override
   Future<Either<Failure, List<ProgressiveClass>>> getClasses(
-      {int? clubTypeId}) async {
+      {int? clubTypeId, CancelToken? cancelToken}) async {
     try {
       final models =
-          await remoteDataSource.getClasses(clubTypeId: clubTypeId);
+          await remoteDataSource.getClasses(clubTypeId: clubTypeId, cancelToken: cancelToken);
       return Right(models.map((m) => m.toEntity()).toList());
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      return _unexpectedFailure(e);
     } on ServerException catch (e) {
       return _serverFailure(e);
     } on AuthException catch (e) {
@@ -50,10 +54,13 @@ class ClassesRepositoryImpl implements ClassesRepository {
   }
 
   @override
-  Future<Either<Failure, ProgressiveClass>> getClassById(int classId) async {
+  Future<Either<Failure, ProgressiveClass>> getClassById(int classId, {CancelToken? cancelToken}) async {
     try {
-      final model = await remoteDataSource.getClassById(classId);
+      final model = await remoteDataSource.getClassById(classId, cancelToken: cancelToken);
       return Right(model.toEntity());
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      return _unexpectedFailure(e);
     } on ServerException catch (e) {
       return _serverFailure(e);
     } on AuthException catch (e) {
@@ -65,10 +72,13 @@ class ClassesRepositoryImpl implements ClassesRepository {
 
   @override
   Future<Either<Failure, List<ClassModule>>> getClassModules(
-      int classId) async {
+      int classId, {CancelToken? cancelToken}) async {
     try {
-      final models = await remoteDataSource.getClassModules(classId);
+      final models = await remoteDataSource.getClassModules(classId, cancelToken: cancelToken);
       return Right(models.map((m) => m.toEntity()).toList());
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      return _unexpectedFailure(e);
     } on ServerException catch (e) {
       return _serverFailure(e);
     } on AuthException catch (e) {
@@ -80,10 +90,13 @@ class ClassesRepositoryImpl implements ClassesRepository {
 
   @override
   Future<Either<Failure, List<ProgressiveClass>>> getUserClasses(
-      String userId) async {
+      String userId, {CancelToken? cancelToken}) async {
     try {
-      final models = await remoteDataSource.getUserClasses(userId);
+      final models = await remoteDataSource.getUserClasses(userId, cancelToken: cancelToken);
       return Right(models.map((m) => m.toEntity()).toList());
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      return _unexpectedFailure(e);
     } on ServerException catch (e) {
       return _serverFailure(e);
     } on AuthException catch (e) {
@@ -95,11 +108,14 @@ class ClassesRepositoryImpl implements ClassesRepository {
 
   @override
   Future<Either<Failure, ClassProgress>> getUserClassProgress(
-      String userId, int classId) async {
+      String userId, int classId, {CancelToken? cancelToken}) async {
     try {
       final model =
-          await remoteDataSource.getUserClassProgress(userId, classId);
+          await remoteDataSource.getUserClassProgress(userId, classId, cancelToken: cancelToken);
       return Right(model.toEntity());
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      return _unexpectedFailure(e);
     } on ServerException catch (e) {
       return _serverFailure(e);
     } on AuthException catch (e) {
@@ -149,11 +165,14 @@ class ClassesRepositoryImpl implements ClassesRepository {
 
   @override
   Future<Either<Failure, ClassWithProgress>> getClassWithProgress(
-      String userId, int classId) async {
+      String userId, int classId, {CancelToken? cancelToken}) async {
     try {
       final model =
-          await remoteDataSource.getClassWithProgress(userId, classId);
+          await remoteDataSource.getClassWithProgress(userId, classId, cancelToken: cancelToken);
       return Right(model.toEntity());
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      return _unexpectedFailure(e);
     } on ServerException catch (e) {
       return _serverFailure(e);
     } on AuthException catch (e) {

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
@@ -125,7 +126,9 @@ final canManageInventoryProvider =
 final inventoryCategoriesProvider =
     FutureProvider.autoDispose<List<InventoryCategory>>((ref) async {
   final useCase = ref.read(getInventoryCategoriesUseCaseProvider);
-  final result = await useCase();
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await useCase(cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (cats) => cats,
@@ -142,8 +145,11 @@ final inventoryItemsProvider =
   final instanceType = await ref.watch(inventoryInstanceTypeProvider.future);
 
   final useCase = ref.read(getInventoryItemsUseCaseProvider);
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final result = await useCase(
     GetInventoryItemsParams(clubId: clubId, instanceType: instanceType),
+    cancelToken: cancelToken,
   );
 
   return result.fold(
@@ -157,7 +163,12 @@ final inventoryItemsProvider =
 final inventoryItemDetailProvider =
     FutureProvider.autoDispose.family<InventoryItem, int>((ref, itemId) async {
   final repo = ref.read(inventoryRepositoryProvider);
-  final result = await repo.getItem(itemId: itemId);
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await repo.getItem(
+    itemId: itemId,
+    cancelToken: cancelToken,
+  );
   return result.fold(
     (failure) => throw Exception(failure.message),
     (item) => item,

@@ -10,11 +10,11 @@ import '../models/requirement_evidence_model.dart';
 
 /// Interfaz para la fuente de datos remota de clases progresivas
 abstract class ClassesRemoteDataSource {
-  Future<List<ClassModel>> getClasses({int? clubTypeId});
-  Future<ClassModel> getClassById(int classId);
-  Future<List<ClassModuleModel>> getClassModules(int classId);
-  Future<List<ClassModel>> getUserClasses(String userId);
-  Future<ClassProgressModel> getUserClassProgress(String userId, int classId);
+  Future<List<ClassModel>> getClasses({int? clubTypeId, CancelToken? cancelToken});
+  Future<ClassModel> getClassById(int classId, {CancelToken? cancelToken});
+  Future<List<ClassModuleModel>> getClassModules(int classId, {CancelToken? cancelToken});
+  Future<List<ClassModel>> getUserClasses(String userId, {CancelToken? cancelToken});
+  Future<ClassProgressModel> getUserClassProgress(String userId, int classId, {CancelToken? cancelToken});
   Future<ClassProgressModel> updateUserClassProgress(
       String userId, int classId, Map<String, dynamic> progressData);
 
@@ -27,7 +27,7 @@ abstract class ClassesRemoteDataSource {
 
   /// Obtiene la clase con progreso detallado (modulos + requerimientos + evidencias).
   Future<ClassWithProgressModel> getClassWithProgress(
-      String userId, int classId);
+      String userId, int classId, {CancelToken? cancelToken});
 
   /// Envia un requerimiento a validacion.
   Future<void> submitRequirement(
@@ -71,6 +71,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
 
   Never _rethrow(Object e) {
     if (e is DioException) {
+      if (e.type == DioExceptionType.cancel) throw e;
       final msg = _extractDioMessage(e);
       throw ServerException(message: msg, code: e.response?.statusCode);
     }
@@ -125,12 +126,13 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   // ── GET /classes ────────────────────────────────────────────────────────────
 
   @override
-  Future<List<ClassModel>> getClasses({int? clubTypeId}) async {
+  Future<List<ClassModel>> getClasses({int? clubTypeId, CancelToken? cancelToken}) async {
     try {
       final queryParams = clubTypeId != null ? '?clubTypeId=$clubTypeId' : '';
 
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.classes}$queryParams',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -156,10 +158,11 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   // ── GET /classes/:classId ───────────────────────────────────────────────────
 
   @override
-  Future<ClassModel> getClassById(int classId) async {
+  Future<ClassModel> getClassById(int classId, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.classes}/$classId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -177,10 +180,11 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   // ── GET /classes/:classId/modules ───────────────────────────────────────────
 
   @override
-  Future<List<ClassModuleModel>> getClassModules(int classId) async {
+  Future<List<ClassModuleModel>> getClassModules(int classId, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.classes}/$classId/modules',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -202,10 +206,11 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   // ── GET /users/:userId/classes ──────────────────────────────────────────────
 
   @override
-  Future<List<ClassModel>> getUserClasses(String userId) async {
+  Future<List<ClassModel>> getUserClasses(String userId, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$userId/classes',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -242,10 +247,11 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
 
   @override
   Future<ClassProgressModel> getUserClassProgress(
-      String userId, int classId) async {
+      String userId, int classId, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/progress',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -301,11 +307,12 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
 
   @override
   Future<ClassWithProgressModel> getClassWithProgress(
-      String userId, int classId) async {
+      String userId, int classId, {CancelToken? cancelToken}) async {
     try {
       // Intentar obtener progreso detallado en un solo endpoint
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/progress',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -319,10 +326,12 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
         // Si no, obtener la clase y los modulos por separado y combinar
         final classResponse = await _dio.get(
           '$_baseUrl${ApiEndpoints.classes}/$classId',
+          cancelToken: cancelToken,
         );
 
         final modulesResponse = await _dio.get(
           '$_baseUrl${ApiEndpoints.classes}/$classId/modules',
+          cancelToken: cancelToken,
         );
 
         if (classResponse.statusCode == 200 &&

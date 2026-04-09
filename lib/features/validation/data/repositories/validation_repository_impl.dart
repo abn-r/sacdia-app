@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -41,11 +42,13 @@ class ValidationRepositoryImpl implements ValidationRepository {
   Future<Either<Failure, List<ValidationHistoryEntry>>> getValidationHistory({
     required ValidationEntityType entityType,
     required int entityId,
+    CancelToken? cancelToken,
   }) async {
     try {
       final models = await _remoteDataSource.getValidationHistory(
         entityType: entityType,
         entityId: entityId,
+        cancelToken: cancelToken,
       );
       return Right(models);
     } on AuthException catch (e) {
@@ -60,9 +63,13 @@ class ValidationRepositoryImpl implements ValidationRepository {
   @override
   Future<Either<Failure, EligibilityResult>> checkEligibility({
     required String userId,
+    CancelToken? cancelToken,
   }) async {
     try {
-      final model = await _remoteDataSource.checkEligibility(userId: userId);
+      final model = await _remoteDataSource.checkEligibility(
+        userId: userId,
+        cancelToken: cancelToken,
+      );
       return Right(model);
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message));

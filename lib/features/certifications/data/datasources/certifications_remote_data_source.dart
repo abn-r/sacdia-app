@@ -11,20 +11,31 @@ import '../models/certification_progress_model.dart';
 abstract class CertificationsRemoteDataSource {
   /// Obtiene el catálogo completo de certificaciones.
   /// GET /certifications/certifications
-  Future<List<CertificationModel>> getCertifications();
+  Future<List<CertificationModel>> getCertifications({
+    CancelToken? cancelToken,
+  });
 
   /// Obtiene el detalle de una certificación con módulos y secciones.
   /// GET /certifications/certifications/:id
-  Future<CertificationDetailModel> getCertificationDetail(int certificationId);
+  Future<CertificationDetailModel> getCertificationDetail(
+    int certificationId, {
+    CancelToken? cancelToken,
+  });
 
   /// Obtiene las certificaciones en las que un usuario está inscrito.
   /// GET /certifications/users/:userId/certifications
-  Future<List<UserCertificationModel>> getUserCertifications(String userId);
+  Future<List<UserCertificationModel>> getUserCertifications(
+    String userId, {
+    CancelToken? cancelToken,
+  });
 
   /// Obtiene el progreso detallado de un usuario en una certificación.
   /// GET /certifications/users/:userId/certifications/:certificationId/progress
   Future<CertificationProgressModel> getCertificationProgress(
-      String userId, int certificationId);
+    String userId,
+    int certificationId, {
+    CancelToken? cancelToken,
+  });
 
   /// Inscribe a un usuario en una certificación.
   /// POST /certifications/users/:userId/certifications/enroll
@@ -64,6 +75,7 @@ class CertificationsRemoteDataSourceImpl
 
   Never _rethrow(Object e) {
     if (e is DioException) {
+      if (e.type == DioExceptionType.cancel) throw e;
       final msg = _extractDioMessage(e);
       throw ServerException(message: msg, code: e.response?.statusCode);
     }
@@ -86,10 +98,13 @@ class CertificationsRemoteDataSourceImpl
   // ── GET /certifications/certifications ──────────────────────────────────────
 
   @override
-  Future<List<CertificationModel>> getCertifications() async {
+  Future<List<CertificationModel>> getCertifications({
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.certifications}/certifications',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -113,10 +128,13 @@ class CertificationsRemoteDataSourceImpl
 
   @override
   Future<CertificationDetailModel> getCertificationDetail(
-      int certificationId) async {
+    int certificationId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.certifications}/certifications/$certificationId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -137,10 +155,13 @@ class CertificationsRemoteDataSourceImpl
 
   @override
   Future<List<UserCertificationModel>> getUserCertifications(
-      String userId) async {
+    String userId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.certifications}/users/$userId/certifications',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -164,10 +185,14 @@ class CertificationsRemoteDataSourceImpl
 
   @override
   Future<CertificationProgressModel> getCertificationProgress(
-      String userId, int certificationId) async {
+    String userId,
+    int certificationId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.certifications}/users/$userId/certifications/$certificationId/progress',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

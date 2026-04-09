@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../repositories/resources_repository.dart';
@@ -10,7 +11,7 @@ class GetResourceSignedUrl implements UseCase<String, String> {
   GetResourceSignedUrl(this.repository);
 
   @override
-  Future<Either<Failure, String>> call(String id) async {
-    return await repository.getSignedUrl(id);
+  Future<Either<Failure, String>> call(String id, {CancelToken? cancelToken}) async {
+    return await repository.getSignedUrl(id, cancelToken: cancelToken);
   }
 }

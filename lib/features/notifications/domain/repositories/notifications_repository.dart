@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
 import '../entities/notification_item.dart';
 
@@ -10,5 +11,6 @@ abstract class NotificationsRepository {
   Future<Either<Failure, ({List<NotificationItem> items, int total, int totalPages})>> getHistory({
     int page = 1,
     int limit = 20,
+    CancelToken? cancelToken,
   });
 }

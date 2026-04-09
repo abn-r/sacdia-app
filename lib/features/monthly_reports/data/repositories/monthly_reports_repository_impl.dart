@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -30,12 +31,14 @@ class MonthlyReportsRepositoryImpl implements MonthlyReportsRepository {
     int enrollmentId, {
     required int month,
     required int year,
+    CancelToken? cancelToken,
   }) async {
     try {
       final model = await remoteDataSource.getPreview(
         enrollmentId,
         month: month,
         year: year,
+        cancelToken: cancelToken,
       );
       return Right(model.toEntity());
     } on ServerException catch (e) {
@@ -49,10 +52,10 @@ class MonthlyReportsRepositoryImpl implements MonthlyReportsRepository {
 
   @override
   Future<Either<Failure, List<MonthlyReport>>> getReportsByEnrollment(
-      int enrollmentId) async {
+      int enrollmentId, {CancelToken? cancelToken}) async {
     try {
       final models =
-          await remoteDataSource.getReportsByEnrollment(enrollmentId);
+          await remoteDataSource.getReportsByEnrollment(enrollmentId, cancelToken: cancelToken);
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return _serverFailure(e);
@@ -65,9 +68,9 @@ class MonthlyReportsRepositoryImpl implements MonthlyReportsRepository {
 
   @override
   Future<Either<Failure, MonthlyReport>> getReportDetail(
-      int reportId) async {
+      int reportId, {CancelToken? cancelToken}) async {
     try {
-      final model = await remoteDataSource.getReportDetail(reportId);
+      final model = await remoteDataSource.getReportDetail(reportId, cancelToken: cancelToken);
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return _serverFailure(e);
@@ -79,9 +82,9 @@ class MonthlyReportsRepositoryImpl implements MonthlyReportsRepository {
   }
 
   @override
-  Future<Either<Failure, String>> downloadReportPdf(int reportId) async {
+  Future<Either<Failure, String>> downloadReportPdf(int reportId, {CancelToken? cancelToken}) async {
     try {
-      final localPath = await remoteDataSource.downloadReportPdf(reportId);
+      final localPath = await remoteDataSource.downloadReportPdf(reportId, cancelToken: cancelToken);
       return Right(localPath);
     } on ServerException catch (e) {
       return _serverFailure(e);

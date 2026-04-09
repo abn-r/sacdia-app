@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
 import '../entities/annual_folder.dart';
 
@@ -7,7 +8,7 @@ abstract class AnnualFoldersRepository {
   /// Obtiene la carpeta anual de un enrollment.
   /// GET /api/v1/annual-folders/enrollment/:enrollmentId
   Future<Either<Failure, AnnualFolder>> getFolderByEnrollment(
-      int enrollmentId);
+      int enrollmentId, {CancelToken? cancelToken});
 
   /// Sube una evidencia a una sección de la carpeta.
   /// POST /api/v1/annual-folders/:folderId/evidences

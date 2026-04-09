@@ -44,6 +44,8 @@ class StagedFileGrid extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         GridView.builder(
+          // shrinkWrap OK: bounded to maxFiles items max; lives inside a
+          // Column (non-scrollable), so height must be intrinsically defined.
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

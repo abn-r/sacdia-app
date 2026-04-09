@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
 import '../entities/camporee.dart';
 import '../entities/camporee_member.dart';
@@ -7,10 +8,10 @@ import '../entities/camporee_payment.dart';
 /// Repositorio de camporees (interfaz del dominio)
 abstract class CamporeesRepository {
   /// Obtiene la lista de camporees. Opcionalmente filtra por activos.
-  Future<Either<Failure, List<Camporee>>> getCamporees({bool? active});
+  Future<Either<Failure, List<Camporee>>> getCamporees({bool? active, CancelToken? cancelToken});
 
   /// Obtiene el detalle de un camporee por ID.
-  Future<Either<Failure, Camporee>> getCamporeeDetail(int camporeeId);
+  Future<Either<Failure, Camporee>> getCamporeeDetail(int camporeeId, {CancelToken? cancelToken});
 
   /// Registra un miembro en un camporee.
   Future<Either<Failure, CamporeeMember>> registerMember(
@@ -23,7 +24,7 @@ abstract class CamporeesRepository {
 
   /// Obtiene los miembros inscritos en un camporee.
   Future<Either<Failure, List<CamporeeMember>>> getCamporeeMembers(
-      int camporeeId);
+      int camporeeId, {CancelToken? cancelToken});
 
   /// Remueve un miembro de un camporee.
   Future<Either<Failure, void>> removeMember(int camporeeId, String userId);
@@ -38,7 +39,7 @@ abstract class CamporeesRepository {
 
   /// Obtiene los clubes inscritos en un camporee.
   Future<Either<Failure, List<CamporeeEnrolledClub>>> getEnrolledClubs(
-      int camporeeId);
+      int camporeeId, {CancelToken? cancelToken});
 
   /// Crea un pago para un miembro en un camporee.
   Future<Either<Failure, CamporeePayment>> createPayment(
@@ -54,10 +55,11 @@ abstract class CamporeesRepository {
   /// Obtiene los pagos de un miembro en un camporee.
   Future<Either<Failure, List<CamporeePayment>>> getMemberPayments(
     int camporeeId,
-    String memberId,
-  );
+    String memberId, {
+    CancelToken? cancelToken,
+  });
 
   /// Obtiene todos los pagos de un camporee.
   Future<Either<Failure, List<CamporeePayment>>> getCamporeePayments(
-      int camporeeId);
+      int camporeeId, {CancelToken? cancelToken});
 }

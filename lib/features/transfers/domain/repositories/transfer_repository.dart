@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../entities/transfer_request.dart';
@@ -11,8 +12,13 @@ abstract class TransferRepository {
   });
 
   /// Lista las solicitudes de traslado del usuario actual.
-  Future<Either<Failure, List<TransferRequest>>> getMyTransferRequests();
+  Future<Either<Failure, List<TransferRequest>>> getMyTransferRequests({
+    CancelToken? cancelToken,
+  });
 
   /// Obtiene el detalle de una solicitud de traslado.
-  Future<Either<Failure, TransferRequest>> getTransferRequest(int requestId);
+  Future<Either<Failure, TransferRequest>> getTransferRequest(
+    int requestId, {
+    CancelToken? cancelToken,
+  });
 }

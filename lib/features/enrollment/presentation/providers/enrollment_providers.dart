@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
@@ -44,6 +45,9 @@ final createEnrollmentUseCaseProvider = Provider<CreateEnrollment>((ref) {
 /// Depende de [clubContextProvider] como fuente de verdad.
 final currentEnrollmentProvider =
     FutureProvider<Enrollment?>((ref) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
   final context = await ref.watch(clubContextProvider.future);
   if (context == null) return null;
 
@@ -53,6 +57,7 @@ final currentEnrollmentProvider =
       clubId: context.clubId.toString(),
       sectionId: context.sectionId,
     ),
+    cancelToken: cancelToken,
   );
 
   return result.fold(

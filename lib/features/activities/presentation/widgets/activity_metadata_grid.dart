@@ -127,15 +127,45 @@ class ActivityMetadataGrid extends StatelessWidget {
       ),
     ];
 
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: EdgeInsets.zero,
-      crossAxisSpacing: 8,
-      mainAxisSpacing: 8,
-      childAspectRatio: 2.8,
-      children: cells,
+    // Replaced GridView(shrinkWrap: true) with Column+Row since the grid
+    // always renders exactly 6 bounded cells (date, time, place, type,
+    // section, platform). Column layout is O(n) vs O(n²) for shrinkWrap.
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: cells[0]),
+              const SizedBox(width: 8),
+              Expanded(child: cells[1]),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: cells[2]),
+              const SizedBox(width: 8),
+              Expanded(child: cells[3]),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: cells[4]),
+              const SizedBox(width: 8),
+              Expanded(child: cells[5]),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
@@ -29,13 +30,15 @@ class GetMemberOfMonthHistory {
   const GetMemberOfMonthHistory(this._repository);
 
   Future<Either<Failure, MemberOfMonthHistoryResponse>> call(
-    GetMemberOfMonthHistoryParams params,
-  ) {
+    GetMemberOfMonthHistoryParams params, {
+    CancelToken? cancelToken,
+  }) {
     return _repository.getMemberOfMonthHistory(
       clubId: params.clubId,
       sectionId: params.sectionId,
       page: params.page,
       limit: params.limit,
+      cancelToken: cancelToken,
     );
   }
 }

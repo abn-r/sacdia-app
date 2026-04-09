@@ -182,6 +182,9 @@ class QuickAccessGrid extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         GridView.builder(
+          // shrinkWrap OK: filteredItems is permission-gated from a compile-time
+          // constant list (max ~8 items). Lives inside SingleChildScrollView >
+          // Column — intrinsic height is required.
           physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -227,6 +230,9 @@ class _QuickAccessSkeleton extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         GridView.builder(
+          // shrinkWrap OK: skeleton with exactly 4 placeholder tiles.
+          // Lives inside SingleChildScrollView > Column — intrinsic height
+          // is required and item count is compile-time constant.
           physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

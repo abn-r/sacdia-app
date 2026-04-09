@@ -15,65 +15,67 @@ class RecentActivityList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Replaced ListView.separated(shrinkWrap: true) with Column to avoid
+    // O(n²) layout inside the parent SingleChildScrollView. Item count is
+    // small (upcoming activities from the dashboard — typically < 10).
     return SacCard(
       padding: EdgeInsets.zero,
-      child: ListView.separated(
-        physics: const NeverScrollableScrollPhysics(),
-        shrinkWrap: true,
-        itemCount: activities.length,
-        separatorBuilder: (_, __) => Divider(
-          height: 1,
-          indent: 60,
-          color: context.sac.border,
-        ),
-        itemBuilder: (context, index) {
-          final activity = activities[index];
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Center(
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedClock05,
-                      size: 18,
-                      color: AppColors.primary,
+      child: Column(
+        children: [
+          for (int index = 0; index < activities.length; index++) ...[
+            if (index > 0)
+              Divider(
+                height: 1,
+                indent: 60,
+                color: context.sac.border,
+              ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedClock05,
+                        size: 18,
+                        color: AppColors.primary,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        activity,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w500,
-                            ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Hace ${index + 1} ${index == 0 ? 'hora' : 'horas'}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: context.sac.textSecondary,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          activities[index],
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 2),
+                        Text(
+                          'Hace ${index + 1} ${index == 0 ? 'hora' : 'horas'}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: context.sac.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          );
-        },
+          ],
+        ],
       ),
     );
   }

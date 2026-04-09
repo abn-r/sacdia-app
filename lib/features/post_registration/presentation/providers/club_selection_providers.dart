@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
@@ -30,8 +31,10 @@ final userAgeProvider = StateProvider.autoDispose<int?>((ref) => null);
 
 /// Provider para obtener la lista de países
 final countriesProvider = FutureProvider.autoDispose<List<CountryModel>>((ref) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.read(clubSelectionDataSourceProvider);
-  return dataSource.getCountries();
+  return dataSource.getCountries(cancelToken: cancelToken);
 });
 
 /// Provider para obtener las uniones del país seleccionado
@@ -39,8 +42,10 @@ final unionsProvider = FutureProvider.autoDispose<List<UnionModel>>((ref) async 
   final countryId = ref.watch(selectedCountryProvider);
   if (countryId == null) return [];
 
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.read(clubSelectionDataSourceProvider);
-  return dataSource.getUnionsByCountry(countryId);
+  return dataSource.getUnionsByCountry(countryId, cancelToken: cancelToken);
 });
 
 /// Provider para obtener los campos locales de la unión seleccionada
@@ -48,8 +53,10 @@ final localFieldsProvider = FutureProvider.autoDispose<List<LocalFieldModel>>((r
   final unionId = ref.watch(selectedUnionProvider);
   if (unionId == null) return [];
 
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.read(clubSelectionDataSourceProvider);
-  return dataSource.getLocalFieldsByUnion(unionId);
+  return dataSource.getLocalFieldsByUnion(unionId, cancelToken: cancelToken);
 });
 
 /// Provider para obtener los clubes del campo local seleccionado
@@ -57,8 +64,10 @@ final clubsProvider = FutureProvider.autoDispose<List<ClubModel>>((ref) async {
   final localFieldId = ref.watch(selectedLocalFieldProvider);
   if (localFieldId == null) return [];
 
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.read(clubSelectionDataSourceProvider);
-  return dataSource.getClubsByLocalField(localFieldId);
+  return dataSource.getClubsByLocalField(localFieldId, cancelToken: cancelToken);
 });
 
 /// Provider para obtener las secciones (tipos) del club seleccionado
@@ -67,8 +76,10 @@ final clubSectionsProvider =
   final clubId = ref.watch(selectedClubProvider);
   if (clubId == null) return [];
 
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.read(clubSelectionDataSourceProvider);
-  return dataSource.getClubSections(clubId);
+  return dataSource.getClubSections(clubId, cancelToken: cancelToken);
 });
 
 /// Provider para obtener las clases del tipo de club seleccionado
@@ -91,8 +102,10 @@ final classesProvider = FutureProvider.autoDispose<List<ClassModel>>((ref) async
 
   if (clubTypeId == null) return [];
 
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.read(clubSelectionDataSourceProvider);
-  return dataSource.getClassesByClubType(clubTypeId);
+  return dataSource.getClassesByClubType(clubTypeId, cancelToken: cancelToken);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -7,7 +7,7 @@ import '../models/user_detail_model.dart';
 
 /// Interfaz para la fuente de datos remota del perfil
 abstract class ProfileRemoteDataSource {
-  Future<UserDetailModel> getUserProfile(String userId);
+  Future<UserDetailModel> getUserProfile(String userId, {CancelToken? cancelToken});
   Future<UserDetailModel> updateUserProfile(String userId, Map<String, dynamic> data);
   Future<String> updateProfilePicture(String userId, String filePath);
 }
@@ -26,10 +26,11 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         _baseUrl = baseUrl;
 
   @override
-  Future<UserDetailModel> getUserProfile(String userId) async {
+  Future<UserDetailModel> getUserProfile(String userId, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.auth}/me',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {

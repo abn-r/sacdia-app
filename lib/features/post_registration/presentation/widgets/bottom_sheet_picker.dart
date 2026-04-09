@@ -348,7 +348,8 @@ class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(vertical: 4),
-                    shrinkWrap: true,
+                    // shrinkWrap removed: parent Flexible provides a bounded
+                    // height constraint — ListView can scroll normally.
                     itemCount: _filtered.length,
                     itemBuilder: (_, index) {
                       final item = _filtered[index];

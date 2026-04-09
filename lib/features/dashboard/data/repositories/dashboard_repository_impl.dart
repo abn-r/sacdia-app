@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -18,9 +19,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
   });
 
   @override
-  Future<Either<Failure, DashboardSummary>> getDashboardSummary() async {
+  Future<Either<Failure, DashboardSummary>> getDashboardSummary({CancelToken? cancelToken}) async {
     try {
-      final dashboardData = await remoteDataSource.getDashboardSummary();
+      final dashboardData = await remoteDataSource.getDashboardSummary(cancelToken: cancelToken);
       return Right(dashboardData);
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));

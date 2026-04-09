@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -87,6 +88,9 @@ final enrollPreviousClassUseCaseProvider =
 final userClassesProvider =
     FutureProvider.autoDispose<List<ProgressiveClass>>((ref) async {
   ref.keepAlive();
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
   final userId = await ref.watch(
     authNotifierProvider.selectAsync((user) => user?.id),
   );
@@ -96,7 +100,7 @@ final userClassesProvider =
   }
 
   final getUserClasses = ref.read(getUserClassesProvider);
-  final result = await getUserClasses(GetUserClassesParams(userId: userId));
+  final result = await getUserClasses(GetUserClassesParams(userId: userId), cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -110,8 +114,10 @@ final userClassesProvider =
 final classesByClubTypeProvider =
     FutureProvider.autoDispose.family<List<ProgressiveClass>, int>(
         (ref, clubTypeId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.read(classesRemoteDataSourceProvider);
-  final models = await dataSource.getClasses(clubTypeId: clubTypeId);
+  final models = await dataSource.getClasses(clubTypeId: clubTypeId, cancelToken: cancelToken);
   return models.map((m) => m.toEntity()).toList();
 });
 
@@ -122,8 +128,10 @@ final classesByClubTypeProvider =
 /// puede haber completado clases de cualquier categoría en el pasado.
 final allClassesProvider =
     FutureProvider.autoDispose<List<ProgressiveClass>>((ref) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.read(classesRemoteDataSourceProvider);
-  final models = await dataSource.getClasses();
+  final models = await dataSource.getClasses(cancelToken: cancelToken);
   return models.map((m) => m.toEntity()).toList();
 });
 
@@ -131,8 +139,10 @@ final allClassesProvider =
 final classDetailProvider =
     FutureProvider.autoDispose.family<ProgressiveClass, int>(
         (ref, classId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final getClassDetail = ref.read(getClassDetailProvider);
-  final result = await getClassDetail(GetClassDetailParams(classId: classId));
+  final result = await getClassDetail(GetClassDetailParams(classId: classId), cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -144,9 +154,11 @@ final classDetailProvider =
 final classModulesProvider =
     FutureProvider.autoDispose.family<List<ClassModule>, int>(
         (ref, classId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final getClassModules = ref.read(getClassModulesProvider);
   final result =
-      await getClassModules(GetClassModulesParams(classId: classId));
+      await getClassModules(GetClassModulesParams(classId: classId), cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -159,6 +171,9 @@ final classModulesProvider =
 /// autoDispose para liberar memoria al salir de la pantalla.
 final classWithProgressProvider = FutureProvider.autoDispose
     .family<ClassWithProgress, int>((ref, classId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
   final userId = await ref.watch(
     authNotifierProvider.selectAsync((user) => user?.id),
   );
@@ -170,6 +185,7 @@ final classWithProgressProvider = FutureProvider.autoDispose
   final useCase = ref.read(getClassWithProgressUseCaseProvider);
   final result = await useCase(
     GetClassWithProgressParams(userId: userId, classId: classId),
+    cancelToken: cancelToken,
   );
 
   return result.fold(

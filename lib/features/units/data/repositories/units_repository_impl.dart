@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart' hide Unit;
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -27,9 +28,10 @@ class UnitsRepositoryImpl implements UnitsRepository {
   @override
   Future<Either<Failure, List<Unit>>> getClubUnits({
     required int clubId,
+    CancelToken? cancelToken,
   }) async {
     try {
-      final models = await remoteDataSource.getClubUnits(clubId: clubId);
+      final models = await remoteDataSource.getClubUnits(clubId: clubId, cancelToken: cancelToken);
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
@@ -44,11 +46,13 @@ class UnitsRepositoryImpl implements UnitsRepository {
   Future<Either<Failure, Unit>> getUnitDetail({
     required int clubId,
     required int unitId,
+    CancelToken? cancelToken,
   }) async {
     try {
       final model = await remoteDataSource.getUnitDetail(
         clubId: clubId,
         unitId: unitId,
+        cancelToken: cancelToken,
       );
       return Right(model.toEntity());
     } on ServerException catch (e) {
@@ -197,11 +201,13 @@ class UnitsRepositoryImpl implements UnitsRepository {
   Future<Either<Failure, List<WeeklyRecord>>> getWeeklyRecords({
     required int clubId,
     required int unitId,
+    CancelToken? cancelToken,
   }) async {
     try {
       final models = await remoteDataSource.getWeeklyRecords(
         clubId: clubId,
         unitId: unitId,
+        cancelToken: cancelToken,
       );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
@@ -278,10 +284,12 @@ class UnitsRepositoryImpl implements UnitsRepository {
   @override
   Future<Either<Failure, List<ScoringCategory>>> getScoringCategories({
     required int localFieldId,
+    CancelToken? cancelToken,
   }) async {
     try {
       final models = await remoteDataSource.getScoringCategories(
         localFieldId: localFieldId,
+        cancelToken: cancelToken,
       );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
@@ -299,11 +307,13 @@ class UnitsRepositoryImpl implements UnitsRepository {
   Future<Either<Failure, MemberOfMonth?>> getMemberOfMonth({
     required int clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   }) async {
     try {
       final model = await remoteDataSource.getMemberOfMonth(
         clubId: clubId,
         sectionId: sectionId,
+        cancelToken: cancelToken,
       );
       return Right(model?.toEntity());
     } on ServerException catch (e) {
@@ -322,6 +332,7 @@ class UnitsRepositoryImpl implements UnitsRepository {
     required int sectionId,
     int page = 1,
     int limit = 12,
+    CancelToken? cancelToken,
   }) async {
     try {
       final model = await remoteDataSource.getMemberOfMonthHistory(
@@ -329,6 +340,7 @@ class UnitsRepositoryImpl implements UnitsRepository {
         sectionId: sectionId,
         page: page,
         limit: limit,
+        cancelToken: cancelToken,
       );
       return Right(model.toEntity());
     } on ServerException catch (e) {

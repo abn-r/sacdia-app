@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../entities/validation.dart';
@@ -14,10 +15,12 @@ abstract class ValidationRepository {
   Future<Either<Failure, List<ValidationHistoryEntry>>> getValidationHistory({
     required ValidationEntityType entityType,
     required int entityId,
+    CancelToken? cancelToken,
   });
 
   /// Comprueba elegibilidad para investidura de un usuario.
   Future<Either<Failure, EligibilityResult>> checkEligibility({
     required String userId,
+    CancelToken? cancelToken,
   });
 }

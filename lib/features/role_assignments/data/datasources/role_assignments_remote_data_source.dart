@@ -5,7 +5,7 @@ import '../../../../core/utils/app_logger.dart';
 import '../models/role_assignment_model.dart';
 
 abstract class RoleAssignmentsRemoteDataSource {
-  Future<List<RoleAssignmentModel>> getAssignments();
+  Future<List<RoleAssignmentModel>> getAssignments({CancelToken? cancelToken});
 }
 
 class RoleAssignmentsRemoteDataSourceImpl
@@ -23,6 +23,7 @@ class RoleAssignmentsRemoteDataSourceImpl
 
   Never _rethrow(Object e) {
     if (e is DioException) {
+      if (e.type == DioExceptionType.cancel) throw e;
       final msg = _extractDioMessage(e);
       throw ServerException(message: msg, code: e.response?.statusCode);
     }
@@ -47,10 +48,13 @@ class RoleAssignmentsRemoteDataSourceImpl
   // ── GET /api/v1/requests/assignments ─────────────────────────────────────
 
   @override
-  Future<List<RoleAssignmentModel>> getAssignments() async {
+  Future<List<RoleAssignmentModel>> getAssignments({
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.requests}/assignments',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

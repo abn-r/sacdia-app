@@ -10,6 +10,15 @@
 class MapsConstants {
   MapsConstants._();
 
+  /// Google Maps API key — used for Static Maps API image requests.
+  ///
+  /// The same key is configured in:
+  ///   - ios/Runner/AppDelegate.swift  (GMSServices.provideAPIKey)
+  ///   - android/app/src/main/AndroidManifest.xml  (com.google.android.geo.API_KEY)
+  ///
+  /// TODO: Move to --dart-define=GOOGLE_MAPS_API_KEY to avoid committing the key.
+  static const String googleMapsApiKey = 'AIzaSyAQoO0HmAfSdbRs-T0cqtCXEGNn7TtMGZk';
+
   /// Ubicación por defecto cuando no hay ubicación del dispositivo disponible.
   /// Centro de México (Ciudad de México).
   static const double defaultLat = 19.4326;

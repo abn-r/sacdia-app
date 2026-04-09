@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
@@ -34,10 +35,13 @@ typedef ValidationKey = ({ValidationEntityType entityType, int entityId});
 final validationHistoryProvider = FutureProvider.autoDispose
     .family<List<ValidationHistoryEntry>, ValidationKey>(
   (ref, key) async {
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
     final repo = ref.read(validationRepositoryProvider);
     final result = await repo.getValidationHistory(
       entityType: key.entityType,
       entityId: key.entityId,
+      cancelToken: cancelToken,
     );
     return result.fold(
       (failure) => throw Exception(failure.message),
@@ -55,6 +59,7 @@ final validationHistoryProvider = FutureProvider.autoDispose
 final eligibilityProvider =
     FutureProvider.autoDispose.family<EligibilityResult, String>(
   (ref, userId) async {
+    final cancelToken = CancelToken();
     final link = ref.keepAlive();
     Timer? timer;
     ref.onCancel(() {
@@ -67,9 +72,13 @@ final eligibilityProvider =
     });
     ref.onDispose(() {
       timer?.cancel();
+      cancelToken.cancel();
     });
     final repo = ref.read(validationRepositoryProvider);
-    final result = await repo.checkEligibility(userId: userId);
+    final result = await repo.checkEligibility(
+      userId: userId,
+      cancelToken: cancelToken,
+    );
     return result.fold(
       (failure) => throw Exception(failure.message),
       (r) => r,

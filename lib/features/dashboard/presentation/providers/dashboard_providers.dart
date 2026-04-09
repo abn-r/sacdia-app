@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/usecases/usecase.dart';
@@ -40,11 +41,17 @@ class DashboardNotifier extends AsyncNotifier<DashboardSummary?> {
     );
     if (userId == null) return null;
 
-    return _fetch();
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
+
+    return _fetch(cancelToken: cancelToken);
   }
 
-  Future<DashboardSummary?> _fetch() async {
-    final result = await ref.read(getDashboardSummaryProvider)(const NoParams());
+  Future<DashboardSummary?> _fetch({CancelToken? cancelToken}) async {
+    final result = await ref.read(getDashboardSummaryProvider)(
+      const NoParams(),
+      cancelToken: cancelToken,
+    );
     return result.fold(
       (failure) => null,
       (dashboard) => dashboard,
@@ -55,7 +62,13 @@ class DashboardNotifier extends AsyncNotifier<DashboardSummary?> {
   Future<void> refresh() async {
     state = const AsyncValue.loading();
 
-    final result = await ref.read(getDashboardSummaryProvider)(const NoParams());
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
+
+    final result = await ref.read(getDashboardSummaryProvider)(
+      const NoParams(),
+      cancelToken: cancelToken,
+    );
 
     state = result.fold(
       (failure) => AsyncValue.error(failure.message, StackTrace.current),

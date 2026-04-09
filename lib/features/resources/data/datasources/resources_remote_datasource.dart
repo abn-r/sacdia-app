@@ -14,13 +14,14 @@ abstract class ResourcesRemoteDataSource {
     String? resourceType,
     int? categoryId,
     String? search,
+    CancelToken? cancelToken,
   });
 
-  Future<ResourceModel> getResource(String id);
+  Future<ResourceModel> getResource(String id, {CancelToken? cancelToken});
 
-  Future<String> getSignedUrl(String id);
+  Future<String> getSignedUrl(String id, {CancelToken? cancelToken});
 
-  Future<List<ResourceCategoryModel>> getCategories();
+  Future<List<ResourceCategoryModel>> getCategories({CancelToken? cancelToken});
 }
 
 /// Implementación de la fuente de datos remota de recursos
@@ -43,6 +44,7 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
     String? resourceType,
     int? categoryId,
     String? search,
+    CancelToken? cancelToken,
   }) async {
     try {
       final queryParams = <String, dynamic>{
@@ -56,6 +58,7 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.resources}/me',
         queryParameters: queryParams,
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -69,6 +72,7 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en getVisibleResources', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
           message: e.message ?? 'Error de conexión',
           code: e.response?.statusCode,
@@ -80,10 +84,11 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
   }
 
   @override
-  Future<ResourceModel> getResource(String id) async {
+  Future<ResourceModel> getResource(String id, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.resources}/me/$id',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -97,6 +102,7 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en getResource', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
           message: e.message ?? 'Error de conexión',
           code: e.response?.statusCode,
@@ -108,10 +114,11 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
   }
 
   @override
-  Future<String> getSignedUrl(String id) async {
+  Future<String> getSignedUrl(String id, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.resources}/me/$id/signed-url',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -129,6 +136,7 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en getSignedUrl', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
           message: e.message ?? 'Error de conexión',
           code: e.response?.statusCode,
@@ -140,10 +148,11 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
   }
 
   @override
-  Future<List<ResourceCategoryModel>> getCategories() async {
+  Future<List<ResourceCategoryModel>> getCategories({CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.resourceCategories}',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -163,6 +172,7 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en getCategories', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
           message: e.message ?? 'Error de conexión',
           code: e.response?.statusCode,

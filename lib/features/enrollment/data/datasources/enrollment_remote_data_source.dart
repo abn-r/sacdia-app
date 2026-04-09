@@ -30,6 +30,7 @@ abstract class EnrollmentRemoteDataSource {
   Future<EnrollmentModel?> getCurrentEnrollment({
     required String clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   });
 
   Future<EnrollmentModel> updateEnrollment({
@@ -183,12 +184,14 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
   Future<EnrollmentModel?> getCurrentEnrollment({
     required String clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   }) async {
     try {
       AppLogger.i('Obteniendo inscripción activa en sección $sectionId', tag: _tag);
 
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/enrollments/current',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -204,6 +207,7 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
         code: response.statusCode,
       );
     } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
       if (e.response?.statusCode == 404) return null;
       AppLogger.e('DioException en getCurrentEnrollment', tag: _tag, error: e);
       throw ServerException(

@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/resource.dart';
@@ -11,7 +12,7 @@ class GetResource implements UseCase<Resource, String> {
   GetResource(this.repository);
 
   @override
-  Future<Either<Failure, Resource>> call(String id) async {
-    return await repository.getResource(id);
+  Future<Either<Failure, Resource>> call(String id, {CancelToken? cancelToken}) async {
+    return await repository.getResource(id, cancelToken: cancelToken);
   }
 }

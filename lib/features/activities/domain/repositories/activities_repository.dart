@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
 import '../../data/models/create_activity_request.dart';
 import '../entities/activity.dart';
@@ -12,11 +13,15 @@ abstract class ActivitiesRepository {
   Future<Either<Failure, List<Activity>>> getClubActivities(
     int clubId, {
     int? clubTypeId,
+    CancelToken? cancelToken,
   });
 
 
   /// Obtiene el detalle de una actividad
-  Future<Either<Failure, Activity>> getActivityById(int activityId);
+  Future<Either<Failure, Activity>> getActivityById(
+    int activityId, {
+    CancelToken? cancelToken,
+  });
 
   /// Crea una nueva actividad en el club especificado
   Future<Either<Failure, Activity>> createActivity({
@@ -47,7 +52,10 @@ abstract class ActivitiesRepository {
   Future<Either<Failure, void>> deleteActivity(int activityId);
 
   /// Obtiene la asistencia de una actividad
-  Future<Either<Failure, List<Attendance>>> getActivityAttendance(int activityId);
+  Future<Either<Failure, List<Attendance>>> getActivityAttendance(
+    int activityId, {
+    CancelToken? cancelToken,
+  });
 
   /// Registra la asistencia de usuarios a una actividad
   Future<Either<Failure, int>> registerAttendance(

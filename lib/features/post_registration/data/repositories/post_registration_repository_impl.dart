@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart' as core_exceptions;
 import '../../../../core/errors/failures.dart';
@@ -18,9 +19,13 @@ class PostRegistrationRepositoryImpl implements PostRegistrationRepository {
   });
 
   @override
-  Future<Either<Failure, CompletionStatus>> getCompletionStatus() async {
+  Future<Either<Failure, CompletionStatus>> getCompletionStatus({
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final status = await remoteDataSource.getCompletionStatus();
+      final status = await remoteDataSource.getCompletionStatus(
+        cancelToken: cancelToken,
+      );
       return Right(status);
     } on core_exceptions.ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
@@ -70,9 +75,13 @@ class PostRegistrationRepositoryImpl implements PostRegistrationRepository {
   @override
   Future<Either<Failure, bool>> getPhotoStatus({
     required String userId,
+    CancelToken? cancelToken,
   }) async {
     try {
-      final hasPhoto = await remoteDataSource.getPhotoStatus(userId: userId);
+      final hasPhoto = await remoteDataSource.getPhotoStatus(
+        userId: userId,
+        cancelToken: cancelToken,
+      );
       return Right(hasPhoto);
     } on core_exceptions.ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));

@@ -97,34 +97,50 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
 
   @override
   Widget build(BuildContext context) {
-    final categoriesAsync = ref.watch(honorCategoriesProvider);
-    final selectedCategory = ref.watch(selectedCategoryProvider);
-    final honorsWithStatus = ref.watch(honorsWithStatusProvider);
-    final statsAsync = ref.watch(userHonorStatsLocalProvider);
-
     return Scaffold(
       backgroundColor: context.sac.background,
       body: Column(
         children: [
           // ── Dark header ──────────────────────────────────────────
-          _buildHeader(context, statsAsync),
+          // Only rebuilds when userHonorStatsLocalProvider changes (user
+          // honor list fetched/updated), NOT on search or category changes.
+          Consumer(
+            builder: (context, ref, child) {
+              final statsAsync = ref.watch(userHonorStatsLocalProvider);
+              return _buildHeader(context, statsAsync);
+            },
+          ),
 
           // ── Category chips ───────────────────────────────────────
-          categoriesAsync.when(
-            data: (categories) => _buildCategoryChips(
-              categories,
-              selectedCategory,
-            ),
-            loading: () => const SizedBox(height: 52),
-            error: (_, __) => const SizedBox(height: 52),
+          // Only rebuilds when categories are fetched or the selected
+          // category changes, NOT on search query changes.
+          Consumer(
+            builder: (context, ref, child) {
+              final categoriesAsync = ref.watch(honorCategoriesProvider);
+              final selectedCategory = ref.watch(selectedCategoryProvider);
+              return categoriesAsync.when(
+                data: (categories) => _buildCategoryChips(
+                  categories,
+                  selectedCategory,
+                ),
+                loading: () => const SizedBox(height: 52),
+                error: (_, __) => const SizedBox(height: 52),
+              );
+            },
           ),
 
           // ── Honor cards list ─────────────────────────────────────
+          // Only this section rebuilds on every search keystroke.
           Expanded(
-            child: honorsWithStatus.when(
-              data: (items) => _buildHonorsList(items),
-              loading: () => const Center(child: SacLoading()),
-              error: (error, _) => _buildErrorState(context),
+            child: Consumer(
+              builder: (context, ref, child) {
+                final honorsWithStatus = ref.watch(honorsWithStatusProvider);
+                return honorsWithStatus.when(
+                  data: (items) => _buildHonorsList(items),
+                  loading: () => const Center(child: SacLoading()),
+                  error: (error, _) => _buildErrorState(context),
+                );
+              },
             ),
           ),
         ],

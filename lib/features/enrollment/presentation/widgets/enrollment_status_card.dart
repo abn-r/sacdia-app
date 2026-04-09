@@ -36,7 +36,7 @@ class EnrollmentStatusCard extends ConsumerWidget {
     return enrollmentAsync.when(
       loading: () => const Padding(
         padding: EdgeInsets.symmetric(vertical: 8),
-        child: SacLoading(),
+        child: Center(child: SacLoading()),
       ),
       error: (_, __) => const SizedBox.shrink(),
       data: (enrollment) {

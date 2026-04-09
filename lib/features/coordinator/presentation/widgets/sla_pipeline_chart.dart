@@ -92,7 +92,10 @@ class SlaPipelineChart extends StatelessWidget {
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
-                        // Filled portion
+                        // Filled portion — AnimatedContainer is intentional:
+                        // when the dashboard refreshes with new data the bar
+                        // widths animate to their updated values, giving the
+                        // user visible feedback that the counts changed.
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 600),
                           curve: Curves.easeOut,

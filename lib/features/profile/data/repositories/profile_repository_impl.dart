@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -18,9 +19,9 @@ class ProfileRepositoryImpl implements ProfileRepository {
   });
 
   @override
-  Future<Either<Failure, UserDetail>> getUserProfile(String userId) async {
+  Future<Either<Failure, UserDetail>> getUserProfile(String userId, {CancelToken? cancelToken}) async {
     try {
-      final userDetail = await remoteDataSource.getUserProfile(userId);
+      final userDetail = await remoteDataSource.getUserProfile(userId, cancelToken: cancelToken);
       return Right(userDetail);
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));

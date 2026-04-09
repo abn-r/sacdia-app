@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/datasources/personal_info_remote_data_source.dart';
 import '../../data/models/emergency_contact_model.dart';
@@ -59,22 +60,28 @@ final personalInfoFormProvider =
 /// Provider de tipos de relación
 final relationshipTypesProvider =
     FutureProvider.autoDispose<List<RelationshipTypeModel>>((ref) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.watch(personalInfoDataSourceProvider);
-  return await dataSource.getRelationshipTypes();
+  return await dataSource.getRelationshipTypes(cancelToken: cancelToken);
 });
 
 /// Provider de catálogo de alergias
 final allergiesCatalogProvider =
     FutureProvider.autoDispose<List<AllergyModel>>((ref) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.watch(personalInfoDataSourceProvider);
-  return await dataSource.getAllergiesCatalog();
+  return await dataSource.getAllergiesCatalog(cancelToken: cancelToken);
 });
 
 /// Provider de catálogo de enfermedades
 final diseasesCatalogProvider =
     FutureProvider.autoDispose<List<DiseaseModel>>((ref) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.watch(personalInfoDataSourceProvider);
-  return await dataSource.getDiseasesCatalog();
+  return await dataSource.getDiseasesCatalog(cancelToken: cancelToken);
 });
 
 /// Provider de alergias seleccionadas
@@ -99,8 +106,10 @@ class UserAllergiesNotifier
     );
     if (userId == null) return [];
 
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
     final dataSource = ref.watch(personalInfoDataSourceProvider);
-    return await dataSource.getUserAllergies(userId);
+    return await dataSource.getUserAllergies(userId, cancelToken: cancelToken);
   }
 
   /// Elimina una alergia del usuario (soft-delete)
@@ -177,8 +186,10 @@ class UserDiseasesNotifier
     );
     if (userId == null) return [];
 
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
     final dataSource = ref.watch(personalInfoDataSourceProvider);
-    return await dataSource.getUserDiseases(userId);
+    return await dataSource.getUserDiseases(userId, cancelToken: cancelToken);
   }
 
   /// Elimina una enfermedad del usuario (soft-delete)
@@ -244,8 +255,10 @@ final userDiseasesProvider =
 /// Provider de catálogo de medicamentos
 final medicinesCatalogProvider =
     FutureProvider.autoDispose<List<MedicineModel>>((ref) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.watch(personalInfoDataSourceProvider);
-  return await dataSource.getMedicinesCatalog();
+  return await dataSource.getMedicinesCatalog(cancelToken: cancelToken);
 });
 
 /// Provider de medicamentos seleccionados
@@ -266,8 +279,10 @@ class UserMedicinesNotifier
     );
     if (userId == null) return [];
 
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
     final dataSource = ref.watch(personalInfoDataSourceProvider);
-    return await dataSource.getUserMedicines(userId);
+    return await dataSource.getUserMedicines(userId, cancelToken: cancelToken);
   }
 
   /// Elimina un medicamento del usuario (soft-delete)
@@ -338,8 +353,13 @@ final legalRepresentativeRequiredProvider =
   );
   if (userId == null) return false;
 
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.watch(personalInfoDataSourceProvider);
-  return await dataSource.checkLegalRepresentativeRequired(userId);
+  return await dataSource.checkLegalRepresentativeRequired(
+    userId,
+    cancelToken: cancelToken,
+  );
 });
 
 /// Notifier de contactos de emergencia
@@ -352,8 +372,10 @@ class EmergencyContactsNotifier
     );
     if (userId == null) return [];
 
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
     final dataSource = ref.watch(personalInfoDataSourceProvider);
-    return await dataSource.getEmergencyContacts(userId);
+    return await dataSource.getEmergencyContacts(userId, cancelToken: cancelToken);
   }
 
   /// Agrega un nuevo contacto de emergencia
@@ -446,8 +468,10 @@ class LegalRepresentativeNotifier
     );
     if (userId == null) return null;
 
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
     final dataSource = ref.watch(personalInfoDataSourceProvider);
-    return await dataSource.getLegalRepresentative(userId);
+    return await dataSource.getLegalRepresentative(userId, cancelToken: cancelToken);
   }
 
   /// Crea o actualiza el representante legal

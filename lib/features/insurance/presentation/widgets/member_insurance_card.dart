@@ -208,6 +208,8 @@ class _MemberAvatar extends StatelessWidget {
             child: photoUrl != null && photoUrl!.isNotEmpty
                 ? CachedNetworkImage(
                     imageUrl: photoUrl!,
+                    memCacheWidth: 144,  // 48 * 3 (max device pixel ratio)
+                    memCacheHeight: 144, // 48 * 3
                     fit: BoxFit.cover,
                     errorWidget: (_, __, ___) => _InitialsAvatar(
                         initials: initials, color: statusColor),

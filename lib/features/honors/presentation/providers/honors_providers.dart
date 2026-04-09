@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
@@ -70,8 +71,11 @@ final registerUserHonorProvider = Provider<RegisterUserHonor>((ref) {
 /// Provider para las categorías de especialidades
 final honorCategoriesProvider = FutureProvider.autoDispose<List<HonorCategory>>((ref) async {
   ref.keepAlive();
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
   final getHonorCategories = ref.read(getHonorCategoriesProvider);
-  final result = await getHonorCategories(const NoParams());
+  final result = await getHonorCategories(const NoParams(), cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -82,8 +86,11 @@ final honorCategoriesProvider = FutureProvider.autoDispose<List<HonorCategory>>(
 /// Provider para especialidades filtradas
 final honorsProvider = FutureProvider.autoDispose
     .family<List<Honor>, GetHonorsParams>((ref, params) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
   final getHonors = ref.read(getHonorsProvider);
-  final result = await getHonors(params);
+  final result = await getHonors(params, cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -96,6 +103,9 @@ final honorsProvider = FutureProvider.autoDispose
 /// evitando re-fetches al cambiar de tab y eliminando el retry loop 429.
 final userHonorsProvider = FutureProvider.autoDispose<List<UserHonor>>((ref) async {
   ref.keepAlive();
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
   // Fix 1: use selectAsync to avoid watching the full auth state object.
   // This provider only rebuilds when the userId itself changes, not on every
   // auth state field update.
@@ -108,7 +118,7 @@ final userHonorsProvider = FutureProvider.autoDispose<List<UserHonor>>((ref) asy
   }
 
   final getUserHonors = ref.read(getUserHonorsProvider);
-  final result = await getUserHonors(GetUserHonorsParams(userId: userId));
+  final result = await getUserHonors(GetUserHonorsParams(userId: userId), cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -146,8 +156,11 @@ final userHonorStatsLocalProvider =
 /// Provider para especialidades agrupadas por categoría
 final honorsGroupedByCategoryProvider = FutureProvider.autoDispose<List<HonorGroup>>((ref) async {
   ref.keepAlive();
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
   final repository = ref.read(honorsRepositoryProvider);
-  final result = await repository.getHonorsGroupedByCategory();
+  final result = await repository.getHonorsGroupedByCategory(cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (groups) => groups,
@@ -378,8 +391,11 @@ final updateRequirementProgressProvider =
 /// Keyed by honorId.
 final honorRequirementsProvider = FutureProvider.autoDispose
     .family<List<HonorRequirement>, int>((ref, honorId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
   final useCase = ref.read(getHonorRequirementsProvider);
-  final result = await useCase(GetHonorRequirementsParams(honorId: honorId));
+  final result = await useCase(GetHonorRequirementsParams(honorId: honorId), cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -395,6 +411,9 @@ final honorRequirementsProvider = FutureProvider.autoDispose
 final userHonorProgressProvider = FutureProvider.autoDispose
     .family<List<UserHonorRequirementProgress>, int>((ref, honorId) async {
   ref.keepAlive();
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
   final userId = await ref.watch(
     authNotifierProvider.selectAsync((user) => user?.id),
   );
@@ -404,7 +423,7 @@ final userHonorProgressProvider = FutureProvider.autoDispose
   }
 
   final useCase = ref.read(getUserHonorProgressProvider);
-  final result = await useCase(GetUserHonorProgressParams(userId: userId, honorId: honorId));
+  final result = await useCase(GetUserHonorProgressParams(userId: userId, honorId: honorId), cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),

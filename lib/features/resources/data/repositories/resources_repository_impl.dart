@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -25,6 +26,7 @@ class ResourcesRepositoryImpl implements ResourcesRepository {
     String? resourceType,
     int? categoryId,
     String? search,
+    CancelToken? cancelToken,
   }) async {
     try {
       final model = await remoteDataSource.getVisibleResources(
@@ -33,8 +35,12 @@ class ResourcesRepositoryImpl implements ResourcesRepository {
         resourceType: resourceType,
         categoryId: categoryId,
         search: search,
+        cancelToken: cancelToken,
       );
       return Right(model.toEntity());
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      return Left(UnexpectedFailure(message: e.toString()));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on AuthException catch (e) {
@@ -45,10 +51,13 @@ class ResourcesRepositoryImpl implements ResourcesRepository {
   }
 
   @override
-  Future<Either<Failure, Resource>> getResource(String id) async {
+  Future<Either<Failure, Resource>> getResource(String id, {CancelToken? cancelToken}) async {
     try {
-      final model = await remoteDataSource.getResource(id);
+      final model = await remoteDataSource.getResource(id, cancelToken: cancelToken);
       return Right(model.toEntity());
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      return Left(UnexpectedFailure(message: e.toString()));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on AuthException catch (e) {
@@ -59,10 +68,13 @@ class ResourcesRepositoryImpl implements ResourcesRepository {
   }
 
   @override
-  Future<Either<Failure, String>> getSignedUrl(String id) async {
+  Future<Either<Failure, String>> getSignedUrl(String id, {CancelToken? cancelToken}) async {
     try {
-      final url = await remoteDataSource.getSignedUrl(id);
+      final url = await remoteDataSource.getSignedUrl(id, cancelToken: cancelToken);
       return Right(url);
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      return Left(UnexpectedFailure(message: e.toString()));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on AuthException catch (e) {
@@ -73,12 +85,15 @@ class ResourcesRepositoryImpl implements ResourcesRepository {
   }
 
   @override
-  Future<Either<Failure, List<ResourceCategory>>> getCategories() async {
+  Future<Either<Failure, List<ResourceCategory>>> getCategories({CancelToken? cancelToken}) async {
     try {
-      final categoryModels = await remoteDataSource.getCategories();
+      final categoryModels = await remoteDataSource.getCategories(cancelToken: cancelToken);
       final categories =
           categoryModels.map((model) => model.toEntity()).toList();
       return Right(categories);
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      return Left(UnexpectedFailure(message: e.toString()));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on AuthException catch (e) {

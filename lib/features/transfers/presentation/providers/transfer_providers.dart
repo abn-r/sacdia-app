@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
@@ -28,8 +29,10 @@ final transferRepositoryProvider = Provider<TransferRepository>((ref) {
 
 final myTransferRequestsProvider =
     FutureProvider.autoDispose<List<TransferRequest>>((ref) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final repo = ref.read(transferRepositoryProvider);
-  final result = await repo.getMyTransferRequests();
+  final result = await repo.getMyTransferRequests(cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (requests) => requests,
@@ -53,8 +56,13 @@ final transferRequestDetailProvider =
     if (cached != null) return cached;
 
     // Fallback: list not loaded yet or item not found (e.g. deep-link entry).
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
     final repo = ref.read(transferRepositoryProvider);
-    final result = await repo.getTransferRequest(requestId);
+    final result = await repo.getTransferRequest(
+      requestId,
+      cancelToken: cancelToken,
+    );
     return result.fold(
       (failure) => throw Exception(failure.message),
       (request) => request,

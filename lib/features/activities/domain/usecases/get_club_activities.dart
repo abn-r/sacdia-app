@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/activity.dart';
@@ -11,10 +12,14 @@ class GetClubActivities implements UseCase<List<Activity>, GetClubActivitiesPara
   GetClubActivities(this.repository);
 
   @override
-  Future<Either<Failure, List<Activity>>> call(GetClubActivitiesParams params) async {
+  Future<Either<Failure, List<Activity>>> call(
+    GetClubActivitiesParams params, {
+    CancelToken? cancelToken,
+  }) async {
     return await repository.getClubActivities(
       params.clubId,
       clubTypeId: params.clubTypeId,
+      cancelToken: cancelToken,
     );
   }
 }

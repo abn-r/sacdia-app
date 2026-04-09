@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -55,6 +56,12 @@ class PushNotificationService {
   })  : _dio = dio,
         _prefs = prefs;
 
+  // ── StreamSubscription references ─────────────────────────────────────────
+
+  StreamSubscription<String>? _tokenRefreshSub;
+  StreamSubscription<RemoteMessage>? _onMessageSub;
+  StreamSubscription<RemoteMessage>? _onMessageOpenedAppSub;
+
   // ── Public API ─────────────────────────────────────────────────────────────
 
   /// Initialize FCM. Call this AFTER the user is authenticated.
@@ -63,6 +70,10 @@ class PushNotificationService {
   /// the Firebase SDK returns the same token while it hasn't rotated.
   Future<void> initialize() async {
     AppLogger.i('Inicializando FCM', tag: _tag);
+
+    // Cancel any previous listeners before re-subscribing to prevent
+    // duplicate handlers accumulating across login/logout/OAuth cycles.
+    await _cancelSubscriptions();
 
     // Register the background handler first.
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
@@ -73,7 +84,7 @@ class PushNotificationService {
     // 3. Listen for token refresh BEFORE attempting getToken() so that even
     //    if the APNS token isn't ready yet we catch the token once it arrives
     //    (e.g. after app reinstall, token rotation, or late APNS delivery).
-    FirebaseMessaging.instance.onTokenRefresh.listen(
+    _tokenRefreshSub = FirebaseMessaging.instance.onTokenRefresh.listen(
       (newToken) async {
         AppLogger.i('Token FCM rotado, re-registrando', tag: _tag);
         await _registerTokenWithBackend(newToken);
@@ -94,10 +105,11 @@ class PushNotificationService {
     await _getFcmTokenSafely();
 
     // 4. Handle messages arriving while app is in the foreground.
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+    _onMessageSub = FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
 
     // 5. Handle taps on notifications when app is in background (not terminated).
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+    _onMessageOpenedAppSub =
+        FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
 
     // 6. Handle tap on notification that launched the app from terminated state.
     final initialMessage =
@@ -146,7 +158,24 @@ class PushNotificationService {
     }
   }
 
+  /// Cancels all active stream subscriptions and releases resources.
+  ///
+  /// Call this on logout so listeners accumulated across sessions are cleaned up.
+  Future<void> dispose() async {
+    await _cancelSubscriptions();
+  }
+
   // ── Private helpers ────────────────────────────────────────────────────────
+
+  Future<void> _cancelSubscriptions() async {
+    await _tokenRefreshSub?.cancel();
+    _tokenRefreshSub = null;
+    await _onMessageSub?.cancel();
+    _onMessageSub = null;
+    await _onMessageOpenedAppSub?.cancel();
+    _onMessageOpenedAppSub = null;
+  }
+
 
   /// Obtains the FCM token in a crash-safe way.
   ///

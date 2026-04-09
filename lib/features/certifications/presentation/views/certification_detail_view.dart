@@ -175,7 +175,7 @@ class _DetailBody extends ConsumerWidget {
                     }
                     return _NotEnrolledCTA(certificationId: certificationId);
                   },
-                  loading: () => const SacLoading(),
+                  loading: () => const Center(child: SacLoading()),
                   error: (_, __) =>
                       _NotEnrolledCTA(certificationId: certificationId),
                 ),

@@ -11,9 +11,13 @@ abstract class InventoryRemoteDataSource {
   Future<List<InventoryItemModel>> getItems({
     required int clubId,
     required String instanceType,
+    CancelToken? cancelToken,
   });
 
-  Future<InventoryItemModel> getItem({required int itemId});
+  Future<InventoryItemModel> getItem({
+    required int itemId,
+    CancelToken? cancelToken,
+  });
 
   Future<InventoryItemModel> createItem({
     required int clubId,
@@ -47,7 +51,9 @@ abstract class InventoryRemoteDataSource {
 
   Future<void> deleteItem({required int itemId});
 
-  Future<List<InventoryCategoryModel>> getCategories();
+  Future<List<InventoryCategoryModel>> getCategories({
+    CancelToken? cancelToken,
+  });
 }
 
 class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
@@ -65,10 +71,13 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
   // ── GET /inventory/catalogs/inventory-categories ──────────────────────────
 
   @override
-  Future<List<InventoryCategoryModel>> getCategories() async {
+  Future<List<InventoryCategoryModel>> getCategories({
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.inventory}/catalogs/inventory-categories',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -98,11 +107,13 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
   Future<List<InventoryItemModel>> getItems({
     required int clubId,
     required String instanceType,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.inventory}/clubs/$clubId/inventory',
         queryParameters: {'instanceType': instanceType},
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -129,10 +140,14 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
   // ── GET /inventory/inventory/:id ──────────────────────────────────────────
 
   @override
-  Future<InventoryItemModel> getItem({required int itemId}) async {
+  Future<InventoryItemModel> getItem({
+    required int itemId,
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.inventory}/inventory/$itemId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -297,6 +312,7 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
 
   Never _rethrow(Object e) {
     if (e is DioException) {
+      if (e.type == DioExceptionType.cancel) throw e;
       final msg = _extractDioMessage(e);
       throw ServerException(message: msg, code: e.response?.statusCode);
     }

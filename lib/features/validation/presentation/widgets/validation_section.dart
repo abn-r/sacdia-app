@@ -65,7 +65,7 @@ class ValidationSection extends ConsumerWidget {
 
         // ── Submit button ────────────────────────────────────────────────
         historyAsync.when(
-          loading: () => const SizedBox(height: 40, child: SacLoading()),
+          loading: () => const SizedBox(height: 40, child: Center(child: SacLoading())),
           error: (_, __) => const SizedBox.shrink(),
           data: (history) {
             final latestStatus = history.isEmpty
@@ -124,7 +124,7 @@ class ValidationSection extends ConsumerWidget {
 
         // ── History timeline ─────────────────────────────────────────────
         historyAsync.when(
-          loading: () => const SizedBox(height: 60, child: SacLoading()),
+          loading: () => const SizedBox(height: 60, child: Center(child: SacLoading())),
           error: (e, _) => Text(
             'No se pudo cargar el historial',
             style: TextStyle(fontSize: 13, color: c.textSecondary),

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
@@ -220,6 +221,9 @@ class UnitsNotifier extends Notifier<UnitsState> {
   // ── Carga inicial ────────────────────────────────────────────────────────
 
   Future<void> _loadUnits() async {
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
+
     final ctx = await ref.read(clubContextProvider.future);
     if (ctx == null) return;
 
@@ -228,14 +232,14 @@ class UnitsNotifier extends Notifier<UnitsState> {
     // Cargar unidades y miembro del mes en paralelo
     final unitsFuture = ref
         .read(getClubUnitsUseCaseProvider)
-        .call(GetClubUnitsParams(clubId: ctx.clubId));
+        .call(GetClubUnitsParams(clubId: ctx.clubId), cancelToken: cancelToken);
 
     final memberOfMonthFuture = ref
         .read(getMemberOfMonthUseCaseProvider)
         .call(GetMemberOfMonthParams(
           clubId: ctx.clubId,
           sectionId: ctx.sectionId,
-        ));
+        ), cancelToken: cancelToken);
 
     final results = await Future.wait([unitsFuture, memberOfMonthFuture]);
     final unitsResult = results[0] as dynamic;
@@ -645,6 +649,9 @@ class MemberOfMonthHistoryNotifier
   Future<void> fetchNextPage() async {
     if (state.isLoading || !state.hasMore) return;
 
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
+
     state = state.copyWith(isLoading: true, clearError: true);
 
     final nextPage = state.currentPage + 1;
@@ -656,7 +663,7 @@ class MemberOfMonthHistoryNotifier
           sectionId: arg.sectionId,
           page: nextPage,
           limit: _pageSize,
-        ));
+        ), cancelToken: cancelToken);
 
     result.fold(
       (failure) => state = state.copyWith(

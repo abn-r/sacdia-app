@@ -303,7 +303,8 @@ class _EnrollPreviousClassSheetState
                 maxHeight: MediaQuery.of(context).size.height * 0.35,
               ),
               child: ListView.separated(
-                shrinkWrap: true,
+                // shrinkWrap removed: ConstrainedBox(maxHeight) provides a
+                // bounded height constraint — ListView can scroll normally.
                 itemCount: classes.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 4),
                 itemBuilder: (context, index) {
@@ -358,6 +359,8 @@ class _EnrollPreviousClassSheetState
                                     borderRadius: BorderRadius.circular(8),
                                     child: CachedNetworkImage(
                                       imageUrl: cls.imageUrl!,
+                                      memCacheWidth: 108,  // 36 * 3 (max device pixel ratio)
+                                      memCacheHeight: 108, // 36 * 3
                                       fit: BoxFit.cover,
                                       errorWidget: (_, __, ___) =>
                                           logoAsset != null

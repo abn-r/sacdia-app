@@ -16,6 +16,7 @@ abstract class NotificationsRemoteDataSource {
   Future<NotificationHistoryResult> getHistory({
     int page = 1,
     int limit = 20,
+    CancelToken? cancelToken,
   });
 }
 
@@ -35,6 +36,7 @@ class NotificationsRemoteDataSourceImpl
 
   Never _rethrow(Object e) {
     if (e is DioException) {
+      if (e.type == DioExceptionType.cancel) throw e;
       final msg = _extractDioMessage(e);
       final code = e.response?.statusCode;
       if (code == 403 || code == 401) {
@@ -65,6 +67,7 @@ class NotificationsRemoteDataSourceImpl
   Future<NotificationHistoryResult> getHistory({
     int page = 1,
     int limit = 20,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
@@ -73,6 +76,7 @@ class NotificationsRemoteDataSourceImpl
           'page': page,
           'limit': limit,
         },
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

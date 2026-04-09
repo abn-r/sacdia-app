@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/user_honor_requirement_progress.dart';
@@ -16,8 +17,8 @@ class GetUserHonorProgress
 
   @override
   Future<Either<Failure, List<UserHonorRequirementProgress>>> call(
-      GetUserHonorProgressParams params) async {
-    return await repository.getUserHonorProgress(params.userId, params.honorId);
+      GetUserHonorProgressParams params, {CancelToken? cancelToken}) async {
+    return await repository.getUserHonorProgress(params.userId, params.honorId, cancelToken: cancelToken);
   }
 }
 

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -75,9 +76,11 @@ class NotificationsInboxState {
 class NotificationsInboxNotifier
     extends AutoDisposeNotifier<NotificationsInboxState> {
   static const _pageSize = 20;
+  CancelToken? _currentToken;
 
   @override
   NotificationsInboxState build() {
+    ref.onDispose(() => _currentToken?.cancel());
     // Carga la primera página al inicializar.
     Future.microtask(() => _loadPage(1, refresh: true));
     return const NotificationsInboxState(isLoading: true);
@@ -102,8 +105,15 @@ class NotificationsInboxNotifier
       state = state.copyWith(isLoadingMore: true);
     }
 
+    _currentToken?.cancel();
+    _currentToken = CancelToken();
+
     final repository = ref.read(notificationsRepositoryProvider);
-    final result = await repository.getHistory(page: page, limit: _pageSize);
+    final result = await repository.getHistory(
+      page: page,
+      limit: _pageSize,
+      cancelToken: _currentToken,
+    );
 
     result.fold(
       (failure) {

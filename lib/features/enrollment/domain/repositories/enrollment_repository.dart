@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../entities/enrollment.dart';
@@ -27,6 +28,7 @@ abstract class EnrollmentRepository {
   Future<Either<Failure, Enrollment?>> getCurrentEnrollment({
     required String clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   });
 
   /// Actualiza una inscripción existente.

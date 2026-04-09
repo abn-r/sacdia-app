@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../entities/finance_category.dart';
@@ -9,7 +10,9 @@ class GetFinanceCategories {
 
   GetFinanceCategories(this.repository);
 
-  Future<Either<Failure, List<FinanceCategory>>> call() {
-    return repository.getCategories();
+  Future<Either<Failure, List<FinanceCategory>>> call({
+    CancelToken? cancelToken,
+  }) {
+    return repository.getCategories(cancelToken: cancelToken);
   }
 }

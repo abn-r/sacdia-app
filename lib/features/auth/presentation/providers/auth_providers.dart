@@ -542,7 +542,11 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
     // Unregister FCM token before clearing auth tokens so the Dio interceptor
     // can still attach the Bearer header for the DELETE request.
-    await ref.read(pushNotificationServiceProvider).unregisterToken();
+    // dispose() cancels all stream listeners to prevent duplicate handlers
+    // if the user logs in again in the same session.
+    final pushService = ref.read(pushNotificationServiceProvider);
+    await pushService.unregisterToken();
+    await pushService.dispose();
 
     final result = await ref.read(signOutProvider)(NoParams());
 

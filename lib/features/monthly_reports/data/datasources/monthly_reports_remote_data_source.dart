@@ -13,15 +13,16 @@ abstract class MonthlyReportsRemoteDataSource {
     int enrollmentId, {
     required int month,
     required int year,
+    CancelToken? cancelToken,
   });
 
-  Future<List<MonthlyReportModel>> getReportsByEnrollment(int enrollmentId);
+  Future<List<MonthlyReportModel>> getReportsByEnrollment(int enrollmentId, {CancelToken? cancelToken});
 
-  Future<MonthlyReportModel> getReportDetail(int reportId);
+  Future<MonthlyReportModel> getReportDetail(int reportId, {CancelToken? cancelToken});
 
   /// Descarga el PDF del informe usando el cliente autenticado y devuelve
   /// la ruta local del archivo temporal.
-  Future<String> downloadReportPdf(int reportId);
+  Future<String> downloadReportPdf(int reportId, {CancelToken? cancelToken});
 }
 
 /// Implementación del data source remoto de informes mensuales
@@ -87,11 +88,13 @@ class MonthlyReportsRemoteDataSourceImpl
     int enrollmentId, {
     required int month,
     required int year,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.monthlyReports}/preview/$enrollmentId',
         queryParameters: {'month': month, 'year': year},
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -103,6 +106,7 @@ class MonthlyReportsRemoteDataSourceImpl
           message: 'Error al obtener preview del informe',
           code: response.statusCode);
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getPreview', tag: _tag, error: e);
       _rethrow(e);
     }
@@ -112,10 +116,11 @@ class MonthlyReportsRemoteDataSourceImpl
 
   @override
   Future<List<MonthlyReportModel>> getReportsByEnrollment(
-      int enrollmentId) async {
+      int enrollmentId, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.monthlyReports}/enrollment/$enrollmentId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -127,6 +132,7 @@ class MonthlyReportsRemoteDataSourceImpl
           message: 'Error al obtener informes mensuales',
           code: response.statusCode);
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getReportsByEnrollment', tag: _tag, error: e);
       _rethrow(e);
     }
@@ -135,10 +141,11 @@ class MonthlyReportsRemoteDataSourceImpl
   // ── GET /api/v1/monthly-reports/:reportId ────────────────────────────────
 
   @override
-  Future<MonthlyReportModel> getReportDetail(int reportId) async {
+  Future<MonthlyReportModel> getReportDetail(int reportId, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.monthlyReports}/$reportId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -149,6 +156,7 @@ class MonthlyReportsRemoteDataSourceImpl
           message: 'Error al obtener detalle del informe',
           code: response.statusCode);
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getReportDetail', tag: _tag, error: e);
       _rethrow(e);
     }
@@ -157,7 +165,7 @@ class MonthlyReportsRemoteDataSourceImpl
   // ── GET /api/v1/monthly-reports/:reportId/pdf ────────────────────────────
 
   @override
-  Future<String> downloadReportPdf(int reportId) async {
+  Future<String> downloadReportPdf(int reportId, {CancelToken? cancelToken}) async {
     try {
       final dir = await getTemporaryDirectory();
       final filename =
@@ -170,6 +178,7 @@ class MonthlyReportsRemoteDataSourceImpl
       await _dio.download(
         '$_baseUrl${ApiEndpoints.monthlyReports}/$reportId/pdf',
         filePath,
+        cancelToken: cancelToken,
         options: Options(
           // responseType is intentionally omitted: Dio.download() always
           // streams the response body to disk and ignores responseType.
@@ -185,6 +194,7 @@ class MonthlyReportsRemoteDataSourceImpl
 
       return filePath;
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en downloadReportPdf', tag: _tag, error: e);
       _rethrow(e);
     }

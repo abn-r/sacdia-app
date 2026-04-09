@@ -221,6 +221,10 @@ class _CategorySection extends StatelessWidget {
 
           // Honor grid (3 columns)
           GridView.builder(
+            // shrinkWrap OK: honors per category are naturally bounded (each
+            // category typically has < 30 items). Lives inside a Column that
+            // is itself inside the profile's outer scroll view — intrinsic
+            // height is required.
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             padding:

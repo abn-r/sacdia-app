@@ -76,7 +76,7 @@ class InventoryStatsRow extends StatelessWidget {
   }
 }
 
-class _StatChip extends StatelessWidget {
+class _StatChip extends StatefulWidget {
   final HugeIconData icon;
   final String value;
   final String label;
@@ -94,44 +94,64 @@ class _StatChip extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
+  State<_StatChip> createState() => _StatChipState();
+}
+
+class _StatChipState extends State<_StatChip>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _opacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
       duration: const Duration(milliseconds: 400),
-      curve: Curves.easeOut,
-      builder: (context, opacity, child) => Opacity(
-        opacity: opacity,
-        child: child,
-      ),
+    );
+    _opacity = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _opacity,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: bgColor,
+          color: widget.bgColor,
           borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-          border: Border.all(color: borderColor),
+          border: Border.all(color: widget.borderColor),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            HugeIcon(icon: icon, size: 16, color: iconColor),
+            HugeIcon(icon: widget.icon, size: 16, color: widget.iconColor),
             const SizedBox(width: 6),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  value,
+                  widget.value,
                   style: TextStyle(
-                    color: iconColor,
+                    color: widget.iconColor,
                     fontWeight: FontWeight.w800,
                     fontSize: 15,
                     height: 1.1,
                   ),
                 ),
                 Text(
-                  label,
+                  widget.label,
                   style: TextStyle(
-                    color: iconColor.withValues(alpha: 0.7),
+                    color: widget.iconColor.withValues(alpha: 0.7),
                     fontSize: 10,
                     height: 1.1,
                   ),

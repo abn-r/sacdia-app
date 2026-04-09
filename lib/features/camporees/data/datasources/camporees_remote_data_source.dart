@@ -10,11 +10,11 @@ import '../models/camporee_payment_model.dart';
 abstract class CamporeesRemoteDataSource {
   /// Obtiene la lista de camporees, opcionalmente filtrando por activos.
   /// GET /api/v1/camporees
-  Future<List<CamporeeModel>> getCamporees({bool? active});
+  Future<List<CamporeeModel>> getCamporees({bool? active, CancelToken? cancelToken});
 
   /// Obtiene el detalle de un camporee.
   /// GET /api/v1/camporees/:camporeeId
-  Future<CamporeeModel> getCamporeeDetail(int camporeeId);
+  Future<CamporeeModel> getCamporeeDetail(int camporeeId, {CancelToken? cancelToken});
 
   /// Registra un miembro en un camporee.
   /// POST /api/v1/camporees/:camporeeId/register
@@ -28,7 +28,7 @@ abstract class CamporeesRemoteDataSource {
 
   /// Obtiene los miembros inscritos en un camporee.
   /// GET /api/v1/camporees/:camporeeId/members
-  Future<List<CamporeeMemberModel>> getCamporeeMembers(int camporeeId);
+  Future<List<CamporeeMemberModel>> getCamporeeMembers(int camporeeId, {CancelToken? cancelToken});
 
   /// Remueve un miembro de un camporee.
   /// DELETE /api/v1/camporees/:camporeeId/members/:userId
@@ -45,7 +45,7 @@ abstract class CamporeesRemoteDataSource {
 
   /// Obtiene los clubes inscritos en un camporee.
   /// GET /api/v1/camporees/:camporeeId/clubs
-  Future<List<CamporeeEnrolledClubModel>> getEnrolledClubs(int camporeeId);
+  Future<List<CamporeeEnrolledClubModel>> getEnrolledClubs(int camporeeId, {CancelToken? cancelToken});
 
   /// Crea un pago para un miembro en un camporee.
   /// POST /api/v1/camporees/:camporeeId/members/:memberId/payments
@@ -63,12 +63,13 @@ abstract class CamporeesRemoteDataSource {
   /// GET /api/v1/camporees/:camporeeId/members/:memberId/payments
   Future<List<CamporeePaymentModel>> getMemberPayments(
     int camporeeId,
-    String memberId,
-  );
+    String memberId, {
+    CancelToken? cancelToken,
+  });
 
   /// Obtiene todos los pagos de un camporee.
   /// GET /api/v1/camporees/:camporeeId/payments
-  Future<List<CamporeePaymentModel>> getCamporeePayments(int camporeeId);
+  Future<List<CamporeePaymentModel>> getCamporeePayments(int camporeeId, {CancelToken? cancelToken});
 }
 
 /// Implementación de la fuente de datos remota de camporees.
@@ -113,7 +114,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
   // ── GET /api/v1/camporees ────────────────────────────────────────────────────
 
   @override
-  Future<List<CamporeeModel>> getCamporees({bool? active}) async {
+  Future<List<CamporeeModel>> getCamporees({bool? active, CancelToken? cancelToken}) async {
     try {
       final queryParams = <String, dynamic>{};
       if (active != null) queryParams['active'] = active;
@@ -121,6 +122,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -146,6 +148,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
           message: 'Error al obtener camporees',
           code: response.statusCode);
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getCamporees', tag: _tag, error: e);
       _rethrow(e);
     }
@@ -154,10 +157,11 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
   // ── GET /api/v1/camporees/:camporeeId ────────────────────────────────────────
 
   @override
-  Future<CamporeeModel> getCamporeeDetail(int camporeeId) async {
+  Future<CamporeeModel> getCamporeeDetail(int camporeeId, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -168,6 +172,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
           message: 'Error al obtener detalle del camporee',
           code: response.statusCode);
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getCamporeeDetail', tag: _tag, error: e);
       _rethrow(e);
     }
@@ -213,10 +218,11 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
   // ── GET /api/v1/camporees/:camporeeId/members ────────────────────────────────
 
   @override
-  Future<List<CamporeeMemberModel>> getCamporeeMembers(int camporeeId) async {
+  Future<List<CamporeeMemberModel>> getCamporeeMembers(int camporeeId, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/members',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -241,6 +247,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
           message: 'Error al obtener miembros del camporee',
           code: response.statusCode);
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getCamporeeMembers', tag: _tag, error: e);
       _rethrow(e);
     }
@@ -301,10 +308,11 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
 
   @override
   Future<List<CamporeeEnrolledClubModel>> getEnrolledClubs(
-      int camporeeId) async {
+      int camporeeId, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/clubs',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -329,6 +337,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
           message: 'Error al obtener clubes inscritos',
           code: response.statusCode);
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getEnrolledClubs', tag: _tag, error: e);
       _rethrow(e);
     }
@@ -381,11 +390,13 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
   @override
   Future<List<CamporeePaymentModel>> getMemberPayments(
     int camporeeId,
-    String memberId,
-  ) async {
+    String memberId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/members/$memberId/payments',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -410,6 +421,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
           message: 'Error al obtener pagos del miembro',
           code: response.statusCode);
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getMemberPayments', tag: _tag, error: e);
       _rethrow(e);
     }
@@ -419,10 +431,11 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
 
   @override
   Future<List<CamporeePaymentModel>> getCamporeePayments(
-      int camporeeId) async {
+      int camporeeId, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/payments',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -447,6 +460,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
           message: 'Error al obtener pagos del camporee',
           code: response.statusCode);
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getCamporeePayments', tag: _tag, error: e);
       _rethrow(e);
     }

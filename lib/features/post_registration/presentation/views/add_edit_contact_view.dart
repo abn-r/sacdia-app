@@ -622,7 +622,8 @@ class _RelationshipTypePickerSheetState
                 : ListView.builder(
                     padding:
                         const EdgeInsets.symmetric(vertical: 4),
-                    shrinkWrap: true,
+                    // shrinkWrap removed: parent Flexible provides a bounded
+                    // height constraint — ListView can scroll normally.
                     itemCount: _filtered.length,
                     itemBuilder: (_, index) {
                       final type = _filtered[index];

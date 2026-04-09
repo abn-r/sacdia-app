@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -25,12 +26,14 @@ class FinancesRepositoryImpl implements FinancesRepository {
     required int clubId,
     required int year,
     required int month,
+    CancelToken? cancelToken,
   }) async {
     try {
       final model = await remoteDataSource.getFinances(
         clubId: clubId,
         year: year,
         month: month,
+        cancelToken: cancelToken,
       );
       return Right(model.toEntity());
     } on ServerException catch (e) {
@@ -43,10 +46,15 @@ class FinancesRepositoryImpl implements FinancesRepository {
   }
 
   @override
-  Future<Either<Failure, FinanceSummary>> getSummary(
-      {required int clubId}) async {
+  Future<Either<Failure, FinanceSummary>> getSummary({
+    required int clubId,
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final model = await remoteDataSource.getSummary(clubId: clubId);
+      final model = await remoteDataSource.getSummary(
+        clubId: clubId,
+        cancelToken: cancelToken,
+      );
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
@@ -58,10 +66,15 @@ class FinancesRepositoryImpl implements FinancesRepository {
   }
 
   @override
-  Future<Either<Failure, FinanceTransaction>> getTransaction(
-      {required int financeId}) async {
+  Future<Either<Failure, FinanceTransaction>> getTransaction({
+    required int financeId,
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final model = await remoteDataSource.getTransaction(financeId: financeId);
+      final model = await remoteDataSource.getTransaction(
+        financeId: financeId,
+        cancelToken: cancelToken,
+      );
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
@@ -148,9 +161,13 @@ class FinancesRepositoryImpl implements FinancesRepository {
   }
 
   @override
-  Future<Either<Failure, List<FinanceCategory>>> getCategories() async {
+  Future<Either<Failure, List<FinanceCategory>>> getCategories({
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final models = await remoteDataSource.getCategories();
+      final models = await remoteDataSource.getCategories(
+        cancelToken: cancelToken,
+      );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
@@ -173,6 +190,7 @@ class FinancesRepositoryImpl implements FinancesRepository {
     String? endDate,
     String? sortBy,
     String? sortOrder,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await remoteDataSource.getTransactionsPaginated(
@@ -185,6 +203,7 @@ class FinancesRepositoryImpl implements FinancesRepository {
         endDate: endDate,
         sortBy: sortBy,
         sortOrder: sortOrder,
+        cancelToken: cancelToken,
       );
       return Right(response);
     } on ServerException catch (e) {

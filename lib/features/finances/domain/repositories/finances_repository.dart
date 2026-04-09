@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../data/models/paginated_transactions_response.dart';
@@ -16,14 +17,19 @@ abstract class FinancesRepository {
     required int clubId,
     required int year,
     required int month,
+    CancelToken? cancelToken,
   });
 
   /// Devuelve el resumen financiero global del club.
-  Future<Either<Failure, FinanceSummary>> getSummary({required int clubId});
+  Future<Either<Failure, FinanceSummary>> getSummary({
+    required int clubId,
+    CancelToken? cancelToken,
+  });
 
   /// Devuelve un movimiento por su ID.
   Future<Either<Failure, FinanceTransaction>> getTransaction({
     required int financeId,
+    CancelToken? cancelToken,
   });
 
   /// Crea un nuevo movimiento financiero.
@@ -52,7 +58,9 @@ abstract class FinancesRepository {
   Future<Either<Failure, void>> deleteTransaction({required int financeId});
 
   /// Devuelve las categorías disponibles.
-  Future<Either<Failure, List<FinanceCategory>>> getCategories();
+  Future<Either<Failure, List<FinanceCategory>>> getCategories({
+    CancelToken? cancelToken,
+  });
 
   /// Devuelve una página de transacciones con filtros opcionales.
   ///
@@ -68,5 +76,6 @@ abstract class FinancesRepository {
     String? endDate,
     String? sortBy,
     String? sortOrder,
+    CancelToken? cancelToken,
   });
 }

@@ -13,10 +13,10 @@ import '../models/weekly_record_model.dart';
 /// Interfaz de la fuente de datos remota para el módulo de unidades.
 abstract class UnitsRemoteDataSource {
   /// Retorna todas las unidades activas de un club.
-  Future<List<UnitModel>> getClubUnits({required int clubId});
+  Future<List<UnitModel>> getClubUnits({required int clubId, CancelToken? cancelToken});
 
   /// Retorna el detalle de una unidad con sus miembros activos.
-  Future<UnitModel> getUnitDetail({required int clubId, required int unitId});
+  Future<UnitModel> getUnitDetail({required int clubId, required int unitId, CancelToken? cancelToken});
 
   /// Crea una nueva unidad en el club.
   Future<UnitModel> createUnit({
@@ -65,6 +65,7 @@ abstract class UnitsRemoteDataSource {
   Future<List<WeeklyRecordModel>> getWeeklyRecords({
     required int clubId,
     required int unitId,
+    CancelToken? cancelToken,
   });
 
   /// Crea un registro semanal para un miembro de la unidad.
@@ -97,6 +98,7 @@ abstract class UnitsRemoteDataSource {
   /// Retorna las categorías de puntuación activas para un campo local.
   Future<List<ScoringCategoryModel>> getScoringCategories({
     required int localFieldId,
+    CancelToken? cancelToken,
   });
 
   /// Retorna el Miembro del Mes actual de una sección del club.
@@ -104,6 +106,7 @@ abstract class UnitsRemoteDataSource {
   Future<MemberOfMonthModel?> getMemberOfMonth({
     required int clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   });
 
   /// Retorna el historial paginado de Miembros del Mes de una sección.
@@ -112,6 +115,7 @@ abstract class UnitsRemoteDataSource {
     required int sectionId,
     int page = 1,
     int limit = 12,
+    CancelToken? cancelToken,
   });
 }
 
@@ -135,10 +139,11 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
   // ── GET /clubs/:clubId/units ───────────────────────────────────────────────
 
   @override
-  Future<List<UnitModel>> getClubUnits({required int clubId}) async {
+  Future<List<UnitModel>> getClubUnits({required int clubId, CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         _unitsBase(clubId),
+        cancelToken: cancelToken,
       );
 
       _assertSuccess(response, 'Error al obtener las unidades del club');
@@ -152,6 +157,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
           .map((e) => UnitModel.fromJson(e as Map<String, dynamic>))
           .toList();
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getClubUnits', tag: _tag, error: e);
       _rethrow(e);
     }
@@ -163,10 +169,12 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
   Future<UnitModel> getUnitDetail({
     required int clubId,
     required int unitId,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
         '${_unitsBase(clubId)}/$unitId',
+        cancelToken: cancelToken,
       );
 
       _assertSuccess(response, 'Error al obtener el detalle de la unidad');
@@ -174,6 +182,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
       final json = _extractObject(response.data);
       return UnitModel.fromJson(json);
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getUnitDetail', tag: _tag, error: e);
       _rethrow(e);
     }
@@ -326,10 +335,12 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
   Future<List<WeeklyRecordModel>> getWeeklyRecords({
     required int clubId,
     required int unitId,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
         '${_unitsBase(clubId)}/$unitId/weekly-records',
+        cancelToken: cancelToken,
       );
 
       _assertSuccess(response, 'Error al obtener los registros semanales');
@@ -343,6 +354,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
           .map((e) => WeeklyRecordModel.fromJson(e as Map<String, dynamic>))
           .toList();
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getWeeklyRecords', tag: _tag, error: e);
       _rethrow(e);
     }
@@ -424,10 +436,12 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
   @override
   Future<List<ScoringCategoryModel>> getScoringCategories({
     required int localFieldId,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl/local-fields/$localFieldId/scoring-categories',
+        cancelToken: cancelToken,
       );
 
       _assertSuccess(response, 'Error al obtener las categorías de puntuación');
@@ -442,6 +456,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
           .map((e) => ScoringCategoryModel.fromJson(e))
           .toList();
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getScoringCategories', tag: _tag, error: e);
       _rethrow(e);
     }
@@ -453,10 +468,12 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
   Future<MemberOfMonthModel?> getMemberOfMonth({
     required int clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/member-of-month',
+        cancelToken: cancelToken,
       );
 
       _assertSuccess(response, 'Error al obtener el miembro del mes');
@@ -476,6 +493,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
 
       return model;
     } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
       // 404 significa que no hay datos para el mes actual — retornar null.
       if (e.response?.statusCode == 404) return null;
       AppLogger.e('Error en getMemberOfMonth', tag: _tag, error: e);
@@ -494,11 +512,13 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
     required int sectionId,
     int page = 1,
     int limit = 12,
+    CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/member-of-month/history',
         queryParameters: {'page': page, 'limit': limit},
+        cancelToken: cancelToken,
       );
 
       _assertSuccess(
@@ -510,6 +530,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
           : <String, dynamic>{'data': body, 'pagination': {}};
       return MemberOfMonthHistoryResponseModel.fromJson(json);
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getMemberOfMonthHistory', tag: _tag, error: e);
       _rethrow(e);
     }
