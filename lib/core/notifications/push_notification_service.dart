@@ -460,8 +460,7 @@ class PushNotificationService {
 
     switch (type) {
       case 'member_of_month':
-        // Navigate to member of month history screen
-        // The route carries club_id and section_id as query params.
+        // Navigate to member of month history screen using the concrete path.
         final clubId = _parseInt(data['club_id']);
         final sectionId = _parseInt(data['section_id']);
         if (clubId == null || sectionId == null) {
@@ -472,8 +471,7 @@ class PushNotificationService {
           return;
         }
         navigator.pushNamed(
-          RouteNames.memberOfMonthHistory,
-          arguments: {'club_id': clubId, 'section_id': sectionId},
+          RouteNames.memberOfMonthHistoryPath(clubId, sectionId),
         );
 
       case 'member_of_month_director':

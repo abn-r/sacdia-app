@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
 
+import '../../../../features/auth/presentation/providers/auth_providers.dart';
 import '../../../../features/members/presentation/providers/members_providers.dart';
 import '../../domain/entities/scoring_category.dart';
 import '../../domain/entities/unit.dart';
@@ -50,7 +51,7 @@ class UnitDetailView extends ConsumerWidget {
         }
         // Consejeros o capitán de esta unidad
         final authState = ref.read(authNotifierProvider).value;
-        final userId = authState?.userId ?? '';
+        final userId = authState?.id ?? '';
         if (userId.isEmpty) return false;
         return unit.advisorId == userId ||
             unit.substituteAdvisorId == userId ||

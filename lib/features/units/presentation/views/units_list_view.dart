@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
+import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/member_of_month.dart';
 import '../../domain/entities/unit.dart';
 import '../providers/units_providers.dart';
@@ -216,10 +217,10 @@ class _MemberOfMonthCard extends StatelessWidget {
             // Header: título + trofeo + mes/año
             Row(
               children: [
-                const HugeIcon(
-                  icon: HugeIcons.strokeRoundedTrophy,
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedAward01,
                   size: 18,
-                  color: Color(0xFFD4A017),
+                  color: const Color(0xFFD4A017),
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -272,10 +273,10 @@ class _MemberOfMonthCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          const HugeIcon(
+                          HugeIcon(
                             icon: HugeIcons.strokeRoundedStar,
                             size: 13,
-                            color: Color(0xFFD4A017),
+                            color: const Color(0xFFD4A017),
                           ),
                           const SizedBox(width: 4),
                           Text(

@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
@@ -127,7 +126,7 @@ class _MemberOfMonthHistoryViewState
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             HugeIcon(
-              icon: HugeIcons.strokeRoundedTrophy,
+              icon: HugeIcons.strokeRoundedAward01,
               size: 64,
               color: c.textTertiary,
             ),
@@ -286,10 +285,10 @@ class _WinnerCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const HugeIcon(
+                    HugeIcon(
                       icon: HugeIcons.strokeRoundedStar,
                       size: 13,
-                      color: Color(0xFFD4A017),
+                      color: const Color(0xFFD4A017),
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -306,10 +305,10 @@ class _WinnerCard extends StatelessWidget {
           ),
 
           // Trofeo decorativo
-          const HugeIcon(
-            icon: HugeIcons.strokeRoundedTrophy,
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedAward01,
             size: 22,
-            color: Color(0xFFD4A017),
+            color: const Color(0xFFD4A017),
           ),
         ],
       ),
