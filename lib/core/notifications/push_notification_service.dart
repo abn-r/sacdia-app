@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../config/route_names.dart';
 import '../utils/app_logger.dart';
 
 /// Top-level background message handler.
@@ -323,6 +324,76 @@ class PushNotificationService {
     );
   }
 
+  // ── Notification route allowlist ─────────────────────────────────────────
+
+  /// Static routes (no path parameters) that a push notification payload is
+  /// allowed to navigate to. Any route NOT in this set (or not matching one
+  /// of [_allowedParametricRoutePatterns]) is silently dropped.
+  ///
+  /// SECURITY: never navigate to an arbitrary route received from a remote
+  /// message without validating it first. A compromised or malformed
+  /// notification could otherwise push sensitive or unintended screens.
+  static const Set<String> _allowedStaticRoutes = {
+    // Primary tabs
+    RouteNames.homeDashboard,
+    RouteNames.homeClasses,
+    RouteNames.homeActivities,
+    RouteNames.homeProfile,
+    // Quick-access modules
+    RouteNames.homeMembers,
+    RouteNames.homeClub,
+    RouteNames.homeEvidences,
+    RouteNames.homeFinances,
+    RouteNames.homeUnits,
+    RouteNames.homeInsurance,
+    RouteNames.homeInventory,
+    RouteNames.homeResources,
+    RouteNames.homeHonors,
+    RouteNames.homeCertifications,
+    RouteNames.homeCamporees,
+    // Other top-level destinations
+    RouteNames.transferRequests,
+    RouteNames.investiturePendingList,
+    RouteNames.notificationsInbox,
+    RouteNames.roleAssignments,
+    RouteNames.coordinator,
+    RouteNames.coordinatorSla,
+    RouteNames.coordinatorEvidenceReview,
+    RouteNames.coordinatorCamporeeApprovals,
+  };
+
+  /// RegExp patterns for routes that carry path parameters.
+  ///
+  /// Each pattern must match the entire route string (anchored with ^ and $).
+  /// Only add patterns for routes whose parameter values can safely come from
+  /// a server-controlled push payload (i.e., no client-side secret IDs).
+  static final List<RegExp> _allowedParametricRoutePatterns = [
+    // /camporee/<integer>
+    RegExp(r'^/camporee/\d+$'),
+    // /camporee/<integer>/members
+    RegExp(r'^/camporee/\d+/members$'),
+    // /class/<integer>
+    RegExp(r'^/class/\d+$'),
+    // /honor/<integer>
+    RegExp(r'^/honor/\d+$'),
+    // /certification/<integer>
+    RegExp(r'^/certification/\d+$'),
+    // /club/<alphanumeric slug or UUID>
+    RegExp(r'^/club/[\w\-]+$'),
+    // /transfer/<integer>
+    RegExp(r'^/transfer/\d+$'),
+    // /notifications (already static, included for completeness via parametric path)
+  ];
+
+  /// Returns true when [route] is safe to navigate to from a notification.
+  bool _isAllowedRoute(String route) {
+    if (_allowedStaticRoutes.contains(route)) return true;
+    for (final pattern in _allowedParametricRoutePatterns) {
+      if (pattern.hasMatch(route)) return true;
+    }
+    return false;
+  }
+
   void _handleNotificationTap(RemoteMessage message) {
     AppLogger.i(
       'Notificación tapeada: ${message.data}',
@@ -334,12 +405,24 @@ class PushNotificationService {
 
     if (route == null || route.isEmpty) return;
 
+    // SECURITY: validate the route against the allowlist before navigating.
+    // An attacker with access to the FCM project could craft a payload with an
+    // arbitrary route string; rejecting unknown routes prevents unintended
+    // navigation to sensitive or non-existent screens.
+    if (!_isAllowedRoute(route)) {
+      AppLogger.w(
+        'Ruta de notificación rechazada (no está en el allowlist): "$route"',
+        tag: _tag,
+      );
+      return;
+    }
+
     final navigator = navigatorKey?.currentState;
     if (navigator == null) return;
 
-    // Use pushNamed so the router handles the route resolution.
-    // The payload 'route' should match a GoRouter named route path
-    // (e.g. '/home/dashboard', '/home/classes').
+    // Use pushNamed so the GoRouter handles the route resolution.
+    // The payload 'route' must match a registered GoRouter path
+    // (e.g. '/home/dashboard', '/home/classes', '/camporee/42').
     navigator.pushNamed(route);
   }
 
