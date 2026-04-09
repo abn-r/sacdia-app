@@ -9,17 +9,23 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
 
+import '../../../../features/members/presentation/providers/members_providers.dart';
+import '../../domain/entities/scoring_category.dart';
 import '../../domain/entities/unit.dart';
 import '../../domain/entities/unit_member.dart';
 import '../providers/units_providers.dart';
 
-/// Vista de detalle de una unidad: lista de miembros con control de puntos diarios.
+/// Vista de detalle de una unidad: lista de miembros con control de puntos.
 ///
 /// Muestra:
 /// - Header con info de la unidad
 /// - Banner de "ya registrado hoy" si [isSavedToday]
-/// - Lista de miembros con botones +5 / +1 / -1 / -5
+/// - Lista de miembros con puntaje dinámico por categoría
 /// - Footer sticky con botón de guardar
+///
+/// Permisos:
+/// - Club directors, consejeros y capitán: pueden registrar/editar puntos.
+/// - Resto: vista de solo lectura.
 class UnitDetailView extends ConsumerWidget {
   final Unit unit;
 
@@ -30,6 +36,28 @@ class UnitDetailView extends ConsumerWidget {
     final state = ref.watch(unitsNotifierProvider);
     final notifier = ref.read(unitsNotifierProvider.notifier);
     final c = context.sac;
+
+    // Determinar si el usuario actual puede registrar puntos
+    final clubContextAsync = ref.watch(clubContextProvider);
+    final canRegisterPoints = clubContextAsync.maybeWhen(
+      data: (ctx) {
+        if (ctx == null) return false;
+        final role = ctx.roleName?.toLowerCase() ?? '';
+        // Club directors
+        if (['director', 'sub_director', 'secretario',
+            'secretario_tesorero'].contains(role)) {
+          return true;
+        }
+        // Consejeros o capitán de esta unidad
+        final authState = ref.read(authNotifierProvider).value;
+        final userId = authState?.userId ?? '';
+        if (userId.isEmpty) return false;
+        return unit.advisorId == userId ||
+            unit.substituteAdvisorId == userId ||
+            unit.captainId == userId;
+      },
+      orElse: () => false,
+    );
 
     return Scaffold(
       backgroundColor: c.background,
@@ -61,7 +89,7 @@ class UnitDetailView extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
-                    'Puntos del día',
+                    canRegisterPoints ? 'Puntos del dia' : 'Puntajes',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: c.textSecondary,
                           fontWeight: FontWeight.w600,
@@ -69,49 +97,59 @@ class UnitDetailView extends ConsumerWidget {
                   ),
                 ),
 
-                // Lista de miembros
+                // Lista de miembros con puntajes por categoría
                 ...state.members.map((member) {
-                  final points = state.pendingPoints[member.id] ?? 0;
+                  final memberScores =
+                      state.pendingScores[member.id] ?? {};
+                  final total = state.totalPendingForMember(member.id);
+
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 10),
-                    child: _MemberPointsRow(
+                    child: _MemberCategoryScoreCard(
                       member: member,
-                      points: points,
-                      maxPoints: state.maxPoints,
-                      isDisabled: state.isSavedToday,
-                      onAdjust: (delta) {
-                        notifier.adjustPoints(member.id, delta);
+                      categories: state.categories,
+                      scores: memberScores,
+                      total: total,
+                      totalMax: state.totalMaxPoints,
+                      isDisabled: state.isSavedToday || !canRegisterPoints,
+                      isReadOnly: !canRegisterPoints,
+                      onAdjust: (categoryId, delta) {
+                        notifier.adjustCategoryPoints(
+                            member.id, categoryId, delta);
+                      },
+                      onSetValue: (categoryId, value) {
+                        notifier.setCategoryPoints(
+                            member.id, categoryId, value);
                       },
                     ),
                   );
                 }),
 
-                // Padding inferior para que el footer no tape el último item
                 const SizedBox(height: 16),
               ],
             ),
           ),
 
           // ── Footer sticky ─────────────────────────────────────────
-          _SaveFooter(
-            isSavedToday: state.isSavedToday,
-            onSave: () => _handleSave(context, notifier),
-            onReset: () => notifier.resetSession(),
-          ),
+          if (canRegisterPoints)
+            _SaveFooter(
+              isSavedToday: state.isSavedToday,
+              onSave: () => _handleSave(context, notifier),
+              onReset: () => notifier.resetSession(),
+            ),
         ],
       ),
     );
   }
 
   void _handleSave(BuildContext context, UnitsNotifier notifier) {
-    // saveSession es async — envolvemos en unawaited para mantener VoidCallback.
     notifier.saveSession().then((saved) {
       if (!context.mounted) return;
       if (!saved) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'Debes asignar puntos a todos los miembros o a ninguno',
+              'Todos los miembros deben tener puntaje o ninguno.',
             ),
             behavior: SnackBarBehavior.floating,
           ),
@@ -227,40 +265,57 @@ class _SavedTodayBanner extends StatelessWidget {
   }
 }
 
-/// Fila de un miembro con avatar, nombre, barra de progreso y botones de ajuste.
-class _MemberPointsRow extends StatelessWidget {
+/// Card de un miembro con puntaje dinámico por categoría.
+///
+/// Cuando hay categorías configuradas, muestra una fila por categoría
+/// con stepper +/- y el indicador "actual / max".
+///
+/// Cuando no hay categorías (cargando o error), muestra un fallback simple.
+class _MemberCategoryScoreCard extends StatelessWidget {
   final UnitMember member;
-  final int points;
-  final int maxPoints;
-  final bool isDisabled;
-  final void Function(int delta) onAdjust;
+  final List<ScoringCategory> categories;
 
-  const _MemberPointsRow({
+  /// Mapa de categoryId → puntos actuales del miembro.
+  final Map<int, int> scores;
+
+  /// Suma de todos los puntajes de este miembro.
+  final int total;
+
+  /// Máximo total posible (suma de maxPoints de todas las categorías).
+  final int totalMax;
+
+  final bool isDisabled;
+  final bool isReadOnly;
+  final void Function(int categoryId, int delta) onAdjust;
+  final void Function(int categoryId, int value) onSetValue;
+
+  const _MemberCategoryScoreCard({
     required this.member,
-    required this.points,
-    required this.maxPoints,
+    required this.categories,
+    required this.scores,
+    required this.total,
+    required this.totalMax,
     required this.isDisabled,
+    required this.isReadOnly,
     required this.onAdjust,
+    required this.onSetValue,
   });
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final progress = maxPoints > 0 ? points / maxPoints : 0.0;
+    final progress = totalMax > 0 ? total / totalMax : 0.0;
 
     return SacCard(
       padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Fila superior: avatar + nombre + valor de puntos
+          // Fila superior: avatar + nombre + total
           Row(
             children: [
-              // Avatar con iniciales
               _MemberAvatar(member: member),
               const SizedBox(width: 12),
-
-              // Nombre
               Expanded(
                 child: Text(
                   member.fullName,
@@ -272,10 +327,8 @@ class _MemberPointsRow extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-
-              // Puntos actuales
               Text(
-                '$points / $maxPoints pts',
+                '$total / $totalMax pts',
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w700,
@@ -286,71 +339,133 @@ class _MemberPointsRow extends StatelessWidget {
 
           const SizedBox(height: 10),
 
-          // Barra de progreso
+          // Barra de progreso total
           SacProgressBar(
-            progress: progress,
+            progress: progress.clamp(0.0, 1.0),
             height: 6,
             showShimmer: false,
             fillDuration: const Duration(milliseconds: 300),
           ),
 
-          const SizedBox(height: 12),
+          // Filas de categorías
+          if (categories.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            ...categories.map((category) {
+              final catPoints = scores[category.scoringCategoryId] ?? 0;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _CategoryRow(
+                  category: category,
+                  points: catPoints,
+                  isDisabled: isDisabled,
+                  isReadOnly: isReadOnly,
+                  onAdjust: (delta) =>
+                      onAdjust(category.scoringCategoryId, delta),
+                  onSetValue: (v) =>
+                      onSetValue(category.scoringCategoryId, v),
+                ),
+              );
+            }),
+          ],
+        ],
+      ),
+    );
+  }
+}
 
-          // Fila de botones: -5 | -1 | valor | +1 | +5
+/// Fila de una categoría con nombre, valor y botones de ajuste.
+class _CategoryRow extends StatelessWidget {
+  final ScoringCategory category;
+  final int points;
+  final bool isDisabled;
+  final bool isReadOnly;
+  final void Function(int delta) onAdjust;
+  final void Function(int value) onSetValue;
+
+  const _CategoryRow({
+    required this.category,
+    required this.points,
+    required this.isDisabled,
+    required this.isReadOnly,
+    required this.onAdjust,
+    required this.onSetValue,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Row(
+      children: [
+        // Nombre de la categoría
+        Expanded(
+          flex: 3,
+          child: Text(
+            category.name,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: c.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+
+        const SizedBox(width: 8),
+
+        if (isReadOnly) ...[
+          // Solo lectura: mostrar valor sin controles
+          Text(
+            '$points / ${category.maxPoints}',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ] else ...[
+          // Controles: -1 | valor/max | +1
           Opacity(
             opacity: isDisabled ? 0.4 : 1.0,
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                _PointButton(
-                  label: '-5',
-                  isNegative: true,
-                  isDisabled: isDisabled || points == 0,
-                  onPressed: () => onAdjust(-5),
-                ),
-                const SizedBox(width: 6),
-                _PointButton(
+                _SmallAdjustButton(
                   label: '-1',
                   isNegative: true,
-                  isDisabled: isDisabled || points == 0,
+                  isDisabled: isDisabled || points <= 0,
                   onPressed: () => onAdjust(-1),
                 ),
-                const Spacer(),
+                const SizedBox(width: 6),
+                // Valor actual / max
                 Container(
-                  constraints: const BoxConstraints(minWidth: 44),
+                  constraints: const BoxConstraints(minWidth: 52),
                   alignment: Alignment.center,
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: AppColors.primarySurface,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    '$points',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    '$points/${category.maxPoints}',
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w700,
                         ),
                   ),
                 ),
-                const Spacer(),
-                _PointButton(
+                const SizedBox(width: 6),
+                _SmallAdjustButton(
                   label: '+1',
                   isNegative: false,
-                  isDisabled: isDisabled || points >= maxPoints,
+                  isDisabled: isDisabled || points >= category.maxPoints,
                   onPressed: () => onAdjust(1),
-                ),
-                const SizedBox(width: 6),
-                _PointButton(
-                  label: '+5',
-                  isNegative: false,
-                  isDisabled: isDisabled || points >= maxPoints,
-                  onPressed: () => onAdjust(5),
                 ),
               ],
             ),
           ),
         ],
-      ),
+      ],
     );
   }
 }
@@ -385,16 +500,14 @@ class _MemberAvatar extends StatelessWidget {
   }
 }
 
-/// Botón de ajuste de puntos (+5, +1, -1, -5).
-///
-/// Touch target garantizado de 44dp via [SizedBox].
-class _PointButton extends StatelessWidget {
+/// Botón pequeño de ajuste (+1 / -1) para cada categoría.
+class _SmallAdjustButton extends StatelessWidget {
   final String label;
   final bool isNegative;
   final bool isDisabled;
   final VoidCallback onPressed;
 
-  const _PointButton({
+  const _SmallAdjustButton({
     required this.label,
     required this.isNegative,
     required this.isDisabled,
@@ -404,25 +517,23 @@ class _PointButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final resolvedBg =
-        isNegative ? c.surfaceVariant : AppColors.primaryLight;
-    final resolvedFg =
-        isNegative ? c.textSecondary : AppColors.primary;
+    final resolvedBg = isNegative ? c.surfaceVariant : AppColors.primaryLight;
+    final resolvedFg = isNegative ? c.textSecondary : AppColors.primary;
 
     return SizedBox(
-      width: 52,
-      height: 44,
+      width: 36,
+      height: 36,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: isDisabled ? null : onPressed,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
           child: Ink(
             decoration: BoxDecoration(
               color: isDisabled
                   ? resolvedBg.withValues(alpha: 0.5)
                   : resolvedBg,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Center(
               child: Text(
@@ -432,7 +543,7 @@ class _PointButton extends StatelessWidget {
                       ? resolvedFg.withValues(alpha: 0.5)
                       : resolvedFg,
                   fontWeight: FontWeight.w700,
-                  fontSize: 14,
+                  fontSize: 13,
                 ),
               ),
             ),
