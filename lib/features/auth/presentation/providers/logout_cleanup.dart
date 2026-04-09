@@ -1,13 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/providers/app_bootstrap_provider.dart';
 import '../../../../core/utils/app_logger.dart';
-import '../../../activities/presentation/providers/activities_providers.dart';
-import '../../../club/presentation/providers/club_providers.dart';
-import '../../../dashboard/presentation/providers/dashboard_providers.dart';
-import '../../../enrollment/presentation/providers/enrollment_providers.dart';
-import '../../../honors/presentation/providers/honors_providers.dart';
-import '../../../members/presentation/providers/members_providers.dart';
-import '../../../profile/presentation/providers/profile_providers.dart';
 
 /// Invalida providers con estado de usuario al cerrar sesión.
 ///
@@ -36,13 +30,10 @@ import '../../../profile/presentation/providers/profile_providers.dart';
 ///   - currentClubSectionProvider  FutureProvider.autoDispose     + keepAlive (club-specific)
 ///   - clubActivitiesProvider      FutureProvider.autoDispose     + keepAlive (club-specific)
 void clearUserStateOnLogout(WidgetRef ref) {
-  ref.invalidate(dashboardNotifierProvider);
-  ref.invalidate(userHonorsProvider);
-  ref.invalidate(clubContextProvider);
-  ref.invalidate(currentClubSectionProvider);
-  ref.invalidate(profileNotifierProvider);
-  ref.invalidate(currentEnrollmentProvider);
-  ref.invalidate(clubActivitiesProvider);
+  for (final provider in userSpecificProviders) {
+    ref.invalidate(provider);
+  }
+  ref.invalidate(appBootstrapProvider);
 
   AppLogger.i(
     'Estado de usuario limpiado (providers invalidados)',

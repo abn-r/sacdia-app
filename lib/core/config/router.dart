@@ -51,6 +51,7 @@ import '../../features/auth/domain/entities/authorization_snapshot.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
 import '../../features/auth/domain/utils/authorization_utils.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
+import '../providers/app_bootstrap_provider.dart';
 import '../notifications/push_notification_provider.dart';
 import '../../features/auth/presentation/views/forgot_password_view.dart';
 import '../../features/auth/presentation/views/login_view.dart';
@@ -116,6 +117,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final user = authState.valueOrNull;
       final isLoggedIn = user != null;
       final currentPath = state.matchedLocation;
+      final bootstrapAsync = ref.read(appBootstrapProvider);
 
       // Rutas públicas que no requieren autenticación
       const publicRoutes = [
@@ -137,6 +139,37 @@ final routerProvider = Provider<GoRouter>((ref) {
           return null;
         }
         return RouteNames.splash;
+      }
+
+      // ── Bootstrap gate (authenticated users only) ──
+      if (isLoggedIn) {
+        final isBootstrapLoading = bootstrapAsync.isLoading;
+        final bootstrapValue = bootstrapAsync.valueOrNull;
+
+        // Still validating permissions → stay on splash
+        if (isBootstrapLoading) {
+          if (currentPath == RouteNames.splash) return null;
+          return RouteNames.splash;
+        }
+
+        // Unexpected error → stay on splash (shows retry UI)
+        if (bootstrapAsync.hasError) {
+          if (currentPath == RouteNames.splash) return null;
+          return RouteNames.splash;
+        }
+
+        // Retry UI shown → stay on splash
+        if (bootstrapValue is AppBootstrapError) {
+          if (currentPath == RouteNames.splash) return null;
+          return RouteNames.splash;
+        }
+
+        // Nuclear reset happened → go to login
+        if (bootstrapValue is AppBootstrapUnauthenticated) {
+          return RouteNames.login;
+        }
+
+        // AppBootstrapReady → fall through to normal routing
       }
 
       // Splash es transitorio: una vez que la carga terminó, siempre salir.
@@ -864,6 +897,10 @@ final routerProvider = Provider<GoRouter>((ref) {
   // ref.watch() pattern which caused the GoRouter instance to be recreated on
   // every state change, introducing race conditions and double redirects.
   ref.listen<AsyncValue<dynamic>>(authNotifierProvider, (_, __) {
+    router.refresh();
+  });
+
+  ref.listen<AsyncValue<AppBootstrapState>>(appBootstrapProvider, (_, __) {
     router.refresh();
   });
 
