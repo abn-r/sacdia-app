@@ -1,3 +1,4 @@
+import '../../../../core/utils/json_helpers.dart';
 import '../../domain/entities/member_of_month_history_response.dart';
 import 'member_of_month_model.dart';
 
@@ -29,9 +30,9 @@ class MemberOfMonthHistoryResponseModel extends MemberOfMonthHistoryResponse {
     final pagination = json['pagination'] as Map<String, dynamic>? ?? {};
     return MemberOfMonthHistoryResponseModel(
       data: items,
-      total: _parseInt(pagination['total']) ?? 0,
-      page: _parseInt(pagination['page']) ?? 1,
-      limit: _parseInt(pagination['limit']) ?? 12,
+      total: parseInt(pagination['total']) ?? 0,
+      page: parseInt(pagination['page']) ?? 1,
+      limit: parseInt(pagination['limit']) ?? 12,
     );
   }
 
@@ -41,14 +42,4 @@ class MemberOfMonthHistoryResponseModel extends MemberOfMonthHistoryResponse {
         page: page,
         limit: limit,
       );
-
-  // ── Helpers ───────────────────────────────────────────────────────────────
-
-  static int? _parseInt(dynamic v) {
-    if (v == null) return null;
-    if (v is int) return v;
-    if (v is double) return v.toInt();
-    if (v is String) return int.tryParse(v);
-    return null;
-  }
 }
