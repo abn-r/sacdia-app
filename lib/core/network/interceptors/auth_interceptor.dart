@@ -177,7 +177,10 @@ class AuthInterceptor extends QueuedInterceptor {
         connectTimeout: Duration(seconds: AppConstants.connectTimeout),
         sendTimeout: Duration(seconds: AppConstants.sendTimeout),
         receiveTimeout: Duration(seconds: AppConstants.receiveTimeout),
-        validateStatus: (s) => s != null,
+        // Only treat 2xx as success so that 4xx/5xx responses on the retry
+        // are properly surfaced as DioExceptions instead of being silently
+        // swallowed by handler.resolve(response).
+        validateStatus: (s) => s != null && s >= 200 && s < 300,
       ));
 
       final response = await retryDio.request(

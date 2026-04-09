@@ -2,6 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Explicit ATS config: enforce TLS for all connections.
+	     NSAllowsArbitraryLoads=false is the iOS default, but declaring it
+	     explicitly prevents accidental weakening by plugins or future edits. -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+	</dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<!-- Permisos de camara y galeria requeridos por image_picker -->

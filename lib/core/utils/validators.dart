@@ -16,16 +16,34 @@ class Validators {
     return null;
   }
   
-  /// Valida una contraseña
+  /// Valida una contraseña.
+  ///
+  /// Requisitos (en línea con lo que exige el backend):
+  ///   - Mínimo 8 caracteres
+  ///   - Al menos una letra mayúscula
+  ///   - Al menos una letra minúscula
+  ///   - Al menos un dígito
   static String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'La contraseña es requerida';
     }
-    
+
     if (value.length < 8) {
       return 'La contraseña debe tener al menos 8 caracteres';
     }
-    
+
+    if (!RegExp(r'[A-Z]').hasMatch(value)) {
+      return 'La contraseña debe incluir al menos una letra mayúscula';
+    }
+
+    if (!RegExp(r'[a-z]').hasMatch(value)) {
+      return 'La contraseña debe incluir al menos una letra minúscula';
+    }
+
+    if (!RegExp(r'[0-9]').hasMatch(value)) {
+      return 'La contraseña debe incluir al menos un número';
+    }
+
     return null;
   }
   

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Full-Backup Content Rules (pre-API 31 / Android < 12)
+    Used via android:fullBackupContent="@xml/backup_rules".
+    Denies all Auto Backup for the entire app to prevent sensitive data
+    (tokens, encrypted preferences) from being included in device backups.
+    Ref: https://developer.android.com/guide/topics/data/autobackup#IncludingFiles
+-->
+<full-backup-content>
+    <exclude domain="root" path="." />
+    <exclude domain="file" path="." />
+    <exclude domain="database" path="." />
+    <exclude domain="sharedpref" path="." />
+    <exclude domain="external" path="." />
+</full-backup-content>

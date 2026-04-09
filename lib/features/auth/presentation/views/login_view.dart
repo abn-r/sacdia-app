@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -31,22 +33,63 @@ class _LoginViewState extends ConsumerState<LoginView> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  // ── Rate limiting ───────────────────────────────────────────────────────────
+  static const _maxFailedAttempts = 3;
+  static const _cooldownSeconds = 30;
+
+  int _failedAttempts = 0;
+  int _cooldownRemaining = 0;
+  Timer? _cooldownTimer;
+
+  bool get _isCoolingDown => _cooldownRemaining > 0;
+
+  void _startCooldown() {
+    setState(() => _cooldownRemaining = _cooldownSeconds);
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _cooldownRemaining--;
+        if (_cooldownRemaining <= 0) {
+          timer.cancel();
+          _failedAttempts = 0;
+        }
+      });
+    });
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _cooldownTimer?.cancel();
     super.dispose();
   }
 
   Future<void> _signIn() async {
+    if (_isCoolingDown) return;
     final formState = _formKey.currentState;
     if (formState == null || !formState.validate()) return;
+
     await ref.read(authNotifierProvider.notifier).signIn(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
+
     // Navigation handled by the router watching authNotifierProvider.
     // Error surfaced via ref.watch in build().
+    final authState = ref.read(authNotifierProvider);
+    if (authState.hasError) {
+      _failedAttempts++;
+      if (_failedAttempts >= _maxFailedAttempts) {
+        _startCooldown();
+      }
+    } else {
+      // Successful login — reset counter.
+      _failedAttempts = 0;
+    }
   }
 
   Future<void> _signInWithGoogle() async {
@@ -65,6 +108,9 @@ class _LoginViewState extends ConsumerState<LoginView> {
     final isLoading = authState.isLoading;
     final errorMessage = authState.hasError
         ? (authState.error?.toString() ?? 'Error al iniciar sesión')
+        : null;
+    final cooldownMessage = _isCoolingDown
+        ? 'Demasiados intentos. Intenta de nuevo en $_cooldownRemaining segundo${_cooldownRemaining == 1 ? '' : 's'}'
         : null;
 
     final logoSize = Responsive.authLogoSize(context) * 1.5;
@@ -157,7 +203,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                       const SizedBox(height: 8),
 
                       // Error message
-                      if (errorMessage != null) ...[
+                      if (errorMessage != null && !_isCoolingDown) ...[
                         SacCard(
                           backgroundColor: AppColors.errorLight,
                           borderColor: AppColors.error.withValues(alpha: 0.3),
@@ -185,11 +231,41 @@ class _LoginViewState extends ConsumerState<LoginView> {
                         const SizedBox(height: 16),
                       ],
 
+                      // Cooldown message
+                      if (cooldownMessage != null) ...[
+                        SacCard(
+                          backgroundColor: AppColors.accentLight,
+                          borderColor: AppColors.accent.withValues(alpha: 0.3),
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              HugeIcon(
+                                icon: HugeIcons.strokeRoundedClock01,
+                                size: 20,
+                                color: AppColors.accentDark,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  cooldownMessage,
+                                  style: const TextStyle(
+                                    color: AppColors.accentDark,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
                       // Botón login
                       SacButton.primary(
                         text: 'Iniciar Sesión',
                         backgroundColor: AppColors.sacGreenLight,
                         isLoading: isLoading,
+                        isEnabled: !_isCoolingDown,
                         onPressed: _signIn,
                       ),
                       const SizedBox(height: 34),

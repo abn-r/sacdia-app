@@ -226,7 +226,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                       SacTextField(
                         controller: _passwordController,
                         label: 'Contraseña',
-                        hint: 'Mínimo 6 caracteres',
+                        hint: 'Mínimo 8 caracteres, mayúscula, minúscula y número',
                         obscureText: true,
                         prefixIcon: HugeIcons.strokeRoundedLockKey,
                         validator: Validators.validatePassword,
