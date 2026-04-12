@@ -11,7 +11,6 @@ abstract class CatalogsRemoteDataSource {
   Future<List<ActivityTypeModel>> getActivityTypes({CancelToken? cancelToken});
   Future<List<DistrictModel>> getDistricts({int? localFieldId, CancelToken? cancelToken});
   Future<List<ChurchModel>> getChurches({int? districtId, CancelToken? cancelToken});
-  Future<List<RoleModel>> getRoles({int? clubTypeId, CancelToken? cancelToken});
   Future<List<EcclesiasticalYearModel>> getEcclesiasticalYears({bool? active, CancelToken? cancelToken});
   Future<EcclesiasticalYearModel?> getCurrentEcclesiasticalYear({CancelToken? cancelToken});
 }
@@ -149,40 +148,6 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
       throw ServerException(message: 'Error al obtener iglesias');
     } catch (e) {
       AppLogger.e('Error en getChurches', tag: _tag, error: e);
-      if (e is DioException) {
-        if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(
-          message:
-              e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
-        );
-      }
-      if (e is AppException) rethrow;
-      throw ServerException(message: e.toString());
-    }
-  }
-
-  @override
-  Future<List<RoleModel>> getRoles({int? clubTypeId, CancelToken? cancelToken}) async {
-    try {
-      final queryParams = <String, dynamic>{};
-      if (clubTypeId != null) queryParams['clubTypeId'] = clubTypeId;
-
-      final response = await _dio.get(
-        '$_baseUrl${ApiEndpoints.catalogs}/roles',
-        queryParameters: queryParams.isNotEmpty ? queryParams : null,
-        cancelToken: cancelToken,
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final List<dynamic> data = response.data as List<dynamic>;
-        return data
-            .map((json) => RoleModel.fromJson(json as Map<String, dynamic>))
-            .toList();
-      }
-
-      throw ServerException(message: 'Error al obtener roles');
-    } catch (e) {
-      AppLogger.e('Error en getRoles', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(

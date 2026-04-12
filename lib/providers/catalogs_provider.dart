@@ -54,15 +54,6 @@ final churchesProvider =
   return dataSource.getChurches(districtId: districtId, cancelToken: cancelToken);
 });
 
-/// Provider para obtener roles (con filtro opcional)
-final rolesProvider =
-    FutureProvider.autoDispose.family<List<RoleModel>, int?>((ref, clubTypeId) async {
-  ref.keepAlive();
-  final cancelToken = CancelToken();
-  ref.onDispose(() => cancelToken.cancel());
-  final dataSource = ref.watch(catalogsDataSourceProvider);
-  return dataSource.getRoles(clubTypeId: clubTypeId, cancelToken: cancelToken);
-});
 
 /// Provider para obtener años eclesiásticos
 final ecclesiasticalYearsProvider =
