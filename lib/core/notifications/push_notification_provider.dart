@@ -33,6 +33,7 @@ final pushNotificationServiceProvider = Provider<PushNotificationService>((ref) 
   return PushNotificationService(
     dio: dio,
     prefs: prefs,
+    ref: ref,
     navigatorKey: pushNavigatorKey,
   );
 });

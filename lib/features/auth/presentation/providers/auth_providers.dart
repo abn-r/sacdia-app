@@ -21,6 +21,7 @@ import '../../../../core/usecases/usecase.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/notifications/push_notification_provider.dart';
 import '../../../../providers/dio_provider.dart';
+import '../../../notifications/presentation/providers/unread_notifications_count_provider.dart';
 
 /// Provider para la URL base de la API
 final apiBaseUrlProvider = Provider((ref) {
@@ -141,6 +142,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
             // Session restored from cache — initialize FCM so token is
             // registered even when the backend was temporarily unreachable.
             ref.read(pushNotificationServiceProvider).initialize();
+            ref.read(unreadNotificationsCountProvider.notifier).refresh();
 
             // Reconstruct active grant from cached flat strings so widgets
             // render with the correct role immediately (no "Usuario" flash).
@@ -180,6 +182,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
           _cacheUser(user);
           // User already authenticated on startup — register FCM token.
           ref.read(pushNotificationServiceProvider).initialize();
+          ref.read(unreadNotificationsCountProvider.notifier).refresh();
           return user;
         }
         // Server responded but returned no user — session is invalid.
@@ -268,6 +271,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         _cacheUser(user);
         // Register FCM token after successful login (fire-and-forget).
         ref.read(pushNotificationServiceProvider).initialize();
+        ref.read(unreadNotificationsCountProvider.notifier).refresh();
         return AsyncValue.data(user);
       },
     );
@@ -367,6 +371,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         state = AsyncValue.data(user);
         // Register FCM token after OAuth login (fire-and-forget).
         ref.read(pushNotificationServiceProvider).initialize();
+        ref.read(unreadNotificationsCountProvider.notifier).refresh();
       },
     );
   }
@@ -559,6 +564,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     final pushService = ref.read(pushNotificationServiceProvider);
     await pushService.unregisterToken();
     await pushService.dispose();
+    // Clear unread counter immediately so any badge shows 0 after logout.
+    ref.read(unreadNotificationsCountProvider.notifier).setZero();
 
     final result = await ref.read(signOutProvider)(NoParams());
 

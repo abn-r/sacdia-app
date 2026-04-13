@@ -5,11 +5,14 @@ import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/route_names.dart';
 import '../utils/app_logger.dart';
+import '../../features/notifications/presentation/providers/notifications_providers.dart';
+import '../../features/notifications/presentation/providers/unread_notifications_count_provider.dart';
 
 /// Top-level background message handler.
 ///
@@ -43,6 +46,9 @@ class PushNotificationService {
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
 
+  /// Riverpod Ref — used to read/mutate notification providers from FCM events.
+  final Ref _ref;
+
   /// Optional navigator key used to show snackbars and navigate on
   /// notification tap. Set this from your MaterialApp's navigatorKey or
   /// from GoRouter's navigatorKey so the service can reach the UI without
@@ -52,9 +58,11 @@ class PushNotificationService {
   PushNotificationService({
     required Dio dio,
     required SharedPreferences prefs,
+    required Ref ref,
     this.navigatorKey,
   })  : _dio = dio,
-        _prefs = prefs;
+        _prefs = prefs,
+        _ref = ref;
 
   // ── StreamSubscription references ─────────────────────────────────────────
 
@@ -324,6 +332,10 @@ class PushNotificationService {
 
     final notification = message.notification;
     if (notification == null) return;
+
+    // Increment unread count optimistically and refresh inbox if it is alive.
+    _ref.read(unreadNotificationsCountProvider.notifier).increment();
+    _ref.invalidate(notificationsInboxProvider);
 
     final context = navigatorKey?.currentContext;
     if (context == null) return;
