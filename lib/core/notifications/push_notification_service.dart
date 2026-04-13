@@ -380,6 +380,7 @@ class PushNotificationService {
     RouteNames.homeHonors,
     RouteNames.homeCertifications,
     RouteNames.homeCamporees,
+    RouteNames.homeAchievements,
     // Other top-level destinations
     RouteNames.transferRequests,
     RouteNames.investiturePendingList,
@@ -398,6 +399,7 @@ class PushNotificationService {
   static const Set<String> _handledNotificationTypes = {
     'member_of_month',
     'member_of_month_director',
+    'achievement_unlocked',
   };
 
   /// RegExp patterns for routes that carry path parameters.
@@ -414,6 +416,8 @@ class PushNotificationService {
     RegExp(r'^/class/\d+$'),
     // /honor/<integer>
     RegExp(r'^/honor/\d+$'),
+    // /achievement/<integer>
+    RegExp(r'^/achievement/\d+$'),
     // /certification/<integer>
     RegExp(r'^/certification/\d+$'),
     // /club/<alphanumeric slug or UUID>
@@ -506,6 +510,20 @@ class PushNotificationService {
       case 'member_of_month_director':
         // Navigate to the units list for the section
         navigator.pushNamed(RouteNames.homeUnits);
+
+      case 'achievement_unlocked':
+        // Navigate to the achievements screen, optionally deep-linking to
+        // the specific achievement detail.
+        // Payload: { type, achievement_id, achievement_name }
+        final achievementId = _parseInt(data['achievement_id']);
+        if (achievementId != null) {
+          navigator.pushNamed(
+            RouteNames.achievementDetailPath(achievementId),
+          );
+        } else {
+          // Fallback: open the achievements list
+          navigator.pushNamed(RouteNames.homeAchievements);
+        }
 
       default:
         AppLogger.w('Tipo de notificación no manejado: $type', tag: _tag);

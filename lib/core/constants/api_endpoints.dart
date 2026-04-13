@@ -39,6 +39,9 @@ class ApiEndpoints {
   // ── Honors ────────────────────────────────────────────────────────────────
   static const String honors = '/honors';
 
+  // ── Achievements ──────────────────────────────────────────────────────────
+  static const String achievements = '/achievements';
+
   // ── Activities ────────────────────────────────────────────────────────────
   static const String activities = '/activities';
 

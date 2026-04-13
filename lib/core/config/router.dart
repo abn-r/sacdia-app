@@ -47,6 +47,7 @@ import 'package:sacdia_app/features/coordinator/presentation/views/evidence_revi
 import 'package:sacdia_app/features/coordinator/presentation/views/camporee_approvals_view.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/evidence_review_item.dart';
 import 'package:sacdia_app/features/notifications/presentation/views/notifications_inbox_view.dart';
+import 'package:sacdia_app/features/achievements/presentation/views/achievements_view.dart';
 
 import '../../features/auth/domain/entities/authorization_snapshot.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
@@ -473,6 +474,20 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
+
+          // ── Branch 16: Logros / Achievements (quick-access, no nav bar) ──
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeAchievements,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const AchievementsView(),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
 
@@ -880,6 +895,17 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           );
         },
+      ),
+
+      // Detalle de logro (deep-link desde notificación push)
+      // Opens the achievements list; the UI can scroll to the specific item.
+      GoRoute(
+        path: RouteNames.achievementDetail,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          const AchievementsView(),
+        ),
       ),
 
       // OAuth callback deep link — io.sacdia.app://auth/callback?session_token=...&provider=...

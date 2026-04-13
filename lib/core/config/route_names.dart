@@ -35,6 +35,7 @@ class RouteNames {
   static const String homeResources = '/home/resources';
   static const String homeHonors = '/home/honors';
   static const String homeCertifications = '/home/certifications';
+  static const String homeAchievements = '/home/achievements';
 
   // Información médica del usuario (detalle fuera del shell)
   static const String homeMedicalInfo = '/home/medical-info';
@@ -141,6 +142,13 @@ class RouteNames {
 
   static String memberOfMonthHistoryPath(int clubId, int sectionId) =>
       '/units/member-of-month/$clubId/$sectionId';
+
+  // Logros (achievements)
+  static const String achievementDetail = '/achievement/:achievementId';
+
+  // Helper
+  static String achievementDetailPath(int achievementId) =>
+      '/achievement/$achievementId';
 
   // Pagos de camporee (miembro)
   static const String camporeePayments =
