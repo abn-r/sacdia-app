@@ -24,22 +24,42 @@ class NotificationsInboxView extends ConsumerStatefulWidget {
       _NotificationsInboxViewState();
 }
 
-class _NotificationsInboxViewState
-    extends ConsumerState<NotificationsInboxView> {
+class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
+    with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addObserver(this);
+    // Trigger 1: refresh inbox and unread count every time this screen appears.
+    // Using addPostFrameCallback ensures we don't mutate provider state during
+    // the current build frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.invalidate(notificationsInboxProvider);
+      ref.read(unreadNotificationsCountProvider.notifier).refresh();
+    });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scrollController
       ..removeListener(_onScroll)
       ..dispose();
     super.dispose();
+  }
+
+  // Trigger 2: refresh when the app comes back from background while this
+  // screen is mounted and visible.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.invalidate(notificationsInboxProvider);
+      ref.read(unreadNotificationsCountProvider.notifier).refresh();
+    }
   }
 
   void _onScroll() {
