@@ -111,9 +111,19 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
     super.didUpdateWidget(oldWidget);
     // When parent rebuilds with new existing files (e.g. after provider
     // invalidation), merge them with any remaining local files.
+    //
+    // Use the same predicate as _queueFiles (status != uploaded) so that
+    // files in any in-flight state (local, uploading, completed, error) are
+    // preserved during a mid-upload parent rebuild. The previous filter
+    // (f.isLocal) only kept status == local, which caused files that had
+    // already transitioned to uploading/completed to be dropped from
+    // _allFiles the moment the notifier emitted isLoading:true and the
+    // parent rebuilt — making _queueFiles return [] and the sheet show the
+    // premature "all done" state (Bug B).
     if (oldWidget.existingFiles != widget.existingFiles) {
-      final localFiles = _allFiles.where((f) => f.isLocal).toList();
-      _allFiles = [...widget.existingFiles, ...localFiles];
+      final queueFiles =
+          _allFiles.where((f) => f.status != StagedFileStatus.uploaded).toList();
+      _allFiles = [...widget.existingFiles, ...queueFiles];
     }
   }
 
@@ -121,6 +131,14 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
 
   List<StagedFile> get _localFiles =>
       _allFiles.where((f) => f.isLocal).toList();
+
+  /// All files that are part of the current upload queue (local, uploading,
+  /// completed, or errored). Excludes already-remote (`uploaded`) files.
+  /// Used to feed the upload progress sheet so it always sees the full queue
+  /// regardless of the individual file status transitions.
+  List<StagedFile> get _queueFiles => _allFiles
+      .where((f) => f.status != StagedFileStatus.uploaded)
+      .toList();
 
   bool get _hasLocalFiles => _localFiles.isNotEmpty;
 
@@ -324,9 +342,14 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
     final localFiles = _localFiles;
 
     // Show the progress sheet
+    // Pass _queueFiles (not _localFiles) as initialFiles so the sheet sees all
+    // files in the queue from the start. _localFiles filters by status == local
+    // which causes files to disappear from the list as soon as they transition
+    // to uploading/completed/error — the sheet would see an empty list and
+    // prematurely show the "all done" state before uploads finish (Bug A).
     final sheetResultFuture = showUploadProgressSheet(
       context: context,
-      initialFiles: localFiles,
+      initialFiles: _queueFiles,
       uploadStream: streamController.stream,
     );
 
@@ -342,7 +365,9 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
         StagedFileStatus.uploading,
         uploadProgress: 0.0,
       );
-      streamController.add(_localFiles);
+      // Emit _queueFiles (includes uploading/completed/error) so the sheet
+      // always sees every file in the queue regardless of status transition.
+      streamController.add(_queueFiles);
 
       try {
         final xFile = XFile(
@@ -360,13 +385,13 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
               StagedFileStatus.uploading,
               uploadProgress: progress,
             );
-            streamController.add(_localFiles);
+            streamController.add(_queueFiles);
           },
         );
 
         // Success
         _updateFileStatus(file.id, StagedFileStatus.completed);
-        streamController.add(_localFiles);
+        streamController.add(_queueFiles);
       } catch (e) {
         AppLogger.e('Error uploading file: ${file.name}', error: e);
         _updateFileStatus(
@@ -374,7 +399,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
           StagedFileStatus.error,
           errorMessage: e.toString(),
         );
-        streamController.add(_localFiles);
+        streamController.add(_queueFiles);
       }
     }
 

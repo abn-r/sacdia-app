@@ -10,8 +10,8 @@ import '../../../../core/widgets/sac_loading.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/class_requirement.dart';
 import '../providers/classes_providers.dart';
+import '../sheets/requirement_status_history_sheet.dart';
 import '../widgets/requirement_status_badge.dart';
-import '../widgets/requirement_status_timeline.dart';
 
 /// Vista de detalle de un requerimiento de clase progresiva.
 ///
@@ -40,21 +40,21 @@ class RequirementDetailView extends ConsumerStatefulWidget {
       _RequirementDetailViewState();
 }
 
-class _RequirementDetailViewState
-    extends ConsumerState<RequirementDetailView> {
+class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
   bool _hasUnsavedFiles = false;
 
   /// Devuelve el requerimiento vivo desde [classWithProgressProvider] si ya
   /// cargó, o el snapshot inicial del constructor como fallback.
   ClassRequirement _liveRequirement(AsyncValue<dynamic> classAsync) {
     return classAsync.whenData((classWithProgress) {
-      for (final module in classWithProgress.modules) {
-        for (final req in module.requirements) {
-          if (req.id == widget.requirement.id) return req;
-        }
-      }
-      return widget.requirement;
-    }).valueOrNull ?? widget.requirement;
+          for (final module in classWithProgress.modules) {
+            for (final req in module.requirements) {
+              if (req.id == widget.requirement.id) return req;
+            }
+          }
+          return widget.requirement;
+        }).valueOrNull ??
+        widget.requirement;
   }
 
   @override
@@ -114,11 +114,20 @@ class _RequirementDetailViewState
         backgroundColor: c.background,
         appBar: AppBar(
           title: Text(
-            requirement.name,
+            'Requisito: ${requirement.name}',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
             overflow: TextOverflow.ellipsis,
+          ),
+          leading: IconButton(
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowLeft01,
+              color: c.text,
+              size: 22,
+            ),
+            onPressed: isLoading ? null : () => Navigator.pop(context),
+            tooltip: 'Volver',
           ),
           backgroundColor: c.background,
           surfaceTintColor: Colors.transparent,
@@ -145,26 +154,38 @@ class _RequirementDetailViewState
                       children: [
                         Text(
                           "Detalle del requisito",
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: c.textSecondary,
-                                letterSpacing: 0.8,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: c.textSecondary,
+                                    letterSpacing: 0.8,
+                                  ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           requirement.name,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: c.text,
-                                height: 1.25,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: c.text,
+                                    height: 1.25,
+                                  ),
                         ),
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 16),
                   // Meta card con descripcion y metricas
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    child: Text(
+                      "Detalle del requisito",
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: c.textSecondary,
+                            letterSpacing: 0.8,
+                          ),
+                    ),
+                  ),
                   _RequirementMetaCard(requirement: requirement),
 
                   const SizedBox(height: 16),
@@ -173,31 +194,29 @@ class _RequirementDetailViewState
                   if (requirement.type == RequirementType.honor &&
                       requirement.linkedHonorName != null)
                     _LinkedHonorSection(requirement: requirement),
+                  
 
-                  // Timeline de estado
+                  // Estado actual tappable — abre historial como bottom sheet
+                  const SizedBox(height: 16),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                     child: Text(
-                      'Flujo de estado',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleSmall
-                          ?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: c.text,
+                      "Estado del requisito",
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: c.textSecondary,
+                            letterSpacing: 0.8,
                           ),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16),
-                    child: RequirementStatusTimeline(
-                      currentStatus: requirement.status,
-                      submittedByName: requirement.submittedByName,
-                      submittedAt: requirement.submittedAt,
-                      validatedByName: requirement.validatedByName,
-                      validatedAt: requirement.validatedAt,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _StatusChip(
+                      requirement: requirement,
+                      onTap: () => showRequirementStatusHistorySheet(
+                        context,
+                        requirement: requirement,
+                      ),
                     ),
                   ),
 
@@ -208,10 +227,7 @@ class _RequirementDetailViewState
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                     child: Text(
                       'Archivos de evidencia',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleSmall
-                          ?.copyWith(
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w700,
                             color: c.text,
                           ),
@@ -317,7 +333,8 @@ class _RequirementDetailViewState
   /// Construye un nombre de archivo descriptivo para el backend/storage.
   ///
   /// Genera nombre con índice explícito (para batch uploads).
-  String _buildFileNameWithIndex(ClassRequirement requirement, String originalName, int index) {
+  String _buildFileNameWithIndex(
+      ClassRequirement requirement, String originalName, int index) {
     final ext = originalName.contains('.')
         ? originalName.split('.').last.toLowerCase()
         : 'bin';
@@ -341,11 +358,12 @@ class _RequirementDetailViewState
   String _resolveModuleName(int moduleId) {
     final classAsync = ref.read(classWithProgressProvider(widget.classId));
     return classAsync.whenData((cp) {
-      for (final m in cp.modules) {
-        if (m.id == moduleId) return m.name;
-      }
-      return 'modulo';
-    }).valueOrNull ?? 'modulo';
+          for (final m in cp.modules) {
+            if (m.id == moduleId) return m.name;
+          }
+          return 'modulo';
+        }).valueOrNull ??
+        'modulo';
   }
 
   /// Extrae las iniciales del usuario autenticado.
@@ -356,7 +374,9 @@ class _RequirementDetailViewState
     if (parts.length >= 2) {
       return '${parts.first[0]}${parts[1][0]}'.toUpperCase();
     }
-    return parts.first.substring(0, parts.first.length.clamp(0, 2)).toUpperCase();
+    return parts.first
+        .substring(0, parts.first.length.clamp(0, 2))
+        .toUpperCase();
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -375,8 +395,7 @@ class _RequirementDetailViewState
         ),
         backgroundColor: AppColors.error,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -580,8 +599,7 @@ class _LinkedHonorSection extends StatelessWidget {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 10, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(20),
@@ -598,5 +616,137 @@ class _LinkedHonorSection extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+// ── Chip tappable del estado actual ──────────────────────────────────────────
+
+/// Chip compacto que muestra el estado actual del requerimiento.
+///
+/// Al tocarlo abre el [RequirementStatusHistorySheet] con el historial
+/// de transiciones disponibles en la entidad.
+class _StatusChip extends StatelessWidget {
+  final ClassRequirement requirement;
+  final VoidCallback onTap;
+
+  const _StatusChip({
+    required this.requirement,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final bgColor = _bgColor(isDark);
+    final borderColor = _borderColor(isDark);
+    final textColor = _textColor(isDark);
+
+    return Semantics(
+      button: true,
+      label: 'Estado del requisito: $_label. Tocar para ver historial.',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor, width: 1),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              HugeIcon(icon: _icon, size: 15, color: textColor),
+              const SizedBox(width: 8),
+              Text(
+                _label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+              ),
+              const Spacer(),
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedInformationCircle,
+                size: 15,
+                color: c.textTertiary,
+              ),
+              const SizedBox(width: 2),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String get _label {
+    switch (requirement.status) {
+      case RequirementStatus.pendiente:
+        return 'Pendiente';
+      case RequirementStatus.enviado:
+        return 'Enviado';
+      case RequirementStatus.validado:
+        return 'Validado';
+      case RequirementStatus.rechazado:
+        return 'Rechazado';
+    }
+  }
+
+  Color _bgColor(bool isDark) {
+    switch (requirement.status) {
+      case RequirementStatus.pendiente:
+        return AppColors.accentLight;
+      case RequirementStatus.enviado:
+        return isDark
+            ? AppColors.statusInfoBgDark
+            : AppColors.statusInfoBgLight;
+      case RequirementStatus.validado:
+        return AppColors.secondaryLight;
+      case RequirementStatus.rechazado:
+        return AppColors.errorLight;
+    }
+  }
+
+  Color _borderColor(bool isDark) {
+    switch (requirement.status) {
+      case RequirementStatus.pendiente:
+        return AppColors.accent.withValues(alpha: 0.4);
+      case RequirementStatus.enviado:
+        return AppColors.sacBlue.withValues(alpha: 0.4);
+      case RequirementStatus.validado:
+        return AppColors.secondary.withValues(alpha: 0.4);
+      case RequirementStatus.rechazado:
+        return AppColors.error.withValues(alpha: 0.4);
+    }
+  }
+
+  Color _textColor(bool isDark) {
+    switch (requirement.status) {
+      case RequirementStatus.pendiente:
+        return AppColors.accentDark;
+      case RequirementStatus.enviado:
+        return isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
+      case RequirementStatus.validado:
+        return AppColors.secondaryDark;
+      case RequirementStatus.rechazado:
+        return AppColors.errorDark;
+    }
+  }
+
+  List<List<dynamic>> get _icon {
+    switch (requirement.status) {
+      case RequirementStatus.pendiente:
+        return HugeIcons.strokeRoundedClock01;
+      case RequirementStatus.enviado:
+        return HugeIcons.strokeRoundedSent;
+      case RequirementStatus.validado:
+        return HugeIcons.strokeRoundedCheckmarkCircle01;
+      case RequirementStatus.rechazado:
+        return HugeIcons.strokeRoundedCancel01;
+    }
   }
 }

@@ -63,7 +63,6 @@ import '../../features/post_registration/presentation/views/post_registration_sh
 import '../../features/dashboard/presentation/views/dashboard_view.dart';
 import '../../features/classes/presentation/providers/classes_providers.dart';
 import '../../features/classes/presentation/views/classes_list_view.dart';
-import '../../features/classes/presentation/sheets/enroll_previous_class_sheet.dart';
 import '../../features/classes/presentation/views/class_detail_with_progress_view.dart';
 import '../../features/members/presentation/views/members_view.dart';
 import '../../features/profile/presentation/views/profile_view.dart';
@@ -1111,34 +1110,10 @@ class _MainShell extends ConsumerWidget {
     }
 
     // ── Phone: bottom NavigationBar ──────────────────────────────────────────
-    final hasActiveClub =
-        authorization?.activeGrant?.sectionId != null;
-    final isClassesBranch = currentBranchIndex == 1;
-
+    // El FAB de "Inscribir clase" fue movido a ClassesListView para evitar
+    // que se filtre al detalle de clase durante Navigator.push (branch 1 sigue
+    // activo y el Scaffold del shell lo heredaba).
     return Scaffold(
-      floatingActionButton: (isClassesBranch && hasActiveClub)
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(20)),
-                  ),
-                  builder: (_) => const EnrollPreviousClassSheet(),
-                );
-              },
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              icon: const Icon(Icons.add_rounded),
-              label: const Text(
-                'Inscribir clase',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-            )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,

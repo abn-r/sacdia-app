@@ -7,7 +7,9 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import '../providers/classes_providers.dart';
+import '../sheets/enroll_previous_class_sheet.dart';
 import '../widgets/class_card.dart';
 import 'class_detail_with_progress_view.dart';
 
@@ -19,11 +21,27 @@ import 'class_detail_with_progress_view.dart';
 class ClassesListView extends ConsumerWidget {
   const ClassesListView({super.key});
 
+  void _openEnrollSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => const EnrollPreviousClassSheet(),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final classesAsync = ref.watch(userClassesProvider);
     final hPad = Responsive.horizontalPadding(context);
     final c = context.sac;
+
+    final user = ref.watch(
+      authNotifierProvider.select((v) => v.valueOrNull),
+    );
+    final hasActiveClub = user?.authorization?.activeGrant?.sectionId != null;
 
     return Scaffold(
       backgroundColor: c.background,
@@ -93,6 +111,24 @@ class ClassesListView extends ConsumerWidget {
                               ],
                             ),
                           ),
+                          if (hasActiveClub)
+                            Tooltip(
+                              message: 'Inscribir clase anterior',
+                              child: IconButton(
+                                onPressed: () => _openEnrollSheet(context),
+                                icon: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedBookmarkAdd02,
+                                  size: 24,
+                                  color: AppColors.primary,
+                                ),
+                                style: IconButton.styleFrom(
+                                  backgroundColor: AppColors.primaryLight,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     );
