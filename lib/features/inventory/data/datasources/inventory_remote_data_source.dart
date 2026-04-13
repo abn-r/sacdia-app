@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/inventory_item.dart';
@@ -8,9 +8,16 @@ import '../models/inventory_category_model.dart';
 import '../models/inventory_item_model.dart';
 
 abstract class InventoryRemoteDataSource {
-  Future<List<InventoryItemModel>> getItems({required int clubId});
+  Future<List<InventoryItemModel>> getItems({
+    required int clubId,
+    required String instanceType,
+    CancelToken? cancelToken,
+  });
 
-  Future<InventoryItemModel> getItem({required int itemId});
+  Future<InventoryItemModel> getItem({
+    required int itemId,
+    CancelToken? cancelToken,
+  });
 
   Future<InventoryItemModel> createItem({
     required int clubId,
@@ -44,13 +51,14 @@ abstract class InventoryRemoteDataSource {
 
   Future<void> deleteItem({required int itemId});
 
-  Future<List<InventoryCategoryModel>> getCategories();
+  Future<List<InventoryCategoryModel>> getCategories({
+    CancelToken? cancelToken,
+  });
 }
 
 class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'InventoryDS';
 
@@ -58,27 +66,18 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) throw AuthException(message: 'No hay sesión activa');
-    return token;
-  }
-
-  Options _authOptions(String token) =>
-      Options(headers: {'Authorization': 'Bearer $token'});
+        _baseUrl = baseUrl;
 
   // ── GET /inventory/catalogs/inventory-categories ──────────────────────────
 
   @override
-  Future<List<InventoryCategoryModel>> getCategories() async {
+  Future<List<InventoryCategoryModel>> getCategories({
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/inventory/catalogs/inventory-categories',
-        options: _authOptions(token),
+        '$_baseUrl${ApiEndpoints.inventory}/catalogs/inventory-categories',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -105,12 +104,16 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
   // ── GET /inventory/clubs/:clubId/inventory ────────────────────────────────
 
   @override
-  Future<List<InventoryItemModel>> getItems({required int clubId}) async {
+  Future<List<InventoryItemModel>> getItems({
+    required int clubId,
+    required String instanceType,
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/inventory/clubs/$clubId/inventory',
-        options: _authOptions(token),
+        '$_baseUrl${ApiEndpoints.inventory}/clubs/$clubId/inventory',
+        queryParameters: {'instanceType': instanceType},
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -137,12 +140,14 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
   // ── GET /inventory/inventory/:id ──────────────────────────────────────────
 
   @override
-  Future<InventoryItemModel> getItem({required int itemId}) async {
+  Future<InventoryItemModel> getItem({
+    required int itemId,
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/inventory/inventory/$itemId',
-        options: _authOptions(token),
+        '$_baseUrl${ApiEndpoints.inventory}/inventory/$itemId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -180,7 +185,6 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
     String? notes,
   }) async {
     try {
-      final token = await _getAuthToken();
       final body = <String, dynamic>{
         'name': name,
         'inventory_category_id': categoryId,
@@ -201,9 +205,8 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
       };
 
       final response = await _dio.post(
-        '$_baseUrl/inventory/clubs/$clubId/inventory',
+        '$_baseUrl${ApiEndpoints.inventory}/clubs/$clubId/inventory',
         data: body,
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -241,7 +244,6 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
     String? notes,
   }) async {
     try {
-      final token = await _getAuthToken();
       final body = <String, dynamic>{
         if (name != null) 'name': name,
         if (categoryId != null) 'inventory_category_id': categoryId,
@@ -260,9 +262,8 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
       };
 
       final response = await _dio.patch(
-        '$_baseUrl/inventory/inventory/$itemId',
+        '$_baseUrl${ApiEndpoints.inventory}/inventory/$itemId',
         data: body,
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -287,10 +288,8 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
   @override
   Future<void> deleteItem({required int itemId}) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.delete(
-        '$_baseUrl/inventory/inventory/$itemId',
-        options: _authOptions(token),
+        '$_baseUrl${ApiEndpoints.inventory}/inventory/$itemId',
       );
 
       if (response.statusCode == 200 ||
@@ -313,6 +312,7 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
 
   Never _rethrow(Object e) {
     if (e is DioException) {
+      if (e.type == DioExceptionType.cancel) throw e;
       final msg = _extractDioMessage(e);
       throw ServerException(message: msg, code: e.response?.statusCode);
     }
@@ -326,7 +326,9 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
       if (data is Map) {
         return (data['message'] ?? e.message ?? 'Error de conexión').toString();
       }
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
+    }
     return e.message ?? 'Error de conexión';
   }
 }

@@ -13,7 +13,8 @@ class CreateTransactionParams extends Equatable {
   final DateTime date;
   final int year;
   final int month;
-  final String? notes;
+  final int clubSectionId;
+  final int clubTypeId;
 
   const CreateTransactionParams({
     required this.clubId,
@@ -23,7 +24,8 @@ class CreateTransactionParams extends Equatable {
     required this.date,
     required this.year,
     required this.month,
-    this.notes,
+    required this.clubSectionId,
+    required this.clubTypeId,
   });
 
   @override
@@ -35,7 +37,8 @@ class CreateTransactionParams extends Equatable {
         date,
         year,
         month,
-        notes,
+        clubSectionId,
+        clubTypeId,
       ];
 }
 
@@ -54,7 +57,8 @@ class CreateTransaction {
       date: params.date,
       year: params.year,
       month: params.month,
-      notes: params.notes,
+      clubSectionId: params.clubSectionId,
+      clubTypeId: params.clubTypeId,
     );
   }
 }

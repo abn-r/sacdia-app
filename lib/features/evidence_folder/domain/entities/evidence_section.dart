@@ -10,17 +10,37 @@ enum EvidenceSectionStatus {
   /// El club envió las evidencias y espera revisión del campo local.
   enviado,
 
-  /// El campo local validó (o rechazó) la sección.
+  /// El campo local validó la sección.
   validado,
+
+  /// El campo local rechazó la sección; el club puede reenviar.
+  rechazado,
+
+  /// La sección está siendo evaluada por el evaluador del campo.
+  underEvaluation,
+
+  /// La sección fue evaluada y tiene puntuación asignada.
+  evaluated,
 }
 
 /// Parsea el string que llega desde la API al enum correspondiente.
+/// Soporta tanto valores legacy en español como el enum inglés actual.
 EvidenceSectionStatus evidenceSectionStatusFromString(String? value) {
-  switch (value?.toLowerCase()) {
-    case 'enviado':
+  switch (value?.toUpperCase()) {
+    case 'ENVIADO':
+    case 'SUBMITTED':
       return EvidenceSectionStatus.enviado;
-    case 'validado':
+    case 'VALIDADO':
+    case 'VALIDATED':
       return EvidenceSectionStatus.validado;
+    case 'RECHAZADO':
+    case 'REJECTED':
+      return EvidenceSectionStatus.rechazado;
+    case 'UNDER_EVALUATION':
+    case 'UNDEREVALUATION':
+      return EvidenceSectionStatus.underEvaluation;
+    case 'EVALUATED':
+      return EvidenceSectionStatus.evaluated;
     default:
       return EvidenceSectionStatus.pendiente;
   }
@@ -33,6 +53,12 @@ String evidenceSectionStatusToString(EvidenceSectionStatus status) {
       return 'enviado';
     case EvidenceSectionStatus.validado:
       return 'validado';
+    case EvidenceSectionStatus.rechazado:
+      return 'REJECTED';
+    case EvidenceSectionStatus.underEvaluation:
+      return 'under_evaluation';
+    case EvidenceSectionStatus.evaluated:
+      return 'evaluated';
     case EvidenceSectionStatus.pendiente:
       return 'pendiente';
   }
@@ -71,6 +97,17 @@ class EvidenceSection extends Equatable {
   /// Puntos efectivamente ganados en esta sección (0 hasta que sea validada).
   final int earnedPoints;
 
+  // ── Evaluación (scoring) ─────────────────────────────────────────────────
+
+  /// Nombre del evaluador que puntuó esta sección (null si aún no fue evaluada).
+  final String? evaluatedByName;
+
+  /// Fecha en que se registró la evaluación (null si no evaluada).
+  final DateTime? evaluatedAt;
+
+  /// Notas del evaluador sobre esta sección (null si no hay notas).
+  final String? evaluationNotes;
+
   const EvidenceSection({
     required this.id,
     required this.name,
@@ -85,6 +122,9 @@ class EvidenceSection extends Equatable {
     this.validatedByName,
     this.validatedAt,
     this.earnedPoints = 0,
+    this.evaluatedByName,
+    this.evaluatedAt,
+    this.evaluationNotes,
   });
 
   // ── Computed helpers ────────────────────────────────────────────────────────
@@ -92,12 +132,16 @@ class EvidenceSection extends Equatable {
   /// Slots de archivos restantes.
   int get remainingSlots => (maxFiles - files.length).clamp(0, maxFiles);
 
-  /// El club puede subir o eliminar archivos sólo cuando está pendiente.
-  bool get canUpload => status == EvidenceSectionStatus.pendiente;
+  /// El club puede subir o eliminar archivos cuando está pendiente o rechazado.
+  bool get canUpload =>
+      status == EvidenceSectionStatus.pendiente ||
+      status == EvidenceSectionStatus.rechazado;
 
-  /// El club puede enviar a validación cuando tiene archivos y está pendiente.
+  /// El club puede enviar a validación cuando tiene archivos y está pendiente o rechazado.
   bool get canSubmit =>
-      status == EvidenceSectionStatus.pendiente && files.isNotEmpty;
+      (status == EvidenceSectionStatus.pendiente ||
+          status == EvidenceSectionStatus.rechazado) &&
+      files.isNotEmpty;
 
   @override
   List<Object?> get props => [
@@ -114,5 +158,8 @@ class EvidenceSection extends Equatable {
         validatedByName,
         validatedAt,
         earnedPoints,
+        evaluatedByName,
+        evaluatedAt,
+        evaluationNotes,
       ];
 }

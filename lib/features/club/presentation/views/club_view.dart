@@ -1,11 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -70,14 +71,16 @@ class _ClubViewState extends ConsumerState<ClubView> {
     _websiteController.text = section.website ?? '';
     _logoUrlController.text = section.logoUrl ?? '';
 
-    if (section.lat != null && section.long != null) {
-      _selectedLocation = LocationPickerResult(
-        name: section.address ?? '',
-        lat: section.lat!,
-        long: section.long!,
-      );
-    } else {
-      _selectedLocation = null;
+    final newLocation = (section.lat != null && section.long != null)
+        ? LocationPickerResult(
+            name: section.address ?? '',
+            lat: section.lat!,
+            long: section.long!,
+          )
+        : null;
+
+    if (_selectedLocation != newLocation) {
+      setState(() => _selectedLocation = newLocation);
     }
   }
 
@@ -135,7 +138,8 @@ class _ClubViewState extends ConsumerState<ClubView> {
   }
 
   Future<void> _handleSave(ClubSection section) async {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     final notifier = ref.read(updateClubNotifierProvider.notifier);
 
@@ -263,13 +267,14 @@ class _ClubViewState extends ConsumerState<ClubView> {
               return _EmptyBody(c: c);
             }
 
-            // Poblar campos la primera vez que llegan los datos
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (_loadedSection == null ||
-                  _loadedSection!.id != section.id) {
-                _populateFields(section);
-              }
-            });
+            // Poblar campos la primera vez que llegan los datos o cuando
+            // cambia la sección. Se llama desde postFrameCallback para no
+            // mutar estado durante el build.
+            if (_loadedSection == null || _loadedSection!.id != section.id) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) _populateFields(section);
+              });
+            }
 
             return _buildBody(context, c, section, isUpdating);
           },
@@ -591,7 +596,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
 
 /// Cabecera de sección con icono y label — mismo estilo que create_activity_view.
 class _SectionHeader extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
 
   const _SectionHeader({required this.icon, required this.label});
@@ -607,7 +612,9 @@ class _SectionHeader extends StatelessWidget {
             color: AppColors.primaryLight,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: HugeIcon(icon: icon, size: 16, color: AppColors.primary),
+          child: Center(
+            child: HugeIcon(icon: icon, size: 16, color: AppColors.primary),
+          ),
         ),
         const SizedBox(width: 10),
         Text(
@@ -627,7 +634,7 @@ class _SectionHeader extends StatelessWidget {
 
 /// Fila de información de solo lectura.
 class _InfoRow extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
   final String value;
   final String? subValue;
@@ -841,6 +848,8 @@ class _LogoPreview extends StatelessWidget {
         child: CachedNetworkImage(
           imageUrl: logoUrl,
           fit: BoxFit.cover,
+          memCacheWidth: 300,
+          memCacheHeight: 300,
           errorWidget: (_, __, ___) => Center(
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedImage01,

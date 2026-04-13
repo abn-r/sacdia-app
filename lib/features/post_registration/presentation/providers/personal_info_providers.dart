@@ -1,10 +1,11 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../data/datasources/personal_info_remote_data_source.dart';
 import '../../data/models/emergency_contact_model.dart';
 import '../../data/models/legal_representative_model.dart';
 import '../../data/models/allergy_model.dart';
 import '../../data/models/disease_model.dart';
+import '../../data/models/medicine_model.dart';
 import '../../data/models/relationship_type_model.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
@@ -12,13 +13,12 @@ import '../../../../core/utils/app_logger.dart';
 
 /// Provider del data source de información personal
 final personalInfoDataSourceProvider =
-    Provider<PersonalInfoRemoteDataSource>((ref) {
+    Provider.autoDispose<PersonalInfoRemoteDataSource>((ref) {
   final dio = ref.watch(dioProvider);
   final baseUrl = ref.watch(apiBaseUrlProvider);
   return PersonalInfoRemoteDataSourceImpl(
     dio: dio,
     baseUrl: baseUrl,
-    secureStorage: const FlutterSecureStorage(),
   );
 });
 
@@ -52,52 +52,64 @@ class PersonalInfoFormState {
 }
 
 /// Provider del estado del formulario de información personal
-final personalInfoFormProvider = StateProvider<PersonalInfoFormState>((ref) {
+final personalInfoFormProvider =
+    StateProvider.autoDispose<PersonalInfoFormState>((ref) {
   return const PersonalInfoFormState();
 });
 
 /// Provider de tipos de relación
 final relationshipTypesProvider =
-    FutureProvider<List<RelationshipTypeModel>>((ref) async {
+    FutureProvider.autoDispose<List<RelationshipTypeModel>>((ref) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.watch(personalInfoDataSourceProvider);
-  return await dataSource.getRelationshipTypes();
+  return await dataSource.getRelationshipTypes(cancelToken: cancelToken);
 });
 
 /// Provider de catálogo de alergias
 final allergiesCatalogProvider =
-    FutureProvider<List<AllergyModel>>((ref) async {
+    FutureProvider.autoDispose<List<AllergyModel>>((ref) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.watch(personalInfoDataSourceProvider);
-  return await dataSource.getAllergiesCatalog();
+  return await dataSource.getAllergiesCatalog(cancelToken: cancelToken);
 });
 
 /// Provider de catálogo de enfermedades
-final diseasesCatalogProvider = FutureProvider<List<DiseaseModel>>((ref) async {
+final diseasesCatalogProvider =
+    FutureProvider.autoDispose<List<DiseaseModel>>((ref) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.watch(personalInfoDataSourceProvider);
-  return await dataSource.getDiseasesCatalog();
+  return await dataSource.getDiseasesCatalog(cancelToken: cancelToken);
 });
 
 /// Provider de alergias seleccionadas
-final selectedAllergiesProvider = StateProvider<List<int>>((ref) => []);
+final selectedAllergiesProvider =
+    StateProvider.autoDispose<List<int>>((ref) => []);
 
 /// Provider de enfermedades seleccionadas
-final selectedDiseasesProvider = StateProvider<List<int>>((ref) => []);
+final selectedDiseasesProvider =
+    StateProvider.autoDispose<List<int>>((ref) => []);
 
 /// Notifier de alergias del usuario (pre-cargadas desde la API)
-class UserAllergiesNotifier extends AsyncNotifier<List<AllergyModel>> {
+///
+/// IMPORTANT: build() is idempotent — it does NOT push to selectedAllergiesProvider.
+/// The view layer must initialize selectedAllergiesProvider from the data returned
+/// here when it first arrives (e.g., via a ref.listen on userAllergiesProvider).
+class UserAllergiesNotifier
+    extends AutoDisposeAsyncNotifier<List<AllergyModel>> {
   @override
   Future<List<AllergyModel>> build() async {
-    final authState = ref.watch(authNotifierProvider);
-    final userId = authState.valueOrNull?.id;
-
+    final userId = await ref.watch(
+      authNotifierProvider.selectAsync((user) => user?.id),
+    );
     if (userId == null) return [];
 
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
     final dataSource = ref.watch(personalInfoDataSourceProvider);
-    final userAllergies = await dataSource.getUserAllergies(userId);
-
-    final ids = userAllergies.map((a) => a.id).toList();
-    ref.read(selectedAllergiesProvider.notifier).state = ids;
-
-    return userAllergies;
+    return await dataSource.getUserAllergies(userId, cancelToken: cancelToken);
   }
 
   /// Elimina una alergia del usuario (soft-delete)
@@ -121,6 +133,23 @@ class UserAllergiesNotifier extends AsyncNotifier<List<AllergyModel>> {
     });
   }
 
+  /// Guarda la lista completa de alergias seleccionadas en la API
+  Future<void> saveAll(List<int> allergyIds) async {
+    state = const AsyncValue.loading();
+
+    state = await AsyncValue.guard(() async {
+      final authState = ref.read(authNotifierProvider);
+      final userId = authState.valueOrNull?.id;
+
+      if (userId == null) throw Exception('Usuario no autenticado');
+
+      final dataSource = ref.read(personalInfoDataSourceProvider);
+      await dataSource.saveUserAllergies(userId, allergyIds);
+
+      return await dataSource.getUserAllergies(userId);
+    });
+  }
+
   /// Recarga la lista de alergias del usuario
   Future<void> refresh() async {
     state = const AsyncValue.loading();
@@ -139,26 +168,28 @@ class UserAllergiesNotifier extends AsyncNotifier<List<AllergyModel>> {
 
 /// Provider de alergias del usuario (con pre-carga)
 final userAllergiesProvider =
-    AsyncNotifierProvider<UserAllergiesNotifier, List<AllergyModel>>(
+    AsyncNotifierProvider.autoDispose<UserAllergiesNotifier, List<AllergyModel>>(
   () => UserAllergiesNotifier(),
 );
 
 /// Notifier de enfermedades del usuario (pre-cargadas desde la API)
-class UserDiseasesNotifier extends AsyncNotifier<List<DiseaseModel>> {
+///
+/// IMPORTANT: build() is idempotent — it does NOT push to selectedDiseasesProvider.
+/// The view layer must initialize selectedDiseasesProvider from the data returned
+/// here when it first arrives (e.g., via a ref.listen on userDiseasesProvider).
+class UserDiseasesNotifier
+    extends AutoDisposeAsyncNotifier<List<DiseaseModel>> {
   @override
   Future<List<DiseaseModel>> build() async {
-    final authState = ref.watch(authNotifierProvider);
-    final userId = authState.valueOrNull?.id;
-
+    final userId = await ref.watch(
+      authNotifierProvider.selectAsync((user) => user?.id),
+    );
     if (userId == null) return [];
 
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
     final dataSource = ref.watch(personalInfoDataSourceProvider);
-    final userDiseases = await dataSource.getUserDiseases(userId);
-
-    final ids = userDiseases.map((d) => d.id).toList();
-    ref.read(selectedDiseasesProvider.notifier).state = ids;
-
-    return userDiseases;
+    return await dataSource.getUserDiseases(userId, cancelToken: cancelToken);
   }
 
   /// Elimina una enfermedad del usuario (soft-delete)
@@ -182,6 +213,23 @@ class UserDiseasesNotifier extends AsyncNotifier<List<DiseaseModel>> {
     });
   }
 
+  /// Guarda la lista completa de enfermedades seleccionadas en la API
+  Future<void> saveAll(List<int> diseaseIds) async {
+    state = const AsyncValue.loading();
+
+    state = await AsyncValue.guard(() async {
+      final authState = ref.read(authNotifierProvider);
+      final userId = authState.valueOrNull?.id;
+
+      if (userId == null) throw Exception('Usuario no autenticado');
+
+      final dataSource = ref.read(personalInfoDataSourceProvider);
+      await dataSource.saveUserDiseases(userId, diseaseIds);
+
+      return await dataSource.getUserDiseases(userId);
+    });
+  }
+
   /// Recarga la lista de enfermedades del usuario
   Future<void> refresh() async {
     state = const AsyncValue.loading();
@@ -200,33 +248,134 @@ class UserDiseasesNotifier extends AsyncNotifier<List<DiseaseModel>> {
 
 /// Provider de enfermedades del usuario (con pre-carga)
 final userDiseasesProvider =
-    AsyncNotifierProvider<UserDiseasesNotifier, List<DiseaseModel>>(
+    AsyncNotifierProvider.autoDispose<UserDiseasesNotifier, List<DiseaseModel>>(
   () => UserDiseasesNotifier(),
 );
 
-/// Provider que verifica si se requiere representante legal
-final legalRepresentativeRequiredProvider = FutureProvider<bool>((ref) async {
-  final authState = ref.watch(authNotifierProvider);
-  final userId = authState.valueOrNull?.id;
+/// Provider de catálogo de medicamentos
+final medicinesCatalogProvider =
+    FutureProvider.autoDispose<List<MedicineModel>>((ref) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final dataSource = ref.watch(personalInfoDataSourceProvider);
+  return await dataSource.getMedicinesCatalog(cancelToken: cancelToken);
+});
 
+/// Provider de medicamentos seleccionados
+final selectedMedicinesProvider =
+    StateProvider.autoDispose<List<int>>((ref) => []);
+
+/// Notifier de medicamentos del usuario (pre-cargados desde la API)
+///
+/// IMPORTANT: build() is idempotent — it does NOT push to selectedMedicinesProvider.
+/// The view layer must initialize selectedMedicinesProvider from the data returned
+/// here when it first arrives (e.g., via a ref.listen on userMedicinesProvider).
+class UserMedicinesNotifier
+    extends AutoDisposeAsyncNotifier<List<MedicineModel>> {
+  @override
+  Future<List<MedicineModel>> build() async {
+    final userId = await ref.watch(
+      authNotifierProvider.selectAsync((user) => user?.id),
+    );
+    if (userId == null) return [];
+
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
+    final dataSource = ref.watch(personalInfoDataSourceProvider);
+    return await dataSource.getUserMedicines(userId, cancelToken: cancelToken);
+  }
+
+  /// Elimina un medicamento del usuario (soft-delete)
+  Future<void> deleteMedicine(int medicineId) async {
+    state = const AsyncValue.loading();
+
+    state = await AsyncValue.guard(() async {
+      final authState = ref.read(authNotifierProvider);
+      final userId = authState.valueOrNull?.id;
+
+      if (userId == null) throw Exception('Usuario no autenticado');
+
+      final dataSource = ref.read(personalInfoDataSourceProvider);
+      await dataSource.deleteUserMedicine(userId, medicineId);
+
+      final currentIds = ref.read(selectedMedicinesProvider);
+      ref.read(selectedMedicinesProvider.notifier).state =
+          currentIds.where((id) => id != medicineId).toList();
+
+      return await dataSource.getUserMedicines(userId);
+    });
+  }
+
+  /// Guarda la lista completa de medicamentos seleccionados en la API
+  Future<void> saveAll(List<int> medicineIds) async {
+    state = const AsyncValue.loading();
+
+    state = await AsyncValue.guard(() async {
+      final authState = ref.read(authNotifierProvider);
+      final userId = authState.valueOrNull?.id;
+
+      if (userId == null) throw Exception('Usuario no autenticado');
+
+      final dataSource = ref.read(personalInfoDataSourceProvider);
+      await dataSource.saveUserMedicines(userId, medicineIds);
+
+      return await dataSource.getUserMedicines(userId);
+    });
+  }
+
+  /// Recarga la lista de medicamentos del usuario
+  Future<void> refresh() async {
+    state = const AsyncValue.loading();
+
+    state = await AsyncValue.guard(() async {
+      final authState = ref.read(authNotifierProvider);
+      final userId = authState.valueOrNull?.id;
+
+      if (userId == null) return [];
+
+      final dataSource = ref.read(personalInfoDataSourceProvider);
+      return await dataSource.getUserMedicines(userId);
+    });
+  }
+}
+
+/// Provider de medicamentos del usuario (con pre-cargados)
+final userMedicinesProvider =
+    AsyncNotifierProvider.autoDispose<UserMedicinesNotifier, List<MedicineModel>>(
+  () => UserMedicinesNotifier(),
+);
+
+/// Provider que verifica si se requiere representante legal
+final legalRepresentativeRequiredProvider =
+    FutureProvider.autoDispose<bool>((ref) async {
+  final userId = await ref.watch(
+    authNotifierProvider.selectAsync((user) => user?.id),
+  );
   if (userId == null) return false;
 
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.watch(personalInfoDataSourceProvider);
-  return await dataSource.checkLegalRepresentativeRequired(userId);
+  return await dataSource.checkLegalRepresentativeRequired(
+    userId,
+    cancelToken: cancelToken,
+  );
 });
 
 /// Notifier de contactos de emergencia
 class EmergencyContactsNotifier
-    extends AsyncNotifier<List<EmergencyContactModel>> {
+    extends AutoDisposeAsyncNotifier<List<EmergencyContactModel>> {
   @override
   Future<List<EmergencyContactModel>> build() async {
-    final authState = ref.watch(authNotifierProvider);
-    final userId = authState.valueOrNull?.id;
-
+    final userId = await ref.watch(
+      authNotifierProvider.selectAsync((user) => user?.id),
+    );
     if (userId == null) return [];
 
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
     final dataSource = ref.watch(personalInfoDataSourceProvider);
-    return await dataSource.getEmergencyContacts(userId);
+    return await dataSource.getEmergencyContacts(userId, cancelToken: cancelToken);
   }
 
   /// Agrega un nuevo contacto de emergencia
@@ -264,7 +413,7 @@ class EmergencyContactsNotifier
       if (userId == null) throw Exception('Usuario no autenticado');
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
-      await dataSource.updateEmergencyContact(contactId, contact);
+      await dataSource.updateEmergencyContact(userId, contactId, contact);
 
       return await dataSource.getEmergencyContacts(userId);
     });
@@ -281,7 +430,7 @@ class EmergencyContactsNotifier
       if (userId == null) throw Exception('Usuario no autenticado');
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
-      await dataSource.deleteEmergencyContact(contactId);
+      await dataSource.deleteEmergencyContact(userId, contactId);
 
       return await dataSource.getEmergencyContacts(userId);
     });
@@ -304,23 +453,25 @@ class EmergencyContactsNotifier
 }
 
 /// Provider de contactos de emergencia
-final emergencyContactsProvider = AsyncNotifierProvider<
+final emergencyContactsProvider = AsyncNotifierProvider.autoDispose<
     EmergencyContactsNotifier, List<EmergencyContactModel>>(
   () => EmergencyContactsNotifier(),
 );
 
 /// Notifier de representante legal
 class LegalRepresentativeNotifier
-    extends AsyncNotifier<LegalRepresentativeModel?> {
+    extends AutoDisposeAsyncNotifier<LegalRepresentativeModel?> {
   @override
   Future<LegalRepresentativeModel?> build() async {
-    final authState = ref.watch(authNotifierProvider);
-    final userId = authState.valueOrNull?.id;
-
+    final userId = await ref.watch(
+      authNotifierProvider.selectAsync((user) => user?.id),
+    );
     if (userId == null) return null;
 
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
     final dataSource = ref.watch(personalInfoDataSourceProvider);
-    return await dataSource.getLegalRepresentative(userId);
+    return await dataSource.getLegalRepresentative(userId, cancelToken: cancelToken);
   }
 
   /// Crea o actualiza el representante legal
@@ -349,13 +500,13 @@ class LegalRepresentativeNotifier
 }
 
 /// Provider de representante legal
-final legalRepresentativeProvider = AsyncNotifierProvider<
+final legalRepresentativeProvider = AsyncNotifierProvider.autoDispose<
     LegalRepresentativeNotifier, LegalRepresentativeModel?>(
   () => LegalRepresentativeNotifier(),
 );
 
 /// Provider que determina si se puede completar el paso 2
-final canCompleteStep2Provider = Provider<bool>((ref) {
+final canCompleteStep2Provider = Provider.autoDispose<bool>((ref) {
   final formState = ref.watch(personalInfoFormProvider);
   if (formState.gender == null || formState.birthdate == null) {
     return false;
@@ -393,7 +544,7 @@ final canCompleteStep2Provider = Provider<bool>((ref) {
 });
 
 /// Notifier para guardar información personal con loading/error state
-class SavePersonalInfoNotifier extends AsyncNotifier<void> {
+class SavePersonalInfoNotifier extends AutoDisposeAsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
@@ -433,6 +584,11 @@ class SavePersonalInfoNotifier extends AsyncNotifier<void> {
         await dataSource.saveUserDiseases(userId, selectedDiseases);
       }
 
+      final selectedMedicines = ref.read(selectedMedicinesProvider);
+      if (selectedMedicines.isNotEmpty) {
+        await dataSource.saveUserMedicines(userId, selectedMedicines);
+      }
+
       await dataSource.completeStep2(userId);
       AppLogger.i('Paso 2 completado', tag: tag);
     });
@@ -441,6 +597,6 @@ class SavePersonalInfoNotifier extends AsyncNotifier<void> {
 
 /// Provider para guardar información personal
 final savePersonalInfoProvider =
-    AsyncNotifierProvider<SavePersonalInfoNotifier, void>(
+    AsyncNotifierProvider.autoDispose<SavePersonalInfoNotifier, void>(
   SavePersonalInfoNotifier.new,
 );

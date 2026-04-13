@@ -25,6 +25,12 @@ class ClassDetailView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final classDetailAsync = ref.watch(classDetailProvider(classId));
+    final classProgressAsync = ref.watch(classWithProgressProvider(classId));
+    final progressRatio = classProgressAsync.whenOrNull(
+          data: (cwp) => cwp.completionRatio,
+        ) ??
+        0.0;
+    final progressPercent = (progressRatio * 100).round();
 
     return Scaffold(
       backgroundColor: context.sac.background,
@@ -57,7 +63,7 @@ class ClassDetailView extends ConsumerWidget {
                           const SizedBox(height: 40),
                           // Progress ring (white on color)
                           SacProgressRing(
-                            progress: 0.0, // TODO: real progress
+                            progress: progressRatio,
                             size: 120,
                             strokeWidth: 8,
                             color: Colors.white,
@@ -66,7 +72,7 @@ class ClassDetailView extends ConsumerWidget {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  '0%',
+                                  '$progressPercent%',
                                   style: Theme.of(context)
                                       .textTheme
                                       .headlineMedium

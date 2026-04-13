@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/class_model.dart';
@@ -10,19 +10,24 @@ import '../models/requirement_evidence_model.dart';
 
 /// Interfaz para la fuente de datos remota de clases progresivas
 abstract class ClassesRemoteDataSource {
-  Future<List<ClassModel>> getClasses({int? clubTypeId});
-  Future<ClassModel> getClassById(int classId);
-  Future<List<ClassModuleModel>> getClassModules(int classId);
-  Future<List<ClassModel>> getUserClasses(String userId);
-  Future<ClassProgressModel> getUserClassProgress(String userId, int classId);
+  Future<List<ClassModel>> getClasses({int? clubTypeId, CancelToken? cancelToken});
+  Future<ClassModel> getClassById(int classId, {CancelToken? cancelToken});
+  Future<List<ClassModuleModel>> getClassModules(int classId, {CancelToken? cancelToken});
+  Future<List<ClassModel>> getUserClasses(String userId, {CancelToken? cancelToken});
+  Future<ClassProgressModel> getUserClassProgress(String userId, int classId, {CancelToken? cancelToken});
   Future<ClassProgressModel> updateUserClassProgress(
       String userId, int classId, Map<String, dynamic> progressData);
+
+  // ── Inscripción en clases anteriores ─────────────────────────────────────
+
+  /// Inscribe al usuario en una clase para el año eclesiástico dado.
+  Future<void> enrollUser(String userId, int classId, int yearId);
 
   // ── Nuevas operaciones para flujo de evidencias ────────────────────────────
 
   /// Obtiene la clase con progreso detallado (modulos + requerimientos + evidencias).
   Future<ClassWithProgressModel> getClassWithProgress(
-      String userId, int classId);
+      String userId, int classId, {CancelToken? cancelToken});
 
   /// Envia un requerimiento a validacion.
   Future<void> submitRequirement(
@@ -36,6 +41,7 @@ abstract class ClassesRemoteDataSource {
     required String filePath,
     required String fileName,
     required String mimeType,
+    void Function(double)? onProgress,
   });
 
   /// Elimina un archivo de evidencia de un requerimiento.
@@ -50,11 +56,10 @@ abstract class ClassesRemoteDataSource {
 /// Implementacion de la fuente de datos remota de clases progresivas.
 ///
 /// Utiliza Dio para llamadas REST al backend SACDIA.
-/// Auth token se lee desde [FlutterSecureStorage].
+/// Auth token es inyectado automáticamente por [AuthInterceptor].
 class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'ClassesDS';
 
@@ -62,22 +67,11 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) {
-      throw AuthException(message: 'No hay sesion activa');
-    }
-    return token;
-  }
-
-  Options _authOptions(String token) =>
-      Options(headers: {'Authorization': 'Bearer $token'});
+        _baseUrl = baseUrl;
 
   Never _rethrow(Object e) {
     if (e is DioException) {
+      if (e.type == DioExceptionType.cancel) throw e;
       final msg = _extractDioMessage(e);
       throw ServerException(message: msg, code: e.response?.statusCode);
     }
@@ -91,26 +85,64 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       if (data is Map) {
         return (data['message'] ?? e.message ?? 'Error de conexion').toString();
       }
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
+    }
     return e.message ?? 'Error de conexion';
+  }
+
+  // ── POST /users/:userId/classes/enroll ──────────────────────────────────────
+
+  @override
+  Future<void> enrollUser(String userId, int classId, int yearId) async {
+    try {
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.users}/$userId/classes/enroll',
+        data: {
+          'class_id': classId,
+          'ecclesiastical_year_id': yearId,
+        },
+        options: Options(
+          receiveTimeout: const Duration(seconds: 30),
+        ),
+      );
+
+      if (response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 204) {
+        return;
+      }
+
+      throw ServerException(
+        message: 'Error al inscribir en la clase',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en enrollUser', tag: _tag, error: e);
+      _rethrow(e);
+    }
   }
 
   // ── GET /classes ────────────────────────────────────────────────────────────
 
   @override
-  Future<List<ClassModel>> getClasses({int? clubTypeId}) async {
+  Future<List<ClassModel>> getClasses({int? clubTypeId, CancelToken? cancelToken}) async {
     try {
-      final token = await _getAuthToken();
       final queryParams = clubTypeId != null ? '?clubTypeId=$clubTypeId' : '';
 
       final response = await _dio.get(
-        '$_baseUrl/classes$queryParams',
-        options: _authOptions(token),
+        '$_baseUrl${ApiEndpoints.classes}$queryParams',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final List<dynamic> data = response.data as List<dynamic>;
-        return data
+        final body = response.data;
+        // El endpoint GET /classes retorna un resultado paginado: { data: [...], meta: {...} }
+        // Soportamos también respuesta plana (List) por retrocompatibilidad.
+        final List<dynamic> items = body is Map
+            ? (body['data'] as List<dynamic>? ?? [])
+            : (body as List<dynamic>);
+        return items
             .map((json) => ClassModel.fromJson(json as Map<String, dynamic>))
             .toList();
       }
@@ -126,12 +158,11 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   // ── GET /classes/:classId ───────────────────────────────────────────────────
 
   @override
-  Future<ClassModel> getClassById(int classId) async {
+  Future<ClassModel> getClassById(int classId, {CancelToken? cancelToken}) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/classes/$classId',
-        options: _authOptions(token),
+        '$_baseUrl${ApiEndpoints.classes}/$classId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -149,12 +180,11 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   // ── GET /classes/:classId/modules ───────────────────────────────────────────
 
   @override
-  Future<List<ClassModuleModel>> getClassModules(int classId) async {
+  Future<List<ClassModuleModel>> getClassModules(int classId, {CancelToken? cancelToken}) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/classes/$classId/modules',
-        options: _authOptions(token),
+        '$_baseUrl${ApiEndpoints.classes}/$classId/modules',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -176,20 +206,30 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   // ── GET /users/:userId/classes ──────────────────────────────────────────────
 
   @override
-  Future<List<ClassModel>> getUserClasses(String userId) async {
+  Future<List<ClassModel>> getUserClasses(String userId, {CancelToken? cancelToken}) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/users/$userId/classes',
-        options: _authOptions(token),
+        '$_baseUrl${ApiEndpoints.users}/$userId/classes',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final List<dynamic> data = response.data as List<dynamic>;
         return data.map((enrollment) {
           final e = enrollment as Map<String, dynamic>;
-          // El backend retorna inscripciones: [{ classes: {...}, ... }]
-          final classJson = (e['classes'] as Map<String, dynamic>?) ?? e;
+          // El backend retorna inscripciones:
+          // [{ enrollment_id, investiture_status, overall_progress, classes: {...} }]
+          // Mezclamos los campos de enrollment sobre el JSON de clase para que
+          // ClassModel.fromJson los reciba en un único mapa plano.
+          final classJson =
+              Map<String, dynamic>.from(
+                  (e['classes'] as Map<String, dynamic>?) ?? e);
+          if (e.containsKey('investiture_status')) {
+            classJson['investiture_status'] = e['investiture_status'];
+          }
+          if (e.containsKey('overall_progress')) {
+            classJson['overall_progress'] = e['overall_progress'];
+          }
           return ClassModel.fromJson(classJson);
         }).toList();
       }
@@ -207,12 +247,11 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
 
   @override
   Future<ClassProgressModel> getUserClassProgress(
-      String userId, int classId) async {
+      String userId, int classId, {CancelToken? cancelToken}) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/users/$userId/classes/$classId/progress',
-        options: _authOptions(token),
+        '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/progress',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -238,11 +277,9 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     Map<String, dynamic> progressData,
   ) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.patch(
-        '$_baseUrl/users/$userId/classes/$classId/progress',
+        '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/progress',
         data: progressData,
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -270,14 +307,12 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
 
   @override
   Future<ClassWithProgressModel> getClassWithProgress(
-      String userId, int classId) async {
+      String userId, int classId, {CancelToken? cancelToken}) async {
     try {
-      final token = await _getAuthToken();
-
       // Intentar obtener progreso detallado en un solo endpoint
       final response = await _dio.get(
-        '$_baseUrl/users/$userId/classes/$classId/progress',
-        options: _authOptions(token),
+        '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/progress',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -290,13 +325,13 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
 
         // Si no, obtener la clase y los modulos por separado y combinar
         final classResponse = await _dio.get(
-          '$_baseUrl/classes/$classId',
-          options: _authOptions(token),
+          '$_baseUrl${ApiEndpoints.classes}/$classId',
+          cancelToken: cancelToken,
         );
 
         final modulesResponse = await _dio.get(
-          '$_baseUrl/classes/$classId/modules',
-          options: _authOptions(token),
+          '$_baseUrl${ApiEndpoints.classes}/$classId/modules',
+          cancelToken: cancelToken,
         );
 
         if (classResponse.statusCode == 200 &&
@@ -324,22 +359,14 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     }
   }
 
-  // ── POST /users/:userId/classes/:classId/progress (submit requirement) ──────
-  //
-  // Usamos el endpoint existente PATCH con status=enviado para el requerimiento.
+  // ── POST /users/:userId/classes/:classId/sections/:sectionId/submit ─────────
 
   @override
   Future<void> submitRequirement(
       String userId, int classId, int requirementId) async {
     try {
-      final token = await _getAuthToken();
-      final response = await _dio.patch(
-        '$_baseUrl/users/$userId/classes/$classId/progress',
-        data: {
-          'section_id': requirementId,
-          'status': 'enviado',
-        },
-        options: _authOptions(token),
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/sections/$requirementId/submit',
       );
 
       if (response.statusCode == 200 ||
@@ -357,7 +384,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     }
   }
 
-  // ── POST /users/:userId/classes/:classId/sections/:requirementId/files ──────
+  // ── POST /users/:userId/classes/:classId/sections/:sectionId/files ──────────
 
   @override
   Future<RequirementEvidenceModel> uploadRequirementFile({
@@ -367,10 +394,9 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     required String filePath,
     required String fileName,
     required String mimeType,
+    void Function(double)? onProgress,
   }) async {
     try {
-      final token = await _getAuthToken();
-
       final formData = FormData.fromMap({
         'file': await MultipartFile.fromFile(
           filePath,
@@ -380,11 +406,10 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       });
 
       final response = await _dio.post(
-        '$_baseUrl/users/$userId/classes/$classId/sections/$requirementId/files',
+        '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/sections/$requirementId/files',
         data: formData,
         options: Options(
           headers: {
-            'Authorization': 'Bearer $token',
             'Content-Type': 'multipart/form-data',
           },
           sendTimeout: const Duration(minutes: 2),
@@ -392,8 +417,10 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
         ),
         onSendProgress: (sent, total) {
           if (total > 0) {
+            final fraction = sent / total;
+            onProgress?.call(fraction);
             AppLogger.d(
-              'Upload progress: ${(sent / total * 100).toStringAsFixed(1)}%',
+              'Upload progress: ${(fraction * 100).toStringAsFixed(1)}%',
               tag: _tag,
             );
           }
@@ -409,14 +436,16 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al subir el archivo', code: response.statusCode);
+        message: 'Error al subir el archivo de evidencia',
+        code: response.statusCode,
+      );
     } catch (e) {
       AppLogger.e('Error en uploadRequirementFile', tag: _tag, error: e);
       _rethrow(e);
     }
   }
 
-  // ── DELETE /users/:userId/classes/:classId/sections/:requirementId/files/:fileId
+  // ── DELETE /users/:userId/classes/:classId/sections/:sectionId/files/:fileId
 
   @override
   Future<void> deleteRequirementFile({
@@ -426,10 +455,8 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     required String fileId,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.delete(
-        '$_baseUrl/users/$userId/classes/$classId/sections/$requirementId/files/$fileId',
-        options: _authOptions(token),
+        '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/sections/$requirementId/files/$fileId',
       );
 
       if (response.statusCode == 200 ||
@@ -439,7 +466,9 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al eliminar el archivo', code: response.statusCode);
+        message: 'Error al eliminar el archivo de evidencia',
+        code: response.statusCode,
+      );
     } catch (e) {
       AppLogger.e('Error en deleteRequirementFile', tag: _tag, error: e);
       _rethrow(e);

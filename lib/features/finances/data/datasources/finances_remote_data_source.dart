@@ -1,11 +1,12 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/finance_category_model.dart';
 import '../models/finance_month_model.dart';
 import '../models/finance_summary_model.dart';
+import '../models/paginated_transactions_response.dart';
 import '../models/transaction_model.dart';
 
 abstract class FinancesRemoteDataSource {
@@ -13,11 +14,18 @@ abstract class FinancesRemoteDataSource {
     required int clubId,
     required int year,
     required int month,
+    CancelToken? cancelToken,
   });
 
-  Future<FinanceSummaryModel> getSummary({required int clubId});
+  Future<FinanceSummaryModel> getSummary({
+    required int clubId,
+    CancelToken? cancelToken,
+  });
 
-  Future<FinanceTransactionModel> getTransaction({required int financeId});
+  Future<FinanceTransactionModel> getTransaction({
+    required int financeId,
+    CancelToken? cancelToken,
+  });
 
   Future<FinanceTransactionModel> createTransaction({
     required int clubId,
@@ -27,7 +35,8 @@ abstract class FinancesRemoteDataSource {
     required DateTime date,
     required int year,
     required int month,
-    String? notes,
+    required int clubSectionId,
+    required int clubTypeId,
   });
 
   Future<FinanceTransactionModel> updateTransaction({
@@ -36,18 +45,34 @@ abstract class FinancesRemoteDataSource {
     double? amount,
     String? description,
     DateTime? date,
-    String? notes,
   });
 
   Future<void> deleteTransaction({required int financeId});
 
-  Future<List<FinanceCategoryModel>> getCategories();
+  Future<List<FinanceCategoryModel>> getCategories({
+    CancelToken? cancelToken,
+  });
+
+  /// Paginated, filterable, sortable transaction list.
+  ///
+  /// Backs the "All Transactions" screen.
+  Future<PaginatedTransactionsResponse> getTransactionsPaginated({
+    required int clubId,
+    required int page,
+    required int limit,
+    String? type,
+    String? search,
+    String? startDate,
+    String? endDate,
+    String? sortBy,
+    String? sortOrder,
+    CancelToken? cancelToken,
+  });
 }
 
 class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'FinancesDS';
 
@@ -55,17 +80,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) throw AuthException(message: 'No hay sesión activa');
-    return token;
-  }
-
-  Options _authOptions(String token) =>
-      Options(headers: {'Authorization': 'Bearer $token'});
+        _baseUrl = baseUrl;
 
   // ── GET /clubs/:clubId/finances?year=&month= ──────────────────────────────
 
@@ -74,13 +89,13 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
     required int clubId,
     required int year,
     required int month,
+    CancelToken? cancelToken,
   }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/clubs/$clubId/finances',
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/finances',
         queryParameters: {'year': year, 'month': month},
-        options: _authOptions(token),
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -102,12 +117,14 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
   // ── GET /clubs/:clubId/finances/summary ───────────────────────────────────
 
   @override
-  Future<FinanceSummaryModel> getSummary({required int clubId}) async {
+  Future<FinanceSummaryModel> getSummary({
+    required int clubId,
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/clubs/$clubId/finances/summary',
-        options: _authOptions(token),
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/finances/summary',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -130,13 +147,14 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
   // ── GET /finances/:financeId ──────────────────────────────────────────────
 
   @override
-  Future<FinanceTransactionModel> getTransaction(
-      {required int financeId}) async {
+  Future<FinanceTransactionModel> getTransaction({
+    required int financeId,
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/finances/$financeId',
-        options: _authOptions(token),
+        '$_baseUrl${ApiEndpoints.finances}/$financeId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -167,10 +185,10 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
     required DateTime date,
     required int year,
     required int month,
-    String? notes,
+    required int clubSectionId,
+    required int clubTypeId,
   }) async {
     try {
-      final token = await _getAuthToken();
       final body = {
         'finance_category_id': categoryId,
         'amount': amount.toInt(),
@@ -178,13 +196,13 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
         'finance_date': '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
         'year': year,
         'month': month,
-        if (notes != null && notes.isNotEmpty) 'notes': notes,
+        'club_section_id': clubSectionId,
+        'club_type_id': clubTypeId,
       };
 
       final response = await _dio.post(
-        '$_baseUrl/clubs/$clubId/finances',
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/finances',
         data: body,
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -213,10 +231,8 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
     double? amount,
     String? description,
     DateTime? date,
-    String? notes,
   }) async {
     try {
-      final token = await _getAuthToken();
       final body = <String, dynamic>{
         if (categoryId != null) 'finance_category_id': categoryId,
         if (amount != null) 'amount': amount.toInt(),
@@ -224,13 +240,11 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
         if (date != null)
           'finance_date':
               '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
-        if (notes != null) 'notes': notes,
       };
 
       final response = await _dio.patch(
-        '$_baseUrl/finances/$financeId',
+        '$_baseUrl${ApiEndpoints.finances}/$financeId',
         data: body,
-        options: _authOptions(token),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -255,10 +269,8 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
   @override
   Future<void> deleteTransaction({required int financeId}) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.delete(
-        '$_baseUrl/finances/$financeId',
-        options: _authOptions(token),
+        '$_baseUrl${ApiEndpoints.finances}/$financeId',
       );
 
       if (response.statusCode == 200 ||
@@ -280,12 +292,13 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
   // ── GET /finances/categories ──────────────────────────────────────────────
 
   @override
-  Future<List<FinanceCategoryModel>> getCategories() async {
+  Future<List<FinanceCategoryModel>> getCategories({
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/finances/categories',
-        options: _authOptions(token),
+        '$_baseUrl${ApiEndpoints.finances}/categories',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -309,10 +322,59 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
     }
   }
 
+  // ── GET /clubs/:clubId/finances/transactions ─────────────────────────────
+
+  @override
+  Future<PaginatedTransactionsResponse> getTransactionsPaginated({
+    required int clubId,
+    required int page,
+    required int limit,
+    String? type,
+    String? search,
+    String? startDate,
+    String? endDate,
+    String? sortBy,
+    String? sortOrder,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final params = <String, dynamic>{
+        'page': page,
+        'limit': limit,
+        if (type != null && type.isNotEmpty) 'type': type,
+        if (search != null && search.isNotEmpty) 'search': search,
+        if (startDate != null) 'startDate': startDate,
+        if (endDate != null) 'endDate': endDate,
+        if (sortBy != null) 'sortBy': sortBy,
+        if (sortOrder != null) 'sortOrder': sortOrder,
+      };
+
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId${ApiEndpoints.finances}/transactions',
+        queryParameters: params,
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = response.data as Map<String, dynamic>;
+        return PaginatedTransactionsResponse.fromJson(body);
+      }
+
+      throw ServerException(
+        message: 'Error al obtener transacciones',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getTransactionsPaginated', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
   // ── Error helper ──────────────────────────────────────────────────────────
 
   Never _rethrow(Object e) {
     if (e is DioException) {
+      if (e.type == DioExceptionType.cancel) throw e;
       final msg = _extractDioMessage(e);
       throw ServerException(message: msg, code: e.response?.statusCode);
     }
@@ -326,7 +388,9 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
       if (data is Map) {
         return (data['message'] ?? e.message ?? 'Error de conexión').toString();
       }
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
+    }
     return e.message ?? 'Error de conexión';
   }
 }

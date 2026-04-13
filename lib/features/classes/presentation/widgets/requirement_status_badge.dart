@@ -6,10 +6,11 @@ import '../../domain/entities/class_requirement.dart';
 
 /// Badge de color con icono que indica el estado de un requerimiento.
 ///
-/// Tres variantes visuales:
+/// Cuatro variantes visuales:
 /// - pendiente  -> amarillo / naranja
 /// - enviado    -> azul (dark-mode aware)
 /// - validado   -> verde
+/// - rechazado  -> rojo
 class RequirementStatusBadge extends StatelessWidget {
   final RequirementStatus status;
 
@@ -56,6 +57,8 @@ class RequirementStatusBadge extends StatelessWidget {
         return 'Enviado';
       case RequirementStatus.validado:
         return 'Validado';
+      case RequirementStatus.rechazado:
+        return 'Rechazado';
     }
   }
 
@@ -67,6 +70,8 @@ class RequirementStatusBadge extends StatelessWidget {
         return isDark ? AppColors.statusInfoBgDark : AppColors.statusInfoBgLight;
       case RequirementStatus.validado:
         return AppColors.secondaryLight;
+      case RequirementStatus.rechazado:
+        return AppColors.errorLight;
     }
   }
 
@@ -78,6 +83,8 @@ class RequirementStatusBadge extends StatelessWidget {
         return AppColors.sacBlue.withValues(alpha: 0.4);
       case RequirementStatus.validado:
         return AppColors.secondary.withValues(alpha: 0.4);
+      case RequirementStatus.rechazado:
+        return AppColors.error.withValues(alpha: 0.4);
     }
   }
 
@@ -89,6 +96,8 @@ class RequirementStatusBadge extends StatelessWidget {
         return isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
       case RequirementStatus.validado:
         return AppColors.secondaryDark;
+      case RequirementStatus.rechazado:
+        return AppColors.errorDark;
     }
   }
 
@@ -100,6 +109,8 @@ class RequirementStatusBadge extends StatelessWidget {
         return HugeIcons.strokeRoundedSent;
       case RequirementStatus.validado:
         return HugeIcons.strokeRoundedCheckmarkCircle01;
+      case RequirementStatus.rechazado:
+        return HugeIcons.strokeRoundedCancel01;
     }
   }
 }

@@ -4,36 +4,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/features/honors/domain/utils/honor_category_colors.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_loading.dart';
-import 'package:sacdia_app/features/honors/presentation/views/add_honor_view.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 
-/// Category color and icon map – mirrors the reference implementation but uses
-/// AppColors constants already defined in the design system.
-const Map<String, Color> _categoryColors = {
-  'ADRA': AppColors.catAdra,
-  'Agropecuarias': AppColors.catagropecuarias,
-  'Ciencias de la Salud': AppColors.catCienciasSalud,
-  'Domésticas': AppColors.catDomesticas,
-  'Habilidades Manuales': AppColors.catHabilidadesManuales,
-  'Misioneras': AppColors.catMisioneras,
-  'Naturaleza': AppColors.catNaturaleza,
-  'Profesionales': AppColors.catProfesionales,
-  'Recreativas': AppColors.catRecreativas,
-};
-
 const Map<String, IconData> _categoryIcons = {
   'ADRA': Icons.volunteer_activism,
-  'Agropecuarias': Icons.agriculture,
+  'Actividades Agropecuarias': Icons.agriculture,
   'Ciencias de la Salud': Icons.medical_services,
-  'Domésticas': Icons.home,
-  'Habilidades Manuales': Icons.handyman,
-  'Misioneras': Icons.public,
-  'Naturaleza': Icons.forest,
-  'Profesionales': Icons.work,
-  'Recreativas': Icons.sports_handball,
+  'Artes Domésticas': Icons.home,
+  'Artes y Actividades Manuales': Icons.handyman,
+  'Crecimiento Espiritual, Actividades Misioneras y Herencia': Icons.public,
+  'Estudio de la Naturaleza': Icons.forest,
+  'Actividades Vocacionales': Icons.work,
+  'Actividades Recreativas': Icons.sports_handball,
 };
 
 /// Section of the profile view that shows the user's earned / in-progress
@@ -51,12 +38,12 @@ class ProfileHonorsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userHonorsAsync = ref.watch(userHonorsProvider);
 
-    return userHonorsAsync.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 32),
-        child: Center(child: SacLoading()),
-      ),
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: userHonorsAsync.when(
+      loading: () => _HonorsSkeleton(key: const ValueKey('honors-skeleton')),
       error: (e, _) => Padding(
+        key: const ValueKey('honors-error'),
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Center(
           child: Text(
@@ -68,6 +55,7 @@ class ProfileHonorsSection extends ConsumerWidget {
       data: (userHonors) {
         if (userHonors.isEmpty) {
           return Padding(
+            key: const ValueKey('honors-data'),
             padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
             child: Column(
               children: [
@@ -90,16 +78,7 @@ class ProfileHonorsSection extends ConsumerWidget {
                   text: 'Agregar especialidad',
                   icon: HugeIcons.strokeRoundedAdd01,
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const AddHonorView(),
-                      ),
-                    ).then((result) {
-                      if (result == true) {
-                        ref.invalidate(userHonorsProvider);
-                      }
-                    });
+                    context.push(RouteNames.homeHonors);
                   },
                 ),
               ],
@@ -119,11 +98,13 @@ class ProfileHonorsSection extends ConsumerWidget {
           ..sort((a, b) => a.key.compareTo(b.key));
 
         return Column(
+          key: const ValueKey('honors-data'),
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ...sortedEntries.map((entry) {
               return _CategorySection(
                 categoryName: entry.key,
+                categoryId: entry.value.first.honorCategoryId,
                 userHonors: entry.value,
               );
             }),
@@ -134,22 +115,14 @@ class ProfileHonorsSection extends ConsumerWidget {
                 text: 'Agregar especialidad',
                 icon: HugeIcons.strokeRoundedAdd01,
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const AddHonorView(),
-                    ),
-                  ).then((result) {
-                    if (result == true) {
-                      ref.invalidate(userHonorsProvider);
-                    }
-                  });
+                  context.push(RouteNames.homeHonors);
                 },
               ),
             ),
           ],
         );
       },
+    ),
     );
   }
 }
@@ -158,21 +131,22 @@ class ProfileHonorsSection extends ConsumerWidget {
 
 class _CategorySection extends StatelessWidget {
   final String categoryName;
+  final int? categoryId;
   final List<UserHonor> userHonors;
 
   const _CategorySection({
     required this.categoryName,
+    this.categoryId,
     required this.userHonors,
   });
 
   @override
   Widget build(BuildContext context) {
-    final categoryColor =
-        _categoryColors[categoryName] ?? AppColors.sacBlack;
+    final categoryColor = getCategoryColor(
+      categoryId: categoryId,
+      categoryName: categoryName,
+    );
     final categoryIcon = _categoryIcons[categoryName] ?? Icons.star;
-
-    final isNature = categoryName == 'Naturaleza' ||
-        categoryName == 'Estudio de la naturaleza';
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -184,15 +158,11 @@ class _CategorySection extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border(
                 top: BorderSide(
-                  color: isNature
-                      ? AppColors.sacBlack.withAlpha(80)
-                      : categoryColor.withAlpha(80),
+                  color: categoryColor.withAlpha(80),
                   width: 1.5,
                 ),
                 bottom: BorderSide(
-                  color: isNature
-                      ? AppColors.sacBlack.withAlpha(80)
-                      : categoryColor.withAlpha(80),
+                  color: categoryColor.withAlpha(80),
                   width: 1.5,
                 ),
               ),
@@ -210,7 +180,7 @@ class _CategorySection extends StatelessWidget {
                   ),
                   child: Icon(
                     categoryIcon,
-                    color: isNature ? AppColors.sacBlack : Colors.white,
+                    color: Colors.white,
                     size: 22,
                   ),
                 ),
@@ -221,7 +191,7 @@ class _CategorySection extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 17,
-                      color: isNature ? AppColors.sacBlack : categoryColor,
+                      color: categoryColor,
                     ),
                   ),
                 ),
@@ -233,9 +203,7 @@ class _CategorySection extends StatelessWidget {
                     color: categoryColor.withAlpha(20),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: isNature
-                          ? AppColors.sacBlack.withAlpha(60)
-                          : categoryColor.withAlpha(60),
+                      color: categoryColor.withAlpha(60),
                     ),
                   ),
                   child: Text(
@@ -243,7 +211,7 @@ class _CategorySection extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: isNature ? AppColors.sacBlack : categoryColor,
+                      color: categoryColor,
                     ),
                   ),
                 ),
@@ -253,6 +221,10 @@ class _CategorySection extends StatelessWidget {
 
           // Honor grid (3 columns)
           GridView.builder(
+            // shrinkWrap OK: honors per category are naturally bounded (each
+            // category typically has < 30 items). Lives inside a Column that
+            // is itself inside the profile's outer scroll view — intrinsic
+            // height is required.
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             padding:
@@ -301,61 +273,68 @@ class _HonorGridItem extends StatelessWidget {
     final isCompleted = userHonor.validate;
     final imageUrl = userHonor.honorImageUrl;
 
-    return Column(
-      children: [
-        Expanded(
-          child: AspectRatio(
-            aspectRatio: 1.0,
-            child: Stack(
-              children: [
-                imageUrl != null && imageUrl.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        fit: BoxFit.contain,
-                        errorWidget: (_, __, ___) => _InitialsBox(
+    return GestureDetector(
+      onTap: () => context.push(
+        RouteNames.honorDetailPath(
+          userHonor.honorId.toString(),
+        ),
+      ),
+      child: Column(
+        children: [
+          Expanded(
+            child: AspectRatio(
+              aspectRatio: 1.0,
+              child: Stack(
+                children: [
+                  imageUrl != null && imageUrl.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.contain,
+                          errorWidget: (_, __, ___) => _InitialsBox(
+                            initials: initials,
+                            categoryColor: categoryColor,
+                          ),
+                        )
+                      : _InitialsBox(
                           initials: initials,
                           categoryColor: categoryColor,
                         ),
-                      )
-                    : _InitialsBox(
-                        initials: initials,
-                        categoryColor: categoryColor,
-                      ),
-                if (isCompleted)
-                  Positioned(
-                    top: 2,
-                    right: 2,
-                    child: Container(
-                      padding: const EdgeInsets.all(3),
-                      decoration: const BoxDecoration(
-                        color: AppColors.secondary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.check,
-                        color: Colors.white,
-                        size: 10,
+                  if (isCompleted)
+                    Positioned(
+                      top: 2,
+                      right: 2,
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: const BoxDecoration(
+                          color: AppColors.secondary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 10,
+                        ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 5),
-        Text(
-          name,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: context.sac.text,
-            height: 1.2,
+          const SizedBox(height: 5),
+          Text(
+            name,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: context.sac.text,
+              height: 1.2,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -388,6 +367,74 @@ class _InitialsBox extends StatelessWidget {
             color: categoryColor,
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ── Skeleton placeholder for honors section ───────────────────────────────────
+
+class _HonorsSkeleton extends StatelessWidget {
+  const _HonorsSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final skeletonColor = context.sac.surfaceVariant;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Simulate first category header
+          Container(
+            height: 52,
+            decoration: BoxDecoration(
+              color: skeletonColor,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Simulate a row of 3 honor cards
+          Row(
+            children: List.generate(3, (i) => Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(left: i == 0 ? 0 : 5, right: i == 2 ? 0 : 5),
+                child: Container(
+                  height: 90,
+                  decoration: BoxDecoration(
+                    color: skeletonColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            )),
+          ),
+          const SizedBox(height: 20),
+          // Simulate a second category header
+          Container(
+            height: 52,
+            decoration: BoxDecoration(
+              color: skeletonColor,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Simulate a second row of cards
+          Row(
+            children: List.generate(3, (i) => Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(left: i == 0 ? 0 : 5, right: i == 2 ? 0 : 5),
+                child: Container(
+                  height: 90,
+                  decoration: BoxDecoration(
+                    color: skeletonColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            )),
+          ),
+        ],
       ),
     );
   }

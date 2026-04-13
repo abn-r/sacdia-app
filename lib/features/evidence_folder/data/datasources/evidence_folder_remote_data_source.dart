@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/evidence_file_model.dart';
@@ -8,35 +7,53 @@ import '../models/evidence_folder_model.dart';
 
 /// Interfaz para la fuente de datos remota de carpeta de evidencias.
 abstract class EvidenceFolderRemoteDataSource {
-  Future<EvidenceFolderModel> getEvidenceFolder(String clubSectionId);
+  /// Obtiene la carpeta anual de una sección de club.
+  ///
+  /// Usa el endpoint de conveniencia que acepta [clubSectionId] como integer.
+  Future<EvidenceFolderModel> getEvidenceFolder(String clubSectionId, {CancelToken? cancelToken});
 
-  Future<void> submitSection(String clubSectionId, String sectionId);
+  /// Envía la carpeta completa a validación.
+  ///
+  /// [folderId] es el UUID de annual_folder_id.
+  Future<void> submitFolder(String folderId);
 
+  /// Envía una sección individual a validación.
+  ///
+  /// [folderId] es el UUID de annual_folder_id.
+  /// [sectionId] es el UUID de la sección dentro de la carpeta anual.
+  Future<void> submitSection({
+    required String folderId,
+    required String sectionId,
+  });
+
+  /// Sube un archivo de evidencia a la sección especificada.
+  ///
+  /// [folderId] es el UUID de annual_folder_id.
+  /// [sectionId] es el UUID de la sección dentro de la carpeta anual.
   Future<EvidenceFileModel> uploadFile({
-    required String clubSectionId,
+    required String folderId,
     required String sectionId,
     required String filePath,
     required String fileName,
     required String mimeType,
+    String? notes,
+    void Function(double)? onProgress,
   });
 
-  Future<void> deleteFile({
-    required String clubSectionId,
-    required String sectionId,
-    required String fileId,
-  });
+  /// Elimina un archivo de evidencia.
+  ///
+  /// Solo requiere [evidenceId] (UUID).
+  Future<void> deleteFile({required String evidenceId});
 }
 
 /// Implementación de la fuente de datos remota de carpeta de evidencias.
 ///
-/// Utiliza Dio para llamadas REST al backend SACDIA.
-/// Auth token se lee desde [FlutterSecureStorage] siguiendo el mismo patrón
-/// que el resto de datasources de la aplicación.
+/// Consume los endpoints del módulo AnnualFolders en el backend SACDIA.
+/// Auth token es inyectado automáticamente por [AuthInterceptor].
 class EvidenceFolderRemoteDataSourceImpl
     implements EvidenceFolderRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'EvidenceFolderDS';
 
@@ -44,35 +61,25 @@ class EvidenceFolderRemoteDataSourceImpl
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
+        _baseUrl = baseUrl;
 
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) throw AuthException(message: 'No hay sesión activa');
-    return token;
-  }
-
-  Options _authOptions(String token) =>
-      Options(headers: {'Authorization': 'Bearer $token'});
-
-  // ── GET /club-sections/:id/evidence-folder ─────────────────────────────────
+  // ── GET /club-sections/:sectionId/annual-folder ───────────────────────────
 
   @override
   Future<EvidenceFolderModel> getEvidenceFolder(
-      String clubSectionId) async {
+      String clubSectionId, {CancelToken? cancelToken}) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/club-sections/$clubSectionId/evidence-folder',
-        options: _authOptions(token),
+        '$_baseUrl${ApiEndpoints.clubSections}/$clubSectionId/annual-folder',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final body = response.data as Map<String, dynamic>;
         // El backend puede envolver en { data: {...} }
-        final folderJson =
-            body.containsKey('data') ? body['data'] as Map<String, dynamic> : body;
+        final folderJson = body.containsKey('data')
+            ? body['data'] as Map<String, dynamic>
+            : body;
         return EvidenceFolderModel.fromJson(folderJson);
       }
 
@@ -81,21 +88,43 @@ class EvidenceFolderRemoteDataSourceImpl
         code: response.statusCode,
       );
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getEvidenceFolder', tag: _tag, error: e);
       _rethrow(e);
     }
   }
 
-  // ── POST /club-sections/:id/evidence-folder/sections/:sectionId/submit ─────
+  // ── POST /annual-folders/:folderId/submit ─────────────────────────────────
 
   @override
-  Future<void> submitSection(
-      String clubSectionId, String sectionId) async {
+  Future<void> submitFolder(String folderId) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.post(
-        '$_baseUrl/club-sections/$clubSectionId/evidence-folder/sections/$sectionId/submit',
-        options: _authOptions(token),
+        '$_baseUrl${ApiEndpoints.annualFolders}/$folderId/submit',
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) return;
+
+      throw ServerException(
+        message: 'Error al enviar la carpeta a validación',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en submitFolder', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── POST /annual-folders/:folderId/sections/:sectionId/submit ────────────
+
+  @override
+  Future<void> submitSection({
+    required String folderId,
+    required String sectionId,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.annualFolders}/$folderId/sections/$sectionId/submit',
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) return;
@@ -110,33 +139,38 @@ class EvidenceFolderRemoteDataSourceImpl
     }
   }
 
-  // ── POST /club-sections/:id/evidence-folder/sections/:sectionId/files ──────
+  // ── POST /annual-folders/:folderId/sections/:sectionId/evidences ──────────
 
   @override
   Future<EvidenceFileModel> uploadFile({
-    required String clubSectionId,
+    required String folderId,
     required String sectionId,
     required String filePath,
     required String fileName,
     required String mimeType,
+    String? notes,
+    void Function(double)? onProgress,
   }) async {
     try {
-      final token = await _getAuthToken();
-
-      final formData = FormData.fromMap({
+      final formFields = <String, dynamic>{
         'file': await MultipartFile.fromFile(
           filePath,
           filename: fileName,
           contentType: DioMediaType.parse(mimeType),
         ),
-      });
+      };
+
+      if (notes != null && notes.isNotEmpty) {
+        formFields['notes'] = notes;
+      }
+
+      final formData = FormData.fromMap(formFields);
 
       final response = await _dio.post(
-        '$_baseUrl/club-sections/$clubSectionId/evidence-folder/sections/$sectionId/files',
+        '$_baseUrl${ApiEndpoints.annualFolders}/$folderId/sections/$sectionId/evidences',
         data: formData,
         options: Options(
           headers: {
-            'Authorization': 'Bearer $token',
             'Content-Type': 'multipart/form-data',
           },
           sendTimeout: const Duration(minutes: 2),
@@ -144,8 +178,10 @@ class EvidenceFolderRemoteDataSourceImpl
         ),
         onSendProgress: (sent, total) {
           if (total > 0) {
+            final fraction = sent / total;
+            onProgress?.call(fraction);
             AppLogger.d(
-              'Upload progress: ${(sent / total * 100).toStringAsFixed(1)}%',
+              'Upload progress: ${(fraction * 100).toStringAsFixed(1)}%',
               tag: _tag,
             );
           }
@@ -170,19 +206,13 @@ class EvidenceFolderRemoteDataSourceImpl
     }
   }
 
-  // ── DELETE /club-sections/:id/evidence-folder/sections/:sectionId/files/:fileId
+  // ── DELETE /annual-folders/evidences/:evidenceId ──────────────────────────
 
   @override
-  Future<void> deleteFile({
-    required String clubSectionId,
-    required String sectionId,
-    required String fileId,
-  }) async {
+  Future<void> deleteFile({required String evidenceId}) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.delete(
-        '$_baseUrl/club-sections/$clubSectionId/evidence-folder/sections/$sectionId/files/$fileId',
-        options: _authOptions(token),
+        '$_baseUrl${ApiEndpoints.annualFolders}/evidences/$evidenceId',
       );
 
       if (response.statusCode == 200 ||
@@ -201,7 +231,7 @@ class EvidenceFolderRemoteDataSourceImpl
     }
   }
 
-  // ── Error helper ─────────────────────────────────────────────────────────────
+  // ── Error helper ──────────────────────────────────────────────────────────
 
   Never _rethrow(Object e) {
     if (e is DioException) {
@@ -218,7 +248,9 @@ class EvidenceFolderRemoteDataSourceImpl
       if (data is Map) {
         return (data['message'] ?? e.message ?? 'Error de conexión').toString();
       }
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
+    }
     return e.message ?? 'Error de conexión';
   }
 }

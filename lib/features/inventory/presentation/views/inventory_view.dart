@@ -5,8 +5,8 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/inventory_item.dart';
 import '../providers/inventory_providers.dart';
 import '../widgets/inventory_item_card.dart';
@@ -17,8 +17,9 @@ import 'inventory_item_detail_view.dart';
 
 /// Pantalla principal del módulo de Inventario del club.
 ///
-/// Muestra el resumen del inventario, una barra de búsqueda/filtros
-/// y la lista de artículos. El FAB solo aparece para roles autorizados.
+/// Muestra stats compactas, búsqueda, chips de categoría inline y la lista
+/// de artículos con SliverList.builder (no spread en Column). El FAB solo
+/// aparece para roles autorizados.
 class InventoryView extends ConsumerStatefulWidget {
   const InventoryView({super.key});
 
@@ -59,7 +60,7 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
             physics: const BouncingScrollPhysics(
                 parent: AlwaysScrollableScrollPhysics()),
             slivers: [
-              // App bar
+              // ── App bar ──────────────────────────────────────────────────
               SliverAppBar(
                 pinned: true,
                 expandedHeight: 0,
@@ -85,31 +86,106 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
                 ],
               ),
 
-              // Body content
+              // ── Stats row ────────────────────────────────────────────────
+              if (summaryAsync != null)
+                SliverToBoxAdapter(
+                  child: InventoryStatsRow(summary: summaryAsync),
+                ),
+
+              // ── Search + filter button ───────────────────────────────────
               SliverToBoxAdapter(
-                child: filteredAsync.when(
-                  loading: () => _LoadingBody(),
-                  error: (e, _) => _ErrorBody(
-                    message:
-                        e.toString().replaceFirst('Exception: ', ''),
+                child: InventoryFilterBar(
+                  searchController: _searchController,
+                  onSearchChanged: (query) {
+                    ref.read(inventoryFiltersProvider.notifier).state =
+                        filters.copyWith(searchQuery: query);
+                  },
+                  onFilterTap: () => _openFilterSheet(context),
+                  hasActiveFilters: filters.hasActiveFilters,
+                ),
+              ),
+
+              // ── Category chips (inline) ──────────────────────────────────
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.only(top: 4, bottom: 8),
+                  child: InventoryCategoryChips(),
+                ),
+              ),
+
+              // ── Active filter tags (condition / search) ──────────────────
+              SliverToBoxAdapter(
+                child: _ActiveFiltersRow(filters: filters),
+              ),
+
+              // ── Body (loading / error / list) ────────────────────────────
+              filteredAsync.when(
+                loading: () => const SliverToBoxAdapter(child: _SkeletonBody()),
+                error: (e, _) => SliverToBoxAdapter(
+                  child: _ErrorBody(
+                    message: e.toString().replaceFirst('Exception: ', ''),
                     onRetry: () => ref.invalidate(inventoryItemsProvider),
                   ),
-                  data: (items) => _InventoryBody(
-                    items: items,
-                    summary: summaryAsync,
-                    filters: filters,
-                    searchController: _searchController,
-                    canManage: canManage,
-                    onSearchChanged: (query) {
-                      ref.read(inventoryFiltersProvider.notifier).state =
-                          filters.copyWith(searchQuery: query);
-                    },
-                    onFilterTap: () => _openFilterSheet(context),
-                    onItemTap: (item) => _openDetail(context, item),
-                    onAddTap:
-                        canManage ? () => _openAddSheet(context) : null,
-                  ),
                 ),
+                data: (items) {
+                  if (items.isEmpty) {
+                    return SliverToBoxAdapter(
+                      child: _EmptyState(
+                        canAdd: canManage && !filters.hasActiveFilters,
+                        onAddTap: canManage
+                            ? () => _openAddSheet(context)
+                            : null,
+                      ),
+                    );
+                  }
+
+                  return SliverMainAxisGroup(
+                    slivers: [
+                      // Item count label
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
+                          child: Text(
+                            '${items.length} artículo${items.length != 1 ? 's' : ''}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  color: context.sac.textSecondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                          ),
+                        ),
+                      ),
+
+                      // Item list — SliverList.builder instead of Column spread
+                      SliverList.builder(
+                        itemCount: items.length,
+                        itemBuilder: (context, index) {
+                          final item = items[index];
+                          return StaggeredListItem(
+                            index: index,
+                            child: InventoryItemCard(
+                              item: item,
+                              onTap: () => _openDetail(context, item),
+                              onEdit: canManage
+                                  ? () => _openEdit(context, item)
+                                  : null,
+                              onDelete: canManage
+                                  ? () => _confirmDelete(context, item)
+                                  : null,
+                            ),
+                          );
+                        },
+                      ),
+
+                      // FAB clearance
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: 88),
+                      ),
+                    ],
+                  );
+                },
               ),
             ],
           ),
@@ -125,6 +201,16 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const AddInventoryItemSheet(),
+    );
+  }
+
+  void _openEdit(BuildContext context, InventoryItem item) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => AddInventoryItemSheet(existing: item),
     );
   }
 
@@ -146,88 +232,60 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
       ),
     );
   }
-}
 
-// ── Body principal ─────────────────────────────────────────────────────────────
-
-class _InventoryBody extends StatelessWidget {
-  final List<InventoryItem> items;
-  final InventorySummary? summary;
-  final InventoryFilters filters;
-  final TextEditingController searchController;
-  final bool canManage;
-  final ValueChanged<String> onSearchChanged;
-  final VoidCallback onFilterTap;
-  final ValueChanged<InventoryItem> onItemTap;
-  final VoidCallback? onAddTap;
-
-  const _InventoryBody({
-    required this.items,
-    required this.summary,
-    required this.filters,
-    required this.searchController,
-    required this.canManage,
-    required this.onSearchChanged,
-    required this.onFilterTap,
-    required this.onItemTap,
-    this.onAddTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Summary header
-        if (summary != null)
-          InventorySummaryHeader(summary: summary!)
-        else
-          const SizedBox(height: 8),
-
-        // Filter bar
-        InventoryFilterBar(
-          searchController: searchController,
-          onSearchChanged: onSearchChanged,
-          onFilterTap: onFilterTap,
-          hasActiveFilters: filters.hasActiveFilters,
-        ),
-
-        // Active filter chips
-        if (filters.hasActiveFilters) _ActiveFiltersRow(filters: filters),
-
-        const SizedBox(height: 8),
-
-        // Count
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-          child: Text(
-            '${items.length} artículo${items.length != 1 ? 's' : ''}',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w500,
-                ),
+  void _confirmDelete(BuildContext context, InventoryItem item) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Eliminar artículo'),
+        content: Text(
+            '¿Estás seguro de que deseas eliminar "${item.name}"? Esta acción no se puede deshacer.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
           ),
-        ),
-
-        // List or empty state
-        if (items.isEmpty)
-          _EmptyState(canAdd: canManage && !filters.hasActiveFilters, onAddTap: onAddTap)
-        else
-          ...items.asMap().entries.map((entry) => StaggeredListItem(
-                index: entry.key,
-                child: InventoryItemCard(
-                  item: entry.value,
-                  onTap: () => onItemTap(entry.value),
-                ),
-              )),
-
-        const SizedBox(height: 80), // FAB clearance
-      ],
+          Consumer(
+            builder: (consumerContext, ref, _) {
+              final deleteState =
+                  ref.watch(inventoryDeleteNotifierProvider);
+              return FilledButton(
+                onPressed: deleteState.isLoading
+                    ? null
+                    : () async {
+                        Navigator.pop(ctx);
+                        final success = await ref
+                            .read(inventoryDeleteNotifierProvider.notifier)
+                            .deleteItem(item.id);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                success
+                                    ? 'Artículo eliminado correctamente'
+                                    : 'No se pudo eliminar el artículo',
+                              ),
+                              backgroundColor: success
+                                  ? AppColors.secondary
+                                  : AppColors.error,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      },
+                style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.error),
+                child: const Text('Eliminar'),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }
 
-// ── Active filters display ──────────────────────────────────────────────────────
+// ── Active filters row ──────────────────────────────────────────────────────────
 
 class _ActiveFiltersRow extends ConsumerWidget {
   final InventoryFilters filters;
@@ -236,33 +294,24 @@ class _ActiveFiltersRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chips = <Widget>[];
-
-    if (filters.condition != null) {
-      chips.add(_FilterTag(
-        label: filters.condition!.shortLabel,
-        onRemove: () {
-          ref.read(inventoryFiltersProvider.notifier).state =
-              filters.copyWith(clearCondition: true);
-        },
-      ));
-    }
-
-    if (filters.categoryId != null) {
-      chips.add(_FilterTag(
-        label: 'Categoría: ${filters.categoryId}',
-        onRemove: () {
-          ref.read(inventoryFiltersProvider.notifier).state =
-              filters.copyWith(clearCategory: true);
-        },
-      ));
-    }
-
-    if (chips.isEmpty) return const SizedBox.shrink();
+    // Only show condition filter tag — category is now handled by chips
+    if (filters.condition == null) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-      child: Wrap(spacing: 6, runSpacing: 4, children: chips),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+      child: Wrap(
+        spacing: 6,
+        runSpacing: 4,
+        children: [
+          _FilterTag(
+            label: 'Estado: ${filters.condition!.shortLabel}',
+            onRemove: () {
+              ref.read(inventoryFiltersProvider.notifier).state =
+                  filters.copyWith(clearCondition: true);
+            },
+          ),
+        ],
+      ),
     );
   }
 }
@@ -293,28 +342,122 @@ class _FilterTag extends StatelessWidget {
   }
 }
 
-// ── Loading body ────────────────────────────────────────────────────────────────
+// ── Skeleton loading body ───────────────────────────────────────────────────────
 
-class _LoadingBody extends StatelessWidget {
+class _SkeletonBody extends StatelessWidget {
+  const _SkeletonBody();
+
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Skeleton header
-        Container(
-          margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          height: 140,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF183651), Color(0xFF2E5C82)],
-            ),
-            borderRadius: BorderRadius.circular(20),
+        // Skeleton stat chips
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: Row(
+            children: [
+              _SkeletonBox(width: 110, height: 48, color: c.surfaceVariant),
+              const SizedBox(width: 8),
+              _SkeletonBox(width: 110, height: 48, color: c.surfaceVariant),
+              const SizedBox(width: 8),
+              _SkeletonBox(width: 120, height: 48, color: c.surfaceVariant),
+            ],
           ),
-          child: const Center(child: SacLoading(color: Colors.white54)),
         ),
-        const SizedBox(height: 160),
-        const SacLoading(),
+        // Skeleton cards
+        for (int i = 0; i < 4; i++)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 5, 16, 0),
+            child: Container(
+              height: 80,
+              decoration: BoxDecoration(
+                color: c.surfaceVariant,
+                borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+              ),
+              child: Row(
+                children: [
+                  const SizedBox(width: 14),
+                  _SkeletonBox(width: 60, height: 60, color: c.border),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _SkeletonBox(
+                            width: double.infinity,
+                            height: 14,
+                            color: c.border),
+                        const SizedBox(height: 8),
+                        _SkeletonBox(width: 120, height: 10, color: c.border),
+                        const SizedBox(height: 6),
+                        _SkeletonBox(width: 80, height: 10, color: c.border),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                ],
+              ),
+            ),
+          ),
+        const SizedBox(height: 20),
       ],
+    );
+  }
+}
+
+class _SkeletonBox extends StatefulWidget {
+  final double width;
+  final double height;
+  final Color color;
+
+  const _SkeletonBox({
+    required this.width,
+    required this.height,
+    required this.color,
+  });
+
+  @override
+  State<_SkeletonBox> createState() => _SkeletonBoxState();
+}
+
+class _SkeletonBoxState extends State<_SkeletonBox>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    )..repeat(reverse: true);
+    _anim = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _anim,
+      child: Container(
+        width: widget.width,
+        height: widget.height,
+        decoration: BoxDecoration(
+          color: widget.color,
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
     );
   }
 }
@@ -330,33 +473,52 @@ class _ErrorBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.fromLTRB(32, 48, 32, 16),
       child: Column(
         children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedAlert02,
-            size: 56,
-            color: AppColors.error,
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.8, end: 1.0),
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.elasticOut,
+            builder: (context, scale, child) =>
+                Transform.scale(scale: scale, child: child),
+            child: Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppColors.error.withValues(alpha: 0.10),
+                shape: BoxShape.circle,
+              ),
+              child: const Center(
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedAlert02,
+                  size: 36,
+                  color: AppColors.error,
+                ),
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           Text(
             'Error al cargar el inventario',
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: context.sac.text,
+                  fontWeight: FontWeight.w700,
+                ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             message,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color:
-                      Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: context.sac.textSecondary,
                 ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
           FilledButton.icon(
             onPressed: onRetry,
-            icon: HugeIcon(
+            icon: const HugeIcon(
               icon: HugeIcons.strokeRoundedRefresh,
               size: 18,
               color: Colors.white,
@@ -381,58 +543,96 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 32, 32, 16),
+      padding: const EdgeInsets.fromLTRB(32, 48, 32, 32),
       child: Column(
         children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedBoxingBag,
-            size: 72,
-            color: Theme.of(context)
-                .colorScheme
-                .onSurfaceVariant
-                .withValues(alpha: 0.3),
+          // Composed icon illustration
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  color: AppColors.primarySurface,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const HugeIcon(
+                icon: HugeIcons.strokeRoundedBoxingBag,
+                size: 48,
+                color: AppColors.primary,
+              ),
+              Positioned(
+                bottom: 4,
+                right: 4,
+                child: Container(
+                  width: 28,
+                  height: 28,
+                  decoration: const BoxDecoration(
+                    color: AppColors.secondary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Center(
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedAdd01,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
+
+          const SizedBox(height: 20),
+
           Text(
-            'No hay artículos en el inventario',
+            'Tu inventario está vacío',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color:
-                      Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
+                  color: c.text,
+                  fontWeight: FontWeight.w700,
                 ),
             textAlign: TextAlign.center,
           ),
+
           const SizedBox(height: 8),
+
           Text(
             canAdd
-                ? 'Registra el primer artículo usando el botón + o el botón de abajo.'
+                ? 'Empieza registrando el primer artículo\nde tu club'
                 : 'El inventario del club está vacío.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurfaceVariant
-                      .withValues(alpha: 0.7),
+                  color: c.textSecondary,
+                  height: 1.5,
                 ),
             textAlign: TextAlign.center,
           ),
+
           if (canAdd && onAddTap != null) ...[
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: onAddTap,
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedAdd01,
-                size: 18,
-                color: Colors.white,
-              ),
-              label: const Text(
-                'Agregar primer artículo',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            const SizedBox(height: 28),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: onAddTap,
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedAdd01,
+                  size: 18,
+                  color: Colors.white,
+                ),
+                label: const Text(
+                  'Agregar primer artículo',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  minimumSize: const Size(0, 52),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                  ),
                 ),
               ),
             ),
@@ -456,7 +656,7 @@ class _AddFab extends StatelessWidget {
       onPressed: onTap,
       backgroundColor: AppColors.primary,
       foregroundColor: Colors.white,
-      icon: HugeIcon(
+      icon: const HugeIcon(
         icon: HugeIcons.strokeRoundedAdd01,
         size: 20,
         color: Colors.white,

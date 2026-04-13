@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -23,14 +24,10 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
 
   @override
   Future<Either<Failure, EvidenceFolder>> getEvidenceFolder(
-      String clubSectionId) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(
-          NetworkFailure(message: 'No hay conexión a internet'));
-    }
+      String clubSectionId, {CancelToken? cancelToken}) async {
     try {
       final model =
-          await remoteDataSource.getEvidenceFolder(clubSectionId);
+          await remoteDataSource.getEvidenceFolder(clubSectionId, cancelToken: cancelToken);
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
@@ -42,14 +39,29 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
   }
 
   @override
-  Future<Either<Failure, void>> submitSection(
-      String clubSectionId, String sectionId) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(
-          NetworkFailure(message: 'No hay conexión a internet'));
-    }
+  Future<Either<Failure, void>> submitFolder(String folderId) async {
     try {
-      await remoteDataSource.submitSection(clubSectionId, sectionId);
+      await remoteDataSource.submitFolder(folderId);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> submitSection({
+    required String folderId,
+    required String sectionId,
+  }) async {
+    try {
+      await remoteDataSource.submitSection(
+        folderId: folderId,
+        sectionId: sectionId,
+      );
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
@@ -62,23 +74,23 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
 
   @override
   Future<Either<Failure, EvidenceFile>> uploadFile({
-    required String clubSectionId,
+    required String folderId,
     required String sectionId,
     required String filePath,
     required String fileName,
     required String mimeType,
+    String? notes,
+    void Function(double)? onProgress,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(
-          NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.uploadFile(
-        clubSectionId: clubSectionId,
+        folderId: folderId,
         sectionId: sectionId,
         filePath: filePath,
         fileName: fileName,
         mimeType: mimeType,
+        notes: notes,
+        onProgress: onProgress,
       );
       return Right(model.toEntity());
     } on ServerException catch (e) {
@@ -91,21 +103,10 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
   }
 
   @override
-  Future<Either<Failure, void>> deleteFile({
-    required String clubSectionId,
-    required String sectionId,
-    required String fileId,
-  }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(
-          NetworkFailure(message: 'No hay conexión a internet'));
-    }
+  Future<Either<Failure, void>> deleteFile(
+      {required String evidenceId}) async {
     try {
-      await remoteDataSource.deleteFile(
-        clubSectionId: clubSectionId,
-        sectionId: sectionId,
-        fileId: fileId,
-      );
+      await remoteDataSource.deleteFile(evidenceId: evidenceId);
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));

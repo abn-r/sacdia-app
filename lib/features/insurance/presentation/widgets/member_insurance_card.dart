@@ -146,7 +146,7 @@ class MemberInsuranceCard extends StatelessWidget {
 
   String _expiryText(MemberInsurance m) {
     if (m.endDate == null) return '';
-    final formatted = DateFormat('dd/MM/yyyy').format(m.endDate!);
+    final formatted = DateFormat('dd/MM/yyyy').format(m.endDate!.toLocal());
     switch (m.status) {
       case InsuranceStatus.asegurado:
         final days = m.daysUntilExpiry;
@@ -208,6 +208,8 @@ class _MemberAvatar extends StatelessWidget {
             child: photoUrl != null && photoUrl!.isNotEmpty
                 ? CachedNetworkImage(
                     imageUrl: photoUrl!,
+                    memCacheWidth: 144,  // 48 * 3 (max device pixel ratio)
+                    memCacheHeight: 144, // 48 * 3
                     fit: BoxFit.cover,
                     errorWidget: (_, __, ___) => _InitialsAvatar(
                         initials: initials, color: statusColor),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import '../../../../core/providers/app_bootstrap_provider.dart';
 
 /// Vista de Splash Screen - Estilo "Scout Vibrante"
 ///
@@ -50,6 +51,47 @@ class _SplashViewState extends ConsumerState<SplashView>
   void dispose() {
     _animationController.dispose();
     super.dispose();
+  }
+
+  Widget _buildStatusWidget() {
+    final bootstrapAsync = ref.watch(appBootstrapProvider);
+
+    return bootstrapAsync.when(
+      loading: () => const SacLoading(),
+      error: (_, __) => _buildErrorWidget('Ocurrió un error inesperado'),
+      data: (state) => switch (state) {
+        AppBootstrapError(:final message) => _buildErrorWidget(message),
+        _ => const SacLoading(),
+      },
+    );
+  }
+
+  Widget _buildErrorWidget(String message) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.error_outline_rounded,
+          color: Theme.of(context).colorScheme.error,
+          size: 40,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          message,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: context.sac.textSecondary,
+              ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 16),
+        FilledButton.icon(
+          onPressed: () =>
+              ref.read(appBootstrapProvider.notifier).retry(),
+          icon: const Icon(Icons.refresh_rounded),
+          label: const Text('Reintentar'),
+        ),
+      ],
+    );
   }
 
   @override
@@ -104,12 +146,12 @@ class _SplashViewState extends ConsumerState<SplashView>
                         ),
                   ),
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 20),
 
-                // Loading indicator
+                // Loading indicator or error/retry
                 FadeTransition(
                   opacity: _fadeAnimation,
-                  child: const SacLoading(),
+                  child: _buildStatusWidget(),
                 ),
               ],
             ),

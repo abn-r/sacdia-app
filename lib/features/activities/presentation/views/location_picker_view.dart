@@ -3,13 +3,14 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sacdia_app/core/constants/maps_constants.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
@@ -50,7 +51,7 @@ class _NominatimPlace {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Pantalla de selección de ubicación con flutter_map (CartoDB Voyager tiles).
+/// Pantalla de selección de ubicación con google_maps_flutter.
 ///
 /// Muestra un mapa a pantalla completa con:
 /// - Barra de búsqueda en la parte superior con autocompletado en tiempo real
@@ -67,10 +68,10 @@ class _NominatimPlace {
 /// if (result != null) { ... }
 /// ```
 ///
-/// No requiere API Key de ningún proveedor.
+/// Usa Google Maps SDK (requiere API Key configurada en Android y iOS).
 class LocationPickerView extends StatefulWidget {
-  /// Ubicación inicial del mapa. Si es null, usa la ubicación por defecto
-  /// definida en [MapsConstants] (Ciudad de México).
+  /// Ubicación inicial del mapa. Si es null, usa la ubicación del usuario
+  /// o la ubicación por defecto definida en [MapsConstants] (Ciudad de México).
   final LatLng? initialLocation;
 
   const LocationPickerView({super.key, this.initialLocation});
@@ -79,18 +80,15 @@ class LocationPickerView extends StatefulWidget {
   State<LocationPickerView> createState() => _LocationPickerViewState();
 }
 
-class _LocationPickerViewState extends State<LocationPickerView>
-    with TickerProviderStateMixin {
+class _LocationPickerViewState extends State<LocationPickerView> {
   // ── Controladores ─────────────────────────────────────────────────────────
-  late final MapController _mapController;
+  final Completer<GoogleMapController> _mapCompleter = Completer();
 
   // ── Estado ────────────────────────────────────────────────────────────────
   late LatLng _currentCenter;
   String _resolvedAddress = 'Cargando dirección...';
   bool _isResolvingAddress = false;
 
-  /// Temporizador para evitar llamadas excesivas a geocoding mientras
-  /// el usuario arrastra el mapa.
   Timer? _geocodeDebounce;
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -98,17 +96,53 @@ class _LocationPickerViewState extends State<LocationPickerView>
   @override
   void initState() {
     super.initState();
-    _mapController = MapController();
     _currentCenter = widget.initialLocation ??
         const LatLng(MapsConstants.defaultLat, MapsConstants.defaultLong);
-    // Resolver dirección de la ubicación inicial
-    _resolveAddressForLatLng(_currentCenter);
+
+    if (widget.initialLocation == null) {
+      _moveToUserLocation();
+    } else {
+      _resolveAddressForLatLng(_currentCenter);
+    }
+  }
+
+  Future<void> _moveToUserLocation() async {
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        _resolveAddressForLatLng(_currentCenter);
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 8),
+        ),
+      );
+
+      if (!mounted) return;
+
+      final userLatLng = LatLng(position.latitude, position.longitude);
+      setState(() => _currentCenter = userLatLng);
+
+      final controller = await _mapCompleter.future;
+      controller.animateCamera(
+        CameraUpdate.newLatLng(userLatLng),
+      );
+      _resolveAddressForLatLng(userLatLng);
+    } catch (_) {
+      if (mounted) _resolveAddressForLatLng(_currentCenter);
+    }
   }
 
   @override
   void dispose() {
     _geocodeDebounce?.cancel();
-    _mapController.dispose();
     super.dispose();
   }
 
@@ -173,58 +207,25 @@ class _LocationPickerViewState extends State<LocationPickerView>
 
   // ── Handlers del mapa ─────────────────────────────────────────────────────
 
-  void _onPositionChanged(MapCamera camera, bool hasGesture) {
-    _currentCenter = camera.center;
-
-    if (hasGesture) {
-      // Cancelar cualquier resolución pendiente mientras el usuario arrastra
-      _geocodeDebounce?.cancel();
-      // Esperar 600 ms de quietud antes de llamar a geocoding
-      _geocodeDebounce = Timer(const Duration(milliseconds: 600), () {
-        _resolveAddressForLatLng(_currentCenter);
-      });
-    }
+  void _onCameraMove(CameraPosition position) {
+    _currentCenter = position.target;
+    _geocodeDebounce?.cancel();
   }
 
-  void _animateTo(LatLng target, {double zoom = MapsConstants.searchResultZoom}) {
-    final latTween = Tween<double>(
-      begin: _mapController.camera.center.latitude,
-      end: target.latitude,
-    );
-    final lngTween = Tween<double>(
-      begin: _mapController.camera.center.longitude,
-      end: target.longitude,
-    );
-    final zoomTween = Tween<double>(
-      begin: _mapController.camera.zoom,
-      end: zoom,
-    );
-
-    final controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-
-    final animation = CurvedAnimation(
-      parent: controller,
-      curve: Curves.easeInOut,
-    );
-
-    controller.addListener(() {
-      _mapController.move(
-        LatLng(latTween.evaluate(animation), lngTween.evaluate(animation)),
-        zoomTween.evaluate(animation),
-      );
+  void _onCameraIdle() {
+    _geocodeDebounce?.cancel();
+    _geocodeDebounce = Timer(const Duration(milliseconds: 400), () {
+      _resolveAddressForLatLng(_currentCenter);
     });
+  }
 
-    animation.addStatusListener((status) {
-      if (status == AnimationStatus.completed ||
-          status == AnimationStatus.dismissed) {
-        controller.dispose();
-      }
-    });
-
-    controller.forward();
+  Future<void> _animateTo(LatLng target, {double zoom = MapsConstants.searchResultZoom}) async {
+    final controller = await _mapCompleter.future;
+    controller.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(target: target, zoom: zoom),
+      ),
+    );
   }
 
   void _onConfirm() {
@@ -264,38 +265,24 @@ class _LocationPickerViewState extends State<LocationPickerView>
         extendBodyBehindAppBar: true,
         body: Stack(
           children: [
-            // ── Mapa a pantalla completa ──────────────────────────────
-            FlutterMap(
-              mapController: _mapController,
-              options: MapOptions(
-                initialCenter: _currentCenter,
-                initialZoom: MapsConstants.defaultZoom,
-                onPositionChanged: _onPositionChanged,
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.all,
-                ),
+            // ── Google Maps a pantalla completa ──────────────────────
+            GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: _currentCenter,
+                zoom: MapsConstants.defaultZoom,
               ),
-              children: [
-                TileLayer(
-                  urlTemplate:
-                      'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-                  userAgentPackageName: 'com.sacdia.app',
-                  maxNativeZoom: 19,
-                  maxZoom: 22,
-                  additionalOptions: const {
-                    'r': '@2x',
-                  },
-                ),
-                RichAttributionWidget(
-                  attributions: [
-                    TextSourceAttribution('CartoDB', onTap: () {}),
-                    TextSourceAttribution(
-                      '© OpenStreetMap contributors',
-                      onTap: () {},
-                    ),
-                  ],
-                ),
-              ],
+              onMapCreated: (controller) {
+                if (!_mapCompleter.isCompleted) {
+                  _mapCompleter.complete(controller);
+                }
+              },
+              onCameraMove: _onCameraMove,
+              onCameraIdle: _onCameraIdle,
+              myLocationEnabled: true,
+              myLocationButtonEnabled: false,
+              zoomControlsEnabled: false,
+              mapToolbarEnabled: false,
+              compassEnabled: false,
             ),
 
             // ── Pin central (fijo en el centro de la pantalla) ────────
@@ -608,7 +595,7 @@ class _LocationBottomCard extends StatelessWidget {
 
 /// Botón redondo flotante sobre el mapa.
 class _MapIconButton extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final VoidCallback onPressed;
   final String tooltip;
 
@@ -813,6 +800,14 @@ class _LocationSearchDelegate extends SearchDelegate<_NominatimPlace?> {
   // ── SearchDelegate overrides ───────────────────────────────────────────────
 
   @override
+  void close(BuildContext context, _NominatimPlace? result) {
+    // Cancel any pending debounce timer on any dismissal path (back gesture,
+    // system back, or programmatic close) to prevent dangling async callbacks.
+    _debounce?.cancel();
+    super.close(context, result);
+  }
+
+  @override
   List<Widget> buildActions(BuildContext context) {
     return [
       if (query.isNotEmpty)
@@ -874,7 +869,7 @@ class _LocationSearchDelegate extends SearchDelegate<_NominatimPlace?> {
 
         if (_isLoading) {
           return Center(
-            child: LoadingAnimationWidget.stretchedDots(
+            child: LoadingAnimationWidget.waveDots(
               color: AppColors.primary,
               size: 50,
             ),
@@ -1025,7 +1020,7 @@ class _SearchEmptyHint extends StatelessWidget {
 
 /// Mensaje genérico de estado (sin resultados / error de red).
 class _SearchStatusMessage extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String title;
   final String subtitle;
   final SacColors c;

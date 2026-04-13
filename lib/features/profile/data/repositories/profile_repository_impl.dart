@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -18,20 +19,16 @@ class ProfileRepositoryImpl implements ProfileRepository {
   });
 
   @override
-  Future<Either<Failure, UserDetail>> getUserProfile(String userId) async {
-    if (await networkInfo.isConnected) {
-      try {
-        final userDetail = await remoteDataSource.getUserProfile(userId);
-        return Right(userDetail);
-      } on AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } on ServerException catch (e) {
-        return Left(ServerFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(UnexpectedFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+  Future<Either<Failure, UserDetail>> getUserProfile(String userId, {CancelToken? cancelToken}) async {
+    try {
+      final userDetail = await remoteDataSource.getUserProfile(userId, cancelToken: cancelToken);
+      return Right(userDetail);
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
     }
   }
 
@@ -40,19 +37,15 @@ class ProfileRepositoryImpl implements ProfileRepository {
     String userId,
     Map<String, dynamic> data,
   ) async {
-    if (await networkInfo.isConnected) {
-      try {
-        final userDetail = await remoteDataSource.updateUserProfile(userId, data);
-        return Right(userDetail);
-      } on AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } on ServerException catch (e) {
-        return Left(ServerFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(UnexpectedFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    try {
+      final userDetail = await remoteDataSource.updateUserProfile(userId, data);
+      return Right(userDetail);
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
     }
   }
 
@@ -61,19 +54,15 @@ class ProfileRepositoryImpl implements ProfileRepository {
     String userId,
     String filePath,
   ) async {
-    if (await networkInfo.isConnected) {
-      try {
-        final imageUrl = await remoteDataSource.updateProfilePicture(userId, filePath);
-        return Right(imageUrl);
-      } on AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } on ServerException catch (e) {
-        return Left(ServerFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(UnexpectedFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+    try {
+      final imageUrl = await remoteDataSource.updateProfilePicture(userId, filePath);
+      return Right(imageUrl);
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
     }
   }
 }

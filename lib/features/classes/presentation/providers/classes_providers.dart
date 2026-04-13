@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -18,6 +19,7 @@ import '../../domain/usecases/get_class_with_progress.dart';
 import '../../domain/usecases/submit_requirement.dart';
 import '../../domain/usecases/upload_requirement_file.dart';
 import '../../domain/usecases/delete_requirement_file.dart';
+import '../../domain/usecases/enroll_previous_class.dart';
 
 // ── Infrastructure providers ──────────────────────────────────────────────────
 
@@ -75,20 +77,30 @@ final deleteRequirementFileUseCaseProvider =
   return DeleteRequirementFile(ref.read(classesRepositoryProvider));
 });
 
+final enrollPreviousClassUseCaseProvider =
+    Provider<EnrollPreviousClass>((ref) {
+  return EnrollPreviousClass(ref.read(classesRepositoryProvider));
+});
+
 // ── Data providers ────────────────────────────────────────────────────────────
 
 /// Provider para las clases de un usuario.
 final userClassesProvider =
     FutureProvider.autoDispose<List<ProgressiveClass>>((ref) async {
-  final authState = ref.watch(authNotifierProvider);
-  final userId = authState.value?.id;
+  ref.keepAlive();
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
+  final userId = await ref.watch(
+    authNotifierProvider.selectAsync((user) => user?.id),
+  );
 
   if (userId == null) {
     throw Exception('Usuario no autenticado');
   }
 
   final getUserClasses = ref.read(getUserClassesProvider);
-  final result = await getUserClasses(GetUserClassesParams(userId: userId));
+  final result = await getUserClasses(GetUserClassesParams(userId: userId), cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -96,12 +108,41 @@ final userClassesProvider =
   );
 });
 
+/// Provider para listar clases del catálogo filtradas por tipo de club.
+///
+/// Usado cuando se necesita listar clases de un tipo específico.
+final classesByClubTypeProvider =
+    FutureProvider.autoDispose.family<List<ProgressiveClass>, int>(
+        (ref, clubTypeId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final dataSource = ref.read(classesRemoteDataSourceProvider);
+  final models = await dataSource.getClasses(clubTypeId: clubTypeId, cancelToken: cancelToken);
+  return models.map((m) => m.toEntity()).toList();
+});
+
+/// Provider para listar TODAS las clases del catálogo sin filtro por tipo de club.
+///
+/// Usado en [EnrollPreviousClassSheet] para mostrar todas las clases disponibles
+/// del sistema (Aventureros, Conquistadores, Guías Mayores) ya que el usuario
+/// puede haber completado clases de cualquier categoría en el pasado.
+final allClassesProvider =
+    FutureProvider.autoDispose<List<ProgressiveClass>>((ref) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final dataSource = ref.read(classesRemoteDataSourceProvider);
+  final models = await dataSource.getClasses(cancelToken: cancelToken);
+  return models.map((m) => m.toEntity()).toList();
+});
+
 /// Provider para el detalle de una clase especifica.
 final classDetailProvider =
     FutureProvider.autoDispose.family<ProgressiveClass, int>(
         (ref, classId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final getClassDetail = ref.read(getClassDetailProvider);
-  final result = await getClassDetail(GetClassDetailParams(classId: classId));
+  final result = await getClassDetail(GetClassDetailParams(classId: classId), cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -113,9 +154,11 @@ final classDetailProvider =
 final classModulesProvider =
     FutureProvider.autoDispose.family<List<ClassModule>, int>(
         (ref, classId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final getClassModules = ref.read(getClassModulesProvider);
   final result =
-      await getClassModules(GetClassModulesParams(classId: classId));
+      await getClassModules(GetClassModulesParams(classId: classId), cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -128,8 +171,12 @@ final classModulesProvider =
 /// autoDispose para liberar memoria al salir de la pantalla.
 final classWithProgressProvider = FutureProvider.autoDispose
     .family<ClassWithProgress, int>((ref, classId) async {
-  final authState = ref.watch(authNotifierProvider);
-  final userId = authState.value?.id;
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
+  final userId = await ref.watch(
+    authNotifierProvider.selectAsync((user) => user?.id),
+  );
 
   if (userId == null) {
     throw Exception('Usuario no autenticado');
@@ -138,6 +185,7 @@ final classWithProgressProvider = FutureProvider.autoDispose
   final useCase = ref.read(getClassWithProgressUseCaseProvider);
   final result = await useCase(
     GetClassWithProgressParams(userId: userId, classId: classId),
+    cancelToken: cancelToken,
   );
 
   return result.fold(
@@ -205,6 +253,14 @@ class RequirementNotifier
 
     return result.fold(
       (failure) {
+        // If the section was already validated (e.g. admin validated it
+        // while the user was uploading), treat as success — the desired
+        // end-state was already reached.
+        if (failure.message.contains("already in status 'VALIDATED'")) {
+          state = state.copyWith(isLoading: false, success: true);
+          ref.invalidate(classWithProgressProvider(_classId));
+          return true;
+        }
         state = state.copyWith(
           isLoading: false,
           errorMessage: failure.message,
@@ -222,10 +278,15 @@ class RequirementNotifier
   /// Sube un archivo de evidencia al requerimiento indicado.
   ///
   /// [pickedFile] proviene de [ImagePicker] o [FilePicker].
+  /// [onProgress] callback opcional que recibe la fracción de progreso (0.0 – 1.0).
+  /// [skipInvalidation] si es `true`, omite el invalidate de [classWithProgressProvider]
+  /// tras la subida (útil en subidas por lote para evitar refrescos por archivo).
   Future<bool> uploadFile({
     required int requirementId,
     required XFile pickedFile,
     required String mimeType,
+    void Function(double)? onProgress,
+    bool skipInvalidation = false,
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
@@ -237,6 +298,7 @@ class RequirementNotifier
         filePath: pickedFile.path,
         fileName: pickedFile.name,
         mimeType: mimeType,
+        onProgress: onProgress,
       ),
     );
 
@@ -250,7 +312,9 @@ class RequirementNotifier
       },
       (_) {
         state = state.copyWith(isLoading: false, success: true);
-        ref.invalidate(classWithProgressProvider(_classId));
+        if (!skipInvalidation) {
+          ref.invalidate(classWithProgressProvider(_classId));
+        }
         return true;
       },
     );
@@ -304,7 +368,9 @@ final requirementNotifierProvider = NotifierProvider.autoDispose
 // ── Class progress notifier (legacy) ──────────────────────────────────────────
 
 /// Notifier para manejar actualizaciones de progreso
-class ClassProgressNotifier extends AsyncNotifier<ClassProgress?> {
+// Legacy: superseded by RequirementNotifier for new flows. Kept for
+// section_detail_view and class_modules_view which still use this directly.
+class ClassProgressNotifier extends AutoDisposeAsyncNotifier<ClassProgress?> {
   @override
   Future<ClassProgress?> build() async => null;
 
@@ -333,6 +399,6 @@ class ClassProgressNotifier extends AsyncNotifier<ClassProgress?> {
 
 /// Provider para el notifier de progreso de clase
 final classProgressNotifierProvider =
-    AsyncNotifierProvider<ClassProgressNotifier, ClassProgress?>(() {
+    AsyncNotifierProvider.autoDispose<ClassProgressNotifier, ClassProgress?>(() {
   return ClassProgressNotifier();
 });

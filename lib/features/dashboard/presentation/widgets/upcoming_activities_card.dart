@@ -102,16 +102,17 @@ class _ActivityRow extends StatelessWidget {
   });
 
   String _formatTime(DateTime date) {
-    return DateFormat('HH:mm').format(date);
+    return DateFormat('HH:mm').format(date.toLocal());
   }
 
   String _formatRelativeDate(DateTime date) {
+    final local = date.toLocal();
     final now = DateTime.now();
-    final diff = date.difference(now);
+    final diff = local.difference(now);
     if (diff.inDays == 0) return 'Hoy';
     if (diff.inDays == 1) return 'Mañana';
-    if (diff.inDays < 7) return DateFormat('EEEE', 'es').format(date);
-    return DateFormat('dd MMM', 'es').format(date);
+    if (diff.inDays < 7) return DateFormat('EEEE', 'es').format(local);
+    return DateFormat('dd MMM', 'es').format(local);
   }
 
   @override
@@ -133,7 +134,7 @@ class _ActivityRow extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      DateFormat('dd').format(activity.date),
+                      DateFormat('dd').format(activity.date.toLocal()),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -143,7 +144,7 @@ class _ActivityRow extends StatelessWidget {
                     ),
                     Text(
                       DateFormat('MMM', 'es')
-                          .format(activity.date)
+                          .format(activity.date.toLocal())
                           .toUpperCase(),
                       style: TextStyle(
                         fontSize: 10,

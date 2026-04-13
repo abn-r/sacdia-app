@@ -78,7 +78,7 @@ class JoinRequestCard extends StatelessWidget {
                               const SizedBox(width: 4),
                               Text(
                                 DateFormat('dd MMM yyyy')
-                                    .format(request.requestedAt!),
+                                    .format(request.requestedAt!.toLocal()),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: c.textSecondary,

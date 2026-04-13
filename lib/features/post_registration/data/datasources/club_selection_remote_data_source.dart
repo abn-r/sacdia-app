@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/country_model.dart';
@@ -12,18 +11,17 @@ import '../models/class_model.dart';
 
 /// Interfaz para la fuente de datos remota de selección de club
 abstract class ClubSelectionRemoteDataSource {
-  Future<List<CountryModel>> getCountries();
-  Future<List<UnionModel>> getUnionsByCountry(int countryId);
-  Future<List<LocalFieldModel>> getLocalFieldsByUnion(int unionId);
-  Future<List<ClubModel>> getClubsByLocalField(int localFieldId);
-  Future<List<ClubSectionModel>> getClubSections(int clubId);
-  Future<List<ClassModel>> getClassesByClubType(int clubTypeId);
+  Future<List<CountryModel>> getCountries({CancelToken? cancelToken});
+  Future<List<UnionModel>> getUnionsByCountry(int countryId, {CancelToken? cancelToken});
+  Future<List<LocalFieldModel>> getLocalFieldsByUnion(int unionId, {CancelToken? cancelToken});
+  Future<List<ClubModel>> getClubsByLocalField(int localFieldId, {CancelToken? cancelToken});
+  Future<List<ClubSectionModel>> getClubSections(int clubId, {CancelToken? cancelToken});
+  Future<List<ClassModel>> getClassesByClubType(int clubTypeId, {CancelToken? cancelToken});
   Future<void> completeStep3({
     required String userId,
     required int countryId,
     required int unionId,
     required int localFieldId,
-    required String clubTypeSlug,
     required int clubSectionId,
     required int classId,
   });
@@ -34,7 +32,6 @@ class ClubSelectionRemoteDataSourceImpl
     implements ClubSelectionRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'ClubSelectionDS';
 
@@ -42,24 +39,14 @@ class ClubSelectionRemoteDataSourceImpl
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<Options> _authOptions() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) {
-      throw AuthException(message: 'No hay sesión activa');
-    }
-    return Options(headers: {'Authorization': 'Bearer $token'});
-  }
+        _baseUrl = baseUrl;
 
   @override
-  Future<List<CountryModel>> getCountries() async {
+  Future<List<CountryModel>> getCountries({CancelToken? cancelToken}) async {
     try {
-      final options = await _authOptions();
       final response = await _dio.get(
-        '$_baseUrl/catalogs/countries',
-        options: options,
+        '$_baseUrl${ApiEndpoints.catalogs}/countries',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -71,6 +58,7 @@ class ClubSelectionRemoteDataSourceImpl
     } catch (e) {
       AppLogger.e('Error en getCountries', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(message: e.message ?? 'Error de conexión');
       }
       if (e is AppException) rethrow;
@@ -79,12 +67,14 @@ class ClubSelectionRemoteDataSourceImpl
   }
 
   @override
-  Future<List<UnionModel>> getUnionsByCountry(int countryId) async {
+  Future<List<UnionModel>> getUnionsByCountry(
+    int countryId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final options = await _authOptions();
       final response = await _dio.get(
-        '$_baseUrl/catalogs/unions?countryId=$countryId',
-        options: options,
+        '$_baseUrl${ApiEndpoints.catalogs}/unions?countryId=$countryId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -96,6 +86,7 @@ class ClubSelectionRemoteDataSourceImpl
     } catch (e) {
       AppLogger.e('Error en getUnionsByCountry', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(message: e.message ?? 'Error de conexión');
       }
       if (e is AppException) rethrow;
@@ -104,12 +95,14 @@ class ClubSelectionRemoteDataSourceImpl
   }
 
   @override
-  Future<List<LocalFieldModel>> getLocalFieldsByUnion(int unionId) async {
+  Future<List<LocalFieldModel>> getLocalFieldsByUnion(
+    int unionId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final options = await _authOptions();
       final response = await _dio.get(
-        '$_baseUrl/catalogs/local-fields?unionId=$unionId',
-        options: options,
+        '$_baseUrl${ApiEndpoints.catalogs}/local-fields?unionId=$unionId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -121,6 +114,7 @@ class ClubSelectionRemoteDataSourceImpl
     } catch (e) {
       AppLogger.e('Error en getLocalFieldsByUnion', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(message: e.message ?? 'Error de conexión');
       }
       if (e is AppException) rethrow;
@@ -129,13 +123,15 @@ class ClubSelectionRemoteDataSourceImpl
   }
 
   @override
-  Future<List<ClubModel>> getClubsByLocalField(int localFieldId) async {
+  Future<List<ClubModel>> getClubsByLocalField(
+    int localFieldId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final options = await _authOptions();
       final response = await _dio.get(
-        '$_baseUrl/clubs',
+        '$_baseUrl${ApiEndpoints.clubs}',
         queryParameters: {'localFieldId': localFieldId},
-        options: options,
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -148,6 +144,7 @@ class ClubSelectionRemoteDataSourceImpl
     } catch (e) {
       AppLogger.e('Error en getClubsByLocalField', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(message: e.message ?? 'Error de conexión');
       }
       if (e is AppException) rethrow;
@@ -156,12 +153,14 @@ class ClubSelectionRemoteDataSourceImpl
   }
 
   @override
-  Future<List<ClubSectionModel>> getClubSections(int clubId) async {
+  Future<List<ClubSectionModel>> getClubSections(
+    int clubId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final options = await _authOptions();
       final response = await _dio.get(
-        '$_baseUrl/clubs/$clubId/sections',
-        options: options,
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -187,6 +186,7 @@ class ClubSelectionRemoteDataSourceImpl
     } catch (e) {
       AppLogger.e('Error en getClubSections', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(message: e.message ?? 'Error de conexión');
       }
       if (e is AppException) rethrow;
@@ -195,13 +195,15 @@ class ClubSelectionRemoteDataSourceImpl
   }
 
   @override
-  Future<List<ClassModel>> getClassesByClubType(int clubTypeId) async {
+  Future<List<ClassModel>> getClassesByClubType(
+    int clubTypeId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final options = await _authOptions();
       final response = await _dio.get(
-        '$_baseUrl/classes',
+        '$_baseUrl${ApiEndpoints.classes}',
         queryParameters: {'clubTypeId': clubTypeId},
-        options: options,
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -214,6 +216,7 @@ class ClubSelectionRemoteDataSourceImpl
     } catch (e) {
       AppLogger.e('Error en getClassesByClubType', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(message: e.message ?? 'Error de conexión');
       }
       if (e is AppException) rethrow;
@@ -227,23 +230,19 @@ class ClubSelectionRemoteDataSourceImpl
     required int countryId,
     required int unionId,
     required int localFieldId,
-    required String clubTypeSlug,
     required int clubSectionId,
     required int classId,
   }) async {
     try {
-      final options = await _authOptions();
       final response = await _dio.post(
-        '$_baseUrl/users/$userId/post-registration/step-3/complete',
+        '$_baseUrl${ApiEndpoints.users}/$userId/post-registration/step-3/complete',
         data: {
           'country_id': countryId,
           'union_id': unionId,
           'local_field_id': localFieldId,
-          'club_type': clubTypeSlug,
           'club_section_id': clubSectionId,
           'class_id': classId,
         },
-        options: options,
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {

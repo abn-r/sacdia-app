@@ -26,6 +26,12 @@ class ClubMember extends Equatable {
   /// ID de la sección de club a la que pertenece
   final int? clubSectionId;
 
+  /// Campos adicionales del detalle completo (GET /users/:id)
+  final String? blood;
+  final String? address;
+  final bool? baptism;
+  final DateTime? baptismDate;
+
   const ClubMember({
     required this.userId,
     required this.name,
@@ -42,6 +48,10 @@ class ClubMember extends Equatable {
     this.currentClassId,
     this.isEnrolled = true,
     this.clubSectionId,
+    this.blood,
+    this.address,
+    this.baptism,
+    this.baptismDate,
   });
 
   /// Nombre completo del miembro
@@ -78,5 +88,9 @@ class ClubMember extends Equatable {
         currentClassId,
         isEnrolled,
         clubSectionId,
+        blood,
+        address,
+        baptism,
+        baptismDate,
       ];
 }

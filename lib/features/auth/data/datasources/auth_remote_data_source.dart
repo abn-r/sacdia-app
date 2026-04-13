@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/constants/api_endpoints.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/storage/secure_storage.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/user_model.dart';
 
@@ -37,7 +40,8 @@ abstract class AuthRemoteDataSource {
   Future<void> resetPassword(String email);
 
   /// Actualiza la contraseña del usuario
-  Future<UserModel> updatePassword(String newPassword);
+  Future<UserModel> updatePassword(
+      String currentPassword, String newPassword);
 
   /// Inicia sesión con Google OAuth
   Future<UserModel> signInWithGoogle();
@@ -54,6 +58,15 @@ abstract class AuthRemoteDataSource {
   /// Cambia el contexto activo de autorización del usuario.
   /// Llama a PATCH /auth/me/context con el assignment_id indicado.
   Future<void> switchContext(String assignmentId);
+
+  /// Procesa el callback OAuth enviando el session token opaco de Better Auth
+  /// al backend, que devuelve el JWT HS256 interno de SACDIA.
+  ///
+  /// Llama a `POST /auth/oauth/callback` con `{ session_token, provider }`.
+  Future<UserModel> handleOAuthCallback({
+    required String sessionToken,
+    required String provider,
+  });
 }
 
 /// Implementación de la fuente de datos remota con Dio para API personalizada
@@ -61,7 +74,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
   final StreamController<bool> _authStateController;
-  final FlutterSecureStorage _secureStorage;
+  final SecureStorage _secureStorage;
 
   static const _tag = 'AuthDS';
   bool _attemptedContextAutoActivation = false;
@@ -69,10 +82,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   AuthRemoteDataSourceImpl({
     required Dio dio,
     required String baseUrl,
+    required SecureStorage secureStorage,
   })  : _dio = dio,
         _baseUrl = baseUrl,
-        _authStateController = StreamController<bool>.broadcast(),
-        _secureStorage = const FlutterSecureStorage() {
+        _secureStorage = secureStorage,
+        _authStateController = StreamController<bool>.broadcast() {
     _checkInitialAuthState();
   }
 
@@ -82,7 +96,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   /// stream authStateChanges con un valor inicial sin generar tráfico HTTP.
   Future<void> _checkInitialAuthState() async {
     try {
-      final token = await _secureStorage.read(key: 'auth_token');
+      final token = await _secureStorage.read(AppConstants.tokenKey);
       _authStateController.add(token != null);
     } catch (e) {
       AppLogger.w('Error al leer token local en estado inicial',
@@ -97,26 +111,24 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     int? expiresAt,
     String? tokenType,
   }) async {
-    await _secureStorage.write(key: 'auth_token', value: token);
+    await _secureStorage.write(AppConstants.tokenKey, token);
     if (refreshToken != null) {
-      await _secureStorage.write(
-          key: 'auth_refresh_token', value: refreshToken);
+      await _secureStorage.write(AppConstants.refreshTokenKey, refreshToken);
     }
     if (expiresAt != null) {
-      await _secureStorage.write(
-          key: 'auth_expires_at', value: expiresAt.toString());
+      await _secureStorage.write(AppConstants.expiresAtKey, expiresAt.toString());
     }
     if (tokenType != null) {
-      await _secureStorage.write(key: 'auth_token_type', value: tokenType);
+      await _secureStorage.write(AppConstants.tokenTypeKey, tokenType);
     }
     _authStateController.add(true);
   }
 
   Future<void> _clearToken() async {
-    await _secureStorage.delete(key: 'auth_token');
-    await _secureStorage.delete(key: 'auth_refresh_token');
-    await _secureStorage.delete(key: 'auth_expires_at');
-    await _secureStorage.delete(key: 'auth_token_type');
+    await _secureStorage.delete(AppConstants.tokenKey);
+    await _secureStorage.delete(AppConstants.refreshTokenKey);
+    await _secureStorage.delete(AppConstants.expiresAtKey);
+    await _secureStorage.delete(AppConstants.tokenTypeKey);
     _authStateController.add(false);
   }
 
@@ -133,8 +145,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   Future<void> _persistCompletionCache(bool value) async {
     await _secureStorage.write(
-      key: 'cached_post_register_complete',
-      value: value.toString(),
+      'cached_post_register_complete',
+      value.toString(),
     );
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('cached_post_register_complete', value);
@@ -147,7 +159,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return sharedValue;
     }
     final secureValue = await _secureStorage.read(
-      key: 'cached_post_register_complete',
+      'cached_post_register_complete',
     );
     return _parseBool(secureValue) ?? false;
   }
@@ -155,7 +167,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<bool?> _fetchCompletionStatus(String token) async {
     try {
       final response = await _dio.get(
-        '$_baseUrl/auth/profile/completion-status',
+        '$_baseUrl${ApiEndpoints.auth}/profile/completion-status',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
@@ -190,7 +202,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   ) async {
     try {
       final response = await _dio.patch(
-        '$_baseUrl/auth/me/context',
+        '$_baseUrl${ApiEndpoints.auth}/me/context',
         data: {'assignment_id': assignmentId},
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
@@ -212,11 +224,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<UserModel?> getCurrentUser() async {
     try {
-      final token = await _secureStorage.read(key: 'auth_token');
+      final token = await _secureStorage.read(AppConstants.tokenKey);
       if (token == null) return null;
 
       final response = await _dio.get(
-        '$_baseUrl/auth/me',
+        '$_baseUrl${ApiEndpoints.auth}/me',
         options: Options(headers: {
           'Authorization': 'Bearer $token',
         }),
@@ -277,26 +289,30 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           postRegisterComplete: postRegisterComplete,
         );
 
-        if (user.authorization?.hasCanonicalPermissions ?? false) {
-          AppLogger.i('rbac_canonical_used', tag: _tag);
-        } else if ((user.metadata?['permissions']) is List ||
-            (user.metadata?['roles']) is List) {
-          AppLogger.w('rbac_legacy_fallback_used', tag: _tag);
-        }
-
         final hasActiveAssignment =
             (user.authorization?.activeAssignmentId?.trim().isNotEmpty ??
                 false);
 
         String? fallbackAssignmentId;
         if (!hasActiveAssignment) {
+          // Prefer an assignment with status 'active' (or null = legacy active).
+          // Skip pending/rejected/expired assignments for auto-activation.
           for (final grant in user.authorization?.clubAssignments ?? const []) {
             final candidate = grant.assignmentId?.trim();
-            if (candidate != null && candidate.isNotEmpty) {
+            if (candidate != null && candidate.isNotEmpty && grant.isActive) {
               fallbackAssignmentId = candidate;
               break;
             }
           }
+          // If no active-status assignment found, fall back to the first available.
+          fallbackAssignmentId ??= (() {
+            for (final grant
+                in user.authorization?.clubAssignments ?? const []) {
+              final candidate = grant.assignmentId?.trim();
+              if (candidate != null && candidate.isNotEmpty) return candidate;
+            }
+            return null;
+          })();
         }
 
         if (!_attemptedContextAutoActivation &&
@@ -342,9 +358,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String password,
   }) async {
     try {
-      AppLogger.i('Login: $email', tag: _tag);
+      AppLogger.i('Login iniciado', tag: _tag);
 
-      final response = await _dio.post('$_baseUrl/auth/login', data: {
+      final response = await _dio.post('$_baseUrl${ApiEndpoints.auth}/login', data: {
         'email': email,
         'password': password,
       });
@@ -383,17 +399,24 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final needsPostRegistration =
           responseData['needsPostRegistration'] as bool? ?? true;
 
-      AppLogger.i('Login exitoso: $email', tag: _tag);
+      AppLogger.i('Login exitoso', tag: _tag);
       return UserModel(
         id: userId,
         email: userData?['email'] as String? ?? email,
         name: userData?['name'] as String? ?? '',
+        avatar: userData?['image'] as String? ?? userData?['avatar'] as String?,
         postRegisterComplete: !needsPostRegistration,
       );
     } catch (e) {
       AppLogger.e('Error en login', tag: _tag, error: e);
       if (e is DioException) {
-        throw AuthException(message: e.message ?? 'Error de conexión');
+        // Leer el mensaje desde el body del servidor cuando está disponible.
+        // e.message solo contiene metadatos HTTP ("Http status error [401]"),
+        // no el payload — el API message vive en e.response.data['message'].
+        final serverMessage = e.response?.data is Map
+            ? e.response!.data['message'] as String?
+            : null;
+        throw AuthException(message: serverMessage ?? 'Error de conexión');
       }
       if (e is AuthException) rethrow;
       throw AuthException(message: e.toString());
@@ -409,9 +432,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String maternalSurname,
   }) async {
     try {
-      AppLogger.i('Registro: $email', tag: _tag);
+      AppLogger.i('Registro iniciado', tag: _tag);
 
-      final response = await _dio.post('$_baseUrl/auth/register', data: {
+      final response = await _dio.post('$_baseUrl${ApiEndpoints.auth}/register', data: {
         'email': email,
         'password': password,
         'name': name,
@@ -425,11 +448,29 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
 
-      final userData = response.data['user'] as Map<String, dynamic>?;
-      final userId = userData?['id'] as String?;
+      // Backend returns { success: true, userId: "uuid", message: "..." }
+      // OR { data: { user: {...}, accessToken, refreshToken } } depending on endpoint version
+      final responseBody = response.data as Map<String, dynamic>;
+      final userData = responseBody['user'] as Map<String, dynamic>?;
+      final userId = userData?['id'] as String?
+          ?? responseBody['userId'] as String?
+          ?? (responseBody['data'] as Map<String, dynamic>?)?['user']?['id'] as String?;
 
       if (userId == null) {
         throw AuthException(message: 'No se recibió ID de usuario');
+      }
+
+      // If the response includes tokens (auto-login after register), persist them
+      final data = responseBody['data'] as Map<String, dynamic>?;
+      final accessToken = data?['accessToken'] as String?;
+      final refreshToken = data?['refreshToken'] as String?;
+      if (accessToken != null && accessToken.isNotEmpty) {
+        await _saveToken(
+          accessToken,
+          refreshToken: refreshToken,
+          expiresAt: data?['expiresAt'] as int?,
+          tokenType: data?['tokenType'] as String?,
+        );
       }
 
       AppLogger.i('Usuario registrado: $userId', tag: _tag);
@@ -456,8 +497,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     AppLogger.i('Cerrando sesión', tag: _tag);
 
     // Read tokens before clearing — needed to notify the server.
-    final token = await _secureStorage.read(key: 'auth_token');
-    final refreshToken = await _secureStorage.read(key: 'auth_refresh_token');
+    final token = await _secureStorage.read(AppConstants.tokenKey);
+    final refreshToken = await _secureStorage.read(AppConstants.refreshTokenKey);
 
     // Always clear local state first, regardless of network outcome.
     await _clearToken();
@@ -477,7 +518,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       await _dio.post(
-        '$_baseUrl/auth/logout',
+        '$_baseUrl${ApiEndpoints.auth}/logout',
         data: body.isNotEmpty ? body : null,
         options: Options(
           headers: headers.isNotEmpty ? headers : null,
@@ -496,10 +537,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> resetPassword(String email) async {
     try {
-      AppLogger.i('Recuperación de contraseña: $email', tag: _tag);
+      AppLogger.i('Recuperación de contraseña solicitada', tag: _tag);
 
       final response = await _dio.post(
-        '$_baseUrl/auth/request-password-reset',
+        '$_baseUrl${ApiEndpoints.auth}/request-password-reset',
         data: {'email': email},
       );
 
@@ -519,30 +560,34 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<UserModel> updatePassword(String newPassword) async {
+  Future<UserModel> updatePassword(
+      String currentPassword, String newPassword) async {
     try {
-      final token = await _secureStorage.read(key: 'auth_token');
+      final token = await _secureStorage.read(AppConstants.tokenKey);
       if (token == null) {
         throw AuthException(message: 'No hay sesión activa');
       }
 
-      _dio.options.headers['Authorization'] = 'Bearer $token';
-
-      await _dio.post('$_baseUrl/auth/update-password', data: {
-        'password': newPassword,
-      });
-
-      return UserModel(
-        id: 'current-user-id',
-        email: 'usuario@ejemplo.com',
-        name: 'Usuario Actual',
-        postRegisterComplete: true,
+      await _dio.post(
+        '$_baseUrl${ApiEndpoints.auth}/update-password',
+        data: {
+          'currentPassword': currentPassword,
+          'password': newPassword,
+        },
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
+
+      final user = await getCurrentUser();
+      if (user == null) {
+        throw AuthException(message: 'No se pudo obtener el usuario actualizado');
+      }
+      return user;
     } catch (e) {
       if (e is DioException) {
         throw AuthException(
             message: e.message ?? 'Error al actualizar contraseña');
       }
+      if (e is AuthException) rethrow;
       throw AuthException(message: e.toString());
     }
   }
@@ -551,52 +596,222 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      final keysToRemove = [
+      // Clear known auth keys from secure storage explicitly.
+      const secureKeys = [
+        AppConstants.tokenKey,
+        AppConstants.refreshTokenKey,
+        AppConstants.expiresAtKey,
+        AppConstants.tokenTypeKey,
+        'cached_post_register_complete',
+        AppConstants.cachedUserId,
+        AppConstants.cachedUserEmail,
+        AppConstants.cachedUserName,
+        AppConstants.cachedUserAvatar,
+        AppConstants.cachedActiveAssignmentId,
+        AppConstants.cachedActiveRoleName,
+        AppConstants.cachedActiveClubName,
+        AppConstants.cachedActiveClubType,
+      ];
+      for (final key in secureKeys) {
+        await _secureStorage.delete(key);
+      }
+
+      // Clear known auth keys from SharedPreferences explicitly.
+      const prefKeys = [
         'auth-token',
         'auth-refresh-token',
         'auth-type',
-        // Legacy snake_case keys — remove during migration window.
         'refresh_token',
+        'cached_post_register_complete',
       ];
-
-      for (final key in keysToRemove) {
+      for (final key in prefKeys) {
         await prefs.remove(key);
-      }
-
-      final allKeys = prefs.getKeys();
-      for (final key in allKeys) {
-        if (key.contains('auth')) {
-          await prefs.remove(key);
-        }
-      }
-
-      final secureKeys = await _secureStorage.readAll();
-      for (final entry in secureKeys.entries) {
-        if (entry.key.contains('auth')) {
-          await _secureStorage.delete(key: entry.key);
-        }
       }
     } catch (e) {
       AppLogger.e('Error al limpiar datos persistentes', tag: _tag, error: e);
     }
   }
 
+  // ── OAuth ─────────────────────────────────────────────────────────────────────
+  //
+  // Flujo OAuth con Better Auth / Option C:
+  //   1. App llama GET /auth/oauth/{provider} → backend devuelve redirect URL.
+  //   2. App abre la URL en el navegador del sistema via url_launcher.
+  //   3. Usuario autoriza → Better Auth redirige a io.sacdia.app://auth/callback
+  //      con `session_token` (BA opaque token) y `provider` como query params.
+  //   4. Router intercepta el deep link → llama a AuthNotifier.processOAuthDeepLink.
+  //   5. AuthNotifier llama a handleOAuthCallback → POST /auth/oauth/callback
+  //      → backend devuelve JWT HS256 de SACDIA.
+  //
+  // Prerequisitos de configuración (fuera de este archivo):
+  //   - ios/Runner/Info.plist: CFBundleURLSchemes → "io.sacdia.app"
+  //   - android/app/src/main/AndroidManifest.xml: intent-filter con scheme
+  //   - Better Auth config: redirectURLs incluye io.sacdia.app://auth/callback
+
   @override
   Future<UserModel> signInWithGoogle() async {
-    // TODO: Implementar cuando el backend OAuth esté listo
-    throw AuthException(message: 'OAuth con Google no disponible aún');
+    try {
+      AppLogger.i('Iniciando OAuth con Google', tag: _tag);
+
+      // 1. Obtener el redirect URL del backend
+      final response = await _dio.get('$_baseUrl${ApiEndpoints.auth}/oauth/google');
+      final redirectUrl = _extractOAuthUrl(response, 'Google');
+
+      // 2. Abrir en navegador del sistema
+      final launched = await launchUrl(
+        Uri.parse(redirectUrl),
+        mode: LaunchMode.platformDefault,
+      );
+
+      if (!launched) {
+        throw AuthException(
+          message: 'No se pudo abrir el navegador para autenticación con Google',
+        );
+      }
+
+      // El resultado llega de forma asíncrona a través del deep link.
+      throw OAuthFlowInitiatedException(provider: 'Google');
+    } on OAuthFlowInitiatedException {
+      rethrow;
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      AppLogger.e('Error iniciando OAuth Google', tag: _tag, error: e);
+      throw AuthException(
+        message: 'Error al iniciar sesión con Google. Intenta de nuevo.',
+      );
+    }
   }
 
   @override
   Future<UserModel> signInWithApple() async {
-    // TODO: Implementar cuando el backend OAuth esté listo
-    throw AuthException(message: 'OAuth con Apple no disponible aún');
+    try {
+      AppLogger.i('Iniciando OAuth con Apple', tag: _tag);
+
+      // 1. Obtener el redirect URL del backend
+      final response = await _dio.get('$_baseUrl${ApiEndpoints.auth}/oauth/apple');
+      final redirectUrl = _extractOAuthUrl(response, 'Apple');
+
+      // 2. Abrir en navegador del sistema
+      final launched = await launchUrl(
+        Uri.parse(redirectUrl),
+        mode: LaunchMode.platformDefault,
+      );
+
+      if (!launched) {
+        throw AuthException(
+          message: 'No se pudo abrir el navegador para autenticación con Apple',
+        );
+      }
+
+      throw OAuthFlowInitiatedException(provider: 'Apple');
+    } on OAuthFlowInitiatedException {
+      rethrow;
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      AppLogger.e('Error iniciando OAuth Apple', tag: _tag, error: e);
+      throw AuthException(
+        message: 'Error al iniciar sesión con Apple. Intenta de nuevo.',
+      );
+    }
+  }
+
+  /// Extrae el redirect URL del response del endpoint GET /auth/oauth/{provider}.
+  String _extractOAuthUrl(dynamic response, String provider) {
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw AuthException(
+        message: response.data?['message'] ?? 'Error al obtener URL de $provider',
+      );
+    }
+    final data = response.data;
+    final url = (data is Map<String, dynamic>)
+        ? (data['url'] as String? ?? data['data']?['url'] as String?)
+        : null;
+    if (url == null || url.isEmpty) {
+      throw AuthException(message: 'Backend no devolvió URL para OAuth de $provider');
+    }
+    return url;
+  }
+
+  // ── OAuth Callback ────────────────────────────────────────────────────────────
+  //
+  // Llamado desde AuthNotifier.processOAuthDeepLink cuando el router intercepta
+  // io.sacdia.app://auth/callback?session_token=...&provider=...
+  //
+  // El backend recibe el session_token opaco de Better Auth, lo valida,
+  // y devuelve el JWT HS256 interno de SACDIA.
+
+  @override
+  Future<UserModel> handleOAuthCallback({
+    required String sessionToken,
+    required String provider,
+  }) async {
+    try {
+      AppLogger.i('Procesando OAuth callback con backend SACDIA', tag: _tag);
+
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.auth}/oauth/callback',
+        data: {
+          'session_token': sessionToken,
+          'provider': provider,
+        },
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw AuthException(
+          message: response.data?['message'] ?? 'Error en OAuth callback',
+        );
+      }
+
+      final responseData = response.data['data'] as Map<String, dynamic>?;
+      if (responseData == null) {
+        throw AuthException(message: 'Respuesta del servidor inválida');
+      }
+
+      final token = responseData['accessToken'] as String?;
+      if (token == null) {
+        throw AuthException(message: 'No se recibió token de autenticación');
+      }
+
+      await _saveToken(
+        token,
+        refreshToken: responseData['refreshToken'] as String?,
+        expiresAt: responseData['expiresAt'] as int?,
+        tokenType: responseData['tokenType'] as String?,
+      );
+
+      final userData = responseData['user'] as Map<String, dynamic>?;
+      final userId = userData?['id'] as String?;
+      if (userId == null) {
+        throw AuthException(message: 'No se recibió ID de usuario');
+      }
+
+      final needsPostRegistration =
+          responseData['needsPostRegistration'] as bool? ?? true;
+
+      AppLogger.i('OAuth callback procesado exitosamente', tag: _tag);
+      return UserModel(
+        id: userId,
+        email: userData?['email'] as String? ?? '',
+        name: userData?['name'] as String? ?? '',
+        avatar: userData?['image'] as String? ?? userData?['avatar'] as String?,
+        postRegisterComplete: !needsPostRegistration,
+      );
+    } catch (e) {
+      AppLogger.e('Error en OAuth callback', tag: _tag, error: e);
+      if (e is DioException) {
+        throw AuthException(message: e.message ?? 'Error de conexión');
+      }
+      if (e is AuthException) rethrow;
+      throw AuthException(message: e.toString());
+    }
   }
 
   @override
   Future<bool> hasLocalToken() async {
     try {
-      final token = await _secureStorage.read(key: 'auth_token');
+      final token = await _secureStorage.read(AppConstants.tokenKey);
       return token != null;
     } catch (e) {
       AppLogger.e('Error al verificar token local', tag: _tag, error: e);
@@ -606,13 +821,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<void> switchContext(String assignmentId) async {
-    final token = await _secureStorage.read(key: 'auth_token');
+    final token = await _secureStorage.read(AppConstants.tokenKey);
     if (token == null) {
       throw AuthException(message: 'No hay sesión activa');
     }
 
     final response = await _dio.patch(
-      '$_baseUrl/auth/me/context',
+      '$_baseUrl${ApiEndpoints.auth}/me/context',
       data: {'assignment_id': assignmentId},
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
@@ -627,20 +842,21 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<bool> getCompletionStatus() async {
     try {
-      final token = await _secureStorage.read(key: 'auth_token');
+      final token = await _secureStorage.read(AppConstants.tokenKey);
       if (token == null) {
         throw AuthException(message: 'No hay sesión activa');
       }
 
-      final response = await _dio.post(
-        '$_baseUrl/auth/pr-check',
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.auth}/profile/completion-status',
         options: Options(headers: {
           'Authorization': 'Bearer $token',
         }),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return response.data['complete'] as bool? ?? false;
+      if (response.statusCode == 200) {
+        final data = response.data['data'] as Map<String, dynamic>?;
+        return data?['complete'] as bool? ?? false;
       }
 
       return false;

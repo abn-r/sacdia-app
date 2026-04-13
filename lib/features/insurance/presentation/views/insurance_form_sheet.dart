@@ -299,7 +299,8 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     // Validate required dates
     if (_startDate == null) {

@@ -23,6 +23,30 @@ abstract class LocalStorage {
   Future<bool> clear();
   bool containsKey(String key);
   Set<String> getKeys();
+
+  // ── TTL helpers ────────────────────────────────────────────────────────────
+
+  /// Records the current timestamp for [key] so callers can later check
+  /// whether the cached data has expired via [isExpired].
+  ///
+  /// Call this alongside [saveMap] / [saveString] when writing data that
+  /// should have a time-to-live. Example:
+  /// ```dart
+  /// await storage.saveMap('user', userJson);
+  /// await storage.setCachedAt('user');
+  /// ```
+  Future<bool> setCachedAt(String key);
+
+  /// Returns the epoch-millisecond timestamp recorded by [setCachedAt], or
+  /// null if no timestamp was stored for [key].
+  int? getCachedAt(String key);
+
+  /// Returns true if the cached timestamp for [key] is older than [maxAge]
+  /// (default 24 hours), or if no timestamp exists for [key].
+  ///
+  /// Callers should treat a missing timestamp as expired so they always
+  /// re-fetch when the TTL capability was not previously set.
+  bool isExpired(String key, {Duration maxAge = const Duration(hours: 24)});
 }
 
 /// Implementación de LocalStorage con SharedPreferences
@@ -141,19 +165,46 @@ class SharedPreferencesStorage implements LocalStorage {
   Future<bool> remove(String key) async {
     return await _prefs.remove(key);
   }
-  
+
   @override
   Future<bool> clear() async {
     return await _prefs.clear();
   }
-  
+
   @override
   bool containsKey(String key) {
     return _prefs.containsKey(key);
   }
-  
+
   @override
   Set<String> getKeys() {
     return _prefs.getKeys();
+  }
+
+  // ── TTL helpers ────────────────────────────────────────────────────────────
+
+  /// Suffix appended to the original key to store the cached-at timestamp.
+  static const String _cachedAtSuffix = '_cached_at';
+
+  @override
+  Future<bool> setCachedAt(String key) async {
+    return await _prefs.setInt(
+      '$key$_cachedAtSuffix',
+      DateTime.now().millisecondsSinceEpoch,
+    );
+  }
+
+  @override
+  int? getCachedAt(String key) {
+    return _prefs.getInt('$key$_cachedAtSuffix');
+  }
+
+  @override
+  bool isExpired(String key, {Duration maxAge = const Duration(hours: 24)}) {
+    final cachedAt = getCachedAt(key);
+    if (cachedAt == null) return true;
+    final age = DateTime.now()
+        .difference(DateTime.fromMillisecondsSinceEpoch(cachedAt));
+    return age > maxAge;
   }
 }

@@ -1,12 +1,23 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../constants/app_constants.dart';
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/logger_interceptor.dart';
 import 'interceptors/error_interceptor.dart';
 
 /// Cliente HTTP configurado con DIO según los requisitos
+///
+/// SECURITY NOTE — TLS / Certificate Pinning:
+/// Full certificate pinning is not implemented because the backend runs on
+/// Render.com (shared hosting), where TLS certificates rotate automatically
+/// and are managed by the platform. Pinning to a specific certificate SHA-256
+/// would break the app on every certificate renewal.
+/// Mitigation: HTTPS is enforced via the defaultBaseUrl (no plain HTTP in
+/// production) and Dio will reject connections that fail standard TLS
+/// validation. Revisit certificate pinning if the backend moves to a
+/// dedicated host with a stable certificate or uses a public-key pin.
 class DioClient {
-  static Dio createDio() {
+  static Dio createDio({VoidCallback? onAuthExpired}) {
     final dio = Dio(BaseOptions(
       baseUrl: AppConstants.baseUrl,
       connectTimeout: Duration(seconds: AppConstants.connectTimeout),
@@ -23,11 +34,11 @@ class DioClient {
     // después de refrescar el token en caso de 401
     dio.interceptors.addAll([
       LoggerInterceptor(),
+      // AuthInterceptor ANTES de ErrorInterceptor: Dio procesa onError en
+      // orden forward (0→1→2→3), así AuthInterceptor intercepta el 401 y
+      // refresca el token antes de que ErrorInterceptor lance AuthException.
+      AuthInterceptor(dio: dio, onAuthExpired: onAuthExpired),
       ErrorInterceptor(),
-      // AuthInterceptor al final: en onError Dio procesa en orden inverso,
-      // por lo que este interceptor actúa PRIMERO ante un 401,
-      // intentando refresh antes de que ErrorInterceptor lance AuthException.
-      AuthInterceptor(dio: dio),
       // RetryInterceptor después de AuthInterceptor para que los reintentos
       // incluyan los headers de autenticación actualizados.
       RetryInterceptor(
@@ -96,12 +107,18 @@ class RetryInterceptor extends Interceptor {
   }
   
   bool _shouldRetry(DioException err) {
+    // Only retry idempotent HTTP methods. Retrying POST or PATCH risks
+    // duplicate writes (e.g. double-creating a record on a transient error).
+    final isIdempotent = ['GET', 'HEAD', 'DELETE', 'PUT']
+        .contains(err.requestOptions.method.toUpperCase());
+    if (!isIdempotent) return false;
+
     return err.type == DioExceptionType.connectionTimeout ||
            err.type == DioExceptionType.receiveTimeout ||
            err.type == DioExceptionType.sendTimeout ||
            err.type == DioExceptionType.connectionError ||
-           (err.response?.statusCode != null && 
-            err.response!.statusCode! >= 500 && 
+           (err.response?.statusCode != null &&
+            err.response!.statusCode! >= 500 &&
             err.response!.statusCode! < 600);
   }
 }

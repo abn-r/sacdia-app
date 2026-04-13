@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../constants/app_constants.dart';
@@ -10,6 +13,11 @@ import '../../utils/app_logger.dart';
 /// 3. Reintentar la petición original exactamente una vez tras un refresh exitoso.
 /// 4. Prevenir bucles infinitos de refresh/retry marcando la request con una
 ///    bandera en `extra`.
+///
+/// IMPORTANTE: los endpoints de autenticación pública (login, register, oauth,
+/// refresh) están excluidos del ciclo de refresh. Un 401 en esos paths
+/// significa credenciales incorrectas, no una sesión expirada, y debe
+/// propagarse tal cual para que la UI muestre el mensaje del servidor.
 class AuthInterceptor extends QueuedInterceptor {
   final FlutterSecureStorage _secureStorage;
 
@@ -23,12 +31,39 @@ class AuthInterceptor extends QueuedInterceptor {
   /// reintentada después de un refresh, evitando bucles infinitos.
   static const _retryAfterRefreshKey = 'auth_interceptor_retry_after_refresh';
 
+  /// Lock para evitar race condition cuando múltiples 401 llegan en paralelo.
+  /// El primer llamador inicia el refresh; los demás esperan su resultado.
+  /// Es `static` para cubrir el caso de múltiples instancias del interceptor.
+  static Completer<bool>? _refreshCompleter;
+
+  /// Paths que NO deben pasar por el ciclo de refresh reactivo.
+  ///
+  /// Un 401 en estos endpoints significa credenciales incorrectas o flujo
+  /// inválido — no una sesión expirada. Interceptarlos generaría un intento
+  /// de refresh sin sentido y tragaría el mensaje de error del servidor.
+  static const _publicAuthPaths = <String>[
+    '/auth/login',
+    '/auth/register',
+    '/auth/refresh',
+    '/auth/oauth',
+    '/auth/request-password-reset',
+    '/auth/reset-password',
+  ];
+
+  /// Called once when the refresh token is dead and the session cannot be
+  /// recovered. Use this to invalidate the auth state without making API calls.
+  final VoidCallback? onAuthExpired;
+
   AuthInterceptor({
     FlutterSecureStorage? secureStorage,
     /// La instancia principal de Dio (con interceptores). Se mantiene para
     /// reintentar la petición original después del refresh.
     Dio? dio,
-  })  : _secureStorage = secureStorage ?? const FlutterSecureStorage(),
+    this.onAuthExpired,
+  })  : _secureStorage = secureStorage ?? const FlutterSecureStorage(
+          aOptions: AndroidOptions(encryptedSharedPreferences: true),
+          iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device),
+        ),
         _refreshDio = _buildRefreshDio();
 
   static Dio _buildRefreshDio() {
@@ -76,6 +111,21 @@ class AuthInterceptor extends QueuedInterceptor {
       return handler.next(err);
     }
 
+    // Endpoints públicos de autenticación: un 401 aquí indica credenciales
+    // inválidas o flujo incorrecto — NO una sesión expirada. Dejar pasar el
+    // error intacto para que la capa de datos lea el mensaje del servidor.
+    final requestPath = err.requestOptions.path;
+    final isPublicAuthEndpoint = _publicAuthPaths.any(
+      (p) => requestPath.contains(p),
+    );
+    if (isPublicAuthEndpoint) {
+      AppLogger.d(
+        '401 en endpoint público ($requestPath), omitiendo refresh reactivo',
+        tag: _tag,
+      );
+      return handler.next(err);
+    }
+
     // Si esta petición ya fue reintentada, no entrar en bucle.
     final isRetry =
         err.requestOptions.extra[_retryAfterRefreshKey] == true;
@@ -84,6 +134,7 @@ class AuthInterceptor extends QueuedInterceptor {
           'Refresh/retry fallido en segundo intento, descartando sesión',
           tag: _tag);
       await _clearTokens();
+      onAuthExpired?.call();
       return handler.next(err);
     }
 
@@ -94,6 +145,7 @@ class AuthInterceptor extends QueuedInterceptor {
     if (!refreshed) {
       AppLogger.w('Refresh reactivo fallido, limpiando tokens', tag: _tag);
       await _clearTokens();
+      onAuthExpired?.call();
       return handler.next(err);
     }
 
@@ -122,7 +174,13 @@ class AuthInterceptor extends QueuedInterceptor {
       // y no genere un segundo ciclo de refresh.
       final retryDio = Dio(BaseOptions(
         baseUrl: AppConstants.baseUrl,
-        validateStatus: (s) => s != null,
+        connectTimeout: Duration(seconds: AppConstants.connectTimeout),
+        sendTimeout: Duration(seconds: AppConstants.sendTimeout),
+        receiveTimeout: Duration(seconds: AppConstants.receiveTimeout),
+        // Only treat 2xx as success so that 4xx/5xx responses on the retry
+        // are properly surfaced as DioExceptions instead of being silently
+        // swallowed by handler.resolve(response).
+        validateStatus: (s) => s != null && s >= 200 && s < 300,
       ));
 
       final response = await retryDio.request(
@@ -143,13 +201,30 @@ class AuthInterceptor extends QueuedInterceptor {
 
   /// Realiza el refresh usando el refresh token almacenado.
   /// Guarda los nuevos tokens si el servidor responde con éxito.
+  ///
+  /// Usa un [Completer] estático como lock: si un refresh ya está en curso,
+  /// los llamadores posteriores esperan su resultado en lugar de disparar
+  /// una segunda petición. Esto evita la race condition cuando múltiples
+  /// peticiones reciben 401 simultáneamente.
   Future<bool> _tryRefreshToken() async {
+    // Si ya hay un refresh en curso, esperar su resultado sin iniciar otro.
+    if (_refreshCompleter != null) {
+      AppLogger.d('Refresh ya en curso, esperando resultado…', tag: _tag);
+      return _refreshCompleter!.future.timeout(
+        const Duration(seconds: 30),
+        onTimeout: () => false,
+      );
+    }
+
+    _refreshCompleter = Completer<bool>();
+
     try {
       final refreshToken =
           await _secureStorage.read(key: AppConstants.refreshTokenKey);
 
       if (refreshToken == null || refreshToken.isEmpty) {
         AppLogger.w('Sin refresh token disponible', tag: _tag);
+        _refreshCompleter!.complete(false);
         return false;
       }
 
@@ -186,15 +261,22 @@ class AuthInterceptor extends QueuedInterceptor {
                 key: AppConstants.tokenTypeKey, value: newTokenType);
           }
           AppLogger.i('Token refrescado exitosamente (interceptor)', tag: _tag);
+          _refreshCompleter!.complete(true);
           return true;
         }
       }
 
       AppLogger.w('Refresh token falló: ${response.statusCode}', tag: _tag);
+      _refreshCompleter!.complete(false);
       return false;
     } catch (e) {
       AppLogger.e('Error en refresh token (interceptor)', tag: _tag, error: e);
+      _refreshCompleter!.complete(false);
       return false;
+    } finally {
+      // Siempre liberar el lock para que el próximo ciclo de refresh pueda
+      // iniciarse. Se ejecuta DESPUÉS de que complete() fue llamado.
+      _refreshCompleter = null;
     }
   }
 

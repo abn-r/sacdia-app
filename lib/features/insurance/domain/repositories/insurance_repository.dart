@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../entities/member_insurance.dart';
@@ -12,11 +13,13 @@ abstract class InsuranceRepository {
   Future<Either<Failure, List<MemberInsurance>>> getMembersInsurance({
     required int clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   });
 
   /// Obtiene el detalle del seguro de un miembro específico.
   Future<Either<Failure, MemberInsurance>> getMemberInsuranceDetail({
     required String memberId,
+    CancelToken? cancelToken,
   });
 
   /// Registra un nuevo seguro para un miembro.
@@ -46,4 +49,11 @@ abstract class InsuranceRepository {
     String? evidenceFileName,
     String? evidenceMimeType,
   });
+
+  /// Obtiene seguros que vencen en los próximos [days] días.
+  Future<Either<Failure, List<MemberInsurance>>> getExpiringInsurance({
+    required int days,
+    CancelToken? cancelToken,
+  });
+
 }

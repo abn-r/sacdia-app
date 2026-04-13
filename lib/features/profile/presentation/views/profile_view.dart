@@ -2,26 +2,35 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
+import 'package:go_router/go_router.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/app_logger.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
-import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
+import 'package:sacdia_app/features/post_registration/presentation/providers/post_registration_providers.dart';
 
+import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../auth/presentation/providers/logout_cleanup.dart';
+import '../../../validation/presentation/widgets/eligibility_banner.dart';
+import '../../domain/entities/user_detail.dart';
 import '../providers/profile_providers.dart';
 import '../widgets/class_status_circles.dart';
-import '../widgets/info_section.dart';
 import '../widgets/profile_classes_section.dart';
 import '../widgets/profile_honors_section.dart';
 import '../widgets/setting_tile.dart';
 import 'edit_profile_view.dart';
+import 'medical_info_view.dart';
 import 'settings_view.dart';
 
 // ─── Settings sheet helpers ──────────────────────────────────────────────────
@@ -102,6 +111,27 @@ class _SettingsSheet extends StatelessWidget {
                     color: c.borderLight,
                   ),
                   SettingTile(
+                    icon: HugeIcons.strokeRoundedFirstAidKit,
+                    title: 'Información Médica',
+                    subtitle: 'Alergias, enfermedades, medicamentos y contactos de emergencia',
+                    iconColor: AppColors.error,
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const MedicalInfoView(),
+                        ),
+                      );
+                    },
+                  ),
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    indent: 60,
+                    color: c.borderLight,
+                  ),
+                  SettingTile(
                     icon: HugeIcons.strokeRoundedSettings01,
                     title: 'Configuración',
                     subtitle: 'Tema, notificaciones y más',
@@ -146,7 +176,9 @@ class _SettingsSheet extends StatelessWidget {
                   );
 
                   if (shouldLogout == true) {
-                    await ref.read(authNotifierProvider.notifier).signOut();
+                    final success =
+                        await ref.read(authNotifierProvider.notifier).signOut();
+                    if (success) clearUserStateOnLogout(ref);
                   }
                 },
               ),
@@ -163,20 +195,134 @@ class _SettingsSheet extends StatelessWidget {
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 
-class ProfileView extends ConsumerWidget {
+class ProfileView extends ConsumerStatefulWidget {
   const ProfileView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileView> createState() => _ProfileViewState();
+}
+
+class _ProfileViewState extends ConsumerState<ProfileView> {
+  static const _tag = 'ProfileView';
+  bool _isUploadingPhoto = false;
+
+  Future<void> _changePhoto() async {
+    final user = ref.read(authNotifierProvider).valueOrNull;
+    if (user == null) return;
+
+    try {
+      final XFile? photo = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 70,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      );
+
+      if (photo == null) return;
+
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: photo.path,
+        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+        compressQuality: 70,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Recortar foto',
+            toolbarColor: AppColors.primary,
+            toolbarWidgetColor: Colors.white,
+            lockAspectRatio: true,
+            hideBottomControls: false,
+          ),
+          IOSUiSettings(
+            title: 'Recortar foto',
+            aspectRatioLockEnabled: true,
+            resetAspectRatioEnabled: false,
+          ),
+        ],
+      );
+
+      if (croppedFile == null) return;
+
+      setState(() => _isUploadingPhoto = true);
+
+      try {
+        final result = await ref
+            .read(postRegistrationRepositoryProvider)
+            .uploadProfilePicture(
+              userId: user.id,
+              filePath: croppedFile.path,
+            );
+
+        result.fold(
+          (failure) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('No se pudo subir la foto. Intentá de nuevo.'),
+                  backgroundColor: AppColors.error,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+            }
+          },
+          (_) {
+            if (mounted) {
+              ref.invalidate(profileNotifierProvider);
+              ref.invalidate(authNotifierProvider);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('Foto actualizada correctamente'),
+                  backgroundColor: AppColors.secondary,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+            }
+          },
+        );
+      } finally {
+        if (mounted) {
+          setState(() => _isUploadingPhoto = false);
+        }
+      }
+    } catch (e) {
+      AppLogger.e('Error al cambiar foto de perfil', tag: _tag, error: e);
+      if (mounted) {
+        setState(() => _isUploadingPhoto = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('No se pudo subir la foto. Intentá de nuevo.'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final profileState = ref.watch(profileNotifierProvider);
     final hPad = Responsive.horizontalPadding(context);
 
     final c = context.sac;
 
+    // Use cached data if available so the header shows immediately on re-visits.
+    final cachedProfile = profileState.valueOrNull;
+    final isFirstLoad = cachedProfile == null && profileState.isLoading;
+
     return Scaffold(
       backgroundColor: c.background,
       body: SafeArea(
         child: profileState.when(
+          skipLoadingOnReload: true,
           data: (profile) {
             if (profile == null) {
               return Center(
@@ -190,286 +336,45 @@ class ProfileView extends ConsumerWidget {
               );
             }
 
-            return RefreshIndicator(
-              color: AppColors.primary,
+            final authUser = ref.watch(
+              authNotifierProvider.select((v) => v.valueOrNull),
+            );
+
+            final activeRoleName =
+                authUser?.authorization?.activeGrant?.roleName;
+
+            return _ProfileScrollBody(
+              profile: profile,
+              authUser: authUser,
+              activeRoleName: activeRoleName,
+              isUploadingPhoto: _isUploadingPhoto,
+              hPad: hPad,
+              onChangePhoto: _isUploadingPhoto ? null : _changePhoto,
+              onSettings: () => _showSettingsSheet(context, ref),
               onRefresh: () async {
                 await ref.read(profileNotifierProvider.notifier).refresh();
                 ref.invalidate(userClassesProvider);
                 ref.invalidate(userHonorsProvider);
-                ref.invalidate(userHonorStatsProvider);
+                // userHonorStatsLocalProvider recomputes automatically when
+                // userHonorsProvider is invalidated.
               },
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // ── App bar row (Instagram style) ──────────────────
-                    Padding(
-                      padding: EdgeInsets.only(
-                        left: hPad,
-                        right: hPad / 2,
-                        top: 8,
-                        bottom: 4,
-                      ),
-                      child: Row(
-                        children: [
-                          const Spacer(),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              HugeIcon(
-                                icon: HugeIcons.strokeRoundedLockKey,
-                                color: c.text,
-                                size: 14,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Perfil de usuario',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  color: c.text,
-                                  letterSpacing: -0.2,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                          const Spacer(),
-                          IconButton(
-                            icon: HugeIcon(
-                              icon: HugeIcons.strokeRoundedMenu01,
-                              color: c.text,
-                              size: 24,
-                            ),
-                            onPressed: () => _showSettingsSheet(context, ref),
-                            tooltip: 'Ajustes',
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // ── 1. Header Card ────────────────────────────────────
-                    StaggeredListItem(
-                      index: 0,
-                      initialDelay: const Duration(milliseconds: 40),
-                      child: _ProfileHeaderCard(
-                        name: profile.fullName,
-                        avatar: profile.avatar,
-                        roles: profile.roles,
-                        clubName: profile.clubName,
-                        currentClass: profile.currentClass,
-                        onEditPhoto: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: const Text('Cambio de foto próximamente'),
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                          );
-                        },
-                        onEditProfile: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const EditProfileView(),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: hPad),
-                      child: StaggeredColumn(
-                        initialDelay: const Duration(milliseconds: 100),
-                        staggerDelay: const Duration(milliseconds: 65),
-                        children: [
-                          // ── 2. Sección: Información Personal ─────────────
-                          InfoSection(
-                            title: 'Información Personal',
-                            items: [
-                              InfoItem(
-                                icon: HugeIcons.strokeRoundedUser,
-                                label: 'Nombre completo',
-                                value: profile.fullName,
-                              ),
-                              InfoItem(
-                                icon: HugeIcons.strokeRoundedMail01,
-                                label: 'Correo electrónico',
-                                value: profile.email,
-                              ),
-                              if (profile.phone != null)
-                                InfoItem(
-                                  icon: HugeIcons.strokeRoundedCall,
-                                  label: 'Teléfono',
-                                  value: profile.phone,
-                                ),
-                              if (profile.birthDate != null)
-                                InfoItem(
-                                  icon: HugeIcons.strokeRoundedBirthdayCake,
-                                  label: 'Fecha de nacimiento',
-                                  value: DateFormat('dd/MM/yyyy')
-                                      .format(profile.birthDate!),
-                                ),
-                              if (profile.gender != null)
-                                InfoItem(
-                                  icon: HugeIcons.strokeRoundedUser,
-                                  label: 'Género',
-                                  value: profile.gender,
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-
-                          // ── 3. Sección: Mi Club ───────────────────────────
-                          if (profile.clubName != null) ...[
-                            InfoSection(
-                              title: 'Mi Club',
-                              items: [
-                                InfoItem(
-                                  icon: HugeIcons.strokeRoundedUserGroup,
-                                  label: 'Club',
-                                  value: profile.clubName,
-                                ),
-                                if (profile.clubType != null)
-                                  InfoItem(
-                                    icon: HugeIcons.strokeRoundedGridView,
-                                    label: 'Tipo',
-                                    value: profile.clubType,
-                                  ),
-                                if (profile.roles.isNotEmpty)
-                                  InfoItem(
-                                    icon: HugeIcons.strokeRoundedLabel,
-                                    label: 'Rol',
-                                    value:
-                                        RoleUtils.translateList(profile.roles),
-                                  ),
-                                if (profile.currentClass != null)
-                                  InfoItem(
-                                    icon: HugeIcons.strokeRoundedSchool,
-                                    label: 'Clase actual',
-                                    value: profile.currentClass,
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-                          ],
-
-                          // ── 4. Clases Progresivas ─────────────────────────
-                          _SectionLabel(label: 'Clases Progresivas'),
-                          const SizedBox(height: 8),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: c.surface,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: c.border,
-                                width: 1,
-                              ),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 16,
-                            ),
-                            child: const ClassStatusCircles(),
-                          ),
-                          const SizedBox(height: 20),
-                        ],
-                      ),
-                    ),
-
-                    // ── 5. Clases del Usuario ────────────────────────────
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: hPad),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          _SectionLabel(label: 'Mis Clases'),
-                          GestureDetector(
-                            onTap: () {
-                              ref.invalidate(userClassesProvider);
-                            },
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: c.surface,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: c.border,
-                                ),
-                              ),
-                              child: Center(
-                                child: HugeIcon(
-                                  icon: HugeIcons.strokeRoundedRefresh,
-                                  color: c.textTertiary,
-                                  size: 16,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    const ProfileClassesSection(),
-
-                    const SizedBox(height: 20),
-
-                    // ── 6. Especialidades ─────────────────────────────────
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: hPad),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          _SectionLabel(label: 'Especialidades'),
-                          GestureDetector(
-                            onTap: () {
-                              ref.invalidate(userHonorsProvider);
-                              ref.invalidate(userHonorStatsProvider);
-                              ref.invalidate(honorCategoriesProvider);
-                            },
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: c.surface,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: c.border,
-                                ),
-                              ),
-                              child: Center(
-                                child: HugeIcon(
-                                  icon: HugeIcons.strokeRoundedRefresh,
-                                  color: c.textTertiary,
-                                  size: 16,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    const ProfileHonorsSection(),
-
-                    const SizedBox(height: 32),
-                  ],
-                ),
-              ),
+              onRefreshClasses: () => ref.invalidate(userClassesProvider),
+              onRefreshHonors: () {
+                ref.invalidate(userHonorsProvider);
+                // userHonorStatsLocalProvider recomputes automatically.
+              },
             );
           },
-          loading: () => const Center(child: SacLoading()),
+          loading: () {
+            // On first load (no cached data) show a header skeleton so
+            // the page layout is stable from the first frame.
+            if (isFirstLoad) {
+              return _ProfileFirstLoadSkeleton(hPad: hPad);
+            }
+            // Should not reach here because skipLoadingOnReload: true keeps
+            // the previous data visible during background refreshes.
+            return const SizedBox.shrink();
+          },
           error: (error, stack) => Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -519,6 +424,405 @@ class ProfileView extends ConsumerWidget {
 
 // ─── Private Widgets ────────────────────────────────────────────────────────
 
+/// Scrollable body shared between the data and (cached) loading states.
+/// Extracted to avoid code duplication and keep [_ProfileViewState.build]
+/// focused on state routing.
+class _ProfileScrollBody extends StatelessWidget {
+  final UserDetail profile;
+  final UserEntity? authUser;
+  /// Raw club role name from the active grant (e.g. "director", "instructor").
+  /// Null when the user has no active club assignment.
+  final String? activeRoleName;
+  final bool isUploadingPhoto;
+  final double hPad;
+  final VoidCallback? onChangePhoto;
+  final Future<void> Function() onRefresh;
+  final VoidCallback onRefreshClasses;
+  final VoidCallback onRefreshHonors;
+  final VoidCallback onSettings;
+
+  const _ProfileScrollBody({
+    required this.profile,
+    required this.authUser,
+    required this.activeRoleName,
+    required this.isUploadingPhoto,
+    required this.hPad,
+    required this.onRefresh,
+    required this.onRefreshClasses,
+    required this.onRefreshHonors,
+    required this.onSettings,
+    this.onChangePhoto,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return RefreshIndicator(
+      color: AppColors.primary,
+      onRefresh: onRefresh,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // ── App bar row (Instagram style) ──────────────────
+            Padding(
+              padding: EdgeInsets.only(
+                left: hPad,
+                right: hPad / 2,
+                top: 8,
+                bottom: 4,
+              ),
+              child: Row(
+                children: [
+                  const Spacer(),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedLockKey,
+                        color: c.text,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Perfil de usuario',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: c.text,
+                          letterSpacing: -0.2,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedMenu01,
+                      color: c.text,
+                      size: 24,
+                    ),
+                    onPressed: onSettings,
+                    tooltip: 'Ajustes',
+                  ),
+                ],
+              ),
+            ),
+
+            // ── 1. Header Card ────────────────────────────────────
+            StaggeredListItem(
+              index: 0,
+              initialDelay: const Duration(milliseconds: 40),
+              child: _ProfileHeaderCard(
+                name: profile.fullName,
+                avatar: profile.avatar,
+                clubRole: activeRoleName,
+                gender: profile.gender,
+                clubName: profile.clubName,
+                clubType: profile.clubType,
+                currentClass: profile.currentClass,
+                isUploadingPhoto: isUploadingPhoto,
+                onEditPhoto: onChangePhoto,
+                onEditProfile: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EditProfileView(),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: hPad),
+              child: StaggeredColumn(
+                initialDelay: const Duration(milliseconds: 100),
+                staggerDelay: const Duration(milliseconds: 65),
+                children: [
+                  // ── 4. Elegibilidad para investidura ─────────────
+                  if (authUser != null) ...[
+                    EligibilityBanner(userId: authUser!.id),
+                    const SizedBox(height: 20),
+                  ],
+
+                  // ── 5. Clases Progresivas ─────────────────────────
+                  _SectionLabel(label: 'Clases Progresivas'),
+                  const SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: c.surface,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: c.border,
+                        width: 1,
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 16,
+                    ),
+                    child: ClassStatusCircles(clubType: profile.clubType),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+
+            // ── 5. Clases del Usuario ────────────────────────────
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: hPad),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _SectionLabel(label: 'Mis Clases'),
+                  GestureDetector(
+                    onTap: onRefreshClasses,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: c.surface,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: c.border,
+                        ),
+                      ),
+                      child: Center(
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedRefresh,
+                          color: c.textTertiary,
+                          size: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            const ProfileClassesSection(),
+
+            const SizedBox(height: 20),
+
+            // ── 6. Especialidades ─────────────────────────────────
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: hPad),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _SectionLabel(label: 'Especialidades'),
+                  Row(
+                    children: [
+                      // Add honor button
+                      GestureDetector(
+                        onTap: () {
+                          context.push(RouteNames.homeHonors);
+                        },
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: AppColors.sacBlue.withAlpha(20),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: AppColors.sacBlue.withAlpha(40),
+                            ),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.add_rounded,
+                              color: AppColors.sacBlue,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Refresh button
+                      GestureDetector(
+                        onTap: onRefreshHonors,
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: c.surface,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: c.border,
+                            ),
+                          ),
+                          child: Center(
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedRefresh,
+                              color: c.textTertiary,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            const ProfileHonorsSection(),
+
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Skeleton shown only on the very first load (no cached profile data).
+/// Mirrors the layout of the real screen so the UI never jumps between states.
+class _ProfileFirstLoadSkeleton extends StatelessWidget {
+  final double hPad;
+
+  const _ProfileFirstLoadSkeleton({required this.hPad});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final skeletonColor = c.surfaceVariant;
+
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: hPad),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // App bar placeholder
+            const SizedBox(height: 52),
+
+            // Header card skeleton
+            Container(
+              height: 160,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: skeletonColor,
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+
+            // Eligibility banner skeleton
+            Container(
+              height: 80,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: skeletonColor,
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+
+            // Section label + class status circles skeleton
+            Container(
+              height: 12,
+              width: 100,
+              margin: const EdgeInsets.only(bottom: 8),
+              color: skeletonColor,
+            ),
+            Container(
+              height: 72,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: skeletonColor,
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+
+            // Classes section header skeleton
+            Container(
+              height: 20,
+              width: 80,
+              margin: const EdgeInsets.only(bottom: 8),
+              color: skeletonColor,
+            ),
+            Container(
+              height: 52,
+              margin: const EdgeInsets.only(bottom: 8),
+              decoration: BoxDecoration(
+                color: skeletonColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            Row(
+              children: List.generate(
+                3,
+                (i) => Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      left: i == 0 ? 0 : 5,
+                      right: i == 2 ? 0 : 5,
+                    ),
+                    child: Container(
+                      height: 90,
+                      margin: const EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        color: skeletonColor,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Honors section header skeleton
+            Container(
+              height: 20,
+              width: 100,
+              margin: const EdgeInsets.only(bottom: 8),
+              color: skeletonColor,
+            ),
+            Container(
+              height: 52,
+              margin: const EdgeInsets.only(bottom: 8),
+              decoration: BoxDecoration(
+                color: skeletonColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            Row(
+              children: List.generate(
+                3,
+                (i) => Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      left: i == 0 ? 0 : 5,
+                      right: i == 2 ? 0 : 5,
+                    ),
+                    child: Container(
+                      height: 90,
+                      decoration: BoxDecoration(
+                        color: skeletonColor,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Header card with a two-column layout:
 /// LEFT  — name (large, bold) + meta rows (club, cargo, clase)
 /// RIGHT — circular avatar with camera edit overlay
@@ -528,18 +832,26 @@ class ProfileView extends ConsumerWidget {
 class _ProfileHeaderCard extends StatelessWidget {
   final String name;
   final String? avatar;
-  final List<String> roles;
+  /// Raw club role name from the active grant (e.g. "director", "instructor").
+  /// Null when the user has no active club assignment — row is hidden in that case.
+  final String? clubRole;
+  final String? gender;
   final String? clubName;
+  final String? clubType;
   final String? currentClass;
+  final bool isUploadingPhoto;
   final VoidCallback? onEditPhoto;
   final VoidCallback? onEditProfile;
 
   const _ProfileHeaderCard({
     required this.name,
-    required this.roles,
+    required this.clubRole,
+    this.gender,
     this.avatar,
     this.clubName,
+    this.clubType,
     this.currentClass,
+    this.isUploadingPhoto = false,
     this.onEditPhoto,
     this.onEditProfile,
   });
@@ -548,10 +860,10 @@ class _ProfileHeaderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final hPad = Responsive.horizontalPadding(context);
     // Fixed avatar radius for the side-by-side layout — compact but readable.
-    const double avatarRadius = 52.0;
+    const double avatarRadius = 50.0;
     const double fallbackFontSize = 32.0;
-    final roleLabel =
-        roles.isNotEmpty ? RoleUtils.translateList(roles) : null;
+    final translated = RoleUtils.translate(clubRole, gender: gender);
+    final roleLabel = translated.isNotEmpty ? translated : null;
 
     final c = context.sac;
 
@@ -597,35 +909,37 @@ class _ProfileHeaderCard extends StatelessWidget {
                           if (clubName != null) ...[
                             _MetaRow(
                               icon: HugeIcons.strokeRoundedUserGroup,
-                              text: clubName!,
+                              text: 'Club: $clubName',
+                            ),
+                            const SizedBox(height: 6),
+                          ],
+
+                          // Tipo de club
+                          if (clubType != null) ...[
+                            _MetaRow(
+                              icon: HugeIcons.strokeRoundedGridView,
+                              text: 'Tipo: $clubType',
                             ),
                             const SizedBox(height: 6),
                           ],
 
                           // Cargo / Role
-                          // if (roleLabel != null) ...[
-                          //   _MetaRow(
-                          //     icon: HugeIcons.strokeRoundedLabel,
-                          //     text: roleLabel,
-                          //   ),
-                          //   const SizedBox(height: 6),
-                          // ],
-
-                          // Clase
-                          if (currentClass != null) ...[
+                          if (roleLabel != null) ...[
                             _MetaRow(
-                              icon: HugeIcons.strokeRoundedSchool,
-                              text: 'Clase: ' + currentClass!,
+                              icon: HugeIcons.strokeRoundedLabel,
+                              text: 'Rol: $roleLabel',
                             ),
                             const SizedBox(height: 6),
                           ],
 
                           // Clase
-                          if (currentClass != null)
+                          if (currentClass != null) ...[
                             _MetaRow(
                               icon: HugeIcons.strokeRoundedSchool,
-                              text: 'Clase: ' + currentClass!,
+                              text: 'Clase: $currentClass',
                             ),
+                            const SizedBox(height: 6),
+                          ],
                         ],
                       ),
                     ),
@@ -633,51 +947,75 @@ class _ProfileHeaderCard extends StatelessWidget {
                     const SizedBox(width: 16),
 
                     // ── Right: circular avatar with camera button ──
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.primaryLight,
-                              width: 3,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color:
-                                    AppColors.primary.withValues(alpha: 0.15),
-                                blurRadius: 16,
-                                offset: const Offset(0, 4),
+                    GestureDetector(
+                      onTap: onEditPhoto,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.primaryLight,
+                                width: 3,
                               ),
-                            ],
-                          ),
-                          child: CircleAvatar(
-                            radius: avatarRadius,
-                            backgroundColor: AppColors.primarySurface,
-                            backgroundImage: avatar != null
-                                ? CachedNetworkImageProvider(avatar!)
-                                : null,
-                            child: avatar == null
-                                ? Text(
-                                    name.isNotEmpty
-                                        ? name[0].toUpperCase()
-                                        : 'U',
-                                    style: const TextStyle(
-                                      fontSize: fallbackFontSize,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.primary,
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      AppColors.primary.withValues(alpha: 0.15),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                CircleAvatar(
+                                  radius: avatarRadius,
+                                  backgroundColor: AppColors.primarySurface,
+                                  backgroundImage: avatar != null
+                                      ? CachedNetworkImageProvider(avatar!)
+                                      : null,
+                                  child: avatar == null
+                                      ? Text(
+                                          name.isNotEmpty
+                                              ? name[0].toUpperCase()
+                                              : 'U',
+                                          style: const TextStyle(
+                                            fontSize: fallbackFontSize,
+                                            fontWeight: FontWeight.w700,
+                                            color: AppColors.primary,
+                                          ),
+                                        )
+                                      : null,
+                                ),
+                                if (isUploadingPhoto)
+                                  Container(
+                                    width: avatarRadius * 2,
+                                    height: avatarRadius * 2,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Color(0x80000000),
                                     ),
-                                  )
-                                : null,
+                                    child: const Center(
+                                      child: SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
-                        ),
-                        if (onEditPhoto != null)
-                          Positioned(
-                            bottom: 2,
-                            right: 2,
-                            child: GestureDetector(
-                              onTap: onEditPhoto,
+                          if (!isUploadingPhoto)
+                            Positioned(
+                              bottom: 2,
+                              right: 2,
                               child: Container(
                                 width: 28,
                                 height: 28,
@@ -705,8 +1043,8 @@ class _ProfileHeaderCard extends StatelessWidget {
                                 ),
                               ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -734,7 +1072,7 @@ class _ProfileHeaderCard extends StatelessWidget {
 /// Single meta row used inside the header left column.
 /// Shows a small HugeIcon on the left and a text label on the right.
 class _MetaRow extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String text;
 
   const _MetaRow({

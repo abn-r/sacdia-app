@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -22,17 +25,13 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
   Future<Either<Failure, List<Activity>>> getClubActivities(
     int clubId, {
     int? clubTypeId,
-    int? activityTypeId,
+    CancelToken? cancelToken,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final activityModels = await remoteDataSource.getClubActivities(
         clubId,
         clubTypeId: clubTypeId,
-        activityTypeId: activityTypeId,
+        cancelToken: cancelToken,
       );
       final activities = activityModels.map((model) => model.toEntity()).toList();
       return Right(activities);
@@ -46,13 +45,15 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
   }
 
   @override
-  Future<Either<Failure, Activity>> getActivityById(int activityId) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
+  Future<Either<Failure, Activity>> getActivityById(
+    int activityId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final activityModel = await remoteDataSource.getActivityById(activityId);
+      final activityModel = await remoteDataSource.getActivityById(
+        activityId,
+        cancelToken: cancelToken,
+      );
       return Right(activityModel.toEntity());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
@@ -64,13 +65,15 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
   }
 
   @override
-  Future<Either<Failure, List<Attendance>>> getActivityAttendance(int activityId) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
+  Future<Either<Failure, List<Attendance>>> getActivityAttendance(
+    int activityId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final attendanceModels = await remoteDataSource.getActivityAttendance(activityId);
+      final attendanceModels = await remoteDataSource.getActivityAttendance(
+        activityId,
+        cancelToken: cancelToken,
+      );
       final attendances = attendanceModels.map((model) => model.toEntity()).toList();
       return Right(attendances);
     } on ServerException catch (e) {
@@ -87,10 +90,6 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
     required int clubId,
     required CreateActivityRequest request,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final activityModel = await remoteDataSource.createActivity(
         clubId: clubId,
@@ -109,26 +108,38 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
   @override
   Future<Either<Failure, Activity>> updateActivity({
     required int activityId,
-    String? title,
+    String? name,
     String? description,
-    DateTime? startDate,
-    DateTime? endDate,
-    String? location,
+    double? lat,
+    double? long,
+    String? activityTime,
+    String? activityDate,
+    String? activityEndDate,
+    String? activityPlace,
+    int? platform,
+    int? activityTypeId,
+    String? linkMeet,
     bool? active,
+    Set<String> clearFields = const {},
+    List<int>? clubSectionIds,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final activityModel = await remoteDataSource.updateActivity(
         activityId: activityId,
-        title: title,
+        name: name,
         description: description,
-        startDate: startDate,
-        endDate: endDate,
-        location: location,
+        lat: lat,
+        long: long,
+        activityTime: activityTime,
+        activityDate: activityDate,
+        activityEndDate: activityEndDate,
+        activityPlace: activityPlace,
+        platform: platform,
+        activityTypeId: activityTypeId,
+        linkMeet: linkMeet,
         active: active,
+        clearFields: clearFields,
+        clubSectionIds: clubSectionIds,
       );
       return Right(activityModel.toEntity());
     } on ServerException catch (e) {
@@ -142,10 +153,6 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
 
   @override
   Future<Either<Failure, void>> deleteActivity(int activityId) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       await remoteDataSource.deleteActivity(activityId);
       return const Right(null);
@@ -163,16 +170,29 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
     int activityId,
     List<String> userIds,
   ) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
-
     try {
       final recordedCount = await remoteDataSource.registerAttendance(
         activityId,
         userIds,
       );
       return Right(recordedCount);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> uploadActivityImage(
+    int activityId,
+    File imageFile,
+  ) async {
+    try {
+      final url = await remoteDataSource.uploadActivityImage(activityId, imageFile);
+      return Right(url);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on AuthException catch (e) {

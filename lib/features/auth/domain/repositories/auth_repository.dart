@@ -32,7 +32,8 @@ abstract class AuthRepository {
   Future<Either<Failure, void>> resetPassword(String email);
   
   /// Actualiza la contraseña del usuario
-  Future<Either<Failure, UserEntity>> updatePassword(String newPassword);
+  Future<Either<Failure, UserEntity>> updatePassword(
+      String currentPassword, String newPassword);
 
   /// Inicia sesión con Google OAuth
   Future<Either<Failure, UserEntity>> signInWithGoogle();
@@ -48,4 +49,14 @@ abstract class AuthRepository {
 
   /// Cambia el contexto activo de autorización del usuario.
   Future<Either<Failure, void>> switchContext(String assignmentId);
+
+  /// Procesa el callback OAuth: envía el session_token opaco de Better Auth
+  /// al backend (`POST /auth/oauth/callback`) y recibe el JWT HS256 de SACDIA.
+  ///
+  /// Llamar desde [AuthNotifier.processOAuthDeepLink] al interceptar el deep link
+  /// `io.sacdia.app://auth/callback?session_token=...&provider=...`.
+  Future<Either<Failure, UserEntity>> handleOAuthCallback({
+    required String sessionToken,
+    required String provider,
+  });
 }

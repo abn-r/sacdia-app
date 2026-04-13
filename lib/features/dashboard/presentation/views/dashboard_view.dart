@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
@@ -9,13 +11,17 @@ import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../profile/presentation/providers/profile_providers.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/club_info_card.dart';
 import '../widgets/current_class_card.dart';
 import '../widgets/quick_stats_card.dart';
 import '../widgets/quick_access_grid.dart';
 import '../widgets/upcoming_activities_card.dart';
+import '../widgets/membership_status_banner.dart';
 import '../widgets/welcome_header.dart';
+import '../../../enrollment/presentation/widgets/enrollment_status_card.dart';
 
 /// Vista principal del dashboard - Estilo "Scout Vibrante"
 class DashboardView extends ConsumerWidget {
@@ -24,6 +30,12 @@ class DashboardView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dashboardState = ref.watch(dashboardNotifierProvider);
+    final authAvatar = ref.watch(
+      authNotifierProvider.select((v) => v.valueOrNull?.avatar),
+    );
+    final userGender = ref.watch(
+      profileNotifierProvider.select((v) => v.valueOrNull?.gender),
+    );
 
     final c = context.sac;
 
@@ -72,7 +84,9 @@ class DashboardView extends ConsumerWidget {
                       initialDelay: const Duration(milliseconds: 60),
                       child: WelcomeHeader(
                         userName: dashboard.userName,
-                        userAvatar: dashboard.userAvatar,
+                        userAvatar: dashboard.userAvatar ?? authAvatar,
+                        onNotificationsTap: () =>
+                            context.push(RouteNames.notificationsInbox),
                       ),
                     ),
 
@@ -86,11 +100,21 @@ class DashboardView extends ConsumerWidget {
                         children: [
                           const SizedBox(height: 8),
 
+                          // Membership status banner (pending/rejected/expired)
+                          const MembershipStatusBanner(),
+                          const SizedBox(height: 16),
+
+                          // Enrollment status banner
+                          const EnrollmentStatusCard(),
+
                           // Club info
                           ClubInfoCard(
                             clubName: dashboard.clubName,
                             clubType: dashboard.clubType,
-                            userRole: RoleUtils.translate(dashboard.userRole),
+                            userRole: RoleUtils.translate(
+                              dashboard.userRole,
+                              gender: userGender,
+                            ),
                           ),
                           const SizedBox(height: 16),
 

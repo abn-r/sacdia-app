@@ -2,18 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/finance_month.dart';
 import '../providers/finances_providers.dart';
 
-/// Tarjeta principal con saldo acumulado + navegación de mes.
+/// Header de saldo sin contenedor — layout centrado directamente
+/// sobre el fondo de la pantalla.
 ///
-/// Sigue el design system "Scout Vibrante":
-/// fondo de surface con borde sutil, icono en contenedor de acento,
-/// sin gradientes, tokens de color semánticos via `context.sac`.
+/// Muestra: etiqueta SALDO TOTAL → monto → navegación de mes →
+/// resumen de ingresos/egresos del período.
 class BalanceHeaderCard extends ConsumerWidget {
   final FinanceMonth? financeMonth;
   final double? totalBalance;
@@ -27,111 +26,86 @@ class BalanceHeaderCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.sac;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final selected = ref.watch(selectedMonthProvider);
     final canGoNext = !selected.isCurrentMonth;
-    final monthLabel = _monthLabel(selected.year, selected.month);
+
     final balance = totalBalance ?? financeMonth?.totalBalance ?? 0;
-    final isOpen = financeMonth?.isOpen ?? true;
+    final income = financeMonth?.totalIncome ?? 0;
+    final expense = financeMonth?.totalExpense ?? 0;
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
-        border: Border.all(color: c.border),
-        boxShadow: [
-          BoxShadow(
-            color: c.shadow,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    final monthLabel = _monthLabel(selected.year, selected.month);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Title row: icon + label + period badge
-          Row(
-            children: [
-              // Icon container — standard app pattern
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.primarySurface,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-                ),
-                child: const Center(
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedWallet01,
-                    size: 20,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 10),
-
-              // Label
-              Text(
-                'Saldo del Club',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: c.text,
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-
-              const Spacer(),
-
-              // Open / closed status badge
-              _PeriodBadge(isOpen: isOpen),
-            ],
-          ),
-
-          const SizedBox(height: 14),
-
-          // Balance amount
+          // 1 — "SALDO TOTAL" label
           Text(
-            _formatCurrency(balance),
+            'SALDO TOTAL',
             style: TextStyle(
-              fontSize: 34,
-              fontWeight: FontWeight.w800,
-              color: c.text,
-              letterSpacing: -0.5,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.5,
+              color: c.textTertiary,
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 6),
 
-          // Month navigator
+          // 2 — Balance amount
+          Text(
+            _formatCurrency(balance),
+            style: TextStyle(
+              fontSize: 42,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -1.0,
+              color: c.text,
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // 3 — Month navigation row
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _NavButton(
+              _NavChevron(
                 icon: HugeIcons.strokeRoundedArrowLeft01,
+                enabled: true,
                 onTap: () =>
                     ref.read(selectedMonthProvider.notifier).goToPrevious(),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               Text(
                 monthLabel,
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: c.text,
                   letterSpacing: 0.2,
+                  color: c.text,
                 ),
               ),
-              const SizedBox(width: 12),
-              _NavButton(
+              const SizedBox(width: 16),
+              _NavChevron(
                 icon: HugeIcons.strokeRoundedArrowRight01,
+                enabled: canGoNext,
                 onTap: canGoNext
-                    ? () =>
-                        ref.read(selectedMonthProvider.notifier).goToNext()
+                    ? () => ref.read(selectedMonthProvider.notifier).goToNext()
                     : null,
               ),
             ],
+          ),
+
+          const SizedBox(height: 14),
+
+          // 4 — Activity summary
+          _ActivitySummary(
+            income: income,
+            expense: expense,
+            isDark: isDark,
+            textColor: c.textSecondary,
           ),
         ],
       ),
@@ -139,93 +113,112 @@ class BalanceHeaderCard extends ConsumerWidget {
   }
 
   String _formatCurrency(double value) {
-    final formatter = NumberFormat.currency(
-      locale: 'es',
+    return NumberFormat.currency(
+      locale: 'en_US',
       symbol: '\$',
       decimalDigits: 2,
-    );
-    return formatter.format(value);
+    ).format(value);
   }
 
   String _monthLabel(int year, int month) {
-    final date = DateTime(year, month);
-    final label = DateFormat('MMMM yyyy', 'es').format(date);
+    final label = DateFormat('MMMM yyyy', 'es').format(DateTime(year, month));
     return label[0].toUpperCase() + label.substring(1);
   }
 }
 
-class _PeriodBadge extends StatelessWidget {
-  final bool isOpen;
+// ── Nav chevron ───────────────────────────────────────────────────────────────
 
-  const _PeriodBadge({required this.isOpen});
+class _NavChevron extends StatelessWidget {
+  final HugeIconData icon;
+  final bool enabled;
+  final VoidCallback? onTap;
+
+  const _NavChevron({
+    required this.icon,
+    required this.enabled,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final badgeColor = isOpen ? AppColors.secondary : AppColors.accent;
+    final c = context.sac;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: badgeColor.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-        border: Border.all(
-          color: badgeColor.withValues(alpha: 0.35),
-          width: 0.8,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: enabled ? c.surfaceVariant : c.borderLight,
+          shape: BoxShape.circle,
         ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          HugeIcon(
-            icon: isOpen
-                ? HugeIcons.strokeRoundedLock
-                : HugeIcons.strokeRoundedLocked,
-            size: 11,
-            color: badgeColor,
+        child: Center(
+          child: HugeIcon(
+            icon: icon,
+            size: 16,
+            color: enabled ? c.text : c.textTertiary,
           ),
-          const SizedBox(width: 4),
-          Text(
-            isOpen ? 'Abierto' : 'Cerrado',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: badgeColor,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _NavButton extends StatelessWidget {
-  final List<List<dynamic>> icon;
-  final VoidCallback? onTap;
+// ── Activity summary ──────────────────────────────────────────────────────────
 
-  const _NavButton({required this.icon, this.onTap});
+class _ActivitySummary extends StatelessWidget {
+  final double income;
+  final double expense;
+  final bool isDark;
+  final Color textColor;
+
+  const _ActivitySummary({
+    required this.income,
+    required this.expense,
+    required this.isDark,
+    required this.textColor,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
-    final disabled = onTap == null;
+    final incomeGreen =
+        isDark ? const Color(0xFF4FBF9F) : const Color(0xFF2D8A70);
+    const expenseRed = Color(0xFFDC2626);
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: disabled ? c.borderLight : c.surfaceVariant,
-          borderRadius: BorderRadius.circular(AppTheme.radiusXS),
-          border: Border.all(color: c.border),
-        ),
-        child: Center(
-          child: HugeIcon(
-            icon: icon,
-            size: 18,
-            color: disabled ? c.textTertiary : c.text,
+    final base = TextStyle(
+      fontSize: 13,
+      fontWeight: FontWeight.w400,
+      color: textColor,
+    );
+
+    final formatter = NumberFormat.currency(
+      locale: 'en_US',
+      symbol: '\$',
+      decimalDigits: 2,
+    );
+
+    return RichText(
+      textAlign: TextAlign.center,
+      text: TextSpan(
+        children: [
+          TextSpan(text: 'Este mes: ', style: base),
+          TextSpan(
+            text: formatter.format(income),
+            style: base.copyWith(
+              color: incomeGreen,
+              fontWeight: FontWeight.w700,
+            ),
           ),
-        ),
+          TextSpan(text: ' ingresos y ', style: base),
+          TextSpan(
+            text: formatter.format(expense),
+            style: base.copyWith(
+              color: expenseRed,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          TextSpan(text: ' egresos', style: base),
+        ],
       ),
     );
   }

@@ -1,34 +1,13 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/classes/domain/entities/progressive_class.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
-import 'package:sacdia_app/features/classes/presentation/views/class_detail_view.dart';
+import 'package:sacdia_app/features/classes/presentation/views/class_detail_with_progress_view.dart';
 import 'package:sacdia_app/features/classes/presentation/views/classes_list_view.dart';
-
-/// Map class names to their brand colours (same palette as ClassStatusCircles).
-const Map<String, Color> _classColors = {
-  'Amigo': AppColors.colorAmigo,
-  'Compañero': AppColors.colorCompanero,
-  'Explorador': AppColors.colorExplorador,
-  'Orientador': AppColors.colorOrientador,
-  'Viajero': AppColors.colorViajero,
-  'Guía': AppColors.colorGuia,
-};
-
-const Map<String, IconData> _classIcons = {
-  'Amigo': Icons.handshake,
-  'Compañero': Icons.people,
-  'Explorador': Icons.explore,
-  'Orientador': Icons.compass_calibration,
-  'Viajero': Icons.flight_takeoff,
-  'Guía': Icons.shield,
-};
 
 /// Section of the profile view that shows the user's enrolled progressive
 /// classes in a 3-column grid, visually consistent with [ProfileHonorsSection].
@@ -39,12 +18,12 @@ class ProfileClassesSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final classesAsync = ref.watch(userClassesProvider);
 
-    return classesAsync.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 32),
-        child: Center(child: SacLoading()),
-      ),
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: classesAsync.when(
+      loading: () => _ClassesSkeleton(key: const ValueKey('classes-skeleton')),
       error: (e, _) => Padding(
+        key: const ValueKey('classes-error'),
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Center(
           child: Text(
@@ -56,6 +35,7 @@ class ProfileClassesSection extends ConsumerWidget {
       data: (classes) {
         if (classes.isEmpty) {
           return Padding(
+            key: const ValueKey('classes-data'),
             padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
             child: Column(
               children: [
@@ -92,6 +72,7 @@ class ProfileClassesSection extends ConsumerWidget {
         }
 
         return Column(
+          key: const ValueKey('classes-data'),
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Class header banner
@@ -162,6 +143,10 @@ class ProfileClassesSection extends ConsumerWidget {
 
             // Classes grid (3 columns)
             GridView.builder(
+              // shrinkWrap OK: progressive classes per user are naturally
+              // bounded (typically < 10 total classes). Lives inside a Column
+              // that is itself inside the profile's outer scroll view —
+              // intrinsic height is required.
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               padding:
@@ -184,6 +169,7 @@ class ProfileClassesSection extends ConsumerWidget {
           ],
         );
       },
+    ),
     );
   }
 }
@@ -197,16 +183,11 @@ class _ClassGridItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final classColor =
-        _classColors[progressiveClass.name] ?? AppColors.primary;
-    final classIcon =
-        _classIcons[progressiveClass.name] ?? Icons.school;
+    final classColor = AppColors.classColor(progressiveClass.name);
+    final logoAsset = AppColors.classLogoAsset(progressiveClass.name);
 
-    final initials = progressiveClass.name
-        .split(' ')
-        .take(2)
-        .map((w) => w.isNotEmpty ? w[0].toUpperCase() : '')
-        .join('');
+    final progress = progressiveClass.overallProgress ?? 0;
+    final isInvested = progressiveClass.investitureStatus == 'INVESTIDO';
 
     return Column(
       children: [
@@ -216,35 +197,85 @@ class _ClassGridItem extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => ClassDetailView(
+                  builder: (_) => ClassDetailWithProgressView(
                     classId: progressiveClass.id,
                   ),
                 ),
               );
             },
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: progressiveClass.imageUrl != null &&
-                      progressiveClass.imageUrl!.isNotEmpty
-                  ? Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        CachedNetworkImage(
-                          imageUrl: progressiveClass.imageUrl!,
-                          fit: BoxFit.cover,
-                          errorWidget: (_, __, ___) => _ClassInitialsBox(
-                            initials: initials,
-                            classColor: classColor,
-                            classIcon: classIcon,
-                          ),
-                        ),
-                      ],
-                    )
-                  : _ClassInitialsBox(
-                      initials: initials,
-                      classColor: classColor,
-                      classIcon: classIcon,
+            child: Stack(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: classColor.withAlpha(20),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isInvested
+                          ? classColor
+                          : classColor.withAlpha(50),
+                      width: isInvested ? 2 : 1,
                     ),
+                  ),
+                  padding: const EdgeInsets.all(10),
+                  child: logoAsset != null
+                      ? Image.asset(
+                          logoAsset,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => Icon(
+                            Icons.school,
+                            size: 30,
+                            color: classColor,
+                          ),
+                        )
+                      : Icon(
+                          Icons.school,
+                          size: 30,
+                          color: classColor,
+                        ),
+                ),
+                // Progress badge (top-right)
+                if (progress > 0 && !isInvested)
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: classColor,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '$progress%',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                // Invested badge (top-right checkmark)
+                if (isInvested)
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        color: classColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 12,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),
@@ -265,32 +296,46 @@ class _ClassGridItem extends StatelessWidget {
   }
 }
 
-class _ClassInitialsBox extends StatelessWidget {
-  final String initials;
-  final Color classColor;
-  final IconData classIcon;
+// ── Skeleton placeholder for classes section ──────────────────────────────────
 
-  const _ClassInitialsBox({
-    required this.initials,
-    required this.classColor,
-    required this.classIcon,
-  });
+class _ClassesSkeleton extends StatelessWidget {
+  const _ClassesSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: classColor.withAlpha(20),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: classColor.withAlpha(50), width: 1),
-      ),
-      child: Center(
-        child: Icon(
-          classIcon,
-          size: 30,
-          color: classColor,
-        ),
+    final skeletonColor = context.sac.surfaceVariant;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Simulate the category header banner
+          Container(
+            height: 52,
+            decoration: BoxDecoration(
+              color: skeletonColor,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Simulate a row of 3 class cards
+          Row(
+            children: List.generate(3, (i) => Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(left: i == 0 ? 0 : 5, right: i == 2 ? 0 : 5),
+                child: Container(
+                  height: 90,
+                  decoration: BoxDecoration(
+                    color: skeletonColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            )),
+          ),
+        ],
       ),
     );
   }
 }
+

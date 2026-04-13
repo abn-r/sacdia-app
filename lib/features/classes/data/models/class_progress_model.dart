@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/class_progress.dart';
+import '../../../../core/utils/json_helpers.dart';
 
 /// Modelo de progreso de clase para la capa de datos
 class ClassProgressModel extends Equatable {
@@ -17,12 +18,12 @@ class ClassProgressModel extends Equatable {
 
   /// Crea una instancia desde JSON
   factory ClassProgressModel.fromJson(Map<String, dynamic> json) {
-    final total = json['total_sections'] as int;
-    final completed = json['completed_sections'] as int;
+    final total = safeInt(json['total_sections']);
+    final completed = safeInt(json['completed_sections']);
     final percentage = total > 0 ? (completed / total) * 100 : 0.0;
 
     return ClassProgressModel(
-      classId: json['class_id'] as int,
+      classId: safeInt(json['class_id']),
       totalSections: total,
       completedSections: completed,
       percentage: percentage,

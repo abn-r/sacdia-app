@@ -11,14 +11,14 @@ import '../../data/models/local_field_model.dart';
 import '../../data/models/club_model.dart';
 import '../../data/models/class_model.dart';
 import '../providers/club_selection_providers.dart';
-import '../widgets/cascading_dropdown.dart';
+import '../widgets/bottom_sheet_picker.dart';
 import '../widgets/club_type_selector.dart';
 import '../widgets/class_recommendation.dart';
 
 /// Vista del paso 3: Selección de club - Estilo "Scout Vibrante"
 ///
-/// Dropdowns en cascada para ubicación, club y clase progresiva.
-/// Sin Scaffold interno, usa SacCard para contenedores.
+/// Pickers en cascada (bottom sheet modal) para ubicación, club y clase
+/// progresiva. Sin Scaffold interno, usa SacCard para contenedores.
 /// Title uses responsive font size for small phones.
 class ClubSelectionStepView extends ConsumerStatefulWidget {
   const ClubSelectionStepView({super.key});
@@ -29,6 +29,17 @@ class ClubSelectionStepView extends ConsumerStatefulWidget {
 }
 
 class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
+  // ─── helpers ────────────────────────────────────────────────────────────────
+
+  List<PickerItem> _toPickerItems<T>(
+    List<T> items,
+    int Function(T) getId,
+    String Function(T) getName,
+  ) =>
+      items.map((e) => PickerItem(id: getId(e), name: getName(e))).toList();
+
+  // ─── build ──────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     final countriesAsync = ref.watch(countriesProvider);
@@ -44,6 +55,32 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
     final selectedClassId = ref.watch(selectedClassProvider);
 
     final isSaving = ref.watch(isSavingStep3Provider);
+
+    // Resolved display names for the fields
+    final selectedCountryName = countriesAsync.valueOrNull
+        ?.where((c) => c.id == selectedCountryId)
+        .map((c) => c.name)
+        .firstOrNull;
+
+    final selectedUnionName = unionsAsync.valueOrNull
+        ?.where((u) => u.id == selectedUnionId)
+        .map((u) => u.name)
+        .firstOrNull;
+
+    final selectedLocalFieldName = localFieldsAsync.valueOrNull
+        ?.where((lf) => lf.id == selectedLocalFieldId)
+        .map((lf) => lf.name)
+        .firstOrNull;
+
+    final selectedClubName = clubsAsync.valueOrNull
+        ?.where((c) => c.id == selectedClubId)
+        .map((c) => c.name)
+        .firstOrNull;
+
+    final selectedClassName = classesAsync.valueOrNull
+        ?.where((c) => c.id == selectedClassId)
+        .map((c) => c.name)
+        .firstOrNull;
 
     // Responsive title style — smaller on very small phones
     final titleStyle = Responsive.isSmallPhone(context)
@@ -73,7 +110,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
           ),
           const SizedBox(height: 32),
 
-          // Location icon header
+          // ── Location section header ──────────────────────────────────────
           Row(
             children: [
               HugeIcon(
@@ -91,54 +128,74 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
           ),
           const SizedBox(height: 16),
 
-          // Country
+          // ── País ────────────────────────────────────────────────────────
           countriesAsync.when(
-            data: (countries) => CascadingDropdown<CountryModel>(
+            data: (countries) {
+              final items = _toPickerItems<CountryModel>(
+                  countries, (c) => c.id, (c) => c.name);
+              return PickerField(
+                label: 'País',
+                hint: 'Seleccionar país',
+                icon: Icons.public_rounded,
+                selectedName: selectedCountryName,
+                enabled: !isSaving,
+                onTap: () async {
+                  final picked = await showPickerSheet(
+                    context: context,
+                    title: 'Seleccionar país',
+                    items: items,
+                    selectedId: selectedCountryId,
+                    searchHint: 'Buscar país...',
+                    icon: Icons.public_rounded,
+                  );
+                  if (picked != null && picked != selectedCountryId) {
+                    ref.read(selectedCountryProvider.notifier).state = picked;
+                    ref.read(selectedUnionProvider.notifier).state = null;
+                    ref.read(selectedLocalFieldProvider.notifier).state = null;
+                    ref.read(selectedClubProvider.notifier).state = null;
+                    ref.read(selectedClubSectionProvider.notifier).state = null;
+                    ref.read(selectedClassProvider.notifier).state = null;
+                  }
+                },
+              );
+            },
+            loading: () => PickerField(
               label: 'País',
-              items: countries,
-              selectedValue: countries.firstWhere(
-                (c) => c.id == selectedCountryId,
-                orElse: () => countries.first,
-              ),
-              onChanged: (country) {
-                if (country != null) {
-                  ref.read(selectedCountryProvider.notifier).state = country.id;
-                  ref.read(selectedUnionProvider.notifier).state = null;
-                  ref.read(selectedLocalFieldProvider.notifier).state = null;
-                  ref.read(selectedClubProvider.notifier).state = null;
-                  ref.read(selectedClubSectionProvider.notifier).state = null;
-                  ref.read(selectedClassProvider.notifier).state = null;
-                }
-              },
-              getItemLabel: (country) => country.name,
-              getItemValue: (country) => country.id,
-              isEnabled: !isSaving,
+              hint: 'Cargando países...',
+              icon: Icons.public_rounded,
+              isLoading: true,
             ),
-            loading: () => _buildLoadingDropdown('País'),
-            error: (error, stack) =>
+            error: (error, _) =>
                 _buildErrorText('Error al cargar países: $error'),
           ),
-          const SizedBox(height: 16),
 
-          // Union
-          if (selectedCountryId != null)
+          // ── Unión ────────────────────────────────────────────────────────
+          if (selectedCountryId != null) ...[
+            const SizedBox(height: 16),
             unionsAsync.when(
               data: (unions) {
                 if (unions.isEmpty) {
                   return _buildEmptyText('No hay uniones disponibles');
                 }
-                return CascadingDropdown<UnionModel>(
+                final items = _toPickerItems<UnionModel>(
+                    unions, (u) => u.id, (u) => u.name);
+                return PickerField(
                   label: 'Unión',
-                  items: unions,
-                  selectedValue: selectedUnionId != null
-                      ? unions.firstWhere(
-                          (u) => u.id == selectedUnionId,
-                          orElse: () => unions.first,
-                        )
-                      : null,
-                  onChanged: (union) {
-                    if (union != null) {
-                      ref.read(selectedUnionProvider.notifier).state = union.id;
+                  hint: 'Seleccionar unión',
+                  icon: Icons.account_tree_rounded,
+                  selectedName: selectedUnionName,
+                  enabled: !isSaving,
+                  onTap: () async {
+                    final picked = await showPickerSheet(
+                      context: context,
+                      title: 'Seleccionar unión',
+                      items: items,
+                      selectedId: selectedUnionId,
+                      searchHint: 'Buscar unión...',
+                      icon: Icons.account_tree_rounded,
+                    );
+                    if (picked != null && picked != selectedUnionId) {
+                      ref.read(selectedUnionProvider.notifier).state = picked;
                       ref.read(selectedLocalFieldProvider.notifier).state =
                           null;
                       ref.read(selectedClubProvider.notifier).state = null;
@@ -147,56 +204,69 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                       ref.read(selectedClassProvider.notifier).state = null;
                     }
                   },
-                  getItemLabel: (union) => union.name,
-                  getItemValue: (union) => union.id,
-                  isEnabled: !isSaving,
                 );
               },
-              loading: () => _buildLoadingDropdown('Unión'),
-              error: (error, stack) =>
+              loading: () => PickerField(
+                label: 'Unión',
+                hint: 'Cargando uniones...',
+                icon: Icons.account_tree_rounded,
+                isLoading: true,
+              ),
+              error: (error, _) =>
                   _buildErrorText('Error al cargar uniones: $error'),
             ),
-          if (selectedCountryId != null) const SizedBox(height: 16),
+          ],
 
-          // Local Field
-          if (selectedUnionId != null)
+          // ── Campo Local ──────────────────────────────────────────────────
+          if (selectedUnionId != null) ...[
+            const SizedBox(height: 16),
             localFieldsAsync.when(
               data: (localFields) {
                 if (localFields.isEmpty) {
                   return _buildEmptyText('No hay campos locales disponibles');
                 }
-                return CascadingDropdown<LocalFieldModel>(
+                final items = _toPickerItems<LocalFieldModel>(
+                    localFields, (lf) => lf.id, (lf) => lf.name);
+                return PickerField(
                   label: 'Campo Local',
-                  items: localFields,
-                  selectedValue: selectedLocalFieldId != null
-                      ? localFields.firstWhere(
-                          (lf) => lf.id == selectedLocalFieldId,
-                          orElse: () => localFields.first,
-                        )
-                      : null,
-                  onChanged: (localField) {
-                    if (localField != null) {
+                  hint: 'Seleccionar campo local',
+                  icon: Icons.place_rounded,
+                  selectedName: selectedLocalFieldName,
+                  enabled: !isSaving,
+                  onTap: () async {
+                    final picked = await showPickerSheet(
+                      context: context,
+                      title: 'Seleccionar campo local',
+                      items: items,
+                      selectedId: selectedLocalFieldId,
+                      searchHint: 'Buscar campo local...',
+                      icon: Icons.place_rounded,
+                    );
+                    if (picked != null && picked != selectedLocalFieldId) {
                       ref.read(selectedLocalFieldProvider.notifier).state =
-                          localField.id;
+                          picked;
                       ref.read(selectedClubProvider.notifier).state = null;
                       ref.read(selectedClubSectionProvider.notifier).state =
                           null;
                       ref.read(selectedClassProvider.notifier).state = null;
                     }
                   },
-                  getItemLabel: (localField) => localField.name,
-                  getItemValue: (localField) => localField.id,
-                  isEnabled: !isSaving,
                 );
               },
-              loading: () => _buildLoadingDropdown('Campo Local'),
-              error: (error, stack) =>
+              loading: () => PickerField(
+                label: 'Campo Local',
+                hint: 'Cargando campos locales...',
+                icon: Icons.place_rounded,
+                isLoading: true,
+              ),
+              error: (error, _) =>
                   _buildErrorText('Error al cargar campos locales: $error'),
             ),
-          if (selectedUnionId != null) const SizedBox(height: 24),
+          ],
 
-          // Club section
+          // ── Club section ─────────────────────────────────────────────────
           if (selectedLocalFieldId != null) ...[
+            const SizedBox(height: 24),
             Row(
               children: [
                 HugeIcon(
@@ -218,39 +288,46 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                 if (clubs.isEmpty) {
                   return _buildEmptyText('No hay clubes disponibles');
                 }
-                return CascadingDropdown<ClubModel>(
+                final items = _toPickerItems<ClubModel>(
+                    clubs, (c) => c.id, (c) => c.name);
+                return PickerField(
                   label: 'Club',
-                  items: clubs,
-                  selectedValue: selectedClubId != null
-                      ? clubs.firstWhere(
-                          (c) => c.id == selectedClubId,
-                          orElse: () => clubs.first,
-                        )
-                      : null,
-                  onChanged: (club) {
-                    if (club != null) {
-                      ref.read(selectedClubProvider.notifier).state = club.id;
-                      // Resetear instancia y clase al cambiar de club
-                      // (selectedClubTypeSlugProvider se deriva automáticamente)
+                  hint: 'Seleccionar club',
+                  icon: Icons.groups_rounded,
+                  selectedName: selectedClubName,
+                  enabled: !isSaving,
+                  onTap: () async {
+                    final picked = await showPickerSheet(
+                      context: context,
+                      title: 'Seleccionar club',
+                      items: items,
+                      selectedId: selectedClubId,
+                      searchHint: 'Buscar club...',
+                      icon: Icons.groups_rounded,
+                    );
+                    if (picked != null && picked != selectedClubId) {
+                      ref.read(selectedClubProvider.notifier).state = picked;
                       ref.read(selectedClubSectionProvider.notifier).state =
                           null;
                       ref.read(selectedClassProvider.notifier).state = null;
                     }
                   },
-                  getItemLabel: (club) => club.name,
-                  getItemValue: (club) => club.id,
-                  isEnabled: !isSaving,
                 );
               },
-              loading: () => _buildLoadingDropdown('Club'),
-              error: (error, stack) =>
+              loading: () => PickerField(
+                label: 'Club',
+                hint: 'Cargando clubes...',
+                icon: Icons.groups_rounded,
+                isLoading: true,
+              ),
+              error: (error, _) =>
                   _buildErrorText('Error al cargar clubes: $error'),
             ),
-            const SizedBox(height: 16),
           ],
 
-          // Tipo de Club
+          // ── Tipo de Club ─────────────────────────────────────────────────
           if (selectedClubId != null) ...[
+            const SizedBox(height: 24),
             Row(
               children: [
                 HugeIcon(
@@ -268,11 +345,11 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
             ),
             const SizedBox(height: 12),
             const ClubTypeSelector(),
-            const SizedBox(height: 24),
           ],
 
-          // Class
+          // ── Clase progresiva ─────────────────────────────────────────────
           if (ref.watch(selectedClubSectionProvider) != null) ...[
+            const SizedBox(height: 24),
             Row(
               children: [
                 HugeIcon(
@@ -296,28 +373,36 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                 if (classes.isEmpty) {
                   return _buildEmptyText('No hay clases disponibles');
                 }
-                return CascadingDropdown<ClassModel>(
+                final items = _toPickerItems<ClassModel>(
+                    classes, (c) => c.id, (c) => c.name);
+                return PickerField(
                   label: 'Clase Progresiva',
-                  items: classes,
-                  selectedValue: selectedClassId != null
-                      ? classes.firstWhere(
-                          (c) => c.id == selectedClassId,
-                          orElse: () => classes.first,
-                        )
-                      : null,
-                  onChanged: (classModel) {
-                    if (classModel != null) {
-                      ref.read(selectedClassProvider.notifier).state =
-                          classModel.id;
+                  hint: 'Seleccionar clase',
+                  icon: Icons.school_rounded,
+                  selectedName: selectedClassName,
+                  enabled: !isSaving,
+                  onTap: () async {
+                    final picked = await showPickerSheet(
+                      context: context,
+                      title: 'Seleccionar clase progresiva',
+                      items: items,
+                      selectedId: selectedClassId,
+                      searchHint: 'Buscar clase...',
+                      icon: Icons.school_rounded,
+                    );
+                    if (picked != null && picked != selectedClassId) {
+                      ref.read(selectedClassProvider.notifier).state = picked;
                     }
                   },
-                  getItemLabel: (classModel) => classModel.name,
-                  getItemValue: (classModel) => classModel.id,
-                  isEnabled: !isSaving,
                 );
               },
-              loading: () => _buildLoadingDropdown('Clase Progresiva'),
-              error: (error, stack) =>
+              loading: () => PickerField(
+                label: 'Clase Progresiva',
+                hint: 'Cargando clases...',
+                icon: Icons.school_rounded,
+                isLoading: true,
+              ),
+              error: (error, _) =>
                   _buildErrorText('Error al cargar clases: $error'),
             ),
           ],
@@ -328,17 +413,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
     );
   }
 
-  Widget _buildLoadingDropdown(String label) {
-    return CascadingDropdown(
-      label: label,
-      items: const [],
-      selectedValue: null,
-      onChanged: null,
-      getItemLabel: (_) => '',
-      getItemValue: (_) => null,
-      isLoading: true,
-    );
-  }
+  // ─── helper widgets ──────────────────────────────────────────────────────────
 
   Widget _buildErrorText(String message) {
     return SacCard(

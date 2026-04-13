@@ -6,15 +6,20 @@ import '../../../../core/utils/app_logger.dart';
 import '../../../../providers/storage_provider.dart';
 import '../../data/datasources/auth_remote_data_source.dart';
 import '../../data/repositories/auth_repository_impl.dart';
+import '../../domain/entities/authorization_snapshot.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/usecases/get_current_user.dart';
 import '../../domain/usecases/sign_in.dart';
+import '../../domain/usecases/sign_in_with_apple.dart';
+import '../../domain/usecases/sign_in_with_google.dart';
 import '../../domain/usecases/sign_out.dart';
 import '../../domain/usecases/sign_up.dart';
 import '../../domain/usecases/switch_context.dart';
+import '../../domain/usecases/update_password.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/notifications/push_notification_provider.dart';
 import '../../../../providers/dio_provider.dart';
 
 /// Provider para la URL base de la API
@@ -28,10 +33,13 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final dio = ref.read(dioProvider);
   final baseUrl = ref.read(apiBaseUrlProvider);
 
+  final secureStorage = ref.read(secureStorageProvider);
+
   return AuthRepositoryImpl(
     remoteDataSource: AuthRemoteDataSourceImpl(
       dio: dio,
       baseUrl: baseUrl,
+      secureStorage: secureStorage,
     ),
     networkInfo: networkInfo,
   );
@@ -62,19 +70,21 @@ final switchContextProvider = Provider<SwitchContext>((ref) {
   return SwitchContext(ref.read(authRepositoryProvider));
 });
 
-/// Flag global para rastrear manualmente el estado de autenticación
-final isUserLoggedOutProvider = StateProvider<bool>((ref) => false);
-
-/// Provider para el stream de estado de autenticación con verificación manual adicional
-final authStateProvider = StreamProvider<bool>((ref) {
-  final manuallyLoggedOut = ref.watch(isUserLoggedOutProvider);
-
-  if (manuallyLoggedOut) {
-    return Stream.value(false);
-  }
-
-  return ref.watch(authRepositoryProvider).authStateChanges;
+/// Provider para el caso de uso de actualización de contraseña
+final updatePasswordProvider = Provider<UpdatePassword>((ref) {
+  return UpdatePassword(ref.read(authRepositoryProvider));
 });
+
+/// Provider para el caso de uso de OAuth con Google
+final signInWithGoogleProvider = Provider<SignInWithGoogle>((ref) {
+  return SignInWithGoogle(ref.read(authRepositoryProvider));
+});
+
+/// Provider para el caso de uso de OAuth con Apple
+final signInWithAppleProvider = Provider<SignInWithApple>((ref) {
+  return SignInWithApple(ref.read(authRepositoryProvider));
+});
+
 
 /// Notifier para manejar la autenticación y sus estados
 class AuthNotifier extends AsyncNotifier<UserEntity?> {
@@ -84,6 +94,18 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   Future<UserEntity?> build() async {
     final repository = ref.read(authRepositoryProvider);
 
+    // ── OAuth deep-link callback handler ──────────────────────────────────────
+    //
+    // Con Better Auth / Option C el flujo OAuth es:
+    //   1. App llama GET /auth/oauth/{provider} → obtiene redirect URL.
+    //   2. App abre URL en sistema browser.
+    //   3. Backend autentica y redirige a io.sacdia.app://auth/callback
+    //      con `session_token` y `provider` como query params.
+    //   4. El router intercepta el deep link y llama a
+    //      AuthNotifier.processOAuthDeepLink(sessionToken, provider).
+    //
+    // No hay listener de Supabase aquí — el deep link lo maneja el router.
+
     AppLogger.i('Verificando token local', tag: _tag);
     final hasToken = await repository.hasLocalToken();
 
@@ -92,23 +114,56 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       return null;
     }
 
+    // Pre-read PII and active grant from SecureStorage before the fold (reads are async).
+    final secureStorage = ref.read(secureStorageProvider);
+    final cachedId = await secureStorage.read(AppConstants.cachedUserId);
+    final cachedEmail = await secureStorage.read(AppConstants.cachedUserEmail);
+    final cachedName = await secureStorage.read(AppConstants.cachedUserName);
+    final cachedAvatar = await secureStorage.read(AppConstants.cachedUserAvatar);
+    final cachedAssignmentId =
+        await secureStorage.read(AppConstants.cachedActiveAssignmentId);
+    final cachedRoleName =
+        await secureStorage.read(AppConstants.cachedActiveRoleName);
+    final cachedClubType =
+        await secureStorage.read(AppConstants.cachedActiveClubType);
+    // cachedActiveClubName is reserved for future use — not read yet.
+    final prefs = ref.read(sharedPreferencesProvider);
+
     AppLogger.i('Token encontrado, validando con /auth/me', tag: _tag);
     final result = await ref.read(getCurrentUserProvider)(NoParams());
 
     return result.fold(
       (failure) {
-        if (failure is NetworkFailure || failure is ServerFailure) {
+        if (failure is NetworkFailure) {
           AppLogger.w('Sin conectividad, intentando caché', tag: _tag);
-          final prefs = ref.read(sharedPreferencesProvider);
-          final cachedId = prefs.getString('cached_user_id');
-          final cachedEmail = prefs.getString('cached_user_email');
           if (cachedId != null && cachedEmail != null) {
-            AppLogger.i('Sesión restaurada desde caché: $cachedEmail',
-                tag: _tag);
+            AppLogger.i('Sesión restaurada desde caché', tag: _tag);
+            // Session restored from cache — initialize FCM so token is
+            // registered even when the backend was temporarily unreachable.
+            ref.read(pushNotificationServiceProvider).initialize();
+
+            // Reconstruct active grant from cached flat strings so widgets
+            // render with the correct role immediately (no "Usuario" flash).
+            AuthorizationSnapshot? cachedAuthorization;
+            if (cachedAssignmentId != null) {
+              final cachedGrant = AuthorizationGrant(
+                assignmentId: cachedAssignmentId,
+                roleName: cachedRoleName,
+                clubTypeName: cachedClubType,
+                status: 'active',
+              );
+              cachedAuthorization = AuthorizationSnapshot(
+                clubAssignments: [cachedGrant],
+                activeAssignmentId: cachedAssignmentId,
+              );
+            }
+
             return UserEntity(
               id: cachedId,
               email: cachedEmail,
-              name: prefs.getString('cached_user_name'),
+              name: cachedName,
+              avatar: cachedAvatar,
+              authorization: cachedAuthorization,
               postRegisterComplete:
                   prefs.getBool('cached_post_register_complete') ?? false,
             );
@@ -121,49 +176,78 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       },
       (user) {
         if (user != null) {
-          AppLogger.i('Usuario autenticado: ${user.email}', tag: _tag);
+          AppLogger.i('Usuario autenticado', tag: _tag);
           _cacheUser(user);
+          // User already authenticated on startup — register FCM token.
+          ref.read(pushNotificationServiceProvider).initialize();
           return user;
         }
-        AppLogger.w('Servidor respondió sin usuario, intentando caché',
+        // Server responded but returned no user — session is invalid.
+        // Do NOT restore from cache: the server explicitly rejected the token.
+        AppLogger.w('Servidor respondió sin usuario, redirigiendo a login',
             tag: _tag);
-        final prefs = ref.read(sharedPreferencesProvider);
-        final cachedId = prefs.getString('cached_user_id');
-        final cachedEmail = prefs.getString('cached_user_email');
-        if (cachedId != null && cachedEmail != null) {
-          AppLogger.i('Sesión restaurada desde caché: $cachedEmail', tag: _tag);
-          return UserEntity(
-            id: cachedId,
-            email: cachedEmail,
-            name: prefs.getString('cached_user_name'),
-            postRegisterComplete:
-                prefs.getBool('cached_post_register_complete') ?? false,
-          );
-        }
-        AppLogger.i('Sin caché, redirigiendo a login', tag: _tag);
         return null;
       },
     );
   }
 
-  /// Persiste los datos del usuario en SharedPreferences y SecureStorage para
-  /// restauración offline. El flag post_register_complete se escribe en ambos
-  /// almacenes para que el datasource pueda leerlo como fallback en /auth/me.
+  /// Persiste los datos del usuario para restauración offline.
+  ///
+  /// PII (id, email, name) se almacena en SecureStorage (cifrado en reposo).
+  /// El flag post_register_complete se escribe en SharedPreferences (no PII)
+  /// y también en SecureStorage para que el datasource lo lea como fallback
+  /// en /auth/me.
   void _cacheUser(UserEntity user) {
-    final prefs = ref.read(sharedPreferencesProvider);
-    prefs.setString('cached_user_id', user.id);
-    prefs.setString('cached_user_email', user.email);
-    if (user.name != null) prefs.setString('cached_user_name', user.name!);
-    prefs.setBool('cached_post_register_complete', user.postRegisterComplete);
-    ref.read(secureStorageProvider).write(
+    final secureStorage = ref.read(secureStorageProvider);
+    // Fire-and-forget: cache writes are best-effort for offline restoration.
+    secureStorage.write(AppConstants.cachedUserId, user.id);
+    secureStorage.write(AppConstants.cachedUserEmail, user.email);
+    if (user.name != null) {
+      secureStorage.write(AppConstants.cachedUserName, user.name!);
+    }
+    if (user.avatar != null) {
+      secureStorage.write(AppConstants.cachedUserAvatar, user.avatar!);
+    } else {
+      secureStorage.delete(AppConstants.cachedUserAvatar);
+    }
+    secureStorage.write(
       'cached_post_register_complete',
       user.postRegisterComplete.toString(),
     );
+    // Keep non-PII flag in SharedPreferences for synchronous router reads.
+    ref.read(sharedPreferencesProvider)
+        .setBool('cached_post_register_complete', user.postRegisterComplete);
+
+    // Cache active grant fields so the UI can render the correct role on the
+    // next cold start before the /auth/me response arrives.
+    final activeGrant = user.authorization?.activeGrant;
+    if (activeGrant?.assignmentId != null) {
+      secureStorage.write(
+          AppConstants.cachedActiveAssignmentId, activeGrant!.assignmentId!);
+      if (activeGrant.roleName != null) {
+        secureStorage.write(AppConstants.cachedActiveRoleName, activeGrant.roleName!);
+      } else {
+        secureStorage.delete(AppConstants.cachedActiveRoleName);
+      }
+      if (activeGrant.clubTypeName != null) {
+        secureStorage.write(AppConstants.cachedActiveClubType, activeGrant.clubTypeName!);
+      } else {
+        secureStorage.delete(AppConstants.cachedActiveClubType);
+      }
+      // cachedActiveClubName reserved for future use (club display name not yet in grant)
+      secureStorage.delete(AppConstants.cachedActiveClubName);
+    } else {
+      // No active grant — clear any stale cached grant data.
+      secureStorage.delete(AppConstants.cachedActiveAssignmentId);
+      secureStorage.delete(AppConstants.cachedActiveRoleName);
+      secureStorage.delete(AppConstants.cachedActiveClubName);
+      secureStorage.delete(AppConstants.cachedActiveClubType);
+    }
   }
 
   /// Iniciar sesión con email y contraseña
   Future<bool> signIn({required String email, required String password}) async {
-    AppLogger.i('Login iniciado: $email', tag: _tag);
+    AppLogger.i('Login iniciado', tag: _tag);
     state = const AsyncValue.loading();
 
     final result = await ref.read(signInProvider)(
@@ -179,10 +263,11 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         return AsyncValue.error(errorMessage, StackTrace.current);
       },
       (user) {
-        AppLogger.i('Login exitoso: ${user.email}', tag: _tag);
-        ref.read(isUserLoggedOutProvider.notifier).state = false;
+        AppLogger.i('Login exitoso', tag: _tag);
         ref.read(sharedPreferencesProvider).setBool('user_manually_logged_out', false);
         _cacheUser(user);
+        // Register FCM token after successful login (fire-and-forget).
+        ref.read(pushNotificationServiceProvider).initialize();
         return AsyncValue.data(user);
       },
     );
@@ -244,6 +329,109 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     _cacheUser(updatedUser);
   }
 
+  /// Procesa el callback OAuth recibido por deep link.
+  ///
+  /// Llamar desde el router cuando se intercepta
+  /// `io.sacdia.app://auth/callback?session_token=...&provider=...`.
+  ///
+  /// Internamente llama a [AuthRepository.handleOAuthCallback] que envía
+  /// `POST /auth/oauth/callback` al backend y recibe el JWT HS256 de SACDIA.
+  Future<void> processOAuthDeepLink({
+    required String sessionToken,
+    required String provider,
+  }) async {
+    AppLogger.i('OAuth deep link recibido — provider: $provider', tag: _tag);
+
+    if (state.valueOrNull != null) {
+      AppLogger.i('Ya hay sesión activa, ignorando deep link', tag: _tag);
+      return;
+    }
+
+    final repository = ref.read(authRepositoryProvider);
+    final result = await repository.handleOAuthCallback(
+      sessionToken: sessionToken,
+      provider: provider,
+    );
+
+    result.fold(
+      (failure) {
+        AppLogger.e(
+          'Error al procesar OAuth callback: ${failure.message}',
+          tag: _tag,
+        );
+        state = AsyncValue.error(failure.message, StackTrace.current);
+      },
+      (user) {
+        AppLogger.i('OAuth completado', tag: _tag);
+        _cacheUser(user);
+        state = AsyncValue.data(user);
+        // Register FCM token after OAuth login (fire-and-forget).
+        ref.read(pushNotificationServiceProvider).initialize();
+      },
+    );
+  }
+
+  /// Inicia el flujo OAuth con Google.
+  ///
+  /// Abre el navegador del sistema. El resultado llega de forma asíncrona
+  /// a través del deep link. Retorna true si el navegador fue lanzado,
+  /// false si hubo un error real (no el flujo normal de redirect).
+  Future<OAuthLaunchResult> signInWithGoogle() async {
+    AppLogger.i('OAuth Google iniciado', tag: _tag);
+    state = const AsyncValue.loading();
+
+    final result = await ref.read(signInWithGoogleProvider)(NoParams());
+
+    return result.fold(
+      (failure) {
+        if (failure is OAuthFlowInitiatedFailure) {
+          // El navegador fue lanzado. Resetear loading sin error.
+          state = const AsyncValue.data(null);
+          return OAuthLaunchResult.launched;
+        }
+        final errorMessage =
+            failure is AuthFailure ? failure.message : 'Error al iniciar con Google';
+        AppLogger.w('OAuth Google error: $errorMessage', tag: _tag);
+        state = AsyncValue.error(errorMessage, StackTrace.current);
+        return OAuthLaunchResult.failed;
+      },
+      (user) {
+        _cacheUser(user);
+        state = AsyncValue.data(user);
+        return OAuthLaunchResult.launched;
+      },
+    );
+  }
+
+  /// Inicia el flujo OAuth con Apple.
+  ///
+  /// Misma semántica que [signInWithGoogle].
+  Future<OAuthLaunchResult> signInWithApple() async {
+    AppLogger.i('OAuth Apple iniciado', tag: _tag);
+    state = const AsyncValue.loading();
+
+    final result = await ref.read(signInWithAppleProvider)(NoParams());
+
+    return result.fold(
+      (failure) {
+        if (failure is OAuthFlowInitiatedFailure) {
+          state = const AsyncValue.data(null);
+          return OAuthLaunchResult.launched;
+        }
+        final errorMessage =
+            failure is AuthFailure ? failure.message : 'Error al iniciar con Apple';
+        AppLogger.w('OAuth Apple error: $errorMessage', tag: _tag);
+        state = AsyncValue.error(errorMessage, StackTrace.current);
+        return OAuthLaunchResult.failed;
+      },
+      (user) {
+        _cacheUser(user);
+        state = AsyncValue.data(user);
+        return OAuthLaunchResult.launched;
+      },
+    );
+  }
+
   /// Cambia el contexto activo de autorización y refresca el estado del usuario.
   ///
   /// Llama al use case SwitchContext, y en caso de éxito vuelve a llamar
@@ -289,11 +477,76 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     return true;
   }
 
+  /// Actualiza la contraseña del usuario autenticado.
+  ///
+  /// Requiere la contraseña actual para re-autenticación en el backend.
+  /// Retorna null en caso de éxito, o un mensaje de error localizado.
+  Future<String?> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    AppLogger.i('Cambio de contraseña iniciado', tag: _tag);
+
+    final result = await ref.read(updatePasswordProvider)(
+      UpdatePasswordParams(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      ),
+    );
+
+    return result.fold(
+      (failure) {
+        final msg = failure is AuthFailure
+            ? failure.message
+            : 'Error al cambiar la contraseña';
+        AppLogger.w('Cambio de contraseña fallido: $msg', tag: _tag);
+        return msg;
+      },
+      (user) {
+        AppLogger.i('Contraseña actualizada correctamente', tag: _tag);
+        _cacheUser(user);
+        state = AsyncValue.data(user);
+        return null;
+      },
+    );
+  }
+
+  /// Called by AuthInterceptor when the refresh token is dead.
+  ///
+  /// Clears all local tokens and cached PII then sets state to null so
+  /// GoRouter redirects to login. Does NOT make any API calls (logout
+  /// endpoint, FCM unregister) because the tokens are already invalid.
+  void expireSession() {
+    AppLogger.w('Sesión expirada por interceptor, limpiando estado local', tag: _tag);
+
+    final secureStorage = ref.read(secureStorageProvider);
+    secureStorage.delete(AppConstants.cachedUserId);
+    secureStorage.delete(AppConstants.cachedUserEmail);
+    secureStorage.delete(AppConstants.cachedUserName);
+    secureStorage.delete(AppConstants.cachedUserAvatar);
+    secureStorage.delete('cached_post_register_complete');
+    secureStorage.delete(AppConstants.cachedActiveAssignmentId);
+    secureStorage.delete(AppConstants.cachedActiveRoleName);
+    secureStorage.delete(AppConstants.cachedActiveClubName);
+    secureStorage.delete(AppConstants.cachedActiveClubType);
+
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.remove('cached_post_register_complete');
+
+    state = const AsyncValue.data(null);
+  }
+
   /// Cerrar sesión
   Future<bool> signOut() async {
     state = const AsyncValue.loading();
 
-    ref.read(isUserLoggedOutProvider.notifier).state = true;
+    // Unregister FCM token before clearing auth tokens so the Dio interceptor
+    // can still attach the Bearer header for the DELETE request.
+    // dispose() cancels all stream listeners to prevent duplicate handlers
+    // if the user logs in again in the same session.
+    final pushService = ref.read(pushNotificationServiceProvider);
+    await pushService.unregisterToken();
+    await pushService.dispose();
 
     final result = await ref.read(signOutProvider)(NoParams());
 
@@ -309,11 +562,19 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
         final prefs = ref.read(sharedPreferencesProvider);
         prefs.setBool('user_manually_logged_out', true);
-        prefs.remove('cached_user_id');
-        prefs.remove('cached_user_email');
-        prefs.remove('cached_user_name');
         prefs.remove('cached_post_register_complete');
-        ref.read(secureStorageProvider).delete('cached_post_register_complete');
+
+        // PII and active grant are stored in SecureStorage — clear all on sign-out.
+        final secureStorage = ref.read(secureStorageProvider);
+        secureStorage.delete(AppConstants.cachedUserId);
+        secureStorage.delete(AppConstants.cachedUserEmail);
+        secureStorage.delete(AppConstants.cachedUserName);
+        secureStorage.delete(AppConstants.cachedUserAvatar);
+        secureStorage.delete('cached_post_register_complete');
+        secureStorage.delete(AppConstants.cachedActiveAssignmentId);
+        secureStorage.delete(AppConstants.cachedActiveRoleName);
+        secureStorage.delete(AppConstants.cachedActiveClubName);
+        secureStorage.delete(AppConstants.cachedActiveClubType);
 
         return true;
       },
@@ -331,3 +592,12 @@ final authNotifierProvider =
     AsyncNotifierProvider<AuthNotifier, UserEntity?>(() {
   return AuthNotifier();
 });
+
+/// Resultado de intentar lanzar un flujo OAuth.
+enum OAuthLaunchResult {
+  /// El navegador fue abierto y el flujo está en curso.
+  launched,
+
+  /// Ocurrió un error antes de poder abrir el navegador.
+  failed,
+}

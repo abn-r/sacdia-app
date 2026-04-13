@@ -52,10 +52,12 @@ class ClubInfoCard extends StatelessWidget {
               color: clubColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: HugeIcon(
-              icon: HugeIcons.strokeRoundedUserGroup,
-              color: clubColor,
-              size: 24,
+            child: Center(
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedUserGroup,
+                color: clubColor,
+                size: 24,
+              ),
             ),
           ),
           const SizedBox(width: 14),

@@ -46,19 +46,15 @@ class _MembersViewState extends ConsumerState<MembersView>
     super.dispose();
   }
 
-  /// Determina si el usuario actual es Director o Subdirector
-  bool _isDirectorOrSubdirector(WidgetRef ref) {
+  /// Determina si el usuario actual puede asignar/revocar roles de club.
+  bool _canManageClubRoles(WidgetRef ref) {
     final authState = ref.read(authNotifierProvider);
     final user = authState.valueOrNull;
     if (user == null) return false;
-    return canByPermissionOrLegacyRole(
-      user,
-      requiredPermissions: const {
-        'club_roles:assign',
-        'club_roles:revoke',
-      },
-      legacyRoles: const {'director', 'deputy_director', 'secretary'},
-    );
+    return hasAnyPermission(user, const {
+      'club_roles:assign',
+      'club_roles:revoke',
+    });
   }
 
   @override
@@ -66,7 +62,7 @@ class _MembersViewState extends ConsumerState<MembersView>
     final c = context.sac;
     final hPad = Responsive.horizontalPadding(context);
     final pendingCount = ref.watch(pendingRequestsCountProvider);
-    final isDirector = _isDirectorOrSubdirector(ref);
+    final isDirector = _canManageClubRoles(ref);
     final clubCtxAsync = ref.watch(clubContextProvider);
     final membersAsync = ref.watch(membersNotifierProvider);
 
@@ -80,6 +76,29 @@ class _MembersViewState extends ConsumerState<MembersView>
               padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 4),
               child: Row(
                 children: [
+                  IconButton(
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowLeft01,
+                      color: c.text,
+                      size: 24,
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                    tooltip: 'Volver',
+                  ),
+                  const SizedBox(width: 10),
+                  Container(
+                    padding: const EdgeInsets.all(9),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedUserList,
+                      size: 22,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
                   Text(
                     'Miembros',
                     style: TextStyle(

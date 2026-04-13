@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/class_module.dart';
@@ -11,8 +12,8 @@ class GetClassModules implements UseCase<List<ClassModule>, GetClassModulesParam
   GetClassModules(this.repository);
 
   @override
-  Future<Either<Failure, List<ClassModule>>> call(GetClassModulesParams params) async {
-    return await repository.getClassModules(params.classId);
+  Future<Either<Failure, List<ClassModule>>> call(GetClassModulesParams params, {CancelToken? cancelToken}) async {
+    return await repository.getClassModules(params.classId, cancelToken: cancelToken);
   }
 }
 

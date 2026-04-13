@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/progressive_class.dart';
@@ -11,8 +12,8 @@ class GetUserClasses implements UseCase<List<ProgressiveClass>, GetUserClassesPa
   GetUserClasses(this.repository);
 
   @override
-  Future<Either<Failure, List<ProgressiveClass>>> call(GetUserClassesParams params) async {
-    return await repository.getUserClasses(params.userId);
+  Future<Either<Failure, List<ProgressiveClass>>> call(GetUserClassesParams params, {CancelToken? cancelToken}) async {
+    return await repository.getUserClasses(params.userId, cancelToken: cancelToken);
   }
 }
 

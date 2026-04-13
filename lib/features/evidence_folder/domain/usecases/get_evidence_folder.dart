@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
@@ -24,7 +25,7 @@ class GetEvidenceFolder
 
   @override
   Future<Either<Failure, EvidenceFolder>> call(
-      GetEvidenceFolderParams params) async {
-    return _repository.getEvidenceFolder(params.clubSectionId);
+      GetEvidenceFolderParams params, {CancelToken? cancelToken}) async {
+    return _repository.getEvidenceFolder(params.clubSectionId, cancelToken: cancelToken);
   }
 }

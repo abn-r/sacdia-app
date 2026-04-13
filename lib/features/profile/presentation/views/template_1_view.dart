@@ -411,7 +411,7 @@ class _MockAllergiesScreenState extends State<MockAllergiesScreen> {
                         return ListTile(
                           title: Text(name),
                           selected: isSelected,
-                          selectedTileColor: _sacRed.withOpacity(0.1),
+                          selectedTileColor: _sacRed.withValues(alpha: 0.1),
                           trailing: isSelected ? const Icon(Icons.check_circle, color: _sacRed) : null,
                           onTap: () => setDialogState(() {
                             selected = _MockAllergy(_allergies.length + 1, name);
@@ -551,7 +551,7 @@ class _MockAllergiesScreenState extends State<MockAllergiesScreen> {
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: _sacRed.withOpacity(0.1)),
+            side: BorderSide(color: _sacRed.withValues(alpha: 0.1)),
           ),
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -559,7 +559,7 @@ class _MockAllergiesScreenState extends State<MockAllergiesScreen> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: _sacRed.withOpacity(0.1),
+                color: _sacRed.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.no_food, color: _sacRed),
@@ -815,7 +815,7 @@ class _MockDiseasesScreenState extends State<MockDiseasesScreen> {
           margin: const EdgeInsets.only(bottom: 10),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: _sacRed.withOpacity(0.1)),
+            side: BorderSide(color: _sacRed.withValues(alpha: 0.1)),
           ),
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -823,7 +823,7 @@ class _MockDiseasesScreenState extends State<MockDiseasesScreen> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: _sacRed.withOpacity(0.1),
+                color: _sacRed.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.medical_information, color: _sacRed),

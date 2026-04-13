@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
@@ -12,7 +13,7 @@ import '../../data/models/class_model.dart';
 
 /// Provider para la fuente de datos remota de selección de club
 final clubSelectionDataSourceProvider =
-    Provider<ClubSelectionRemoteDataSource>((ref) {
+    Provider.autoDispose<ClubSelectionRemoteDataSource>((ref) {
   final dio = ref.read(dioProvider);
   return ClubSelectionRemoteDataSourceImpl(
     dio: dio,
@@ -22,57 +23,67 @@ final clubSelectionDataSourceProvider =
 
 /// Provider para la edad del usuario
 /// Este valor debe ser establecido desde la información del usuario
-final userAgeProvider = StateProvider<int?>((ref) => null);
+final userAgeProvider = StateProvider.autoDispose<int?>((ref) => null);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DATA PROVIDERS — fetch data only, no side effects
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Provider para obtener la lista de países
-final countriesProvider = FutureProvider<List<CountryModel>>((ref) async {
+final countriesProvider = FutureProvider.autoDispose<List<CountryModel>>((ref) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.read(clubSelectionDataSourceProvider);
-  return dataSource.getCountries();
+  return dataSource.getCountries(cancelToken: cancelToken);
 });
 
 /// Provider para obtener las uniones del país seleccionado
-final unionsProvider = FutureProvider<List<UnionModel>>((ref) async {
+final unionsProvider = FutureProvider.autoDispose<List<UnionModel>>((ref) async {
   final countryId = ref.watch(selectedCountryProvider);
   if (countryId == null) return [];
 
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.read(clubSelectionDataSourceProvider);
-  return dataSource.getUnionsByCountry(countryId);
+  return dataSource.getUnionsByCountry(countryId, cancelToken: cancelToken);
 });
 
 /// Provider para obtener los campos locales de la unión seleccionada
-final localFieldsProvider = FutureProvider<List<LocalFieldModel>>((ref) async {
+final localFieldsProvider = FutureProvider.autoDispose<List<LocalFieldModel>>((ref) async {
   final unionId = ref.watch(selectedUnionProvider);
   if (unionId == null) return [];
 
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.read(clubSelectionDataSourceProvider);
-  return dataSource.getLocalFieldsByUnion(unionId);
+  return dataSource.getLocalFieldsByUnion(unionId, cancelToken: cancelToken);
 });
 
 /// Provider para obtener los clubes del campo local seleccionado
-final clubsProvider = FutureProvider<List<ClubModel>>((ref) async {
+final clubsProvider = FutureProvider.autoDispose<List<ClubModel>>((ref) async {
   final localFieldId = ref.watch(selectedLocalFieldProvider);
   if (localFieldId == null) return [];
 
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.read(clubSelectionDataSourceProvider);
-  return dataSource.getClubsByLocalField(localFieldId);
+  return dataSource.getClubsByLocalField(localFieldId, cancelToken: cancelToken);
 });
 
 /// Provider para obtener las secciones (tipos) del club seleccionado
 final clubSectionsProvider =
-    FutureProvider<List<ClubSectionModel>>((ref) async {
+    FutureProvider.autoDispose<List<ClubSectionModel>>((ref) async {
   final clubId = ref.watch(selectedClubProvider);
   if (clubId == null) return [];
 
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.read(clubSelectionDataSourceProvider);
-  return dataSource.getClubSections(clubId);
+  return dataSource.getClubSections(clubId, cancelToken: cancelToken);
 });
 
 /// Provider para obtener las clases del tipo de club seleccionado
-final classesProvider = FutureProvider<List<ClassModel>>((ref) async {
+final classesProvider = FutureProvider.autoDispose<List<ClassModel>>((ref) async {
   final clubSectionId = ref.watch(selectedClubSectionProvider);
   if (clubSectionId == null) return [];
 
@@ -91,8 +102,10 @@ final classesProvider = FutureProvider<List<ClassModel>>((ref) async {
 
   if (clubTypeId == null) return [];
 
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.read(clubSelectionDataSourceProvider);
-  return dataSource.getClassesByClubType(clubTypeId);
+  return dataSource.getClassesByClubType(clubTypeId, cancelToken: cancelToken);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -107,7 +120,7 @@ final classesProvider = FutureProvider<List<ClassModel>>((ref) async {
 
 /// Provider para el país seleccionado.
 /// Auto-selecciona el único país si la lista tiene exactamente uno.
-final selectedCountryProvider = StateProvider<int?>((ref) {
+final selectedCountryProvider = StateProvider.autoDispose<int?>((ref) {
   final countries = ref.watch(countriesProvider).valueOrNull;
   if (countries != null && countries.length == 1) {
     return countries.first.id;
@@ -117,7 +130,7 @@ final selectedCountryProvider = StateProvider<int?>((ref) {
 
 /// Provider para la unión seleccionada.
 /// Auto-selecciona la única unión si la lista tiene exactamente una.
-final selectedUnionProvider = StateProvider<int?>((ref) {
+final selectedUnionProvider = StateProvider.autoDispose<int?>((ref) {
   final unions = ref.watch(unionsProvider).valueOrNull;
   if (unions != null && unions.length == 1) {
     return unions.first.id;
@@ -127,7 +140,7 @@ final selectedUnionProvider = StateProvider<int?>((ref) {
 
 /// Provider para el campo local seleccionado.
 /// Auto-selecciona el único campo local si la lista tiene exactamente uno.
-final selectedLocalFieldProvider = StateProvider<int?>((ref) {
+final selectedLocalFieldProvider = StateProvider.autoDispose<int?>((ref) {
   final localFields = ref.watch(localFieldsProvider).valueOrNull;
   if (localFields != null && localFields.length == 1) {
     return localFields.first.id;
@@ -137,7 +150,7 @@ final selectedLocalFieldProvider = StateProvider<int?>((ref) {
 
 /// Provider para el club seleccionado.
 /// Auto-selecciona el único club si la lista tiene exactamente uno.
-final selectedClubProvider = StateProvider<int?>((ref) {
+final selectedClubProvider = StateProvider.autoDispose<int?>((ref) {
   final clubs = ref.watch(clubsProvider).valueOrNull;
   if (clubs != null && clubs.length == 1) {
     return clubs.first.id;
@@ -150,7 +163,7 @@ final selectedClubProvider = StateProvider<int?>((ref) {
 ///   1. Única sección disponible → se selecciona directamente.
 ///   2. Múltiples secciones + edad conocida → pre-selección por rango etario.
 ///   3. Sin datos o edad desconocida → null.
-final selectedClubSectionProvider = StateProvider<int?>((ref) {
+final selectedClubSectionProvider = StateProvider.autoDispose<int?>((ref) {
   final sections = ref.watch(clubSectionsProvider).valueOrNull;
   if (sections == null || sections.isEmpty) return null;
 
@@ -192,7 +205,7 @@ final selectedClubSectionProvider = StateProvider<int?>((ref) {
 ///
 /// Derivado automáticamente de [selectedClubSectionProvider] y
 /// [clubSectionsProvider] — no requiere escritura manual.
-final selectedClubTypeSlugProvider = Provider<String?>((ref) {
+final selectedClubTypeSlugProvider = Provider.autoDispose<String?>((ref) {
   final selectedId = ref.watch(selectedClubSectionProvider);
   if (selectedId == null) return null;
 
@@ -208,7 +221,7 @@ final selectedClubTypeSlugProvider = Provider<String?>((ref) {
 ///   1. Única clase disponible → se selecciona directamente.
 ///   2. Múltiples clases + edad conocida → clase cuyo rango etario coincide.
 ///   3. Sin datos o sin coincidencia → null.
-final selectedClassProvider = StateProvider<int?>((ref) {
+final selectedClassProvider = StateProvider.autoDispose<int?>((ref) {
   final classes = ref.watch(classesProvider).valueOrNull;
   if (classes == null || classes.isEmpty) return null;
 
@@ -232,7 +245,7 @@ final selectedClassProvider = StateProvider<int?>((ref) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Provider para determinar si se puede completar el paso 3
-final canCompleteStep3Provider = Provider<bool>((ref) {
+final canCompleteStep3Provider = Provider.autoDispose<bool>((ref) {
   final country = ref.watch(selectedCountryProvider);
   final union = ref.watch(selectedUnionProvider);
   final localField = ref.watch(selectedLocalFieldProvider);
@@ -249,7 +262,7 @@ final canCompleteStep3Provider = Provider<bool>((ref) {
 });
 
 /// Provider para indicar si se está guardando el paso 3
-final isSavingStep3Provider = StateProvider<bool>((ref) => false);
+final isSavingStep3Provider = StateProvider.autoDispose<bool>((ref) => false);
 
 /// Provider para el mensaje de error del paso 3
-final step3ErrorProvider = StateProvider<String?>((ref) => null);
+final step3ErrorProvider = StateProvider.autoDispose<String?>((ref) => null);

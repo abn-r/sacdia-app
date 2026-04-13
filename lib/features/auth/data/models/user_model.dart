@@ -104,6 +104,11 @@ class UserModel extends UserEntity {
         ? section
         : (instance is Map<String, dynamic> ? instance : null);
 
+    // club_type_name may sit at the top level of the grant object or nested
+    // inside the section object, depending on the backend serializer version.
+    final rawClubTypeName = value['club_type_name']
+        ?? (sectionData is Map<String, dynamic> ? sectionData['club_type_name'] : null);
+
     return AuthorizationGrant(
       assignmentId: value['assignment_id']?.toString(),
       roleName: value['role_name']?.toString(),
@@ -117,6 +122,10 @@ class UserModel extends UserEntity {
                       ?.toString() ??
                   '')
           : null,
+      clubTypeName: rawClubTypeName?.toString(),
+      status: value['status']?.toString(),
+      expiresAt: _parseDateTime(value['expires_at']),
+      rejectionReason: value['rejection_reason']?.toString(),
     );
   }
 
@@ -168,7 +177,11 @@ class UserModel extends UserEntity {
           'club': grant.clubId == null ? null : {'club_id': grant.clubId},
           'section': {
             'club_section_id': grant.sectionId,
-          }
+          },
+          'club_type_name': grant.clubTypeName,
+          'status': grant.status,
+          'expires_at': grant.expiresAt?.toIso8601String(),
+          'rejection_reason': grant.rejectionReason,
         };
 
     return {

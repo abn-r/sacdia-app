@@ -7,7 +7,6 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
-
 import '../providers/classes_providers.dart';
 import '../widgets/class_card.dart';
 import 'class_detail_with_progress_view.dart';
@@ -59,8 +58,7 @@ class ClassesListView extends ConsumerWidget {
                 ref.invalidate(userClassesProvider);
               },
               child: ListView.builder(
-                padding:
-                    EdgeInsets.fromLTRB(hPad, 16, hPad, 24),
+                padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 24),
                 itemCount: classes.length + 1, // +1 para el header
                 itemBuilder: (context, index) {
                   if (index == 0) {
@@ -68,18 +66,32 @@ class ClassesListView extends ConsumerWidget {
                       padding: const EdgeInsets.only(bottom: 20),
                       child: Row(
                         children: [
-                          HugeIcon(
+                          Container(
+                            padding: const EdgeInsets.all(9),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryLight,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: HugeIcon(
                               icon: HugeIcons.strokeRoundedSchool,
-                              size: 24,
-                              color: AppColors.primary),
-                          const SizedBox(width: 10),
-                          Text(
-                            'Mis Clases',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.copyWith(
-                                    fontWeight: FontWeight.w700),
+                              size: 22,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Mis Clases',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -88,28 +100,34 @@ class ClassesListView extends ConsumerWidget {
 
                   final classIndex = index - 1;
                   final progressiveClass = classes[classIndex];
-                  // TODO: obtener progreso real del provider classWithProgress
-                  const progress = 0.0;
 
                   return StaggeredListItem(
                     index: classIndex,
-                    initialDelay:
-                        const Duration(milliseconds: 80),
-                    staggerDelay:
-                        const Duration(milliseconds: 65),
-                    child: ClassCard(
-                      progressiveClass: progressiveClass,
-                      progress: progress,
-                      isCurrent: classIndex == 0,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ClassDetailWithProgressView(
-                              classId: progressiveClass.id,
-                            ),
-                          ),
+                    initialDelay: const Duration(milliseconds: 80),
+                    staggerDelay: const Duration(milliseconds: 65),
+                    child: Consumer(
+                      builder: (context, progressRef, _) {
+                        final progressAsync = progressRef.watch(
+                            classWithProgressProvider(progressiveClass.id));
+                        final progress = progressAsync.whenOrNull(
+                              data: (cwp) => cwp.completionRatio,
+                            ) ??
+                            0.0;
+                        return ClassCard(
+                          progressiveClass: progressiveClass,
+                          progress: progress,
+                          isCurrent: classIndex == 0,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ClassDetailWithProgressView(
+                                  classId: progressiveClass.id,
+                                ),
+                              ),
+                            );
+                          },
                         );
                       },
                     ),
@@ -140,8 +158,7 @@ class ClassesListView extends ConsumerWidget {
                   const SizedBox(height: 8),
                   Text(
                     error.toString().replaceFirst('Exception: ', ''),
-                    style: TextStyle(
-                        fontSize: 14, color: c.textSecondary),
+                    style: TextStyle(fontSize: 14, color: c.textSecondary),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),

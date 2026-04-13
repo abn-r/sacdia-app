@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import '../../../../core/utils/extensions.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../auth/presentation/providers/logout_cleanup.dart';
 import '../../../dashboard/presentation/providers/dashboard_providers.dart';
 import '../widgets/club_context_card.dart';
 import '../widgets/dashboard_card.dart';
@@ -193,6 +194,7 @@ class HomeView extends ConsumerWidget {
 
     if (confirmed == true) {
       final success = await ref.read(authNotifierProvider.notifier).signOut();
+      if (success) clearUserStateOnLogout(ref);
       if (success && context.mounted) {
         context.showSnackBar('Sesión cerrada correctamente');
       } else if (!success && context.mounted) {

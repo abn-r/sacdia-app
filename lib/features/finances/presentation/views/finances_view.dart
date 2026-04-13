@@ -1,27 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/finance_month.dart';
 import '../../domain/entities/transaction.dart';
 import '../providers/finances_providers.dart';
 import '../widgets/balance_header_card.dart';
 import '../widgets/closed_period_banner.dart';
-import '../widgets/finance_bar_chart.dart';
-import '../widgets/income_expense_row.dart';
+import '../widgets/date_group_header.dart';
+import '../widgets/finance_line_chart.dart';
+import '../widgets/finances_loading_skeleton.dart';
 import '../widgets/transaction_tile.dart';
 import 'add_transaction_sheet.dart';
+import 'all_transactions_view.dart';
 import 'transaction_detail_view.dart';
 
 /// Pantalla principal del módulo de Finanzas.
 ///
 /// Muestra el saldo acumulado, el resumen del mes seleccionado,
-/// un gráfico de barras mensual y la lista de transacciones.
+/// un gráfico de líneas con selector de período y la lista agrupada
+/// de transacciones por fecha.
 class FinancesView extends ConsumerWidget {
   const FinancesView({super.key});
 
@@ -30,7 +31,6 @@ class FinancesView extends ConsumerWidget {
     final financeMonthAsync = ref.watch(financeMonthProvider);
     final summaryAsync = ref.watch(financeSummaryProvider);
     final canManageAsync = ref.watch(canManageFinancesProvider);
-    final selected = ref.watch(selectedMonthProvider);
 
     final isOpen = financeMonthAsync.valueOrNull?.isOpen ?? true;
     final canManage = canManageAsync.valueOrNull ?? false;
@@ -39,10 +39,9 @@ class FinancesView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: context.sac.background,
       floatingActionButton: showFab
-          ? _AddFab(
-              onTap: () => _openAddSheet(context, ref),
-            )
+          ? _AddFab(onTap: () => _openAddSheet(context, ref))
           : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: SafeArea(
         child: RefreshIndicator(
           color: AppColors.primary,
@@ -54,7 +53,7 @@ class FinancesView extends ConsumerWidget {
             physics: const BouncingScrollPhysics(
                 parent: AlwaysScrollableScrollPhysics()),
             slivers: [
-              // App bar
+              // ── App bar ───────────────────────────────────────────────────
               SliverAppBar(
                 pinned: true,
                 expandedHeight: 0,
@@ -93,13 +92,12 @@ class FinancesView extends ConsumerWidget {
                 ],
               ),
 
-              // Body
+              // ── Body ──────────────────────────────────────────────────────
               SliverToBoxAdapter(
                 child: financeMonthAsync.when(
-                  loading: () => _LoadingBody(selected: selected),
+                  loading: () => const FinancesLoadingSkeleton(),
                   error: (e, _) => _ErrorBody(
-                    message:
-                        e.toString().replaceFirst('Exception: ', ''),
+                    message: e.toString().replaceFirst('Exception: ', ''),
                     onRetry: () {
                       ref.invalidate(financeMonthProvider);
                       ref.invalidate(financeSummaryProvider);
@@ -149,64 +147,97 @@ class _FinanceBody extends ConsumerWidget {
     final totalBalance = summaryAsync.valueOrNull?.totalBalance ??
         financeMonth?.totalBalance ??
         0.0;
-    final barData = summaryAsync.valueOrNull?.monthlyBars ?? [];
+    final transactions = financeMonth?.transactions ?? [];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Balance header card
+        // Balance header — centered layout
         BalanceHeaderCard(
           financeMonth: financeMonth,
           totalBalance: totalBalance,
         ),
 
-        // Closed banner
+        // Closed period banner
         if (!isOpen) const ClosedPeriodBanner(),
 
-        // Income / expense summary chips
-        IncomeExpenseRow(
-          income: financeMonth?.totalIncome ?? 0,
-          expense: financeMonth?.totalExpense ?? 0,
+        // Separator
+        const _DashedSeparator(),
+
+        // Area line chart with period selector
+        const FinanceLineChart(),
+
+        // Separator
+        const _DashedSeparator(),
+
+        // Transactions section header
+        _TransactionsSectionHeader(
+          onViewAll: () => _openFullTransactionList(context),
         ),
 
-        // Bar chart
-        if (barData.isNotEmpty || summaryAsync.hasValue)
-          FinanceBarChart(bars: barData),
-
-        const SizedBox(height: 16),
-
-        // Transactions header
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-          child: Text(
-            'Movimientos del mes',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: context.sac.text,
-                ),
-          ),
-        ),
-
-        // Transactions list
-        if (financeMonth == null || financeMonth!.transactions.isEmpty)
+        // Transactions or empty state
+        if (transactions.isEmpty)
           _EmptyTransactions()
         else
-          ...financeMonth!.transactions.asMap().entries.map(
-            (entry) => StaggeredListItem(
-              index: entry.key,
-              child: TransactionTile(
-                transaction: entry.value,
-                onTap: () => _openDetail(context, entry.value),
-              ),
-            ),
-          ),
+          ..._buildGroupedTransactions(context, transactions),
 
-        const SizedBox(height: 80), // FAB clearance
+        // "Ver todo" link at the bottom
+        if (transactions.isNotEmpty)
+          _VerTodoLink(onTap: () => _openFullTransactionList(context)),
+
+        // FAB clearance
+        const SizedBox(height: 80),
       ],
     );
   }
 
-  void _openDetail(BuildContext context, FinanceTransaction t) {
+  // ── Grouped transactions builder ──────────────────────────────────────────
+
+  List<Widget> _buildGroupedTransactions(
+    BuildContext context,
+    List<FinanceTransaction> transactions,
+  ) {
+    final grouped = <DateTime, List<FinanceTransaction>>{};
+    for (final tx in transactions) {
+      final dateKey = DateTime(tx.date.year, tx.date.month, tx.date.day);
+      grouped.putIfAbsent(dateKey, () => []).add(tx);
+    }
+
+    final sortedDates = grouped.keys.toList()
+      ..sort((a, b) => b.compareTo(a));
+    final widgets = <Widget>[];
+    var globalIndex = 0;
+
+    for (final date in sortedDates) {
+      final dayTransactions = grouped[date]!;
+      final dailyTotal = dayTransactions.fold<double>(
+        0,
+        (sum, tx) =>
+            sum +
+            (tx.type == TransactionType.income ? tx.amount : -tx.amount),
+      );
+
+      widgets.add(DateGroupHeader(date: date, dailyTotal: dailyTotal));
+
+      for (final tx in dayTransactions) {
+        widgets.add(
+          StaggeredListItem(
+            index: globalIndex++,
+            child: TransactionTile(
+              transaction: tx,
+              onTap: () => _openTransactionDetail(context, tx),
+            ),
+          ),
+        );
+      }
+    }
+
+    return widgets;
+  }
+
+  // ── Navigation helpers ─────────────────────────────────────────────────────
+
+  void _openTransactionDetail(BuildContext context, FinanceTransaction t) {
     Navigator.push(
       context,
       SacSharedAxisRoute(
@@ -214,46 +245,31 @@ class _FinanceBody extends ConsumerWidget {
       ),
     );
   }
-}
 
-// ── Loading body ───────────────────────────────────────────────────────────────
-
-class _LoadingBody extends StatelessWidget {
-  final SelectedMonth selected;
-
-  const _LoadingBody({required this.selected});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Skeleton card placeholder
-        Container(
-          margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          height: 160,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF2E3D7C), Color(0xFF1A2456)],
-            ),
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: const Center(child: SacLoading()),
-        ),
-        const SizedBox(height: 200),
-        const SacLoading(),
-      ],
+  void _openFullTransactionList(BuildContext context) {
+    // Pass the currently selected month so AllTransactionsView seeds its
+    // date range filter to that month on first open.
+    final selected = ProviderScope.containerOf(context)
+        .read(selectedMonthProvider);
+    Navigator.of(context).push(
+      SacSharedAxisRoute(
+        builder: (_) => AllTransactionsView(initialMonth: selected),
+      ),
     );
   }
 }
 
-// ── Empty ──────────────────────────────────────────────────────────────────────
+// ── Empty transactions ─────────────────────────────────────────────────────────
 
 class _EmptyTransactions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Center(
+      child: Padding(
       padding: const EdgeInsets.all(40),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           HugeIcon(
             icon: HugeIcons.strokeRoundedMoneyReceive01,
@@ -263,6 +279,7 @@ class _EmptyTransactions extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             'Sin movimientos este mes',
+            textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: context.sac.textSecondary,
                 ),
@@ -270,17 +287,19 @@ class _EmptyTransactions extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             'Pulsa + para agregar el primer registro.',
+            textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: context.sac.textTertiary,
                 ),
           ),
         ],
       ),
+    ),
     );
   }
 }
 
-// ── Error ──────────────────────────────────────────────────────────────────────
+// ── Error body ─────────────────────────────────────────────────────────────────
 
 class _ErrorBody extends StatelessWidget {
   final String message;
@@ -323,10 +342,127 @@ class _ErrorBody extends StatelessWidget {
               color: Colors.white,
             ),
             label: const Text('Reintentar'),
-            style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Dashed separator ───────────────────────────────────────────────────────────
+
+class _DashedSeparator extends StatelessWidget {
+  const _DashedSeparator();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      child: CustomPaint(
+        size: const Size(double.infinity, 1.5),
+        painter: _DashedLinePainter(color: context.sac.border),
+      ),
+    );
+  }
+}
+
+class _DashedLinePainter extends CustomPainter {
+  final Color color;
+
+  _DashedLinePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+
+    const dashWidth = 5.0;
+    const dashGap = 4.0;
+    var startX = 0.0;
+
+    while (startX < size.width) {
+      canvas.drawLine(
+        Offset(startX, size.height / 2),
+        Offset(startX + dashWidth, size.height / 2),
+        paint,
+      );
+      startX += dashWidth + dashGap;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedLinePainter oldDelegate) =>
+      color != oldDelegate.color;
+}
+
+// ── Transactions section header ────────────────────────────────────────────────
+
+class _TransactionsSectionHeader extends StatelessWidget {
+  final VoidCallback onViewAll;
+
+  const _TransactionsSectionHeader({required this.onViewAll});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Transacciones Recientes',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: c.text,
+            ),
+          ),
+          GestureDetector(
+            onTap: onViewAll,
+            child: Text(
+              'Ver todo →',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: c.textTertiary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Ver todo link ──────────────────────────────────────────────────────────────
+
+class _VerTodoLink extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _VerTodoLink({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Center(
+        child: GestureDetector(
+          onTap: onTap,
+          child: Text(
+            'Ver todas las transacciones →',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: context.sac.textSecondary,
+              decoration: TextDecoration.underline,
+              decorationColor: context.sac.textTertiary,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -341,18 +477,27 @@ class _AddFab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FloatingActionButton.extended(
-      onPressed: onTap,
-      backgroundColor: AppColors.primary,
-      foregroundColor: Colors.white,
-      icon: HugeIcon(
-        icon: HugeIcons.strokeRoundedAdd01,
-        size: 20,
-        color: Colors.white,
-      ),
-      label: const Text(
-        'Agregar',
-        style: TextStyle(fontWeight: FontWeight.w700),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF9333EA), Color(0xFF7C3AED)],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF9333EA).withValues(alpha: 0.4),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: const Icon(Icons.add, color: Colors.white, size: 28),
       ),
     );
   }

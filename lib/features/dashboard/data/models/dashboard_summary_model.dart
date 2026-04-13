@@ -71,7 +71,10 @@ class DashboardSummaryModel extends DashboardSummary {
       clubType: json['club_type'] as String?,
       userRole: json['user_role'] as String?,
       currentClassName: json['current_class_name'] as String?,
-      classProgress: (json['class_progress'] as num?)?.toDouble() ?? 0.0,
+      // Backend sends class_progress as an integer percentage (0–100).
+      // The domain entity and all widgets expect a fraction (0.0–1.0),
+      // so we divide by 100 here at the boundary.
+      classProgress: ((json['class_progress'] as num?)?.toDouble() ?? 0.0) / 100.0,
       honorsCompleted: json['honors_completed'] as int? ?? 0,
       honorsInProgress: json['honors_in_progress'] as int? ?? 0,
       upcomingActivities: activities.map((a) => a.toEntity()).toList(),
@@ -87,7 +90,8 @@ class DashboardSummaryModel extends DashboardSummary {
       'club_type': clubType,
       'user_role': userRole,
       'current_class_name': currentClassName,
-      'class_progress': classProgress,
+      // Serialize back to the API contract format (integer percentage 0–100)
+      'class_progress': (classProgress * 100).round(),
       'honors_completed': honorsCompleted,
       'honors_in_progress': honorsInProgress,
       'upcoming_activities': upcomingActivities.map((a) {

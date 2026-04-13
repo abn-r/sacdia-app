@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -46,26 +47,15 @@ final updateInsuranceUseCaseProvider = Provider<UpdateInsurance>((ref) {
 
 // ── Permission helper ───────────────────────────────────────────────────────────
 
-/// Roles autorizados para gestionar seguros del club.
-const _insuranceEditorRoles = {
-  'director',
-  'subdirector',
-  'treasurer',
-  'tesorero',
-};
-
 /// Devuelve true si el usuario puede crear/editar seguros.
 final canManageInsuranceProvider = FutureProvider.autoDispose<bool>((ref) async {
   final authState = await ref.watch(authNotifierProvider.future);
   if (authState == null) return false;
 
-  return canByPermissionOrLegacyRole(
-    authState,
-    requiredPermissions: const {
-      'club_roles:assign',
-    },
-    legacyRoles: _insuranceEditorRoles,
-  );
+  return hasAnyPermission(authState, const {
+    'insurance:create',
+    'insurance:update',
+  });
 });
 
 // ── Members insurance list ──────────────────────────────────────────────────────
@@ -76,10 +66,15 @@ final membersInsuranceProvider =
   if (ctx == null) return [];
 
   final useCase = ref.read(getMembersInsuranceUseCaseProvider);
-  final result = await useCase(GetMembersInsuranceParams(
-    clubId: ctx.clubId,
-    sectionId: ctx.sectionId,
-  ));
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await useCase(
+    GetMembersInsuranceParams(
+      clubId: ctx.clubId,
+      sectionId: ctx.sectionId,
+    ),
+    cancelToken: cancelToken,
+  );
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -373,6 +368,24 @@ final insuranceFormNotifierProvider = NotifierProvider.autoDispose<
     InsuranceFormNotifier, InsuranceFormState>(
   InsuranceFormNotifier.new,
 );
+
+// ── Expiring insurance ──────────────────────────────────────────────────────────
+
+/// Seguros que vencen en los próximos 30 días.
+///
+/// Deriva los datos localmente desde [membersInsuranceProvider] — los registros
+/// por vencer son un subconjunto de la lista completa que ya está en memoria.
+/// Esto elimina la llamada redundante a GET /insurance/expiring.
+final expiringInsuranceProvider =
+    Provider.autoDispose<AsyncValue<List<MemberInsurance>>>((ref) {
+  final allAsync = ref.watch(membersInsuranceProvider);
+  return allAsync.whenData((all) {
+    final cutoff = DateTime.now().add(const Duration(days: 30));
+    return all
+        .where((i) => i.endDate != null && i.endDate!.isBefore(cutoff))
+        .toList();
+  });
+});
 
 // ── MIME type helper ─────────────────────────────────────────────────────────
 

@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -18,13 +19,17 @@ class InventoryRepositoryImpl implements InventoryRepository {
   });
 
   @override
-  Future<Either<Failure, List<InventoryItem>>> getItems(
-      {required int clubId}) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
+  Future<Either<Failure, List<InventoryItem>>> getItems({
+    required int clubId,
+    required String instanceType,
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final models = await remoteDataSource.getItems(clubId: clubId);
+      final models = await remoteDataSource.getItems(
+        clubId: clubId,
+        instanceType: instanceType,
+        cancelToken: cancelToken,
+      );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
@@ -36,13 +41,15 @@ class InventoryRepositoryImpl implements InventoryRepository {
   }
 
   @override
-  Future<Either<Failure, InventoryItem>> getItem(
-      {required int itemId}) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
+  Future<Either<Failure, InventoryItem>> getItem({
+    required int itemId,
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final model = await remoteDataSource.getItem(itemId: itemId);
+      final model = await remoteDataSource.getItem(
+        itemId: itemId,
+        cancelToken: cancelToken,
+      );
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
@@ -68,9 +75,6 @@ class InventoryRepositoryImpl implements InventoryRepository {
     String? assignedTo,
     String? notes,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.createItem(
         clubId: clubId,
@@ -111,9 +115,6 @@ class InventoryRepositoryImpl implements InventoryRepository {
     String? assignedTo,
     String? notes,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.updateItem(
         itemId: itemId,
@@ -141,9 +142,6 @@ class InventoryRepositoryImpl implements InventoryRepository {
 
   @override
   Future<Either<Failure, void>> deleteItem({required int itemId}) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       await remoteDataSource.deleteItem(itemId: itemId);
       return const Right(null);
@@ -157,12 +155,13 @@ class InventoryRepositoryImpl implements InventoryRepository {
   }
 
   @override
-  Future<Either<Failure, List<InventoryCategory>>> getCategories() async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
+  Future<Either<Failure, List<InventoryCategory>>> getCategories({
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final models = await remoteDataSource.getCategories();
+      final models = await remoteDataSource.getCategories(
+        cancelToken: cancelToken,
+      );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));

@@ -16,7 +16,10 @@ class EcclesiasticalYearModel extends Equatable {
     required this.active,
   });
 
-  /// Crea una instancia desde JSON
+  /// Crea una instancia desde JSON.
+  ///
+  /// El backend entrega: [ecclesiastical_year_id], [name] (formato "2025-2026"),
+  /// [start_date], [end_date], [active].
   factory EcclesiasticalYearModel.fromJson(Map<String, dynamic> json) {
     return EcclesiasticalYearModel(
       ecclesiasticalYearId: json['ecclesiastical_year_id'] as int,

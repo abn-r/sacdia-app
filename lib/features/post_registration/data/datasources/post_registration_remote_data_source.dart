@@ -1,17 +1,17 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http_parser/http_parser.dart';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/completion_status_model.dart';
 
 /// Interfaz para la fuente de datos remota de post-registro
 abstract class PostRegistrationRemoteDataSource {
-  Future<CompletionStatusModel> getCompletionStatus();
+  Future<CompletionStatusModel> getCompletionStatus({CancelToken? cancelToken});
   Future<String> uploadProfilePicture({required String userId, required String filePath});
   Future<void> deleteProfilePicture({required String userId});
-  Future<bool> getPhotoStatus({required String userId});
+  Future<bool> getPhotoStatus({required String userId, CancelToken? cancelToken});
   Future<void> completeStep1(String userId);
 }
 
@@ -20,7 +20,6 @@ class PostRegistrationRemoteDataSourceImpl
     implements PostRegistrationRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'PostRegistrationDS';
 
@@ -28,24 +27,16 @@ class PostRegistrationRemoteDataSourceImpl
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<Options> _authOptions() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) {
-      throw AuthException(message: 'No hay sesión activa');
-    }
-    return Options(headers: {'Authorization': 'Bearer $token'});
-  }
+        _baseUrl = baseUrl;
 
   @override
-  Future<CompletionStatusModel> getCompletionStatus() async {
+  Future<CompletionStatusModel> getCompletionStatus({
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final options = await _authOptions();
       final response = await _dio.get(
-        '$_baseUrl/auth/profile/completion-status',
-        options: options,
+        '$_baseUrl${ApiEndpoints.auth}/profile/completion-status',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -55,6 +46,7 @@ class PostRegistrationRemoteDataSourceImpl
       throw ServerException(message: 'Error al obtener estado de completitud');
     } catch (e) {
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(message: e.message ?? 'Error de conexión');
       }
       if (e is AppException) rethrow;
@@ -68,9 +60,6 @@ class PostRegistrationRemoteDataSourceImpl
     required String filePath,
   }) async {
     try {
-      final options = await _authOptions();
-      options.contentType = 'multipart/form-data';
-
       final String extension = filePath.contains('.')
           ? filePath.split('.').last.toLowerCase()
           : 'jpg';
@@ -90,9 +79,9 @@ class PostRegistrationRemoteDataSourceImpl
       });
 
       final response = await _dio.post(
-        '$_baseUrl/users/$userId/profile-picture',
+        '$_baseUrl${ApiEndpoints.users}/$userId/profile-picture',
         data: formData,
-        options: options,
+        options: Options(contentType: 'multipart/form-data'),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -113,10 +102,8 @@ class PostRegistrationRemoteDataSourceImpl
   @override
   Future<void> deleteProfilePicture({required String userId}) async {
     try {
-      final options = await _authOptions();
       final response = await _dio.delete(
-        '$_baseUrl/users/$userId/profile-picture',
-        options: options,
+        '$_baseUrl${ApiEndpoints.users}/$userId/profile-picture',
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {
@@ -132,12 +119,14 @@ class PostRegistrationRemoteDataSourceImpl
   }
 
   @override
-  Future<bool> getPhotoStatus({required String userId}) async {
+  Future<bool> getPhotoStatus({
+    required String userId,
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final options = await _authOptions();
       final response = await _dio.get(
-        '$_baseUrl/users/$userId/post-registration/photo-status',
-        options: options,
+        '$_baseUrl${ApiEndpoints.users}/$userId/post-registration/photo-status',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -147,6 +136,7 @@ class PostRegistrationRemoteDataSourceImpl
       return false;
     } catch (e) {
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(message: e.message ?? 'Error de conexión');
       }
       if (e is AppException) rethrow;
@@ -157,10 +147,8 @@ class PostRegistrationRemoteDataSourceImpl
   @override
   Future<void> completeStep1(String userId) async {
     try {
-      final options = await _authOptions();
       final response = await _dio.post(
-        '$_baseUrl/users/$userId/post-registration/step-1/complete',
-        options: options,
+        '$_baseUrl${ApiEndpoints.users}/$userId/post-registration/step-1/complete',
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {

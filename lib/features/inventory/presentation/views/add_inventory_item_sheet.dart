@@ -5,7 +5,9 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/utils/icon_helper.dart';
 import '../../domain/entities/inventory_category.dart';
 import '../../domain/entities/inventory_item.dart';
 import '../providers/inventory_providers.dart';
@@ -13,6 +15,7 @@ import '../providers/inventory_providers.dart';
 /// Bottom sheet para agregar o editar un ítem de inventario.
 ///
 /// Recibe [existing] cuando se edita un ítem existente.
+/// Campos agrupados visualmente por secciones con separadores.
 class AddInventoryItemSheet extends ConsumerStatefulWidget {
   final InventoryItem? existing;
 
@@ -77,10 +80,11 @@ class _AddInventoryItemSheetState
   Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(inventoryCategoriesProvider);
     final formState = ref.watch(inventoryItemFormNotifierProvider);
+    final c = context.sac;
 
     return Container(
       decoration: BoxDecoration(
-        color: context.sac.background,
+        color: c.background,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
@@ -92,30 +96,31 @@ class _AddInventoryItemSheetState
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: context.sac.border,
+              color: c.border,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
 
           // Header
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            padding: const EdgeInsets.fromLTRB(20, 16, 8, 0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  _isEditing ? 'Editar Artículo' : 'Nuevo Artículo',
-                  style:
-                      Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
+                Expanded(
+                  child: Text(
+                    _isEditing ? 'Editar Artículo' : 'Nuevo Artículo',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: c.text,
+                        ),
+                  ),
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
                   icon: HugeIcon(
                     icon: HugeIcons.strokeRoundedCancel01,
                     size: 20,
-                    color: context.sac.textSecondary,
+                    color: c.textSecondary,
                   ),
                 ),
               ],
@@ -135,7 +140,14 @@ class _AddInventoryItemSheetState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Name (required)
+                    // ── Section: Información básica ────────────────────────
+                    _SectionHeader(
+                      icon: HugeIcons.strokeRoundedPackage,
+                      title: 'Información básica',
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Name
                     _SectionLabel('Nombre del artículo *'),
                     const SizedBox(height: 6),
                     TextFormField(
@@ -151,30 +163,18 @@ class _AddInventoryItemSheetState
                           : null,
                     ),
 
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
 
-                    // Category (required)
+                    // Category
                     _SectionLabel('Categoría *'),
                     const SizedBox(height: 6),
                     categoriesAsync.when(
-                      loading: () => const LinearProgressIndicator(),
-                      error: (_, __) => Row(
-                        children: [
-                          const Expanded(
-                            child: Text(
-                              'No se pudieron cargar las categorías',
-                              style: TextStyle(color: AppColors.error),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () => ref.invalidate(
-                                inventoryCategoriesProvider),
-                            child: const Text('Reintentar'),
-                          ),
-                        ],
+                      loading: () => const _CategorySkeleton(),
+                      error: (_, __) => _CategoryError(
+                        onRetry: () =>
+                            ref.invalidate(inventoryCategoriesProvider),
                       ),
                       data: (cats) {
-                        // Attempt to match existing category from the loaded list
                         InventoryCategory? dropdownValue;
                         if (_selectedCategory != null) {
                           try {
@@ -193,32 +193,22 @@ class _AddInventoryItemSheetState
                             context: context,
                           ),
                           items: cats
-                              .map((c) => DropdownMenuItem(
-                                    value: c,
-                                    child: Text(c.name),
+                              .map((cat) => DropdownMenuItem(
+                                    value: cat,
+                                    child: Text(cat.name),
                                   ))
                               .toList(),
-                          onChanged: (c) =>
-                              setState(() => _selectedCategory = c),
+                          onChanged: (cat) =>
+                              setState(() => _selectedCategory = cat),
                           validator: (v) =>
                               v == null ? 'Selecciona una categoría' : null,
                         );
                       },
                     ),
 
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
 
-                    // Condition (required)
-                    _SectionLabel('Estado de conservación *'),
-                    const SizedBox(height: 8),
-                    _ConditionSelector(
-                      selected: _condition,
-                      onChanged: (c) => setState(() => _condition = c),
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    // Quantity (required)
+                    // Quantity
                     _SectionLabel('Cantidad *'),
                     const SizedBox(height: 6),
                     TextFormField(
@@ -227,10 +217,7 @@ class _AddInventoryItemSheetState
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
                       ],
-                      decoration: _inputDecoration(
-                        hint: '1',
-                        context: context,
-                      ),
+                      decoration: _inputDecoration(hint: '1', context: context),
                       validator: (v) {
                         if (v == null || v.isEmpty) {
                           return 'Ingresa la cantidad';
@@ -243,9 +230,29 @@ class _AddInventoryItemSheetState
                       },
                     ),
 
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 16),
 
-                    // Description (optional)
+                    // ── Section: Estado ────────────────────────────────────
+                    _SectionHeader(
+                      icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                      title: 'Estado de conservación',
+                    ),
+                    const SizedBox(height: 12),
+
+                    _ConditionSelector(
+                      selected: _condition,
+                      onChanged: (cond) => setState(() => _condition = cond),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // ── Section: Descripción y referencia ──────────────────
+                    _SectionHeader(
+                      icon: HugeIcons.strokeRoundedNote01,
+                      title: 'Descripción y referencia',
+                    ),
+                    const SizedBox(height: 12),
+
                     _SectionLabel('Descripción (opcional)'),
                     const SizedBox(height: 6),
                     TextFormField(
@@ -258,9 +265,8 @@ class _AddInventoryItemSheetState
                       ),
                     ),
 
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
 
-                    // Serial number (optional)
                     _SectionLabel('Número de serie / código (opcional)'),
                     const SizedBox(height: 6),
                     TextFormField(
@@ -271,20 +277,26 @@ class _AddInventoryItemSheetState
                       ),
                     ),
 
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 16),
 
-                    // Purchase date (optional)
+                    // ── Section: Valor y fecha ─────────────────────────────
+                    _SectionHeader(
+                      icon: HugeIcons.strokeRoundedMoney01,
+                      title: 'Valor y adquisición',
+                    ),
+                    const SizedBox(height: 12),
+
                     _SectionLabel('Fecha de adquisición (opcional)'),
                     const SizedBox(height: 6),
                     _DatePickerField(
                       selectedDate: _purchaseDate,
-                      onDateSelected: (d) => setState(() => _purchaseDate = d),
+                      onDateSelected: (d) =>
+                          setState(() => _purchaseDate = d),
                       onClear: () => setState(() => _purchaseDate = null),
                     ),
 
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
 
-                    // Estimated value (optional)
                     _SectionLabel('Valor estimado (opcional)'),
                     const SizedBox(height: 6),
                     TextFormField(
@@ -302,9 +314,15 @@ class _AddInventoryItemSheetState
                       ),
                     ),
 
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 16),
 
-                    // Location (optional)
+                    // ── Section: Ubicación y asignación ───────────────────
+                    _SectionHeader(
+                      icon: HugeIcons.strokeRoundedLocation01,
+                      title: 'Ubicación y asignación',
+                    ),
+                    const SizedBox(height: 12),
+
                     _SectionLabel('Ubicación / almacén (opcional)'),
                     const SizedBox(height: 6),
                     TextFormField(
@@ -316,9 +334,8 @@ class _AddInventoryItemSheetState
                       ),
                     ),
 
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
 
-                    // Assigned to (optional)
                     _SectionLabel('Asignado a (opcional)'),
                     const SizedBox(height: 6),
                     TextFormField(
@@ -330,9 +347,8 @@ class _AddInventoryItemSheetState
                       ),
                     ),
 
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
 
-                    // Notes (optional)
                     _SectionLabel('Notas (opcional)'),
                     const SizedBox(height: 6),
                     TextFormField(
@@ -351,11 +367,24 @@ class _AddInventoryItemSheetState
                     if (formState.errorMessage != null)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 12),
-                        child: Text(
-                          formState.errorMessage!,
-                          style:
-                              const TextStyle(color: AppColors.error),
-                          textAlign: TextAlign.center,
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.error.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: AppColors.error.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Text(
+                            formState.errorMessage!,
+                            style: const TextStyle(
+                              color: AppColors.error,
+                              fontSize: 13,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                       ),
 
@@ -368,12 +397,17 @@ class _AddInventoryItemSheetState
                         style: FilledButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusSM),
                           ),
                         ),
                         child: formState.isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2)
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                    color: Colors.white, strokeWidth: 2.5),
+                              )
                             : Text(
                                 _isEditing
                                     ? 'Guardar cambios'
@@ -396,7 +430,8 @@ class _AddInventoryItemSheetState
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     final clubId = await ref.read(inventoryClubIdProvider.future);
     if (clubId == null) return;
@@ -458,35 +493,88 @@ class _AddInventoryItemSheetState
       hintText: hint,
       prefixText: prefix,
       filled: true,
-      fillColor: Theme.of(context)
-          .colorScheme
-          .surfaceContainerHighest
-          .withValues(alpha: 0.4),
+      fillColor: context.sac.surfaceVariant,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(
-          color:
-              Theme.of(context).dividerColor.withValues(alpha: 0.4),
-        ),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+        borderSide: BorderSide(color: context.sac.border),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         borderSide: const BorderSide(color: AppColors.primary, width: 2),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide:
-            const BorderSide(color: AppColors.error, width: 1.5),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+        borderSide: const BorderSide(color: AppColors.error, width: 1.5),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide:
-            const BorderSide(color: AppColors.error, width: 2),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+        borderSide: const BorderSide(color: AppColors.error, width: 2),
       ),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+    );
+  }
+}
+
+// ── Section header ──────────────────────────────────────────────────────────────
+
+class _SectionHeader extends StatelessWidget {
+  final HugeIconData icon;
+  final String title;
+
+  const _SectionHeader({required this.icon, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: AppColors.primarySurface,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Center(
+            child: HugeIcon(icon: icon, size: 15, color: AppColors.primary),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: context.sac.text,
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Divider(color: context.sac.border, thickness: 1),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Section label ───────────────────────────────────────────────────────────────
+
+class _SectionLabel extends StatelessWidget {
+  final String text;
+
+  const _SectionLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: context.sac.textSecondary,
+          ),
     );
   }
 }
@@ -505,53 +593,58 @@ class _ConditionSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: ItemCondition.values.map((c) {
-        final isSelected = c == selected;
-        final color = _conditionColor(c);
+      children: ItemCondition.values.map((cond) {
+        final isSelected = cond == selected;
+        final color = _conditionColor(cond);
+        final isLast = cond == ItemCondition.malo;
         return Expanded(
           child: Padding(
-            padding: EdgeInsets.only(
-              right: c != ItemCondition.malo ? 8 : 0,
-            ),
+            padding: EdgeInsets.only(right: isLast ? 0 : 8),
             child: GestureDetector(
-              onTap: () => onChanged(c),
+              onTap: () => onChanged(cond),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutCubic,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? color.withValues(alpha: 0.12)
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   border: Border.all(
-                    color: isSelected
-                        ? color
-                        : Theme.of(context).dividerColor,
+                    color:
+                        isSelected ? color : Theme.of(context).dividerColor,
                     width: isSelected ? 2 : 1,
                   ),
                 ),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: color,
-                        shape: BoxShape.circle,
+                child: AnimatedScale(
+                  scale: isSelected ? 1.04 : 1.0,
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOut,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      c.shortLabel,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: isSelected
-                            ? color
-                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                      const SizedBox(height: 5),
+                      Text(
+                        cond.shortLabel,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isSelected
+                              ? color
+                              : context.sac.textSecondary,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -589,29 +682,22 @@ class _DatePickerField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final formatted = selectedDate != null
-        ? DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es').format(selectedDate!)
+        ? DateFormat("dd 'de' MMMM 'de' yyyy", 'es').format(selectedDate!)
         : 'Seleccionar fecha';
 
     return InkWell(
       onTap: () => _pickDate(context),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
-          color: Theme.of(context)
-              .colorScheme
-              .surfaceContainerHighest
-              .withValues(alpha: 0.4),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color:
-                Theme.of(context).dividerColor.withValues(alpha: 0.4),
-          ),
+          color: context.sac.surfaceVariant,
+          borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+          border: Border.all(color: context.sac.border),
         ),
         child: Row(
           children: [
-            HugeIcon(
+            const HugeIcon(
               icon: HugeIcons.strokeRoundedCalendar01,
               size: 18,
               color: AppColors.primary,
@@ -634,7 +720,7 @@ class _DatePickerField extends StatelessWidget {
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedCancel01,
                   size: 16,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: context.sac.textSecondary,
                 ),
               ),
           ],
@@ -655,21 +741,54 @@ class _DatePickerField extends StatelessWidget {
   }
 }
 
-// ── Section label ───────────────────────────────────────────────────────────────
+// ── Category loading/error helpers ─────────────────────────────────────────────
 
-class _SectionLabel extends StatelessWidget {
-  final String text;
-
-  const _SectionLabel(this.text);
+class _CategorySkeleton extends StatelessWidget {
+  const _CategorySkeleton();
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+    return Container(
+      height: 52,
+      decoration: BoxDecoration(
+        color: context.sac.surfaceVariant,
+        borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+        border: Border.all(color: context.sac.border),
+      ),
+      child: Center(
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: context.sac.textTertiary,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CategoryError extends StatelessWidget {
+  final VoidCallback onRetry;
+
+  const _CategoryError({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            'No se pudieron cargar las categorías',
+            style: const TextStyle(color: AppColors.error, fontSize: 13),
+          ),
+        ),
+        TextButton(
+          onPressed: onRetry,
+          child: const Text('Reintentar'),
+        ),
+      ],
     );
   }
 }

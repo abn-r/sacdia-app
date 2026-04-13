@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -16,6 +15,8 @@ import '../../domain/entities/class_with_progress.dart';
 import '../providers/classes_providers.dart';
 import '../widgets/requirement_card.dart';
 import 'requirement_detail_view.dart';
+import '../../../validation/presentation/widgets/validation_section.dart';
+import '../../../validation/domain/entities/validation.dart';
 
 /// Vista de clase progresiva con progreso detallado.
 ///
@@ -49,6 +50,7 @@ class ClassDetailWithProgressView extends ConsumerWidget {
           data: (classWithProgress) => _ClassBody(
             classWithProgress: classWithProgress,
             classId: classId,
+            classColor: AppColors.classColor(classWithProgress.name),
           ),
         ),
       ),
@@ -58,18 +60,63 @@ class ClassDetailWithProgressView extends ConsumerWidget {
 
 // ── Body cuando hay datos ──────────────────────────────────────────────────────
 
-class _ClassBody extends StatelessWidget {
+class _ClassBody extends StatefulWidget {
   final ClassWithProgress classWithProgress;
   final int classId;
+  final Color classColor;
 
   const _ClassBody({
     required this.classWithProgress,
     required this.classId,
+    required this.classColor,
   });
+
+  @override
+  State<_ClassBody> createState() => _ClassBodyState();
+}
+
+class _ClassBodyState extends State<_ClassBody> {
+  final _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  /// Filtra los modulos y sus requerimientos segun el query de busqueda.
+  /// Un modulo se muestra si su nombre matchea o si algun requerimiento matchea.
+  /// Si solo matchean requerimientos, el modulo se muestra con esos requerimientos filtrados.
+  List<ClassModuleDetail> get _filteredModules {
+    if (_query.isEmpty) return widget.classWithProgress.modules;
+
+    final q = _query.toLowerCase();
+    final result = <ClassModuleDetail>[];
+
+    for (final module in widget.classWithProgress.modules) {
+      final moduleNameMatches = module.name.toLowerCase().contains(q);
+
+      final matchingRequirements = module.requirements
+          .where((r) =>
+              r.name.toLowerCase().contains(q) ||
+              (r.description?.toLowerCase().contains(q) ?? false))
+          .toList();
+
+      if (moduleNameMatches) {
+        result.add(module);
+      } else if (matchingRequirements.isNotEmpty) {
+        result.add(module.copyWithRequirements(matchingRequirements));
+      }
+    }
+
+    return result;
+  }
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final filteredModules = _filteredModules;
 
     return RefreshIndicator(
       color: AppColors.primary,
@@ -87,7 +134,7 @@ class _ClassBody extends StatelessWidget {
             backgroundColor: c.background,
             surfaceTintColor: Colors.transparent,
             title: Text(
-              classWithProgress.name,
+              widget.classWithProgress.name,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: c.text,
@@ -101,13 +148,12 @@ class _ClassBody extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header card con progreso
-                _ClassHeaderCard(classWithProgress: classWithProgress),
-
-                // Resumen de requerimientos
-                _ProgressSummaryRow(classWithProgress: classWithProgress),
-
                 const SizedBox(height: 8),
+
+                // Progress card — compact
+                _ProgressCard(classWithProgress: widget.classWithProgress),
+
+                const SizedBox(height: 12),
 
                 // Modulos header
                 Padding(
@@ -123,29 +169,113 @@ class _ClassBody extends StatelessWidget {
                         ),
                   ),
                 ),
+
+                // Search bar
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (value) => setState(() => _query = value),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: c.text,
+                        ),
+                    decoration: InputDecoration(
+                      hintText: 'Buscar modulo o requerimiento...',
+                      hintStyle: TextStyle(color: c.textTertiary),
+                      prefixIcon: HugeIcon(
+                        icon: HugeIcons.strokeRoundedSearch01,
+                        size: 20,
+                        color: c.textSecondary,
+                      ),
+                      suffixIcon: _query.isNotEmpty
+                          ? GestureDetector(
+                              onTap: () {
+                                _searchController.clear();
+                                setState(() => _query = '');
+                              },
+                              child: Icon(Icons.close_rounded,
+                                  size: 18, color: c.textSecondary),
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: c.surfaceVariant,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            BorderSide(color: AppColors.primary, width: 1.5),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
 
           // Modulos con sus requerimientos
-          if (classWithProgress.modules.isEmpty)
+          if (widget.classWithProgress.modules.isEmpty)
             SliverToBoxAdapter(child: _EmptyModules())
+          else if (filteredModules.isEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 40, vertical: 32),
+                child: Column(
+                  children: [
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedSearch01,
+                      size: 40,
+                      color: c.textTertiary,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Sin resultados para "$_query"',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: c.textSecondary,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            )
           else
             SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
-                  final module = classWithProgress.modules[index];
+                  final module = filteredModules[index];
                   return StaggeredListItem(
                     index: index,
                     child: _ModuleSection(
                       module: module,
-                      classId: classId,
+                      classId: widget.classId,
+                      classColor: widget.classColor,
                     ),
                   );
                 },
-                childCount: classWithProgress.modules.length,
+                childCount: filteredModules.length,
               ),
             ),
+
+          // Validation section
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: ValidationSection(
+                entityType: ValidationEntityType.classProgress,
+                entityId: widget.classId,
+              ),
+            ),
+          ),
 
           const SliverToBoxAdapter(child: SizedBox(height: 32)),
         ],
@@ -154,157 +284,112 @@ class _ClassBody extends StatelessWidget {
   }
 }
 
-// ── Header card ────────────────────────────────────────────────────────────────
+// ── Class identity section ─────────────────────────────────────────────────────
 
-class _ClassHeaderCard extends StatelessWidget {
+// ── Progress card ──────────────────────────────────────────────────────────────
+
+class _ProgressCard extends StatelessWidget {
   final ClassWithProgress classWithProgress;
 
-  const _ClassHeaderCard({required this.classWithProgress});
+  const _ProgressCard({required this.classWithProgress});
 
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
     final percentage = classWithProgress.completionPercent;
-    final classColor = _classColor(classWithProgress.name);
+    final total = classWithProgress.totalRequirements;
+    final validated = classWithProgress.completedRequirements;
+    final submitted = classWithProgress.submittedRequirements;
+    final pending = total - validated - submitted;
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [classColor, classColor.withValues(alpha: 0.75)],
-        ),
-        borderRadius: BorderRadius.circular(20),
+        color: c.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: c.border),
         boxShadow: [
           BoxShadow(
-            color: classColor.withValues(alpha: 0.3),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            color: c.shadow,
+            blurRadius: 6,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Nombre + icono
+          // Progress bar + percentage inline
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Icono o imagen de la clase
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: classWithProgress.imageUrl != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
-                        child: CachedNetworkImage(
-                          imageUrl: classWithProgress.imageUrl!,
-                          fit: BoxFit.cover,
-                          errorWidget: (_, __, ___) => HugeIcon(
-                            icon: HugeIcons.strokeRoundedSchool,
-                            size: 28,
-                            color: Colors.white,
-                          ),
-                        ),
-                      )
-                    : HugeIcon(
-                        icon: HugeIcons.strokeRoundedSchool,
-                        size: 28,
-                        color: Colors.white,
-                      ),
-              ),
-              const SizedBox(width: 14),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      classWithProgress.name,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                          ),
-                    ),
-                    if (classWithProgress.description != null &&
-                        classWithProgress.description!.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        classWithProgress.description!,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white.withValues(alpha: 0.75),
-                          height: 1.4,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
+                child: SacProgressBar(
+                  progress: classWithProgress.completionRatio,
+                  height: 6,
                 ),
               ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-
-          // Progreso global
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Progreso general',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white.withValues(alpha: 0.8),
-                ),
-              ),
+              const SizedBox(width: 10),
               Text(
                 '$percentage%',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: c.text,
+                    ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          SacProgressBar(
-            progress: classWithProgress.completionRatio,
-            height: 8,
-            trackColor: Colors.white.withValues(alpha: 0.25),
-            useGradient: false,
-            color: Colors.white,
-            showShimmer: false,
-          ),
-          const SizedBox(height: 14),
 
-          // Stats row
+          const SizedBox(height: 10),
+
+          // Compact stats row
           Row(
             children: [
-              _HeaderStat(
-                icon: HugeIcons.strokeRoundedStar,
-                value:
-                    '${classWithProgress.earnedPoints} / ${classWithProgress.totalPoints}',
-                label: 'pts',
-                iconColor: AppColors.accent,
-              ),
-              const SizedBox(width: 20),
-              _HeaderStat(
+              _CompactStat(
                 icon: HugeIcons.strokeRoundedCheckList,
-                value:
-                    '${classWithProgress.completedRequirements} / ${classWithProgress.totalRequirements}',
-                label: 'requerimientos',
-                iconColor: Colors.white,
+                color: AppColors.secondary,
+                value: '$validated/$total',
+                label: 'requisitos',
+                context: context,
+              ),
+              Container(
+                width: 1,
+                height: 14,
+                margin: const EdgeInsets.symmetric(horizontal: 10),
+                color: c.borderLight,
+              ),
+              _CompactStat(
+                icon: HugeIcons.strokeRoundedClock01,
+                color: AppColors.accent,
+                value: '$pending',
+                label: 'pend.',
+                context: context,
+              ),
+              Container(
+                width: 1,
+                height: 14,
+                margin: const EdgeInsets.symmetric(horizontal: 10),
+                color: c.borderLight,
+              ),
+              _CompactStat(
+                icon: HugeIcons.strokeRoundedSent,
+                color: AppColors.sacBlue,
+                value: '$submitted',
+                label: 'env.',
+                context: context,
+              ),
+              Container(
+                width: 1,
+                height: 14,
+                margin: const EdgeInsets.symmetric(horizontal: 10),
+                color: c.borderLight,
+              ),
+              _CompactStat(
+                icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                color: AppColors.secondary,
+                value: '$validated',
+                label: 'val.',
+                context: context,
               ),
             ],
           ),
@@ -312,157 +397,46 @@ class _ClassHeaderCard extends StatelessWidget {
       ),
     );
   }
-
-  /// Devuelve el color asociado al nombre de la clase progresiva.
-  Color _classColor(String name) {
-    final lower = name.toLowerCase();
-    if (lower.contains('amigo')) return AppColors.colorAmigo;
-    if (lower.contains('companero') || lower.contains('compañero')) {
-      return AppColors.colorCompanero;
-    }
-    if (lower.contains('explorador')) return AppColors.colorExplorador;
-    if (lower.contains('orientador')) return AppColors.colorOrientador;
-    if (lower.contains('viajero')) return AppColors.colorViajero;
-    if (lower.contains('guia') || lower.contains('guía')) {
-      return AppColors.colorGuia;
-    }
-    if (lower.contains('corderito')) return AppColors.colorCorderitos;
-    if (lower.contains('castor')) return AppColors.colorCastores;
-    if (lower.contains('abeja')) return AppColors.colorAbejas;
-    if (lower.contains('rayo')) return AppColors.colorRayos;
-    if (lower.contains('constructor')) return AppColors.colorConstructores;
-    if (lower.contains('mano')) return AppColors.colorManos;
-    return AppColors.primary;
-  }
 }
 
-class _HeaderStat extends StatelessWidget {
+// ── Compact stat ──────────────────────────────────────────────────────────────
+
+class _CompactStat extends StatelessWidget {
   final List<List<dynamic>> icon;
+  final Color color;
   final String value;
   final String label;
-  final Color iconColor;
-
-  const _HeaderStat({
-    required this.icon,
-    required this.value,
-    required this.label,
-    required this.iconColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        HugeIcon(icon: icon, size: 14, color: iconColor),
-        const SizedBox(width: 5),
-        Text(
-          '$value $label',
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ── Resumen de progreso ─────────────────────────────────────────────────────────
-
-class _ProgressSummaryRow extends StatelessWidget {
-  final ClassWithProgress classWithProgress;
-
-  const _ProgressSummaryRow({required this.classWithProgress});
-
-  @override
-  Widget build(BuildContext context) {
-    final total = classWithProgress.totalRequirements;
-    final validated = classWithProgress.completedRequirements;
-    final submitted = classWithProgress.submittedRequirements;
-    final pending = total - validated - submitted;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          _SummaryChip(
-            count: pending,
-            label: 'Pendientes',
-            color: AppColors.accent,
-            bgColor: AppColors.accentLight,
-            context: context,
-          ),
-          const SizedBox(width: 8),
-          _SummaryChip(
-            count: submitted,
-            label: 'Enviados',
-            color: AppColors.sacBlue,
-            bgColor: Theme.of(context).brightness == Brightness.dark
-                ? AppColors.statusInfoBgDark
-                : AppColors.statusInfoBgLight,
-            context: context,
-          ),
-          const SizedBox(width: 8),
-          _SummaryChip(
-            count: validated,
-            label: 'Validados',
-            color: AppColors.secondary,
-            bgColor: AppColors.secondaryLight,
-            context: context,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SummaryChip extends StatelessWidget {
-  final int count;
-  final String label;
-  final Color color;
-  final Color bgColor;
   final BuildContext context;
 
-  const _SummaryChip({
-    required this.count,
-    required this.label,
+  const _CompactStat({
+    required this.icon,
     required this.color,
-    required this.bgColor,
+    required this.value,
+    required this.label,
     required this.context,
   });
 
   @override
   Widget build(BuildContext _) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
-        ),
-        child: Column(
-          children: [
-            Text(
-              '$count',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: color,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        HugeIcon(icon: icon, size: 12, color: color),
+        const SizedBox(width: 4),
+        Text(
+          '$value ',
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: context.sac.text,
               ),
-            ),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
-            ),
-          ],
         ),
-      ),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: context.sac.textSecondary,
+              ),
+        ),
+      ],
     );
   }
 }
@@ -472,8 +446,13 @@ class _SummaryChip extends StatelessWidget {
 class _ModuleSection extends StatefulWidget {
   final ClassModuleDetail module;
   final int classId;
+  final Color classColor;
 
-  const _ModuleSection({required this.module, required this.classId});
+  const _ModuleSection({
+    required this.module,
+    required this.classId,
+    required this.classColor,
+  });
 
   @override
   State<_ModuleSection> createState() => _ModuleSectionState();
@@ -518,14 +497,16 @@ class _ModuleSectionState extends State<_ModuleSection> {
                     decoration: BoxDecoration(
                       color: isComplete
                           ? AppColors.secondary
-                          : AppColors.primary,
+                          : widget.classColor,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: isComplete
-                        ? HugeIcon(
-                            icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                            size: 20,
-                            color: Colors.white,
+                        ? Center(
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                              size: 20,
+                              color: Colors.white,
+                            ),
                           )
                         : Center(
                             child: Text(
@@ -556,19 +537,36 @@ class _ModuleSectionState extends State<_ModuleSection> {
                               ),
                         ),
                         const SizedBox(height: 4),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: widget.module.completionRatio,
-                            minHeight: 4,
-                            backgroundColor:
-                                c.borderLight,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              isComplete
-                                  ? AppColors.secondary
-                                  : AppColors.primary,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: LinearProgressIndicator(
+                                  value: widget.module.completionRatio
+                                      .clamp(0.0, 1.0),
+                                  minHeight: 4,
+                                  backgroundColor: c.borderLight,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    isComplete
+                                        ? AppColors.secondary
+                                        : widget.classColor,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${(widget.module.completionRatio.clamp(0.0, 1.0) * 100).round()}%',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: isComplete
+                                    ? AppColors.secondary
+                                    : widget.classColor,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -641,20 +639,31 @@ class _ModuleSectionState extends State<_ModuleSection> {
 class _EmptyModules extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final c = context.sac;
+
     return Padding(
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 48),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           HugeIcon(
             icon: HugeIcons.strokeRoundedSchool,
-            size: 56,
-            color: context.sac.textTertiary,
+            size: 48,
+            color: c.textTertiary,
           ),
           const SizedBox(height: 12),
           Text(
-            'No hay modulos disponibles para esta clase.',
+            'Sin módulos aún',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: context.sac.textSecondary,
+                  fontWeight: FontWeight.w600,
+                  color: c.textSecondary,
+                ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Los módulos aparecerán cuando estén disponibles para esta clase.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: c.textTertiary,
                 ),
             textAlign: TextAlign.center,
           ),

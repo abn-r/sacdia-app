@@ -13,6 +13,8 @@ class UserDetailModel extends UserDetail {
     super.birthDate,
     super.gender,
     super.address,
+    super.baptized,
+    super.baptismDate,
     super.clubName,
     super.clubType,
     super.currentClass,
@@ -53,6 +55,10 @@ class UserDetailModel extends UserDetail {
       birthDate: birthdayRaw != null ? DateTime.tryParse(birthdayRaw) : null,
       gender: json['gender'] as String?,
       address: json['address'] as String?,
+      baptized: json['baptism'] as bool? ?? false,
+      baptismDate: json['baptism_date'] != null
+          ? DateTime.tryParse(json['baptism_date'].toString())
+          : null,
       // Club fields: API sends club_name / club_type (not name / type)
       clubName: club?['club_name'] as String? ?? club?['name'] as String?,
       clubType: club?['club_type'] as String? ?? club?['type'] as String?,
@@ -80,6 +86,8 @@ class UserDetailModel extends UserDetail {
       'birth_date': birthDate?.toIso8601String(),
       'gender': gender,
       'address': address,
+      'baptism': baptized,
+      'baptism_date': baptismDate?.toIso8601String(),
       'created_at': createdAt?.toIso8601String(),
       'last_sign_in_at': lastSignInAt?.toIso8601String(),
     };
@@ -97,6 +105,8 @@ class UserDetailModel extends UserDetail {
     DateTime? birthDate,
     String? gender,
     String? address,
+    bool? baptized,
+    DateTime? baptismDate,
     String? clubName,
     String? clubType,
     String? currentClass,
@@ -115,6 +125,8 @@ class UserDetailModel extends UserDetail {
       birthDate: birthDate ?? this.birthDate,
       gender: gender ?? this.gender,
       address: address ?? this.address,
+      baptized: baptized ?? this.baptized,
+      baptismDate: baptismDate ?? this.baptismDate,
       clubName: clubName ?? this.clubName,
       clubType: clubType ?? this.clubType,
       currentClass: currentClass ?? this.currentClass,

@@ -8,19 +8,18 @@
 ## 🛠️ STACK TECNOLÓGICO OBLIGATORIO
 - **Gestor de Estado**: Riverpod (StateNotifier/AsyncNotifier)
 - **HTTP Client**: DIO para consultas HTTP
-- **Autenticación**: Supabase Auth
+- **Autenticación**: Better Auth (JWT HS256, self-hosted en NestJS)
 - **Persistencia Local**: SharedPreferences
 - **Inyección de Dependencias**: Riverpod Providers
 - **Navegación**: GoRouter
-- **Iconos**: HugeIcons 
+- **Iconos**: HugeIcons
 
 ## 📁 ESTRUCTURA DE PROYECTO
 ```
 lib/
 ├── core/
 │   ├── constants/
-│   │   ├── app_constants.dart
-│   │   └── supabase_constants.dart
+│   │   └── app_constants.dart
 │   ├── errors/
 │   │   ├── failures.dart
 │   │   └── exceptions.dart
@@ -32,7 +31,6 @@ lib/
 │   │   ├── local_storage.dart
 │   │   └── secure_storage.dart
 │   ├── auth/
-│   │   ├── supabase_auth.dart
 │   │   └── auth_providers.dart
 │   ├── utils/
 │   │   ├── validators.dart
@@ -41,7 +39,6 @@ lib/
 │       └── usecase.dart
 ├── providers/
 │   ├── dio_provider.dart
-│   ├── supabase_provider.dart
 │   └── storage_provider.dart
 ├── features/
 │   └── [feature_name]/
@@ -79,14 +76,14 @@ lib/
 
 ### Arquitectura MVVM + Clean con Riverpod
 1. **Domain Layer**: Entities, Use Cases, Repository Interfaces
-2. **Data Layer**: Models, Data Sources (DIO + Supabase), Repository Implementations  
+2. **Data Layer**: Models, Data Sources (DIO + API backend), Repository Implementations
 3. **Presentation Layer**: Views, Riverpod Providers, Widgets
 
 ### Gestión de Estado con Riverpod
 - **StateNotifier/AsyncNotifier** para lógica compleja
 - **StateProvider** para estados simples
 - **FutureProvider** para datos asincrónicos
-- **StreamProvider** para streams de Supabase
+- **StreamProvider** para streams reactivos
 - Manejar estados: loading, data, error con AsyncValue
 
 ### HTTP Client con DIO
@@ -95,11 +92,12 @@ lib/
 - **Retry automático** para errores de red
 - **Base URL** centralizada en constantes
 
-### Autenticación con Supabase
-- **Supabase Auth** para login/register/logout/reset-password
-- **Session management** automático
-- **Token refresh** transparente
-- **Auth state listeners** con StreamProvider
+### Autenticación con Better Auth (JWT HS256)
+- **JWT HS256** firmado por el backend NestJS (self-hosted Better Auth)
+- **Token almacenado** en Hive de forma segura (nunca en texto plano)
+- **Token enviado** en cada request via Dio interceptor: `Authorization: Bearer <token>`
+- **Auth state** gestionado con Riverpod providers locales
+- **Refresh de token** manejado por el interceptor de Dio
 
 ### Persistencia Local
 - **SharedPreferences** para configuraciones
@@ -117,7 +115,7 @@ lib/
 - Utilizar **ShellRoute** para mantener estados de navegación anidados cuando sea necesario
 
 ### Gestión del Estado de Autenticación
-- Utilizar un único `StreamProvider` para observar el estado de autenticación
+- Utilizar un único provider para observar el estado de autenticación
 - Implementar un componente `AuthGate` centralizado para manejar la redirección basada en autenticación
 - NUNCA implementar listeners redundantes para el mismo estado de autenticación
 
@@ -132,7 +130,7 @@ lib/
 - Aplicar principios SOLID
 - **Riverpod**: Providers inmutables y autodispose
 - **DIO**: Interceptors para logging y error handling
-- **Supabase**: Manejo seguro de auth states
+- **Auth**: Manejo seguro del JWT — nunca exponer el token en logs
 - **SharedPreferences**: Keys centralizados en constantes
 - Tests unitarios para Providers y Use Cases
 - Documentar flujo de datos en cada feature
@@ -150,27 +148,33 @@ class DioClient {
       sendTimeout: Duration(seconds: 30),
       receiveTimeout: Duration(seconds: 30),
     ));
-    
+
     dio.interceptors.addAll([
       AuthInterceptor(),
       LoggerInterceptor(),
       ErrorInterceptor(),
     ]);
-    
+
     return dio;
   }
 }
 ```
 
-### Supabase Configuration
+### Auth Interceptor (JWT HS256)
 ```dart
-// core/auth/supabase_auth.dart
-class SupabaseAuth {
-  static Future<void> initialize() async {
-    await Supabase.initialize(
-      url: SupabaseConstants.url,
-      anonKey: SupabaseConstants.anonKey,
-    );
+// core/network/interceptors/auth_interceptor.dart
+class AuthInterceptor extends Interceptor {
+  final TokenStorage _tokenStorage;
+
+  AuthInterceptor(this._tokenStorage);
+
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+    final token = await _tokenStorage.getToken();
+    if (token != null) {
+      options.headers['Authorization'] = 'Bearer $token';
+    }
+    handler.next(options);
   }
 }
 ```
@@ -179,11 +183,6 @@ class SupabaseAuth {
 ```dart
 // providers/dio_provider.dart
 final dioProvider = Provider<Dio>((ref) => DioClient.createDio());
-
-// providers/supabase_provider.dart
-final supabaseProvider = Provider<SupabaseClient>(
-  (ref) => Supabase.instance.client,
-);
 
 // providers/storage_provider.dart
 final storageProvider = Provider<SharedPreferences>((ref) {
@@ -220,10 +219,10 @@ final storageProvider = Provider<SharedPreferences>((ref) {
 
 ## ⚡ COMANDOS RÁPIDOS
 - Generar feature completo con Riverpod providers
-- Crear templates con DIO + Supabase integrados
+- Crear templates con DIO + Better Auth integrados
 - Automatizar documentación
 - Configurar interceptors y error handling
-- Setup inicial de Supabase y SharedPreferences
+- Setup inicial de auth JWT y SharedPreferences
 
 ## 📋 DEPENDENCIAS OBLIGATORIAS
 ```yaml
@@ -231,7 +230,6 @@ dependencies:
   flutter_riverpod: ^2.6.1
   riverpod_annotation: ^2.6.1
   dio: ^5.8.0+1
-  supabase_flutter: ^2.9.1
   shared_preferences: ^2.5.3
   flutter_secure_storage: ^9.2.4
 
@@ -252,7 +250,7 @@ class UserNotifier extends _$UserNotifier {
   Future<List<User>> build() async {
     return ref.read(userRepositoryProvider).getUsers();
   }
-  
+
   Future<void> addUser(User user) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
@@ -268,9 +266,9 @@ class UserNotifier extends _$UserNotifier {
 // Data Source con DIO
 class UserRemoteDataSource {
   final Dio _dio;
-  
+
   UserRemoteDataSource(this._dio);
-  
+
   Future<List<UserModel>> getUsers() async {
     try {
       final response = await _dio.get('/users');
@@ -284,24 +282,33 @@ class UserRemoteDataSource {
 }
 ```
 
-### Auth con Supabase
+### Auth con Better Auth (JWT HS256)
 ```dart
-// Auth Provider
+// Auth Notifier
 @riverpod
 class AuthNotifier extends _$AuthNotifier {
   @override
-  User? build() {
-    final supabase = ref.read(supabaseProvider);
-    return supabase.auth.currentUser;
+  Future<AuthState> build() async {
+    final token = await ref.read(tokenStorageProvider).getToken();
+    if (token == null) return const AuthState.unauthenticated();
+    return AuthState.authenticated(token: token);
   }
-  
+
   Future<void> signIn(String email, String password) async {
-    final supabase = ref.read(supabaseProvider);
-    await supabase.auth.signInWithPassword(
-      email: email,
-      password: password,
-    );
-    ref.invalidateSelf();
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final response = await ref.read(authRepositoryProvider).login(
+        email: email,
+        password: password,
+      );
+      await ref.read(tokenStorageProvider).saveToken(response.token);
+      return AuthState.authenticated(token: response.token);
+    });
+  }
+
+  Future<void> signOut() async {
+    await ref.read(tokenStorageProvider).clearToken();
+    state = const AsyncValue.data(AuthState.unauthenticated());
   }
 }
 ```
@@ -318,12 +325,12 @@ class AuthGate extends ConsumerWidget {
     return Consumer(
       builder: (context, ref, _) {
         final authState = ref.watch(authStateProvider);
-        
+
         return authState.when(
           loading: () => const LoadingScreen(),
           error: (error, _) => ErrorScreen(error: error),
-          data: (isAuthenticated) => isAuthenticated 
-              ? const HomeView() 
+          data: (isAuthenticated) => isAuthenticated
+              ? const HomeView()
               : const LoginView(),
         );
       }

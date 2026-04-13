@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/user_honor.dart';
@@ -11,8 +12,8 @@ class GetUserHonors implements UseCase<List<UserHonor>, GetUserHonorsParams> {
   GetUserHonors(this.repository);
 
   @override
-  Future<Either<Failure, List<UserHonor>>> call(GetUserHonorsParams params) async {
-    return await repository.getUserHonors(params.userId);
+  Future<Either<Failure, List<UserHonor>>> call(GetUserHonorsParams params, {CancelToken? cancelToken}) async {
+    return await repository.getUserHonors(params.userId, cancelToken: cancelToken);
   }
 }
 

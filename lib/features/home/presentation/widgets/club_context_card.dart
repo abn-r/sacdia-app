@@ -11,6 +11,7 @@ import '../../../../core/widgets/sac_card.dart';
 import '../../../auth/domain/entities/authorization_snapshot.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../club/presentation/providers/club_providers.dart';
+import '../../../profile/presentation/providers/profile_providers.dart';
 
 /// Card que muestra el club/sección activo y permite cambiar de contexto.
 ///
@@ -38,7 +39,13 @@ class _ClubContextCardState extends ConsumerState<ClubContextCard> {
     if (assignments.isEmpty) return const SizedBox.shrink();
 
     final activeGrant = authorization?.activeGrant;
-    final activeRoleName = RoleUtils.translate(activeGrant?.roleName);
+    final userGender = ref.watch(
+      profileNotifierProvider.select((v) => v.valueOrNull?.gender),
+    );
+    final activeRoleName = RoleUtils.translate(
+      activeGrant?.roleName,
+      gender: userGender,
+    );
 
     // Try to get the club type name from the section data
     final sectionAsync = ref.watch(currentClubSectionProvider);
@@ -46,8 +53,20 @@ class _ClubContextCardState extends ConsumerState<ClubContextCard> {
 
     final c = context.sac;
 
+    // Determine accent color based on membership status.
+    final Color accentColor;
+    if (activeGrant != null && activeGrant.isPending) {
+      accentColor = AppColors.accent;
+    } else if (activeGrant != null && activeGrant.isRejected) {
+      accentColor = AppColors.error;
+    } else if (activeGrant != null && activeGrant.isExpired) {
+      accentColor = c.textTertiary;
+    } else {
+      accentColor = AppColors.primary;
+    }
+
     return SacCard(
-      accentColor: AppColors.primary,
+      accentColor: accentColor,
       onTap: _isSwitching ? null : () => _showSectionPicker(context, authorization!),
       child: Row(
         children: [
@@ -55,13 +74,13 @@ class _ClubContextCardState extends ConsumerState<ClubContextCard> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: accentColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Center(
+            child: Center(
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedUserGroup,
-                color: AppColors.primary,
+                color: accentColor,
                 size: 22,
               ),
             ),
@@ -71,15 +90,25 @@ class _ClubContextCardState extends ConsumerState<ClubContextCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  clubTypeName,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: c.text,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        clubTypeName,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: c.text,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (activeGrant != null && !activeGrant.isActive) ...[
+                      const SizedBox(width: 8),
+                      _MembershipStatusBadge(grant: activeGrant),
+                    ],
+                  ],
                 ),
                 if (activeRoleName.isNotEmpty)
                   Text(
@@ -125,8 +154,12 @@ class _ClubContextCardState extends ConsumerState<ClubContextCard> {
 
     String? selectedAssignmentId;
 
+    final userGender = ref.read(
+      profileNotifierProvider.select((v) => v.valueOrNull?.gender),
+    );
+
     final actions = displayAssignments.map((grant) {
-      final roleName = RoleUtils.translate(grant.roleName);
+      final roleName = RoleUtils.translate(grant.roleName, gender: userGender);
       final isActive = grant.assignmentId == activeAssignmentId;
 
       return CupertinoActionSheetAction(
@@ -204,5 +237,40 @@ class _ClubContextCardState extends ConsumerState<ClubContextCard> {
         backgroundColor: AppColors.error,
       );
     }
+  }
+}
+
+/// Small colored badge indicating the membership status of an assignment.
+class _MembershipStatusBadge extends StatelessWidget {
+  final AuthorizationGrant grant;
+
+  const _MembershipStatusBadge({required this.grant});
+
+  @override
+  Widget build(BuildContext context) {
+    final (String label, Color bg, Color fg) = switch (grant.status) {
+      'pending' => ('Pendiente', AppColors.accentLight, AppColors.accentDark),
+      'rejected' => ('Rechazado', AppColors.errorLight, AppColors.errorDark),
+      'expired' => ('Expirado', AppColors.lightBorderLight, AppColors.lightTextSecondary),
+      _ => ('', Colors.transparent, Colors.transparent),
+    };
+
+    if (label.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: fg,
+        ),
+      ),
+    );
   }
 }

@@ -3,7 +3,8 @@ class RoleUtils {
   const RoleUtils._();
 
   /// Mapa de roles en inglés (clave del sistema) a su nombre en español
-  static const Map<String, String> _roleNames = {
+  /// en forma masculina (género por defecto).
+  static const Map<String, String> _roleNamesMasculine = {
     'super_admin': 'Súper administrador',
     'admin': 'Administrador',
     'assistant_admin': 'Administrador asistente',
@@ -17,20 +18,60 @@ class RoleUtils {
     'counselor': 'Consejero',
     'instructor': 'Instructor',
     'member': 'Miembro',
+    'secretary_treasurer': 'Secretario-Tesorero',
   };
 
-  /// Retorna el nombre en español del rol dado.
+  /// Mapa de roles en inglés (clave del sistema) a su nombre en español
+  /// en forma femenina.
+  static const Map<String, String> _roleNamesFeminine = {
+    'super_admin': 'Súper administradora',
+    'admin': 'Administradora',
+    'assistant_admin': 'Administradora asistente',
+    'coordinator': 'Coordinadora',
+    'pastor': 'Pastora',
+    'user': 'Usuaria',
+    'director': 'Directora',
+    'deputy_director': 'Subdirectora',
+    'secretary': 'Secretaria',
+    'treasurer': 'Tesorera',
+    'counselor': 'Consejera',
+    'instructor': 'Instructora',
+    'member': 'Miembro',
+    'secretary_treasurer': 'Secretaria-Tesorera',
+  };
+
+  /// Retorna true si el valor de género indica sexo femenino.
   ///
-  /// Si el rol no está mapeado, retorna el valor original con la primera
-  /// letra en mayúscula como fallback.
-  static String translate(String? role) {
+  /// El backend almacena el género como `'Femenino'` o `'Masculino'`
+  /// (enum PostgreSQL). Se acepta también la variante en minúsculas.
+  static bool _isFeminine(String? gender) {
+    if (gender == null) return false;
+    final normalized = gender.trim().toLowerCase();
+    return normalized == 'femenino' || normalized == 'f';
+  }
+
+  /// Retorna el nombre en español del rol dado, con concordancia de género.
+  ///
+  /// [gender] debe ser el valor proveniente del campo `gender` del usuario
+  /// cuyo rol se está mostrando — no el del usuario logueado.
+  /// Valores reconocidos: `'Femenino'`, `'Masculino'` (los que devuelve la API).
+  ///
+  /// Si [gender] es null o no es femenino, se usa la forma masculina.
+  /// Si el rol no está mapeado, retorna el valor original capitalizado como
+  /// fallback (sin distinción de género).
+  static String translate(String? role, {String? gender}) {
     if (role == null || role.isEmpty) return '';
-    return _roleNames[role.toLowerCase()] ?? _capitalize(role);
+    final key = role.toLowerCase();
+    final map =
+        _isFeminine(gender) ? _roleNamesFeminine : _roleNamesMasculine;
+    return map[key] ?? _capitalize(role);
   }
 
   /// Traduce una lista de roles y los une con coma.
-  static String translateList(List<String> roles) {
-    return roles.map(translate).join(', ');
+  ///
+  /// [gender] se aplica a todos los roles de la lista.
+  static String translateList(List<String> roles, {String? gender}) {
+    return roles.map((r) => translate(r, gender: gender)).join(', ');
   }
 
   /// Capitaliza la primera letra de un string como fallback.

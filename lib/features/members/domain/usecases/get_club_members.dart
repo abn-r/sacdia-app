@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
@@ -28,10 +29,11 @@ class GetClubMembers implements UseCase<List<ClubMember>, GetClubMembersParams> 
 
   @override
   Future<Either<Failure, List<ClubMember>>> call(
-      GetClubMembersParams params) async {
+      GetClubMembersParams params, {CancelToken? cancelToken}) async {
     return await repository.getClubMembers(
       clubId: params.clubId,
       sectionId: params.sectionId,
+      cancelToken: cancelToken,
     );
   }
 }

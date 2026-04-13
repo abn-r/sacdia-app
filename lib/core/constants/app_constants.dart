@@ -1,10 +1,15 @@
+import 'package:flutter/foundation.dart';
+
 /// Constantes generales de la aplicación
 class AppConstants {
   AppConstants._();
 
   // API
   static const String apiBaseUrlDefineKey = 'API_BASE_URL';
-  static const String defaultBaseUrl = 'http://192.168.1.14:3000/api/v1';
+  // Local dev: --dart-define=API_BASE_URL=http://localhost:3000/api/v1
+  //static const String defaultBaseUrl = 'https://sacdia-backend.onrender.com/api/v1';
+  static const String defaultBaseUrl = 'http://localhost:3000/api/v1';
+
   static final String baseUrl = resolveBaseUrl();
 
   static String resolveBaseUrl({String? override}) {
@@ -15,7 +20,11 @@ class AppConstants {
             ))
         .trim();
 
-    return candidate.isEmpty ? defaultBaseUrl : candidate;
+    final resolvedUrl = candidate.isEmpty ? defaultBaseUrl : candidate;
+    if (kReleaseMode && !resolvedUrl.startsWith('https://')) {
+      throw StateError('Production builds must use HTTPS');
+    }
+    return resolvedUrl;
   }
 
   // Timeouts (en segundos)
@@ -31,6 +40,18 @@ class AppConstants {
   static const String userKey = 'user_data';
   static const String themeKey = 'app_theme';
   static const String localeKey = 'app_locale';
+
+  // Caché de PII de usuario (SecureStorage)
+  static const String cachedUserId = 'cached_user_id';
+  static const String cachedUserEmail = 'cached_user_email';
+  static const String cachedUserName = 'cached_user_name';
+  static const String cachedUserAvatar = 'cached_user_avatar';
+
+  // Caché del grant activo (SecureStorage) — elimina la race condition en cold start
+  static const String cachedActiveAssignmentId = 'cached_active_assignment_id';
+  static const String cachedActiveRoleName = 'cached_active_role_name';
+  static const String cachedActiveClubName = 'cached_active_club_name';
+  static const String cachedActiveClubType = 'cached_active_club_type';
 
   // Dimensiones
   static const double paddingXS = 4.0;

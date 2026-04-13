@@ -2,6 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Explicit ATS config: enforce TLS for all connections.
+	     NSAllowsArbitraryLoads=false is the iOS default, but declaring it
+	     explicitly prevents accidental weakening by plugins or future edits. -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+	</dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<!-- Permisos de camara y galeria requeridos por image_picker -->
@@ -11,10 +19,11 @@
 	<string>SACDIA necesita acceso a la camara para tomar una foto para la actividad.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>SACDIA necesita permiso para guardar imagenes en tu galeria.</string>
+	<!-- Google Maps API key — set GOOGLE_MAPS_API_KEY in Xcode build settings or via xcconfig -->
+	<key>GOOGLE_MAPS_API_KEY</key>
+	<string>$(GOOGLE_MAPS_API_KEY)</string>
 	<!-- Permisos de ubicación requeridos por google_maps_flutter y geocoding -->
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>SACDIA necesita acceso a tu ubicacion para mostrar el mapa y seleccionar el lugar de la actividad.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>SACDIA necesita acceso a tu ubicacion para mostrar el mapa y seleccionar el lugar de la actividad.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
@@ -65,6 +74,21 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<!-- Habilita deep links via Flutter (requerido para OAuth callbacks con Better Auth) -->
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
+	<!-- URL scheme para OAuth callbacks: io.sacdia.app://auth/callback -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>io.sacdia.app</string>
+			</array>
+		</dict>
+	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

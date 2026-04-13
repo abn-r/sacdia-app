@@ -17,7 +17,7 @@ EvidenceFileType evidenceFileTypeFromString(String? value) {
 class EvidenceFile extends Equatable {
   final String id;
 
-  /// URL pública de Supabase Storage para mostrar / descargar el archivo.
+  /// URL firmada de Cloudflare R2 para mostrar / descargar el archivo.
   final String url;
 
   final String fileName;
