@@ -235,10 +235,16 @@ class EvidenceFolderRemoteDataSourceImpl
 
   Never _rethrow(Object e) {
     if (e is DioException) {
+      final statusCode = e.response?.statusCode;
       final msg = _extractDioMessage(e);
-      throw ServerException(message: msg, code: e.response?.statusCode);
+      if (statusCode == 404) {
+        throw NotFoundException(message: msg, code: statusCode);
+      }
+      throw ServerException(message: msg, code: statusCode);
     }
-    if (e is ServerException || e is AuthException) throw e;
+    if (e is ServerException || e is AuthException || e is NotFoundException) {
+      throw e;
+    }
     throw ServerException(message: e.toString());
   }
 

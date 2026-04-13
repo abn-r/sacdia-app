@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/errors/exceptions.dart';
+import '../../../../core/errors/failures.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/datasources/evidence_folder_remote_data_source.dart';
@@ -73,7 +75,12 @@ final evidenceFolderProvider = FutureProvider.autoDispose
   );
 
   return result.fold(
-    (failure) => throw Exception(failure.message),
+    (failure) {
+      if (failure is NotFoundFailure) {
+        throw NotFoundException(message: failure.message, code: failure.code);
+      }
+      throw Exception(failure.message);
+    },
     (folder) => folder,
   );
 });

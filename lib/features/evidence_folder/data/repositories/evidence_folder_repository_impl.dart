@@ -29,6 +29,8 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
       final model =
           await remoteDataSource.getEvidenceFolder(clubSectionId, cancelToken: cancelToken);
       return Right(model.toEntity());
+    } on NotFoundException catch (e) {
+      return Left(NotFoundFailure(message: e.message, code: e.code));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on AuthException catch (e) {

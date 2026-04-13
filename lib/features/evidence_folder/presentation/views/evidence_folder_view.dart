@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
+import '../../../../core/errors/exceptions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -32,8 +33,7 @@ class EvidenceFolderView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final folderAsync =
-        ref.watch(evidenceFolderProvider(clubSectionId));
+    final folderAsync = ref.watch(evidenceFolderProvider(clubSectionId));
     final c = context.sac;
 
     return Scaffold(
@@ -41,11 +41,20 @@ class EvidenceFolderView extends ConsumerWidget {
       body: SafeArea(
         child: folderAsync.when(
           loading: () => const EvidenceFolderLoadingSkeleton(),
-          error: (error, _) => _ErrorBody(
-            message: error.toString().replaceFirst('Exception: ', ''),
-            onRetry: () =>
-                ref.invalidate(evidenceFolderProvider(clubSectionId)),
-          ),
+          error: (error, _) {
+            if (error is NotFoundException) {
+              return _NoFolderBody(
+                message: error.message,
+                onBack: () => Navigator.of(context).maybePop(),
+              );
+            }
+            return _ErrorBody(
+              message: error.toString().replaceFirst('Exception: ', ''),
+              onRetry: () =>
+                  ref.invalidate(evidenceFolderProvider(clubSectionId)),
+              onBack: () => Navigator.of(context).maybePop(),
+            );
+          },
           data: (folder) => _FolderBody(
             folder: folder,
             clubSectionId: clubSectionId,
@@ -607,53 +616,191 @@ class _EmptySections extends StatelessWidget {
   }
 }
 
+// ── Empty state: carpeta no disponible (404 de negocio) ──────────────────────
+
+class _NoFolderBody extends StatelessWidget {
+  final String message;
+  final VoidCallback onBack;
+
+  const _NoFolderBody({required this.message, required this.onBack});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    // Determina si el mensaje del backend indica ausencia de carpeta creada
+    // o ausencia de inscripción, para mostrar el título correcto.
+    final bool isNoFolder = message.toLowerCase().contains('carpeta') ||
+        message.toLowerCase().contains('folder');
+
+    return Column(
+      children: [
+        AppBar(
+          backgroundColor: c.background,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowLeft01,
+              size: 22,
+              color: c.text,
+            ),
+            onPressed: onBack,
+          ),
+          title: Text(
+            'Carpeta de Evidencias',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: c.text,
+                ),
+          ),
+          centerTitle: false,
+        ),
+        Expanded(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Ícono contenido en un círculo sutil para dar jerarquía visual
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: c.surfaceVariant,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: HugeIcon(
+                        icon: isNoFolder
+                            ? HugeIcons.strokeRoundedFolder01
+                            : HugeIcons.strokeRoundedCalendarRemove01,
+                        size: 36,
+                        color: c.textTertiary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    isNoFolder
+                        ? 'Carpeta no disponible'
+                        : 'Sección sin inscripción',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: c.text,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    isNoFolder
+                        ? 'El campo local aún no ha creado la carpeta de evidencias para este ciclo. Consultá con el administrador de tu zona.'
+                        : 'Esta sección no tiene una inscripción activa en el año eclesiástico actual.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: c.textSecondary,
+                          height: 1.55,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 32),
+                  // Ghost button: no border, no full-width — apropiado para
+                  // acción secundaria en un empty state informativo.
+                  SacButton.ghost(
+                    text: 'Volver',
+                    icon: HugeIcons.strokeRoundedArrowLeft01,
+                    onPressed: onBack,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 // ── Error state ───────────────────────────────────────────────────────────────
 
 class _ErrorBody extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
+  final VoidCallback onBack;
 
-  const _ErrorBody({required this.message, required this.onRetry});
+  const _ErrorBody({
+    required this.message,
+    required this.onRetry,
+    required this.onBack,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 56,
-              color: AppColors.error,
+    final c = context.sac;
+    return Column(
+      children: [
+        AppBar(
+          backgroundColor: c.background,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowLeft01,
+              size: 22,
+              color: c.text,
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Error al cargar la carpeta',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: context.sac.textSecondary,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SacButton.primary(
-              text: 'Reintentar',
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-            ),
-          ],
+            onPressed: onBack,
+          ),
+          title: Text(
+            'Carpeta de Evidencias',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: c.text,
+                ),
+          ),
+          centerTitle: false,
         ),
-      ),
+        Expanded(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedAlert02,
+                    size: 56,
+                    color: AppColors.error,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error al cargar la carpeta',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    message,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: c.textSecondary,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  SacButton.primary(
+                    text: 'Reintentar',
+                    icon: HugeIcons.strokeRoundedRefresh,
+                    onPressed: onRetry,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
