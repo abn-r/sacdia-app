@@ -64,9 +64,9 @@ class NotificationsRemoteDataSourceImpl
       }
       throw ServerException(message: msg, code: code);
     }
-    if (e is ServerException ||
-        e is AuthException ||
-        e is NotFoundException) throw e;
+    if (e is ServerException || e is AuthException || e is NotFoundException) {
+      throw e;
+    }
     throw ServerException(message: e.toString());
   }
 

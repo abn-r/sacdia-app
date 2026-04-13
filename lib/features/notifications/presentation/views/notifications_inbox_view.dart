@@ -139,8 +139,7 @@ class _NotificationsInboxViewState
           IconButton(
             onPressed: inboxState.isLoading
                 ? null
-                : () =>
-                    ref.read(notificationsInboxProvider.notifier).refresh(),
+                : () => ref.read(notificationsInboxProvider.notifier).refresh(),
             icon: HugeIcon(
               icon: HugeIcons.strokeRoundedRefresh,
               size: 22,
@@ -179,8 +178,7 @@ class _NotificationsInboxViewState
     // Lista con datos
     return RefreshIndicator(
       color: AppColors.primary,
-      onRefresh: () =>
-          ref.read(notificationsInboxProvider.notifier).refresh(),
+      onRefresh: () => ref.read(notificationsInboxProvider.notifier).refresh(),
       child: ListView.builder(
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
@@ -309,7 +307,8 @@ class _NotificationsInboxViewState
           child: TextButton.icon(
             onPressed: () =>
                 ref.read(notificationsInboxProvider.notifier).loadNextPage(),
-            icon: Icon(Icons.refresh_rounded, size: 16, color: AppColors.primary),
+            icon:
+                Icon(Icons.refresh_rounded, size: 16, color: AppColors.primary),
             label: Text(
               'Error al cargar más. Tocar para reintentar.',
               style: TextStyle(fontSize: 13, color: c.textSecondary),

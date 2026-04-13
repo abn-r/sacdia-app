@@ -30,7 +30,9 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
       Left(NotFoundFailure(message: e.message, code: e.code));
 
   @override
-  Future<Either<Failure, ({List<NotificationItem> items, int total, int totalPages})>>
+  Future<
+          Either<Failure,
+              ({List<NotificationItem> items, int total, int totalPages})>>
       getHistory({
     int page = 1,
     int limit = 20,

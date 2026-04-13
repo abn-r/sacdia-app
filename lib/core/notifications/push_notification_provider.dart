@@ -26,7 +26,8 @@ final pushNavigatorKey = GlobalKey<NavigatorState>();
 /// - [dioProvider] — authenticated Dio instance (includes AuthInterceptor).
 /// - [sharedPreferencesProvider] — to persist the registered FCM token.
 /// - [pushNavigatorKey] — so the service can reach the UI layer.
-final pushNotificationServiceProvider = Provider<PushNotificationService>((ref) {
+final pushNotificationServiceProvider =
+    Provider<PushNotificationService>((ref) {
   final dio = ref.watch(dioProvider);
   final prefs = ref.watch(sharedPreferencesProvider);
 

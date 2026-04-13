@@ -41,7 +41,6 @@ class PushNotificationService {
   static const _tokenPrefKey = 'fcm_registered_token';
 
   final Dio _dio;
-  final SharedPreferences _prefs;
   final _secureStorage = const FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
@@ -57,11 +56,11 @@ class PushNotificationService {
 
   PushNotificationService({
     required Dio dio,
-    required SharedPreferences prefs,
     required Ref ref,
     this.navigatorKey,
+    // ignore: avoid_unused_constructor_parameters
+    SharedPreferences? prefs,
   })  : _dio = dio,
-        _prefs = prefs,
         _ref = ref;
 
   // ── StreamSubscription references ─────────────────────────────────────────
@@ -113,15 +112,15 @@ class PushNotificationService {
     await _getFcmTokenSafely();
 
     // 4. Handle messages arriving while app is in the foreground.
-    _onMessageSub = FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+    _onMessageSub =
+        FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
 
     // 5. Handle taps on notifications when app is in background (not terminated).
     _onMessageOpenedAppSub =
         FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
 
     // 6. Handle tap on notification that launched the app from terminated state.
-    final initialMessage =
-        await FirebaseMessaging.instance.getInitialMessage();
+    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
     if (initialMessage != null) {
       // Defer navigation until the widget tree is fully built.
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -161,7 +160,8 @@ class PushNotificationService {
       // Still remove locally so we don't keep retrying a bad token.
       await _secureStorage.delete(key: _tokenPrefKey);
     } catch (e) {
-      AppLogger.w('Error inesperado al desregistrar token', tag: _tag, error: e);
+      AppLogger.w('Error inesperado al desregistrar token',
+          tag: _tag, error: e);
       await _secureStorage.delete(key: _tokenPrefKey);
     }
   }
@@ -183,7 +183,6 @@ class PushNotificationService {
     await _onMessageOpenedAppSub?.cancel();
     _onMessageOpenedAppSub = null;
   }
-
 
   /// Obtains the FCM token in a crash-safe way.
   ///
@@ -556,6 +555,6 @@ class PushNotificationService {
   Future<String?> getToken() => FirebaseMessaging.instance.getToken();
 
   /// Returns the token that was last successfully registered with the backend.
-  Future<String?> get registeredToken => _secureStorage.read(key: _tokenPrefKey);
+  Future<String?> get registeredToken =>
+      _secureStorage.read(key: _tokenPrefKey);
 }
-

@@ -138,9 +138,7 @@ class NotificationsInboxNotifier extends Notifier<NotificationsInboxState> {
         );
       },
       (data) {
-        final newItems = refresh
-            ? data.items
-            : [...state.items, ...data.items];
+        final newItems = refresh ? data.items : [...state.items, ...data.items];
 
         state = state.copyWith(
           items: newItems,

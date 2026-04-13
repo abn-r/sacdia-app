@@ -51,9 +51,8 @@ class NotificationCard extends ConsumerWidget {
     final isUnread = !notification.isRead;
 
     // Subtle background tint for unread items.
-    final backgroundColor = isUnread
-        ? AppColors.primary.withValues(alpha: 0.05)
-        : c.surface;
+    final backgroundColor =
+        isUnread ? AppColors.primary.withValues(alpha: 0.05) : c.surface;
 
     return InkWell(
       onTap: () => _handleTap(context, ref),
@@ -84,15 +83,13 @@ class NotificationCard extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           notification.title,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(
-                                fontWeight: isUnread
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                color: c.text,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: isUnread
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    color: c.text,
+                                  ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
