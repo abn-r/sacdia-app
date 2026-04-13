@@ -6,6 +6,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../providers/notifications_providers.dart';
+import '../providers/unread_notifications_count_provider.dart';
 import '../widgets/notification_card.dart';
 
 /// Pantalla de historial/bandeja de notificaciones.
@@ -14,6 +15,7 @@ import '../widgets/notification_card.dart';
 /// - Pull-to-refresh
 /// - Carga incremental al llegar al final de la lista (load more)
 /// - Estado vacío, de carga (skeleton) y de error con retry
+/// - AppBar con badge de no-leídas y acción "marcar todas como leídas"
 class NotificationsInboxView extends ConsumerStatefulWidget {
   const NotificationsInboxView({super.key});
 
@@ -48,9 +50,24 @@ class _NotificationsInboxViewState
     }
   }
 
+  Future<void> _markAllAsRead() async {
+    final repository = ref.read(notificationsRepositoryProvider);
+    final result = await repository.markAllAsRead();
+    result.fold(
+      (_) {
+        // On failure, nothing to roll back — just let the state remain.
+      },
+      (_) {
+        ref.read(unreadNotificationsCountProvider.notifier).setZero();
+        ref.invalidate(notificationsInboxProvider);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final inboxState = ref.watch(notificationsInboxProvider);
+    final unreadCount = ref.watch(unreadNotificationsCountProvider);
     final c = context.sac;
 
     return Scaffold(
@@ -67,11 +84,62 @@ class _NotificationsInboxViewState
               ),
         ),
         actions: [
+          // Bell icon with unread badge
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                onPressed: null, // Decorative — tapping the list navigates
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedNotification01,
+                  size: 22,
+                  color: c.text,
+                ),
+                tooltip: 'Notificaciones',
+              ),
+              if (unreadCount > 0)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.error,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    constraints: const BoxConstraints(minWidth: 16),
+                    child: Text(
+                      unreadCount > 99 ? '99+' : '$unreadCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          // Mark all as read
+          if (unreadCount > 0)
+            IconButton(
+              onPressed: inboxState.isLoading ? null : _markAllAsRead,
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedCheckmarkSquare01,
+                size: 22,
+                color: c.text,
+              ),
+              tooltip: 'Marcar todas como leídas',
+            ),
+          // Refresh
           IconButton(
             onPressed: inboxState.isLoading
                 ? null
-                : () =>
-                    ref.read(notificationsInboxProvider.notifier).refresh(),
+                : () => ref.read(notificationsInboxProvider.notifier).refresh(),
             icon: HugeIcon(
               icon: HugeIcons.strokeRoundedRefresh,
               size: 22,
@@ -110,8 +178,7 @@ class _NotificationsInboxViewState
     // Lista con datos
     return RefreshIndicator(
       color: AppColors.primary,
-      onRefresh: () =>
-          ref.read(notificationsInboxProvider.notifier).refresh(),
+      onRefresh: () => ref.read(notificationsInboxProvider.notifier).refresh(),
       child: ListView.builder(
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
@@ -240,7 +307,8 @@ class _NotificationsInboxViewState
           child: TextButton.icon(
             onPressed: () =>
                 ref.read(notificationsInboxProvider.notifier).loadNextPage(),
-            icon: Icon(Icons.refresh_rounded, size: 16, color: AppColors.primary),
+            icon:
+                Icon(Icons.refresh_rounded, size: 16, color: AppColors.primary),
             label: Text(
               'Error al cargar más. Tocar para reintentar.',
               style: TextStyle(fontSize: 13, color: c.textSecondary),

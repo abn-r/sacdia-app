@@ -74,6 +74,15 @@ class ValidationFailure extends Failure {
   List<Object?> get props => [...super.props, fieldsErrors];
 }
 
+// Fallo de recurso no encontrado (HTTP 404)
+class NotFoundFailure extends Failure {
+  const NotFoundFailure({
+    required super.message,
+    super.code,
+    super.stackTrace,
+  });
+}
+
 // Fallos inesperados
 class UnexpectedFailure extends Failure {
   const UnexpectedFailure({

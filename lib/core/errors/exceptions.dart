@@ -59,6 +59,15 @@ class ValidationException extends AppException {
   });
 }
 
+// Excepción de recurso no encontrado (HTTP 404)
+class NotFoundException extends AppException {
+  NotFoundException({
+    required super.message,
+    super.code,
+    super.stackTrace,
+  });
+}
+
 /// Señal (no un error real) que indica que el flujo OAuth fue iniciado
 /// correctamente. El resultado de la autenticación llegará de forma
 /// asíncrona a través del deep link y [authStateChanges].

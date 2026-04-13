@@ -1,106 +1,160 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/notification_item.dart';
+import '../providers/notifications_providers.dart';
+import '../providers/unread_notifications_count_provider.dart';
 import 'notification_type_badge.dart';
 
 /// Card que muestra una notificación del historial.
 ///
-/// Muestra: badge de tipo, título, cuerpo (máx 2 líneas) y timestamp relativo.
-class NotificationCard extends StatelessWidget {
+/// - Toca para marcar como leída (optimistic) si aún no fue leída.
+/// - Indicador visual de no-leída: fondo tintado + punto rojo + título bold.
+/// - Leída: fondo normal, sin punto, peso de título regular.
+class NotificationCard extends ConsumerWidget {
   final NotificationItem notification;
 
   const NotificationCard({super.key, required this.notification});
 
+  Future<void> _handleTap(BuildContext context, WidgetRef ref) async {
+    final deliveryId = notification.deliveryId;
+
+    if (!notification.isRead && deliveryId != null) {
+      // 1. Optimistic update: mark read locally + decrement counter.
+      ref
+          .read(notificationsInboxProvider.notifier)
+          .updateItemReadState(deliveryId, isRead: true);
+      ref.read(unreadNotificationsCountProvider.notifier).decrement();
+
+      // 2. Persist via API (fire-and-forget with rollback on failure).
+      final repository = ref.read(notificationsRepositoryProvider);
+      final result = await repository.markAsRead(deliveryId);
+      result.fold(
+        (failure) {
+          // Rollback optimistic update on failure.
+          ref
+              .read(notificationsInboxProvider.notifier)
+              .updateItemReadState(deliveryId, isRead: false);
+          ref.read(unreadNotificationsCountProvider.notifier).increment();
+        },
+        (_) {
+          // Success — nothing extra needed.
+        },
+      );
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = context.sac;
+    final isUnread = !notification.isRead;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: c.surface,
-        border: Border(
-          bottom: BorderSide(color: c.divider, width: 0.5),
+    // Subtle background tint for unread items.
+    final backgroundColor =
+        isUnread ? AppColors.primary.withValues(alpha: 0.05) : c.surface;
+
+    return InkWell(
+      onTap: () => _handleTap(context, ref),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          border: Border(
+            bottom: BorderSide(color: c.divider, width: 0.5),
+          ),
         ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Badge de tipo
-          NotificationTypeBadge(type: notification.targetType),
-          const SizedBox(width: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Badge de tipo
+            NotificationTypeBadge(type: notification.targetType),
+            const SizedBox(width: 12),
 
-          // Contenido
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Título + timestamp en la misma fila
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        notification.title,
-                        style:
-                            Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: c.text,
-                                ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _relativeTime(notification.createdAt),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: c.textTertiary,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 4),
-
-                // Cuerpo
-                Text(
-                  notification.body,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: c.textSecondary,
-                        height: 1.4,
-                      ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-
-                // Remitente (si está disponible)
-                if (notification.senderName != null) ...[
-                  const SizedBox(height: 6),
+            // Contenido
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Título + timestamp + punto de no-leída
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.person_outline_rounded,
-                        size: 12,
-                        color: c.textTertiary,
+                      Expanded(
+                        child: Text(
+                          notification.title,
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: isUnread
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    color: c.text,
+                                  ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 8),
                       Text(
-                        notification.senderName!,
+                        _relativeTime(notification.createdAt),
                         style: TextStyle(
                           fontSize: 11,
                           color: c.textTertiary,
                         ),
                       ),
+                      if (isUnread) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppColors.error,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
+
+                  const SizedBox(height: 4),
+
+                  // Cuerpo
+                  Text(
+                    notification.body,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: c.textSecondary,
+                          height: 1.4,
+                        ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  // Remitente (si está disponible)
+                  if (notification.senderName != null) ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.person_outline_rounded,
+                          size: 12,
+                          color: c.textTertiary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          notification.senderName!,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: c.textTertiary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
