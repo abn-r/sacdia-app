@@ -73,14 +73,12 @@ class NotificationsInboxState {
 
 // ── Notifier ─────────────────────────────────────────────────────────────────
 
-class NotificationsInboxNotifier
-    extends AutoDisposeNotifier<NotificationsInboxState> {
+class NotificationsInboxNotifier extends Notifier<NotificationsInboxState> {
   static const _pageSize = 20;
   CancelToken? _currentToken;
 
   @override
   NotificationsInboxState build() {
-    ref.onDispose(() => _currentToken?.cancel());
     // Carga la primera página al inicializar.
     Future.microtask(() => _loadPage(1, refresh: true));
     return const NotificationsInboxState(isLoading: true);
@@ -88,6 +86,22 @@ class NotificationsInboxNotifier
 
   /// Carga o recarga desde la primera página.
   Future<void> refresh() => _loadPage(1, refresh: true);
+
+  /// Actualiza optimistamente el estado leído de un item por su deliveryId.
+  ///
+  /// Si [rollback] es true, revierte isRead al valor anterior (false).
+  void updateItemReadState(String deliveryId, {required bool isRead}) {
+    final updated = state.items.map((item) {
+      if (item.deliveryId == deliveryId) {
+        return item.copyWith(
+          isRead: isRead,
+          readAt: isRead ? DateTime.now() : null,
+        );
+      }
+      return item;
+    }).toList();
+    state = state.copyWith(items: updated);
+  }
 
   /// Carga la siguiente página si hay más datos disponibles.
   Future<void> loadNextPage() async {
@@ -142,7 +156,7 @@ class NotificationsInboxNotifier
   }
 }
 
-final notificationsInboxProvider = AutoDisposeNotifierProvider<
-    NotificationsInboxNotifier, NotificationsInboxState>(
+final notificationsInboxProvider =
+    NotifierProvider<NotificationsInboxNotifier, NotificationsInboxState>(
   NotificationsInboxNotifier.new,
 );
