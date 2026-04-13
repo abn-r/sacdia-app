@@ -7,12 +7,49 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/member_of_month.dart';
 import '../../domain/entities/unit.dart';
 import '../providers/units_providers.dart';
 import 'member_of_month_history_view.dart';
 import 'unit_detail_view.dart';
+import 'unit_form_sheet.dart';
+
+// ── Role helpers ──────────────────────────────────────────────────────────────
+
+const _kManagementRoles = [
+  'director',
+  'sub_director',
+  'secretario',
+  'secretario_tesorero',
+];
+
+bool _canManageRole(String? role) {
+  if (role == null) return false;
+  return _kManagementRoles.contains(role.trim().toLowerCase());
+}
+
+bool _canDeleteRole(String? role) {
+  return role?.trim().toLowerCase() == 'director';
+}
+
+List<Unit> _filterUnitsByRole(
+  List<Unit> units,
+  String? role,
+  String? userId,
+) {
+  if (role != null && _canManageRole(role)) {
+    return units; // management sees all
+  }
+  // Non-management: only units where the user is directly assigned
+  return units.where((u) =>
+    u.advisorId == userId ||
+    u.substituteAdvisorId == userId ||
+    u.captainId == userId ||
+    u.secretaryId == userId,
+  ).toList();
+}
 
 /// Vista de lista de unidades disponibles para el usuario.
 ///
@@ -35,12 +72,26 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
     super.initState();
 
     // Evaluar post-build para no causar un push durante el build tree.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Auto-navigate when there is exactly ONE visible unit for this user.
+    // We wait for the club context so that role-based filtering is applied
+    // before deciding, avoiding a race between the async provider and the
+    // raw units list.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      final units = ref.read(unitsNotifierProvider).units;
+      final rawUnits = ref.read(unitsNotifierProvider).units;
+      if (rawUnits.isEmpty) return; // nothing loaded yet — build reacts later
 
-      if (units.length == 1) {
-        _navigateToUnit(units.first, replace: true);
+      // Resolve role + userId for filtering (may be cached already)
+      final clubCtx = await ref.read(clubContextProvider.future);
+      if (!mounted) return;
+
+      final user = ref.read(authNotifierProvider).valueOrNull;
+      final role = clubCtx?.roleName;
+      final userId = user?.id;
+
+      final visible = _filterUnitsByRole(rawUnits, role, userId);
+      if (visible.length == 1) {
+        _navigateToUnit(visible.first, replace: true);
       }
     });
   }
@@ -76,8 +127,22 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
     final state = ref.watch(unitsNotifierProvider);
     final c = context.sac;
 
+    // Resolve club context for role-based features (non-blocking — async)
+    final clubContextAsync = ref.watch(clubContextProvider);
+    final currentUser = ref.watch(authNotifierProvider).valueOrNull;
+
+    final role = clubContextAsync.valueOrNull?.roleName;
+    final userId = currentUser?.id;
+    final canManage = _canManageRole(role);
+    final canDelete = _canDeleteRole(role);
+
+    // Filter units based on role before checking count
+    final visibleUnits = _filterUnitsByRole(state.units, role, userId);
+
     // Caso de una sola unidad: render placeholder mientras se hace el push
-    if (state.units.length == 1) {
+    // Use visibleUnits for this check so management roles with 1 unit also
+    // navigate directly only when they genuinely have a single unit.
+    if (visibleUnits.length == 1 && state.units.isNotEmpty) {
       return Scaffold(
         backgroundColor: c.background,
         body: const Center(child: SizedBox.shrink()),
@@ -91,10 +156,29 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
       appBar: AppBar(
         title: const Text('Mis Unidades'),
       ),
-      body: state.units.isEmpty && !state.isLoading
+      floatingActionButton: canManage
+          ? FloatingActionButton(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              onPressed: () {
+                // Notifier already calls refresh() internally on success,
+                // so the provider state update is automatic. No extra call needed.
+                showUnitFormSheet(context: context, ref: ref);
+              },
+              child: const HugeIcon(
+                icon: HugeIcons.strokeRoundedAdd01,
+                size: 26,
+                color: Colors.white,
+              ),
+            )
+          : null,
+      body: visibleUnits.isEmpty && !state.isLoading
           ? _EmptyState()
           : _Body(
               state: state,
+              visibleUnits: visibleUnits,
+              canManage: canManage,
+              canDelete: canDelete,
               onUnitTap: _navigateToUnit,
               onMemberOfMonthTap: _navigateToMemberOfMonthHistory,
             ),
@@ -106,11 +190,20 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
 
 class _Body extends ConsumerWidget {
   final UnitsState state;
+
+  /// The pre-filtered list of units to display (role-filtered by the parent).
+  final List<Unit> visibleUnits;
+
+  final bool canManage;
+  final bool canDelete;
   final void Function(Unit unit) onUnitTap;
   final void Function(int clubId, int sectionId) onMemberOfMonthTap;
 
   const _Body({
     required this.state,
+    required this.visibleUnits,
+    required this.canManage,
+    required this.canDelete,
     required this.onUnitTap,
     required this.onMemberOfMonthTap,
   });
@@ -122,8 +215,9 @@ class _Body extends ConsumerWidget {
 
     return clubContextAsync.when(
       data: (ctx) => ListView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-        itemCount: state.units.length + (state.memberOfMonth != null ? 1 : 0),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+        itemCount:
+            visibleUnits.length + (state.memberOfMonth != null ? 1 : 0),
         itemBuilder: (context, index) {
           // Primer elemento: card de Miembro del Mes (solo si hay datos)
           if (state.memberOfMonth != null) {
@@ -140,22 +234,27 @@ class _Body extends ConsumerWidget {
             }
             // Ajustar índice para la lista de unidades
             final unitIndex = index - 1;
-            return _buildUnitCard(context, state.units[unitIndex], unitIndex);
+            return _buildUnitCard(context, ref, visibleUnits[unitIndex], unitIndex);
           }
-          return _buildUnitCard(context, state.units[index], index);
+          return _buildUnitCard(context, ref, visibleUnits[index], index);
         },
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, __) => ListView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-        itemCount: state.units.length,
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+        itemCount: visibleUnits.length,
         itemBuilder: (context, index) =>
-            _buildUnitCard(context, state.units[index], index),
+            _buildUnitCard(context, ref, visibleUnits[index], index),
       ),
     );
   }
 
-  Widget _buildUnitCard(BuildContext context, Unit unit, int index) {
+  Widget _buildUnitCard(
+    BuildContext context,
+    WidgetRef ref,
+    Unit unit,
+    int index,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: SacCard(
@@ -164,7 +263,47 @@ class _Body extends ConsumerWidget {
         onTap: () => onUnitTap(unit),
         accentColor: AppColors.primary,
         padding: const EdgeInsets.all(16),
-        child: _UnitCard(unit: unit),
+        child: _UnitCard(
+          unit: unit,
+          canManage: canManage,
+          canDelete: canDelete,
+          onEdit: canManage
+              ? () => showUnitFormSheet(context: context, ref: ref, unit: unit)
+              : null,
+          onDelete: canDelete
+              ? () async {
+                  final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Eliminar unidad'),
+                          content: Text(
+                            '¿Estás seguro de que querés eliminar "${unit.name}"? '
+                            'Esta acción no se puede deshacer.',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(false),
+                              child: const Text('Cancelar'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(true),
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.red,
+                              ),
+                              child: const Text('Eliminar'),
+                            ),
+                          ],
+                        ),
+                      ) ??
+                      false;
+                  if (confirmed) {
+                    await ref
+                        .read(unitsNotifierProvider.notifier)
+                        .deleteUnit(unitId: unit.id);
+                  }
+                }
+              : null,
+        ),
       ),
     );
   }
@@ -407,8 +546,18 @@ class _TieAvatarStack extends StatelessWidget {
 
 class _UnitCard extends StatelessWidget {
   final Unit unit;
+  final bool canManage;
+  final bool canDelete;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
-  const _UnitCard({required this.unit});
+  const _UnitCard({
+    required this.unit,
+    this.canManage = false,
+    this.canDelete = false,
+    this.onEdit,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -470,10 +619,9 @@ class _UnitCard extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       unit.leaderName!,
-                      style:
-                          Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: c.textTertiary,
-                              ),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: c.textTertiary,
+                          ),
                     ),
                   ],
                 ),
@@ -482,16 +630,71 @@ class _UnitCard extends StatelessWidget {
           ),
         ),
 
-        // Chevron
-        HugeIcon(
-          icon: HugeIcons.strokeRoundedArrowRight01,
-          size: 20,
-          color: c.textTertiary,
-        ),
+        // Trailing: popup menu for management roles, chevron otherwise
+        if (canManage)
+          PopupMenuButton<_UnitAction>(
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedMoreVertical,
+              size: 20,
+              color: c.textTertiary,
+            ),
+            onSelected: (action) {
+              if (action == _UnitAction.edit) {
+                onEdit?.call();
+              } else if (action == _UnitAction.delete) {
+                onDelete?.call();
+              }
+            },
+            itemBuilder: (_) {
+              return <PopupMenuEntry<_UnitAction>>[
+                const PopupMenuItem(
+                  value: _UnitAction.edit,
+                  child: Row(
+                    children: [
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedPencilEdit02,
+                        size: 18,
+                        color: AppColors.primary,
+                      ),
+                      SizedBox(width: 10),
+                      Text('Editar'),
+                    ],
+                  ),
+                ),
+                if (canDelete)
+                  const PopupMenuItem(
+                    value: _UnitAction.delete,
+                    child: Row(
+                      children: [
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedDelete02,
+                          size: 18,
+                          color: AppColors.error,
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          'Eliminar',
+                          style: TextStyle(color: AppColors.error),
+                        ),
+                      ],
+                    ),
+                  ),
+              ];
+            },
+          )
+        else
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowRight01,
+            size: 20,
+            color: c.textTertiary,
+          ),
       ],
     );
   }
 }
+
+/// Discriminated union for the unit card popup actions.
+enum _UnitAction { edit, delete }
 
 class _InfoChip extends StatelessWidget {
   final List<List<dynamic>> icon;

@@ -533,6 +533,230 @@ class UnitsNotifier extends Notifier<UnitsState> {
     );
   }
 
+  // ── CRUD de unidades ─────────────────────────────────────────────────────
+
+  /// Crea una nueva unidad en el club.
+  ///
+  /// Si [memberUserIds] no está vacío, agrega cada miembro a la unidad recién
+  /// creada antes de refrescar la lista.
+  /// Retorna [true] si la operación fue exitosa, [false] en caso contrario.
+  Future<bool> createUnit({
+    required String name,
+    required String captainId,
+    required String secretaryId,
+    required String advisorId,
+    String? substituteAdvisorId,
+    required int clubTypeId,
+    int? clubSectionId,
+    List<String> memberUserIds = const [],
+  }) async {
+    final ctx = await ref.read(clubContextProvider.future);
+    if (ctx == null) return false;
+
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    final result = await ref
+        .read(createUnitUseCaseProvider)
+        .call(CreateUnitParams(
+          clubId: ctx.clubId,
+          name: name,
+          captainId: captainId,
+          secretaryId: secretaryId,
+          advisorId: advisorId,
+          substituteAdvisorId: substituteAdvisorId,
+          clubTypeId: clubTypeId,
+          clubSectionId: clubSectionId,
+        ));
+
+    bool success = false;
+
+    await result.fold(
+      (failure) async {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+      },
+      (unit) async {
+        if (memberUserIds.isNotEmpty) {
+          final addMember = ref.read(addUnitMemberUseCaseProvider);
+          for (final userId in memberUserIds) {
+            await addMember.call(AddUnitMemberParams(
+              clubId: ctx.clubId,
+              unitId: unit.id,
+              userId: userId,
+            ));
+          }
+        }
+        success = true;
+      },
+    );
+
+    if (success) {
+      await refresh();
+    } else {
+      state = state.copyWith(isLoading: false);
+    }
+
+    return success;
+  }
+
+  /// Actualiza los datos de una unidad existente.
+  ///
+  /// Solo los campos no nulos son enviados al backend.
+  /// Retorna [true] si la operación fue exitosa, [false] en caso contrario.
+  Future<bool> updateUnit({
+    required int unitId,
+    String? name,
+    String? captainId,
+    String? secretaryId,
+    String? advisorId,
+    String? substituteAdvisorId,
+    int? clubTypeId,
+    int? clubSectionId,
+  }) async {
+    final ctx = await ref.read(clubContextProvider.future);
+    if (ctx == null) return false;
+
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    final result = await ref
+        .read(updateUnitUseCaseProvider)
+        .call(UpdateUnitParams(
+          clubId: ctx.clubId,
+          unitId: unitId,
+          name: name,
+          captainId: captainId,
+          secretaryId: secretaryId,
+          advisorId: advisorId,
+          substituteAdvisorId: substituteAdvisorId,
+          clubTypeId: clubTypeId,
+          clubSectionId: clubSectionId,
+        ));
+
+    bool success = false;
+
+    result.fold(
+      (failure) => state = state.copyWith(
+        isLoading: false,
+        errorMessage: failure.message,
+      ),
+      (_) => success = true,
+    );
+
+    if (success) {
+      await refresh();
+    }
+
+    return success;
+  }
+
+  /// Elimina (soft-delete) una unidad del club.
+  ///
+  /// Retorna [true] si la operación fue exitosa, [false] en caso contrario.
+  Future<bool> deleteUnit({required int unitId}) async {
+    final ctx = await ref.read(clubContextProvider.future);
+    if (ctx == null) return false;
+
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    final result = await ref
+        .read(deleteUnitUseCaseProvider)
+        .call(DeleteUnitParams(clubId: ctx.clubId, unitId: unitId));
+
+    bool success = false;
+
+    result.fold(
+      (failure) => state = state.copyWith(
+        isLoading: false,
+        errorMessage: failure.message,
+      ),
+      (_) => success = true,
+    );
+
+    if (success) {
+      await refresh();
+    }
+
+    return success;
+  }
+
+  // ── Gestión de miembros de unidad ─────────────────────────────────────────
+
+  /// Agrega un miembro a una unidad y refresca la lista.
+  ///
+  /// Retorna [true] si la operación fue exitosa, [false] en caso contrario.
+  Future<bool> addMemberToUnit({
+    required int unitId,
+    required String userId,
+  }) async {
+    final ctx = await ref.read(clubContextProvider.future);
+    if (ctx == null) return false;
+
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    final result = await ref
+        .read(addUnitMemberUseCaseProvider)
+        .call(AddUnitMemberParams(
+          clubId: ctx.clubId,
+          unitId: unitId,
+          userId: userId,
+        ));
+
+    bool success = false;
+
+    result.fold(
+      (failure) => state = state.copyWith(
+        isLoading: false,
+        errorMessage: failure.message,
+      ),
+      (_) => success = true,
+    );
+
+    if (success) {
+      await refresh();
+    }
+
+    return success;
+  }
+
+  /// Remueve un miembro de una unidad y refresca la lista.
+  ///
+  /// Retorna [true] si la operación fue exitosa, [false] en caso contrario.
+  Future<bool> removeMemberFromUnit({
+    required int unitId,
+    required int memberId,
+  }) async {
+    final ctx = await ref.read(clubContextProvider.future);
+    if (ctx == null) return false;
+
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    final result = await ref
+        .read(removeUnitMemberUseCaseProvider)
+        .call(RemoveUnitMemberParams(
+          clubId: ctx.clubId,
+          unitId: unitId,
+          memberId: memberId,
+        ));
+
+    bool success = false;
+
+    result.fold(
+      (failure) => state = state.copyWith(
+        isLoading: false,
+        errorMessage: failure.message,
+      ),
+      (_) => success = true,
+    );
+
+    if (success) {
+      await refresh();
+    }
+
+    return success;
+  }
+
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   /// Construye el mapa de puntos pendientes inicializado en 0.
