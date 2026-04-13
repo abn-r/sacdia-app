@@ -26,6 +26,9 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
   Left<Failure, T> _unexpectedFailure<T>(Object e) =>
       Left(UnexpectedFailure(message: e.toString()));
 
+  Left<Failure, T> _notFoundFailure<T>(NotFoundException e) =>
+      Left(NotFoundFailure(message: e.message, code: e.code));
+
   @override
   Future<Either<Failure, ({List<NotificationItem> items, int total, int totalPages})>>
       getHistory({
@@ -45,6 +48,50 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
         total: result.total,
         totalPages: result.totalPages,
       ));
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> getUnreadCount() async {
+    try {
+      final count = await remoteDataSource.getUnreadCount();
+      return Right(count);
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> markAsRead(String deliveryId) async {
+    try {
+      await remoteDataSource.markAsRead(deliveryId);
+      return const Right(null);
+    } on NotFoundException catch (e) {
+      return _notFoundFailure(e);
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> markAllAsRead() async {
+    try {
+      final updated = await remoteDataSource.markAllAsRead();
+      return Right(updated);
     } on ServerException catch (e) {
       return _serverFailure(e);
     } on AuthException catch (e) {
