@@ -26,6 +26,9 @@ class DashboardSummary extends Equatable {
   final String? clubType;
   final String? userRole;
   final String? currentClassName;
+  /// ID de la clase actual del usuario, usado para obtener el progreso
+  /// detallado desde [classWithProgressProvider].
+  final int? currentClassId;
   final double classProgress;
   final int honorsCompleted;
   final int honorsInProgress;
@@ -38,6 +41,7 @@ class DashboardSummary extends Equatable {
     this.clubType,
     this.userRole,
     this.currentClassName,
+    this.currentClassId,
     required this.classProgress,
     required this.honorsCompleted,
     required this.honorsInProgress,
@@ -52,6 +56,7 @@ class DashboardSummary extends Equatable {
         clubType,
         userRole,
         currentClassName,
+        currentClassId,
         classProgress,
         honorsCompleted,
         honorsInProgress,

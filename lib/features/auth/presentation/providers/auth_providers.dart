@@ -460,6 +460,11 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     // Switch succeeded — refresh the full user so downstream providers
     // (clubContextProvider, dashboardNotifierProvider, etc.) re-evaluate.
     AppLogger.i('Contexto cambiado. Refrescando usuario...', tag: _tag);
+
+    // Capture old activeAssignmentId for diagnostics.
+    final oldActiveId =
+        state.valueOrNull?.authorization?.activeAssignmentId;
+
     final refreshResult = await ref.read(getCurrentUserProvider)(NoParams());
     refreshResult.fold(
       (failure) => AppLogger.w(
@@ -468,6 +473,13 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       ),
       (user) {
         if (user != null) {
+          final newActiveId = user.authorization?.activeAssignmentId;
+          AppLogger.i(
+            'switchContext refresh: requested=$assignmentId, '
+            'old=$oldActiveId, new=$newActiveId, '
+            'match=${newActiveId == assignmentId}',
+            tag: _tag,
+          );
           _cacheUser(user);
           state = AsyncValue.data(user);
         }

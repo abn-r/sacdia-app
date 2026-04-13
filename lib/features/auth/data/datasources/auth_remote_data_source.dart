@@ -293,18 +293,29 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
             (user.authorization?.activeAssignmentId?.trim().isNotEmpty ??
                 false);
 
+        // Auto-activation: only run when the backend returns NO active assignment
+        // AND we haven't attempted it yet in this datasource instance.
+        //
+        // IMPORTANT: we only auto-activate when `status == 'active'` explicitly.
+        // Grants with `status == null` (legacy data) are intentionally excluded to
+        // avoid activating an assignment the backend did not mark as usable.
+        // This prevents the mismatch where the first legacy grant in the array
+        // (e.g. Guías Mayores) gets silently activated even though the user last
+        // chose Conquistadores in a previous session.
         String? fallbackAssignmentId;
         if (!hasActiveAssignment) {
-          // Prefer an assignment with status 'active' (or null = legacy active).
-          // Skip pending/rejected/expired assignments for auto-activation.
+          // Only consider grants with explicit 'active' status.
           for (final grant in user.authorization?.clubAssignments ?? const []) {
             final candidate = grant.assignmentId?.trim();
-            if (candidate != null && candidate.isNotEmpty && grant.isActive) {
+            if (candidate != null &&
+                candidate.isNotEmpty &&
+                grant.status == 'active') {
               fallbackAssignmentId = candidate;
               break;
             }
           }
-          // If no active-status assignment found, fall back to the first available.
+          // If no explicit-active grant found, fall back to the first available
+          // regardless of status (handles fresh accounts with no status yet).
           fallbackAssignmentId ??= (() {
             for (final grant
                 in user.authorization?.clubAssignments ?? const []) {
@@ -319,6 +330,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
             !hasActiveAssignment &&
             fallbackAssignmentId != null) {
           _attemptedContextAutoActivation = true;
+          AppLogger.i(
+            'Auto-activating context: $fallbackAssignmentId',
+            tag: _tag,
+          );
           final contextActivated = await _activateAuthorizationContext(
             token,
             fallbackAssignmentId,

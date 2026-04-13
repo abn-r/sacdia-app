@@ -1,34 +1,63 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_ring.dart';
+import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
 
 /// Card de clase actual con SacProgressRing - Estilo "Scout Vibrante"
 ///
 /// Fixed compact header row showing the school icon, "Mi Clase" label,
 /// the class name below, a small progress ring with the percentage, and
 /// the "Completada" badge when progress reaches 100%.
-class CurrentClassCard extends StatelessWidget {
+///
+/// Progress is sourced from [classWithProgressProvider] (the same provider
+/// used by "Mis Clases") to ensure the percentage is always consistent with
+/// the detail screen. The dashboard summary's [classProgress] field is used
+/// only as a fallback while the accurate data is loading or when no class
+/// ID is available.
+class CurrentClassCard extends ConsumerWidget {
   final String? currentClassName;
-  final double classProgress;
+
+  /// ID de la clase actual — requerido para obtener el progreso preciso desde
+  /// [classWithProgressProvider]. Si es null, se muestra [fallbackProgress].
+  final int? currentClassId;
+
+  /// Progreso de respaldo proveniente del dashboard summary (0.0–1.0).
+  /// Se muestra mientras [classWithProgressProvider] carga o cuando
+  /// [currentClassId] es null.
+  final double fallbackProgress;
 
   const CurrentClassCard({
     super.key,
     this.currentClassName,
-    required this.classProgress,
+    this.currentClassId,
+    this.fallbackProgress = 0.0,
   });
-
-  // ─── Helpers ─────────────────────────────────────────────────────────────
-
-  int get _progressPercentage => (classProgress * 100).toInt();
-  bool get _isComplete => classProgress >= 1.0;
 
   // ─── Build ────────────────────────────────────────────────────────────────
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Resolve the accurate progress from the classes provider when we have an
+    // ID. Falls back to [fallbackProgress] on loading, error, or missing ID.
+    final double progress;
+    if (currentClassId != null) {
+      final classState = ref.watch(classWithProgressProvider(currentClassId!));
+      progress = classState.when(
+        data: (classWithProgress) => classWithProgress.completionRatio,
+        loading: () => fallbackProgress,
+        error: (_, __) => fallbackProgress,
+      );
+    } else {
+      progress = fallbackProgress;
+    }
+
+    final int progressPercentage = (progress * 100).toInt();
+    final bool isComplete = progress >= 1.0;
+
     return SacCard(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -71,16 +100,16 @@ class CurrentClassCard extends StatelessWidget {
           const SizedBox(width: 12),
 
           // Small progress ring + percentage, OR "Completada" badge
-          if (_isComplete)
+          if (isComplete)
             const _CompletadaBadge()
           else
             SacProgressRing(
-              progress: classProgress,
+              progress: progress,
               size: 44,
               strokeWidth: 5,
               animate: false,
               child: Text(
-                '$_progressPercentage%',
+                '$progressPercentage%',
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,

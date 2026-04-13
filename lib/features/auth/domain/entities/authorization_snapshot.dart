@@ -99,6 +99,10 @@ class AuthorizationSnapshot extends Equatable {
   bool get hasRestrictedAccess =>
       isActivePending || isActiveRejected || isActiveExpired;
 
+  /// Role names relevant to the current context: global grants + the active
+  /// club assignment only. Roles from inactive club assignments are excluded so
+  /// that permission gating (e.g. the quick-access grid) reflects the user's
+  /// role in the ACTIVE section, not the highest role across all sections.
   Set<String> get resolvedRoleNames {
     final roles = <String>{};
 
@@ -113,8 +117,10 @@ class AuthorizationSnapshot extends Equatable {
       addRole(grant.roleName);
     }
 
-    for (final grant in clubAssignments) {
-      addRole(grant.roleName);
+    // Only the active club assignment contributes its role — not all of them.
+    final active = activeGrant;
+    if (active != null) {
+      addRole(active.roleName);
     }
 
     return roles;

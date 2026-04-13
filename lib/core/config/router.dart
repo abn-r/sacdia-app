@@ -148,9 +148,25 @@ final routerProvider = Provider<GoRouter>((ref) {
         final isBootstrapLoading = bootstrapAsync.isLoading;
         final bootstrapValue = bootstrapAsync.valueOrNull;
 
-        // Still validating permissions → stay on splash
+        // Whether the user is already inside the authenticated shell (any
+        // /home/* route or post-registration). In this case, do NOT redirect
+        // to splash while bootstrap re-validates — doing so causes GoRouter to
+        // unmount and immediately remount the StatefulShellRoute in the same
+        // frame, which triggers a Duplicate GlobalKey crash.
+        // This scenario occurs during a context switch: switchContext() updates
+        // authNotifierProvider → AppBootstrapNotifier invalidates itself →
+        // bootstrap briefly enters AsyncLoading → router refreshes.
+        // Staying put (return null) is safe: the bootstrap will resolve quickly
+        // and fire another router.refresh() that re-evaluates correctly.
+        final isAlreadyInsideApp = !isPublicRoute &&
+            currentPath != RouteNames.splash;
+
+        // Still validating permissions → stay on splash (first boot only)
         if (isBootstrapLoading) {
           if (currentPath == RouteNames.splash) return null;
+          // User already inside the app (e.g., mid-session context switch) →
+          // stay on the current route while bootstrap re-validates silently.
+          if (isAlreadyInsideApp) return null;
           return RouteNames.splash;
         }
 

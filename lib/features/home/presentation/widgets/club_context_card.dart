@@ -1,13 +1,12 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/utils/extensions.dart';
 import '../../../../core/utils/role_utils.dart';
 import '../../../../core/widgets/sac_card.dart';
+import '../../../../core/widgets/section_switcher_sheet.dart';
 import '../../../auth/domain/entities/authorization_snapshot.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../club/presentation/providers/club_providers.dart';
@@ -18,18 +17,11 @@ import '../../../profile/presentation/providers/profile_providers.dart';
 /// Solo se renderiza cuando el usuario tiene al menos un assignment en su
 /// AuthorizationSnapshot. Si tiene un único assignment, el tap abre el sheet
 /// pero sin opción de cambio (solo informativo con el checkmark activo).
-class ClubContextCard extends ConsumerStatefulWidget {
+class ClubContextCard extends ConsumerWidget {
   const ClubContextCard({super.key});
 
   @override
-  ConsumerState<ClubContextCard> createState() => _ClubContextCardState();
-}
-
-class _ClubContextCardState extends ConsumerState<ClubContextCard> {
-  bool _isSwitching = false;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authNotifierProvider);
     final user = authState.valueOrNull;
     final authorization = user?.authorization;
@@ -67,7 +59,15 @@ class _ClubContextCardState extends ConsumerState<ClubContextCard> {
 
     return SacCard(
       accentColor: accentColor,
-      onTap: _isSwitching ? null : () => _showSectionPicker(context, authorization!),
+      onTap: () {
+        showSectionSwitcher(
+          context: context,
+          ref: ref,
+          assignments: assignments,
+          activeAssignmentId: authorization?.activeAssignmentId,
+          userGender: userGender,
+        );
+      },
       child: Row(
         children: [
           Container(
@@ -123,16 +123,7 @@ class _ClubContextCardState extends ConsumerState<ClubContextCard> {
               ],
             ),
           ),
-          if (_isSwitching)
-            const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-              ),
-            )
-          else if (assignments.length > 1)
+          if (assignments.length > 1)
             HugeIcon(
               icon: HugeIcons.strokeRoundedArrowUpDown,
               color: c.textTertiary,
@@ -141,102 +132,6 @@ class _ClubContextCardState extends ConsumerState<ClubContextCard> {
         ],
       ),
     );
-  }
-
-  Future<void> _showSectionPicker(
-    BuildContext context,
-    AuthorizationSnapshot authorization,
-  ) async {
-    final assignments = authorization.clubAssignments;
-    // Show a maximum of 3 assignments per spec
-    final displayAssignments = assignments.take(3).toList();
-    final activeAssignmentId = authorization.activeAssignmentId;
-
-    String? selectedAssignmentId;
-
-    final userGender = ref.read(
-      profileNotifierProvider.select((v) => v.valueOrNull?.gender),
-    );
-
-    final actions = displayAssignments.map((grant) {
-      final roleName = RoleUtils.translate(grant.roleName, gender: userGender);
-      final isActive = grant.assignmentId == activeAssignmentId;
-
-      return CupertinoActionSheetAction(
-        onPressed: () {
-          Navigator.of(context).pop(grant.assignmentId);
-        },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Text(
-                roleName,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                  color: isActive ? AppColors.primary : null,
-                ),
-              ),
-            ),
-            if (isActive)
-              const Padding(
-                padding: EdgeInsets.only(left: 8),
-                child: Icon(
-                  CupertinoIcons.checkmark,
-                  size: 16,
-                  color: AppColors.primary,
-                ),
-              ),
-          ],
-        ),
-      );
-    }).toList();
-
-    final result = await showCupertinoModalPopup<String?>(
-      context: context,
-      builder: (_) => CupertinoActionSheet(
-        title: const Text('Seleccionar club'),
-        message: const Text('Elige el club que deseas gestionar'),
-        actions: actions,
-        cancelButton: CupertinoActionSheetAction(
-          isDestructiveAction: false,
-          onPressed: () => Navigator.of(context).pop(null),
-          child: const Text('Cancelar'),
-        ),
-      ),
-    );
-
-    selectedAssignmentId = result;
-
-    // Ignore if cancelled or same assignment selected
-    if (selectedAssignmentId == null ||
-        selectedAssignmentId == activeAssignmentId) {
-      return;
-    }
-
-    await _performSwitch(selectedAssignmentId);
-  }
-
-  Future<void> _performSwitch(String assignmentId) async {
-    setState(() => _isSwitching = true);
-
-    final success = await ref
-        .read(authNotifierProvider.notifier)
-        .switchContext(assignmentId);
-
-    if (!mounted) return;
-
-    setState(() => _isSwitching = false);
-
-    if (success) {
-      context.showSnackBar('Club cambiado correctamente');
-    } else {
-      context.showSnackBar(
-        'No se pudo cambiar el club. Intentá de nuevo.',
-        backgroundColor: AppColors.error,
-      );
-    }
   }
 }
 

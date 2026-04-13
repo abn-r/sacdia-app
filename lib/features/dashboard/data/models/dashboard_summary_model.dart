@@ -51,6 +51,7 @@ class DashboardSummaryModel extends DashboardSummary {
     super.clubType,
     super.userRole,
     super.currentClassName,
+    super.currentClassId,
     required super.classProgress,
     required super.honorsCompleted,
     required super.honorsInProgress,
@@ -71,6 +72,7 @@ class DashboardSummaryModel extends DashboardSummary {
       clubType: json['club_type'] as String?,
       userRole: json['user_role'] as String?,
       currentClassName: json['current_class_name'] as String?,
+      currentClassId: json['current_class_id'] as int?,
       // Backend sends class_progress as an integer percentage (0–100).
       // The domain entity and all widgets expect a fraction (0.0–1.0),
       // so we divide by 100 here at the boundary.
@@ -90,6 +92,7 @@ class DashboardSummaryModel extends DashboardSummary {
       'club_type': clubType,
       'user_role': userRole,
       'current_class_name': currentClassName,
+      'current_class_id': currentClassId,
       // Serialize back to the API contract format (integer percentage 0–100)
       'class_progress': (classProgress * 100).round(),
       'honors_completed': honorsCompleted,
@@ -113,6 +116,7 @@ class DashboardSummaryModel extends DashboardSummary {
     String? clubType,
     String? userRole,
     String? currentClassName,
+    int? currentClassId,
     double? classProgress,
     int? honorsCompleted,
     int? honorsInProgress,
@@ -125,6 +129,7 @@ class DashboardSummaryModel extends DashboardSummary {
       clubType: clubType ?? this.clubType,
       userRole: userRole ?? this.userRole,
       currentClassName: currentClassName ?? this.currentClassName,
+      currentClassId: currentClassId ?? this.currentClassId,
       classProgress: classProgress ?? this.classProgress,
       honorsCompleted: honorsCompleted ?? this.honorsCompleted,
       honorsInProgress: honorsInProgress ?? this.honorsInProgress,

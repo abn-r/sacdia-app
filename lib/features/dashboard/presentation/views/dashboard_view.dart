@@ -118,10 +118,14 @@ class DashboardView extends ConsumerWidget {
                           ),
                           const SizedBox(height: 16),
 
-                          // Current class with progress ring
+                          // Current class with progress ring.
+                          // Uses classWithProgressProvider for accurate % (same
+                          // source as "Mis Clases" screen). Falls back to the
+                          // dashboard summary's classProgress while loading.
                           CurrentClassCard(
                             currentClassName: dashboard.currentClassName,
-                            classProgress: dashboard.classProgress,
+                            currentClassId: dashboard.currentClassId,
+                            fallbackProgress: dashboard.classProgress,
                           ),
                           const SizedBox(height: 16),
 

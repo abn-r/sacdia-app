@@ -115,7 +115,9 @@ class ClassStatusCircles extends ConsumerWidget {
               assetPath: gmLogo.assetPath,
               color: gmLogo.color,
               state: _resolveState(gmLogo, enrolledByName),
-              progress: enrolledByName[gmLogo.className]?.overallProgress,
+              classId: enrolledByName[gmLogo.className]?.id,
+              fallbackProgress:
+                  enrolledByName[gmLogo.className]?.overallProgress,
             ),
             const SizedBox(height: 12),
           ],
@@ -133,7 +135,9 @@ class ClassStatusCircles extends ConsumerWidget {
                     assetPath: logo.assetPath,
                     color: logo.color,
                     state: _resolveState(logo, enrolledByName),
-                    progress: enrolledByName[logo.className]?.overallProgress,
+                    classId: enrolledByName[logo.className]?.id,
+                    fallbackProgress:
+                        enrolledByName[logo.className]?.overallProgress,
                   ),
                 );
               }).toList(),
@@ -157,26 +161,44 @@ class _ClassLogoData {
 
 // ── Logo widget con soporte para los 3 estados ───────────────────────────────
 
-class _ClassLogo extends StatelessWidget {
+class _ClassLogo extends ConsumerWidget {
   final String className;
   final String assetPath;
   final _ClassState state;
   final Color color;
 
-  /// Progreso de 0-100 para el estado [_ClassState.inProgress].
-  /// Se usa para dibujar el badge de porcentaje.
-  final int? progress;
+  /// ID de la clase para obtener el progreso preciso desde
+  /// [classWithProgressProvider]. Null cuando el usuario no está inscrito.
+  final int? classId;
+
+  /// Progreso de respaldo (0-100) proveniente del enrollment record.
+  /// Se muestra mientras [classWithProgressProvider] carga o en error.
+  final int? fallbackProgress;
 
   const _ClassLogo({
     required this.className,
     required this.assetPath,
     required this.state,
     required this.color,
-    this.progress,
+    this.classId,
+    this.fallbackProgress,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Resolve accurate progress from classWithProgressProvider when enrolled,
+    // falling back to the enrollment overallProgress while loading or on error.
+    final int progress;
+    if (classId != null && state == _ClassState.inProgress) {
+      final classProgressAsync = ref.watch(classWithProgressProvider(classId!));
+      progress = classProgressAsync.when(
+        data: (cwp) => cwp.completionPercent,
+        loading: () => fallbackProgress ?? 0,
+        error: (_, __) => fallbackProgress ?? 0,
+      );
+    } else {
+      progress = fallbackProgress ?? 0;
+    }
     final c = context.sac;
     const size = 52.0;
 
@@ -212,7 +234,7 @@ class _ClassLogo extends StatelessWidget {
                 bottom: -2,
                 right: -2,
                 child: _ProgressBadge(
-                  progress: progress ?? 0,
+                  progress: progress,
                   color: color,
                 ),
               ),

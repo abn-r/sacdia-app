@@ -20,11 +20,13 @@ import 'package:sacdia_app/features/honors/presentation/providers/honors_provide
 import 'package:sacdia_app/features/post_registration/presentation/providers/post_registration_providers.dart';
 
 import '../../../auth/domain/entities/user_entity.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../auth/presentation/providers/logout_cleanup.dart';
 import '../../../validation/presentation/widgets/eligibility_banner.dart';
 import '../../domain/entities/user_detail.dart';
 import '../providers/profile_providers.dart';
+import '../../../achievements/presentation/widgets/achievement_profile_summary.dart';
 import '../widgets/class_status_circles.dart';
 import '../widgets/profile_classes_section.dart';
 import '../widgets/profile_honors_section.dart';
@@ -544,7 +546,11 @@ class _ProfileScrollBody extends StatelessWidget {
                 staggerDelay: const Duration(milliseconds: 65),
                 children: [
                   // ── 4. Elegibilidad para investidura ─────────────
-                  if (authUser != null) ...[
+                  // Only rendered for users with users:read_detail permission.
+                  // Regular members lack this permission and would receive a
+                  // 403 from GET /api/v1/validation/eligibility/{userId}.
+                  if (authUser != null &&
+                      hasAnyPermission(authUser, const {'users:read_detail'})) ...[
                     EligibilityBanner(userId: authUser!.id),
                     const SizedBox(height: 20),
                   ],
@@ -675,6 +681,19 @@ class _ProfileScrollBody extends StatelessWidget {
             const SizedBox(height: 8),
 
             const ProfileHonorsSection(),
+
+            const SizedBox(height: 20),
+
+            // ── 7. Logros ─────────────────────────────────────────
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: hPad),
+              child: _SectionLabel(label: 'Logros'),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: hPad),
+              child: const AchievementProfileSummary(),
+            ),
 
             const SizedBox(height: 32),
           ],
