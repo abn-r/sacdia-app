@@ -209,10 +209,22 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
       if (e.response?.statusCode == 404) return null;
+      // Treat 5xx as "no enrollment" — the backend may be temporarily
+      // unavailable. Degrading gracefully here keeps the dashboard usable
+      // while the backend issue is fixed separately.
+      final statusCode = e.response?.statusCode;
+      if (statusCode != null && statusCode >= 500) {
+        AppLogger.w(
+          'getCurrentEnrollment devolvió $statusCode — tratando como sin inscripción activa',
+          tag: _tag,
+          error: e,
+        );
+        return null;
+      }
       AppLogger.e('DioException en getCurrentEnrollment', tag: _tag, error: e);
       throw ServerException(
         message: e.response?.data?['message'] ?? e.message ?? 'Error de red',
-        code: e.response?.statusCode,
+        code: statusCode,
       );
     } catch (e) {
       if (e is AuthException || e is ServerException) rethrow;

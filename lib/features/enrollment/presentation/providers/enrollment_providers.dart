@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/app_logger.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
@@ -61,7 +62,16 @@ final currentEnrollmentProvider =
   );
 
   return result.fold(
-    (failure) => throw Exception(failure.message),
+    (failure) {
+      // 5xx are already absorbed in the datasource (returns null).
+      // Any other failure here (auth, network, unexpected) is logged as a
+      // warning and treated as "no enrollment" so the dashboard stays usable.
+      AppLogger.w(
+        'currentEnrollmentProvider: fallo al obtener inscripción — ${failure.runtimeType}: ${failure.message}',
+        tag: 'EnrollmentProvider',
+      );
+      return null;
+    },
     (enrollment) => enrollment,
   );
 });
