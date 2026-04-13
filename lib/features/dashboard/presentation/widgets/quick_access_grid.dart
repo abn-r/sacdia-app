@@ -14,7 +14,12 @@ class _QuickAccessItemConfig {
   final Color? color;
   final String route;
   final Set<String> requiredPermissions;
-  final Set<String> legacyRoles;
+
+  /// Canonical role names to gate against when the item is not permission-based.
+  /// Only used for global roles whose authority cannot be modeled as a single
+  /// permission (e.g. `coordinator`, `admin`). Leave empty when the item is
+  /// gated purely by [requiredPermissions].
+  final Set<String> requiredRoles;
 
   const _QuickAccessItemConfig({
     required this.label,
@@ -22,43 +27,40 @@ class _QuickAccessItemConfig {
     this.color,
     required this.route,
     this.requiredPermissions = const {},
-    this.legacyRoles = const {},
+    this.requiredRoles = const {},
   });
 }
 
 const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
-  // Coordination hub — requires coordinator or admin GLOBAL role only.
-  // investiture:validate is intentionally excluded from requiredPermissions
-  // because club directors also hold that permission; the gate must be
-  // role-based (global grant), not permission-based.
+  // Coordination hub — gated by GLOBAL role only. The concept "is the user a
+  // coordinator / admin" does not map to a single permission, because club
+  // directors also hold operational permissions like `investiture:validate`;
+  // using those would incorrectly reveal the hub to directors.
   _QuickAccessItemConfig(
     label: 'Coordinación',
     icon: HugeIcons.strokeRoundedAnalytics01,
     color: AppColors.info,
     route: RouteNames.coordinator,
-    requiredPermissions: const {},
-    legacyRoles: {'coordinator', 'admin', 'super_admin', 'assistant_admin'},
+    requiredRoles: {'coordinator', 'admin', 'super_admin', 'assistant_admin'},
   ),
-  // Administrative: member list — requires users:read_detail (counselor and above)
+  // Administrative: member list — users:read_detail is held by counselor+
   _QuickAccessItemConfig(
     label: 'Miembros',
     icon: HugeIcons.strokeRoundedUserGroup,
     color: AppColors.primary,
     route: RouteNames.homeMembers,
     requiredPermissions: {'users:read_detail'},
-    legacyRoles: {'director', 'subdirector', 'secretario', 'consejero'},
   ),
-  // Administrative: club management — requires clubs:update (secretary and above)
+  // Administrative: club management — clubs:update is held by secretary+
   _QuickAccessItemConfig(
     label: 'Club',
     icon: HugeIcons.strokeRoundedBuilding01,
     color: AppColors.secondary,
     route: RouteNames.homeClub,
     requiredPermissions: {'clubs:update'},
-    legacyRoles: {'director', 'subdirector', 'secretario'},
   ),
-  // Administrative: evidence folder management — requires users:read_detail (counselor+)
-  // Members access their own evidence via the profile screen, not this admin view.
+  // Administrative: evidence folder management — uses users:read_detail.
+  // Members access their OWN evidence via the profile screen, not this view.
   _QuickAccessItemConfig(
     label: 'Carpeta de Evidencias',
     icon: HugeIcons.strokeRoundedFolder01,
@@ -66,55 +68,47 @@ const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
     route: RouteNames.homeEvidences,
     requiredPermissions: {'users:read_detail'},
   ),
-  // Administrative: financial records — requires finances:read (treasurer and above)
+  // Administrative: financial records — finances:read is held by treasurer+
   _QuickAccessItemConfig(
     label: 'Finanzas',
     icon: HugeIcons.strokeRoundedCreditCard,
     color: AppColors.info,
     route: RouteNames.homeFinances,
     requiredPermissions: {'finances:read'},
-    legacyRoles: {'director', 'tesorero'},
   ),
-  // Administrative: unit management — requires units:update (counselor and above)
-  // Members can read their own unit info but cannot manage units.
+  // Administrative: unit management — units:update is held by counselor+
   _QuickAccessItemConfig(
     label: 'Unidades',
     icon: HugeIcons.strokeRoundedCompass01,
     color: AppColors.secondary,
     route: RouteNames.homeUnits,
     requiredPermissions: {'units:update'},
-    legacyRoles: {'director', 'subdirector', 'consejero'},
   ),
-  // Administrative: group class management — requires classes:update (counselor and above)
-  // Members track their own class progress via their profile, not this group view.
+  // Administrative: group class management — classes:update is held by counselor+
   _QuickAccessItemConfig(
     label: 'Clase Agrupada',
     icon: HugeIcons.strokeRoundedBookOpen01,
     color: AppColors.primary,
     route: RouteNames.homeGroupedClass,
     requiredPermissions: {'classes:update'},
-    legacyRoles: {'conquistador', 'aventurero', 'guia_mayor'},
   ),
-  // Administrative: insurance management — requires insurance:read (counselor and above)
+  // Administrative: insurance management
   _QuickAccessItemConfig(
     label: 'Seguros del Club',
     icon: HugeIcons.strokeRoundedShield01,
     color: AppColors.secondaryDark,
     route: RouteNames.homeInsurance,
     requiredPermissions: {'insurance:read'},
-    legacyRoles: {'director', 'subdirector', 'secretario'},
   ),
-  // Administrative: inventory management — requires inventory:read (secretary and above)
+  // Administrative: inventory management
   _QuickAccessItemConfig(
     label: 'Inventario',
     icon: HugeIcons.strokeRoundedPackage,
     color: AppColors.accent,
     route: RouteNames.homeInventory,
     requiredPermissions: {'inventory:read'},
-    legacyRoles: {'director', 'subdirector'},
   ),
-  // Club-wide shared resources (manuals, formats, images, music) — all members can access.
-  // Uses folders:read which is granted to every club role including member.
+  // Club-wide shared resources — folders:read is granted to every club role.
   _QuickAccessItemConfig(
     label: 'Recursos',
     icon: HugeIcons.strokeRoundedFiles01,
@@ -155,16 +149,20 @@ class QuickAccessGrid extends ConsumerWidget {
     }
 
     final filteredItems = _quickAccessItemsConfig.where((item) {
-      // An item is ungated only when neither permissions nor legacy roles are
-      // configured — i.e. it is visible to every authenticated user.
-      if (item.requiredPermissions.isEmpty && item.legacyRoles.isEmpty) {
+      // Ungated items (no permissions AND no roles) are visible to every
+      // authenticated user — used only when authorization is not a concern.
+      if (item.requiredPermissions.isEmpty && item.requiredRoles.isEmpty) {
         return true;
       }
-      return canByPermissionOrLegacyRole(
-        user,
-        requiredPermissions: item.requiredPermissions,
-        legacyRoles: item.legacyRoles,
-      );
+      if (item.requiredPermissions.isNotEmpty &&
+          hasAnyPermission(user, item.requiredPermissions)) {
+        return true;
+      }
+      if (item.requiredRoles.isNotEmpty &&
+          hasAnyRole(user, item.requiredRoles)) {
+        return true;
+      }
+      return false;
     }).toList();
 
     if (filteredItems.isEmpty) {

@@ -44,16 +44,9 @@ class MemberProfileView extends ConsumerWidget {
       authNotifierProvider.select((v) => v.valueOrNull),
     );
 
-    final canViewMedical = canByPermissionOrLegacyRole(
+    final canViewMedical = hasAnyPermission(
       authUser,
-      requiredPermissions: const {'health:read', 'users:read_detail'},
-      legacyRoles: const {
-        'director',
-        'deputy_director',
-        'secretary',
-        'treasurer',
-        'counselor',
-      },
+      const {'health:read', 'users:read_detail'},
     );
 
     return Scaffold(

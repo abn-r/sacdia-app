@@ -198,14 +198,6 @@ final financeCategoriesProvider =
 
 // ── Permission helper ──────────────────────────────────────────────────────────
 
-/// Roles autorizados para crear/editar movimientos financieros.
-const _financeEditorRoles = {
-  'director',
-  'subdirector',
-  'treasurer',
-  'tesorero'
-};
-
 /// Devuelve true si el usuario puede gestionar transacciones.
 /// Usa selectAsync para evitar rebuilds por cambios no relacionados al objeto UserEntity.
 final canManageFinancesProvider = FutureProvider.autoDispose<bool>((ref) async {
@@ -214,15 +206,11 @@ final canManageFinancesProvider = FutureProvider.autoDispose<bool>((ref) async {
   );
   if (authState == null) return false;
 
-  return canByPermissionOrLegacyRole(
-    authState,
-    requiredPermissions: const {
-      'finances:create',
-      'finances:update',
-      'finances:delete',
-    },
-    legacyRoles: _financeEditorRoles,
-  );
+  return hasAnyPermission(authState, const {
+    'finances:create',
+    'finances:update',
+    'finances:delete',
+  });
 });
 
 // ── Transaction operation state ────────────────────────────────────────────────

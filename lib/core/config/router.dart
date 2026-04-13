@@ -937,7 +937,6 @@ class _NavItemConfig {
   final List<List<dynamic>> icon;
   final String label;
   final Set<String> requiredPermissions;
-  final Set<String> legacyRoles;
 
   const _NavItemConfig({
     required this.branchIndex,
@@ -945,7 +944,6 @@ class _NavItemConfig {
     required this.icon,
     required this.label,
     this.requiredPermissions = const {},
-    this.legacyRoles = const {},
   });
 }
 
@@ -962,7 +960,6 @@ const List<_NavItemConfig> _navItemsConfig = [
     icon: HugeIcons.strokeRoundedSchool,
     label: 'Clases',
     requiredPermissions: {'classes:read'},
-    legacyRoles: {'conquistador', 'aventurero', 'guia_mayor'},
   ),
   _NavItemConfig(
     branchIndex: 2,
@@ -970,7 +967,6 @@ const List<_NavItemConfig> _navItemsConfig = [
     icon: HugeIcons.strokeRoundedCalendar01,
     label: 'Actividades',
     requiredPermissions: {'activities:read'},
-    legacyRoles: {'conquistador', 'aventurero', 'guia_mayor'},
   ),
   _NavItemConfig(
     branchIndex: 3,
@@ -989,11 +985,7 @@ List<_NavItemConfig> _filterNavItems(
 
   return items.where((item) {
     if (item.requiredPermissions.isEmpty) return true;
-    return canByPermissionOrLegacyRole(
-      user,
-      requiredPermissions: item.requiredPermissions,
-      legacyRoles: item.legacyRoles,
-    );
+    return hasAnyPermission(user, item.requiredPermissions);
   }).toList();
 }
 

@@ -21,9 +21,6 @@ import '../../domain/usecases/assign_club_role.dart';
 import '../../domain/usecases/get_club_members.dart';
 import '../../domain/usecases/get_join_requests.dart';
 
-const bool kRbacLegacyContextFallbackEnabled =
-    bool.fromEnvironment('RBAC_LEGACY_FALLBACK_ENABLED', defaultValue: false);
-
 // ── Infrastructure providers ──────────────────────────────────────────────────
 
 /// Provider de la fuente de datos remota de miembros
@@ -86,8 +83,7 @@ class ClubContext {
 }
 
 /// Provider del contexto del club activo.
-/// Fuente oficial: authorization.active_assignment + authorization.grants.club_assignments.
-/// Mantiene fallback legacy temporal hacia metadata.club.
+/// Fuente oficial: `authorization.activeGrant` del UserEntity.
 ///
 /// Usa [selectAsync] para que este provider solo se reconstruya cuando el
 /// [activeGrant] cambia efectivamente, evitando re-fetches innecesarios por
@@ -97,43 +93,17 @@ final clubContextProvider = FutureProvider<ClubContext?>((ref) async {
     authNotifierProvider.selectAsync((u) => u?.authorization?.activeGrant),
   );
 
-  if (activeGrant != null &&
-      activeGrant.clubId != null &&
-      activeGrant.sectionId != null) {
-    return ClubContext(
-      clubId: activeGrant.clubId!,
-      sectionId: activeGrant.sectionId!,
-      roleName: activeGrant.roleName,
-      clubTypeName: activeGrant.clubTypeName,
-    );
+  if (activeGrant == null ||
+      activeGrant.clubId == null ||
+      activeGrant.sectionId == null) {
+    return null;
   }
 
-  if (!kRbacLegacyContextFallbackEnabled) return null;
-
-  // Legacy fallback: read the full user state once (no reactive subscription).
-  // Only reachable when RBAC_LEGACY_FALLBACK_ENABLED=true at compile time.
-  final authState = await ref.read(authNotifierProvider.future);
-  if (authState == null) return null;
-
-  final metadata = authState.metadata;
-  if (metadata == null) return null;
-
-  final clubData = metadata['club'] as Map<String, dynamic>?;
-  final clubId = clubData?['club_id'];
-  final sectionId = clubData?['club_section_id'] ?? clubData?['instance_id'] ?? clubData?['id'];
-
-  if (clubId == null || sectionId == null) return null;
-
-  final parsedClubId = clubId is int ? clubId : int.tryParse(clubId.toString());
-  final parsedSectionId =
-      sectionId is int ? sectionId : int.tryParse(sectionId.toString());
-
-  if (parsedClubId == null || parsedClubId <= 0) return null;
-  if (parsedSectionId == null || parsedSectionId <= 0) return null;
-
   return ClubContext(
-    clubId: parsedClubId,
-    sectionId: parsedSectionId,
+    clubId: activeGrant.clubId!,
+    sectionId: activeGrant.sectionId!,
+    roleName: activeGrant.roleName,
+    clubTypeName: activeGrant.clubTypeName,
   );
 });
 

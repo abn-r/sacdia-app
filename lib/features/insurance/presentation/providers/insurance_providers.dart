@@ -47,26 +47,15 @@ final updateInsuranceUseCaseProvider = Provider<UpdateInsurance>((ref) {
 
 // ── Permission helper ───────────────────────────────────────────────────────────
 
-/// Roles autorizados para gestionar seguros del club.
-const _insuranceEditorRoles = {
-  'director',
-  'subdirector',
-  'treasurer',
-  'tesorero',
-};
-
 /// Devuelve true si el usuario puede crear/editar seguros.
 final canManageInsuranceProvider = FutureProvider.autoDispose<bool>((ref) async {
   final authState = await ref.watch(authNotifierProvider.future);
   if (authState == null) return false;
 
-  return canByPermissionOrLegacyRole(
-    authState,
-    requiredPermissions: const {
-      'club_roles:assign',
-    },
-    legacyRoles: _insuranceEditorRoles,
-  );
+  return hasAnyPermission(authState, const {
+    'insurance:create',
+    'insurance:update',
+  });
 });
 
 // ── Members insurance list ──────────────────────────────────────────────────────

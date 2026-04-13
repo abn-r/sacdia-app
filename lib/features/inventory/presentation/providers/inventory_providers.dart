@@ -94,31 +94,17 @@ final inventoryInstanceTypeProvider =
 
 // ── Permission helper ───────────────────────────────────────────────────────────
 
-/// Roles autorizados para crear/editar ítems de inventario.
-const _inventoryEditorRoles = {
-  'director',
-  'subdirector',
-  'treasurer',
-  'tesorero',
-  'secretary',
-  'secretario',
-};
-
 /// Devuelve true si el usuario puede gestionar el inventario.
 final canManageInventoryProvider =
     FutureProvider.autoDispose<bool>((ref) async {
   final authState = await ref.watch(authNotifierProvider.future);
   if (authState == null) return false;
 
-  return canByPermissionOrLegacyRole(
-    authState,
-    requiredPermissions: const {
-      'inventory:create',
-      'inventory:update',
-      'inventory:delete',
-    },
-    legacyRoles: _inventoryEditorRoles,
-  );
+  return hasAnyPermission(authState, const {
+    'inventory:create',
+    'inventory:update',
+    'inventory:delete',
+  });
 });
 
 // ── Categories ──────────────────────────────────────────────────────────────────

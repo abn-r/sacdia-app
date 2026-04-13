@@ -46,19 +46,15 @@ class _MembersViewState extends ConsumerState<MembersView>
     super.dispose();
   }
 
-  /// Determina si el usuario actual es Director o Subdirector
-  bool _isDirectorOrSubdirector(WidgetRef ref) {
+  /// Determina si el usuario actual puede asignar/revocar roles de club.
+  bool _canManageClubRoles(WidgetRef ref) {
     final authState = ref.read(authNotifierProvider);
     final user = authState.valueOrNull;
     if (user == null) return false;
-    return canByPermissionOrLegacyRole(
-      user,
-      requiredPermissions: const {
-        'club_roles:assign',
-        'club_roles:revoke',
-      },
-      legacyRoles: const {'director', 'deputy_director', 'secretary'},
-    );
+    return hasAnyPermission(user, const {
+      'club_roles:assign',
+      'club_roles:revoke',
+    });
   }
 
   @override
@@ -66,7 +62,7 @@ class _MembersViewState extends ConsumerState<MembersView>
     final c = context.sac;
     final hPad = Responsive.horizontalPadding(context);
     final pendingCount = ref.watch(pendingRequestsCountProvider);
-    final isDirector = _isDirectorOrSubdirector(ref);
+    final isDirector = _canManageClubRoles(ref);
     final clubCtxAsync = ref.watch(clubContextProvider);
     final membersAsync = ref.watch(membersNotifierProvider);
 

@@ -59,14 +59,9 @@ final updateClubSectionUseCaseProvider = Provider<UpdateClubSection>((ref) {
   return UpdateClubSection(ref.read(clubRepositoryProvider));
 });
 
-// ── Role helpers ──────────────────────────────────────────────────────────────
-
-/// Roles que permiten editar la información del club.
-const _editableRoles = {'director', 'subdirector', 'deputy_director'};
+// ── Permission helpers ────────────────────────────────────────────────────────
 
 /// Devuelve true si el usuario actual puede editar el club.
-///
-/// Lee los roles del metadata del usuario autenticado.
 /// Usa selectAsync para evitar rebuilds por cambios no relacionados al objeto UserEntity.
 final canEditClubProvider = FutureProvider.autoDispose<bool>((ref) async {
   final authState = await ref.watch(
@@ -74,14 +69,10 @@ final canEditClubProvider = FutureProvider.autoDispose<bool>((ref) async {
   );
   if (authState == null) return false;
 
-  return canByPermissionOrLegacyRole(
-    authState,
-    requiredPermissions: const {
-      'clubs:update',
-      'club_sections:update',
-    },
-    legacyRoles: _editableRoles,
-  );
+  return hasAnyPermission(authState, const {
+    'clubs:update',
+    'club_sections:update',
+  });
 });
 
 // ── Club section provider (read) ─────────────────────────────────────────────

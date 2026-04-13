@@ -27,11 +27,8 @@ class EnrollmentStatusCard extends ConsumerWidget {
     final enrollmentAsync = ref.watch(currentEnrollmentProvider);
     final clubContextAsync = ref.watch(clubContextProvider);
     final user = ref.watch(authNotifierProvider).valueOrNull;
-    final canEnroll = canByPermissionOrLegacyRole(
-      user,
-      requiredPermissions: const {'enrollments:create'},
-      legacyRoles: const {'director', 'secretary', 'treasurer'},
-    );
+    final canEnroll =
+        hasAnyPermission(user, const {'enrollments:create'});
 
     return enrollmentAsync.when(
       loading: () => const Padding(

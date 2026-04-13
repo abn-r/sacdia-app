@@ -89,16 +89,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
     final authState = ref.read(authNotifierProvider);
     final user = authState.valueOrNull;
     if (user == null) return false;
-    return canByPermissionOrLegacyRole(
-      user,
-      requiredPermissions: const {'activities:create'},
-      legacyRoles: const {
-        'director',
-        'deputy_director',
-        'secretary',
-        'counselor',
-      },
-    );
+    return hasAnyPermission(user, const {'activities:create'});
   }
 
   List<DateTime> _buildDays() {

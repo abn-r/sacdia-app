@@ -289,13 +289,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           postRegisterComplete: postRegisterComplete,
         );
 
-        if (user.authorization?.hasCanonicalPermissions ?? false) {
-          AppLogger.i('rbac_canonical_used', tag: _tag);
-        } else if ((user.metadata?['permissions']) is List ||
-            (user.metadata?['roles']) is List) {
-          AppLogger.w('rbac_legacy_fallback_used', tag: _tag);
-        }
-
         final hasActiveAssignment =
             (user.authorization?.activeAssignmentId?.trim().isNotEmpty ??
                 false);
