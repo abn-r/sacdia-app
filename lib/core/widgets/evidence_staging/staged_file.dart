@@ -61,6 +61,13 @@ class StagedFile extends Equatable {
   /// Timestamp of when the file was uploaded (remote files only).
   final DateTime? uploadedAt;
 
+  /// Reviewer note left by assistant-lf / director-lf via the admin panel.
+  ///
+  /// Only populated for [EvidenceFile] instances (evidence folder feature).
+  /// Always null for [RequirementEvidence] (classes feature).
+  /// Read-only — the app never writes this field.
+  final String? reviewerNote;
+
   const StagedFile({
     required this.id,
     required this.name,
@@ -73,6 +80,7 @@ class StagedFile extends Equatable {
     this.errorMessage,
     this.uploadedBy,
     this.uploadedAt,
+    this.reviewerNote,
   });
 
   // ── Computed helpers ──────────────────────────────────────────────────────
@@ -109,6 +117,7 @@ class StagedFile extends Equatable {
     Object? errorMessage = _sentinel,
     Object? uploadedBy = _sentinel,
     Object? uploadedAt = _sentinel,
+    Object? reviewerNote = _sentinel,
   }) {
     return StagedFile(
       id: id ?? this.id,
@@ -134,6 +143,9 @@ class StagedFile extends Equatable {
       uploadedAt: identical(uploadedAt, _sentinel)
           ? this.uploadedAt
           : uploadedAt as DateTime?,
+      reviewerNote: identical(reviewerNote, _sentinel)
+          ? this.reviewerNote
+          : reviewerNote as String?,
     );
   }
 
@@ -166,6 +178,7 @@ class StagedFile extends Equatable {
       mimeType: e.isImage ? 'image/jpeg' : 'application/pdf',
       uploadedBy: e.uploadedByName,
       uploadedAt: e.uploadedAt,
+      reviewerNote: e.reviewerNote,
     );
   }
 
@@ -205,5 +218,6 @@ class StagedFile extends Equatable {
         errorMessage,
         uploadedBy,
         uploadedAt,
+        reviewerNote,
       ];
 }

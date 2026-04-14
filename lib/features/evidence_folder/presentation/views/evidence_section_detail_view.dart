@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -8,10 +10,11 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
 import '../../../../core/widgets/evidence_staging/staged_file.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../domain/entities/evidence_file.dart';
 import '../../domain/entities/evidence_section.dart';
 import '../providers/evidence_folder_providers.dart';
+import '../sheets/evidence_status_history_sheet.dart';
 import '../widgets/section_status_badge.dart';
-import '../widgets/status_timeline.dart';
 
 /// Vista de detalle de una sección de evidencias.
 ///
@@ -153,31 +156,28 @@ class _EvidenceSectionDetailViewState
                   // Descripción + métricas
                   _SectionMetaCard(section: widget.section),
 
-                  const SizedBox(height: 26),
+                  const SizedBox(height: 16),
 
-                  // Timeline de estado
+                  // Estado actual del sección (chip visual, solo lectura)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                     child: Text(
-                      'Flujo de estado',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: c.text,
+                      'Estado de la sección',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: c.textSecondary,
+                            letterSpacing: 0.8,
                           ),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: StatusTimeline(
-                      currentStatus: widget.section.status,
-                      submittedByName: widget.section.submittedByName,
-                      submittedAt: widget.section.submittedAt,
-                      validatedByName: widget.section.validatedByName,
-                      validatedAt: widget.section.validatedAt,
-                      evaluatedByName: widget.section.evaluatedByName,
-                      evaluatedAt: widget.section.evaluatedAt,
-                      evaluationNotes: widget.section.evaluationNotes,
+                    child: _EvidenceStatusChip(
+                      status: widget.section.status,
+                      onTap: () => showEvidenceStatusHistorySheet(
+                        context,
+                        section: widget.section,
+                      ),
                     ),
                   ),
 
@@ -217,6 +217,9 @@ class _EvidenceSectionDetailViewState
                           ),
                     ),
                   ),
+
+                  // Notas del revisor por archivo — solo si existen
+                  _ReviewerNotesBlock(files: widget.section.files),
 
                   // EvidenceStagingManager en modo embebido — crece con su
                   // contenido sin reclamar su propia área de scroll.
@@ -463,6 +466,157 @@ class _MetaItem extends StatelessWidget {
   }
 }
 
+// ── Chip de estado actual (tappable) ─────────────────────────────────────────
+
+/// Chip compacto que muestra el estado actual de la sección de evidencias.
+///
+/// Al tocarlo abre el [EvidenceStatusHistorySheet] con el historial de
+/// transiciones de estado disponibles en la entidad.
+class _EvidenceStatusChip extends StatelessWidget {
+  final EvidenceSectionStatus status;
+  final VoidCallback onTap;
+
+  const _EvidenceStatusChip({
+    required this.status,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final bgColor = _bgColor(isDark);
+    final borderColor = _borderColor(isDark);
+    final textColor = _textColor(isDark);
+
+    return Semantics(
+      button: true,
+      label: 'Estado de la sección: $_label. Tocar para ver historial.',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor, width: 1),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              HugeIcon(icon: _icon, size: 15, color: textColor),
+              const SizedBox(width: 8),
+              Text(
+                _label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+              ),
+              const Spacer(),
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedInformationCircle,
+                size: 15,
+                color: c.textTertiary,
+              ),
+              const SizedBox(width: 2),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String get _label {
+    switch (status) {
+      case EvidenceSectionStatus.pendiente:
+        return 'Pendiente';
+      case EvidenceSectionStatus.enviado:
+        return 'Enviado';
+      case EvidenceSectionStatus.validado:
+        return 'Validado';
+      case EvidenceSectionStatus.rechazado:
+        return 'Rechazado';
+      case EvidenceSectionStatus.underEvaluation:
+        return 'En evaluación';
+      case EvidenceSectionStatus.evaluated:
+        return 'Evaluado';
+    }
+  }
+
+  Color _bgColor(bool isDark) {
+    switch (status) {
+      case EvidenceSectionStatus.pendiente:
+        return AppColors.accentLight;
+      case EvidenceSectionStatus.enviado:
+        return isDark ? AppColors.statusInfoBgDark : AppColors.statusInfoBgLight;
+      case EvidenceSectionStatus.validado:
+        return AppColors.secondaryLight;
+      case EvidenceSectionStatus.rechazado:
+        return AppColors.errorLight;
+      case EvidenceSectionStatus.underEvaluation:
+        return isDark ? const Color(0xFF2D2010) : const Color(0xFFFFF8E1);
+      case EvidenceSectionStatus.evaluated:
+        return AppColors.secondaryLight;
+    }
+  }
+
+  Color _borderColor(bool isDark) {
+    switch (status) {
+      case EvidenceSectionStatus.pendiente:
+        return AppColors.accent.withValues(alpha: 0.4);
+      case EvidenceSectionStatus.enviado:
+        return AppColors.sacBlue.withValues(alpha: 0.4);
+      case EvidenceSectionStatus.validado:
+        return AppColors.secondary.withValues(alpha: 0.4);
+      case EvidenceSectionStatus.rechazado:
+        return AppColors.error.withValues(alpha: 0.4);
+      case EvidenceSectionStatus.underEvaluation:
+        return const Color(0xFFF59E0B).withValues(alpha: 0.5);
+      case EvidenceSectionStatus.evaluated:
+        return AppColors.secondaryDark.withValues(alpha: 0.4);
+    }
+  }
+
+  Color _textColor(bool isDark) {
+    switch (status) {
+      case EvidenceSectionStatus.pendiente:
+        return AppColors.accentDark;
+      case EvidenceSectionStatus.enviado:
+        return isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
+      case EvidenceSectionStatus.validado:
+        return AppColors.secondaryDark;
+      case EvidenceSectionStatus.rechazado:
+        return AppColors.errorDark;
+      case EvidenceSectionStatus.underEvaluation:
+        return isDark ? const Color(0xFFFBBF24) : const Color(0xFF92400E);
+      case EvidenceSectionStatus.evaluated:
+        return AppColors.secondaryDark;
+    }
+  }
+
+  List<List<dynamic>> get _icon {
+    switch (status) {
+      case EvidenceSectionStatus.pendiente:
+        return HugeIcons.strokeRoundedClock01;
+      case EvidenceSectionStatus.enviado:
+        return HugeIcons.strokeRoundedSent;
+      case EvidenceSectionStatus.validado:
+        return HugeIcons.strokeRoundedCheckmarkCircle01;
+      case EvidenceSectionStatus.rechazado:
+        return HugeIcons.strokeRoundedCancel01;
+      case EvidenceSectionStatus.underEvaluation:
+        return HugeIcons.strokeRoundedAnalytics01;
+      case EvidenceSectionStatus.evaluated:
+        return HugeIcons.strokeRoundedStar;
+    }
+  }
+}
+
 // ── Tarjeta de resultado de evaluación (solo lectura) ─────────────────────────
 
 class _EvaluationResultCard extends StatelessWidget {
@@ -582,6 +736,205 @@ class _EvaluationResultCard extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+// ── Bloque de notas del revisor por archivo ────────────────────────────────────
+
+/// Renderiza un callout por cada archivo que tenga [EvidenceFile.reviewerNote].
+///
+/// Si ningún archivo tiene nota, el widget no ocupa espacio (SizedBox.shrink).
+/// Posicionado entre el header "Archivos de evidencia" y el [EvidenceStagingManager].
+class _ReviewerNotesBlock extends StatelessWidget {
+  final List<EvidenceFile> files;
+
+  const _ReviewerNotesBlock({required this.files});
+
+  @override
+  Widget build(BuildContext context) {
+    final filesWithNotes = files
+        .where((f) => f.reviewerNote != null && f.reviewerNote!.isNotEmpty)
+        .toList();
+
+    if (filesWithNotes.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Comentarios del revisor',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: context.sac.textSecondary,
+                  letterSpacing: 0.8,
+                ),
+          ),
+          const SizedBox(height: 8),
+          ...filesWithNotes.map(
+            (f) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _ReviewerNoteCallout(file: f),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Callout compacto que muestra la nota del revisor para un archivo individual.
+///
+/// Usa fondo info (azul suave) para diferenciarse visualmente del card principal
+/// sin resultar alarmante — el note es feedback constructivo, no un error.
+/// Trunca el texto a 3 líneas con opción de expandir inline.
+class _ReviewerNoteCallout extends StatefulWidget {
+  final EvidenceFile file;
+
+  const _ReviewerNoteCallout({required this.file});
+
+  @override
+  State<_ReviewerNoteCallout> createState() => _ReviewerNoteCalloutState();
+}
+
+class _ReviewerNoteCalloutState extends State<_ReviewerNoteCallout> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Colores info (azul suave) — dark-mode aware, reutiliza los tokens de
+    // AppColors.statusInfoBg* que ya existen para el estado "enviado".
+    final bgColor =
+        isDark ? AppColors.statusInfoBgDark : AppColors.statusInfoBgLight;
+    final borderColor = AppColors.sacBlue.withValues(alpha: isDark ? 0.3 : 0.35);
+    final noteColor =
+        isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
+    final labelColor = isDark
+        ? AppColors.statusInfoTextDark.withValues(alpha: 0.7)
+        : AppColors.statusInfoText.withValues(alpha: 0.75);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Cabecera: ícono + nombre de archivo
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedComment01,
+                size: 14,
+                color: noteColor,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  widget.file.fileName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: labelColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          // Texto del note con truncado expandible
+          Text(
+            widget.file.reviewerNote!,
+            maxLines: _expanded ? null : 3,
+            overflow: _expanded ? null : TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+              color: noteColor,
+              height: 1.45,
+            ),
+          ),
+          // "Ver más / Ver menos" solo si el note supera 3 líneas visualmente.
+          // Usamos LayoutBuilder para detectar overflow real.
+          _ExpandToggle(
+            text: widget.file.reviewerNote!,
+            expanded: _expanded,
+            textStyle: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+              color: noteColor,
+              height: 1.45,
+            ),
+            toggleColor: noteColor,
+            onToggle: () => setState(() => _expanded = !_expanded),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Muestra "Ver más" / "Ver menos" solo cuando el texto supera [maxLines].
+///
+/// Usa [LayoutBuilder] + [TextPainter] para detectar si el texto realmente
+/// se trunca — evita mostrar el toggle cuando el note es corto.
+class _ExpandToggle extends StatelessWidget {
+  final String text;
+  final bool expanded;
+  final TextStyle textStyle;
+  final Color toggleColor;
+  final VoidCallback onToggle;
+
+  static const int _maxLines = 3;
+
+  const _ExpandToggle({
+    required this.text,
+    required this.expanded,
+    required this.textStyle,
+    required this.toggleColor,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final tp = TextPainter(
+          text: TextSpan(text: text, style: textStyle),
+          maxLines: _maxLines,
+          textDirection: ui.TextDirection.ltr,
+        )..layout(maxWidth: constraints.maxWidth);
+
+        final isOverflowing = tp.didExceedMaxLines;
+        if (!isOverflowing) return const SizedBox.shrink();
+
+        return GestureDetector(
+          onTap: onToggle,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              expanded ? 'Ver menos' : 'Ver más',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: toggleColor,
+                decoration: TextDecoration.underline,
+                decorationColor: toggleColor,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

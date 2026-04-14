@@ -15,11 +15,19 @@ class EvidenceFileModel extends EvidenceFile {
     required super.type,
     required super.uploadedByName,
     required super.uploadedAt,
+    super.reviewerNote,
   });
 
   factory EvidenceFileModel.fromJson(Map<String, dynamic> json) {
     final fileName =
         (json['file_name'] ?? json['fileName'] ?? '').toString();
+
+    // reviewer_note: string o null — escrito por el revisor desde el admin
+    final rawNote = json['reviewer_note'] ?? json['reviewerNote'];
+    final reviewerNote =
+        (rawNote != null && rawNote.toString().isNotEmpty)
+            ? rawNote.toString()
+            : null;
 
     return EvidenceFileModel(
       // AnnualFolders usa evidence_id; fallback al campo genérico id/file_id
@@ -53,6 +61,7 @@ class EvidenceFileModel extends EvidenceFile {
         }
         return DateTime.now();
       }(),
+      reviewerNote: reviewerNote,
     );
   }
 
@@ -79,6 +88,9 @@ class EvidenceFileModel extends EvidenceFile {
       'file_type': type == EvidenceFileType.pdf ? 'pdf' : 'image',
       'uploaded_by': uploadedByName,
       'created_at': uploadedAt.toIso8601String(),
+      // reviewer_note es read-only en el app; se incluye en toJson solo para
+      // serialización completa (e.g. cache local). El app nunca lo escribe al backend.
+      if (reviewerNote != null) 'reviewer_note': reviewerNote,
     };
   }
 
@@ -91,6 +103,7 @@ class EvidenceFileModel extends EvidenceFile {
       type: entity.type,
       uploadedByName: entity.uploadedByName,
       uploadedAt: entity.uploadedAt,
+      reviewerNote: entity.reviewerNote,
     );
   }
 
@@ -101,5 +114,6 @@ class EvidenceFileModel extends EvidenceFile {
         type: type,
         uploadedByName: uploadedByName,
         uploadedAt: uploadedAt,
+        reviewerNote: reviewerNote,
       );
 }
