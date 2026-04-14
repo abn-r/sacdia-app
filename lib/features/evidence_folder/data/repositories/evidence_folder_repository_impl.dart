@@ -23,13 +23,16 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
   });
 
   @override
-  Future<Either<Failure, EvidenceFolder>> getEvidenceFolder(
+  Future<Either<Failure, EvidenceFolder?>> getEvidenceFolder(
       String clubSectionId, {CancelToken? cancelToken}) async {
     try {
-      final model =
-          await remoteDataSource.getEvidenceFolder(clubSectionId, cancelToken: cancelToken);
+      final model = await remoteDataSource.getEvidenceFolder(
+          clubSectionId, cancelToken: cancelToken);
+      // model == null → carpeta no existe (200 + data: null). Estado válido.
+      if (model == null) return const Right(null);
       return Right(model.toEntity());
     } on NotFoundException catch (e) {
+      // Fallback defensivo: backend viejo que todavía devuelve 404.
       return Left(NotFoundFailure(message: e.message, code: e.code));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));

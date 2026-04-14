@@ -17,14 +17,17 @@ class GetEvidenceFolderParams extends Equatable {
 }
 
 /// Caso de uso: obtener la carpeta de evidencias de una sección de club.
+///
+/// Retorna `Right(null)` cuando la carpeta no existe (válido de negocio).
+/// Retorna `Left(Failure)` solo ante errores reales de red o servidor.
 class GetEvidenceFolder
-    implements UseCase<EvidenceFolder, GetEvidenceFolderParams> {
+    implements UseCase<EvidenceFolder?, GetEvidenceFolderParams> {
   final EvidenceFolderRepository _repository;
 
   GetEvidenceFolder(this._repository);
 
   @override
-  Future<Either<Failure, EvidenceFolder>> call(
+  Future<Either<Failure, EvidenceFolder?>> call(
       GetEvidenceFolderParams params, {CancelToken? cancelToken}) async {
     return _repository.getEvidenceFolder(params.clubSectionId, cancelToken: cancelToken);
   }

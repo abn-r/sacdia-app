@@ -10,7 +10,10 @@ abstract class EvidenceFolderRemoteDataSource {
   /// Obtiene la carpeta anual de una sección de club.
   ///
   /// Usa el endpoint de conveniencia que acepta [clubSectionId] como integer.
-  Future<EvidenceFolderModel> getEvidenceFolder(String clubSectionId, {CancelToken? cancelToken});
+  ///
+  /// Retorna `null` cuando el backend responde `200 OK` con `data: null`
+  /// (carpeta aún no creada — estado de negocio válido, no un error).
+  Future<EvidenceFolderModel?> getEvidenceFolder(String clubSectionId, {CancelToken? cancelToken});
 
   /// Envía la carpeta completa a validación.
   ///
@@ -66,7 +69,7 @@ class EvidenceFolderRemoteDataSourceImpl
   // ── GET /club-sections/:sectionId/annual-folder ───────────────────────────
 
   @override
-  Future<EvidenceFolderModel> getEvidenceFolder(
+  Future<EvidenceFolderModel?> getEvidenceFolder(
       String clubSectionId, {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
@@ -76,7 +79,14 @@ class EvidenceFolderRemoteDataSourceImpl
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final body = response.data as Map<String, dynamic>;
-        // El backend puede envolver en { data: {...} }
+
+        // El backend puede envolver en { data: {...} } o { data: null }.
+        // data == null significa carpeta aún no creada — estado válido de negocio.
+        if (body.containsKey('data') && body['data'] == null) {
+          AppLogger.d('getEvidenceFolder: data=null, carpeta no existe', tag: _tag);
+          return null;
+        }
+
         final folderJson = body.containsKey('data')
             ? body['data'] as Map<String, dynamic>
             : body;

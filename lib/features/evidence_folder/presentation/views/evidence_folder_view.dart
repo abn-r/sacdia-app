@@ -41,10 +41,21 @@ class EvidenceFolderView extends ConsumerWidget {
       body: SafeArea(
         child: folderAsync.when(
           loading: () => const EvidenceFolderLoadingSkeleton(),
+          // Path happy: backend nuevo (200 + data: null) → folder == null.
+          // Path legacy: backend viejo (404 → NotFoundException) → error branch.
+          // Ambos convergen en _NoFolderBody.
+          data: (folder) => folder == null
+              ? _NoFolderBody(
+                  onBack: () => Navigator.of(context).maybePop(),
+                )
+              : _FolderBody(
+                  folder: folder,
+                  clubSectionId: clubSectionId,
+                ),
           error: (error, _) {
+            // Fallback defensivo: backend viejo que todavía devuelve 404.
             if (error is NotFoundException) {
               return _NoFolderBody(
-                message: error.message,
                 onBack: () => Navigator.of(context).maybePop(),
               );
             }
@@ -55,10 +66,6 @@ class EvidenceFolderView extends ConsumerWidget {
               onBack: () => Navigator.of(context).maybePop(),
             );
           },
-          data: (folder) => _FolderBody(
-            folder: folder,
-            clubSectionId: clubSectionId,
-          ),
         ),
       ),
     );
@@ -619,19 +626,13 @@ class _EmptySections extends StatelessWidget {
 // ── Empty state: carpeta no disponible (404 de negocio) ──────────────────────
 
 class _NoFolderBody extends StatelessWidget {
-  final String message;
   final VoidCallback onBack;
 
-  const _NoFolderBody({required this.message, required this.onBack});
+  const _NoFolderBody({required this.onBack});
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-
-    // Determina si el mensaje del backend indica ausencia de carpeta creada
-    // o ausencia de inscripción, para mostrar el título correcto.
-    final bool isNoFolder = message.toLowerCase().contains('carpeta') ||
-        message.toLowerCase().contains('folder');
 
     return Column(
       children: [
@@ -663,7 +664,6 @@ class _NoFolderBody extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Ícono contenido en un círculo sutil para dar jerarquía visual
                   Container(
                     width: 80,
                     height: 80,
@@ -673,9 +673,7 @@ class _NoFolderBody extends StatelessWidget {
                     ),
                     child: Center(
                       child: HugeIcon(
-                        icon: isNoFolder
-                            ? HugeIcons.strokeRoundedFolder01
-                            : HugeIcons.strokeRoundedCalendarRemove01,
+                        icon: HugeIcons.strokeRoundedFolder01,
                         size: 36,
                         color: c.textTertiary,
                       ),
@@ -683,9 +681,7 @@ class _NoFolderBody extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    isNoFolder
-                        ? 'Carpeta no disponible'
-                        : 'Sección sin inscripción',
+                    'Carpeta no disponible',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: c.text,
@@ -694,9 +690,16 @@ class _NoFolderBody extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    isNoFolder
-                        ? 'El campo local aún no ha creado la carpeta de evidencias para este ciclo. Consultá con el administrador de tu zona.'
-                        : 'Esta sección no tiene una inscripción activa en el año eclesiástico actual.',
+                    'La carpeta anual de evidencias aún no ha sido creada para esta sección.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: c.textSecondary,
+                          height: 1.55,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Contactá a la administración del campo local para consultar el estatus.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: c.textSecondary,
                           height: 1.55,
@@ -704,8 +707,6 @@ class _NoFolderBody extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
-                  // Ghost button: no border, no full-width — apropiado para
-                  // acción secundaria en un empty state informativo.
                   SacButton.ghost(
                     text: 'Volver',
                     icon: HugeIcons.strokeRoundedArrowLeft01,

@@ -11,7 +11,10 @@ import '../entities/evidence_file.dart';
 /// errores de forma funcional sin excepciones sin tratar.
 abstract class EvidenceFolderRepository {
   /// Obtiene la carpeta de evidencias de una sección de club.
-  Future<Either<Failure, EvidenceFolder>> getEvidenceFolder(
+  ///
+  /// Retorna `Right(null)` cuando la carpeta aún no fue creada (estado de
+  /// negocio válido). Retorna `Left(Failure)` solo para errores reales.
+  Future<Either<Failure, EvidenceFolder?>> getEvidenceFolder(
       String clubSectionId, {CancelToken? cancelToken});
 
   /// Envía la carpeta completa a validación.
