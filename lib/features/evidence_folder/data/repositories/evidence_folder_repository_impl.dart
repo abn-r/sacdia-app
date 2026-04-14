@@ -24,10 +24,11 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
 
   @override
   Future<Either<Failure, EvidenceFolder?>> getEvidenceFolder(
-      String clubSectionId, {CancelToken? cancelToken}) async {
+      String clubSectionId,
+      {CancelToken? cancelToken}) async {
     try {
-      final model = await remoteDataSource.getEvidenceFolder(
-          clubSectionId, cancelToken: cancelToken);
+      final model = await remoteDataSource.getEvidenceFolder(clubSectionId,
+          cancelToken: cancelToken);
       // model == null → carpeta no existe (200 + data: null). Estado válido.
       if (model == null) return const Right(null);
       return Right(model.toEntity());
@@ -108,8 +109,7 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
   }
 
   @override
-  Future<Either<Failure, void>> deleteFile(
-      {required String evidenceId}) async {
+  Future<Either<Failure, void>> deleteFile({required String evidenceId}) async {
     try {
       await remoteDataSource.deleteFile(evidenceId: evidenceId);
       return const Right(null);

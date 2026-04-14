@@ -6,13 +6,12 @@ import '../../domain/entities/evidence_section.dart';
 
 /// Badge de color con ícono que indica el estado de la sección.
 ///
-/// Seis variantes visuales:
-/// - pendiente        → amarillo / naranja
-/// - enviado          → azul (dark-mode aware)
-/// - validado         → verde
-/// - rechazado        → rojo
-/// - underEvaluation  → ámbar (en proceso de evaluación)
-/// - evaluated        → verde oscuro (evaluación completa con puntos)
+/// Cinco variantes visuales:
+/// - pending        → amarillo / naranja
+/// - submitted      → azul (dark-mode aware)
+/// - preapprovedLf  → ámbar (pre-aprobado por campo local, pendiente de unión)
+/// - validated      → verde
+/// - rejected       → rojo
 class SectionStatusBadge extends StatelessWidget {
   final EvidenceSectionStatus status;
 
@@ -53,91 +52,78 @@ class SectionStatusBadge extends StatelessWidget {
 
   String get _label {
     switch (status) {
-      case EvidenceSectionStatus.pendiente:
+      case EvidenceSectionStatus.pending:
         return 'Pendiente';
-      case EvidenceSectionStatus.enviado:
+      case EvidenceSectionStatus.submitted:
         return 'Enviado';
-      case EvidenceSectionStatus.validado:
+      case EvidenceSectionStatus.preapprovedLf:
+        return 'Preaprobado';
+      case EvidenceSectionStatus.validated:
         return 'Validado';
-      case EvidenceSectionStatus.rechazado:
+      case EvidenceSectionStatus.rejected:
         return 'Rechazado';
-      case EvidenceSectionStatus.underEvaluation:
-        return 'En evaluación';
-      case EvidenceSectionStatus.evaluated:
-        return 'Evaluado';
     }
   }
 
   Color _bgColor(bool isDark) {
     switch (status) {
-      case EvidenceSectionStatus.pendiente:
+      case EvidenceSectionStatus.pending:
         return AppColors.accentLight;
-      case EvidenceSectionStatus.enviado:
-        return isDark ? AppColors.statusInfoBgDark : AppColors.statusInfoBgLight;
-      case EvidenceSectionStatus.validado:
-        return AppColors.secondaryLight;
-      case EvidenceSectionStatus.rechazado:
-        return AppColors.errorLight;
-      case EvidenceSectionStatus.underEvaluation:
-        // Ámbar suave para indicar proceso activo
+      case EvidenceSectionStatus.submitted:
         return isDark
-            ? const Color(0xFF2D2010)
-            : const Color(0xFFFFF8E1);
-      case EvidenceSectionStatus.evaluated:
+            ? AppColors.statusInfoBgDark
+            : AppColors.statusInfoBgLight;
+      case EvidenceSectionStatus.preapprovedLf:
+        return isDark ? AppColors.darkSurfaceVariant : AppColors.accentLight;
+      case EvidenceSectionStatus.validated:
         return AppColors.secondaryLight;
+      case EvidenceSectionStatus.rejected:
+        return AppColors.errorLight;
     }
   }
 
   Color _borderColor(bool isDark) {
     switch (status) {
-      case EvidenceSectionStatus.pendiente:
+      case EvidenceSectionStatus.pending:
         return AppColors.accent.withValues(alpha: 0.4);
-      case EvidenceSectionStatus.enviado:
+      case EvidenceSectionStatus.submitted:
         return AppColors.sacBlue.withValues(alpha: 0.4);
-      case EvidenceSectionStatus.validado:
+      case EvidenceSectionStatus.preapprovedLf:
+        return AppColors.accent.withValues(alpha: 0.5);
+      case EvidenceSectionStatus.validated:
         return AppColors.secondary.withValues(alpha: 0.4);
-      case EvidenceSectionStatus.rechazado:
+      case EvidenceSectionStatus.rejected:
         return AppColors.error.withValues(alpha: 0.4);
-      case EvidenceSectionStatus.underEvaluation:
-        return const Color(0xFFF59E0B).withValues(alpha: 0.5);
-      case EvidenceSectionStatus.evaluated:
-        return AppColors.secondaryDark.withValues(alpha: 0.4);
     }
   }
 
   Color _textColor(bool isDark) {
     switch (status) {
-      case EvidenceSectionStatus.pendiente:
+      case EvidenceSectionStatus.pending:
         return AppColors.accentDark;
-      case EvidenceSectionStatus.enviado:
+      case EvidenceSectionStatus.submitted:
         return isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
-      case EvidenceSectionStatus.validado:
+      case EvidenceSectionStatus.preapprovedLf:
+        return AppColors.accentDark;
+      case EvidenceSectionStatus.validated:
         return AppColors.secondaryDark;
-      case EvidenceSectionStatus.rechazado:
+      case EvidenceSectionStatus.rejected:
         return AppColors.errorDark;
-      case EvidenceSectionStatus.underEvaluation:
-        return isDark
-            ? const Color(0xFFFBBF24)
-            : const Color(0xFF92400E);
-      case EvidenceSectionStatus.evaluated:
-        return AppColors.secondaryDark;
     }
   }
 
   List<List<dynamic>> get _icon {
     switch (status) {
-      case EvidenceSectionStatus.pendiente:
+      case EvidenceSectionStatus.pending:
         return HugeIcons.strokeRoundedClock01;
-      case EvidenceSectionStatus.enviado:
+      case EvidenceSectionStatus.submitted:
         return HugeIcons.strokeRoundedSent;
-      case EvidenceSectionStatus.validado:
-        return HugeIcons.strokeRoundedCheckmarkCircle01;
-      case EvidenceSectionStatus.rechazado:
-        return HugeIcons.strokeRoundedCancel01;
-      case EvidenceSectionStatus.underEvaluation:
+      case EvidenceSectionStatus.preapprovedLf:
         return HugeIcons.strokeRoundedAnalytics01;
-      case EvidenceSectionStatus.evaluated:
-        return HugeIcons.strokeRoundedStar;
+      case EvidenceSectionStatus.validated:
+        return HugeIcons.strokeRoundedCheckmarkCircle01;
+      case EvidenceSectionStatus.rejected:
+        return HugeIcons.strokeRoundedCancel01;
     }
   }
 }

@@ -49,13 +49,11 @@ final submitSectionUseCaseProvider = Provider<SubmitSection>((ref) {
   return SubmitSection(ref.read(evidenceFolderRepositoryProvider));
 });
 
-final uploadEvidenceFileUseCaseProvider =
-    Provider<UploadEvidenceFile>((ref) {
+final uploadEvidenceFileUseCaseProvider = Provider<UploadEvidenceFile>((ref) {
   return UploadEvidenceFile(ref.read(evidenceFolderRepositoryProvider));
 });
 
-final deleteEvidenceFileUseCaseProvider =
-    Provider<DeleteEvidenceFile>((ref) {
+final deleteEvidenceFileUseCaseProvider = Provider<DeleteEvidenceFile>((ref) {
   return DeleteEvidenceFile(ref.read(evidenceFolderRepositoryProvider));
 });
 

@@ -50,12 +50,11 @@ class _EvidenceSectionDetailViewState
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final notifierState = ref.watch(
-        evidenceSectionNotifierProvider(widget.clubSectionId));
+    final notifierState =
+        ref.watch(evidenceSectionNotifierProvider(widget.clubSectionId));
 
-    final canModify =
-        (widget.section.status == EvidenceSectionStatus.pendiente ||
-            widget.section.status == EvidenceSectionStatus.rechazado) &&
+    final canModify = (widget.section.status == EvidenceSectionStatus.pending ||
+            widget.section.status == EvidenceSectionStatus.rejected) &&
         widget.folderIsOpen;
 
     // Mostrar snackbar cuando hay error
@@ -104,9 +103,7 @@ class _EvidenceSectionDetailViewState
           title: Text(
             'Sección',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.sacRed
-                ),
+                fontWeight: FontWeight.w700, color: AppColors.sacRed),
             overflow: TextOverflow.ellipsis,
           ),
           backgroundColor: c.background,
@@ -183,18 +180,18 @@ class _EvidenceSectionDetailViewState
 
                   // Resultado de evaluación (solo lectura, si existe)
                   if (widget.section.status ==
-                          EvidenceSectionStatus.evaluated ||
-                      widget.section.evaluatedByName != null) ...[
+                          EvidenceSectionStatus.validated ||
+                      widget.section.lfApproverName != null ||
+                      widget.section.unionApproverName != null) ...[
                     const SizedBox(height: 24),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                       child: Text(
                         'Resultado de evaluación',
-                        style:
-                            Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: c.text,
-                                ),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: c.text,
+                            ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -342,8 +339,7 @@ class _EvidenceSectionDetailViewState
         ),
         backgroundColor: AppColors.error,
         behavior: SnackBarBehavior.floating,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -533,86 +529,78 @@ class _EvidenceStatusChip extends StatelessWidget {
 
   String get _label {
     switch (status) {
-      case EvidenceSectionStatus.pendiente:
+      case EvidenceSectionStatus.pending:
         return 'Pendiente';
-      case EvidenceSectionStatus.enviado:
+      case EvidenceSectionStatus.submitted:
         return 'Enviado';
-      case EvidenceSectionStatus.validado:
+      case EvidenceSectionStatus.preapprovedLf:
+        return 'Preaprobado';
+      case EvidenceSectionStatus.validated:
         return 'Validado';
-      case EvidenceSectionStatus.rechazado:
+      case EvidenceSectionStatus.rejected:
         return 'Rechazado';
-      case EvidenceSectionStatus.underEvaluation:
-        return 'En evaluación';
-      case EvidenceSectionStatus.evaluated:
-        return 'Evaluado';
     }
   }
 
   Color _bgColor(bool isDark) {
     switch (status) {
-      case EvidenceSectionStatus.pendiente:
+      case EvidenceSectionStatus.pending:
         return AppColors.accentLight;
-      case EvidenceSectionStatus.enviado:
-        return isDark ? AppColors.statusInfoBgDark : AppColors.statusInfoBgLight;
-      case EvidenceSectionStatus.validado:
+      case EvidenceSectionStatus.submitted:
+        return isDark
+            ? AppColors.statusInfoBgDark
+            : AppColors.statusInfoBgLight;
+      case EvidenceSectionStatus.preapprovedLf:
+        return isDark ? AppColors.darkSurfaceVariant : AppColors.accentLight;
+      case EvidenceSectionStatus.validated:
         return AppColors.secondaryLight;
-      case EvidenceSectionStatus.rechazado:
+      case EvidenceSectionStatus.rejected:
         return AppColors.errorLight;
-      case EvidenceSectionStatus.underEvaluation:
-        return isDark ? const Color(0xFF2D2010) : const Color(0xFFFFF8E1);
-      case EvidenceSectionStatus.evaluated:
-        return AppColors.secondaryLight;
     }
   }
 
   Color _borderColor(bool isDark) {
     switch (status) {
-      case EvidenceSectionStatus.pendiente:
+      case EvidenceSectionStatus.pending:
         return AppColors.accent.withValues(alpha: 0.4);
-      case EvidenceSectionStatus.enviado:
+      case EvidenceSectionStatus.submitted:
         return AppColors.sacBlue.withValues(alpha: 0.4);
-      case EvidenceSectionStatus.validado:
+      case EvidenceSectionStatus.preapprovedLf:
+        return AppColors.accent.withValues(alpha: 0.5);
+      case EvidenceSectionStatus.validated:
         return AppColors.secondary.withValues(alpha: 0.4);
-      case EvidenceSectionStatus.rechazado:
+      case EvidenceSectionStatus.rejected:
         return AppColors.error.withValues(alpha: 0.4);
-      case EvidenceSectionStatus.underEvaluation:
-        return const Color(0xFFF59E0B).withValues(alpha: 0.5);
-      case EvidenceSectionStatus.evaluated:
-        return AppColors.secondaryDark.withValues(alpha: 0.4);
     }
   }
 
   Color _textColor(bool isDark) {
     switch (status) {
-      case EvidenceSectionStatus.pendiente:
+      case EvidenceSectionStatus.pending:
         return AppColors.accentDark;
-      case EvidenceSectionStatus.enviado:
+      case EvidenceSectionStatus.submitted:
         return isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
-      case EvidenceSectionStatus.validado:
+      case EvidenceSectionStatus.preapprovedLf:
+        return AppColors.accentDark;
+      case EvidenceSectionStatus.validated:
         return AppColors.secondaryDark;
-      case EvidenceSectionStatus.rechazado:
+      case EvidenceSectionStatus.rejected:
         return AppColors.errorDark;
-      case EvidenceSectionStatus.underEvaluation:
-        return isDark ? const Color(0xFFFBBF24) : const Color(0xFF92400E);
-      case EvidenceSectionStatus.evaluated:
-        return AppColors.secondaryDark;
     }
   }
 
   List<List<dynamic>> get _icon {
     switch (status) {
-      case EvidenceSectionStatus.pendiente:
+      case EvidenceSectionStatus.pending:
         return HugeIcons.strokeRoundedClock01;
-      case EvidenceSectionStatus.enviado:
+      case EvidenceSectionStatus.submitted:
         return HugeIcons.strokeRoundedSent;
-      case EvidenceSectionStatus.validado:
-        return HugeIcons.strokeRoundedCheckmarkCircle01;
-      case EvidenceSectionStatus.rechazado:
-        return HugeIcons.strokeRoundedCancel01;
-      case EvidenceSectionStatus.underEvaluation:
+      case EvidenceSectionStatus.preapprovedLf:
         return HugeIcons.strokeRoundedAnalytics01;
-      case EvidenceSectionStatus.evaluated:
-        return HugeIcons.strokeRoundedStar;
+      case EvidenceSectionStatus.validated:
+        return HugeIcons.strokeRoundedCheckmarkCircle01;
+      case EvidenceSectionStatus.rejected:
+        return HugeIcons.strokeRoundedCancel01;
     }
   }
 }
@@ -682,35 +670,64 @@ class _EvaluationResultCard extends StatelessWidget {
             ],
           ),
 
-          // Evaluador y fecha
-          if (section.evaluatedByName != null) ...[
+          // Actores de aprobación dual-level
+          if (section.lfApproverName != null ||
+              section.unionApproverName != null) ...[
             const SizedBox(height: 12),
             Divider(
               color: AppColors.secondary.withValues(alpha: 0.25),
               height: 1,
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedUserCheck01,
-                  size: 13,
-                  color: AppColors.secondaryDark,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    'Evaluado por ${section.evaluatedByName}'
-                    '${section.evaluatedAt != null ? " · ${dateFormat.format(section.evaluatedAt!.toLocal())}" : ""}',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.secondaryDark,
-                          fontWeight: FontWeight.w600,
-                          height: 1.3,
-                        ),
+            // LF actor — siempre presente cuando existe
+            if (section.lfApproverName != null) ...[
+              Row(
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedAnalytics01,
+                    size: 13,
+                    color: AppColors.accentDark,
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Preaprobado por ${section.lfApproverName}'
+                      '${section.lfApprovedAt != null ? " · ${dateFormat.format(section.lfApprovedAt!.toLocal())}" : ""}',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: AppColors.accentDark,
+                            fontWeight: FontWeight.w600,
+                            height: 1.3,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            // Union actor — presente solo cuando actuó la unión
+            if (section.unionApproverName != null) ...[
+              if (section.lfApproverName != null) const SizedBox(height: 8),
+              Row(
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedUserCheck01,
+                    size: 13,
+                    color: AppColors.secondaryDark,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Validado por ${section.unionApproverName}'
+                      '${section.unionApprovedAt != null ? " · ${dateFormat.format(section.unionApprovedAt!.toLocal())}" : ""}',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: AppColors.secondaryDark,
+                            fontWeight: FontWeight.w600,
+                            height: 1.3,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
 
           // Notas del evaluador
@@ -809,7 +826,8 @@ class _ReviewerNoteCalloutState extends State<_ReviewerNoteCallout> {
     // AppColors.statusInfoBg* que ya existen para el estado "enviado".
     final bgColor =
         isDark ? AppColors.statusInfoBgDark : AppColors.statusInfoBgLight;
-    final borderColor = AppColors.sacBlue.withValues(alpha: isDark ? 0.3 : 0.35);
+    final borderColor =
+        AppColors.sacBlue.withValues(alpha: isDark ? 0.3 : 0.35);
     final noteColor =
         isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
     final labelColor = isDark

@@ -13,7 +13,8 @@ abstract class EvidenceFolderRemoteDataSource {
   ///
   /// Retorna `null` cuando el backend responde `200 OK` con `data: null`
   /// (carpeta aún no creada — estado de negocio válido, no un error).
-  Future<EvidenceFolderModel?> getEvidenceFolder(String clubSectionId, {CancelToken? cancelToken});
+  Future<EvidenceFolderModel?> getEvidenceFolder(String clubSectionId,
+      {CancelToken? cancelToken});
 
   /// Envía la carpeta completa a validación.
   ///
@@ -69,8 +70,8 @@ class EvidenceFolderRemoteDataSourceImpl
   // ── GET /club-sections/:sectionId/annual-folder ───────────────────────────
 
   @override
-  Future<EvidenceFolderModel?> getEvidenceFolder(
-      String clubSectionId, {CancelToken? cancelToken}) async {
+  Future<EvidenceFolderModel?> getEvidenceFolder(String clubSectionId,
+      {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubSections}/$clubSectionId/annual-folder',
@@ -83,7 +84,8 @@ class EvidenceFolderRemoteDataSourceImpl
         // El backend puede envolver en { data: {...} } o { data: null }.
         // data == null significa carpeta aún no creada — estado válido de negocio.
         if (body.containsKey('data') && body['data'] == null) {
-          AppLogger.d('getEvidenceFolder: data=null, carpeta no existe', tag: _tag);
+          AppLogger.d('getEvidenceFolder: data=null, carpeta no existe',
+              tag: _tag);
           return null;
         }
 

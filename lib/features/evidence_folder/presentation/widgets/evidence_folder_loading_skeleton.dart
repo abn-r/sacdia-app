@@ -86,7 +86,8 @@ class _EvidenceFolderLoadingSkeletonState
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
-                child: _SkeletonBox(width: double.infinity, height: 15, shimmerValue: sv),
+                child: _SkeletonBox(
+                    width: double.infinity, height: 15, shimmerValue: sv),
               ),
               const SizedBox(width: 10),
               _SkeletonBox(
@@ -223,7 +224,8 @@ class _EvidenceFolderLoadingSkeletonState
                       _SkeletonBox(
                         width: 50,
                         height: 18,
-                        borderRadius: const BorderRadius.all(Radius.circular(20)),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(20)),
                         shimmerValue: sv,
                       ),
                     ],

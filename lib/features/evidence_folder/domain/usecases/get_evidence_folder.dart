@@ -27,8 +27,9 @@ class GetEvidenceFolder
   GetEvidenceFolder(this._repository);
 
   @override
-  Future<Either<Failure, EvidenceFolder?>> call(
-      GetEvidenceFolderParams params, {CancelToken? cancelToken}) async {
-    return _repository.getEvidenceFolder(params.clubSectionId, cancelToken: cancelToken);
+  Future<Either<Failure, EvidenceFolder?>> call(GetEvidenceFolderParams params,
+      {CancelToken? cancelToken}) async {
+    return _repository.getEvidenceFolder(params.clubSectionId,
+        cancelToken: cancelToken);
   }
 }

@@ -113,8 +113,7 @@ class SectionCard extends StatelessWidget {
                     icon: HugeIcons.strokeRoundedStar,
                     label:
                         '${section.earnedPoints} / ${section.pointValue} pts',
-                    color: section.status == EvidenceSectionStatus.validado ||
-                            section.status == EvidenceSectionStatus.evaluated
+                    color: section.status == EvidenceSectionStatus.validated
                         ? AppColors.secondary
                         : c.textSecondary,
                     context: context,
@@ -146,8 +145,8 @@ class SectionCard extends StatelessWidget {
 
             // Trazabilidad (si aplica)
             if (section.submittedByName != null ||
-                section.validatedByName != null ||
-                section.evaluatedByName != null) ...[
+                section.lfApproverName != null ||
+                section.unionApproverName != null) ...[
               Divider(height: 1, color: c.divider),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
@@ -164,26 +163,26 @@ class SectionCard extends StatelessWidget {
                             'Enviado por ${section.submittedByName}${section.submittedAt != null ? " · ${dateFormat.format(section.submittedAt!.toLocal())}" : ""}',
                         context: context,
                       ),
-                    if (section.validatedByName != null) ...[
+                    if (section.lfApproverName != null) ...[
                       if (section.submittedByName != null)
                         const SizedBox(height: 4),
                       _TraceRow(
-                        icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                        color: AppColors.secondary,
+                        icon: HugeIcons.strokeRoundedAnalytics01,
+                        color: AppColors.accentDark,
                         text:
-                            'Validado por ${section.validatedByName}${section.validatedAt != null ? " · ${dateFormat.format(section.validatedAt!.toLocal())}" : ""}',
+                            'Preaprobado por ${section.lfApproverName}${section.lfApprovedAt != null ? " · ${dateFormat.format(section.lfApprovedAt!.toLocal())}" : ""}',
                         context: context,
                       ),
                     ],
-                    if (section.evaluatedByName != null) ...[
+                    if (section.unionApproverName != null) ...[
                       if (section.submittedByName != null ||
-                          section.validatedByName != null)
+                          section.lfApproverName != null)
                         const SizedBox(height: 4),
                       _TraceRow(
-                        icon: HugeIcons.strokeRoundedStar,
+                        icon: HugeIcons.strokeRoundedCheckmarkCircle01,
                         color: AppColors.secondaryDark,
                         text:
-                            'Evaluado por ${section.evaluatedByName}${section.evaluatedAt != null ? " · ${dateFormat.format(section.evaluatedAt!.toLocal())}" : ""}',
+                            'Validado por ${section.unionApproverName}${section.unionApprovedAt != null ? " · ${dateFormat.format(section.unionApprovedAt!.toLocal())}" : ""}',
                         context: context,
                       ),
                     ],

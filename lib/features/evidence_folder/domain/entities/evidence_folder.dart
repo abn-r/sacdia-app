@@ -63,8 +63,7 @@ class EvidenceFolder extends Equatable {
   /// Puntos ganados: prioriza el valor server-authoritative del backend;
   /// cae al cómputo local sumando secciones validadas si el backend no lo envía.
   int get earnedPoints =>
-      totalEarnedPoints ??
-      sections.fold(0, (sum, s) => sum + s.earnedPoints);
+      totalEarnedPoints ?? sections.fold(0, (sum, s) => sum + s.earnedPoints);
 
   /// Puntos máximos: prioriza el valor del backend; cae a [totalPoints].
   int get maxPoints => totalMaxPoints ?? totalPoints;
@@ -78,24 +77,21 @@ class EvidenceFolder extends Equatable {
   }
 
   /// True si la carpeta fue evaluada (tiene fecha de evaluación o status evaluated).
-  bool get isEvaluated =>
-      evaluatedAt != null || status == 'evaluated';
+  bool get isEvaluated => evaluatedAt != null || status == 'evaluated';
 
   /// True si la carpeta está bajo evaluación activa.
   bool get isUnderEvaluation => status == 'under_evaluation';
 
-  /// Número de secciones en estado [EvidenceSectionStatus.validado] o [EvidenceSectionStatus.evaluated].
-  int get validatedCount => sections
-      .where((s) =>
-          s.status == EvidenceSectionStatus.validado ||
-          s.status == EvidenceSectionStatus.evaluated)
-      .length;
+  /// Número de secciones en estado [EvidenceSectionStatus.validated].
+  int get validatedCount =>
+      sections.where((s) => s.status == EvidenceSectionStatus.validated).length;
 
-  /// Número de secciones en estado [EvidenceSectionStatus.enviado] o [EvidenceSectionStatus.underEvaluation].
+  /// Número de secciones en estado [EvidenceSectionStatus.submitted] o
+  /// [EvidenceSectionStatus.preapprovedLf].
   int get submittedCount => sections
       .where((s) =>
-          s.status == EvidenceSectionStatus.enviado ||
-          s.status == EvidenceSectionStatus.underEvaluation)
+          s.status == EvidenceSectionStatus.submitted ||
+          s.status == EvidenceSectionStatus.preapprovedLf)
       .length;
 
   @override

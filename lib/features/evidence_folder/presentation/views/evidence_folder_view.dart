@@ -165,8 +165,8 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
             ),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
       }
@@ -242,11 +242,10 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                   child: Text(
                     'Secciones',
-                    style:
-                        Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: c.text,
-                            ),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: c.text,
+                        ),
                   ),
                 ),
               ],
@@ -300,9 +299,8 @@ class _FolderHeaderCard extends StatelessWidget {
 
     // Status badge colors
     final statusColor = folder.isOpen ? AppColors.secondary : AppColors.accent;
-    final statusBg = folder.isOpen
-        ? AppColors.secondaryLight
-        : AppColors.accentLight;
+    final statusBg =
+        folder.isOpen ? AppColors.secondaryLight : AppColors.accentLight;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -332,8 +330,7 @@ class _FolderHeaderCard extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
                   color: statusBg,
                   borderRadius: BorderRadius.circular(20),
@@ -366,8 +363,7 @@ class _FolderHeaderCard extends StatelessWidget {
             ],
           ),
 
-          if (folder.description != null &&
-              folder.description!.isNotEmpty) ...[
+          if (folder.description != null && folder.description!.isNotEmpty) ...[
             const SizedBox(height: 6),
             Text(
               folder.description!,
@@ -447,7 +443,6 @@ class _ProgressSummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
     final total = folder.sections.length;
     final validated = folder.validatedCount;
     final submitted = folder.submittedCount;

@@ -19,15 +19,13 @@ class EvidenceFileModel extends EvidenceFile {
   });
 
   factory EvidenceFileModel.fromJson(Map<String, dynamic> json) {
-    final fileName =
-        (json['file_name'] ?? json['fileName'] ?? '').toString();
+    final fileName = (json['file_name'] ?? json['fileName'] ?? '').toString();
 
     // reviewer_note: string o null — escrito por el revisor desde el admin
     final rawNote = json['reviewer_note'] ?? json['reviewerNote'];
-    final reviewerNote =
-        (rawNote != null && rawNote.toString().isNotEmpty)
-            ? rawNote.toString()
-            : null;
+    final reviewerNote = (rawNote != null && rawNote.toString().isNotEmpty)
+        ? rawNote.toString()
+        : null;
 
     return EvidenceFileModel(
       // AnnualFolders usa evidence_id; fallback al campo genérico id/file_id
@@ -49,12 +47,12 @@ class EvidenceFileModel extends EvidenceFile {
           .toString(),
       // AnnualFolders usa created_at; fallback a uploaded_at
       uploadedAt: () {
-        final raw = json['created_at'] ?? json['uploaded_at'] ?? json['uploadedAt'];
+        final raw =
+            json['created_at'] ?? json['uploaded_at'] ?? json['uploadedAt'];
         if (raw != null) {
           final parsed = DateTime.tryParse(raw.toString());
           if (parsed == null) {
-            AppLogger.w(
-                'Failed to parse date: $raw, using DateTime.now()',
+            AppLogger.w('Failed to parse date: $raw, using DateTime.now()',
                 tag: _tag);
           }
           return parsed ?? DateTime.now();
@@ -74,9 +72,8 @@ class EvidenceFileModel extends EvidenceFile {
     if (fallback != null) {
       return evidenceFileTypeFromString(fallback.toString());
     }
-    final ext = fileName.contains('.')
-        ? fileName.split('.').last.toLowerCase()
-        : '';
+    final ext =
+        fileName.contains('.') ? fileName.split('.').last.toLowerCase() : '';
     return ext == 'pdf' ? EvidenceFileType.pdf : EvidenceFileType.image;
   }
 

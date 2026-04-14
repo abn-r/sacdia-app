@@ -15,7 +15,8 @@ abstract class EvidenceFolderRepository {
   /// Retorna `Right(null)` cuando la carpeta aún no fue creada (estado de
   /// negocio válido). Retorna `Left(Failure)` solo para errores reales.
   Future<Either<Failure, EvidenceFolder?>> getEvidenceFolder(
-      String clubSectionId, {CancelToken? cancelToken});
+      String clubSectionId,
+      {CancelToken? cancelToken});
 
   /// Envía la carpeta completa a validación.
   ///

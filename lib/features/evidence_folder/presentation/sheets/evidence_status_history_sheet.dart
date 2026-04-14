@@ -9,10 +9,13 @@ import '../../domain/entities/evidence_section.dart';
 /// Muestra el historial de transiciones de estado de una sección de evidencias.
 ///
 /// Los datos disponibles son los snapshots de trazabilidad que trae la
-/// entidad [EvidenceSection]: fecha/autor de envío, validación y evaluación.
-/// No existe un array de historial completo en el backend — el sheet refleja
-/// esto honestamente construyendo las entradas a partir de los campos
-/// de trazabilidad disponibles.
+/// entidad [EvidenceSection]: fecha/autor de envío, pre-aprobación LF y
+/// validación de unión. No existe un array de historial completo en el
+/// backend — el sheet refleja esto honestamente construyendo las entradas
+/// a partir de los campos de trazabilidad disponibles.
+///
+/// Cuando [EvidenceSection.unionApproverName] es null (solo el campo local
+/// actuó), se omite la entrada de validación de unión.
 ///
 /// Llamar con [showEvidenceStatusHistorySheet].
 class EvidenceStatusHistorySheet extends StatelessWidget {
@@ -133,6 +136,9 @@ class EvidenceStatusHistorySheet extends StatelessWidget {
 
   /// Construye la lista de entradas a partir de los campos de trazabilidad
   /// disponibles en la entidad. El orden es cronológico.
+  ///
+  /// La entrada de validación de unión se omite cuando
+  /// [EvidenceSection.unionApproverName] es null (solo LF actuó).
   List<_StatusEntry> _buildEntries() {
     final entries = <_StatusEntry>[];
 
@@ -149,11 +155,12 @@ class EvidenceStatusHistorySheet extends StatelessWidget {
     );
 
     // Evento de envío (si fue enviado alguna vez)
-    if (section.status == EvidenceSectionStatus.enviado ||
-        section.status == EvidenceSectionStatus.validado ||
-        section.status == EvidenceSectionStatus.rechazado ||
-        section.status == EvidenceSectionStatus.underEvaluation ||
-        section.status == EvidenceSectionStatus.evaluated) {
+    final wasSubmitted = section.status == EvidenceSectionStatus.submitted ||
+        section.status == EvidenceSectionStatus.validated ||
+        section.status == EvidenceSectionStatus.rejected ||
+        section.status == EvidenceSectionStatus.preapprovedLf;
+
+    if (wasSubmitted) {
       entries.add(
         _StatusEntry(
           label: 'Enviado',
@@ -167,60 +174,46 @@ class EvidenceStatusHistorySheet extends StatelessWidget {
     }
 
     // Evento de rechazo
-    if (section.status == EvidenceSectionStatus.rechazado) {
+    if (section.status == EvidenceSectionStatus.rejected) {
       entries.add(
         _StatusEntry(
           label: 'Rechazado',
           description: 'Sección rechazada. Podés reenviar evidencias.',
           icon: HugeIcons.strokeRoundedCancel01,
           color: AppColors.error,
-          author: section.validatedByName,
-          timestamp: section.validatedAt,
+          author: section.lfApproverName ?? section.validatedByName,
+          timestamp: section.lfApprovedAt ?? section.validatedAt,
+        ),
+      );
+      return entries;
+    }
+
+    // Evento de pre-aprobación LF (campo local actuó)
+    if (section.status == EvidenceSectionStatus.preapprovedLf ||
+        section.status == EvidenceSectionStatus.validated) {
+      entries.add(
+        _StatusEntry(
+          label: 'Preaprobado',
+          description: 'Sección pre-aprobada por el campo local.',
+          icon: HugeIcons.strokeRoundedAnalytics01,
+          color: AppColors.accentDark,
+          author: section.lfApproverName,
+          timestamp: section.lfApprovedAt,
         ),
       );
     }
 
-    // Evento de validación
-    if (section.status == EvidenceSectionStatus.validado ||
-        section.status == EvidenceSectionStatus.underEvaluation ||
-        section.status == EvidenceSectionStatus.evaluated) {
+    // Evento de validación final por unión — solo si union_approver está presente
+    if (section.status == EvidenceSectionStatus.validated &&
+        section.unionApproverName != null) {
       entries.add(
         _StatusEntry(
           label: 'Validado',
-          description: 'Sección aprobada por el líder.',
+          description: 'Sección validada definitivamente por la unión.',
           icon: HugeIcons.strokeRoundedCheckmarkCircle01,
           color: AppColors.secondary,
-          author: section.validatedByName,
-          timestamp: section.validatedAt,
-        ),
-      );
-    }
-
-    // Evento de en evaluación
-    if (section.status == EvidenceSectionStatus.underEvaluation ||
-        section.status == EvidenceSectionStatus.evaluated) {
-      entries.add(
-        _StatusEntry(
-          label: 'En evaluación',
-          description: 'Revisión de puntuación por el evaluador.',
-          icon: HugeIcons.strokeRoundedAnalytics01,
-          color: const Color(0xFFF59E0B),
-          author: null,
-          timestamp: null,
-        ),
-      );
-    }
-
-    // Evento de evaluación completada
-    if (section.status == EvidenceSectionStatus.evaluated) {
-      entries.add(
-        _StatusEntry(
-          label: 'Evaluado',
-          description: 'Evaluación completada con puntuación asignada.',
-          icon: HugeIcons.strokeRoundedStar,
-          color: AppColors.secondaryDark,
-          author: section.evaluatedByName,
-          timestamp: section.evaluatedAt,
+          author: section.unionApproverName,
+          timestamp: section.unionApprovedAt,
         ),
       );
     }

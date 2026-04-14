@@ -47,13 +47,13 @@ class EvidenceFolderModel extends EvidenceFolder {
         ? status == 'open'
         : (json['is_open'] as bool? ?? json['isOpen'] as bool? ?? true);
 
-    // ── Secciones (pasar folderStatus para derivar status por sección) ────────
+    // ── Secciones ─────────────────────────────────────────────────────────────
+    // El status de cada sección proviene de su propio campo `status` en el JSON
+    // (columna STORED en Postgres). No se deriva desde el folder status.
     final rawSections = json['sections'] as List<dynamic>? ?? [];
     final sections = rawSections
-        .map((s) => EvidenceSectionModel.fromJson(
-              s as Map<String, dynamic>,
-              folderStatus: status,
-            ).toEntity())
+        .map((s) =>
+            EvidenceSectionModel.fromJson(s as Map<String, dynamic>).toEntity())
         .toList();
 
     return EvidenceFolderModel(
@@ -64,13 +64,17 @@ class EvidenceFolderModel extends EvidenceFolder {
       description: json['description']?.toString(),
       isOpen: isOpen,
       // totalPoints: AnnualFolders usa total_max_points como referencia
-      totalPoints: _parseInt(
-          json['total_max_points'] ?? json['totalMaxPoints'] ??
-              json['total_points'] ?? json['totalPoints'] ?? 0),
+      totalPoints: _parseInt(json['total_max_points'] ??
+          json['totalMaxPoints'] ??
+          json['total_points'] ??
+          json['totalPoints'] ??
+          0),
       // totalPercentage: se mapea desde progress_percentage (0–100 → ratio 0–1)
-      totalPercentage: _parseDouble(
-              json['progress_percentage'] ?? json['progressPercentage'] ??
-                  json['total_percentage'] ?? json['totalPercentage'] ?? 0) /
+      totalPercentage: _parseDouble(json['progress_percentage'] ??
+              json['progressPercentage'] ??
+              json['total_percentage'] ??
+              json['totalPercentage'] ??
+              0) /
           100.0,
       sections: sections,
       totalEarnedPoints: _parseIntNullable(
