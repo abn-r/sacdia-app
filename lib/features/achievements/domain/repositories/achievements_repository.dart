@@ -58,9 +58,6 @@ abstract class AchievementsRepository {
   /// Obtiene los logros del usuario con summary de progreso
   Future<Either<Failure, UserAchievementsResponse>> getUserAchievements();
 
-  /// Obtiene el detalle de un logro específico
-  Future<Either<Failure, Achievement>> getAchievementDetail(int achievementId);
-
   /// Obtiene la lista de categorías de logros
   Future<Either<Failure, List<AchievementCategory>>> getCategories();
 }

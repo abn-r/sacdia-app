@@ -2,7 +2,6 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
-import '../../domain/entities/achievement.dart';
 import '../../domain/entities/achievement_category.dart';
 import '../../domain/repositories/achievements_repository.dart';
 import '../datasources/achievements_remote_data_source.dart';
@@ -18,7 +17,8 @@ class AchievementsRepositoryImpl implements AchievementsRepository {
   });
 
   @override
-  Future<Either<Failure, List<UserAchievementCategoryGroup>>> getAchievements() async {
+  Future<Either<Failure, List<UserAchievementCategoryGroup>>>
+      getAchievements() async {
     try {
       final rawGroups = await remoteDataSource.getAchievements();
       final groups = rawGroups.map((raw) {
@@ -43,7 +43,8 @@ class AchievementsRepositoryImpl implements AchievementsRepository {
   }
 
   @override
-  Future<Either<Failure, UserAchievementsResponse>> getUserAchievements() async {
+  Future<Either<Failure, UserAchievementsResponse>>
+      getUserAchievements() async {
     try {
       final raw = await remoteDataSource.getUserAchievements();
 
@@ -70,20 +71,6 @@ class AchievementsRepositoryImpl implements AchievementsRepository {
         summary: summary,
         categories: categories,
       ));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, code: e.code));
-    } on AuthException catch (e) {
-      return Left(AuthFailure(message: e.message, code: e.code));
-    } catch (e) {
-      return Left(UnexpectedFailure(message: e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, Achievement>> getAchievementDetail(int achievementId) async {
-    try {
-      final model = await remoteDataSource.getAchievementDetail(achievementId);
-      return Right(model.toEntity());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on AuthException catch (e) {

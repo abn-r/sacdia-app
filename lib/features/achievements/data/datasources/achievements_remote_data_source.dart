@@ -51,12 +51,6 @@ abstract class AchievementsRemoteDataSource {
     CancelToken? cancelToken,
   });
 
-  /// GET /achievements/:id — detalle de un logro
-  Future<AchievementModel> getAchievementDetail(
-    int achievementId, {
-    CancelToken? cancelToken,
-  });
-
   /// GET /achievements/categories — lista de categorías
   Future<List<AchievementCategoryModel>> getCategories({
     CancelToken? cancelToken,
@@ -165,41 +159,6 @@ class AchievementsRemoteDataSourceImpl implements AchievementsRemoteDataSource {
   }
 
   @override
-  Future<AchievementModel> getAchievementDetail(
-    int achievementId, {
-    CancelToken? cancelToken,
-  }) async {
-    try {
-      final response = await _dio.get(
-        '$_baseUrl${ApiEndpoints.achievements}/$achievementId',
-        cancelToken: cancelToken,
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return AchievementModel.fromJson(
-          response.data as Map<String, dynamic>,
-        );
-      }
-
-      throw ServerException(
-        message: 'Error al obtener detalle del logro',
-        code: response.statusCode,
-      );
-    } catch (e) {
-      AppLogger.e('Error en getAchievementDetail', tag: _tag, error: e);
-      if (e is DioException) {
-        if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(
-          message: e.message ?? 'Error de conexión',
-          code: e.response?.statusCode,
-        );
-      }
-      if (e is ServerException || e is AuthException) rethrow;
-      throw ServerException(message: e.toString());
-    }
-  }
-
-  @override
   Future<List<AchievementCategoryModel>> getCategories({
     CancelToken? cancelToken,
   }) async {
@@ -251,7 +210,8 @@ class AchievementsRemoteDataSourceImpl implements AchievementsRemoteDataSource {
   ///   ]
   /// }
   /// ```
-  UserAchievementCategoryGroupRaw _parseUserGroupRaw(Map<String, dynamic> json) {
+  UserAchievementCategoryGroupRaw _parseUserGroupRaw(
+      Map<String, dynamic> json) {
     final category = AchievementCategoryModel.fromJson(json);
 
     final achievementsRaw = json['achievements'] as List<dynamic>? ?? [];
@@ -291,7 +251,8 @@ class AchievementsRemoteDataSourceImpl implements AchievementsRemoteDataSource {
   ///   "achievements": [ { ...flat achievement fields } ]
   /// }
   /// ```
-  UserAchievementCategoryGroupRaw _parseCatalogGroupRaw(Map<String, dynamic> json) {
+  UserAchievementCategoryGroupRaw _parseCatalogGroupRaw(
+      Map<String, dynamic> json) {
     // Normalise the category JSON: catalog uses `category_name`, model reads `name`
     final normalised = <String, dynamic>{
       ...json,

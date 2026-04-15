@@ -4,7 +4,6 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../data/datasources/achievements_remote_data_source.dart';
 import '../../data/repositories/achievements_repository_impl.dart';
-import '../../domain/entities/achievement.dart';
 import '../../domain/entities/achievement_category.dart';
 import '../../domain/repositories/achievements_repository.dart';
 
@@ -76,23 +75,6 @@ final userAchievementsProvider =
   );
 });
 
-/// Provider para el detalle de un logro específico.
-/// Keyed por achievementId.
-final achievementDetailProvider =
-    FutureProvider.autoDispose.family<Achievement, int>(
-        (ref, achievementId) async {
-  final cancelToken = CancelToken();
-  ref.onDispose(() => cancelToken.cancel());
-
-  final repository = ref.read(achievementsRepositoryProvider);
-  final result = await repository.getAchievementDetail(achievementId);
-
-  return result.fold(
-    (failure) => throw Exception(failure.message),
-    (achievement) => achievement,
-  );
-});
-
 /// Provider para la lista de categorías de logros.
 ///
 /// autoDispose + keepAlive: sobrevive cambios de pestaña.
@@ -124,9 +106,7 @@ final userAchievementCategoriesProvider =
     Provider.autoDispose<AsyncValue<List<AchievementCategory>>>((ref) {
   final responseAsync = ref.watch(userAchievementsProvider);
   return responseAsync.whenData(
-    (response) => response.categories
-        .map((group) => group.category)
-        .toList(),
+    (response) => response.categories.map((group) => group.category).toList(),
   );
 });
 
