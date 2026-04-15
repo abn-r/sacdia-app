@@ -6,7 +6,8 @@ import 'evidence_section_model.dart';
 /// Mapea la respuesta JSON del módulo AnnualFolders al dominio.
 /// Campos clave:
 ///   annual_folder_id, status, total_earned_points, total_max_points,
-///   progress_percentage, template.name, sections (array).
+///   progress_percentage, template.name, sections (array),
+///   local_camporee_id, union_camporee_id, requires_union_confirmation.
 class EvidenceFolderModel extends EvidenceFolder {
   const EvidenceFolderModel({
     required super.folderId,
@@ -22,6 +23,9 @@ class EvidenceFolderModel extends EvidenceFolder {
     super.progressPercentage,
     super.evaluatedAt,
     super.status,
+    super.localCamporeeId,
+    super.unionCamporeeId,
+    super.requiresUnionConfirmation,
   });
 
   factory EvidenceFolderModel.fromJson(Map<String, dynamic> json) {
@@ -86,6 +90,10 @@ class EvidenceFolderModel extends EvidenceFolder {
       evaluatedAt: _parseDate(
           json['evaluated_at']?.toString() ?? json['evaluatedAt']?.toString()),
       status: status,
+      localCamporeeId: _parseIntNullable(json['local_camporee_id']),
+      unionCamporeeId: _parseIntNullable(json['union_camporee_id']),
+      requiresUnionConfirmation:
+          (json['requires_union_confirmation'] as bool?) ?? false,
     );
   }
 
@@ -140,5 +148,8 @@ class EvidenceFolderModel extends EvidenceFolder {
         progressPercentage: progressPercentage,
         evaluatedAt: evaluatedAt,
         status: status,
+        localCamporeeId: localCamporeeId,
+        unionCamporeeId: unionCamporeeId,
+        requiresUnionConfirmation: requiresUnionConfirmation,
       );
 }

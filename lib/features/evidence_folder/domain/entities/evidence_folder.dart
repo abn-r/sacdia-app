@@ -42,6 +42,21 @@ class EvidenceFolder extends Equatable {
   /// Complementa [isOpen] con estados más granulares del proceso de evaluación.
   final String? status;
 
+  // ── Camporee linkage ────────────────────────────────────────────────────────
+
+  /// ID del campamento local (local_camporee) al que pertenece esta carpeta.
+  /// Null si la carpeta no está vinculada a un campamento local.
+  final int? localCamporeeId;
+
+  /// ID del campamento de unión (union_camporee) al que pertenece esta carpeta.
+  /// Null si la carpeta no requiere revisión de unión.
+  final int? unionCamporeeId;
+
+  /// Si true, la aprobación de la unión es obligatoria antes de que la carpeta
+  /// pueda considerarse evaluada. Proveniente del campo requires_union_confirmation
+  /// del backend.
+  final bool requiresUnionConfirmation;
+
   const EvidenceFolder({
     required this.folderId,
     required this.id,
@@ -56,6 +71,9 @@ class EvidenceFolder extends Equatable {
     this.progressPercentage,
     this.evaluatedAt,
     this.status,
+    this.localCamporeeId,
+    this.unionCamporeeId,
+    this.requiresUnionConfirmation = false,
   });
 
   // ── Computed helpers ────────────────────────────────────────────────────────
@@ -109,5 +127,8 @@ class EvidenceFolder extends Equatable {
         progressPercentage,
         evaluatedAt,
         status,
+        localCamporeeId,
+        unionCamporeeId,
+        requiresUnionConfirmation,
       ];
 }
