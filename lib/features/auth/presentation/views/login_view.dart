@@ -78,6 +78,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
           password: _passwordController.text.trim(),
         );
 
+    if (!mounted) return;
     // Navigation handled by the router watching authNotifierProvider.
     // Error surfaced via ref.watch in build().
     final authState = ref.read(authNotifierProvider);
