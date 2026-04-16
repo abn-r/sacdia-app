@@ -84,13 +84,13 @@ const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
     route: RouteNames.homeUnits,
     requiredPermissions: {'units:update'},
   ),
-  // Administrative: group class management — classes:update is held by counselor+
+  // Administrative: group class management — classes:submit_progress is held by counselor+
   _QuickAccessItemConfig(
     label: 'Clase Agrupada',
     icon: HugeIcons.strokeRoundedBookOpen01,
     color: AppColors.primary,
     route: RouteNames.homeGroupedClass,
-    requiredPermissions: {'classes:update'},
+    requiredPermissions: {'classes:submit_progress'},
   ),
   // Administrative: insurance management
   _QuickAccessItemConfig(
