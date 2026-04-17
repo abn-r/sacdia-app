@@ -4,21 +4,40 @@ import '../../domain/entities/dashboard_summary.dart';
 class UpcomingActivityModel {
   final int id;
   final String title;
-  final DateTime date;
+
+  /// Fecha de la actividad — medianoche local del día correcto.
+  final DateTime activityDate;
+
+  /// Hora en formato "HH:mm", tal como llega del backend. Nullable.
+  final String? activityTime;
+
   final String? location;
 
   const UpcomingActivityModel({
     required this.id,
     required this.title,
-    required this.date,
+    required this.activityDate,
+    this.activityTime,
     this.location,
   });
+
+  static DateTime _parseDateOnly(String raw) {
+    final datePart = raw.split('T').first;
+    final parts = datePart.split('-');
+    if (parts.length != 3) return DateTime.now();
+    final y = int.tryParse(parts[0]);
+    final m = int.tryParse(parts[1]);
+    final d = int.tryParse(parts[2]);
+    if (y == null || m == null || d == null) return DateTime.now();
+    return DateTime(y, m, d);
+  }
 
   factory UpcomingActivityModel.fromJson(Map<String, dynamic> json) {
     return UpcomingActivityModel(
       id: json['id'] as int,
       title: json['title'] as String,
-      date: DateTime.parse(json['date'] as String),
+      activityDate: _parseDateOnly(json['activity_date'] as String),
+      activityTime: json['activity_time'] as String?,
       location: json['location'] as String?,
     );
   }
@@ -27,7 +46,9 @@ class UpcomingActivityModel {
     return {
       'id': id,
       'title': title,
-      'date': date.toIso8601String(),
+      'activity_date':
+          '${activityDate.year.toString().padLeft(4, '0')}-${activityDate.month.toString().padLeft(2, '0')}-${activityDate.day.toString().padLeft(2, '0')}',
+      'activity_time': activityTime,
       'location': location,
     };
   }
@@ -36,7 +57,8 @@ class UpcomingActivityModel {
     return UpcomingActivity(
       id: id,
       title: title,
-      date: date,
+      activityDate: activityDate,
+      activityTime: activityTime,
       location: location,
     );
   }
@@ -101,7 +123,9 @@ class DashboardSummaryModel extends DashboardSummary {
         return {
           'id': a.id,
           'title': a.title,
-          'date': a.date.toIso8601String(),
+          'activity_date':
+              '${a.activityDate.year.toString().padLeft(4, '0')}-${a.activityDate.month.toString().padLeft(2, '0')}-${a.activityDate.day.toString().padLeft(2, '0')}',
+          'activity_time': a.activityTime,
           'location': a.location,
         };
       }).toList(),

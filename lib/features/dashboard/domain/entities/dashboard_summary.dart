@@ -4,18 +4,25 @@ import 'package:equatable/equatable.dart';
 class UpcomingActivity extends Equatable {
   final int id;
   final String title;
-  final DateTime date;
+
+  /// Fecha de la actividad — medianoche local del día correcto (sin info de hora).
+  final DateTime activityDate;
+
+  /// Hora de la actividad en formato "HH:mm", o null si no fue registrada.
+  final String? activityTime;
+
   final String? location;
 
   const UpcomingActivity({
     required this.id,
     required this.title,
-    required this.date,
+    required this.activityDate,
+    this.activityTime,
     this.location,
   });
 
   @override
-  List<Object?> get props => [id, title, date, location];
+  List<Object?> get props => [id, title, activityDate, activityTime, location];
 }
 
 /// Entidad de resumen del dashboard

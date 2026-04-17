@@ -74,10 +74,10 @@ class CreateActivityRequest {
     if (additionalData != null) json['additional_data'] = additionalData;
     if (classes != null && classes!.isNotEmpty) json['classes'] = classes;
     if (activityDate != null) {
-      json['activity_date'] = activityDate!.toIso8601String();
+      json['activity_date'] = _formatDateOnly(activityDate!);
     }
     if (activityEndDate != null) {
-      json['activity_end_date'] = activityEndDate!.toIso8601String();
+      json['activity_end_date'] = _formatDateOnly(activityEndDate!);
     }
     // Joint activity: send participating section IDs
     if (clubSectionIds != null && clubSectionIds!.length >= 2) {
@@ -85,5 +85,12 @@ class CreateActivityRequest {
     }
 
     return json;
+  }
+
+  static String _formatDateOnly(DateTime d) {
+    final y = d.year.toString().padLeft(4, '0');
+    final m = d.month.toString().padLeft(2, '0');
+    final day = d.day.toString().padLeft(2, '0');
+    return '$y-$m-$day';
   }
 }

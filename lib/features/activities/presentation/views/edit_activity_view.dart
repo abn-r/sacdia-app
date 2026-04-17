@@ -44,6 +44,13 @@ class EditActivityView extends ConsumerStatefulWidget {
 class _EditActivityViewState extends ConsumerState<EditActivityView> {
   final _formKey = GlobalKey<FormState>();
 
+  static String _formatDateOnly(DateTime d) {
+    final y = d.year.toString().padLeft(4, '0');
+    final m = d.month.toString().padLeft(2, '0');
+    final day = d.day.toString().padLeft(2, '0');
+    return '$y-$m-$day';
+  }
+
   // ── Controladores de texto ─────────────────────────────────────────────────
   late final TextEditingController _nameController;
   late final TextEditingController _descriptionController;
@@ -270,8 +277,8 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
       activityTime: _timeController.text.trim().isEmpty
           ? '09:00'
           : _timeController.text.trim(),
-      activityDate: _activityDate?.toUtc().toIso8601String(),
-      activityEndDate: _activityEndDate?.toUtc().toIso8601String(),
+      activityDate: _activityDate != null ? _formatDateOnly(_activityDate!) : null,
+      activityEndDate: _activityEndDate != null ? _formatDateOnly(_activityEndDate!) : null,
       platform: _selectedPlatform,
       activityTypeId: _selectedActivityType,
       linkMeet: newLinkMeet,

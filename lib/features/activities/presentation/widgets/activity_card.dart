@@ -7,6 +7,10 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
+// La hora se muestra desde activityTime (String "HH:mm") — campo separado del backend.
+// activityDate es DATE-only (medianoche local); usarlo para la hora siempre da 00:00.
+// activityTime es la hora real que ingresó el usuario, no tiene problema de timezone.
+
 import '../../domain/entities/activity.dart';
 
 /// Card de actividad - Estilo moderno inspirado en task management
@@ -131,7 +135,7 @@ class ActivityCard extends StatelessWidget {
                       .format(activity.activityDate!.toLocal()),
                   c: c,
                 ),
-              if (activity.activityTime != null)
+              if (activity.activityTime != null && activity.activityTime!.isNotEmpty)
                 _MetaItem(
                   icon: HugeIcons.strokeRoundedClock01,
                   label: activity.activityTime!,
