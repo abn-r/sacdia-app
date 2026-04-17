@@ -7,7 +7,6 @@ import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/entities/activity.dart';
@@ -15,23 +14,27 @@ import '../providers/activities_providers.dart';
 import '../widgets/activity_attendees_section.dart';
 import '../widgets/activity_detail_skeleton.dart';
 import '../widgets/activity_hero_section.dart';
-import '../widgets/activity_metadata_grid.dart';
+import '../widgets/activity_info_strip.dart';
+import '../widgets/activity_location_row.dart';
+import '../widgets/activity_virtual_banner.dart';
 import 'edit_activity_view.dart';
 
-/// Activity detail screen — Apple Maps / Airbnb-style layout.
+/// Activity detail screen — consolidated layout (revised 2026-04).
 ///
 /// Layout:
-///   A) Edge-to-edge hero (map / image) behind the transparent AppBar
-///   B) Title + type chip row, platform badge aligned right
-///   C) 2×3 metadata grid with colored tinted backgrounds
-///   D) Description (expandable)
-///   E) Meet link card (virtual/hybrid only)
-///   F) Participants section (read-only, from attendees field)
-///   G) Creator card footer
+///   A) Adaptive hero — 220px map (presencial), 140px gradient banner (virtual),
+///      220px image hero (híbrido) — behind a transparent SliverAppBar.
+///   B) Title + type chip (left) + platform badge (right).
+///   C) ActivityInfoStrip — countdown pill + passive section pill + fecha/hora row.
+///   D) ActivityLocationRow — tap-able address (presencial / híbrido only).
+///   E) Meet CTA full-width — SacButton.primary "Unirse a la reunión" (virtual / híbrido).
+///   F) Description (expandable).
+///   G) Participants section.
+///   H) Creator footer card.
 ///
-/// The fixed bottom action bar has been removed — attendance is admin-only.
-const double _kHeroHeight = 300.0;
-
+/// Tipo and Modalidad are not duplicated in a metadata grid — they are
+/// communicated solely by the chip row above (and the CTA's presence for
+/// virtual activities).
 class ActivityDetailView extends ConsumerStatefulWidget {
   final int activityId;
 
@@ -46,6 +49,20 @@ class ActivityDetailView extends ConsumerStatefulWidget {
 
 class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
   bool _descriptionExpanded = false;
+
+  // ── hero height (platform-aware) ───────────────────────────────────────────
+
+  double _heroHeightFor(int platform) {
+    // 1 = Virtual → compact banner. 0/2 = Presencial/Híbrido → standard hero.
+    return platform == 1 ? 140.0 : 220.0;
+  }
+
+  Widget _buildHeroContent(Activity activity) {
+    if (activity.platform == 1) {
+      return ActivityVirtualBanner(activity: activity);
+    }
+    return ActivityHeroSection(activity: activity);
+  }
 
   // ── type helpers ────────────────────────────────────────────────────────────
 
@@ -74,6 +91,28 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
         return 'Camporee';
       default:
         return 'Actividad';
+    }
+  }
+
+  String _platformLabel(int platform) {
+    switch (platform) {
+      case 1:
+        return 'Virtual';
+      case 2:
+        return 'Híbrido';
+      default:
+        return 'Presencial';
+    }
+  }
+
+  Color _platformColor(int platform) {
+    switch (platform) {
+      case 1:
+        return AppColors.sacBlue;
+      case 2:
+        return AppColors.accent;
+      default:
+        return AppColors.secondary;
     }
   }
 
@@ -172,31 +211,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     return DateFormat('d MMM yyyy', 'es').format(date.toLocal());
   }
 
-  // ── build sections ──────────────────────────────────────────────────────────
-
-  // ── platform badge helpers (mirrors ActivityHeroSection) ───────────────────
-
-  String _platformLabel(int platform) {
-    switch (platform) {
-      case 1:
-        return 'Virtual';
-      case 2:
-        return 'Híbrido';
-      default:
-        return 'Presencial';
-    }
-  }
-
-  Color _platformColor(int platform) {
-    switch (platform) {
-      case 1:
-        return AppColors.sacBlue;
-      case 2:
-        return AppColors.accent;
-      default:
-        return AppColors.secondary;
-    }
-  }
+  // ── sections ────────────────────────────────────────────────────────────────
 
   Widget _buildTitleSection(BuildContext context, Activity activity) {
     final typeColor = _typeColor(activity.activityType);
@@ -215,34 +230,36 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
               ),
         ),
         const SizedBox(height: 8),
-        // Type badge (left) + Platform badge (right) on the same row
-        Row(
+        // Identity chips — grouped together on the left (no Spacer).
+        // Wrap allows graceful fallback on very narrow widths.
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            // Activity type badge
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
               decoration: BoxDecoration(
                 color: typeColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 typeText,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: typeColor,
+                  height: 1.2,
                 ),
               ),
             ),
-            const Spacer(),
-            // Platform badge — moved here from hero overlay
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
               decoration: BoxDecoration(
-                color: platColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(20),
+                color: platColor.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: platColor.withValues(alpha: 0.3),
+                  color: platColor.withValues(alpha: 0.35),
                   width: 1,
                 ),
               ),
@@ -252,6 +269,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: platColor,
+                  height: 1.2,
                 ),
               ),
             ),
@@ -284,7 +302,6 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
   }
 
   Widget _buildDescriptionSection(BuildContext context, String description) {
-    // Warm gray — slightly warmer than pure slate-500
     const warmGray = Color(0xFF6B7280);
 
     return Column(
@@ -331,74 +348,6 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
             ),
           ),
       ],
-    );
-  }
-
-  Widget _buildMeetLinkSection(BuildContext context, String url) {
-    return SacCard(
-      padding: const EdgeInsets.all(16),
-      borderColor: AppColors.sacBlue.withValues(alpha: 0.3),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.sacBlue.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Center(
-              child: HugeIcon(
-                icon: HugeIcons.strokeRoundedComputerVideoCall,
-                size: 20,
-                color: AppColors.sacBlue,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Reunión virtual',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Unirse a la llamada',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: context.sac.textSecondary,
-                      ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          SizedBox(
-            height: 36,
-            child: ElevatedButton(
-              onPressed: () => _openMeetLink(url),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.sacBlue,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                textStyle: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              child: const Text('Unirse'),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -468,8 +417,15 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.35),
+          color: Colors.black.withValues(alpha: 0.55),
           shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.25),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Center(child: child),
       ),
@@ -547,53 +503,97 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
           ),
 
           data: (activity) {
+            final heroHeight = _heroHeightFor(activity.platform);
+            final hasLocation = activity.platform != 1 &&
+                activity.activityPlace.trim().isNotEmpty;
+
             return CustomScrollView(
               slivers: [
-                // ── Edge-to-edge hero SliverAppBar ────────────────────────
+                // A) Hero SliverAppBar
                 SliverAppBar(
                   pinned: true,
-                  expandedHeight: _kHeroHeight,
+                  expandedHeight: heroHeight,
                   backgroundColor: context.sac.background,
-                  // Transparent when expanded, solid when collapsed
                   surfaceTintColor: Colors.transparent,
                   systemOverlayStyle: SystemUiOverlayStyle.light,
-                  // Use default leading for collapsed state
-                  leading: IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                  // When collapsed: show title
-                  title: Text(
-                    activity.name,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  // Collapsed AppBar uses the default surface color (already set above)
+                  automaticallyImplyLeading: false,
                   flexibleSpace: LayoutBuilder(
                     builder: (context, constraints) {
-                      // Detect if the app bar is collapsed
                       final topPadding = MediaQuery.of(context).padding.top;
                       final collapsedHeight = kToolbarHeight + topPadding;
                       final isCollapsed =
                           constraints.maxHeight <= collapsedHeight + 1;
+                      // Fade factor: 0 when fully expanded, 1 when collapsed.
+                      final range = heroHeight - collapsedHeight;
+                      final collapseProgress = range <= 0
+                          ? 1.0
+                          : (1 -
+                                  (constraints.maxHeight - collapsedHeight) /
+                                      range)
+                              .clamp(0.0, 1.0);
 
                       return Stack(
                         fit: StackFit.expand,
                         children: [
-                          // Hero content — full bleed, no border radius
                           RepaintBoundary(
                             child: Visibility(
                               visible: !isCollapsed,
                               maintainState: true,
                               maintainAnimation: true,
-                              child: ActivityHeroSection(activity: activity),
+                              child: _buildHeroContent(activity),
                             ),
                           ),
-                          // Collapsed: just a solid background (handled by backgroundColor)
-                          // Status-bar-aware action buttons (always visible)
+                          // Top gradient scrim — guarantees contrast for
+                          // floating action buttons regardless of hero
+                          // content (busy map, bright image, etc.).
+                          if (!isCollapsed)
+                            Positioned(
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              height: topPadding + kToolbarHeight + 16,
+                              child: IgnorePointer(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.black.withValues(alpha: 0.38),
+                                        Colors.transparent,
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          // Collapsed title — fades in as the header collapses.
+                          Positioned(
+                            top: topPadding,
+                            left: 56,
+                            right: 110,
+                            height: kToolbarHeight,
+                            child: IgnorePointer(
+                              child: Opacity(
+                                opacity: collapseProgress,
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    activity.name,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: context.sac.text,
+                                        ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                           Positioned(
                             top: topPadding + 8,
                             left: 12,
@@ -653,7 +653,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                   ),
                 ),
 
-                // ── Scrollable content sheet ───────────────────────────────
+                // ── Scrollable content ───────────────────────────────────
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -662,39 +662,48 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                       children: [
                         const SizedBox(height: 20),
 
-                        // B) Title + type chip + platform badge row
+                        // B) Title + type chip + platform badge
                         _buildTitleSection(context, activity),
 
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 6),
 
-                        // C) Metadata grid
-                        ActivityMetadataGrid(activity: activity),
+                        // C) Primary info strip (meta line + fecha/hora card)
+                        ActivityInfoStrip(activity: activity),
 
-                        // D) Description — reduced gap from grid
+                        // D) Location row (presencial / híbrido)
+                        if (hasLocation) ...[
+                          const SizedBox(height: 10),
+                          ActivityLocationRow(activity: activity),
+                        ],
+
+                        // E) Meet CTA (virtual / híbrido)
+                        if (activity.hasVirtualLink) ...[
+                          const SizedBox(height: 12),
+                          SacButton.primary(
+                            text: 'Unirse a la reunión',
+                            icon: HugeIcons.strokeRoundedComputerVideoCall,
+                            onPressed: () => _openMeetLink(activity.linkMeet!),
+                          ),
+                        ],
+
+                        // F) Description
                         if (activity.description != null &&
                             activity.description!.isNotEmpty) ...[
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 24),
                           _buildDescriptionSection(
                               context, activity.description!),
                         ],
 
-                        // E) Meet link
-                        if (activity.hasVirtualLink) ...[
-                          const SizedBox(height: 20),
-                          _buildMeetLinkSection(context, activity.linkMeet!),
-                        ],
-
-                        // F) Participants (read-only from attendees field)
-                        const SizedBox(height: 20),
+                        // G) Participants
+                        const SizedBox(height: 24),
                         ActivityAttendeesSection(
                           attendees: activity.attendees ?? [],
                         ),
 
-                        // G) Creator footer card
+                        // H) Creator footer
                         const SizedBox(height: 20),
                         _buildCreatorFooter(context, activity),
 
-                        // Bottom padding — no fixed bar, just natural scroll space
                         const SizedBox(height: 40),
                       ],
                     ),

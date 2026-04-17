@@ -259,37 +259,9 @@ class ActivityHeroSection extends StatelessWidget {
             ),
           ),
         ),
-        // "Finalizada" badge — top left when past
-        if (activity.isPast)
-          Positioned(
-            top: 12,
-            left: 12,
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.55),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.check_circle_outline,
-                      size: 12, color: Colors.white70),
-                  SizedBox(width: 4),
-                  Text(
-                    'Finalizada',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white70,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+        // Note: "Finalizada" state is signaled via the countdown pill in
+        // ActivityInfoStrip below the hero — no badge here to avoid status-bar
+        // collision and redundancy.
       ],
     );
   }
