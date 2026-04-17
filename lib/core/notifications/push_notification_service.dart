@@ -10,6 +10,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/route_names.dart';
+import '../realtime/feature_flags.dart';
+import '../realtime/realtime_invalidation_handler.dart';
+import '../realtime/realtime_ref.dart';
 import '../utils/app_logger.dart';
 import '../../features/notifications/presentation/providers/notifications_providers.dart';
 import '../../features/notifications/presentation/providers/unread_notifications_count_provider.dart';
@@ -20,6 +23,17 @@ import '../../features/notifications/presentation/providers/unread_notifications
 /// Firebase Messaging calls it in an isolate separate from the main app.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // INVALIDATE data messages must be staged BEFORE the notification-null guard
+  // below because they carry no notification object by design. Riverpod is NOT
+  // accessible from this isolate — we write to SharedPreferences and drain on
+  // the next app resume (see RealtimeInvalidationHandler.drainPending).
+  if (message.data['action'] == 'INVALIDATE') {
+    if (RealtimeFeatureFlags.realtimeInvalidationEnabled) {
+      await RealtimeInvalidationHandler.stagePending(message);
+    }
+    return;
+  }
+
   // Firebase is already initialized by the time this is called.
   // Just log in debug — the OS notification tray handles display.
   if (kDebugMode) {
@@ -328,6 +342,19 @@ class PushNotificationService {
       'Mensaje FCM en foreground: ${message.notification?.title}',
       tag: _tag,
     );
+
+    // INVALIDATE data messages are intercepted BEFORE the notification-null
+    // guard because they intentionally carry no notification payload.
+    // They are handled silently — no inbox entry, no badge, no snackbar.
+    if (message.data['action'] == 'INVALIDATE') {
+      if (RealtimeFeatureFlags.realtimeInvalidationEnabled) {
+        RealtimeInvalidationHandler.handleForeground(
+          message,
+          RealtimeRef.fromRef(_ref),
+        );
+      }
+      return;
+    }
 
     final notification = message.notification;
     if (notification == null) return;
