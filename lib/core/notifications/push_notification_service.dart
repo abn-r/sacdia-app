@@ -27,7 +27,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // below because they carry no notification object by design. Riverpod is NOT
   // accessible from this isolate — we write to SharedPreferences and drain on
   // the next app resume (see RealtimeInvalidationHandler.drainPending).
-  if (message.data['action'] == 'INVALIDATE') {
+  if (message.data['type'] == 'cache_invalidate') {
     if (RealtimeFeatureFlags.realtimeInvalidationEnabled) {
       await RealtimeInvalidationHandler.stagePending(message);
     }
@@ -343,10 +343,10 @@ class PushNotificationService {
       tag: _tag,
     );
 
-    // INVALIDATE data messages are intercepted BEFORE the notification-null
+    // cache_invalidate data messages are intercepted BEFORE the notification-null
     // guard because they intentionally carry no notification payload.
     // They are handled silently — no inbox entry, no badge, no snackbar.
-    if (message.data['action'] == 'INVALIDATE') {
+    if (message.data['type'] == 'cache_invalidate') {
       if (RealtimeFeatureFlags.realtimeInvalidationEnabled) {
         RealtimeInvalidationHandler.handleForeground(
           message,

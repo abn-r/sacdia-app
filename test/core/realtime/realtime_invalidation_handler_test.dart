@@ -26,18 +26,18 @@ class _CapturingRealtimeRef implements RealtimeRef {
   }
 }
 
-/// Builds a minimal [RemoteMessage] carrying an INVALIDATE data payload.
+/// Builds a minimal [RemoteMessage] carrying a cache_invalidate data payload.
 RemoteMessage _buildInvalidateMessage({
   required String resource,
   required String sectionId,
   String? timestamp,
-  String action = 'INVALIDATE',
+  String type = 'cache_invalidate',
 }) {
   return RemoteMessage(
     data: {
-      'action': action,
+      'type': type,
       'resource': resource,
-      'section_id': sectionId,
+      'sectionId': sectionId,
       if (timestamp != null) 'timestamp': timestamp,
     },
   );
@@ -74,7 +74,7 @@ void main() {
       final queue = await _readQueue();
       expect(queue.length, 1);
       expect(queue.first['resource'], 'activities');
-      expect(queue.first['section_id'], '7');
+      expect(queue.first['sectionId'], '7');
       expect(queue.first['timestamp'], '2025-01-01T10:00:00Z');
     });
 
@@ -99,13 +99,13 @@ void main() {
 
       final queue = await _readQueue();
       expect(queue.length, 2);
-      expect(queue[0]['section_id'], '1');
-      expect(queue[1]['section_id'], '2');
+      expect(queue[0]['sectionId'], '1');
+      expect(queue[1]['sectionId'], '2');
     });
 
     test('handles missing resource field gracefully (no throw)', () async {
       final msg = RemoteMessage(
-        data: {'action': 'INVALIDATE', 'section_id': '5'},
+        data: {'type': 'cache_invalidate', 'sectionId': '5'},
       );
       await expectLater(
         RealtimeInvalidationHandler.stagePending(msg),
@@ -115,9 +115,9 @@ void main() {
       expect(await _readQueue(), isEmpty);
     });
 
-    test('handles missing section_id field gracefully (no throw)', () async {
+    test('handles missing sectionId field gracefully (no throw)', () async {
       final msg = RemoteMessage(
-        data: {'action': 'INVALIDATE', 'resource': 'activities'},
+        data: {'type': 'cache_invalidate', 'resource': 'activities'},
       );
       await expectLater(
         RealtimeInvalidationHandler.stagePending(msg),
@@ -141,7 +141,7 @@ void main() {
       final queue = await _readQueue();
       // After corruption recovery, only the new entry should be present.
       expect(queue.length, 1);
-      expect(queue.first['section_id'], '3');
+      expect(queue.first['sectionId'], '3');
     });
   });
 
@@ -168,12 +168,12 @@ void main() {
         'pending_realtime_invalidations': jsonEncode([
           {
             'resource': 'activities',
-            'section_id': '1',
+            'sectionId': '1',
             'timestamp': '2025-01-01T10:00:00Z',
           },
           {
             'resource': 'activities',
-            'section_id': '2',
+            'sectionId': '2',
             'timestamp': '2025-01-01T10:01:00Z',
           },
         ]),
@@ -192,17 +192,17 @@ void main() {
         'pending_realtime_invalidations': jsonEncode([
           {
             'resource': 'activities',
-            'section_id': '5',
+            'sectionId': '5',
             'timestamp': '2025-01-01T10:00:00Z',
           },
           {
             'resource': 'activities',
-            'section_id': '5',
+            'sectionId': '5',
             'timestamp': '2025-01-01T10:30:00Z', // later — should win
           },
           {
             'resource': 'activities',
-            'section_id': '5',
+            'sectionId': '5',
             'timestamp': '2025-01-01T09:00:00Z', // earlier — should be dropped
           },
         ]),
@@ -220,7 +220,7 @@ void main() {
         'pending_realtime_invalidations': jsonEncode([
           {
             'resource': 'activities',
-            'section_id': '3',
+            'sectionId': '3',
             'timestamp': '2025-01-01T10:00:00Z',
           },
         ]),
@@ -265,7 +265,7 @@ void main() {
         'pending_realtime_invalidations': jsonEncode([
           {
             'resource': 'activities',
-            'section_id': 'not-a-number',
+            'sectionId': 'not-a-number',
             'timestamp': '2025-01-01T10:00:00Z',
           },
         ]),
@@ -306,7 +306,7 @@ void main() {
 
     test('ignores message with missing resource field', () {
       final msg = RemoteMessage(
-        data: {'action': 'INVALIDATE', 'section_id': '5'},
+        data: {'type': 'cache_invalidate', 'sectionId': '5'},
       );
       final ref = _CapturingRealtimeRef();
       expect(
@@ -316,12 +316,12 @@ void main() {
       expect(dispatchedKeys, isEmpty);
     });
 
-    test('ignores message with non-integer section_id', () {
+    test('ignores message with non-integer sectionId', () {
       final msg = RemoteMessage(
         data: {
-          'action': 'INVALIDATE',
+          'type': 'cache_invalidate',
           'resource': 'activities',
-          'section_id': 'bad',
+          'sectionId': 'bad',
         },
       );
       final ref = _CapturingRealtimeRef();
@@ -335,9 +335,9 @@ void main() {
     test('unknown resource does not throw', () {
       final msg = RemoteMessage(
         data: {
-          'action': 'INVALIDATE',
+          'type': 'cache_invalidate',
           'resource': 'nonexistent',
-          'section_id': '1',
+          'sectionId': '1',
         },
       );
       final ref = _CapturingRealtimeRef();

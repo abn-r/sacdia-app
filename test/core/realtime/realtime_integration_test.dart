@@ -38,13 +38,13 @@ class _SpyRealtimeRef implements RealtimeRef {
 RemoteMessage _makeMessage({
   required String resource,
   required String sectionId,
-  String action = 'INVALIDATE',
+  String type = 'cache_invalidate',
 }) {
   return RemoteMessage(
     data: {
-      'action': action,
+      'type': type,
       'resource': resource,
-      'section_id': sectionId,
+      'sectionId': sectionId,
     },
   );
 }
@@ -148,7 +148,7 @@ void main() {
 
     test('message with missing resource does not throw', () {
       final msg = RemoteMessage(
-        data: {'action': 'INVALIDATE', 'section_id': '1'},
+        data: {'type': 'cache_invalidate', 'sectionId': '1'},
       );
       final ref = _SpyRealtimeRef();
 
@@ -159,12 +159,12 @@ void main() {
       expect(captured, isEmpty);
     });
 
-    test('message with malformed section_id does not throw', () {
+    test('message with malformed sectionId does not throw', () {
       final msg = RemoteMessage(
         data: {
-          'action': 'INVALIDATE',
+          'type': 'cache_invalidate',
           'resource': 'activities',
-          'section_id': 'abc',
+          'sectionId': 'abc',
         },
       );
       final ref = _SpyRealtimeRef();

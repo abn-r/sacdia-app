@@ -20,7 +20,7 @@ import 'realtime_resource_registry.dart';
 /// app resume [drainPending] reads, deduplicates and processes the queue.
 ///
 /// ## Deduplication
-/// Multiple background messages for the same (resource, section_id) pair are
+/// Multiple background messages for the same (resource, sectionId) pair are
 /// collapsed into one — keeping the entry with the latest timestamp. This
 /// prevents redundant network fetches when several mutations arrive while the
 /// app is backgrounded.
@@ -35,18 +35,20 @@ class RealtimeInvalidationHandler {
   /// Called when the app is in the foreground and an INVALIDATE FCM message
   /// arrives (via [FirebaseMessaging.onMessage]).
   ///
-  /// Parses [resource] and [section_id] from [msg.data], then delegates to
+  /// Parses [resource] and [sectionId] from [msg.data], then delegates to
   /// [RealtimeResourceRegistry]. Errors are caught and logged — a bad payload
   /// must never crash the app.
   static void handleForeground(RemoteMessage msg, RealtimeRef ref) {
     try {
       final data = msg.data;
+      // Discriminator matches backend `type: 'cache_invalidate'` from
+      // notifications.processor.ts sendSilentMulticast.
       final resource = data['resource'] as String?;
-      final rawSectionId = data['section_id'] as String?;
+      final rawSectionId = data['sectionId'] as String?;
 
       if (resource == null || rawSectionId == null) {
         AppLogger.w(
-          'INVALIDATE message missing resource or section_id fields',
+          'cache_invalidate message missing resource or sectionId fields',
           tag: _tag,
         );
         return;
@@ -55,14 +57,14 @@ class RealtimeInvalidationHandler {
       final sectionId = int.tryParse(rawSectionId);
       if (sectionId == null) {
         AppLogger.w(
-          'INVALIDATE message has non-integer section_id: "$rawSectionId"',
+          'cache_invalidate message has non-integer sectionId: "$rawSectionId"',
           tag: _tag,
         );
         return;
       }
 
       AppLogger.i(
-        'Foreground invalidation: resource=$resource section_id=$sectionId',
+        'Foreground invalidation: resource=$resource sectionId=$sectionId',
         tag: _tag,
       );
 
@@ -89,13 +91,13 @@ class RealtimeInvalidationHandler {
     try {
       final data = msg.data;
       final resource = data['resource'] as String?;
-      final sectionId = data['section_id'] as String?;
+      final sectionId = data['sectionId'] as String?;
       final timestamp =
           data['timestamp'] as String? ?? DateTime.now().toIso8601String();
 
       if (resource == null || sectionId == null) {
         AppLogger.w(
-          'Background INVALIDATE message missing resource or section_id',
+          'Background cache_invalidate message missing resource or sectionId',
           tag: _tag,
         );
         return;
@@ -119,14 +121,14 @@ class RealtimeInvalidationHandler {
 
       queue.add({
         'resource': resource,
-        'section_id': sectionId,
+        'sectionId': sectionId,
         'timestamp': timestamp,
       });
 
       await prefs.setString(_prefsKey, jsonEncode(queue));
 
       AppLogger.i(
-        'Staged background invalidation: resource=$resource section_id=$sectionId',
+        'Staged background invalidation: resource=$resource sectionId=$sectionId',
         tag: _tag,
       );
     } catch (e, st) {
@@ -142,7 +144,7 @@ class RealtimeInvalidationHandler {
   // ── Drain on resume ────────────────────────────────────────────────────────
 
   /// Reads the pending queue from [SharedPreferences], deduplicates entries by
-  /// (resource, section_id) keeping the latest timestamp, dispatches each
+  /// (resource, sectionId) keeping the latest timestamp, dispatches each
   /// to [RealtimeResourceRegistry], then clears the queue.
   ///
   /// Call this from an [AppLifecycleState.resumed] observer so background
@@ -176,11 +178,11 @@ class RealtimeInvalidationHandler {
         return;
       }
 
-      // Deduplicate: keep the entry with the latest timestamp per (resource, section_id) pair.
+      // Deduplicate: keep the entry with the latest timestamp per (resource, sectionId) pair.
       final Map<String, Map<String, String>> best = {};
       for (final entry in queue) {
         final resource = entry['resource'];
-        final sectionId = entry['section_id'];
+        final sectionId = entry['sectionId'];
         if (resource == null || sectionId == null) continue;
 
         final key = '$resource|$sectionId';
@@ -209,12 +211,12 @@ class RealtimeInvalidationHandler {
 
       for (final entry in best.values) {
         final resource = entry['resource']!;
-        final rawSectionId = entry['section_id']!;
+        final rawSectionId = entry['sectionId']!;
         final sectionId = int.tryParse(rawSectionId);
 
         if (sectionId == null) {
           AppLogger.w(
-            'Skipping drained entry with invalid section_id: "$rawSectionId"',
+            'Skipping drained entry with invalid sectionId: "$rawSectionId"',
             tag: _tag,
           );
           continue;
