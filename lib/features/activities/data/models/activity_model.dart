@@ -16,6 +16,7 @@ class ActivityModel extends Equatable {
   final bool active;
   final int clubSectionId;
   final int clubTypeId;
+  final String? clubTypeName;
   final String? linkMeet;
   final DateTime? createdAt;
 
@@ -49,6 +50,7 @@ class ActivityModel extends Equatable {
     required this.active,
     required this.clubSectionId,
     required this.clubTypeId,
+    this.clubTypeName,
     this.linkMeet,
     this.createdAt,
     this.lat,
@@ -64,6 +66,18 @@ class ActivityModel extends Equatable {
     this.instances,
   });
 
+  static DateTime? _parseDateOnly(String? raw) {
+    if (raw == null) return null;
+    final datePart = raw.split('T').first;
+    final parts = datePart.split('-');
+    if (parts.length != 3) return null;
+    final y = int.tryParse(parts[0]);
+    final m = int.tryParse(parts[1]);
+    final d = int.tryParse(parts[2]);
+    if (y == null || m == null || d == null) return null;
+    return DateTime(y, m, d);
+  }
+
   /// Crea una instancia desde JSON
   factory ActivityModel.fromJson(Map<String, dynamic> json) {
     final activityTypeNested = json['activity_types'] as Map<String, dynamic>?;
@@ -71,6 +85,15 @@ class ActivityModel extends Equatable {
         (json['activity_type'] as int?) ??
         (activityTypeNested?['activity_type_id'] as int?) ??
         1;
+
+    // Club type name — backend include sends it top-level and nested under
+    // club_sections. Prefer top-level, fall back to nested.
+    final clubTypesNested = json['club_types'] as Map<String, dynamic>?;
+    final clubSectionsNested = json['club_sections'] as Map<String, dynamic>?;
+    final clubSectionTypesNested =
+        clubSectionsNested?['club_types'] as Map<String, dynamic>?;
+    final clubTypeName = (clubTypesNested?['name'] as String?) ??
+        (clubSectionTypesNested?['name'] as String?);
 
     // Creator info from nested users object
     final usersNested = json['users'] as Map<String, dynamic>?;
@@ -128,18 +151,15 @@ class ActivityModel extends Equatable {
       active: (json['active'] as bool?) ?? false,
       clubSectionId: (json['club_section_id'] as int?) ?? 0,
       clubTypeId: (json['club_type_id'] as int?) ?? 0,
+      clubTypeName: clubTypeName,
       linkMeet: json['link_meet'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String)
           : null,
       lat: (json['lat'] as num?)?.toDouble(),
       longitude: (json['long'] as num?)?.toDouble(),
-      activityDate: json['activity_date'] != null
-          ? DateTime.tryParse(json['activity_date'] as String)
-          : null,
-      activityEndDate: json['activity_end_date'] != null
-          ? DateTime.tryParse(json['activity_end_date'] as String)
-          : null,
+      activityDate: _parseDateOnly(json['activity_date'] as String?),
+      activityEndDate: _parseDateOnly(json['activity_end_date'] as String?),
       attendees: attendees,
       classes: classes,
       additionalData: json['additional_data'] as String?,
@@ -193,6 +213,7 @@ class ActivityModel extends Equatable {
       active: active,
       clubSectionId: clubSectionId,
       clubTypeId: clubTypeId,
+      clubTypeName: clubTypeName,
       linkMeet: linkMeet,
       createdAt: createdAt,
       lat: lat,
@@ -223,6 +244,7 @@ class ActivityModel extends Equatable {
         active,
         clubSectionId,
         clubTypeId,
+        clubTypeName,
         linkMeet,
         createdAt,
         lat,

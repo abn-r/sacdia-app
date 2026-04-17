@@ -15,6 +15,7 @@ class Activity extends Equatable {
   final bool active;
   final int clubSectionId;
   final int clubTypeId;
+  final String? clubTypeName;
   final String? linkMeet;
   final DateTime? createdAt;
 
@@ -48,6 +49,7 @@ class Activity extends Equatable {
     required this.active,
     required this.clubSectionId,
     required this.clubTypeId,
+    this.clubTypeName,
     this.linkMeet,
     this.createdAt,
     this.lat,
@@ -91,6 +93,7 @@ class Activity extends Equatable {
         active,
         clubSectionId,
         clubTypeId,
+        clubTypeName,
         linkMeet,
         createdAt,
         lat,
