@@ -6,148 +6,220 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/evidence_section.dart';
 
-/// Timeline visual del flujo de estados de una sección:
-/// Pendiente → Enviado → Validado.
+/// Timeline horizontal del flujo de estados de una sección:
+/// Pendiente → Enviado → Preaprobado (LF) → Validado.
 ///
-/// Cada paso muestra nombre, fecha (si aplica) y actor (si aplica).
+/// Muestra los pasos como círculos conectados por líneas horizontales,
+/// con etiquetas debajo de cada dot. Solo el paso activo muestra el sublabel.
 class StatusTimeline extends StatelessWidget {
   final EvidenceSectionStatus currentStatus;
   final String? submittedByName;
   final DateTime? submittedAt;
-  final String? validatedByName;
-  final DateTime? validatedAt;
+  final String? lfApproverName;
+  final DateTime? lfApprovedAt;
+  final String? unionApproverName;
+  final DateTime? unionApprovedAt;
+  final String? evaluationNotes;
 
   const StatusTimeline({
     super.key,
     required this.currentStatus,
     this.submittedByName,
     this.submittedAt,
-    this.validatedByName,
-    this.validatedAt,
+    this.lfApproverName,
+    this.lfApprovedAt,
+    this.unionApproverName,
+    this.unionApprovedAt,
+    this.evaluationNotes,
   });
+
+  bool get _hasPreapprovedStep =>
+      currentStatus == EvidenceSectionStatus.preapprovedLf ||
+      currentStatus == EvidenceSectionStatus.validated ||
+      lfApproverName != null;
+
+  bool get _isRejected => currentStatus == EvidenceSectionStatus.rejected;
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
     final dateFormat = DateFormat('d MMM yyyy, HH:mm', 'es');
+
+    final showPreapproved = _hasPreapprovedStep;
 
     final steps = [
       _TimelineStep(
         label: 'Pendiente',
         sublabel: 'En espera de evidencias',
         icon: HugeIcons.strokeRoundedClock01,
-        isCompleted: true, // siempre fue pendiente alguna vez
-        isActive: currentStatus == EvidenceSectionStatus.pendiente,
+        isCompleted: true,
+        isActive: currentStatus == EvidenceSectionStatus.pending,
         activeColor: AppColors.accent,
       ),
       _TimelineStep(
         label: 'Enviado',
         sublabel: submittedByName != null && submittedAt != null
-            ? 'Por $submittedByName · ${dateFormat.format(submittedAt!)}'
+            ? 'Por $submittedByName · ${dateFormat.format(submittedAt!.toLocal())}'
             : submittedByName != null
                 ? 'Por $submittedByName'
                 : 'Esperando envío',
         icon: HugeIcons.strokeRoundedSent,
-        isCompleted: currentStatus == EvidenceSectionStatus.enviado ||
-            currentStatus == EvidenceSectionStatus.validado,
-        isActive: currentStatus == EvidenceSectionStatus.enviado,
+        isCompleted: currentStatus == EvidenceSectionStatus.submitted ||
+            currentStatus == EvidenceSectionStatus.validated ||
+            currentStatus == EvidenceSectionStatus.rejected ||
+            currentStatus == EvidenceSectionStatus.preapprovedLf,
+        isActive: currentStatus == EvidenceSectionStatus.submitted,
         activeColor: AppColors.sacBlue,
       ),
-      _TimelineStep(
-        label: 'Validado',
-        sublabel: validatedByName != null && validatedAt != null
-            ? 'Por $validatedByName · ${dateFormat.format(validatedAt!)}'
-            : validatedByName != null
-                ? 'Por $validatedByName'
-                : 'Esperando validación',
-        icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-        isCompleted: currentStatus == EvidenceSectionStatus.validado,
-        isActive: currentStatus == EvidenceSectionStatus.validado,
-        activeColor: AppColors.secondary,
-      ),
+      if (_isRejected)
+        _TimelineStep(
+          label: 'Rechazado',
+          sublabel: lfApproverName != null
+              ? 'Por $lfApproverName'
+              : 'Sección rechazada',
+          icon: HugeIcons.strokeRoundedCancel01,
+          isCompleted: true,
+          isActive: true,
+          activeColor: AppColors.error,
+        )
+      else ...[
+        if (!_isRejected && showPreapproved) ...[
+          _TimelineStep(
+            label: 'Preaprobado',
+            sublabel: lfApproverName != null && lfApprovedAt != null
+                ? 'Por $lfApproverName · ${dateFormat.format(lfApprovedAt!.toLocal())}'
+                : lfApproverName != null
+                    ? 'Por $lfApproverName'
+                    : 'Revisión de campo local',
+            icon: HugeIcons.strokeRoundedAnalytics01,
+            isCompleted: currentStatus == EvidenceSectionStatus.preapprovedLf ||
+                currentStatus == EvidenceSectionStatus.validated,
+            isActive: currentStatus == EvidenceSectionStatus.preapprovedLf,
+            activeColor: AppColors.accentDark,
+          ),
+        ],
+        _TimelineStep(
+          label: 'Validado',
+          sublabel: unionApproverName != null && unionApprovedAt != null
+              ? 'Por $unionApproverName · ${dateFormat.format(unionApprovedAt!.toLocal())}'
+              : unionApproverName != null
+                  ? 'Por $unionApproverName'
+                  : lfApproverName != null && !showPreapproved
+                      ? 'Por $lfApproverName'
+                      : 'Esperando validación',
+          icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+          isCompleted: currentStatus == EvidenceSectionStatus.validated,
+          isActive: currentStatus == EvidenceSectionStatus.validated,
+          activeColor: AppColors.secondary,
+        ),
+      ],
     ];
 
-    return Column(
-      children: List.generate(steps.length, (index) {
-        final step = steps[index];
-        final isLast = index == steps.length - 1;
+    // The dot diameter used throughout the layout.
+    const double dotSize = 28.0;
 
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Dot + vertical line
-            Column(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: step.isCompleted || step.isActive
-                        ? step.activeColor
-                        : c.surfaceVariant,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: step.isCompleted || step.isActive
-                          ? step.activeColor
-                          : c.border,
-                      width: 2,
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: List.generate(steps.length * 2 - 1, (index) {
+          // Even indices → step nodes; odd indices → connecting lines.
+          if (index.isOdd) {
+            final stepIndex = index ~/ 2;
+            final step = steps[stepIndex];
+            // Expanded connector fills available space between steps.
+            return Expanded(
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: dotSize,
+                    child: Center(
+                      child: Container(
+                        height: 2,
+                        color: step.isCompleted
+                            ? step.activeColor
+                            : context.sac.border,
+                      ),
                     ),
                   ),
+                  // Empty space below to match label area height.
+                  const SizedBox(height: 4 + 14 + 2 + 11),
+                ],
+              ),
+            );
+          }
+
+          final stepIndex = index ~/ 2;
+          final step = steps[stepIndex];
+          final c = context.sac;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Dot
+              Container(
+                width: dotSize,
+                height: dotSize,
+                decoration: BoxDecoration(
+                  color: step.isCompleted || step.isActive
+                      ? step.activeColor
+                      : c.surfaceVariant,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: step.isCompleted || step.isActive
+                        ? step.activeColor
+                        : c.border,
+                    width: 2,
+                  ),
+                ),
+                child: Center(
                   child: HugeIcon(
                     icon: step.icon,
-                    size: 16,
+                    size: 14,
                     color: step.isCompleted || step.isActive
                         ? Colors.white
                         : c.textTertiary,
                   ),
                 ),
-                if (!isLast)
-                  Container(
-                    width: 2,
-                    height: 36,
-                    color: step.isCompleted ? step.activeColor : c.border,
-                  ),
-              ],
-            ),
-            const SizedBox(width: 12),
+              ),
 
-            // Labels
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(
-                    top: 6, bottom: isLast ? 0 : 28),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      step.label,
-                      style:
-                          Theme.of(context).textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: step.isActive
-                                    ? step.activeColor
-                                    : step.isCompleted
-                                        ? step.activeColor.withValues(
-                                            alpha: 0.8)
-                                        : c.textTertiary,
-                              ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      step.sublabel,
-                      style:
-                          Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: c.textSecondary,
-                                height: 1.35,
-                              ),
-                    ),
-                  ],
+              const SizedBox(height: 4),
+
+              // Main label
+              Text(
+                step.label,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  height: 1.2,
+                  color: step.isActive
+                      ? step.activeColor
+                      : step.isCompleted
+                          ? step.activeColor.withValues(alpha: 0.8)
+                          : c.textTertiary,
                 ),
               ),
-            ),
-          ],
-        );
-      }),
+
+              // Sublabel — only visible for the active step
+              if (step.isActive) ...[
+                const SizedBox(height: 2),
+                Text(
+                  step.sublabel,
+                  textAlign: TextAlign.center,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10,
+                    height: 1.3,
+                    color: c.textSecondary,
+                  ),
+                ),
+              ],
+            ],
+          );
+        }),
+      ),
     );
   }
 }

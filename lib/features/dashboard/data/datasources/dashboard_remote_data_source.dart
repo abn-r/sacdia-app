@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/dashboard_summary_model.dart';
@@ -8,7 +8,7 @@ import '../models/dashboard_summary_model.dart';
 /// Interfaz para la fuente de datos remota del dashboard
 abstract class DashboardRemoteDataSource {
   /// Obtiene el resumen del dashboard del usuario autenticado
-  Future<DashboardSummaryModel> getDashboardSummary();
+  Future<DashboardSummaryModel> getDashboardSummary({CancelToken? cancelToken});
 }
 
 /// Implementación de la fuente de datos remota del dashboard
@@ -17,7 +17,6 @@ abstract class DashboardRemoteDataSource {
 class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'DashboardDS';
 
@@ -25,25 +24,14 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) throw AuthException(message: 'No hay sesión activa');
-    return token;
-  }
-
-  Options _authOptions(String token) =>
-      Options(headers: {'Authorization': 'Bearer $token'});
+        _baseUrl = baseUrl;
 
   @override
-  Future<DashboardSummaryModel> getDashboardSummary() async {
+  Future<DashboardSummaryModel> getDashboardSummary({CancelToken? cancelToken}) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/dashboard/summary',
-        options: _authOptions(token),
+        '$_baseUrl${ApiEndpoints.dashboard}/summary',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -83,7 +71,9 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
       if (data is Map) {
         return (data['message'] ?? e.message ?? 'Error de conexión').toString();
       }
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
+    }
     return e.message ?? 'Error de conexión';
   }
 }

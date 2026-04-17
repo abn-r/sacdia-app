@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -21,14 +22,13 @@ class InsuranceRepositoryImpl implements InsuranceRepository {
   Future<Either<Failure, List<MemberInsurance>>> getMembersInsurance({
     required int clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final models = await remoteDataSource.getMembersInsurance(
         clubId: clubId,
         sectionId: sectionId,
+        cancelToken: cancelToken,
       );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
@@ -43,13 +43,13 @@ class InsuranceRepositoryImpl implements InsuranceRepository {
   @override
   Future<Either<Failure, MemberInsurance>> getMemberInsuranceDetail({
     required String memberId,
+    CancelToken? cancelToken,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
-      final model =
-          await remoteDataSource.getMemberInsuranceDetail(memberId: memberId);
+      final model = await remoteDataSource.getMemberInsuranceDetail(
+        memberId: memberId,
+        cancelToken: cancelToken,
+      );
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
@@ -73,9 +73,6 @@ class InsuranceRepositoryImpl implements InsuranceRepository {
     String? evidenceFileName,
     String? evidenceMimeType,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.createInsurance(
         memberId: memberId,
@@ -112,9 +109,6 @@ class InsuranceRepositoryImpl implements InsuranceRepository {
     String? evidenceFileName,
     String? evidenceMimeType,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
       final model = await remoteDataSource.updateInsurance(
         insuranceId: insuranceId,
@@ -140,13 +134,14 @@ class InsuranceRepositoryImpl implements InsuranceRepository {
 
   @override
   Future<Either<Failure, List<MemberInsurance>>> getExpiringInsurance({
-    int days = 30,
+    required int days,
+    CancelToken? cancelToken,
   }) async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'No hay conexión a internet'));
-    }
     try {
-      final models = await remoteDataSource.getExpiringInsurance(days: days);
+      final models = await remoteDataSource.getExpiringInsurance(
+        days: days,
+        cancelToken: cancelToken,
+      );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));

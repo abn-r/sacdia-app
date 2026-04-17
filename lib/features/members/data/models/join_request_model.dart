@@ -17,7 +17,9 @@ class JoinRequestModel extends JoinRequest {
 
   /// Crea un JoinRequestModel a partir de la respuesta de la API
   factory JoinRequestModel.fromJson(Map<String, dynamic> json) {
-    final user = json['user'] as Map<String, dynamic>? ?? json;
+    final user = json['user'] as Map<String, dynamic>? ??
+        json['users'] as Map<String, dynamic>? ??
+        json;
 
     JoinRequestStatus status;
     final rawStatus = (json['status'] as String? ?? 'pending').toLowerCase();
@@ -33,10 +35,14 @@ class JoinRequestModel extends JoinRequest {
         status = JoinRequestStatus.pending;
     }
 
-    final assignmentId = json['assignment_id']?.toString() ??
+    final requestId = json['assignment_id']?.toString() ??
         json['club_role_assignment_id']?.toString() ??
         json['id']?.toString() ??
         '';
+    final clubSectionId = json['club_section_id']?.toString();
+    final assignmentId = (clubSectionId != null && clubSectionId.isNotEmpty)
+        ? '$clubSectionId/membership-requests/$requestId'
+        : requestId;
 
     return JoinRequestModel(
       assignmentId: assignmentId,

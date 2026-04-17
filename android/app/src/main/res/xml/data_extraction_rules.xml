@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Data Extraction Rules (Android 12+ / API 31+)
+    Denies all cloud backup and device-to-device transfer for the entire app.
+    The app stores sensitive data (JWT tokens, user credentials) in
+    EncryptedSharedPreferences / Keychain — none of it should ever leave
+    the device via automatic backup mechanisms.
+    Ref: https://developer.android.com/guide/topics/data/autobackup#XMLSyntax
+-->
+<data-extraction-rules>
+
+    <!-- Google Drive cloud backup — deny everything -->
+    <cloud-backup disableIfNoEncryptionCapabilities="true">
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </cloud-backup>
+
+    <!-- Device-to-device transfer (e.g. Quick Switch) — deny everything -->
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </device-transfer>
+
+</data-extraction-rules>

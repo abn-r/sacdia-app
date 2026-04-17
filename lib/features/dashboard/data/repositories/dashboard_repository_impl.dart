@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -18,20 +19,16 @@ class DashboardRepositoryImpl implements DashboardRepository {
   });
 
   @override
-  Future<Either<Failure, DashboardSummary>> getDashboardSummary() async {
-    if (await networkInfo.isConnected) {
-      try {
-        final dashboardData = await remoteDataSource.getDashboardSummary();
-        return Right(dashboardData);
-      } on AuthException catch (e) {
-        return Left(AuthFailure(message: e.message, code: e.code));
-      } on ServerException catch (e) {
-        return Left(ServerFailure(message: e.message, code: e.code));
-      } catch (e) {
-        return Left(UnexpectedFailure(message: e.toString()));
-      }
-    } else {
-      return Left(NetworkFailure(message: 'No hay conexión a internet'));
+  Future<Either<Failure, DashboardSummary>> getDashboardSummary({CancelToken? cancelToken}) async {
+    try {
+      final dashboardData = await remoteDataSource.getDashboardSummary(cancelToken: cancelToken);
+      return Right(dashboardData);
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
     }
   }
 }

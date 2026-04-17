@@ -12,6 +12,8 @@ class UserDetail extends Equatable {
   final DateTime? birthDate;
   final String? gender;
   final String? address;
+  final bool baptized;
+  final DateTime? baptismDate;
   final String? clubName;
   final String? clubType;
   final String? currentClass;
@@ -30,6 +32,8 @@ class UserDetail extends Equatable {
     this.birthDate,
     this.gender,
     this.address,
+    this.baptized = false,
+    this.baptismDate,
     this.clubName,
     this.clubType,
     this.currentClass,
@@ -58,6 +62,8 @@ class UserDetail extends Equatable {
         birthDate,
         gender,
         address,
+        baptized,
+        baptismDate,
         clubName,
         clubType,
         currentClass,

@@ -163,7 +163,9 @@ class _TimelineEntry extends StatelessWidget {
                     shape: BoxShape.circle,
                     border: Border.all(color: color, width: 2),
                   ),
-                  child: HugeIcon(icon: _icon, size: 16, color: color),
+                  child: Center(
+                    child: HugeIcon(icon: _icon, size: 16, color: color),
+                  ),
                 ),
                 // Línea conectora
                 if (!isLast)
@@ -226,7 +228,7 @@ class _TimelineEntry extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        DateFormat('dd/MM/yyyy HH:mm').format(entry.performedAt),
+                        DateFormat('dd/MM/yyyy HH:mm').format(entry.performedAt.toLocal()),
                         style: TextStyle(
                           fontSize: 11,
                           color: c.textTertiary,

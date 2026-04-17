@@ -41,8 +41,8 @@ lib/
 - **Architecture**: Clean Architecture
 - **State**: Riverpod
 - **HTTP**: Dio
-- **Storage**: Hive (local) + Supabase Storage
-- **Auth**: Supabase Auth
+- **Storage**: Hive (local) + Cloudflare R2 (via backend signed URLs)
+- **Auth**: AppAuthService — JWT HS256 via backend API (Better Auth, Wave 3)
 - **Push**: Firebase Cloud Messaging
 
 ## Particularidades
@@ -53,6 +53,31 @@ lib/
 - **API**: Consumir backend en `http://localhost:3000` (dev)
 - **Tokens**: JWT almacenado en Hive de forma segura
 
+## Migraciones y cambios recientes
+
+### Google Maps (reemplaza flutter_map)
+- **Paquetes**: `google_maps_flutter` + `geolocator` (flutter_map eliminado)
+- **API Keys**: Configuradas en `ios/Runner/AppDelegate.swift` (`GMSServices.provideAPIKey`) y `android/app/src/main/AndroidManifest.xml` (`com.google.android.geo.API_KEY`)
+- **iOS simulator**: Requiere `GMSServices.setMetalRendererEnabled(false)` para renderizar correctamente
+- **`liteModeEnabled: true`**: Solo funciona en Android — causa mapa en blanco en iOS, no usar en iOS
+- **Vistas afectadas**: `LocationPickerView` (selector de ubicacion), `ActivityHeroSection` (hero en detalle de actividad)
+- **Geolocator**: Centra el mapa en la ubicacion del usuario al abrir el picker
+
+### Realtime cache invalidation (FCM)
+- **Módulo**: `lib/core/realtime/` — contiene `RealtimeResourceRegistry`, `RealtimeInvalidationHandler`, `RealtimeRef` adapter y `feature_flags.dart`.
+- **Feature flag**: `RealtimeFeatureFlags.realtimeInvalidationEnabled` (compile-time const, default `false`) — bloquea ambos paths si está desactivado.
+- **Path foreground**: `PushNotificationService._handleForegroundMessage` intercepta `data['type'] == 'cache_invalidate'` ANTES del guard que descarta mensajes sin notificación visible.
+- **Path background**: `firebaseMessagingBackgroundHandler` guarda el payload en `SharedPreferences` (`pending_realtime_invalidations`); se drena al volver al frente via observer `AppLifecycleState.resumed` en el root `MyApp`.
+- **Section guard**: el registry ignora el payload si el `sectionId` no coincide con el `clubContextProvider.sectionId` activo.
+- **Registry inicial**: recurso `'activities'` mapea `sectionId → ClubContext.clubId → clubActivitiesProvider(ClubActivitiesParams(clubId, null))`.
+- **Contrato backend**: ver `sacdia-backend/src/notifications/notifications.processor.ts:sendSilentMulticast`.
+
+### Actividades conjuntas
+- **`CreateActivityView`**: Toggle "Actividad conjunta" (`SwitchListTile`) visible para directores con 2+ secciones. Al activar, muestra `FilterChip` picker para seleccionar secciones.
+- **`EditActivityView`**: Soporta edicion de actividades conjuntas — carga secciones existentes y permite modificar.
+- **Auto-deteccion de seccion**: Para no-directores, la app resuelve la seccion automaticamente desde `ClubContext` (enriquecido con `club_type_name` desde grants). No se muestra selector de tipo de club.
+- **Entidades nuevas**: `ActivityInstance` (value object), `ClubSectionModel` (modelo de seccion con `clubSectionId`, `clubTypeId`, `clubTypeName`).
+
 ## Configuración
 
 ```yaml
@@ -60,15 +85,15 @@ lib/
 flutter_riverpod    # State management
 dio                 # HTTP client
 hive                # Local storage
-supabase_flutter    # Supabase client
+google_maps_flutter # Mapas nativos (reemplaza flutter_map)
+geolocator          # Ubicacion del usuario
+# supabase_flutter removed in Wave 3 — auth is now handled via backend API
 ```
 
 ## Variables de Entorno
 
 Configurar en `lib/core/constants/env.dart`:
 
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
 - `API_BASE_URL`
 - `FCM_SENDER_ID`
 

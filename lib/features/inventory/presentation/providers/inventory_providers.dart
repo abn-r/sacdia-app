@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
@@ -60,7 +61,7 @@ final getInventoryCategoriesUseCaseProvider =
   return GetInventoryCategories(ref.read(inventoryRepositoryProvider));
 });
 
-// ── Club ID helper ──────────────────────────────────────────────────────────────
+// ── Club context helpers ────────────────────────────────────────────────────────
 
 /// Obtiene el clubId del contexto activo del usuario.
 final inventoryClubIdProvider = FutureProvider.autoDispose<int?>((ref) async {
@@ -68,17 +69,30 @@ final inventoryClubIdProvider = FutureProvider.autoDispose<int?>((ref) async {
   return context?.clubId;
 });
 
-// ── Permission helper ───────────────────────────────────────────────────────────
+/// Maps the human-readable club type name to the backend instanceType query
+/// param expected by GET /inventory/clubs/:clubId/inventory.
+String mapClubTypeToInstanceType(String? clubTypeName) {
+  switch (clubTypeName?.toLowerCase()) {
+    case 'aventureros':
+      return 'adv';
+    case 'conquistadores':
+      return 'pathf';
+    case 'guías mayores':
+    case 'guias mayores':
+      return 'mg';
+    default:
+      return 'pathf'; // safe default
+  }
+}
 
-/// Roles autorizados para crear/editar ítems de inventario.
-const _inventoryEditorRoles = {
-  'director',
-  'subdirector',
-  'treasurer',
-  'tesorero',
-  'secretary',
-  'secretario',
-};
+/// Derives the instanceType string from the active club context.
+final inventoryInstanceTypeProvider =
+    FutureProvider.autoDispose<String>((ref) async {
+  final context = await ref.watch(clubContextProvider.future);
+  return mapClubTypeToInstanceType(context?.clubTypeName);
+});
+
+// ── Permission helper ───────────────────────────────────────────────────────────
 
 /// Devuelve true si el usuario puede gestionar el inventario.
 final canManageInventoryProvider =
@@ -86,15 +100,11 @@ final canManageInventoryProvider =
   final authState = await ref.watch(authNotifierProvider.future);
   if (authState == null) return false;
 
-  return canByPermissionOrLegacyRole(
-    authState,
-    requiredPermissions: const {
-      'inventory:create',
-      'inventory:update',
-      'inventory:delete',
-    },
-    legacyRoles: _inventoryEditorRoles,
-  );
+  return hasAnyPermission(authState, const {
+    'inventory:create',
+    'inventory:update',
+    'inventory:delete',
+  });
 });
 
 // ── Categories ──────────────────────────────────────────────────────────────────
@@ -102,7 +112,9 @@ final canManageInventoryProvider =
 final inventoryCategoriesProvider =
     FutureProvider.autoDispose<List<InventoryCategory>>((ref) async {
   final useCase = ref.read(getInventoryCategoriesUseCaseProvider);
-  final result = await useCase();
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await useCase(cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (cats) => cats,
@@ -116,8 +128,15 @@ final inventoryItemsProvider =
   final clubId = await ref.watch(inventoryClubIdProvider.future);
   if (clubId == null) return [];
 
+  final instanceType = await ref.watch(inventoryInstanceTypeProvider.future);
+
   final useCase = ref.read(getInventoryItemsUseCaseProvider);
-  final result = await useCase(GetInventoryItemsParams(clubId: clubId));
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await useCase(
+    GetInventoryItemsParams(clubId: clubId, instanceType: instanceType),
+    cancelToken: cancelToken,
+  );
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -130,7 +149,12 @@ final inventoryItemsProvider =
 final inventoryItemDetailProvider =
     FutureProvider.autoDispose.family<InventoryItem, int>((ref, itemId) async {
   final repo = ref.read(inventoryRepositoryProvider);
-  final result = await repo.getItem(itemId: itemId);
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await repo.getItem(
+    itemId: itemId,
+    cancelToken: cancelToken,
+  );
   return result.fold(
     (failure) => throw Exception(failure.message),
     (item) => item,

@@ -15,8 +15,8 @@ import 'certification_detail_view.dart';
 /// Vista de lista de certificaciones (catálogo completo).
 ///
 /// Muestra todas las certificaciones como tarjetas.
-/// Si el usuario ya está inscripto, muestra un badge "Inscripto".
-/// Si no está inscripto, muestra el botón "Inscribirme".
+/// Si el usuario ya está inscrito, muestra un badge "inscrito".
+/// Si no está inscrito, muestra el botón "Inscribirme".
 /// Solo los Guías Mayores investidos pueden inscribirse.
 class CertificationsListView extends ConsumerWidget {
   const CertificationsListView({super.key});
@@ -215,7 +215,7 @@ class CertificationsListView extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         title: const Text('Inscribirse'),
         content: Text(
-          '¿Querés inscribirte en "${certification.name}"?',
+          '¿Quieres inscribirte en "${certification.name}"?',
         ),
         actions: [
           TextButton(
@@ -356,10 +356,12 @@ class _CertificationCard extends StatelessWidget {
                     color: AppColors.primaryLight,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedCertificate01,
-                    size: 22,
-                    color: AppColors.primary,
+                  child: Center(
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedCertificate01,
+                      size: 22,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -391,7 +393,7 @@ class _CertificationCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Badge de inscripto
+                // Badge de inscrito
                 if (isEnrolled) ...[
                   const SizedBox(width: 8),
                   Container(
@@ -404,7 +406,7 @@ class _CertificationCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      'Inscripto',
+                      'inscrito',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -436,7 +438,7 @@ class _CertificationCard extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                // Botón inscribirse (solo si no está inscripto)
+                // Botón inscribirse (solo si no está inscrito)
                 if (!isEnrolled && onEnroll != null)
                   GestureDetector(
                     onTap: onEnroll,

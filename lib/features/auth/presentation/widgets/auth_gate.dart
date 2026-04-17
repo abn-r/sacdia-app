@@ -14,15 +14,14 @@ class AuthGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Usamos un Consumer para reconstruir solo este widget cuando cambia el estado de autenticación
     return Consumer(
       builder: (context, ref, _) {
-        final authState = ref.watch(authStateProvider);
-        
+        final authState = ref.watch(authNotifierProvider);
+
         return authState.when(
-          loading: () => Scaffold(
+          loading: () => const Scaffold(
             body: Center(
-              child: const SacLoading(),
+              child: SacLoading(),
             ),
           ),
           error: (error, stackTrace) => Scaffold(
@@ -47,25 +46,21 @@ class AuthGate extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () => ref.refresh(authStateProvider),
+                    onPressed: () => ref.invalidate(authNotifierProvider),
                     child: const Text('Reintentar'),
                   ),
                 ],
               ),
             ),
           ),
-          data: (isAuthenticated) {
-            // Si estamos autenticados, mostrar la vista principal
-            if (isAuthenticated) {
+          data: (user) {
+            if (user != null) {
               return const HomeView();
-            } 
-            // Si no estamos autenticados, mostrar la vista de login
-            else {
-              return const LoginView();
             }
+            return const LoginView();
           },
         );
-      }
+      },
     );
   }
 }

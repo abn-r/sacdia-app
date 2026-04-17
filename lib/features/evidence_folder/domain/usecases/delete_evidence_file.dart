@@ -6,24 +6,18 @@ import '../../../../core/usecases/usecase.dart';
 import '../repositories/evidence_folder_repository.dart';
 
 class DeleteEvidenceFileParams extends Equatable {
-  final String clubSectionId;
-  final String sectionId;
-  final String fileId;
+  final String evidenceId;
 
-  const DeleteEvidenceFileParams({
-    required this.clubSectionId,
-    required this.sectionId,
-    required this.fileId,
-  });
+  const DeleteEvidenceFileParams({required this.evidenceId});
 
   @override
-  List<Object?> get props => [clubSectionId, sectionId, fileId];
+  List<Object?> get props => [evidenceId];
 }
 
 /// Caso de uso: eliminar un archivo de evidencia.
 ///
-/// Solo puede ejecutarse cuando la sección está en estado pendiente.
-/// La validación de negocio debe ocurrir también en el backend.
+/// Solo requiere [evidenceId] (UUID). AnnualFolders no necesita sectionId
+/// ni clubSectionId para la eliminación.
 class DeleteEvidenceFile implements UseCase<void, DeleteEvidenceFileParams> {
   final EvidenceFolderRepository _repository;
 
@@ -31,10 +25,6 @@ class DeleteEvidenceFile implements UseCase<void, DeleteEvidenceFileParams> {
 
   @override
   Future<Either<Failure, void>> call(DeleteEvidenceFileParams params) async {
-    return _repository.deleteFile(
-      clubSectionId: params.clubSectionId,
-      sectionId: params.sectionId,
-      fileId: params.fileId,
-    );
+    return _repository.deleteFile(evidenceId: params.evidenceId);
   }
 }

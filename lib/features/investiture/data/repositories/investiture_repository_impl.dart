@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -19,11 +20,6 @@ class InvestitureRepositoryImpl implements InvestitureRepository {
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
 
-  Future<bool> get _isConnected => networkInfo.isConnected;
-
-  Left<Failure, T> _networkFailure<T>() =>
-      const Left(NetworkFailure(message: 'No hay conexion a internet'));
-
   Left<Failure, T> _serverFailure<T>(ServerException e) =>
       Left(ServerFailure(message: e.message, code: e.code));
 
@@ -41,7 +37,6 @@ class InvestitureRepositoryImpl implements InvestitureRepository {
     required int clubId,
     String? comments,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.submitForValidation(
         enrollmentId: enrollmentId,
@@ -64,7 +59,6 @@ class InvestitureRepositoryImpl implements InvestitureRepository {
     required String action,
     String? comments,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.validateEnrollment(
         enrollmentId: enrollmentId,
@@ -86,7 +80,6 @@ class InvestitureRepositoryImpl implements InvestitureRepository {
     required int enrollmentId,
     String? comments,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       await remoteDataSource.markAsInvestido(
         enrollmentId: enrollmentId,
@@ -108,14 +101,15 @@ class InvestitureRepositoryImpl implements InvestitureRepository {
     int? ecclesiasticalYearId,
     int page = 1,
     int limit = 20,
+    CancelToken? cancelToken,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final models = await remoteDataSource.getPendingInvestitures(
         localFieldId: localFieldId,
         ecclesiasticalYearId: ecclesiasticalYearId,
         page: page,
         limit: limit,
+        cancelToken: cancelToken,
       );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
@@ -130,11 +124,12 @@ class InvestitureRepositoryImpl implements InvestitureRepository {
   @override
   Future<Either<Failure, List<InvestitureHistoryEntry>>> getInvestitureHistory({
     required int enrollmentId,
+    CancelToken? cancelToken,
   }) async {
-    if (!await _isConnected) return _networkFailure();
     try {
       final models = await remoteDataSource.getInvestitureHistory(
         enrollmentId: enrollmentId,
+        cancelToken: cancelToken,
       );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {

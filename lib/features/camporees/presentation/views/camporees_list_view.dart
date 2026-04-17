@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -166,8 +167,8 @@ class _CamporeeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final dateFormat = DateFormat('d MMM yyyy', 'es');
-    final startFormatted = dateFormat.format(camporee.startDate);
-    final endFormatted = dateFormat.format(camporee.endDate);
+    final startFormatted = dateFormat.format(camporee.startDate.toLocal());
+    final endFormatted = dateFormat.format(camporee.endDate.toLocal());
 
     return GestureDetector(
       onTap: onTap,
@@ -200,10 +201,12 @@ class _CamporeeCard extends StatelessWidget {
                     color: AppColors.primaryLight,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedAward01,
-                    size: 22,
-                    color: AppColors.primary,
+                  child: Center(
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedAward01,
+                      size: 22,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -285,7 +288,7 @@ class _CamporeeCard extends StatelessWidget {
 // ── Info Row ───────────────────────────────────────────────────────────────────
 
 class _InfoRow extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String text;
 
   const _InfoRow({required this.icon, required this.text});

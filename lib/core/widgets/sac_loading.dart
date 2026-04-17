@@ -11,7 +11,7 @@ class SacLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LoadingAnimationWidget.inkDrop(
+    return LoadingAnimationWidget.waveDots(
       color: color ?? AppColors.primary,
       size: 30,
     );
@@ -26,7 +26,7 @@ class SacLoadingSmall extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LoadingAnimationWidget.inkDrop(
+    return LoadingAnimationWidget.waveDots(
       color: color ?? AppColors.primary,
       size: 30,
     );

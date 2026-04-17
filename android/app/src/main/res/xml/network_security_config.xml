@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Network Security Configuration
+    - Denies cleartext (HTTP) traffic for all domains in production.
+    - Allows cleartext only for localhost and the Android emulator host (10.0.2.2)
+      so that development against a local backend still works.
+    - Pins are intentionally omitted here; certificate pinning is handled in
+      the Dio client layer via the CertificatePinningInterceptor.
+    Ref: https://developer.android.com/training/articles/security-config
+-->
+<network-security-config>
+
+    <!-- Default policy: deny all cleartext traffic -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Allow cleartext only for local development hosts -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Standard loopback address -->
+        <domain includeSubdomains="false">localhost</domain>
+        <!-- Android emulator host that maps to the host machine's 127.0.0.1 -->
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+
+</network-security-config>

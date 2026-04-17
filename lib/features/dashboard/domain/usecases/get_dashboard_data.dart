@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
@@ -12,7 +13,7 @@ class GetDashboardSummary implements UseCase<DashboardSummary, NoParams> {
   GetDashboardSummary(this.repository);
 
   @override
-  Future<Either<Failure, DashboardSummary>> call(NoParams params) async {
-    return await repository.getDashboardSummary();
+  Future<Either<Failure, DashboardSummary>> call(NoParams params, {CancelToken? cancelToken}) async {
+    return await repository.getDashboardSummary(cancelToken: cancelToken);
   }
 }

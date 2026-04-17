@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
@@ -25,11 +26,15 @@ class GetFinances {
 
   GetFinances(this.repository);
 
-  Future<Either<Failure, FinanceMonth>> call(GetFinancesParams params) {
+  Future<Either<Failure, FinanceMonth>> call(
+    GetFinancesParams params, {
+    CancelToken? cancelToken,
+  }) {
     return repository.getFinances(
       clubId: params.clubId,
       year: params.year,
       month: params.month,
+      cancelToken: cancelToken,
     );
   }
 }

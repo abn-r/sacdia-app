@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../entities/user_detail.dart';
@@ -6,7 +7,7 @@ import '../entities/user_detail.dart';
 /// Interfaz del repositorio de perfil
 abstract class ProfileRepository {
   /// Obtiene el perfil del usuario
-  Future<Either<Failure, UserDetail>> getUserProfile(String userId);
+  Future<Either<Failure, UserDetail>> getUserProfile(String userId, {CancelToken? cancelToken});
 
   /// Actualiza el perfil del usuario
   Future<Either<Failure, UserDetail>> updateUserProfile(

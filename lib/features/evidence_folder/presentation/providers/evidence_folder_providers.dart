@@ -1,6 +1,9 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/errors/exceptions.dart';
+import '../../../../core/errors/failures.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/datasources/evidence_folder_remote_data_source.dart';
@@ -38,17 +41,19 @@ final getEvidenceFolderUseCaseProvider = Provider<GetEvidenceFolder>((ref) {
   return GetEvidenceFolder(ref.read(evidenceFolderRepositoryProvider));
 });
 
+final submitFolderUseCaseProvider = Provider<SubmitFolder>((ref) {
+  return SubmitFolder(ref.read(evidenceFolderRepositoryProvider));
+});
+
 final submitSectionUseCaseProvider = Provider<SubmitSection>((ref) {
   return SubmitSection(ref.read(evidenceFolderRepositoryProvider));
 });
 
-final uploadEvidenceFileUseCaseProvider =
-    Provider<UploadEvidenceFile>((ref) {
+final uploadEvidenceFileUseCaseProvider = Provider<UploadEvidenceFile>((ref) {
   return UploadEvidenceFile(ref.read(evidenceFolderRepositoryProvider));
 });
 
-final deleteEvidenceFileUseCaseProvider =
-    Provider<DeleteEvidenceFile>((ref) {
+final deleteEvidenceFileUseCaseProvider = Provider<DeleteEvidenceFile>((ref) {
   return DeleteEvidenceFile(ref.read(evidenceFolderRepositoryProvider));
 });
 
@@ -57,14 +62,34 @@ final deleteEvidenceFileUseCaseProvider =
 /// Provider que carga la carpeta de evidencias para una sección de club.
 ///
 /// autoDispose para liberar memoria al salir de la pantalla.
+///
+/// Retorna `null` cuando la carpeta aún no fue creada (estado de negocio
+/// válido — backend responde `200 + data: null`). La vista discrimina en
+/// el branch `data:` en lugar de `error:`.
+///
+/// Fallback defensivo: si el backend todavía devuelve 404 (durante la
+/// transición), el repositorio lo mapea a [NotFoundFailure] y el provider
+/// lo re-lanza como [NotFoundException] para que la view lo trate igual
+/// que `null` en el branch `error:`.
 final evidenceFolderProvider = FutureProvider.autoDispose
-    .family<EvidenceFolder, String>((ref, clubSectionId) async {
+    .family<EvidenceFolder?, String>((ref, clubSectionId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final useCase = ref.read(getEvidenceFolderUseCaseProvider);
-  final result =
-      await useCase(GetEvidenceFolderParams(clubSectionId: clubSectionId));
+  final result = await useCase(
+    GetEvidenceFolderParams(clubSectionId: clubSectionId),
+    cancelToken: cancelToken,
+  );
 
   return result.fold(
-    (failure) => throw Exception(failure.message),
+    (failure) {
+      // Fallback defensivo: backend viejo que todavía devuelve 404.
+      if (failure is NotFoundFailure) {
+        throw NotFoundException(message: failure.message, code: failure.code);
+      }
+      throw Exception(failure.message);
+    },
+    // folder puede ser null (carpeta no existe) — es un Right válido.
     (folder) => folder,
   );
 });
@@ -101,6 +126,9 @@ class SectionOperationState {
 /// Maneja operaciones de subida de archivos, eliminación y envío a validación.
 /// Al completar con éxito cualquier mutación, invalida [evidenceFolderProvider]
 /// para refrescar datos frescos del backend.
+///
+/// El [arg] es el [clubSectionId] (integer como String). El [folderId] UUID se
+/// obtiene desde la carpeta ya cargada en [evidenceFolderProvider].
 class EvidenceSectionNotifier
     extends AutoDisposeFamilyNotifier<SectionOperationState, String> {
   @override
@@ -109,15 +137,85 @@ class EvidenceSectionNotifier
 
   String get _clubSectionId => arg;
 
-  /// Envía una sección a validación (pendiente → enviado).
-  Future<bool> submit(String sectionId) async {
+  /// Resuelve el folderId UUID desde la carpeta cargada en el provider.
+  ///
+  /// Lanza [StateError] si la carpeta no está disponible todavía o si es null
+  /// (carpeta no creada — no se pueden realizar mutaciones sin folderId).
+  String _resolveFolderId() {
+    final folderAsync = ref.read(evidenceFolderProvider(_clubSectionId));
+    return folderAsync.maybeWhen(
+      data: (folder) {
+        if (folder == null) {
+          throw StateError(
+            'La carpeta no existe aún. No se pueden realizar operaciones '
+            'sin una carpeta creada.',
+          );
+        }
+        return folder.folderId;
+      },
+      orElse: () => throw StateError(
+        'La carpeta no está cargada. Asegúrese de que evidenceFolderProvider '
+        'haya completado antes de invocar operaciones de mutación.',
+      ),
+    );
+  }
+
+  /// Envía la carpeta completa a validación.
+  ///
+  /// AnnualFolders opera sobre carpeta completa — no por sección individual.
+  Future<bool> submitFolder() async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
+    final String folderId;
+    try {
+      folderId = _resolveFolderId();
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString(),
+      );
+      return false;
+    }
+
+    final result = await ref.read(submitFolderUseCaseProvider)(
+      SubmitFolderParams(folderId: folderId),
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+        return false;
+      },
+      (_) {
+        state = state.copyWith(isLoading: false, success: true);
+        ref.invalidate(evidenceFolderProvider(_clubSectionId));
+        return true;
+      },
+    );
+  }
+
+  /// Envía una sección individual a validación.
+  ///
+  /// [sectionId] es el UUID de la sección dentro de la carpeta anual.
+  Future<bool> submitSection(String sectionId) async {
+    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+
+    final String folderId;
+    try {
+      folderId = _resolveFolderId();
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString(),
+      );
+      return false;
+    }
+
     final result = await ref.read(submitSectionUseCaseProvider)(
-      SubmitSectionParams(
-        clubSectionId: _clubSectionId,
-        sectionId: sectionId,
-      ),
+      SubmitSectionParams(folderId: folderId, sectionId: sectionId),
     );
 
     return result.fold(
@@ -138,21 +236,41 @@ class EvidenceSectionNotifier
 
   /// Sube un archivo a la sección indicada.
   ///
+  /// [sectionId] es el UUID de la sección dentro de la carpeta anual.
   /// [pickedFile] proviene de [ImagePicker] o [FilePicker].
+  /// [onProgress] callback opcional que recibe la fracción de progreso (0.0 – 1.0).
+  /// [skipInvalidation] si es `true`, omite el invalidate de [evidenceFolderProvider]
+  /// tras la subida (útil en subidas por lote para evitar refrescos por archivo).
   Future<bool> uploadFile({
     required String sectionId,
     required XFile pickedFile,
     required String mimeType,
+    String? notes,
+    void Function(double)? onProgress,
+    bool skipInvalidation = false,
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
+    final String folderId;
+    try {
+      folderId = _resolveFolderId();
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString(),
+      );
+      return false;
+    }
+
     final result = await ref.read(uploadEvidenceFileUseCaseProvider)(
       UploadEvidenceFileParams(
-        clubSectionId: _clubSectionId,
+        folderId: folderId,
         sectionId: sectionId,
         filePath: pickedFile.path,
         fileName: pickedFile.name,
         mimeType: mimeType,
+        notes: notes,
+        onProgress: onProgress,
       ),
     );
 
@@ -166,25 +284,22 @@ class EvidenceSectionNotifier
       },
       (_) {
         state = state.copyWith(isLoading: false, success: true);
-        ref.invalidate(evidenceFolderProvider(_clubSectionId));
+        if (!skipInvalidation) {
+          ref.invalidate(evidenceFolderProvider(_clubSectionId));
+        }
         return true;
       },
     );
   }
 
   /// Elimina un archivo de evidencia.
-  Future<bool> deleteFile({
-    required String sectionId,
-    required String fileId,
-  }) async {
+  ///
+  /// [fileId] es el evidence_id UUID del archivo a eliminar.
+  Future<bool> deleteFile({required String fileId}) async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
     final result = await ref.read(deleteEvidenceFileUseCaseProvider)(
-      DeleteEvidenceFileParams(
-        clubSectionId: _clubSectionId,
-        sectionId: sectionId,
-        fileId: fileId,
-      ),
+      DeleteEvidenceFileParams(evidenceId: fileId),
     );
 
     return result.fold(

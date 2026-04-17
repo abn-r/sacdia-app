@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/activity.dart';
@@ -11,8 +12,14 @@ class GetActivityDetail implements UseCase<Activity, GetActivityDetailParams> {
   GetActivityDetail(this.repository);
 
   @override
-  Future<Either<Failure, Activity>> call(GetActivityDetailParams params) async {
-    return await repository.getActivityById(params.activityId);
+  Future<Either<Failure, Activity>> call(
+    GetActivityDetailParams params, {
+    CancelToken? cancelToken,
+  }) async {
+    return await repository.getActivityById(
+      params.activityId,
+      cancelToken: cancelToken,
+    );
   }
 }
 

@@ -30,11 +30,13 @@ class ClassCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progressPercent = (progress * 100).toInt();
+    final classColor = AppColors.classColor(progressiveClass.name);
+    final logoAsset = AppColors.classLogoAsset(progressiveClass.name);
 
     return SacCard(
       onTap: onTap,
-      accentColor: AppColors.primary,
-      borderColor: isCurrent ? AppColors.primary : null,
+      accentColor: classColor,
+      borderColor: isCurrent ? classColor : null,
       margin: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,7 +48,7 @@ class ClassCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
+                  color: classColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: progressiveClass.imageUrl != null
@@ -54,19 +56,41 @@ class ClassCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                         child: CachedNetworkImage(
                           imageUrl: progressiveClass.imageUrl!,
+                          memCacheWidth: 132,  // 44 * 3 (max device pixel ratio)
+                          memCacheHeight: 132, // 44 * 3
                           fit: BoxFit.cover,
-                          errorWidget: (_, __, ___) => HugeIcon(
-                            icon: HugeIcons.strokeRoundedSchool,
-                            color: AppColors.primary,
-                            size: 24,
-                          ),
+                          errorWidget: (_, __, ___) => logoAsset != null
+                              ? Padding(
+                                  padding: const EdgeInsets.all(6),
+                                  child: Image.asset(
+                                    logoAsset,
+                                    fit: BoxFit.contain,
+                                  ),
+                                )
+                              : Center(
+                                  child: HugeIcon(
+                                    icon: HugeIcons.strokeRoundedSchool,
+                                    color: classColor,
+                                    size: 24,
+                                  ),
+                                ),
                         ),
                       )
-                    : HugeIcon(
-                        icon: HugeIcons.strokeRoundedSchool,
-                        color: AppColors.primary,
-                        size: 24,
-                      ),
+                    : logoAsset != null
+                        ? Padding(
+                            padding: const EdgeInsets.all(6),
+                            child: Image.asset(
+                              logoAsset,
+                              fit: BoxFit.contain,
+                            ),
+                          )
+                        : Center(
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedSchool,
+                              color: classColor,
+                              size: 24,
+                            ),
+                          ),
               ),
               const SizedBox(width: 14),
 
@@ -122,7 +146,7 @@ class ClassCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
+                  color: classColor,
                 ),
               ),
             ],

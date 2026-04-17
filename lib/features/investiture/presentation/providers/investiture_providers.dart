@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
@@ -34,8 +35,10 @@ final investitureRepositoryProvider =
 /// Solo disponible para coordinadores/admins (GlobalRolesGuard).
 final pendingInvestituresProvider =
     FutureProvider.autoDispose<List<InvestiturePending>>((ref) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final repository = ref.read(investitureRepositoryProvider);
-  final result = await repository.getPendingInvestitures();
+  final result = await repository.getPendingInvestitures(cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -49,9 +52,13 @@ final pendingInvestituresProvider =
 final investitureHistoryProvider =
     FutureProvider.autoDispose.family<List<InvestitureHistoryEntry>, int>(
         (ref, enrollmentId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
   final repository = ref.read(investitureRepositoryProvider);
-  final result =
-      await repository.getInvestitureHistory(enrollmentId: enrollmentId);
+  final result = await repository.getInvestitureHistory(
+    enrollmentId: enrollmentId,
+    cancelToken: cancelToken,
+  );
 
   return result.fold(
     (failure) => throw Exception(failure.message),

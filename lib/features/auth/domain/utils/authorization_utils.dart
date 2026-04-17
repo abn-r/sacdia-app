@@ -1,11 +1,4 @@
-import '../../../../core/utils/app_logger.dart';
 import '../entities/user_entity.dart';
-
-const bool kRbacLegacyFallbackEnabled =
-    bool.fromEnvironment('RBAC_LEGACY_FALLBACK_ENABLED', defaultValue: false);
-
-bool _canonicalEventLogged = false;
-bool _legacyFallbackEventLogged = false;
 
 enum SensitiveUserFamily {
   health,
@@ -32,22 +25,22 @@ const Map<SensitiveUserFamily, Set<String>> _sensitiveFamilyReadPermissions = {
 
 const Map<SensitiveUserFamily, Set<String>> _sensitiveFamilyUpdatePermissions =
     {
-  SensitiveUserFamily.health: {'health:update', 'users:update'},
+  SensitiveUserFamily.health: {'health:update', 'users:update_profile'},
   SensitiveUserFamily.emergencyContacts: {
     'emergency_contacts:update',
-    'users:update',
+    'users:update_profile',
   },
   SensitiveUserFamily.legalRepresentative: {
     'legal_representative:update',
-    'users:update',
+    'users:update_profile',
   },
   SensitiveUserFamily.postRegistration: {
     'post_registration:update',
-    'users:update',
+    'users:update_profile',
   },
 };
 
-Set<String> _normalizePermissions(Iterable<dynamic> values) {
+Set<String> _normalize(Iterable<dynamic> values) {
   return values
       .map((value) => value?.toString().trim().toLowerCase())
       .whereType<String>()
@@ -55,93 +48,21 @@ Set<String> _normalizePermissions(Iterable<dynamic> values) {
       .toSet();
 }
 
-Set<String> _extractLegacyPermissions(UserEntity user) {
-  final metadata = user.metadata;
-  if (metadata == null) return <String>{};
-
-  final raw = metadata['permissions'];
-  if (raw is List) {
-    return _normalizePermissions(raw);
-  }
-
-  return <String>{};
-}
-
-Set<String> _extractLegacyRoles(UserEntity user) {
-  final metadata = user.metadata;
-  if (metadata == null) return <String>{};
-
-  final raw = metadata['roles'];
-  if (raw is List) {
-    return _normalizePermissions(raw);
-  }
-
-  return <String>{};
-}
-
 Set<String> extractUserRoles(UserEntity? user) {
-  if (user == null) {
-    return <String>{};
-  }
-
-  final resolvedRoles = user.authorization?.resolvedRoleNames ?? <String>{};
-  if (resolvedRoles.isNotEmpty) {
-    return resolvedRoles;
-  }
-
-  if (!kRbacLegacyFallbackEnabled) {
-    return <String>{};
-  }
-
-  final legacyRoles = _extractLegacyRoles(user);
-  if (legacyRoles.isNotEmpty) {
-    _logLegacyFallbackEvent();
-  }
-  return legacyRoles;
-}
-
-void _logCanonicalEvent() {
-  if (_canonicalEventLogged) return;
-  _canonicalEventLogged = true;
-  AppLogger.i('rbac_canonical_used', tag: 'RBAC');
-}
-
-void _logLegacyFallbackEvent() {
-  if (_legacyFallbackEventLogged) return;
-  _legacyFallbackEventLogged = true;
-  AppLogger.w('rbac_legacy_fallback_used', tag: 'RBAC');
+  if (user == null) return <String>{};
+  return user.authorization?.resolvedRoleNames ?? <String>{};
 }
 
 Set<String> extractUserPermissions(UserEntity? user) {
-  if (user == null) {
-    return <String>{};
-  }
-
+  if (user == null) return <String>{};
   final authorization = user.authorization;
-  if (authorization != null) {
-    final canonical = _normalizePermissions(authorization.effectivePermissions);
-    if (canonical.isNotEmpty) {
-      _logCanonicalEvent();
-      return canonical;
-    }
-  }
-
-  if (!kRbacLegacyFallbackEnabled) {
-    return <String>{};
-  }
-
-  final legacy = _extractLegacyPermissions(user);
-  if (legacy.isNotEmpty) {
-    _logLegacyFallbackEvent();
-  }
-  return legacy;
+  if (authorization == null) return <String>{};
+  return _normalize(authorization.effectivePermissions);
 }
 
 bool hasAnyPermission(UserEntity? user, Iterable<String> permissions) {
   final granted = extractUserPermissions(user);
-  if (granted.isEmpty) {
-    return false;
-  }
+  if (granted.isEmpty) return false;
 
   for (final permission in permissions) {
     final normalized = permission.trim().toLowerCase();
@@ -149,37 +70,25 @@ bool hasAnyPermission(UserEntity? user, Iterable<String> permissions) {
       return true;
     }
   }
-
   return false;
 }
 
-bool canByPermissionOrLegacyRole(
-  UserEntity? user, {
-  required Set<String> requiredPermissions,
-  Set<String> legacyRoles = const <String>{},
-}) {
-  if (hasAnyPermission(user, requiredPermissions)) {
-    return true;
+/// Canonical role-name check against `user.authorization.resolvedRoleNames`.
+/// Use this only when the gate is genuinely role-based (global roles like
+/// `coordinator`, `admin`, `super_admin`). Prefer [hasAnyPermission] for
+/// anything permission-driven.
+bool hasAnyRole(UserEntity? user, Iterable<String> roles) {
+  final granted = extractUserRoles(user);
+  if (granted.isEmpty) return false;
+
+  final normalizedGranted = _normalize(granted);
+  for (final role in roles) {
+    final normalized = role.trim().toLowerCase();
+    if (normalized.isNotEmpty && normalizedGranted.contains(normalized)) {
+      return true;
+    }
   }
-
-  if (user == null || legacyRoles.isEmpty) {
-    return false;
-  }
-
-  final roles = extractUserRoles(user);
-  if (roles.isEmpty) {
-    return false;
-  }
-
-  final normalizedLegacy =
-      legacyRoles.map((role) => role.trim().toLowerCase()).toSet();
-  final intersects = roles.intersection(normalizedLegacy).isNotEmpty;
-
-  if (intersects) {
-    _logLegacyFallbackEvent();
-  }
-
-  return intersects;
+  return false;
 }
 
 bool isUserOwner(UserEntity? user, String targetUserId) {
@@ -187,7 +96,6 @@ bool isUserOwner(UserEntity? user, String targetUserId) {
   if (user == null || normalizedTarget.isEmpty) {
     return false;
   }
-
   return user.id.trim() == normalizedTarget;
 }
 

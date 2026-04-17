@@ -1,7 +1,17 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../classes/data/datasources/classes_remote_data_source.dart';
+import '../../../classes/domain/entities/progressive_class.dart';
+import '../../../honors/data/datasources/honors_remote_data_source.dart';
+import '../../../honors/domain/entities/user_honor.dart';
+import '../../../post_registration/data/datasources/personal_info_remote_data_source.dart';
+import '../../../post_registration/data/models/allergy_model.dart';
+import '../../../post_registration/data/models/disease_model.dart';
+import '../../../post_registration/data/models/emergency_contact_model.dart';
+import '../../../post_registration/data/models/medicine_model.dart';
 import '../../data/datasources/members_remote_data_source.dart';
 import '../../data/repositories/members_repository_impl.dart';
 import '../../domain/entities/club_member.dart';
@@ -10,9 +20,6 @@ import '../../domain/repositories/members_repository.dart';
 import '../../domain/usecases/assign_club_role.dart';
 import '../../domain/usecases/get_club_members.dart';
 import '../../domain/usecases/get_join_requests.dart';
-
-const bool kRbacLegacyContextFallbackEnabled =
-    bool.fromEnvironment('RBAC_LEGACY_FALLBACK_ENABLED', defaultValue: false);
 
 // ── Infrastructure providers ──────────────────────────────────────────────────
 
@@ -50,55 +57,53 @@ final assignClubRoleUseCaseProvider = Provider<AssignClubRole>((ref) {
 
 // ── Context providers — club/section values ──────────────────────────────────
 
-/// Estado del contexto del club activo (clubId, sectionId)
+/// Estado del contexto del club activo (clubId, sectionId, roleName, clubTypeName)
 class ClubContext {
   final int clubId;
   final int sectionId;
 
+  /// Role name of the active assignment (e.g. 'director', 'counselor').
+  /// Null when not available from the authorization grant.
+  final String? roleName;
+
+  /// Human-readable club type name (e.g. 'Conquistadores', 'Aventureros').
+  /// Populated from the active authorization grant's club_type_name field.
+  final String? clubTypeName;
+
   const ClubContext({
     required this.clubId,
     required this.sectionId,
+    this.roleName,
+    this.clubTypeName,
   });
+
+  /// Whether the active user is a director in this club context.
+  bool get isDirector =>
+      roleName?.trim().toLowerCase() == 'director';
 }
 
 /// Provider del contexto del club activo.
-/// Fuente oficial: authorization.active_assignment + authorization.grants.club_assignments.
-/// Mantiene fallback legacy temporal hacia metadata.club.
+/// Fuente oficial: `authorization.activeGrant` del UserEntity.
+///
+/// Usa [selectAsync] para que este provider solo se reconstruya cuando el
+/// [activeGrant] cambia efectivamente, evitando re-fetches innecesarios por
+/// cambios en otras partes del [UserEntity] (e.g. avatar, nombre).
 final clubContextProvider = FutureProvider<ClubContext?>((ref) async {
-  final authState = await ref.watch(authNotifierProvider.future);
-  if (authState == null) return null;
+  final activeGrant = await ref.watch(
+    authNotifierProvider.selectAsync((u) => u?.authorization?.activeGrant),
+  );
 
-  final activeGrant = authState.authorization?.activeGrant;
-  if (activeGrant != null &&
-      activeGrant.clubId != null &&
-      activeGrant.sectionId != null) {
-    return ClubContext(
-      clubId: activeGrant.clubId!,
-      sectionId: activeGrant.sectionId!,
-    );
+  if (activeGrant == null ||
+      activeGrant.clubId == null ||
+      activeGrant.sectionId == null) {
+    return null;
   }
 
-  if (!kRbacLegacyContextFallbackEnabled) return null;
-
-  final metadata = authState.metadata;
-  if (metadata == null) return null;
-
-  final clubData = metadata['club'] as Map<String, dynamic>?;
-  final clubId = clubData?['club_id'];
-  final sectionId = clubData?['club_section_id'] ?? clubData?['instance_id'] ?? clubData?['id'];
-
-  if (clubId == null || sectionId == null) return null;
-
-  final parsedClubId = clubId is int ? clubId : int.tryParse(clubId.toString());
-  final parsedSectionId =
-      sectionId is int ? sectionId : int.tryParse(sectionId.toString());
-
-  if (parsedClubId == null || parsedClubId <= 0) return null;
-  if (parsedSectionId == null || parsedSectionId <= 0) return null;
-
   return ClubContext(
-    clubId: parsedClubId,
-    sectionId: parsedSectionId,
+    clubId: activeGrant.clubId!,
+    sectionId: activeGrant.sectionId!,
+    roleName: activeGrant.roleName,
+    clubTypeName: activeGrant.clubTypeName,
   );
 });
 
@@ -172,7 +177,7 @@ class MemberFilters {
 
 /// Provider para los filtros de miembros (estado mutable)
 final memberFiltersProvider =
-    StateProvider<MemberFilters>((ref) => const MemberFilters());
+    StateProvider.autoDispose<MemberFilters>((ref) => const MemberFilters());
 
 /// Provider para los filtros de solicitudes de ingreso
 class JoinRequestFilters {
@@ -208,7 +213,7 @@ class JoinRequestFilters {
 }
 
 final joinRequestFiltersProvider =
-    StateProvider<JoinRequestFilters>((ref) => const JoinRequestFilters());
+    StateProvider.autoDispose<JoinRequestFilters>((ref) => const JoinRequestFilters());
 
 // ── Members data ──────────────────────────────────────────────────────────────
 
@@ -230,11 +235,15 @@ class MembersData {
 // ── Members notifier ──────────────────────────────────────────────────────────
 
 /// Notifier principal para el módulo de miembros.
-/// Usa AsyncNotifier para que el estado de loading/error sea manejado
-/// automáticamente por AsyncValue, eliminando los campos manuales isLoading/error.
-class MembersNotifier extends AsyncNotifier<MembersData> {
+/// Usa AutoDisposeAsyncNotifier para que el estado de loading/error sea manejado
+/// automáticamente por AsyncValue, eliminando los campos manuales isLoading/error,
+/// y para liberar memoria cuando el árbol de widgets que lo consume se desmonta.
+class MembersNotifier extends AutoDisposeAsyncNotifier<MembersData> {
   @override
   Future<MembersData> build() async {
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
+
     // ref.watch sobre clubContextProvider dispara rebuild automático
     // cuando el contexto del club cambia (login, cambio de club, etc.)
     final ctx = await ref.watch(clubContextProvider.future);
@@ -245,6 +254,7 @@ class MembersNotifier extends AsyncNotifier<MembersData> {
         clubId: ctx.clubId,
         sectionId: ctx.sectionId,
       ),
+      cancelToken: cancelToken,
     );
 
     final requestsResult = await ref.read(getJoinRequestsUseCaseProvider)(
@@ -252,6 +262,7 @@ class MembersNotifier extends AsyncNotifier<MembersData> {
         clubId: ctx.clubId,
         sectionId: ctx.sectionId,
       ),
+      cancelToken: cancelToken,
     );
 
     return MembersData(
@@ -318,14 +329,14 @@ class MembersNotifier extends AsyncNotifier<MembersData> {
 
 /// Provider del notifier de miembros
 final membersNotifierProvider =
-    AsyncNotifierProvider<MembersNotifier, MembersData>(
+    AsyncNotifierProvider.autoDispose<MembersNotifier, MembersData>(
   MembersNotifier.new,
 );
 
 // ── Derived / computed providers ──────────────────────────────────────────────
 
 /// Miembros filtrados según los filtros activos
-final filteredMembersProvider = Provider<List<ClubMember>>((ref) {
+final filteredMembersProvider = Provider.autoDispose<List<ClubMember>>((ref) {
   final data = ref.watch(membersNotifierProvider).valueOrNull;
   final members = data?.members ?? [];
   final filters = ref.watch(memberFiltersProvider);
@@ -333,7 +344,7 @@ final filteredMembersProvider = Provider<List<ClubMember>>((ref) {
 });
 
 /// Solicitudes filtradas según los filtros activos
-final filteredJoinRequestsProvider = Provider<List<JoinRequest>>((ref) {
+final filteredJoinRequestsProvider = Provider.autoDispose<List<JoinRequest>>((ref) {
   final data = ref.watch(membersNotifierProvider).valueOrNull;
   final requests = data?.joinRequests ?? [];
   final filters = ref.watch(joinRequestFiltersProvider);
@@ -341,13 +352,13 @@ final filteredJoinRequestsProvider = Provider<List<JoinRequest>>((ref) {
 });
 
 /// Número de solicitudes pendientes (para el badge del tab)
-final pendingRequestsCountProvider = Provider<int>((ref) {
+final pendingRequestsCountProvider = Provider.autoDispose<int>((ref) {
   return ref.watch(membersNotifierProvider).valueOrNull?.pendingRequestsCount ??
       0;
 });
 
 /// Clases únicas presentes en la lista de miembros (para el filtro)
-final availableClassesProvider = Provider<List<String>>((ref) {
+final availableClassesProvider = Provider.autoDispose<List<String>>((ref) {
   final members =
       ref.watch(membersNotifierProvider).valueOrNull?.members ?? [];
   final classes = members
@@ -361,7 +372,7 @@ final availableClassesProvider = Provider<List<String>>((ref) {
 });
 
 /// Roles únicos presentes en la lista de miembros (para el filtro)
-final availableRolesProvider = Provider<List<String>>((ref) {
+final availableRolesProvider = Provider.autoDispose<List<String>>((ref) {
   final members =
       ref.watch(membersNotifierProvider).valueOrNull?.members ?? [];
   final roles = members
@@ -375,7 +386,7 @@ final availableRolesProvider = Provider<List<String>>((ref) {
 });
 
 /// Miembros agrupados por clase progresiva
-final membersByClassProvider = Provider<Map<String, List<ClubMember>>>((ref) {
+final membersByClassProvider = Provider.autoDispose<Map<String, List<ClubMember>>>((ref) {
   final members = ref.watch(filteredMembersProvider);
   final grouped = <String, List<ClubMember>>{};
 
@@ -412,3 +423,101 @@ int _classOrder(String className) {
   };
   return order[className] ?? 99;
 }
+
+// ── Member detail provider ─────────────────────────────────────────────────────
+
+/// Obtiene el detalle completo de un miembro por su userId.
+/// Keyed por userId — se cachea de forma independiente por cada miembro visitado.
+final memberDetailProvider =
+    FutureProvider.autoDispose.family<ClubMember, String>((ref, userId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final repo = ref.read(membersRepositoryProvider);
+  final result = await repo.getMemberDetail(userId, cancelToken: cancelToken);
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (member) => member,
+  );
+});
+
+// ── Medical data providers scoped to a specific userId ────────────────────────
+
+/// Provider del data source de información personal reutilizable fuera del módulo
+/// de post-registro (no expone autoDispose para poder ser usado en family providers).
+final _personalInfoDsProvider = Provider<PersonalInfoRemoteDataSource>((ref) {
+  final dio = ref.read(dioProvider);
+  final baseUrl = ref.read(apiBaseUrlProvider);
+  return PersonalInfoRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
+});
+
+/// Alergias de un usuario específico (solo lectura, para vista de perfil de miembro).
+final memberAllergiesProvider =
+    FutureProvider.autoDispose.family<List<AllergyModel>, String>(
+        (ref, userId) async {
+  final ds = ref.read(_personalInfoDsProvider);
+  return ds.getUserAllergies(userId);
+});
+
+/// Enfermedades de un usuario específico (solo lectura, para vista de perfil de miembro).
+final memberDiseasesProvider =
+    FutureProvider.autoDispose.family<List<DiseaseModel>, String>(
+        (ref, userId) async {
+  final ds = ref.read(_personalInfoDsProvider);
+  return ds.getUserDiseases(userId);
+});
+
+/// Medicamentos de un usuario específico (solo lectura, para vista de perfil de miembro).
+final memberMedicinesProvider =
+    FutureProvider.autoDispose.family<List<MedicineModel>, String>(
+        (ref, userId) async {
+  final ds = ref.read(_personalInfoDsProvider);
+  return ds.getUserMedicines(userId);
+});
+
+/// Contactos de emergencia de un usuario específico (solo lectura, para vista de perfil de miembro).
+final memberEmergencyContactsProvider =
+    FutureProvider.autoDispose.family<List<EmergencyContactModel>, String>(
+        (ref, userId) async {
+  final ds = ref.read(_personalInfoDsProvider);
+  return ds.getEmergencyContacts(userId);
+});
+
+// ── Classes and honors data providers for member profile ─────────────────────
+
+/// Data source de clases reutilizable desde el módulo de miembros.
+final _classesDsForMembersProvider = Provider<ClassesRemoteDataSource>((ref) {
+  return ClassesRemoteDataSourceImpl(
+    dio: ref.read(dioProvider),
+    baseUrl: ref.read(apiBaseUrlProvider),
+  );
+});
+
+/// Data source de especialidades reutilizable desde el módulo de miembros.
+final _honorsDsForMembersProvider = Provider<HonorsRemoteDataSource>((ref) {
+  return HonorsRemoteDataSourceImpl(
+    dio: ref.read(dioProvider),
+    baseUrl: ref.read(apiBaseUrlProvider),
+  );
+});
+
+/// Clases progresivas de un usuario específico (solo lectura, para vista de perfil de miembro).
+final memberClassesProvider =
+    FutureProvider.autoDispose.family<List<ProgressiveClass>, String>(
+        (ref, userId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final ds = ref.read(_classesDsForMembersProvider);
+  final models = await ds.getUserClasses(userId, cancelToken: cancelToken);
+  return models.map((m) => m.toEntity()).toList();
+});
+
+/// Especialidades de un usuario específico (solo lectura, para vista de perfil de miembro).
+final memberHonorsProvider =
+    FutureProvider.autoDispose.family<List<UserHonor>, String>(
+        (ref, userId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final ds = ref.read(_honorsDsForMembersProvider);
+  final models = await ds.getUserHonors(userId, cancelToken: cancelToken);
+  return models.map((m) => m.toEntity()).toList();
+});

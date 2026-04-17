@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
+@Deprecated('Use SacTextField from sac_widgets.dart. Will be removed in a future release.')
 class CustomTextField extends StatefulWidget {
   final TextEditingController controller;
   final String labelText;

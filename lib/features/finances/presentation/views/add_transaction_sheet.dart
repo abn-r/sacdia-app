@@ -41,7 +41,9 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     if (_isEditing) {
       final t = widget.existing!;
       _type = t.type;
-      _amountController.text = t.amount.toStringAsFixed(0);
+      _amountController.text = t.amount.truncateToDouble() == t.amount
+          ? t.amount.toStringAsFixed(0)
+          : t.amount.toStringAsFixed(2);
       _descController.text = t.description;
       _notesController.text = t.notes ?? '';
       _selectedDate = t.date;
@@ -133,9 +135,10 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     TextFormField(
                       controller: _amountController,
                       keyboardType: const TextInputType.numberWithOptions(
-                          decimal: false),
+                          decimal: true),
                       inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
+                        FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d*\.?\d{0,2}')),
                       ],
                       decoration: _inputDecoration(
                         hint: '0',
@@ -274,13 +277,20 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                             : () => _submit(selectedMonth),
                         style: FilledButton.styleFrom(
                           backgroundColor: AppColors.primary,
+                          minimumSize: const Size(double.infinity, 52),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
                         child: formState.isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2)
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
                             : Text(
                                 _isEditing
                                     ? 'Guardar cambios'
@@ -303,7 +313,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
   }
 
   Future<void> _submit(SelectedMonth selectedMonth) async {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     final amount = double.parse(_amountController.text);
     final clubIdAsync = await ref.read(currentClubIdProvider.future);
@@ -319,9 +330,6 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
           date: _selectedDate,
           year: selectedMonth.year,
           month: selectedMonth.month,
-          notes: _notesController.text.trim().isEmpty
-              ? null
-              : _notesController.text.trim(),
           existingId: _isEditing ? widget.existing!.id : null,
         );
 

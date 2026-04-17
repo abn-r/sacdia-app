@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/animations/animated_counter.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
@@ -10,23 +12,27 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
-import '../../domain/usecases/get_honors.dart';
+import '../../domain/entities/honor.dart';
+import '../../domain/entities/user_honor.dart';
 import '../providers/honors_providers.dart';
-import '../widgets/honor_progress_card.dart';
+import '../widgets/honor_card.dart';
 
 /// Vista de "Mis Honores" - Estilo "Scout Vibrante"
 ///
-/// Tabs: "En progreso" (indigo) / "Completados" (amber badge).
+/// Tabs: "En progreso" / "Completados".
 /// Stats header con 3 mini cards con AnimatedCounter.
 /// Lista con staggered slide-up entrance.
+///
+/// Uses [displayStatus] to classify honors:
+/// - "validado" => Completados tab
+/// - everything else => En progreso tab
 class MyHonorsView extends ConsumerWidget {
   const MyHonorsView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userHonorsAsync = ref.watch(userHonorsProvider);
-    final statsAsync = ref.watch(userHonorStatsProvider);
-    final honorsAsync = ref.watch(honorsProvider(const GetHonorsParams()));
+    final statsAsync = ref.watch(userHonorStatsLocalProvider);
     final hPad = Responsive.horizontalPadding(context);
 
     return DefaultTabController(
@@ -94,7 +100,8 @@ class MyHonorsView extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  loading: () => const SizedBox(height: 60, child: Center(child: SacLoading())),
+                  loading: () =>
+                      const SizedBox(height: 60, child: Center(child: SacLoading())),
                   error: (_, __) => Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: Text(
@@ -179,64 +186,32 @@ class MyHonorsView extends ConsumerWidget {
                       );
                     }
 
-                    return honorsAsync.when(
-                      data: (honors) {
-                        final inProgress = userHonors
-                            .where((uh) =>
-                                uh.status.toLowerCase() != 'completed')
-                            .toList();
-                        final completed = userHonors
-                            .where((uh) =>
-                                uh.status.toLowerCase() == 'completed')
-                            .toList();
+                    // Partition by displayStatus — no honorsProvider needed because
+                    // UserHonor embeds honorName / honorImageUrl from the backend response.
+                    final inProgress = userHonors
+                        .where((uh) => uh.displayStatus != 'validado')
+                        .toList();
+                    final completed = userHonors
+                        .where((uh) => uh.displayStatus == 'validado')
+                        .toList();
 
-                        return TabBarView(
-                          children: [
-                            _buildHonorsList(
-                              context,
-                              ref,
-                              inProgress,
-                              honors,
-                              emptyMessage: 'No tienes honores en progreso',
-                              hPad: hPad,
-                            ),
-                            _buildHonorsList(
-                              context,
-                              ref,
-                              completed,
-                              honors,
-                              emptyMessage: 'Aún no has completado honores',
-                              hPad: hPad,
-                            ),
-                          ],
-                        );
-                      },
-                      loading: () => const Center(child: SacLoading()),
-                      error: (error, _) => Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(32),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.error_outline,
-                                  color: AppColors.error, size: 48),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'No se pudieron cargar las especialidades',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 15),
-                              ),
-                              const SizedBox(height: 12),
-                              TextButton.icon(
-                                onPressed: () =>
-                                    ref.invalidate(userHonorsProvider),
-                                icon: const Icon(Icons.refresh),
-                                label: const Text('Reintentar'),
-                              ),
-                            ],
-                          ),
+                    return TabBarView(
+                      children: [
+                        _buildHonorsList(
+                          context,
+                          ref,
+                          inProgress,
+                          emptyMessage: 'No tienes honores en progreso',
+                          hPad: hPad,
                         ),
-                      ),
+                        _buildHonorsList(
+                          context,
+                          ref,
+                          completed,
+                          emptyMessage: 'Aún no has completado honores',
+                          hPad: hPad,
+                        ),
+                      ],
                     );
                   },
                   loading: () => const Center(child: SacLoading()),
@@ -252,8 +227,7 @@ class MyHonorsView extends ConsumerWidget {
                               color: AppColors.error),
                           const SizedBox(height: 16),
                           Text('Error al cargar especialidades',
-                              style:
-                                  Theme.of(context).textTheme.titleMedium),
+                              style: Theme.of(context).textTheme.titleMedium),
                           const SizedBox(height: 24),
                           SacButton.primary(
                             text: 'Reintentar',
@@ -278,8 +252,7 @@ class MyHonorsView extends ConsumerWidget {
   Widget _buildHonorsList(
     BuildContext context,
     WidgetRef ref,
-    List userHonors,
-    List honors, {
+    List<UserHonor> userHonors, {
     required String emptyMessage,
     required double hPad,
   }) {
@@ -299,26 +272,41 @@ class MyHonorsView extends ConsumerWidget {
       color: AppColors.primary,
       onRefresh: () async {
         ref.invalidate(userHonorsProvider);
-        ref.invalidate(userHonorStatsProvider);
+        // userHonorStatsLocalProvider recomputes automatically when
+        // userHonorsProvider is invalidated — no explicit invalidation needed.
       },
       child: ListView.builder(
         padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 24),
         itemCount: userHonors.length,
         itemBuilder: (context, index) {
           final userHonor = userHonors[index];
-          final honor = honors.firstWhere(
-            (h) => h.id == userHonor.honorId,
-            orElse: () => throw Exception('Honor no encontrado'),
+
+          // Build a minimal Honor from the embedded data that UserHonor carries.
+          // The backend GET /users/:userId/honors response includes a nested
+          // `honors` object, which the model parses into honorName / honorImageUrl.
+          // categoryId defaults to 0 — only display fields matter here.
+          final minimalHonor = Honor(
+            id: userHonor.honorId,
+            name: userHonor.honorName ?? 'Especialidad',
+            imageUrl: userHonor.honorImageUrl,
+            skillLevel: userHonor.honorSkillLevel,
+            categoryId: 0,
+            approval: 1,
           );
 
           return StaggeredListItem(
             index: index,
             initialDelay: const Duration(milliseconds: 60),
             staggerDelay: const Duration(milliseconds: 55),
-            child: HonorProgressCard(
+            child: HonorCard(
+              honor: minimalHonor,
               userHonor: userHonor,
-              honorName: honor.name,
-              onTap: null,
+              onTap: () => context.push(
+                RouteNames.honorEvidencePath(
+                  userHonor.honorId.toString(),
+                  userHonor.id.toString(),
+                ),
+              ),
             ),
           );
         },
@@ -364,7 +352,6 @@ class _StatMini extends StatelessWidget {
                 color: context.sac.textSecondary,
               ),
               textAlign: TextAlign.center,
-              // Fix 2.1: guard against overflow on very narrow phones
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

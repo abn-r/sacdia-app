@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -15,9 +16,9 @@ import 'certification_progress_view.dart';
 /// Vista de detalle de certificación.
 ///
 /// Muestra nombre, descripción, árbol de módulos → secciones.
-/// Si el usuario está inscripto: indicadores de progreso por módulo y botón
+/// Si el usuario está inscrito: indicadores de progreso por módulo y botón
 /// para navegar a la vista de progreso detallada.
-/// Si no está inscripto: CTA de inscripción.
+/// Si no está inscrito: CTA de inscripción.
 class CertificationDetailView extends ConsumerWidget {
   final int certificationId;
 
@@ -97,10 +98,12 @@ class _DetailBody extends ConsumerWidget {
                           color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: HugeIcon(
-                          icon: HugeIcons.strokeRoundedCertificate01,
-                          size: 30,
-                          color: Colors.white,
+                        child: Center(
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedCertificate01,
+                            size: 30,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -172,7 +175,7 @@ class _DetailBody extends ConsumerWidget {
                     }
                     return _NotEnrolledCTA(certificationId: certificationId);
                   },
-                  loading: () => const SacLoading(),
+                  loading: () => const Center(child: SacLoading()),
                   error: (_, __) =>
                       _NotEnrolledCTA(certificationId: certificationId),
                 ),
@@ -276,7 +279,7 @@ class _StatsRow extends StatelessWidget {
 }
 
 class _StatItem extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String value;
   final String label;
 
@@ -339,7 +342,7 @@ class _EnrolledCTA extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Badge inscripto + progreso
+        // Badge inscrito + progreso
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(16),
@@ -363,7 +366,7 @@ class _EnrolledCTA extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Estás inscripto',
+                      'Estás inscrito',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -607,7 +610,7 @@ class _ModuleTreeCardState extends State<_ModuleTreeCard> {
 // ── Section Title ─────────────────────────────────────────────────────────────
 
 class _SectionTitle extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
 
   const _SectionTitle({required this.icon, required this.label});

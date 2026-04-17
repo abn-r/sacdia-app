@@ -2,10 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 
 import '../providers/camporees_providers.dart';
+
+// Cross-feature dependency note:
+// This view intentionally does NOT import [membersNotifierProvider] from the
+// members feature. Registration is performed via a direct UUID text input,
+// keeping the camporees feature self-contained and safe for deep-link navigation.
+// If a member-picker UI is added in the future, it should either:
+//   a) Create a scoped [camporeeEligibleMembersProvider] inside this feature
+//      (preferred — avoids implicit members-feature activation), or
+//   b) Document the cross-feature dependency here with the reasons why a
+//      full members fetch is acceptable in that context.
 
 /// Vista para registrar un miembro en un camporee.
 ///
@@ -200,7 +211,7 @@ class _CamporeeRegisterMemberViewState
                       caseSensitive: false,
                     );
                     if (!uuidRegex.hasMatch(value.trim())) {
-                      return 'Ingresá un UUID válido';
+                      return 'Ingresa un UUID válido';
                     }
                     return null;
                   },
@@ -276,7 +287,7 @@ class _CamporeeRegisterMemberViewState
                     if (value != null && value.isNotEmpty) {
                       final parsed = int.tryParse(value);
                       if (parsed == null || parsed <= 0) {
-                        return 'Ingresá un ID de seguro válido';
+                        return 'Ingresa un ID de seguro válido';
                       }
                     }
                     return null;
@@ -336,7 +347,8 @@ class _CamporeeRegisterMemberViewState
   }
 
   Future<void> _submit(BuildContext context) async {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     ref
         .read(camporeeRegistrationNotifierProvider(widget.camporeeId).notifier)
@@ -380,7 +392,7 @@ class _CamporeeRegisterMemberViewState
 class _FieldLabel extends StatelessWidget {
   final String label;
   final bool required;
-  final dynamic icon;
+  final HugeIconData icon;
 
   const _FieldLabel({
     required this.label,

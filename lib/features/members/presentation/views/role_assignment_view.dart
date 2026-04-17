@@ -71,7 +71,7 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Cargo asignado: ${RoleUtils.translate(_selectedRole)}',
+            'Cargo asignado: ${RoleUtils.translate(_selectedRole, gender: widget.member.gender)}',
           ),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
@@ -158,7 +158,7 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
                         ),
                         if (widget.member.clubRole != null)
                           Text(
-                            'Cargo actual: ${RoleUtils.translate(widget.member.clubRole)}',
+                            'Cargo actual: ${RoleUtils.translate(widget.member.clubRole, gender: widget.member.gender)}',
                             style: TextStyle(
                               fontSize: 13,
                               color: c.textSecondary,
@@ -210,7 +210,7 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
                           children: [
                             Expanded(
                               child: Text(
-                                RoleUtils.translate(role),
+                                RoleUtils.translate(role, gender: widget.member.gender),
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: isSelected

@@ -6,10 +6,12 @@ import '../../domain/entities/evidence_section.dart';
 
 /// Badge de color con ícono que indica el estado de la sección.
 ///
-/// Tres variantes visuales:
-/// - pendiente  → amarillo / naranja
-/// - enviado    → azul (dark-mode aware)
-/// - validado   → verde
+/// Cinco variantes visuales:
+/// - pending        → amarillo / naranja
+/// - submitted      → azul (dark-mode aware)
+/// - preapprovedLf  → ámbar (pre-aprobado por campo local, pendiente de unión)
+/// - validated      → verde
+/// - rejected       → rojo
 class SectionStatusBadge extends StatelessWidget {
   final EvidenceSectionStatus status;
 
@@ -50,56 +52,78 @@ class SectionStatusBadge extends StatelessWidget {
 
   String get _label {
     switch (status) {
-      case EvidenceSectionStatus.pendiente:
+      case EvidenceSectionStatus.pending:
         return 'Pendiente';
-      case EvidenceSectionStatus.enviado:
+      case EvidenceSectionStatus.submitted:
         return 'Enviado';
-      case EvidenceSectionStatus.validado:
+      case EvidenceSectionStatus.preapprovedLf:
+        return 'Preaprobado';
+      case EvidenceSectionStatus.validated:
         return 'Validado';
+      case EvidenceSectionStatus.rejected:
+        return 'Rechazado';
     }
   }
 
   Color _bgColor(bool isDark) {
     switch (status) {
-      case EvidenceSectionStatus.pendiente:
+      case EvidenceSectionStatus.pending:
         return AppColors.accentLight;
-      case EvidenceSectionStatus.enviado:
-        return isDark ? AppColors.statusInfoBgDark : AppColors.statusInfoBgLight;
-      case EvidenceSectionStatus.validado:
+      case EvidenceSectionStatus.submitted:
+        return isDark
+            ? AppColors.statusInfoBgDark
+            : AppColors.statusInfoBgLight;
+      case EvidenceSectionStatus.preapprovedLf:
+        return isDark ? AppColors.darkSurfaceVariant : AppColors.accentLight;
+      case EvidenceSectionStatus.validated:
         return AppColors.secondaryLight;
+      case EvidenceSectionStatus.rejected:
+        return AppColors.errorLight;
     }
   }
 
   Color _borderColor(bool isDark) {
     switch (status) {
-      case EvidenceSectionStatus.pendiente:
+      case EvidenceSectionStatus.pending:
         return AppColors.accent.withValues(alpha: 0.4);
-      case EvidenceSectionStatus.enviado:
+      case EvidenceSectionStatus.submitted:
         return AppColors.sacBlue.withValues(alpha: 0.4);
-      case EvidenceSectionStatus.validado:
+      case EvidenceSectionStatus.preapprovedLf:
+        return AppColors.accent.withValues(alpha: 0.5);
+      case EvidenceSectionStatus.validated:
         return AppColors.secondary.withValues(alpha: 0.4);
+      case EvidenceSectionStatus.rejected:
+        return AppColors.error.withValues(alpha: 0.4);
     }
   }
 
   Color _textColor(bool isDark) {
     switch (status) {
-      case EvidenceSectionStatus.pendiente:
+      case EvidenceSectionStatus.pending:
         return AppColors.accentDark;
-      case EvidenceSectionStatus.enviado:
+      case EvidenceSectionStatus.submitted:
         return isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
-      case EvidenceSectionStatus.validado:
+      case EvidenceSectionStatus.preapprovedLf:
+        return AppColors.accentDark;
+      case EvidenceSectionStatus.validated:
         return AppColors.secondaryDark;
+      case EvidenceSectionStatus.rejected:
+        return AppColors.errorDark;
     }
   }
 
   List<List<dynamic>> get _icon {
     switch (status) {
-      case EvidenceSectionStatus.pendiente:
+      case EvidenceSectionStatus.pending:
         return HugeIcons.strokeRoundedClock01;
-      case EvidenceSectionStatus.enviado:
+      case EvidenceSectionStatus.submitted:
         return HugeIcons.strokeRoundedSent;
-      case EvidenceSectionStatus.validado:
+      case EvidenceSectionStatus.preapprovedLf:
+        return HugeIcons.strokeRoundedAnalytics01;
+      case EvidenceSectionStatus.validated:
         return HugeIcons.strokeRoundedCheckmarkCircle01;
+      case EvidenceSectionStatus.rejected:
+        return HugeIcons.strokeRoundedCancel01;
     }
   }
 }

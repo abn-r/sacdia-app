@@ -1,72 +1,174 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 
-/// Grid 2×4 de acceso rápido a los módulos principales del sistema.
-class QuickAccessGrid extends StatelessWidget {
+class _QuickAccessItemConfig {
+  final String label;
+  final List<List<dynamic>> icon;
+  final Color? color;
+  final String route;
+  final Set<String> requiredPermissions;
+
+  /// Canonical role names to gate against when the item is not permission-based.
+  /// Only used for global roles whose authority cannot be modeled as a single
+  /// permission (e.g. `coordinator`, `admin`). Leave empty when the item is
+  /// gated purely by [requiredPermissions].
+  final Set<String> requiredRoles;
+
+  const _QuickAccessItemConfig({
+    required this.label,
+    required this.icon,
+    this.color,
+    required this.route,
+    this.requiredPermissions = const {},
+    this.requiredRoles = const {},
+  });
+}
+
+const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
+  // Coordination hub — gated by GLOBAL role only. The concept "is the user a
+  // coordinator / admin" does not map to a single permission, because club
+  // directors also hold operational permissions like `investiture:validate`;
+  // using those would incorrectly reveal the hub to directors.
+  _QuickAccessItemConfig(
+    label: 'Coordinación',
+    icon: HugeIcons.strokeRoundedAnalytics01,
+    color: AppColors.info,
+    route: RouteNames.coordinator,
+    requiredRoles: {'coordinator', 'admin', 'super_admin', 'assistant_admin'},
+  ),
+  // Administrative: member list — users:read_detail is held by counselor+
+  _QuickAccessItemConfig(
+    label: 'Miembros',
+    icon: HugeIcons.strokeRoundedUserGroup,
+    color: AppColors.primary,
+    route: RouteNames.homeMembers,
+    requiredPermissions: {'users:read_detail'},
+  ),
+  // Administrative: club management — clubs:update is held by secretary+
+  _QuickAccessItemConfig(
+    label: 'Club',
+    icon: HugeIcons.strokeRoundedBuilding01,
+    color: AppColors.secondary,
+    route: RouteNames.homeClub,
+    requiredPermissions: {'clubs:update'},
+  ),
+  // Administrative: evidence folder management — uses users:read_detail.
+  // Members access their OWN evidence via the profile screen, not this view.
+  _QuickAccessItemConfig(
+    label: 'Carpeta de Evidencias',
+    icon: HugeIcons.strokeRoundedFolder01,
+    color: AppColors.accent,
+    route: RouteNames.homeEvidences,
+    requiredPermissions: {'users:read_detail'},
+  ),
+  // Administrative: financial records — finances:read is held by treasurer+
+  _QuickAccessItemConfig(
+    label: 'Finanzas',
+    icon: HugeIcons.strokeRoundedCreditCard,
+    color: AppColors.info,
+    route: RouteNames.homeFinances,
+    requiredPermissions: {'finances:read'},
+  ),
+  // Administrative: unit management — units:update is held by counselor+
+  _QuickAccessItemConfig(
+    label: 'Unidades',
+    icon: HugeIcons.strokeRoundedCompass01,
+    color: AppColors.secondary,
+    route: RouteNames.homeUnits,
+    requiredPermissions: {'units:update'},
+  ),
+  // Administrative: group class management — classes:submit_progress is held by counselor+
+  _QuickAccessItemConfig(
+    label: 'Clase Agrupada',
+    icon: HugeIcons.strokeRoundedBookOpen01,
+    color: AppColors.primary,
+    route: RouteNames.homeGroupedClass,
+    requiredPermissions: {'classes:submit_progress'},
+  ),
+  // Administrative: insurance management
+  _QuickAccessItemConfig(
+    label: 'Seguros del Club',
+    icon: HugeIcons.strokeRoundedShield01,
+    color: AppColors.secondaryDark,
+    route: RouteNames.homeInsurance,
+    requiredPermissions: {'insurance:read'},
+  ),
+  // Administrative: inventory management
+  _QuickAccessItemConfig(
+    label: 'Inventario',
+    icon: HugeIcons.strokeRoundedPackage,
+    color: AppColors.accent,
+    route: RouteNames.homeInventory,
+    requiredPermissions: {'inventory:read'},
+  ),
+  // Club-wide shared resources — folders:read is granted to every club role.
+  _QuickAccessItemConfig(
+    label: 'Recursos',
+    icon: HugeIcons.strokeRoundedFiles01,
+    route: RouteNames.homeResources,
+    requiredPermissions: {'folders:read'},
+  ),
+];
+
+/// Grid 2xN de acceso rápido a los módulos principales del sistema.
+///
+/// Watches the full [AsyncValue] from [authNotifierProvider] to distinguish
+/// three states:
+///   - loading  → show skeleton placeholders (avoids the flip-flop where
+///                 `valueOrNull == null` while the Future is still in flight)
+///   - data with authorization → filter items by permissions and render grid
+///   - data without authorization (genuinely empty) → SizedBox.shrink()
+class QuickAccessGrid extends ConsumerWidget {
   const QuickAccessGrid({super.key});
 
-  static const List<_QuickAccessItem> _items = [
-    _QuickAccessItem(
-      label: 'Miembros',
-      icon: HugeIcons.strokeRoundedUserGroup,
-      color: AppColors.primary,
-      route: RouteNames.homeMembers,
-    ),
-    _QuickAccessItem(
-      label: 'Club',
-      icon: HugeIcons.strokeRoundedBuilding01,
-      color: AppColors.secondary,
-      route: RouteNames.homeClub,
-    ),
-    _QuickAccessItem(
-      label: 'Carpeta de Evidencias',
-      icon: HugeIcons.strokeRoundedFolder01,
-      color: AppColors.accent,
-      route: RouteNames.homeEvidences,
-    ),
-    _QuickAccessItem(
-      label: 'Finanzas',
-      icon: HugeIcons.strokeRoundedCreditCard,
-      color: AppColors.info,
-      route: RouteNames.homeFinances,
-    ),
-    _QuickAccessItem(
-      label: 'Unidades',
-      icon: HugeIcons.strokeRoundedCompass01,
-      color: AppColors.secondary,
-      route: RouteNames.homeUnits,
-    ),
-    _QuickAccessItem(
-      label: 'Clase Agrupada',
-      icon: HugeIcons.strokeRoundedBookOpen01,
-      color: AppColors.primary,
-      route: RouteNames.homeGroupedClass,
-    ),
-    _QuickAccessItem(
-      label: 'Seguros del Club',
-      icon: HugeIcons.strokeRoundedShield01,
-      color: AppColors.secondaryDark,
-      route: RouteNames.homeInsurance,
-    ),
-    _QuickAccessItem(
-      label: 'Inventario',
-      icon: HugeIcons.strokeRoundedPackage,
-      color: AppColors.accent,
-      route: RouteNames.homeInventory,
-    ),
-    _QuickAccessItem(
-      label: 'Recursos',
-      icon: HugeIcons.strokeRoundedFiles01,
-      route: RouteNames.homeResources,
-    ),
-  ];
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authAsync = ref.watch(authNotifierProvider);
+
+    // While the auth future is still resolving, show a placeholder that
+    // occupies the same vertical space as the real grid would. This prevents
+    // the layout from collapsing and then jumping when permissions arrive.
+    if (authAsync.isLoading) {
+      return const _QuickAccessSkeleton();
+    }
+
+    final user = authAsync.valueOrNull;
+    final authorization = user?.authorization;
+
+    // Auth has settled but there is no authorization data — either the user
+    // has no assigned role or the response genuinely had none. Hide the grid.
+    if (authorization == null) {
+      return const SizedBox.shrink();
+    }
+
+    final filteredItems = _quickAccessItemsConfig.where((item) {
+      // Ungated items (no permissions AND no roles) are visible to every
+      // authenticated user — used only when authorization is not a concern.
+      if (item.requiredPermissions.isEmpty && item.requiredRoles.isEmpty) {
+        return true;
+      }
+      if (item.requiredPermissions.isNotEmpty &&
+          hasAnyPermission(user, item.requiredPermissions)) {
+        return true;
+      }
+      if (item.requiredRoles.isNotEmpty &&
+          hasAnyRole(user, item.requiredRoles)) {
+        return true;
+      }
+      return false;
+    }).toList();
+
+    if (filteredItems.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -78,6 +180,9 @@ class QuickAccessGrid extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         GridView.builder(
+          // shrinkWrap OK: filteredItems is permission-gated from a compile-time
+          // constant list (max ~8 items). Lives inside SingleChildScrollView >
+          // Column — intrinsic height is required.
           physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -86,9 +191,9 @@ class QuickAccessGrid extends StatelessWidget {
             crossAxisSpacing: 12,
             childAspectRatio: 1.2,
           ),
-          itemCount: _items.length,
+          itemCount: filteredItems.length,
           itemBuilder: (context, index) {
-            final item = _items[index];
+            final item = filteredItems[index];
             return _QuickAccessTile(item: item);
           },
         ),
@@ -97,24 +202,58 @@ class QuickAccessGrid extends StatelessWidget {
   }
 }
 
-class _QuickAccessItem {
-  final String label;
-  // HugeIcon path data — internal format used by package:hugeicons
-  final List<List<dynamic>> icon;
-  // Null means "follow theme text color" — resolved at render time via context.sac.text
-  final Color? color;
-  final String route;
+/// Skeleton placeholder shown while auth is resolving.
+///
+/// Renders 4 shimmer-like boxes in a 2x2 layout so the page height stays
+/// stable and the grid doesn't cause a layout jump when it appears.
+class _QuickAccessSkeleton extends StatelessWidget {
+  const _QuickAccessSkeleton();
 
-  const _QuickAccessItem({
-    required this.label,
-    required this.icon,
-    this.color,
-    required this.route,
-  });
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final shimmerColor = c.border;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Title placeholder
+        Container(
+          height: 16,
+          width: 120,
+          decoration: BoxDecoration(
+            color: shimmerColor,
+            borderRadius: BorderRadius.circular(6),
+          ),
+        ),
+        const SizedBox(height: 12),
+        GridView.builder(
+          // shrinkWrap OK: skeleton with exactly 4 placeholder tiles.
+          // Lives inside SingleChildScrollView > Column — intrinsic height
+          // is required and item count is compile-time constant.
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 1.2,
+          ),
+          itemCount: 4,
+          itemBuilder: (_, __) => Container(
+            decoration: BoxDecoration(
+              color: shimmerColor,
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _QuickAccessTile extends StatelessWidget {
-  final _QuickAccessItem item;
+  final _QuickAccessItemConfig item;
 
   // Shared BorderRadius to avoid repeated allocations on every build.
   static final _kTileRadius = BorderRadius.circular(16);
@@ -149,10 +288,12 @@ class _QuickAccessTile extends StatelessWidget {
                   color: effectiveColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: HugeIcon(
-                  icon: item.icon,
-                  size: 24,
-                  color: effectiveColor,
+                child: Center(
+                  child: HugeIcon(
+                    icon: item.icon,
+                    size: 24,
+                    color: effectiveColor,
+                  ),
                 ),
               ),
               const SizedBox(height: 8),

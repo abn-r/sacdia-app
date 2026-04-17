@@ -75,7 +75,7 @@ class MemberCard extends StatelessWidget {
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
-                              RoleUtils.translate(member.clubRole),
+                              RoleUtils.translate(member.clubRole, gender: member.gender),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: c.textSecondary,

@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/activity_model.dart';
 import '../models/attendance_model.dart';
+import '../models/club_section_model.dart';
 import '../models/create_activity_request.dart';
 
 /// Interfaz para la fuente de datos remota de actividades
@@ -11,32 +14,59 @@ abstract class ActivitiesRemoteDataSource {
   Future<List<ActivityModel>> getClubActivities(
     int clubId, {
     int? clubTypeId,
-    int? activityTypeId,
+    CancelToken? cancelToken,
   });
-  Future<ActivityModel> getActivityById(int activityId);
+  Future<ActivityModel> getActivityById(
+    int activityId, {
+    CancelToken? cancelToken,
+  });
   Future<ActivityModel> createActivity({
     required int clubId,
     required CreateActivityRequest request,
   });
   Future<ActivityModel> updateActivity({
     required int activityId,
-    String? title,
+    String? name,
     String? description,
-    DateTime? startDate,
-    DateTime? endDate,
-    String? location,
+    double? lat,
+    double? long,
+    String? activityTime,
+    String? activityDate,
+    String? activityEndDate,
+    String? activityPlace,
+    int? platform,
+    int? activityTypeId,
+    String? linkMeet,
     bool? active,
+    Set<String> clearFields = const {},
+    // TODO(backend): UpdateActivityDto does not yet support club_section_ids.
+    // Once the backend PATCH /activities/:id endpoint accepts this field,
+    // remove this comment and wire it through. The value is sent optimistically
+    // and will be stripped by NestJS whitelist validation until then.
+    List<int>? clubSectionIds,
   });
   Future<void> deleteActivity(int activityId);
-  Future<List<AttendanceModel>> getActivityAttendance(int activityId);
+  Future<List<AttendanceModel>> getActivityAttendance(
+    int activityId, {
+    CancelToken? cancelToken,
+  });
   Future<int> registerAttendance(int activityId, List<String> userIds);
+
+  /// Sube una imagen para la actividad y devuelve la URL firmada resultante.
+  Future<String> uploadActivityImage(int activityId, File imageFile);
+
+  /// Obtiene las secciones de un club (para el picker de actividades conjuntas).
+  /// Llama a GET /api/v1/clubs/:clubId/sections
+  Future<List<ClubSectionModel>> getClubSections(
+    int clubId, {
+    CancelToken? cancelToken,
+  });
 }
 
 /// Implementación de la fuente de datos remota de actividades
 class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'ActivitiesDS';
 
@@ -44,33 +74,22 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) {
-      throw AuthException(message: 'No hay sesión activa');
-    }
-    return token;
-  }
+        _baseUrl = baseUrl;
 
   @override
   Future<List<ActivityModel>> getClubActivities(
     int clubId, {
     int? clubTypeId,
-    int? activityTypeId,
+    CancelToken? cancelToken,
   }) async {
     try {
-      final token = await _getAuthToken();
       final queryParams = <String, dynamic>{'active': 'true'};
       if (clubTypeId != null) queryParams['clubTypeId'] = clubTypeId;
-      if (activityTypeId != null) queryParams['activityTypeId'] = activityTypeId;
 
       final response = await _dio.get(
-        '$_baseUrl/clubs/$clubId/activities',
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/activities',
         queryParameters: queryParams,
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -93,12 +112,14 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   }
 
   @override
-  Future<ActivityModel> getActivityById(int activityId) async {
+  Future<ActivityModel> getActivityById(
+    int activityId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/activities/$activityId',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
+        '$_baseUrl${ApiEndpoints.activities}/$activityId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -117,12 +138,14 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   }
 
   @override
-  Future<List<AttendanceModel>> getActivityAttendance(int activityId) async {
+  Future<List<AttendanceModel>> getActivityAttendance(
+    int activityId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final token = await _getAuthToken();
       final response = await _dio.get(
-        '$_baseUrl/activities/$activityId/attendance',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
+        '$_baseUrl${ApiEndpoints.activities}/$activityId/attendance',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -150,12 +173,10 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   }) async {
     try {
       AppLogger.i('Creando actividad: ${request.name}', tag: _tag);
-      final token = await _getAuthToken();
 
       final response = await _dio.post(
-        '$_baseUrl/clubs/$clubId/activities',
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/activities',
         data: request.toJson(),
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -188,29 +209,52 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   @override
   Future<ActivityModel> updateActivity({
     required int activityId,
-    String? title,
+    String? name,
     String? description,
-    DateTime? startDate,
-    DateTime? endDate,
-    String? location,
+    double? lat,
+    double? long,
+    String? activityTime,
+    String? activityDate,
+    String? activityEndDate,
+    String? activityPlace,
+    int? platform,
+    int? activityTypeId,
+    String? linkMeet,
     bool? active,
+    Set<String> clearFields = const {},
+    List<int>? clubSectionIds,
   }) async {
     try {
       AppLogger.i('Actualizando actividad: $activityId', tag: _tag);
-      final token = await _getAuthToken();
 
       final data = <String, dynamic>{};
-      if (title != null) data['title'] = title;
+      if (name != null) data['name'] = name;
       if (description != null) data['description'] = description;
-      if (startDate != null) data['start_date'] = startDate.toUtc().toIso8601String();
-      if (endDate != null) data['end_date'] = endDate.toUtc().toIso8601String();
-      if (location != null) data['location'] = location;
+      if (lat != null) data['lat'] = lat;
+      if (long != null) data['long'] = long;
+      if (activityTime != null) data['activity_time'] = activityTime;
+      if (activityDate != null) data['activity_date'] = activityDate;
+      if (activityEndDate != null) data['activity_end_date'] = activityEndDate;
+      if (activityPlace != null) data['activity_place'] = activityPlace;
+      if (platform != null) data['platform'] = platform;
+      if (activityTypeId != null) data['activity_type_id'] = activityTypeId;
+      if (linkMeet != null) data['link_meet'] = linkMeet;
       if (active != null) data['active'] = active;
 
+      // Campos explícitamente nulos (el backend usa undefined-check, necesitamos la clave presente)
+      for (final field in clearFields) {
+        data[field] = null;
+      }
+
+      // Joint activity sections — sent when provided (2+ IDs).
+      // TODO(backend): stripped by NestJS whitelist until UpdateActivityDto adds club_section_ids.
+      if (clubSectionIds != null && clubSectionIds.length >= 2) {
+        data['club_section_ids'] = clubSectionIds;
+      }
+
       final response = await _dio.patch(
-        '$_baseUrl/activities/$activityId',
+        '$_baseUrl${ApiEndpoints.activities}/$activityId',
         data: data,
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -236,11 +280,9 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   Future<void> deleteActivity(int activityId) async {
     try {
       AppLogger.i('Eliminando actividad: $activityId', tag: _tag);
-      final token = await _getAuthToken();
 
       final response = await _dio.delete(
-        '$_baseUrl/activities/$activityId',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
+        '$_baseUrl${ApiEndpoints.activities}/$activityId',
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) return;
@@ -263,12 +305,10 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   Future<int> registerAttendance(int activityId, List<String> userIds) async {
     try {
       AppLogger.i('Registrando asistencia: ${userIds.length} usuarios', tag: _tag);
-      final token = await _getAuthToken();
 
       final response = await _dio.post(
-        '$_baseUrl/activities/$activityId/attendance',
+        '$_baseUrl${ApiEndpoints.activities}/$activityId/attendance',
         data: {'user_ids': userIds},
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -280,6 +320,88 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
       throw ServerException(message: 'Error al registrar asistencia', code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en registerAttendance', tag: _tag, error: e);
+      if (e is DioException) {
+        throw ServerException(
+          message: e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
+          code: e.response?.statusCode,
+        );
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<String> uploadActivityImage(int activityId, File imageFile) async {
+    try {
+      AppLogger.i('Subiendo imagen para actividad: $activityId', tag: _tag);
+
+      final fileName = imageFile.path.split('/').last;
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          imageFile.path,
+          filename: fileName,
+        ),
+      });
+
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.activities}/$activityId/image',
+        data: formData,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = response.data as Map<String, dynamic>;
+        final data = responseData['data'] as Map<String, dynamic>;
+        final url = data['url'] as String;
+        AppLogger.i('Imagen subida exitosamente para actividad: $activityId', tag: _tag);
+        return url;
+      }
+
+      throw ServerException(
+        message: 'Error al subir imagen de actividad',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en uploadActivityImage', tag: _tag, error: e);
+      if (e is DioException) {
+        final message = e.response?.data is Map
+            ? (e.response!.data['message'] ?? e.message ?? 'Error de conexión')
+            : (e.message ?? 'Error de conexión');
+        throw ServerException(
+          message: message.toString(),
+          code: e.response?.statusCode,
+        );
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<List<ClubSectionModel>> getClubSections(
+    int clubId, {
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections',
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final List<dynamic> data = response.data as List<dynamic>;
+        return data
+            .map((json) =>
+                ClubSectionModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+
+      throw ServerException(
+        message: 'Error al obtener secciones del club',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getClubSections', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
           message: e.response?.data?['message'] ?? e.message ?? 'Error de conexión',

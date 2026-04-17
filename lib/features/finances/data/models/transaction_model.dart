@@ -14,6 +14,7 @@ class FinanceTransactionModel extends FinanceTransaction {
     required super.month,
     required super.category,
     required super.registeredByName,
+    super.registeredByPhoto,
     required super.registeredAt,
     super.modifiedByName,
     super.modifiedAt,
@@ -36,6 +37,7 @@ class FinanceTransactionModel extends FinanceTransaction {
     // Datos del creador
     final createdByUser = json['users'] as Map<String, dynamic>? ?? {};
     final registeredByName = _extractName(createdByUser, json['created_by']?.toString() ?? 'Sistema');
+    final registeredByPhoto = createdByUser['user_image']?.toString();
 
     return FinanceTransactionModel(
       id: _parseInt(json['finance_id'] ?? json['id'] ?? 0),
@@ -48,6 +50,7 @@ class FinanceTransactionModel extends FinanceTransaction {
       month: _parseInt(json['month'] ?? DateTime.now().month),
       category: category,
       registeredByName: registeredByName,
+      registeredByPhoto: registeredByPhoto,
       registeredAt: _parseDateTime(json['created_at']),
       modifiedByName: json['modified_by_name']?.toString(),
       modifiedAt: json['modified_at'] != null
@@ -71,9 +74,9 @@ class FinanceTransactionModel extends FinanceTransaction {
 
   static String _extractName(Map<String, dynamic> user, String fallback) {
     if (user.isEmpty) return fallback;
-    final first = user['first_name']?.toString() ?? '';
-    final last = user['last_name']?.toString() ?? '';
-    final full = '$first $last'.trim();
+    final name = user['name']?.toString() ?? '';
+    final lastName = user['paternal_last_name']?.toString() ?? '';
+    final full = '$name $lastName'.trim();
     return full.isNotEmpty ? full : fallback;
   }
 
@@ -114,6 +117,7 @@ class FinanceTransactionModel extends FinanceTransaction {
         month: month,
         category: category,
         registeredByName: registeredByName,
+        registeredByPhoto: registeredByPhoto,
         registeredAt: registeredAt,
         modifiedByName: modifiedByName,
         modifiedAt: modifiedAt,

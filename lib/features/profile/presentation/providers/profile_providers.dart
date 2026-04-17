@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -42,9 +43,15 @@ final updateUserProfileProvider = Provider<UpdateUserProfile>((ref) {
 });
 
 /// Notifier para manejar el perfil del usuario
-class ProfileNotifier extends AsyncNotifier<UserDetail?> {
+class ProfileNotifier extends AutoDisposeAsyncNotifier<UserDetail?> {
+  CancelToken _cancelToken = CancelToken();
+
   @override
   Future<UserDetail?> build() async {
+    // Crear un nuevo token para este ciclo de vida y cancelarlo al hacer dispose.
+    _cancelToken = CancelToken();
+    ref.onDispose(() => _cancelToken.cancel());
+
     // Solo reaccionar a cambios en el ID del usuario (evita cascadas por cambios de metadata).
     final userId = await ref.watch(
       authNotifierProvider.selectAsync((user) => user?.id),
@@ -54,6 +61,7 @@ class ProfileNotifier extends AsyncNotifier<UserDetail?> {
     // Obtener el perfil completo del usuario
     final result = await ref.read(getUserProfileProvider)(
       GetUserProfileParams(userId: userId),
+      cancelToken: _cancelToken,
     );
 
     return result.fold(
@@ -106,6 +114,7 @@ class ProfileNotifier extends AsyncNotifier<UserDetail?> {
 
     final result = await ref.read(getUserProfileProvider)(
       GetUserProfileParams(userId: user.id),
+      cancelToken: _cancelToken,
     );
 
     state = result.fold(
@@ -116,6 +125,7 @@ class ProfileNotifier extends AsyncNotifier<UserDetail?> {
 }
 
 /// Provider para el notifier del perfil
-final profileNotifierProvider = AsyncNotifierProvider<ProfileNotifier, UserDetail?>(() {
+final profileNotifierProvider =
+    AsyncNotifierProvider.autoDispose<ProfileNotifier, UserDetail?>(() {
   return ProfileNotifier();
 });

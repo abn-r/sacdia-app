@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+
+// La hora se muestra desde activityTime (String "HH:mm") — campo separado del backend.
+// activityDate es DATE-only (medianoche local); usarlo para la hora siempre da 00:00.
+// activityTime es la hora real que ingresó el usuario, no tiene problema de timezone.
 
 import '../../domain/entities/activity.dart';
 
@@ -65,16 +70,27 @@ class ActivityCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top row: type badge + arrow button
+          // Top row: type badge + optional joint badge + arrow button
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              SacBadge(
-                label: _getTypeText(
-                  activity.activityType,
-                  activity.activityTypeName,
-                ),
-                variant: _getTypeBadgeVariant(activity.activityType),
+              Wrap(
+                spacing: 6,
+                children: [
+                  SacBadge(
+                    label: _getTypeText(
+                      activity.activityType,
+                      activity.activityTypeName,
+                    ),
+                    variant: _getTypeBadgeVariant(activity.activityType),
+                  ),
+                  if (activity.isJoint)
+                    const SacBadge(
+                      label: 'Conjunta',
+                      icon: Icons.people_rounded,
+                      variant: SacBadgeVariant.neutral,
+                    ),
+                ],
               ),
               Container(
                 width: 32,
@@ -112,14 +128,14 @@ class ActivityCard extends StatelessWidget {
             spacing: 14,
             runSpacing: 6,
             children: [
-              if (activity.createdAt != null)
+              if (activity.activityDate != null)
                 _MetaItem(
                   icon: HugeIcons.strokeRoundedCalendar01,
                   label: DateFormat('d MMM yyyy', 'es')
-                      .format(activity.createdAt!),
+                      .format(activity.activityDate!.toLocal()),
                   c: c,
                 ),
-              if (activity.activityTime != null)
+              if (activity.activityTime != null && activity.activityTime!.isNotEmpty)
                 _MetaItem(
                   icon: HugeIcons.strokeRoundedClock01,
                   label: activity.activityTime!,
@@ -140,8 +156,7 @@ class ActivityCard extends StatelessWidget {
 }
 
 class _MetaItem extends StatelessWidget {
-  // ignore: prefer_typing_uninitialized_variables
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
   final SacColors c;
 
@@ -158,12 +173,15 @@ class _MetaItem extends StatelessWidget {
       children: [
         HugeIcon(icon: icon, size: 13, color: c.textTertiary),
         const SizedBox(width: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: c.textSecondary,
-            fontWeight: FontWeight.w500,
+        Flexible(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: c.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

@@ -45,6 +45,17 @@ class ClassModuleDetail extends Equatable {
       ? 0.0
       : completedCount / requirements.length;
 
+  /// Devuelve una copia del modulo con una lista de requerimientos diferente.
+  /// Util para filtrado de busqueda sin mutar el original.
+  ClassModuleDetail copyWithRequirements(List<ClassRequirement> filtered) =>
+      ClassModuleDetail(
+        id: id,
+        name: name,
+        description: description,
+        classId: classId,
+        requirements: filtered,
+      );
+
   @override
   List<Object?> get props => [id, name, description, classId, requirements];
 }

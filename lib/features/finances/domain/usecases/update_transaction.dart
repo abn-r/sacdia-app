@@ -11,7 +11,6 @@ class UpdateTransactionParams extends Equatable {
   final double? amount;
   final String? description;
   final DateTime? date;
-  final String? notes;
 
   const UpdateTransactionParams({
     required this.financeId,
@@ -19,12 +18,11 @@ class UpdateTransactionParams extends Equatable {
     this.amount,
     this.description,
     this.date,
-    this.notes,
   });
 
   @override
   List<Object?> get props =>
-      [financeId, categoryId, amount, description, date, notes];
+      [financeId, categoryId, amount, description, date];
 }
 
 class UpdateTransaction {
@@ -40,7 +38,6 @@ class UpdateTransaction {
       amount: params.amount,
       description: params.description,
       date: params.date,
-      notes: params.notes,
     );
   }
 }

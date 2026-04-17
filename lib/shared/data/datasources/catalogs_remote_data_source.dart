@@ -1,18 +1,18 @@
 import 'package:dio/dio.dart';
 
+import '../../../core/constants/api_endpoints.dart';
 import '../../../core/errors/exceptions.dart';
 import '../../../core/utils/app_logger.dart';
 import '../../models/catalogs/catalogs.dart';
 
 /// Interfaz para la fuente de datos remota de catálogos del sistema
 abstract class CatalogsRemoteDataSource {
-  Future<List<ClubTypeModel>> getClubTypes();
-  Future<List<ActivityTypeModel>> getActivityTypes();
-  Future<List<DistrictModel>> getDistricts({int? localFieldId});
-  Future<List<ChurchModel>> getChurches({int? districtId});
-  Future<List<RoleModel>> getRoles({int? clubTypeId});
-  Future<List<EcclesiasticalYearModel>> getEcclesiasticalYears({bool? active});
-  Future<EcclesiasticalYearModel?> getCurrentEcclesiasticalYear();
+  Future<List<ClubTypeModel>> getClubTypes({CancelToken? cancelToken});
+  Future<List<ActivityTypeModel>> getActivityTypes({CancelToken? cancelToken});
+  Future<List<DistrictModel>> getDistricts({int? localFieldId, CancelToken? cancelToken});
+  Future<List<ChurchModel>> getChurches({int? districtId, CancelToken? cancelToken});
+  Future<List<EcclesiasticalYearModel>> getEcclesiasticalYears({bool? active, CancelToken? cancelToken});
+  Future<EcclesiasticalYearModel?> getCurrentEcclesiasticalYear({CancelToken? cancelToken});
 }
 
 /// Implementación de la fuente de datos remota de catálogos
@@ -29,9 +29,12 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
         _baseUrl = baseUrl;
 
   @override
-  Future<List<ClubTypeModel>> getClubTypes() async {
+  Future<List<ClubTypeModel>> getClubTypes({CancelToken? cancelToken}) async {
     try {
-      final response = await _dio.get('$_baseUrl/catalogs/club-types');
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.catalogs}/club-types',
+        cancelToken: cancelToken,
+      );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final List<dynamic> data = response.data as List<dynamic>;
@@ -44,6 +47,7 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en getClubTypes', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
           message:
               e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
@@ -55,9 +59,12 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
   }
 
   @override
-  Future<List<ActivityTypeModel>> getActivityTypes() async {
+  Future<List<ActivityTypeModel>> getActivityTypes({CancelToken? cancelToken}) async {
     try {
-      final response = await _dio.get('$_baseUrl/catalogs/activity-types');
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.catalogs}/activity-types',
+        cancelToken: cancelToken,
+      );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final List<dynamic> data = response.data as List<dynamic>;
@@ -74,6 +81,7 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en getActivityTypes', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
           message:
               e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
@@ -85,14 +93,15 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
   }
 
   @override
-  Future<List<DistrictModel>> getDistricts({int? localFieldId}) async {
+  Future<List<DistrictModel>> getDistricts({int? localFieldId, CancelToken? cancelToken}) async {
     try {
       final queryParams = <String, dynamic>{};
       if (localFieldId != null) queryParams['localFieldId'] = localFieldId;
 
       final response = await _dio.get(
-        '$_baseUrl/catalogs/districts',
+        '$_baseUrl${ApiEndpoints.catalogs}/districts',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -106,6 +115,7 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en getDistricts', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
           message:
               e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
@@ -117,14 +127,15 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
   }
 
   @override
-  Future<List<ChurchModel>> getChurches({int? districtId}) async {
+  Future<List<ChurchModel>> getChurches({int? districtId, CancelToken? cancelToken}) async {
     try {
       final queryParams = <String, dynamic>{};
       if (districtId != null) queryParams['districtId'] = districtId;
 
       final response = await _dio.get(
-        '$_baseUrl/catalogs/churches',
+        '$_baseUrl${ApiEndpoints.catalogs}/churches',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -138,38 +149,7 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en getChurches', tag: _tag, error: e);
       if (e is DioException) {
-        throw ServerException(
-          message:
-              e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
-        );
-      }
-      if (e is AppException) rethrow;
-      throw ServerException(message: e.toString());
-    }
-  }
-
-  @override
-  Future<List<RoleModel>> getRoles({int? clubTypeId}) async {
-    try {
-      final queryParams = <String, dynamic>{};
-      if (clubTypeId != null) queryParams['clubTypeId'] = clubTypeId;
-
-      final response = await _dio.get(
-        '$_baseUrl/catalogs/roles',
-        queryParameters: queryParams.isNotEmpty ? queryParams : null,
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final List<dynamic> data = response.data as List<dynamic>;
-        return data
-            .map((json) => RoleModel.fromJson(json as Map<String, dynamic>))
-            .toList();
-      }
-
-      throw ServerException(message: 'Error al obtener roles');
-    } catch (e) {
-      AppLogger.e('Error en getRoles', tag: _tag, error: e);
-      if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
           message:
               e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
@@ -182,14 +162,15 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
 
   @override
   Future<List<EcclesiasticalYearModel>> getEcclesiasticalYears(
-      {bool? active}) async {
+      {bool? active, CancelToken? cancelToken}) async {
     try {
       final queryParams = <String, dynamic>{};
       if (active != null) queryParams['active'] = active;
 
       final response = await _dio.get(
-        '$_baseUrl/catalogs/ecclesiastical-years',
+        '$_baseUrl${ApiEndpoints.catalogs}/ecclesiastical-years',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -204,6 +185,7 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en getEcclesiasticalYears', tag: _tag, error: e);
       if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
           message:
               e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
@@ -215,9 +197,9 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
   }
 
   @override
-  Future<EcclesiasticalYearModel?> getCurrentEcclesiasticalYear() async {
+  Future<EcclesiasticalYearModel?> getCurrentEcclesiasticalYear({CancelToken? cancelToken}) async {
     try {
-      final years = await getEcclesiasticalYears(active: true);
+      final years = await getEcclesiasticalYears(active: true, cancelToken: cancelToken);
       return years.isNotEmpty ? years.first : null;
     } catch (e) {
       AppLogger.e('Error en getCurrentEcclesiasticalYear', tag: _tag, error: e);

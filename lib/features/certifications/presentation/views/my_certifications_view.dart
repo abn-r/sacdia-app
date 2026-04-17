@@ -16,7 +16,7 @@ import 'certification_progress_view.dart';
 
 /// Vista de certificaciones del usuario (inscripciones).
 ///
-/// Muestra lista de certificaciones en las que el usuario está inscripto,
+/// Muestra lista de certificaciones en las que el usuario está inscrito,
 /// con barras de progreso. Permite navegar al progreso detallado y desinscribirse.
 class MyCertificationsView extends ConsumerWidget {
   const MyCertificationsView({super.key});
@@ -44,7 +44,7 @@ class MyCertificationsView extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'No estás inscripto en ninguna certificación',
+                      'No estás inscrito en ninguna certificación',
                       style: TextStyle(
                         fontSize: 16,
                         color: c.textSecondary,
@@ -281,7 +281,7 @@ class MyCertificationsView extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         title: const Text('Desinscribirse'),
         content: Text(
-          '¿Seguro que querés desinscribirte de "${uc.certificationName}"? Se perderá tu progreso.',
+          '¿Seguro que quieres desinscribirte de "${uc.certificationName}"? Se perderá tu progreso.',
         ),
         actions: [
           TextButton(
@@ -392,12 +392,14 @@ class _UserCertificationCard extends StatelessWidget {
                         : AppColors.primaryLight,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: HugeIcon(
-                    icon: isComplete
-                        ? HugeIcons.strokeRoundedCheckmarkCircle01
-                        : HugeIcons.strokeRoundedCertificate01,
-                    size: 22,
-                    color: isComplete ? AppColors.secondary : AppColors.primary,
+                  child: Center(
+                    child: HugeIcon(
+                      icon: isComplete
+                          ? HugeIcons.strokeRoundedCheckmarkCircle01
+                          : HugeIcons.strokeRoundedCertificate01,
+                      size: 22,
+                      color: isComplete ? AppColors.secondary : AppColors.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -417,7 +419,7 @@ class _UserCertificationCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Inscripto el ${DateFormat('dd/MM/yyyy').format(uc.enrollmentDate)}',
+                        'inscrito el ${DateFormat('dd/MM/yyyy').format(uc.enrollmentDate.toLocal())}',
                         style: TextStyle(
                           fontSize: 11,
                           color: c.textTertiary,

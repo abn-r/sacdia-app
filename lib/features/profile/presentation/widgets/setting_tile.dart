@@ -3,13 +3,14 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/utils/icon_helper.dart';
 
 /// Fila de configuración estilo iOS Settings.app:
 /// - Ícono en contenedor cuadrado redondeado con color propio
 /// - Título + subtítulo opcionales
 /// - Chevron derecho si tiene onTap
 class SettingTile extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String title;
   final String? subtitle;
   final Widget? trailing;
@@ -95,10 +96,10 @@ class SettingTile extends StatelessWidget {
             if (trailing != null)
               trailing!
             else if (onTap != null)
-              Icon(
-                Icons.chevron_right,
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
                 color: c.textTertiary,
-                size: 18,
+                size: 16,
               ),
           ],
         ),

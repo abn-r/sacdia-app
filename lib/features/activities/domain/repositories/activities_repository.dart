@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
 import '../../data/models/create_activity_request.dart';
 import '../entities/activity.dart';
@@ -10,12 +13,15 @@ abstract class ActivitiesRepository {
   Future<Either<Failure, List<Activity>>> getClubActivities(
     int clubId, {
     int? clubTypeId,
-    int? activityTypeId,
+    CancelToken? cancelToken,
   });
 
 
   /// Obtiene el detalle de una actividad
-  Future<Either<Failure, Activity>> getActivityById(int activityId);
+  Future<Either<Failure, Activity>> getActivityById(
+    int activityId, {
+    CancelToken? cancelToken,
+  });
 
   /// Crea una nueva actividad en el club especificado
   Future<Either<Failure, Activity>> createActivity({
@@ -26,23 +32,40 @@ abstract class ActivitiesRepository {
   /// Actualiza una actividad existente
   Future<Either<Failure, Activity>> updateActivity({
     required int activityId,
-    String? title,
+    String? name,
     String? description,
-    DateTime? startDate,
-    DateTime? endDate,
-    String? location,
+    double? lat,
+    double? long,
+    String? activityTime,
+    String? activityDate,
+    String? activityEndDate,
+    String? activityPlace,
+    int? platform,
+    int? activityTypeId,
+    String? linkMeet,
     bool? active,
+    Set<String> clearFields = const {},
+    List<int>? clubSectionIds,
   });
 
   /// Elimina (desactiva) una actividad
   Future<Either<Failure, void>> deleteActivity(int activityId);
 
   /// Obtiene la asistencia de una actividad
-  Future<Either<Failure, List<Attendance>>> getActivityAttendance(int activityId);
+  Future<Either<Failure, List<Attendance>>> getActivityAttendance(
+    int activityId, {
+    CancelToken? cancelToken,
+  });
 
   /// Registra la asistencia de usuarios a una actividad
   Future<Either<Failure, int>> registerAttendance(
     int activityId,
     List<String> userIds,
+  );
+
+  /// Sube una imagen para la actividad y devuelve la URL firmada resultante.
+  Future<Either<Failure, String>> uploadActivityImage(
+    int activityId,
+    File imageFile,
   );
 }

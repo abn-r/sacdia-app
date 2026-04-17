@@ -4,21 +4,40 @@ import '../../domain/entities/dashboard_summary.dart';
 class UpcomingActivityModel {
   final int id;
   final String title;
-  final DateTime date;
+
+  /// Fecha de la actividad — medianoche local del día correcto.
+  final DateTime activityDate;
+
+  /// Hora en formato "HH:mm", tal como llega del backend. Nullable.
+  final String? activityTime;
+
   final String? location;
 
   const UpcomingActivityModel({
     required this.id,
     required this.title,
-    required this.date,
+    required this.activityDate,
+    this.activityTime,
     this.location,
   });
+
+  static DateTime _parseDateOnly(String raw) {
+    final datePart = raw.split('T').first;
+    final parts = datePart.split('-');
+    if (parts.length != 3) return DateTime.now();
+    final y = int.tryParse(parts[0]);
+    final m = int.tryParse(parts[1]);
+    final d = int.tryParse(parts[2]);
+    if (y == null || m == null || d == null) return DateTime.now();
+    return DateTime(y, m, d);
+  }
 
   factory UpcomingActivityModel.fromJson(Map<String, dynamic> json) {
     return UpcomingActivityModel(
       id: json['id'] as int,
       title: json['title'] as String,
-      date: DateTime.parse(json['date'] as String),
+      activityDate: _parseDateOnly(json['activity_date'] as String),
+      activityTime: json['activity_time'] as String?,
       location: json['location'] as String?,
     );
   }
@@ -27,7 +46,9 @@ class UpcomingActivityModel {
     return {
       'id': id,
       'title': title,
-      'date': date.toIso8601String(),
+      'activity_date':
+          '${activityDate.year.toString().padLeft(4, '0')}-${activityDate.month.toString().padLeft(2, '0')}-${activityDate.day.toString().padLeft(2, '0')}',
+      'activity_time': activityTime,
       'location': location,
     };
   }
@@ -36,7 +57,8 @@ class UpcomingActivityModel {
     return UpcomingActivity(
       id: id,
       title: title,
-      date: date,
+      activityDate: activityDate,
+      activityTime: activityTime,
       location: location,
     );
   }
@@ -51,6 +73,7 @@ class DashboardSummaryModel extends DashboardSummary {
     super.clubType,
     super.userRole,
     super.currentClassName,
+    super.currentClassId,
     required super.classProgress,
     required super.honorsCompleted,
     required super.honorsInProgress,
@@ -71,7 +94,11 @@ class DashboardSummaryModel extends DashboardSummary {
       clubType: json['club_type'] as String?,
       userRole: json['user_role'] as String?,
       currentClassName: json['current_class_name'] as String?,
-      classProgress: (json['class_progress'] as num?)?.toDouble() ?? 0.0,
+      currentClassId: json['current_class_id'] as int?,
+      // Backend sends class_progress as an integer percentage (0–100).
+      // The domain entity and all widgets expect a fraction (0.0–1.0),
+      // so we divide by 100 here at the boundary.
+      classProgress: ((json['class_progress'] as num?)?.toDouble() ?? 0.0) / 100.0,
       honorsCompleted: json['honors_completed'] as int? ?? 0,
       honorsInProgress: json['honors_in_progress'] as int? ?? 0,
       upcomingActivities: activities.map((a) => a.toEntity()).toList(),
@@ -87,14 +114,18 @@ class DashboardSummaryModel extends DashboardSummary {
       'club_type': clubType,
       'user_role': userRole,
       'current_class_name': currentClassName,
-      'class_progress': classProgress,
+      'current_class_id': currentClassId,
+      // Serialize back to the API contract format (integer percentage 0–100)
+      'class_progress': (classProgress * 100).round(),
       'honors_completed': honorsCompleted,
       'honors_in_progress': honorsInProgress,
       'upcoming_activities': upcomingActivities.map((a) {
         return {
           'id': a.id,
           'title': a.title,
-          'date': a.date.toIso8601String(),
+          'activity_date':
+              '${a.activityDate.year.toString().padLeft(4, '0')}-${a.activityDate.month.toString().padLeft(2, '0')}-${a.activityDate.day.toString().padLeft(2, '0')}',
+          'activity_time': a.activityTime,
           'location': a.location,
         };
       }).toList(),
@@ -109,6 +140,7 @@ class DashboardSummaryModel extends DashboardSummary {
     String? clubType,
     String? userRole,
     String? currentClassName,
+    int? currentClassId,
     double? classProgress,
     int? honorsCompleted,
     int? honorsInProgress,
@@ -121,6 +153,7 @@ class DashboardSummaryModel extends DashboardSummary {
       clubType: clubType ?? this.clubType,
       userRole: userRole ?? this.userRole,
       currentClassName: currentClassName ?? this.currentClassName,
+      currentClassId: currentClassId ?? this.currentClassId,
       classProgress: classProgress ?? this.classProgress,
       honorsCompleted: honorsCompleted ?? this.honorsCompleted,
       honorsInProgress: honorsInProgress ?? this.honorsInProgress,

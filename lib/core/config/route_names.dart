@@ -33,7 +33,12 @@ class RouteNames {
   static const String homeInsurance = '/home/insurance';
   static const String homeInventory = '/home/inventory';
   static const String homeResources = '/home/resources';
+  static const String homeHonors = '/home/honors';
   static const String homeCertifications = '/home/certifications';
+  static const String homeAchievements = '/home/achievements';
+
+  // Información médica del usuario (detalle fuera del shell)
+  static const String homeMedicalInfo = '/home/medical-info';
 
   // Rutas de detalle fuera del shell
   static const String certificationDetail = '/certification/:certificationId';
@@ -46,6 +51,13 @@ class RouteNames {
   static const String camporeeMembers = '/camporee/:camporeeId/members';
   static const String camporeeRegisterMember =
       '/camporee/:camporeeId/register';
+
+  // Traslados
+  static const String transferRequests = '/transfers';
+  static const String transferRequestDetailRoute = '/transfer/:requestId';
+
+  // OAuth callback deep link (io.sacdia.app://auth/callback)
+  static const String authCallback = '/auth/callback';
 
   // Investidura
   static const String investiturePendingList = '/investiture/pending';
@@ -71,4 +83,81 @@ class RouteNames {
       '/camporee/$camporeeId/members';
   static String camporeeRegisterMemberPath(String camporeeId) =>
       '/camporee/$camporeeId/register';
+
+  // Traslados helpers
+  static String transferRequestDetail(int requestId) =>
+      '/transfer/$requestId';
+
+  // Honors evidence, completion & requirements
+  static const String honorEvidence = '/honor/:honorId/evidence/:userHonorId';
+  static const String honorCompletion = '/honor/:honorId/completion/:userHonorId';
+  static const String honorRequirements = '/honor/:honorId/requirements/:userHonorId';
+
+  // Helpers
+  static String honorEvidencePath(String honorId, String userHonorId) =>
+      '/honor/$honorId/evidence/$userHonorId';
+  static String honorCompletionPath(String honorId, String userHonorId) =>
+      '/honor/$honorId/completion/$userHonorId';
+  static String honorRequirementsPath(
+          String honorId, String userHonorId, String honorName) =>
+      '/honor/$honorId/requirements/$userHonorId?name=${Uri.encodeComponent(honorName)}';
+
+  // Carpetas anuales
+  static const String annualFolder = '/annual-folder/:enrollmentId';
+
+  static String annualFolderPath(int enrollmentId) =>
+      '/annual-folder/$enrollmentId';
+
+  // Informes mensuales
+  static const String monthlyReports = '/monthly-reports/:enrollmentId';
+  static const String monthlyReportDetail = '/monthly-report/:reportId';
+
+  static String monthlyReportsPath(int enrollmentId) =>
+      '/monthly-reports/$enrollmentId';
+  static String monthlyReportDetailPath(int reportId) =>
+      '/monthly-report/$reportId';
+
+  // Asignaciones de rol
+  static const String roleAssignments = '/role-assignments';
+
+  // Coordinación — hub y sub-módulos
+  static const String coordinator = '/coordinator';
+  static const String coordinatorSla = '/coordinator/sla';
+  static const String coordinatorEvidenceReview = '/coordinator/evidence-review';
+  static const String coordinatorEvidenceReviewDetailRoute =
+      '/coordinator/evidence-review/:type/:id';
+  static const String coordinatorCamporeeApprovals =
+      '/coordinator/camporee-approvals';
+
+  // Helpers para coordinación
+  static String coordinatorEvidenceReviewDetail(String type, String id) =>
+      '/coordinator/evidence-review/$type/$id';
+
+  // Bandeja de notificaciones
+  static const String notificationsInbox = '/notifications';
+
+  // Miembro del Mes — historial
+  static const String memberOfMonthHistory =
+      '/units/member-of-month/:clubId/:sectionId';
+
+  static String memberOfMonthHistoryPath(int clubId, int sectionId) =>
+      '/units/member-of-month/$clubId/$sectionId';
+
+  // Logros (achievements)
+  static const String achievementDetail = '/achievement/:achievementId';
+
+  // Helper
+  static String achievementDetailPath(int achievementId) =>
+      '/achievement/$achievementId';
+
+  // Pagos de camporee (miembro)
+  static const String camporeePayments =
+      '/camporee/:camporeeId/member/:memberId/payments';
+  static const String camporeeEnrollClub =
+      '/camporee/:camporeeId/enroll-club';
+
+  static String camporeePaymentsPath(int camporeeId, String memberId) =>
+      '/camporee/$camporeeId/member/$memberId/payments';
+  static String camporeeEnrollClubPath(int camporeeId) =>
+      '/camporee/$camporeeId/enroll-club';
 }

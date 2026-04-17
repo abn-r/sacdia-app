@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/class_module.dart';
 import 'class_section_model.dart';
+import '../../../../core/utils/json_helpers.dart';
 
 /// Modelo de módulo de clase para la capa de datos
 class ClassModuleModel extends Equatable {
@@ -19,9 +20,9 @@ class ClassModuleModel extends Equatable {
   /// Crea una instancia desde JSON
   factory ClassModuleModel.fromJson(Map<String, dynamic> json) {
     return ClassModuleModel(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      classId: json['class_id'] as int,
+      id: safeInt(json['id']),
+      name: safeString(json['name']),
+      classId: safeInt(json['class_id']),
       sections: (json['sections'] as List<dynamic>?)
               ?.map((section) => ClassSectionModel.fromJson(section as Map<String, dynamic>))
               .toList() ??

@@ -8,13 +8,21 @@
         android:label="sacdia_app"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:hardwareAccelerated="true">
+        android:hardwareAccelerated="true"
+        android:allowBackup="false"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:networkSecurityConfig="@xml/network_security_config">
         <!-- Google Maps API Key -->
-        <!-- TODO: Reemplaza el valor con tu API Key real de Google Cloud Console -->
-        <!-- Activa "Maps SDK for Android" y "Geocoding API" para esta key -->
+        <!-- SECURITY NOTE: This is a PUBLIC key required in the manifest.
+             Restrict it in Google Cloud Console → APIs & Services → Credentials:
+               - Application restrictions: "Android apps"
+               - Add SHA-1 fingerprint(s) for debug and release keystores
+               - Add package name: com.sacdia.app
+             See: https://developers.google.com/maps/api-security-best-practices -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCg2AIgPaE1rsCdmzNnAWPYmtVQ0jQu6oY"/>
+            android:value="${GOOGLE_MAPS_API_KEY}"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -36,16 +44,25 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- Deep link para OAuth callbacks: io.sacdia.app://auth/callback -->
-            <intent-filter android:autoVerify="false">
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
+            <!-- Verified App Link for OAuth callback (preferred) -->
+            <!-- REQUIRED: Publish assetlinks.json at:
+                   https://sacdia-backend.onrender.com/.well-known/assetlinks.json
+                 with the app's SHA-256 release certificate fingerprint before this filter
+                 can be auto-verified by Android.
+                 Test with: adb shell pm get-app-links --user cur com.sacdia.app
+                 See: https://developer.android.com/training/app-links/verify-android-applinks -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:scheme="io.sacdia.app"
-                    android:host="auth"
-                    android:pathPrefix="/callback"/>
+                    android:scheme="https"
+                    android:host="sacdia-backend.onrender.com"
+                    android:pathPrefix="/api/auth/callback" />
             </intent-filter>
+            <!-- Custom URL scheme (io.sacdia.app://) removed — App Links (HTTPS) filter above
+                 with android:autoVerify="true" handles OAuth callbacks securely.
+                 Custom schemes are interceptable by any app and offer no origin verification. -->
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

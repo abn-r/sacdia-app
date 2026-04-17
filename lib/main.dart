@@ -1,5 +1,5 @@
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -7,13 +7,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'core/auth/supabase_auth.dart';
+import 'core/config/cache_config.dart';
 import 'core/config/router.dart';
+import 'core/realtime/feature_flags.dart';
+import 'core/realtime/realtime_invalidation_handler.dart';
+import 'core/realtime/realtime_ref.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/utils/app_logger.dart';
 import 'firebase_options.dart';
-import 'features/auth/presentation/providers/auth_providers.dart';
 import 'providers/storage_provider.dart';
 
 /// Punto de entrada principal de la aplicación
@@ -21,24 +23,30 @@ Future<void> main() async {
   // Aseguramos que las dependencias de Flutter estén inicializadas
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Paralelizamos operaciones independientes: orientación, Supabase y SharedPreferences
+  // Paralelizamos operaciones independientes: orientación, SharedPreferences y
+  // Firebase.initializeApp() — este último DEBE ocurrir antes de runApp().
   final results = await Future.wait([
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]),
-    SupabaseAuth.initialize(),
     SharedPreferences.getInstance(),
+    Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ),
   ]);
 
-  final sharedPreferences = results[2] as SharedPreferences;
+  final sharedPreferences = results[1] as SharedPreferences;
 
-  // Firebase depende de Supabase (accede al estado de auth) — se ejecuta después
-  await _initializeFirebaseAndPrintDebugTokens();
-
-  // Recuperar estado de cierre de sesión manual
-  final wasManuallyLoggedOut =
-      sharedPreferences.getBool('user_manually_logged_out') ?? false;
+  // Diferimos la activación de AppCheck al post-frame: no bloquea el primer
+  // frame y el handshake con el servidor de AppCheck puede tomar ~1-2 s.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _initializeFirebaseExtras();
+    // Eagerly initialize the app-wide image cache manager so the first
+    // honors/profile screen doesn't pay the singleton creation cost.
+    // SacCacheManager: 500 objects / 30-day stalePeriod (see cache_config.dart).
+    SacCacheManager.instance;
+  });
 
   // Ejecutamos la aplicación con la configuración inicial
   runApp(
@@ -46,160 +54,164 @@ Future<void> main() async {
       overrides: [
         // Proporcionamos la instancia de SharedPreferences a la aplicación
         sharedPreferencesProvider.overrideWithValue(sharedPreferences),
-        // Restauramos el estado de cierre de sesión manual
-        isUserLoggedOutProvider.overrideWith((ref) => wasManuallyLoggedOut),
       ],
       child: const MyApp(),
     ),
   );
 
-  // La verificación de sesión no necesita bloquear el primer frame
+  // La verificación de sesión no necesita bloquear el primer frame.
+  // Reutilizamos la instancia ya cargada para evitar un segundo getInstance().
   WidgetsBinding.instance.addPostFrameCallback((_) {
-    _checkAndCleanSessionAtStartup();
+    _checkAndCleanSessionAtStartup(sharedPreferences);
   });
 }
 
-Future<void> _initializeFirebaseAndPrintDebugTokens() async {
-  const tag = 'FCMDebug';
-
+/// Activación de FirebaseAppCheck diferida al post-frame.
+///
+/// AppCheck no es requerido antes del primer frame; diferirlo elimina ~1-2 s
+/// del cold start. FCM (permisos, token, listeners) es manejado íntegramente
+/// por [PushNotificationService.initialize()] después de que el usuario
+/// se autentica — no se duplica aquí.
+Future<void> _initializeFirebaseExtras() async {
+  const tag = 'FirebaseExtras';
   try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
+    await FirebaseAppCheck.instance.activate(
+      androidProvider: kDebugMode
+          ? AndroidProvider.debug
+          : AndroidProvider.playIntegrity,
+      appleProvider: kDebugMode
+          ? AppleProvider.debug
+          : AppleProvider.appAttest,
     );
-    if (kDebugMode) AppLogger.i('Firebase initialized', tag: tag);
+    if (kDebugMode) AppLogger.i('FirebaseAppCheck activado', tag: tag);
   } catch (e) {
     if (kDebugMode) {
-      AppLogger.w(
-        'Firebase no pudo inicializarse. Verifica google-services.json (Android) y GoogleService-Info.plist (iOS).',
-        tag: tag,
-        error: e,
-      );
+      AppLogger.w('FirebaseAppCheck no pudo activarse', tag: tag, error: e);
     }
-    return;
-  }
-
-  try {
-    final settings = await FirebaseMessaging.instance.getNotificationSettings();
-    NotificationSettings effectiveSettings = settings;
-
-    if (settings.authorizationStatus == AuthorizationStatus.notDetermined) {
-      effectiveSettings = await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-    }
-
-    if (kDebugMode) {
-      final fcmToken = await FirebaseMessaging.instance.getToken();
-      AppLogger.i(
-        'FCM permission: ${effectiveSettings.authorizationStatus.toString().split('.').last}',
-        tag: tag,
-      );
-      AppLogger.i('FCM_TOKEN: ${fcmToken ?? 'null'}', tag: tag);
-    }
-  } catch (e) {
-    if (kDebugMode) {
-      AppLogger.w('No fue posible obtener FCM token', tag: tag, error: e);
-    }
-  }
-
-  if (kDebugMode) {
-    final currentToken = SupabaseAuth.currentSession?.accessToken;
-    if (currentToken != null && currentToken.isNotEmpty) {
-      AppLogger.i('JWT_ACCESS_TOKEN: $currentToken', tag: tag);
-    }
-
-    SupabaseAuth.onAuthStateChange.listen((authState) {
-      final accessToken = authState.session?.accessToken;
-      if (accessToken != null && accessToken.isNotEmpty) {
-        AppLogger.i('JWT_ACCESS_TOKEN: $accessToken', tag: tag);
-      }
-    });
   }
 }
 
-/// Método para verificar y limpiar sesiones inválidas o corruptas al inicio
-Future<void> _checkAndCleanSessionAtStartup() async {
+/// Verifica y limpia sesiones inválidas o corruptas al inicio.
+///
+/// Con Better Auth / Option C no hay cliente Supabase. Simplemente
+/// verificamos si el access token almacenado localmente existe. La
+/// validación real contra el servidor ocurre en [AuthNotifier.build()]
+/// mediante GET /auth/me.
+///
+/// Recibe la instancia de [SharedPreferences] ya cargada en [main] para
+/// evitar un segundo [SharedPreferences.getInstance]. La limpieza de
+/// residuos de Supabase se ejecuta una única vez gracias al flag
+/// `supabase_migration_done`.
+Future<void> _checkAndCleanSessionAtStartup(SharedPreferences prefs) async {
   try {
-    // Obtener el cliente de Supabase
-    final client = SupabaseAuth.client;
+    // La limpieza de residuos de Supabase solo necesita ocurrir una vez.
+    if (prefs.getBool('supabase_migration_done') == true) return;
 
-    // Verificar si hay una sesión actual
-    final currentUser = client.auth.currentUser;
-    final currentSession = client.auth.currentSession;
-
-    // Si hay usuario pero la sesión es nula o expirada, forzar limpieza
-    if (currentUser != null &&
-        (currentSession == null || currentSession.isExpired)) {
-      await SupabaseAuth.signOut();
-
-      // Limpiar datos de SharedPreferences relacionados con autenticación
-      final prefs = await SharedPreferences.getInstance();
-      final keys = prefs.getKeys();
-      for (final key in keys) {
-        if (key.contains('supabase') || key.contains('auth')) {
-          await prefs.remove(key);
-        }
+    final keys = prefs.getKeys().toList();
+    for (final key in keys) {
+      // Eliminar residuos de sesiones Supabase previas
+      if (key.contains('supabase')) {
+        await prefs.remove(key);
       }
     }
+
+    await prefs.setBool('supabase_migration_done', true);
   } catch (e) {
     // Silenciar errores de verificación de sesión
   }
 }
 
-/// Unified scroll behavior — iOS-inspired bouncing physics on all platforms.
+/// Unified scroll behavior — platform-aware physics (bouncing on iOS/macOS, clamping on Android).
 class _AppScrollBehavior extends ScrollBehavior {
   @override
   ScrollPhysics getScrollPhysics(BuildContext context) {
-    return const BouncingScrollPhysics(
-      parent: AlwaysScrollableScrollPhysics(),
-    );
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+        return const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
+      default:
+        return const ClampingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
+    }
   }
 }
 
 /// Widget principal de la aplicación
-class MyApp extends ConsumerWidget {
+///
+/// Converted to [ConsumerStatefulWidget] to attach a [WidgetsBindingObserver]
+/// that drains pending realtime invalidations when the app resumes from
+/// background. All other logic is identical to the previous [ConsumerWidget].
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// When the app returns to the foreground, drain any INVALIDATE messages that
+  /// arrived while the app was backgrounded and were staged to SharedPreferences.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed &&
+        RealtimeFeatureFlags.realtimeInvalidationEnabled) {
+      RealtimeInvalidationHandler.drainPending(RealtimeRef.fromWidgetRef(ref));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(themeNotifierProvider);
     final router = ref.watch(routerProvider);
 
-    // Adaptar iconos del status bar al tema actual
+    // Adaptar iconos del status bar al tema actual.
+    // AnnotatedRegion is the declarative alternative to SystemChrome.setSystemUIOverlayStyle()
+    // inside build() — it only propagates when the widget tree actually changes instead of
+    // issuing a platform channel call on every rebuild.
     final isDark = themeMode == ThemeMode.dark ||
         (themeMode == ThemeMode.system &&
             MediaQuery.platformBrightnessOf(context) == Brightness.dark);
-    SystemChrome.setSystemUIOverlayStyle(
-      isDark
-          ? SystemUiOverlayStyle.light.copyWith(
-              statusBarColor: Colors.transparent,
-            )
-          : SystemUiOverlayStyle.dark.copyWith(
-              statusBarColor: Colors.transparent,
-            ),
-    );
+    final overlayStyle = isDark
+        ? SystemUiOverlayStyle.light.copyWith(
+            statusBarColor: Colors.transparent,
+          )
+        : SystemUiOverlayStyle.dark.copyWith(
+            statusBarColor: Colors.transparent,
+          );
 
-    return ScrollConfiguration(
-      behavior: _AppScrollBehavior(),
-      child: MaterialApp.router(
-        title: 'Sacdia App',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: themeMode,
-        routerConfig: router,
-        locale: const Locale('es'),
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('es'),
-          Locale('en'),
-        ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: overlayStyle,
+      child: ScrollConfiguration(
+        behavior: _AppScrollBehavior(),
+        child: MaterialApp.router(
+          title: 'Sacdia App',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeMode,
+          routerConfig: router,
+          locale: const Locale('es'),
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('es'),
+            Locale('en'),
+          ],
+        ),
       ),
     );
   }

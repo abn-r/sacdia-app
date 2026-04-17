@@ -101,17 +101,15 @@ class _ActivityRow extends StatelessWidget {
     this.showDivider = true,
   });
 
-  String _formatTime(DateTime date) {
-    return DateFormat('HH:mm').format(date);
-  }
-
-  String _formatRelativeDate(DateTime date) {
+  String _formatRelativeDate(DateTime activityDate) {
+    // activityDate ya es medianoche local — comparar solo por día.
     final now = DateTime.now();
-    final diff = date.difference(now);
-    if (diff.inDays == 0) return 'Hoy';
-    if (diff.inDays == 1) return 'Mañana';
-    if (diff.inDays < 7) return DateFormat('EEEE', 'es').format(date);
-    return DateFormat('dd MMM', 'es').format(date);
+    final today = DateTime(now.year, now.month, now.day);
+    final diff = activityDate.difference(today).inDays;
+    if (diff == 0) return 'Hoy';
+    if (diff == 1) return 'Mañana';
+    if (diff < 7) return DateFormat('EEEE', 'es').format(activityDate);
+    return DateFormat('dd MMM', 'es').format(activityDate);
   }
 
   @override
@@ -133,7 +131,7 @@ class _ActivityRow extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      DateFormat('dd').format(activity.date),
+                      DateFormat('dd').format(activity.activityDate),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -143,7 +141,7 @@ class _ActivityRow extends StatelessWidget {
                     ),
                     Text(
                       DateFormat('MMM', 'es')
-                          .format(activity.date)
+                          .format(activity.activityDate)
                           .toUpperCase(),
                       style: TextStyle(
                         fontSize: 10,
@@ -172,7 +170,7 @@ class _ActivityRow extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          '${_formatRelativeDate(activity.date)} · ${_formatTime(activity.date)}',
+                          '${_formatRelativeDate(activity.activityDate)} · ${activity.activityTime ?? '—'}',
                           style: TextStyle(
                             fontSize: 12,
                             color: context.sac.textSecondary,

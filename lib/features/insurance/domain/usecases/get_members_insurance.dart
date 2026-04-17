@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
@@ -26,10 +27,13 @@ class GetMembersInsurance {
   const GetMembersInsurance(this._repository);
 
   Future<Either<Failure, List<MemberInsurance>>> call(
-      GetMembersInsuranceParams params) {
+    GetMembersInsuranceParams params, {
+    CancelToken? cancelToken,
+  }) {
     return _repository.getMembersInsurance(
       clubId: params.clubId,
       sectionId: params.sectionId,
+      cancelToken: cancelToken,
     );
   }
 }

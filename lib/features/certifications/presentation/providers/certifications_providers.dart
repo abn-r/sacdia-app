@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
@@ -34,8 +35,11 @@ final certificationsRepositoryProvider =
 /// Provider para el catálogo completo de certificaciones.
 final certificationsProvider =
     FutureProvider.autoDispose<List<Certification>>((ref) async {
+  ref.keepAlive();
   final repository = ref.read(certificationsRepositoryProvider);
-  final result = await repository.getCertifications();
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await repository.getCertifications(cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -46,12 +50,24 @@ final certificationsProvider =
 /// Provider para el detalle de una certificación específica.
 ///
 /// Family por [certificationId].
+///
+/// NOTE: A cache-first lookup against [certificationsProvider] is intentionally
+/// NOT applied here. [certificationsProvider] returns [Certification] objects
+/// (name, description, active, modulesCount — no module tree), whereas this
+/// provider returns [CertificationDetail] which includes the full
+/// List<CertificationModule> with nested sections. The detail view renders
+/// that module/section tree and computes totalSections from it, so the network
+/// call to GET /certifications/{id} is always required.
 final certificationDetailProvider =
     FutureProvider.autoDispose.family<CertificationDetail, int>(
         (ref, certificationId) async {
   final repository = ref.read(certificationsRepositoryProvider);
-  final result =
-      await repository.getCertificationDetail(certificationId);
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await repository.getCertificationDetail(
+    certificationId,
+    cancelToken: cancelToken,
+  );
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -62,15 +78,21 @@ final certificationDetailProvider =
 /// Provider para las certificaciones en las que el usuario autenticado está inscrito.
 final userCertificationsProvider =
     FutureProvider.autoDispose<List<UserCertification>>((ref) async {
-  final authState = ref.watch(authNotifierProvider);
-  final userId = authState.value?.id;
+  final userId = await ref.watch(
+    authNotifierProvider.selectAsync((user) => user?.id),
+  );
 
   if (userId == null) {
     throw Exception('Usuario no autenticado');
   }
 
   final repository = ref.read(certificationsRepositoryProvider);
-  final result = await repository.getUserCertifications(userId);
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await repository.getUserCertifications(
+    userId,
+    cancelToken: cancelToken,
+  );
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -84,16 +106,22 @@ final userCertificationsProvider =
 final certificationProgressProvider =
     FutureProvider.autoDispose.family<CertificationProgress, int>(
         (ref, certificationId) async {
-  final authState = ref.watch(authNotifierProvider);
-  final userId = authState.value?.id;
+  final userId = await ref.watch(
+    authNotifierProvider.selectAsync((user) => user?.id),
+  );
 
   if (userId == null) {
     throw Exception('Usuario no autenticado');
   }
 
   final repository = ref.read(certificationsRepositoryProvider);
-  final result =
-      await repository.getCertificationProgress(userId, certificationId);
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await repository.getCertificationProgress(
+    userId,
+    certificationId,
+    cancelToken: cancelToken,
+  );
 
   return result.fold(
     (failure) => throw Exception(failure.message),

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/camporee_member.dart';
+import '../../../../core/utils/json_helpers.dart';
 
 /// Modelo de miembro de camporee para la capa de datos
 class CamporeeMemberModel extends Equatable {
@@ -45,18 +46,18 @@ class CamporeeMemberModel extends Equatable {
     }
 
     return CamporeeMemberModel(
-      camporeeMemberId: (json['camporee_member_id'] ?? json['id']) as int,
-      userId: (users != null ? users['user_id'] : json['user_id']) as String,
+      camporeeMemberId: safeInt(json['camporee_member_id'] ?? json['id']),
+      userId: safeString(users != null ? users['user_id'] : json['user_id']),
       userName: userName,
-      userEmail: users != null ? users['email'] as String? : null,
-      userImageUrl: users != null ? users['user_image'] as String? : null,
-      clubName: json['club_name'] as String?,
-      insuranceVerified: json['insurance_verified'] as bool? ?? false,
-      active: json['active'] as bool? ?? true,
-      camporeeType: json['camporee_type'] as String?,
+      userEmail: users != null ? safeStringOrNull(users['email']) : null,
+      userImageUrl: users != null ? safeStringOrNull(users['user_image']) : null,
+      clubName: safeStringOrNull(json['club_name']),
+      insuranceVerified: safeBool(json['insurance_verified']),
+      active: safeBool(json['active'], true),
+      camporeeType: safeStringOrNull(json['camporee_type']),
       insuranceId: insurance != null
-          ? insurance['insurance_id'] as int?
-          : json['insurance_id'] as int?,
+          ? safeIntOrNull(insurance['insurance_id'])
+          : safeIntOrNull(json['insurance_id']),
     );
   }
 

@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
 import '../entities/investiture_pending.dart';
 import '../entities/investiture_history_entry.dart';
@@ -39,6 +40,7 @@ abstract class InvestitureRepository {
     int? ecclesiasticalYearId,
     int page = 1,
     int limit = 20,
+    CancelToken? cancelToken,
   });
 
   /// Obtiene el historial de acciones de investidura de un enrollment.
@@ -46,5 +48,6 @@ abstract class InvestitureRepository {
   /// Rol requerido: JwtAuthGuard (cualquier usuario autenticado).
   Future<Either<Failure, List<InvestitureHistoryEntry>>> getInvestitureHistory({
     required int enrollmentId,
+    CancelToken? cancelToken,
   });
 }

@@ -1,4 +1,5 @@
-import 'package:dartz/dartz.dart';
+import 'package:dartz/dartz.dart' hide Unit;
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
@@ -21,10 +22,11 @@ class GetUnitDetail {
 
   const GetUnitDetail(this._repository);
 
-  Future<Either<Failure, Unit>> call(GetUnitDetailParams params) {
+  Future<Either<Failure, Unit>> call(GetUnitDetailParams params, {CancelToken? cancelToken}) {
     return _repository.getUnitDetail(
       clubId: params.clubId,
       unitId: params.unitId,
+      cancelToken: cancelToken,
     );
   }
 }

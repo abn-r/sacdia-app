@@ -14,18 +14,17 @@ dependencies:
     sdk: flutter
 
   # UI
-  cupertino_icons: ^1.0.8
-  flutter_svg: ^2.2.0
   cached_network_image: ^3.4.1
+  flutter_cache_manager: ^3.4.1
+  cupertino_icons: ^1.0.8
+  fl_chart: ^0.69.0
+  flutter_svg: ^2.2.0
   hugeicons: ^1.1.5
   loading_animation_widget: ^1.3.0
   
   # Gestión de estado
   flutter_riverpod: ^2.6.1
 
-  # Autenticación
-  supabase_flutter: ^2.9.1
-  
   # HTTP Client
   dio: ^5.8.0+1
   connectivity_plus: ^6.1.4
@@ -34,15 +33,19 @@ dependencies:
   shared_preferences: ^2.5.3
   flutter_secure_storage: ^9.2.4
   
-  # Imágenes y permisos
+  # Imágenes, archivos y permisos
   image_picker: ^1.0.7
   image_cropper: ^5.0.1
+  file_picker: ^8.0.0
   permission_handler: ^11.3.0
+  photo_view: ^0.15.0
+  flutter_pdfview: ^1.4.0
+  path_provider: ^2.1.0
 
   # Mapas y geocodificación
-  flutter_map: ^7.0.1
-  latlong2: ^0.9.1
   geocoding: ^3.0.0
+  geolocator: ^13.0.2
+  google_maps_flutter: ^2.10.0
 
   # Utilidades
   dartz: ^0.10.1
@@ -50,11 +53,22 @@ dependencies:
   intl: ^0.20.1
   url_launcher: ^6.3.1
   go_router: ^15.2.0
+  package_info_plus: ^8.3.0
 
   # Firebase
   firebase_core: ^3.8.0
   firebase_messaging: ^15.1.6
+  firebase_app_check: ^0.3.1+4
 
+
+dependency_overrides:
+  # path_provider_foundation 2.6.0 re-introduced FFI-based implementation using
+  # objective_c package, which builds a device-only arm64 binary. This causes
+  # "Couldn't resolve native function 'DOBJC_initializeApi'" on iOS simulator
+  # because the simulator needs arm64-sim ABI, not arm64 device ABI.
+  # 2.5.1 reverted to the safe plugin-based implementation (no objective_c dep).
+  # Remove this override once flutter/packages fixes the simulator build for 2.6.x.
+  path_provider_foundation: 2.5.1
 
 dev_dependencies:
   flutter_test:

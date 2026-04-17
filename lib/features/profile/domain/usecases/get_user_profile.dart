@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
@@ -19,7 +20,7 @@ class GetUserProfile implements UseCase<UserDetail, GetUserProfileParams> {
   GetUserProfile(this.repository);
 
   @override
-  Future<Either<Failure, UserDetail>> call(GetUserProfileParams params) async {
-    return await repository.getUserProfile(params.userId);
+  Future<Either<Failure, UserDetail>> call(GetUserProfileParams params, {CancelToken? cancelToken}) async {
+    return await repository.getUserProfile(params.userId, cancelToken: cancelToken);
   }
 }

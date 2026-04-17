@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -96,10 +97,12 @@ class _DetailBody extends ConsumerWidget {
                           color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: HugeIcon(
-                          icon: HugeIcons.strokeRoundedAward01,
-                          size: 30,
-                          color: Colors.white,
+                        child: Center(
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedAward01,
+                            size: 30,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -163,13 +166,13 @@ class _DetailBody extends ConsumerWidget {
                       _DetailRow(
                         icon: HugeIcons.strokeRoundedCalendar01,
                         label: 'Inicio',
-                        value: dateFormat.format(camporee.startDate),
+                        value: dateFormat.format(camporee.startDate.toLocal()),
                       ),
                       Divider(color: c.border, height: 20),
                       _DetailRow(
                         icon: HugeIcons.strokeRoundedCalendar02,
                         label: 'Fin',
-                        value: dateFormat.format(camporee.endDate),
+                        value: dateFormat.format(camporee.endDate.toLocal()),
                       ),
                       Divider(color: c.border, height: 20),
                       _DetailRow(
@@ -364,7 +367,7 @@ class _DetailBody extends ConsumerWidget {
 // ── Detail Row ─────────────────────────────────────────────────────────────────
 
 class _DetailRow extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
   final String value;
 
@@ -468,10 +471,12 @@ class _MemberPreviewTile extends StatelessWidget {
               color: AppColors.primaryLight,
               shape: BoxShape.circle,
             ),
-            child: HugeIcon(
-              icon: HugeIcons.strokeRoundedUser,
-              size: 18,
-              color: AppColors.primary,
+            child: Center(
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedUser,
+                size: 18,
+                color: AppColors.primary,
+              ),
             ),
           ),
           const SizedBox(width: 10),
@@ -539,7 +544,7 @@ class _InsuranceBadge extends StatelessWidget {
 // ── Section Title ──────────────────────────────────────────────────────────────
 
 class _SectionTitle extends StatelessWidget {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
 
   const _SectionTitle({required this.icon, required this.label});

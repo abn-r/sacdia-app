@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/usecases/usecase.dart';
@@ -35,16 +36,35 @@ class DashboardNotifier extends AsyncNotifier<DashboardSummary?> {
   @override
   Future<DashboardSummary?> build() async {
     // Reaccionar a cambios en la sesión: si el usuario se desloguea, limpiar.
-    final userId = await ref.watch(
-      authNotifierProvider.selectAsync((user) => user?.id),
+    // También reaccionar a cambios en el contexto activo (club switch) para
+    // que el dashboard se refresque con los datos del nuevo club.
+    final (userId, activeAssignmentId) = await ref.watch(
+      authNotifierProvider.selectAsync(
+        (user) => (user?.id, user?.authorization?.activeAssignmentId),
+      ),
     );
     if (userId == null) return null;
 
-    return _fetch();
+    // Do NOT fetch the dashboard while the active assignment is unknown.
+    // When the datasource runs auto-activation (PATCH /auth/me/context), the
+    // auth state briefly has a valid userId but a null activeAssignmentId.
+    // Fetching at that moment hits /dashboard/summary before the server context
+    // has been updated, returning stale data from the previous session. We wait
+    // until the auto-activation completes and the auth state emits a non-null
+    // activeAssignmentId before making the dashboard request.
+    if (activeAssignmentId == null) return null;
+
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
+
+    return _fetch(cancelToken: cancelToken);
   }
 
-  Future<DashboardSummary?> _fetch() async {
-    final result = await ref.read(getDashboardSummaryProvider)(const NoParams());
+  Future<DashboardSummary?> _fetch({CancelToken? cancelToken}) async {
+    final result = await ref.read(getDashboardSummaryProvider)(
+      const NoParams(),
+      cancelToken: cancelToken,
+    );
     return result.fold(
       (failure) => null,
       (dashboard) => dashboard,
@@ -55,7 +75,13 @@ class DashboardNotifier extends AsyncNotifier<DashboardSummary?> {
   Future<void> refresh() async {
     state = const AsyncValue.loading();
 
-    final result = await ref.read(getDashboardSummaryProvider)(const NoParams());
+    final cancelToken = CancelToken();
+    ref.onDispose(() => cancelToken.cancel());
+
+    final result = await ref.read(getDashboardSummaryProvider)(
+      const NoParams(),
+      cancelToken: cancelToken,
+    );
 
     state = result.fold(
       (failure) => AsyncValue.error(failure.message, StackTrace.current),

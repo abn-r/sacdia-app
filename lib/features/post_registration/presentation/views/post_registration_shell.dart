@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../auth/presentation/providers/logout_cleanup.dart';
 import '../providers/post_registration_providers.dart';
 import '../widgets/bottom_navigation_buttons.dart';
 import '../widgets/step_indicator.dart';
@@ -53,8 +54,9 @@ class PostRegistrationShell extends ConsumerStatefulWidget {
 }
 
 class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
-  final PageController _pageController = PageController();
+  PageController? _pageController;
   bool _isCompletingStep = false;
+  bool _statusLoaded = false;
 
   @override
   void initState() {
@@ -69,8 +71,6 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     if (status == null || !mounted) return;
 
     if (status.isComplete) {
-      // Keep auth state/cache in sync so GoRouter does not bounce back
-      // to /post-registration when completion-status already says complete.
       ref.read(authNotifierProvider.notifier).markPostRegisterComplete();
       context.go(RouteNames.homeDashboard);
       return;
@@ -78,22 +78,22 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
 
     final step = status.currentStep;
     ref.read(currentStepProvider.notifier).state = step;
-    if (step > 1) {
-      _pageController.jumpToPage(step - 1);
-    }
+
+    // Create PageController at the correct initial page BEFORE building
+    _pageController = PageController(initialPage: step - 1);
+    setState(() => _statusLoaded = true);
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
+    _pageController?.dispose();
     super.dispose();
   }
 
   void _goToStep(int step) {
     ref.read(currentStepProvider.notifier).state = step;
-    _pageController.animateToPage(
+    _pageController?.animateToPage(
       step - 1,
-      // Shared-axis feel: snappy easeOutCubic, under 350 ms
       duration: const Duration(milliseconds: 340),
       curve: Curves.easeOutCubic,
     );
@@ -190,7 +190,6 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
         countryId: ref.read(selectedCountryProvider)!,
         unionId: ref.read(selectedUnionProvider)!,
         localFieldId: ref.read(selectedLocalFieldProvider)!,
-        clubTypeSlug: ref.read(selectedClubTypeSlugProvider)!,
         clubSectionId: ref.read(selectedClubSectionProvider)!,
         classId: ref.read(selectedClassProvider)!,
       );
@@ -248,6 +247,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
 
     if (confirmed == true && mounted) {
       final success = await ref.read(authNotifierProvider.notifier).signOut();
+      if (success) clearUserStateOnLogout(ref);
       if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -260,6 +260,16 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
 
   @override
   Widget build(BuildContext context) {
+    // Show loading until completion status is fetched and we know the correct step
+    if (!_statusLoaded) {
+      return Scaffold(
+        backgroundColor: context.sac.surface,
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     final currentStep = ref.watch(currentStepProvider);
     final authUser = ref.watch(authNotifierProvider).valueOrNull;
     final selectedPhoto = ref.watch(selectedPhotoPathProvider);
@@ -364,7 +374,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
             // Page content
             Expanded(
               child: PageView(
-                controller: _pageController,
+                controller: _pageController!,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   const PhotoStepView(),

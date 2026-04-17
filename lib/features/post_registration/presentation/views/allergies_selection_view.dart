@@ -5,6 +5,7 @@ import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../data/models/allergy_model.dart';
 import '../providers/personal_info_providers.dart';
 import '../widgets/searchable_selection_list.dart';
 
@@ -24,7 +25,6 @@ class _AllergiesSelectionViewState
   void initState() {
     super.initState();
     // Pre-cargar alergias del usuario al entrar a la vista.
-    // El notifier ya sincroniza selectedAllergiesProvider en su build().
     Future.microtask(() {
       ref.read(userAllergiesProvider.notifier).refresh();
     });
@@ -79,6 +79,21 @@ class _AllergiesSelectionViewState
 
   @override
   Widget build(BuildContext context) {
+    // Seed selection state the first time user allergies load from the API.
+    // The guard `prev?.value == null` ensures this only fires once on
+    // the loading→data transition, not on every rebuild. Because
+    // userAllergiesProvider is .autoDispose, it resets when the screen is
+    // left, so re-entering the screen will re-seed correctly.
+    ref.listen<AsyncValue<List<AllergyModel>>>(
+      userAllergiesProvider,
+      (prev, next) {
+        if (prev?.value == null && next.value != null) {
+          ref.read(selectedAllergiesProvider.notifier).state =
+              next.value!.map((a) => a.id).toList();
+        }
+      },
+    );
+
     final allergiesAsync = ref.watch(allergiesCatalogProvider);
     final userAllergiesAsync = ref.watch(userAllergiesProvider);
     final selectedIds = ref.watch(selectedAllergiesProvider);
@@ -94,7 +109,13 @@ class _AllergiesSelectionViewState
             tooltip: 'Actualizar',
           ),
           TextButton.icon(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () async {
+              final ids = ref.read(selectedAllergiesProvider);
+              await ref
+                  .read(userAllergiesProvider.notifier)
+                  .saveAll(ids);
+              if (context.mounted) Navigator.of(context).pop();
+            },
             icon: const HugeIcon(
               icon: HugeIcons.strokeRoundedTick02,
               size: 20,

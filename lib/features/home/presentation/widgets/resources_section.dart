@@ -266,6 +266,9 @@ class _ResourcesSectionState extends State<ResourcesSection> {
               ),
               const SizedBox(height: 10),
               GridView.builder(
+                // shrinkWrap OK: _mockCategories is a compile-time constant
+                // list (bounded). Widget lives in a non-scrolling Column whose
+                // parent is SafeArea — intrinsic height is required.
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -595,10 +598,12 @@ class _CategoryCard extends StatelessWidget {
                     color: category.color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   ),
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedFolder02,
-                    size: 22,
-                    color: category.color,
+                  child: Center(
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedFolder02,
+                      size: 22,
+                      color: category.color,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),

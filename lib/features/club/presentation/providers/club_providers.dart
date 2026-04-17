@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
@@ -8,6 +9,7 @@ import '../../data/datasources/club_remote_data_source.dart';
 import '../../data/repositories/club_repository_impl.dart';
 import '../../domain/entities/club_info.dart';
 import '../../domain/repositories/club_repository.dart';
+import '../../domain/usecases/get_club_info.dart';
 import '../../domain/usecases/get_club_section.dart';
 import '../../domain/usecases/update_club_section.dart';
 
@@ -30,42 +32,63 @@ final clubRepositoryProvider = Provider<ClubRepository>((ref) {
 
 // ── Use case providers ────────────────────────────────────────────────────────
 
+final getClubInfoUseCaseProvider = Provider<GetClubInfo>((ref) {
+  return GetClubInfo(ref.read(clubRepositoryProvider));
+});
+
 final getClubSectionUseCaseProvider = Provider<GetClubSection>((ref) {
   return GetClubSection(ref.read(clubRepositoryProvider));
+});
+
+// ── Club info by ID (for detail view) ────────────────────────────────────────
+
+/// Obtiene la información básica del club contenedor por su UUID.
+final clubInfoProvider =
+    FutureProvider.autoDispose.family<ClubInfo, String>((ref, clubId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final useCase = ref.read(getClubInfoUseCaseProvider);
+  final result = await useCase(GetClubInfoParams(clubId: clubId), cancelToken: cancelToken);
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (club) => club,
+  );
 });
 
 final updateClubSectionUseCaseProvider = Provider<UpdateClubSection>((ref) {
   return UpdateClubSection(ref.read(clubRepositoryProvider));
 });
 
-// ── Role helpers ──────────────────────────────────────────────────────────────
-
-/// Roles que permiten editar la información del club.
-const _editableRoles = {'director', 'subdirector', 'deputy_director'};
+// ── Permission helpers ────────────────────────────────────────────────────────
 
 /// Devuelve true si el usuario actual puede editar el club.
-///
-/// Lee los roles del metadata del usuario autenticado.
+/// Usa selectAsync para evitar rebuilds por cambios no relacionados al objeto UserEntity.
 final canEditClubProvider = FutureProvider.autoDispose<bool>((ref) async {
-  final authState = await ref.watch(authNotifierProvider.future);
+  final authState = await ref.watch(
+    authNotifierProvider.selectAsync((u) => u),
+  );
   if (authState == null) return false;
 
-  return canByPermissionOrLegacyRole(
-    authState,
-    requiredPermissions: const {
-      'clubs:update',
-      'club_sections:update',
-    },
-    legacyRoles: _editableRoles,
-  );
+  return hasAnyPermission(authState, const {
+    'clubs:update',
+    'club_sections:update',
+  });
 });
 
 // ── Club section provider (read) ─────────────────────────────────────────────
 
 /// Carga la sección de club del usuario actual.
 /// Depende de [clubContextProvider] del módulo de miembros (fuente de verdad del contexto).
+///
+/// autoDispose + keepAlive: permanece vivo durante la sesión evitando re-fetches
+/// redundantes entre listeners (_EvidenceFolderShell, ClubDetailView, etc.), y se
+/// limpia correctamente al invalidarse en logout.
 final currentClubSectionProvider =
     FutureProvider.autoDispose<ClubSection?>((ref) async {
+  ref.keepAlive();
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
   final context = await ref.watch(clubContextProvider.future);
   if (context == null) return null;
 
@@ -75,6 +98,7 @@ final currentClubSectionProvider =
       clubId: context.clubId.toString(),
       sectionId: context.sectionId,
     ),
+    cancelToken: cancelToken,
   );
 
   return result.fold(

@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/club_info_model.dart';
@@ -8,12 +7,13 @@ import '../models/club_info_model.dart';
 /// Interfaz para la fuente de datos remota del módulo de club.
 abstract class ClubRemoteDataSource {
   /// Obtiene el club contenedor.
-  Future<ClubInfoModel> getClub(String clubId);
+  Future<ClubInfoModel> getClub(String clubId, {CancelToken? cancelToken});
 
   /// Obtiene la sección de club por ID.
   Future<ClubSectionModel> getClubSection({
     required String clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   });
 
   /// Actualiza una sección de club (PATCH).
@@ -28,7 +28,6 @@ abstract class ClubRemoteDataSource {
 class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
   final Dio _dio;
   final String _baseUrl;
-  final FlutterSecureStorage _secureStorage;
 
   static const _tag = 'ClubDS';
 
@@ -36,22 +35,7 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
     required Dio dio,
     required String baseUrl,
   })  : _dio = dio,
-        _baseUrl = baseUrl,
-        _secureStorage = const FlutterSecureStorage();
-
-  // ── Auth helpers ─────────────────────────────────────────────────────────
-
-  Future<String> _getAuthToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    if (token == null) {
-      throw AuthException(message: 'No hay sesión activa');
-    }
-    return token;
-  }
-
-  Map<String, String> _authHeaders(String token) => {
-        'Authorization': 'Bearer $token',
-      };
+        _baseUrl = baseUrl;
 
   // ── Helpers de respuesta ─────────────────────────────────────────────────
 
@@ -69,14 +53,13 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
   // ── Endpoints ────────────────────────────────────────────────────────────
 
   @override
-  Future<ClubInfoModel> getClub(String clubId) async {
+  Future<ClubInfoModel> getClub(String clubId, {CancelToken? cancelToken}) async {
     try {
       AppLogger.i('Obteniendo club: $clubId', tag: _tag);
-      final token = await _getAuthToken();
 
       final response = await _dio.get(
-        '$_baseUrl/clubs/$clubId',
-        options: Options(headers: _authHeaders(token)),
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -89,6 +72,7 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
         code: response.statusCode,
       );
     } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('DioException en getClub', tag: _tag, error: e);
       throw ServerException(
         message: e.response?.data?['message'] ?? e.message ?? 'Error de red',
@@ -105,18 +89,24 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
   Future<ClubSectionModel> getClubSection({
     required String clubId,
     required int sectionId,
+    CancelToken? cancelToken,
   }) async {
     try {
       AppLogger.i('Obteniendo sección: $sectionId del club $clubId', tag: _tag);
-      final token = await _getAuthToken();
 
       final response = await _dio.get(
-        '$_baseUrl/clubs/$clubId/sections/$sectionId',
-        options: Options(headers: _authHeaders(token)),
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId',
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final json = _unwrapMap(response.data);
+        AppLogger.d(
+          'getClubSection raw → name=${json['name']}, '
+          'phone=${json['phone']}, email=${json['email']}, '
+          'address=${json['address']}, club_types=${json['club_types']}',
+          tag: _tag,
+        );
         return ClubSectionModel.fromJson(json);
       }
 
@@ -125,6 +115,7 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
         code: response.statusCode,
       );
     } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('DioException en getClubSection', tag: _tag, error: e);
       throw ServerException(
         message: e.response?.data?['message'] ?? e.message ?? 'Error de red',
@@ -148,12 +139,9 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
         'Actualizando sección: $sectionId del club $clubId',
         tag: _tag,
       );
-      final token = await _getAuthToken();
-
       final response = await _dio.patch(
-        '$_baseUrl/clubs/$clubId/sections/$sectionId',
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId',
         data: data ?? {},
-        options: Options(headers: _authHeaders(token)),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
