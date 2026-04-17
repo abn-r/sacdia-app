@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
+import '../../../../core/utils/ip_masker.dart';
 import '../../domain/entities/active_session.dart';
 import '../providers/active_sessions_providers.dart';
 
@@ -453,9 +454,7 @@ class _SessionCard extends StatelessWidget {
                 Text(
                   session.isCurrent
                       ? 'Esta sesión'
-                      : (session.ipAddress?.isNotEmpty == true
-                          ? session.ipAddress!
-                          : 'IP desconocida'),
+                      : maskIpAddress(session.ipAddress),
                   style: TextStyle(fontSize: 12, color: c.textSecondary),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
