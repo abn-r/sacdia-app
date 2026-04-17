@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/models/paginated_result.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/datasources/camporees_remote_data_source.dart';
@@ -82,20 +83,52 @@ final camporeeDetailProvider =
   );
 });
 
-/// Provider para los miembros inscritos en un camporee.
+/// Provider para los miembros inscritos en un camporee (page 1, limit 50).
 ///
-/// Family por [camporeeId].
+/// Family por [camporeeId]. Expone `List<CamporeeMember>` para que los widgets
+/// existentes no requieran cambios.
+///
+/// TODO(pagination): convertir a un AsyncNotifier con load-more / infinite
+/// scroll cuando se requiera paginación completa en la UI.
 final camporeeMembersProvider =
     FutureProvider.autoDispose.family<List<CamporeeMember>, int>(
         (ref, camporeeId) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final repository = ref.read(camporeesRepositoryProvider);
-  final result = await repository.getCamporeeMembers(camporeeId, cancelToken: cancelToken);
+  final result = await repository.getCamporeeMembers(
+    camporeeId,
+    page: 1,
+    limit: 50,
+    cancelToken: cancelToken,
+  );
 
   return result.fold(
     (failure) => throw Exception(failure.message),
-    (members) => members,
+    (paginated) => paginated.data,
+  );
+});
+
+/// Provider que expone los metadatos de paginación de los miembros de un camporee.
+///
+/// Útil para mostrar totales (p.ej. "120 inscriptos") sin cambiar la UI de lista.
+/// Family por [camporeeId].
+final camporeeMembersMetaProvider =
+    FutureProvider.autoDispose.family<PaginationMeta?, int>(
+        (ref, camporeeId) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final repository = ref.read(camporeesRepositoryProvider);
+  final result = await repository.getCamporeeMembers(
+    camporeeId,
+    page: 1,
+    limit: 50,
+    cancelToken: cancelToken,
+  );
+
+  return result.fold(
+    (_) => null,
+    (paginated) => paginated.meta,
   );
 });
 

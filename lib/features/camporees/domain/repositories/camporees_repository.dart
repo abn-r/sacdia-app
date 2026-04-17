@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/models/paginated_result.dart';
 import '../entities/camporee.dart';
 import '../entities/camporee_member.dart';
 import '../entities/camporee_payment.dart';
@@ -22,9 +23,14 @@ abstract class CamporeesRepository {
     int? insuranceId,
   });
 
-  /// Obtiene los miembros inscritos en un camporee.
-  Future<Either<Failure, List<CamporeeMember>>> getCamporeeMembers(
-      int camporeeId, {CancelToken? cancelToken});
+  /// Obtiene los miembros inscritos en un camporee (respuesta paginada).
+  Future<Either<Failure, PaginatedResult<CamporeeMember>>> getCamporeeMembers(
+    int camporeeId, {
+    int page = 1,
+    int limit = 50,
+    String? status,
+    CancelToken? cancelToken,
+  });
 
   /// Remueve un miembro de un camporee.
   Future<Either<Failure, void>> removeMember(int camporeeId, String userId);

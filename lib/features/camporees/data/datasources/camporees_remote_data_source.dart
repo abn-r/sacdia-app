@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/models/paginated_result.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/camporee_model.dart';
 import '../models/camporee_member_model.dart';
@@ -26,9 +27,15 @@ abstract class CamporeesRemoteDataSource {
     int? insuranceId,
   });
 
-  /// Obtiene los miembros inscritos en un camporee.
-  /// GET /api/v1/camporees/:camporeeId/members
-  Future<List<CamporeeMemberModel>> getCamporeeMembers(int camporeeId, {CancelToken? cancelToken});
+  /// Obtiene los miembros inscritos en un camporee (respuesta paginada).
+  /// GET /api/v1/camporees/:camporeeId/members?page=&limit=&status=
+  Future<PaginatedResult<CamporeeMemberModel>> getCamporeeMembers(
+    int camporeeId, {
+    int page = 1,
+    int limit = 50,
+    String? status,
+    CancelToken? cancelToken,
+  });
 
   /// Remueve un miembro de un camporee.
   /// DELETE /api/v1/camporees/:camporeeId/members/:userId
@@ -218,29 +225,56 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
   // ── GET /api/v1/camporees/:camporeeId/members ────────────────────────────────
 
   @override
-  Future<List<CamporeeMemberModel>> getCamporeeMembers(int camporeeId, {CancelToken? cancelToken}) async {
+  Future<PaginatedResult<CamporeeMemberModel>> getCamporeeMembers(
+    int camporeeId, {
+    int page = 1,
+    int limit = 50,
+    String? status,
+    CancelToken? cancelToken,
+  }) async {
     try {
+      final queryParams = <String, dynamic>{
+        'page': page,
+        'limit': limit,
+      };
+      if (status != null) queryParams['status'] = status;
+
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/members',
+        queryParameters: queryParams,
         cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = response.data;
-        List<dynamic> data;
 
-        if (responseData is Map && responseData.containsKey('data')) {
-          data = responseData['data'] as List<dynamic>;
-        } else if (responseData is List) {
-          data = responseData;
-        } else {
-          data = [];
+        // Backend now always returns { data: [...], meta: {...} }.
+        // Guard against legacy raw-array responses during transition.
+        if (responseData is Map<String, dynamic> &&
+            responseData.containsKey('data') &&
+            responseData.containsKey('meta')) {
+          return PaginatedResult.fromJson(
+            responseData,
+            CamporeeMemberModel.fromJson,
+          );
         }
 
-        return data
-            .map((json) =>
-                CamporeeMemberModel.fromJson(json as Map<String, dynamic>))
+        // Fallback: raw array (should not happen post-migration).
+        final rawList = responseData is List ? responseData : <dynamic>[];
+        final members = rawList
+            .map((e) => CamporeeMemberModel.fromJson(e as Map<String, dynamic>))
             .toList();
+        return PaginatedResult<CamporeeMemberModel>(
+          data: members,
+          meta: PaginationMeta(
+            page: page,
+            limit: limit,
+            total: members.length,
+            totalPages: 1,
+            hasNextPage: false,
+            hasPreviousPage: false,
+          ),
+        );
       }
 
       throw ServerException(
