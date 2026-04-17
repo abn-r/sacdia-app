@@ -9,6 +9,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/config/cache_config.dart';
 import 'core/config/router.dart';
+import 'core/realtime/feature_flags.dart';
+import 'core/realtime/realtime_invalidation_handler.dart';
+import 'core/realtime/realtime_ref.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/utils/app_logger.dart';
@@ -133,11 +136,42 @@ class _AppScrollBehavior extends ScrollBehavior {
 }
 
 /// Widget principal de la aplicación
-class MyApp extends ConsumerWidget {
+///
+/// Converted to [ConsumerStatefulWidget] to attach a [WidgetsBindingObserver]
+/// that drains pending realtime invalidations when the app resumes from
+/// background. All other logic is identical to the previous [ConsumerWidget].
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// When the app returns to the foreground, drain any INVALIDATE messages that
+  /// arrived while the app was backgrounded and were staged to SharedPreferences.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed &&
+        RealtimeFeatureFlags.realtimeInvalidationEnabled) {
+      RealtimeInvalidationHandler.drainPending(RealtimeRef.fromWidgetRef(ref));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(themeNotifierProvider);
     final router = ref.watch(routerProvider);
 
