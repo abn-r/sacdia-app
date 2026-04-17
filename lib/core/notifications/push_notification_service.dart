@@ -350,9 +350,11 @@ class PushNotificationService {
       // por ID al desregistrar (más confiable que buscar por valor del token).
       final responseData = response.data;
       final tokenId = responseData is Map<String, dynamic>
-          ? (responseData['id'] as dynamic)?.toString() ??
+          ? (responseData['fcm_token_id'] as dynamic)?.toString() ??
+              (responseData['id'] as dynamic)?.toString() ??
               (responseData['data'] is Map<String, dynamic>
-                  ? (responseData['data']['id'] as dynamic)?.toString()
+                  ? ((responseData['data']['fcm_token_id'] as dynamic)?.toString() ??
+                      (responseData['data']['id'] as dynamic)?.toString())
                   : null)
           : null;
 
