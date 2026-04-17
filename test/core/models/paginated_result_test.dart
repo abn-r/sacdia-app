@@ -126,14 +126,13 @@ void main() {
 
   // ── PaginatedResult.fromJson ─────────────────────────────────────────────────
 
-  group('PaginatedResult.fromJson', () {
-    String Function(Map<String, dynamic>) get _parseString =>
-        (json) => json['name'] as String;
+  String _parseName(Map<String, dynamic> json) => json['name'] as String;
 
+  group('PaginatedResult.fromJson', () {
     test('valid JSON parses data list and meta correctly', () {
       final result = PaginatedResult.fromJson(
         _fullJson(),
-        _parseString,
+        _parseName,
       );
       expect(result.data, ['Alice', 'Bob']);
       expect(result.meta.total, 2);
@@ -146,7 +145,7 @@ void main() {
           'data': <dynamic>[],
           'meta': _fullMeta(total: 0, totalPages: 1),
         },
-        _parseString,
+        _parseName,
       );
       expect(result.data, isEmpty);
       expect(result.meta.total, 0);
@@ -157,7 +156,7 @@ void main() {
       // PaginatedResult.fromJson uses `?? {}` for meta — defaults apply.
       final result = PaginatedResult.fromJson(
         {'data': <dynamic>[]},
-        _parseString,
+        _parseName,
       );
       expect(result.data, isEmpty);
       expect(result.meta.page, 1);
@@ -167,7 +166,7 @@ void main() {
     test('missing data key falls back to empty list', () {
       final result = PaginatedResult.fromJson(
         {'meta': _fullMeta(total: 0)},
-        _parseString,
+        _parseName,
       );
       expect(result.data, isEmpty);
     });
