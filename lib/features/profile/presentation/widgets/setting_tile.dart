@@ -96,10 +96,10 @@ class SettingTile extends StatelessWidget {
             if (trailing != null)
               trailing!
             else if (onTap != null)
-              Icon(
-                Icons.chevron_right,
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
                 color: c.textTertiary,
-                size: 18,
+                size: 16,
               ),
           ],
         ),

@@ -67,6 +67,16 @@ abstract class AuthRemoteDataSource {
     required String sessionToken,
     required String provider,
   });
+
+  /// Elimina la cuenta del usuario autenticado.
+  ///
+  /// Llama a `DELETE /auth/me` con `{ password }`.
+  /// El servidor revoca sesiones BA, borra PII, desregistra tokens FCM
+  /// y archiva los datos en audit log.
+  ///
+  /// Lanza [AuthException] con código 401/403 si la contraseña es incorrecta,
+  /// o 429 si se supera el rate limit.
+  Future<void> deleteAccount(String password);
 }
 
 /// Implementación de la fuente de datos remota con Dio para API personalizada
@@ -851,6 +861,57 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       throw AuthException(
         message: response.data?['message'] ?? 'Error al cambiar contexto',
       );
+    }
+  }
+
+  @override
+  Future<void> deleteAccount(String password) async {
+    try {
+      final token = await _secureStorage.read(AppConstants.tokenKey);
+      if (token == null) {
+        throw AuthException(message: 'No hay sesión activa');
+      }
+
+      await _dio.delete(
+        '$_baseUrl${ApiEndpoints.auth}/me',
+        data: {'password': password},
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+          // Aceptar 204 No Content como respuesta válida.
+          validateStatus: (status) => status != null && status < 500,
+        ),
+      );
+
+      // 204 = éxito. Cualquier 4xx llega como DioException por validateStatus.
+      // Limpiar tokens localmente después de confirmación del server.
+      await _clearToken();
+      await _clearAllPersistentData();
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      final serverMsg = e.response?.data is Map
+          ? e.response!.data['message'] as String?
+          : null;
+
+      if (status == 401 || status == 403) {
+        throw AuthException(
+          message: serverMsg ?? 'Contraseña incorrecta',
+          code: status,
+        );
+      }
+      if (status == 429) {
+        throw AuthException(
+          message: 'Demasiados intentos. Intentá más tarde.',
+          code: 429,
+        );
+      }
+      throw AuthException(
+        message: serverMsg ?? 'Error al eliminar la cuenta',
+        code: status,
+      );
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      throw AuthException(message: 'Error inesperado: $e');
     }
   }
 

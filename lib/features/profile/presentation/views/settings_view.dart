@@ -1,19 +1,23 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/theme/theme_provider.dart';
+import '../../../../core/utils/icon_helper.dart';
+import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../auth/presentation/providers/logout_cleanup.dart';
+import '../providers/notification_preferences_providers.dart';
 import '../widgets/setting_tile.dart';
-import 'template_view.dart';
-import 'template_1_view.dart';
+import 'edit_profile_view.dart';
 
-/// Vista de configuración de la aplicación
 class SettingsView extends ConsumerStatefulWidget {
   const SettingsView({super.key});
 
@@ -31,9 +35,33 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
   }
 
   Future<void> _loadAppVersion() async {
-    setState(() {
-      _appVersion = '1.0.0';
-    });
+    final info = await PackageInfo.fromPlatform();
+    if (mounted) {
+      setState(() {
+        _appVersion = '${info.version} (${info.buildNumber})';
+      });
+    }
+  }
+
+  /// Aplica un cambio de preferencia con optimistic update.
+  ///
+  /// Llama PATCH /users/me/notification-preferences con el delta.
+  /// Revierte automáticamente si el backend falla y muestra snackbar de error.
+  Future<void> _saveNotifPref(Map<String, bool> delta) async {
+    final error = await ref
+        .read(notificationPreferencesProvider.notifier)
+        .patch(delta);
+
+    if (error != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    }
   }
 
   Future<void> _showChangePasswordDialog() async {
@@ -44,6 +72,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     bool newObscure = true;
     bool confirmObscure = true;
     String? errorText;
+    bool isLoading = false;
 
     final submitted = await showDialog<bool>(
       context: context,
@@ -61,14 +90,21 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     controller: currentCtrl,
                     obscureText: currentObscure,
                     textInputAction: TextInputAction.next,
+                    enabled: !isLoading,
                     decoration: InputDecoration(
                       labelText: 'Contraseña actual',
                       suffixIcon: IconButton(
-                        icon: Icon(currentObscure
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined),
-                        onPressed: () => setDialogState(
-                            () => currentObscure = !currentObscure),
+                        icon: HugeIcon(
+                          icon: currentObscure
+                              ? HugeIcons.strokeRoundedViewOffSlash
+                              : HugeIcons.strokeRoundedView,
+                          size: 20,
+                          color: ctx.sac.textSecondary,
+                        ),
+                        onPressed: isLoading
+                            ? null
+                            : () => setDialogState(
+                                () => currentObscure = !currentObscure),
                       ),
                     ),
                   ),
@@ -77,14 +113,21 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     controller: newCtrl,
                     obscureText: newObscure,
                     textInputAction: TextInputAction.next,
+                    enabled: !isLoading,
                     decoration: InputDecoration(
                       labelText: 'Nueva contraseña',
                       suffixIcon: IconButton(
-                        icon: Icon(newObscure
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined),
-                        onPressed: () =>
-                            setDialogState(() => newObscure = !newObscure),
+                        icon: HugeIcon(
+                          icon: newObscure
+                              ? HugeIcons.strokeRoundedViewOffSlash
+                              : HugeIcons.strokeRoundedView,
+                          size: 20,
+                          color: ctx.sac.textSecondary,
+                        ),
+                        onPressed: isLoading
+                            ? null
+                            : () => setDialogState(
+                                () => newObscure = !newObscure),
                       ),
                     ),
                   ),
@@ -93,14 +136,21 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     controller: confirmCtrl,
                     obscureText: confirmObscure,
                     textInputAction: TextInputAction.done,
+                    enabled: !isLoading,
                     decoration: InputDecoration(
                       labelText: 'Confirmar nueva contraseña',
                       suffixIcon: IconButton(
-                        icon: Icon(confirmObscure
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined),
-                        onPressed: () => setDialogState(
-                            () => confirmObscure = !confirmObscure),
+                        icon: HugeIcon(
+                          icon: confirmObscure
+                              ? HugeIcons.strokeRoundedViewOffSlash
+                              : HugeIcons.strokeRoundedView,
+                          size: 20,
+                          color: ctx.sac.textSecondary,
+                        ),
+                        onPressed: isLoading
+                            ? null
+                            : () => setDialogState(
+                                () => confirmObscure = !confirmObscure),
                       ),
                     ),
                   ),
@@ -116,33 +166,51 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(ctx, false),
+                  onPressed:
+                      isLoading ? null : () => Navigator.pop(ctx, false),
                   child: const Text('Cancelar'),
                 ),
                 FilledButton(
-                  onPressed: () async {
-                    final current = currentCtrl.text.trim();
-                    final next = newCtrl.text.trim();
-                    final confirm = confirmCtrl.text.trim();
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          final current = currentCtrl.text.trim();
+                          final next = newCtrl.text.trim();
+                          final confirm = confirmCtrl.text.trim();
 
-                    if (current.isEmpty || next.isEmpty || confirm.isEmpty) {
-                      setDialogState(
-                          () => errorText = 'Completa todos los campos.');
-                      return;
-                    }
-                    if (next != confirm) {
-                      setDialogState(() =>
-                          errorText = 'Las contraseñas nuevas no coinciden.');
-                      return;
-                    }
-                    if (next.length < 8) {
-                      setDialogState(() => errorText =
-                          'La contraseña debe tener al menos 8 caracteres.');
-                      return;
-                    }
-                    Navigator.pop(ctx, true);
-                  },
-                  child: const Text('Cambiar'),
+                          if (current.isEmpty ||
+                              next.isEmpty ||
+                              confirm.isEmpty) {
+                            setDialogState(() =>
+                                errorText = 'Completa todos los campos.');
+                            return;
+                          }
+                          if (next != confirm) {
+                            setDialogState(() => errorText =
+                                'Las contraseñas nuevas no coinciden.');
+                            return;
+                          }
+                          if (next.length < 8) {
+                            setDialogState(() => errorText =
+                                'La contraseña debe tener al menos 8 caracteres.');
+                            return;
+                          }
+                          setDialogState(() {
+                            errorText = null;
+                            isLoading = true;
+                          });
+                          Navigator.pop(ctx, true);
+                        },
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Cambiar'),
                 ),
               ],
             );
@@ -228,9 +296,223 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     }
   }
 
+  Future<void> _handleDeleteAccount() async {
+    final c = context.sac;
+    final confirmCtrl = TextEditingController();
+    final passwordCtrl = TextEditingController();
+    String? fieldError;
+    bool isLoading = false;
+    bool passwordObscure = true;
+
+    final firstConfirmed = await SacDialog.show(
+      context,
+      title: 'Eliminar cuenta',
+      content:
+          'Esta acción es irreversible. Se eliminarán todos tus datos, historial y progreso. ¿Deseas continuar?',
+      confirmLabel: 'Continuar',
+      confirmIsDestructive: true,
+    );
+
+    if (firstConfirmed != true || !mounted) return;
+
+    // Segunda confirmación: escribir "ELIMINAR" + contraseña actual.
+    final secondConfirmed = await showDialog<bool>(
+      context: context,
+      barrierColor: c.barrierColor,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text(
+            'Confirmar eliminación',
+            style: TextStyle(color: AppColors.error),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Escribí ELIMINAR para confirmar.',
+                style: TextStyle(fontSize: 14, color: c.textSecondary),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: confirmCtrl,
+                autofocus: true,
+                enabled: !isLoading,
+                textCapitalization: TextCapitalization.characters,
+                inputFormatters: [
+                  TextInputFormatter.withFunction(
+                    (old, val) => val.copyWith(
+                      text: val.text.toUpperCase(),
+                      selection: val.selection,
+                    ),
+                  ),
+                ],
+                decoration: const InputDecoration(
+                  hintText: 'ELIMINAR',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Ingresá tu contraseña actual para continuar.',
+                style: TextStyle(fontSize: 14, color: c.textSecondary),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: passwordCtrl,
+                obscureText: passwordObscure,
+                enabled: !isLoading,
+                textInputAction: TextInputAction.done,
+                decoration: InputDecoration(
+                  hintText: 'Contraseña',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: HugeIcon(
+                      icon: passwordObscure
+                          ? HugeIcons.strokeRoundedViewOffSlash
+                          : HugeIcons.strokeRoundedView,
+                      size: 20,
+                      color: c.textSecondary,
+                    ),
+                    onPressed: isLoading
+                        ? null
+                        : () => setDialogState(
+                              () => passwordObscure = !passwordObscure,
+                            ),
+                  ),
+                ),
+              ),
+              if (fieldError != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  fieldError!,
+                  style:
+                      const TextStyle(color: AppColors.error, fontSize: 13),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed:
+                  isLoading ? null : () => Navigator.pop(ctx, false),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.error,
+              ),
+              onPressed: isLoading
+                  ? null
+                  : () {
+                      if (confirmCtrl.text.trim() != 'ELIMINAR') {
+                        setDialogState(() =>
+                            fieldError = 'Escribí exactamente ELIMINAR.');
+                        return;
+                      }
+                      if (passwordCtrl.text.trim().isEmpty) {
+                        setDialogState(
+                            () => fieldError = 'Ingresá tu contraseña.');
+                        return;
+                      }
+                      setDialogState(() {
+                        fieldError = null;
+                        isLoading = true;
+                      });
+                      Navigator.pop(ctx, true);
+                    },
+              child: isLoading
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Eliminar cuenta'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final password = passwordCtrl.text.trim();
+    confirmCtrl.dispose();
+    passwordCtrl.dispose();
+
+    if (secondConfirmed != true || !mounted) return;
+
+    // Mostrar loading en la pantalla mientras corre la request.
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(width: 12),
+              Text('Eliminando cuenta...'),
+            ],
+          ),
+          duration: Duration(seconds: 30),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+
+    final error = await ref
+        .read(authNotifierProvider.notifier)
+        .deleteAccount(password);
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+    if (error == null) {
+      // Éxito — limpiar estado de providers y navegar a login.
+      clearUserStateOnLogout(ref);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Tu cuenta fue eliminada correctamente.'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      // El router detectará state=null y redirigirá a login automáticamente.
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeNotifierProvider);
+    final user = ref.watch(
+      authNotifierProvider.select((v) => v.valueOrNull),
+    );
+    // Preferencias de notificación — cargadas desde el servidor con fallback a caché.
+    final notifPrefsAsync = ref.watch(notificationPreferencesProvider);
+    final notifPrefs = notifPrefsAsync.valueOrNull;
+    final master = notifPrefs?.master ?? true;
 
     final c = context.sac;
 
@@ -246,6 +528,12 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         children: [
+          // ── CUENTA — header ──────────────────────────────────────
+          if (user != null) ...[
+            _AccountHeaderTile(user: user),
+            const SizedBox(height: 24),
+          ],
+
           // ── APARIENCIA ────────────────────────────────────────────
           _SectionHeader(title: 'APARIENCIA'),
           _GroupContainer(
@@ -261,38 +549,88 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           ),
           const SizedBox(height: 24),
 
-          // ── DESARROLLO ───────────────────────────────────────────
-          _SectionHeader(title: 'DESARROLLO'),
+          // ── NOTIFICACIONES ────────────────────────────────────────
+          _SectionHeader(title: 'NOTIFICACIONES'),
+          _GroupContainer(
+            children: [
+              _SwitchTile(
+                icon: HugeIcons.strokeRoundedNotification01,
+                title: 'Notificaciones push',
+                iconColor: AppColors.primary,
+                value: master,
+                onChanged: notifPrefs == null
+                    ? null
+                    : (v) => _saveNotifPref({'master': v}),
+              ),
+              _groupDivider(),
+              _SwitchTile(
+                icon: HugeIcons.strokeRoundedCalendarCheckIn01,
+                title: 'Actividades',
+                iconColor: master ? c.textSecondary : c.textTertiary,
+                indent: true,
+                value: master && (notifPrefs?.activities ?? true),
+                // Deshabilitar (no solo ocultar) cuando master=false.
+                onChanged: (notifPrefs == null || !master)
+                    ? null
+                    : (v) => _saveNotifPref({'activities': v}),
+              ),
+              _groupDivider(),
+              _SwitchTile(
+                icon: HugeIcons.strokeRoundedAward01,
+                title: 'Logros',
+                iconColor: master ? c.textSecondary : c.textTertiary,
+                indent: true,
+                value: master && (notifPrefs?.achievements ?? true),
+                onChanged: (notifPrefs == null || !master)
+                    ? null
+                    : (v) => _saveNotifPref({'achievements': v}),
+              ),
+              _groupDivider(),
+              _SwitchTile(
+                icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                title: 'Aprobaciones',
+                iconColor: master ? c.textSecondary : c.textTertiary,
+                indent: true,
+                value: master && (notifPrefs?.approvals ?? true),
+                onChanged: (notifPrefs == null || !master)
+                    ? null
+                    : (v) => _saveNotifPref({'approvals': v}),
+              ),
+              _groupDivider(),
+              _SwitchTile(
+                icon: HugeIcons.strokeRoundedUserAdd01,
+                title: 'Invitaciones',
+                iconColor: master ? c.textSecondary : c.textTertiary,
+                indent: true,
+                value: master && (notifPrefs?.invitations ?? true),
+                onChanged: (notifPrefs == null || !master)
+                    ? null
+                    : (v) => _saveNotifPref({'invitations': v}),
+              ),
+              _groupDivider(),
+              _SwitchTile(
+                icon: HugeIcons.strokeRoundedClock01,
+                title: 'Recordatorios',
+                iconColor: master ? c.textSecondary : c.textTertiary,
+                indent: true,
+                value: master && (notifPrefs?.reminders ?? true),
+                onChanged: (notifPrefs == null || !master)
+                    ? null
+                    : (v) => _saveNotifPref({'reminders': v}),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // ── CUENTA ────────────────────────────────────────────────
+          _SectionHeader(title: 'CUENTA'),
           _GroupContainer(
             children: [
               SettingTile(
-                icon: HugeIcons.strokeRoundedUserAccount,
-                title: 'Mockup: Pantalla de Perfil',
-                subtitle: 'Vista de diseño (datos de prueba)',
+                icon: HugeIcons.strokeRoundedLockPassword,
+                title: 'Cambiar contraseña',
                 iconColor: AppColors.primary,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ProfileScreen(),
-                    ),
-                  );
-                },
-              ),
-              _groupDivider(),
-              SettingTile(
-                icon: HugeIcons.strokeRoundedUserStar01,
-                title: 'Mockup: Información Personal',
-                subtitle: 'Alergias, enfermedades y contactos (datos de prueba)',
-                iconColor: AppColors.primary,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const MockPersonalInfoScreen(),
-                    ),
-                  );
-                },
+                onTap: _showChangePasswordDialog,
               ),
             ],
           ),
@@ -305,7 +643,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               SettingTile(
                 icon: HugeIcons.strokeRoundedInformationCircle,
                 title: 'Versión de la app',
-                subtitle: _appVersion,
+                subtitle: _appVersion.isEmpty ? '—' : _appVersion,
               ),
               _groupDivider(),
               SettingTile(
@@ -333,22 +671,27 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           ),
           const SizedBox(height: 24),
 
-          // ── CUENTA ────────────────────────────────────────────────
-          _SectionHeader(title: 'CUENTA'),
+          // ── SESIÓN ────────────────────────────────────────────────
           _GroupContainer(
             children: [
-              SettingTile(
-                icon: HugeIcons.strokeRoundedLockPassword,
-                title: 'Cambiar contraseña',
-                iconColor: AppColors.primary,
-                onTap: _showChangePasswordDialog,
-              ),
-              _groupDivider(),
               SettingTile(
                 icon: HugeIcons.strokeRoundedLogout01,
                 title: 'Cerrar sesión',
                 iconColor: AppColors.error,
                 onTap: _handleLogout,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // ── ZONA PELIGROSA ────────────────────────────────────────
+          _GroupContainer(
+            children: [
+              SettingTile(
+                icon: HugeIcons.strokeRoundedDelete02,
+                title: 'Eliminar cuenta',
+                iconColor: AppColors.error,
+                onTap: _handleDeleteAccount,
               ),
             ],
           ),
@@ -366,7 +709,240 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
       );
 }
 
-/// SACDIA-styled theme picker dialog — multi-option, no confirm/cancel.
+// ── Account header tile ───────────────────────────────────────────────────────
+
+class _AccountHeaderTile extends StatelessWidget {
+  final UserEntity user;
+
+  const _AccountHeaderTile({required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final name = user.name ?? '';
+    final email = user.email;
+    final avatar = user.avatar;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const EditProfileView()),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: c.border, width: 1),
+        ),
+        child: Row(
+          children: [
+            // Avatar
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primaryLight,
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: avatar != null && avatar.isNotEmpty
+                  ? CachedNetworkImage(
+                      imageUrl: avatar,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) => _AvatarFallback(name: name),
+                    )
+                  : _AvatarFallback(name: name),
+            ),
+            const SizedBox(width: 14),
+            // Name + email
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (name.isNotEmpty)
+                    Text(
+                      name,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: c.text,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  if (email.isNotEmpty)
+                    Text(
+                      email,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: c.textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              color: c.textTertiary,
+              size: 16,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AvatarFallback extends StatelessWidget {
+  final String name;
+
+  const _AvatarFallback({required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    final initials = name.isNotEmpty
+        ? name.trim().split(' ').take(2).map((w) => w[0].toUpperCase()).join()
+        : '?';
+    return Center(
+      child: Text(
+        initials,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          color: AppColors.primary,
+        ),
+      ),
+    );
+  }
+}
+
+// ── Switch tile ───────────────────────────────────────────────────────────────
+
+class _SwitchTile extends StatelessWidget {
+  final HugeIconData icon;
+  final String title;
+  final Color? iconColor;
+  final bool value;
+  final bool indent;
+  /// null = toggle deshabilitado (usado cuando master=false).
+  final ValueChanged<bool>? onChanged;
+
+  const _SwitchTile({
+    required this.icon,
+    required this.title,
+    this.iconColor,
+    required this.value,
+    required this.onChanged,
+    this.indent = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final effectiveIconColor = iconColor ?? c.textSecondary;
+    final effectiveBg = iconColor != null
+        ? iconColor!.withValues(alpha: 0.12)
+        : c.surfaceVariant;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: indent ? 28 : 14,
+        right: 14,
+        top: 11,
+        bottom: 11,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: effectiveBg,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: HugeIcon(
+                icon: icon,
+                color: effectiveIconColor,
+                size: 18,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: c.text,
+              ),
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeThumbColor: AppColors.primary,
+            activeTrackColor: AppColors.primary.withValues(alpha: 0.4),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Section header ────────────────────────────────────────────────────────────
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+
+  const _SectionHeader({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: context.sac.textTertiary,
+          letterSpacing: 0.8,
+        ),
+      ),
+    );
+  }
+}
+
+// ── Group container ───────────────────────────────────────────────────────────
+
+class _GroupContainer extends StatelessWidget {
+  final List<Widget> children;
+
+  const _GroupContainer({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: context.sac.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: context.sac.border, width: 1),
+      ),
+      child: Column(children: children),
+    );
+  }
+}
+
+// ── Theme picker dialog ───────────────────────────────────────────────────────
+
 class _ThemePickerDialog extends StatelessWidget {
   final ThemeMode currentMode;
   final ValueChanged<ThemeMode> onModeSelected;
@@ -405,7 +981,6 @@ class _ThemePickerDialog extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Title
               const Padding(
                 padding: EdgeInsets.fromLTRB(20, 22, 20, 12),
                 child: Text(
@@ -419,7 +994,6 @@ class _ThemePickerDialog extends StatelessWidget {
                 ),
               ),
               Container(height: 0.5, color: c.border),
-              // Options
               ...options.map((entry) {
                 final (mode, label, icon) = entry;
                 final isSelected = currentMode == mode;
@@ -474,7 +1048,6 @@ class _ThemePickerDialog extends StatelessWidget {
                   ],
                 );
               }),
-              // Cancel row
               Container(height: 0.5, color: c.border),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -501,49 +1074,8 @@ class _ThemePickerDialog extends StatelessWidget {
   }
 }
 
-/// Header de sección estilo iOS — uppercase, pequeño, gris.
-class _SectionHeader extends StatelessWidget {
-  final String title;
+// ── Scale + fade entrance animation ──────────────────────────────────────────
 
-  const _SectionHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 8),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: context.sac.textTertiary,
-          letterSpacing: 0.8,
-        ),
-      ),
-    );
-  }
-}
-
-/// Contenedor agrupado estilo iOS Settings — fondo blanco, bordes redondeados.
-class _GroupContainer extends StatelessWidget {
-  final List<Widget> children;
-
-  const _GroupContainer({required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: context.sac.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: context.sac.border, width: 1),
-      ),
-      child: Column(children: children),
-    );
-  }
-}
-
-/// Scale + fade entrance animation for SACDIA-styled dialogs.
 class _ScaleFadeIn extends StatefulWidget {
   final Widget child;
 

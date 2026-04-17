@@ -54,6 +54,10 @@ class PushNotificationService {
   static const _tag = 'PushNotificationService';
   static const _tokenPrefKey = 'fcm_registered_token';
 
+  /// ID del registro devuelto por el backend al registrar el token.
+  /// Necesario para el DELETE /users/me/fcm-tokens/:tokenId.
+  static const _tokenIdPrefKey = 'fcm_registered_token_id';
+
   final Dio _dio;
   final _secureStorage = const FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
@@ -148,7 +152,9 @@ class PushNotificationService {
   /// Unregister the FCM token from the backend. Call this on logout.
   Future<void> unregisterToken() async {
     final token = await _secureStorage.read(key: _tokenPrefKey);
-    if (token == null || token.isEmpty) {
+    final tokenId = await _secureStorage.read(key: _tokenIdPrefKey);
+
+    if ((token == null || token.isEmpty) && (tokenId == null || tokenId.isEmpty)) {
       AppLogger.i(
         'No hay token FCM registrado, saltando unregister',
         tag: _tag,
@@ -158,11 +164,21 @@ class PushNotificationService {
 
     try {
       AppLogger.i('Desregistrando token FCM del backend', tag: _tag);
-      await _dio.delete(
-        '/fcm-tokens/by-token',
-        data: {'token': token},
-      );
+
+      if (tokenId != null && tokenId.isNotEmpty) {
+        // Ruta preferida: DELETE /users/me/fcm-tokens/:tokenId
+        await _dio.delete('/users/me/fcm-tokens/$tokenId');
+      } else if (token != null && token.isNotEmpty) {
+        // Fallback para tokens registrados antes de persistir el ID:
+        // DELETE /users/me/fcm-tokens/by-token con el token en el body.
+        await _dio.delete(
+          '/users/me/fcm-tokens/by-token',
+          data: {'token': token},
+        );
+      }
+
       await _secureStorage.delete(key: _tokenPrefKey);
+      await _secureStorage.delete(key: _tokenIdPrefKey);
       AppLogger.i('Token FCM desregistrado', tag: _tag);
     } on DioException catch (e) {
       // Non-critical: a stale token in the backend won't cause harm.
@@ -173,10 +189,12 @@ class PushNotificationService {
       );
       // Still remove locally so we don't keep retrying a bad token.
       await _secureStorage.delete(key: _tokenPrefKey);
+      await _secureStorage.delete(key: _tokenIdPrefKey);
     } catch (e) {
       AppLogger.w('Error inesperado al desregistrar token',
           tag: _tag, error: e);
       await _secureStorage.delete(key: _tokenPrefKey);
+      await _secureStorage.delete(key: _tokenIdPrefKey);
     }
   }
 
@@ -320,12 +338,30 @@ class PushNotificationService {
 
     try {
       AppLogger.i('Registrando token FCM en backend', tag: _tag);
-      await _dio.post(
-        '/fcm-tokens',
+      final response = await _dio.post(
+        '/users/me/fcm-tokens',
         data: {'token': token},
       );
+
+      // Persistir el token localmente.
       await _secureStorage.write(key: _tokenPrefKey, value: token);
-      AppLogger.i('Token FCM registrado exitosamente', tag: _tag);
+
+      // El backend devuelve el ID del registro — persiste para poder hacer DELETE
+      // por ID al desregistrar (más confiable que buscar por valor del token).
+      final responseData = response.data;
+      final tokenId = responseData is Map<String, dynamic>
+          ? (responseData['id'] as dynamic)?.toString() ??
+              (responseData['data'] is Map<String, dynamic>
+                  ? (responseData['data']['id'] as dynamic)?.toString()
+                  : null)
+          : null;
+
+      if (tokenId != null && tokenId.isNotEmpty) {
+        await _secureStorage.write(key: _tokenIdPrefKey, value: tokenId);
+        AppLogger.i('Token FCM registrado exitosamente (id=$tokenId)', tag: _tag);
+      } else {
+        AppLogger.i('Token FCM registrado exitosamente (sin id en respuesta)', tag: _tag);
+      }
     } on DioException catch (e) {
       AppLogger.w(
         'Error al registrar token FCM (${e.response?.statusCode})',

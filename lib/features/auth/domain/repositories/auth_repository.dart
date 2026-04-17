@@ -59,4 +59,10 @@ abstract class AuthRepository {
     required String sessionToken,
     required String provider,
   });
+
+  /// Elimina permanentemente la cuenta del usuario autenticado.
+  ///
+  /// Requiere la contraseña actual para verificación server-side.
+  /// El backend aplica cascada: revoca sesiones, borra PII, archiva audit log.
+  Future<Either<Failure, void>> deleteAccount(String password);
 }

@@ -528,6 +528,66 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     );
   }
 
+  /// Elimina permanentemente la cuenta del usuario autenticado.
+  ///
+  /// Flujo:
+  ///  1. Desregistra el token FCM del backend (best-effort).
+  ///  2. Llama DELETE /auth/me con la contraseña.
+  ///  3. En éxito limpia todo el storage local y pone state = null.
+  ///
+  /// Retorna null en éxito o un mensaje de error localizado.
+  Future<String?> deleteAccount(String password) async {
+    AppLogger.i('Iniciando eliminación de cuenta', tag: _tag);
+
+    // Desregistrar FCM antes de borrar la sesión (el interceptor aún puede
+    // adjuntar el Bearer header porque los tokens aún existen).
+    try {
+      final pushService = ref.read(pushNotificationServiceProvider);
+      await pushService.unregisterToken();
+      await pushService.dispose();
+    } catch (e) {
+      // Non-critical: el backend también cascada los FCM tokens al borrar cuenta.
+      AppLogger.w('Error al desregistrar FCM antes de delete account',
+          tag: _tag, error: e);
+    }
+
+    final result =
+        await ref.read(authRepositoryProvider).deleteAccount(password);
+
+    return result.fold(
+      (failure) {
+        final msg = failure is AuthFailure
+            ? failure.message
+            : 'Error al eliminar la cuenta';
+        AppLogger.w('Delete account fallido: $msg', tag: _tag);
+        return msg;
+      },
+      (_) {
+        AppLogger.i('Cuenta eliminada correctamente', tag: _tag);
+
+        // Limpiar estado local (el datasource ya limpió tokens en deleteAccount).
+        final prefs = ref.read(sharedPreferencesProvider);
+        prefs.remove('cached_post_register_complete');
+        prefs.remove('user_manually_logged_out');
+        // Limpiar claves de notif prefs para que no queden datos huérfanos.
+        for (final key in const [
+          'notif_push_master',
+          'notif_push_activities',
+          'notif_push_achievements',
+          'notif_push_approvals',
+          'notif_push_invitations',
+          'notif_push_reminders',
+        ]) {
+          prefs.remove(key);
+        }
+
+        ref.read(unreadNotificationsCountProvider.notifier).setZero();
+        state = const AsyncValue.data(null);
+        return null;
+      },
+    );
+  }
+
   /// Called by AuthInterceptor when the refresh token is dead.
   ///
   /// Clears all local tokens and cached PII then sets state to null so
