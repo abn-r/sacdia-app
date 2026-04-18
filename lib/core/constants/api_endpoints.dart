@@ -85,6 +85,10 @@ class ApiEndpoints {
   // ── Transfers / Requests ──────────────────────────────────────────────────
   static const String requests = '/requests';
 
+  // ── Data Export (GDPR) ────────────────────────────────────────────────────
+  static const String dataExport = '/users/me/data-export';
+  static const String dataExports = '/users/me/data-exports';
+
   // ── Notifications ─────────────────────────────────────────────────────────
   static const String notifications = '/notifications';
 

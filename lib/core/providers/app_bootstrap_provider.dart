@@ -14,6 +14,7 @@ import '../../features/profile/presentation/providers/profile_providers.dart';
 import '../../features/enrollment/presentation/providers/enrollment_providers.dart';
 import '../../features/activities/presentation/providers/activities_providers.dart';
 import '../../features/club/presentation/providers/club_providers.dart';
+import '../../features/notifications/presentation/providers/notifications_providers.dart';
 
 /// User-specific providers that must be invalidated on logout or nuclear reset.
 /// Single source of truth — used by both [AppBootstrapNotifier._nuclearReset]
@@ -26,6 +27,7 @@ final List<ProviderOrFamily> userSpecificProviders = [
   profileNotifierProvider,
   currentEnrollmentProvider,
   clubActivitiesProvider,
+  notificationsInboxProvider,
 ];
 
 // ─── State ───────────────────────────────────────────────────────────────────

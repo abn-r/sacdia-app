@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:http_parser/http_parser.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -65,12 +66,14 @@ abstract class HonorsRemoteDataSource {
   ///
   /// POST /users/:userId/honors/:honorId/requirements/:requirementId/evidence/upload
   /// Envía el archivo como multipart/form-data con el campo `file`.
+  /// [mimeType] se pasa explícitamente para fijar el Content-Type del part.
   Future<RequirementEvidenceModel> uploadRequirementEvidence(
     String userId,
     int honorId,
     int requirementId,
-    File file,
-  );
+    File file, {
+    required String mimeType,
+  });
 
   /// Agrega un enlace como evidencia de un requisito.
   ///
@@ -600,13 +603,15 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     String userId,
     int honorId,
     int requirementId,
-    File file,
-  ) async {
+    File file, {
+    required String mimeType,
+  }) async {
     try {
       final formData = FormData.fromMap({
         'file': await MultipartFile.fromFile(
           file.path,
           filename: file.path.split('/').last,
+          contentType: MediaType.parse(mimeType),
         ),
       });
 

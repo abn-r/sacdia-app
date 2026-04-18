@@ -242,8 +242,9 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
   String _dayLabel(DateTime date) {
     final today = DateTime.now();
     if (_isSameDay(date, today)) return 'Hoy';
-    if (_isSameDay(date, today.subtract(const Duration(days: 1))))
+    if (_isSameDay(date, today.subtract(const Duration(days: 1)))) {
       return 'Ayer';
+    }
     if (_isSameDay(date, today.add(const Duration(days: 1)))) return 'Mañana';
     return _capitalizeFirst(DateFormat('EEEE, d MMM', 'es').format(date));
   }

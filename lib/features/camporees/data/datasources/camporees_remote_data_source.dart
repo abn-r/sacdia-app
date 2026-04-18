@@ -260,20 +260,34 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
         }
 
         // Fallback: raw array (should not happen post-migration).
-        final rawList = responseData is List ? responseData : <dynamic>[];
-        final members = rawList
-            .map((e) => CamporeeMemberModel.fromJson(e as Map<String, dynamic>))
-            .toList();
-        return PaginatedResult<CamporeeMemberModel>(
-          data: members,
-          meta: PaginationMeta(
-            page: page,
-            limit: limit,
-            total: members.length,
-            totalPages: 1,
-            hasNextPage: false,
-            hasPreviousPage: false,
-          ),
+        if (responseData is List) {
+          AppLogger.w(
+            'getCamporeeMembers: backend returned raw array instead of '
+            'paginated object — post-migration this should not happen',
+            tag: _tag,
+          );
+          final members = responseData
+              .map((e) => CamporeeMemberModel.fromJson(e as Map<String, dynamic>))
+              .toList();
+          return PaginatedResult<CamporeeMemberModel>(
+            data: members,
+            meta: PaginationMeta(
+              page: page,
+              limit: limit,
+              total: members.length,
+              totalPages: 1,
+              hasNextPage: false,
+              hasPreviousPage: false,
+            ),
+          );
+        }
+
+        // Malformed: neither Map-with-data nor List — fail visibly.
+        throw ServerException(
+          message:
+              'getCamporeeMembers: unexpected response type '
+              '${responseData.runtimeType} — cannot parse members',
+          code: response.statusCode,
         );
       }
 

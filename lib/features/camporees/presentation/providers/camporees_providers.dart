@@ -83,16 +83,17 @@ final camporeeDetailProvider =
   );
 });
 
-/// Provider para los miembros inscritos en un camporee (page 1, limit 50).
+/// Base provider que realiza la llamada real al repositorio para los miembros
+/// paginados de un camporee (page 1, limit 50).
 ///
-/// Family por [camporeeId]. Expone `List<CamporeeMember>` para que los widgets
-/// existentes no requieran cambios.
+/// Al ser un `FutureProvider.autoDispose.family`, Riverpod deduplica por key:
+/// dos watchers del mismo [camporeeId] comparten UNA sola request en vuelo.
+/// Tanto [camporeeMembersProvider] como [camporeeMembersMetaProvider] consumen
+/// este provider, eliminando la llamada de red duplicada.
 ///
-/// TODO(pagination): convertir a un AsyncNotifier con load-more / infinite
-/// scroll cuando se requiera paginación completa en la UI.
-final camporeeMembersProvider =
-    FutureProvider.autoDispose.family<List<CamporeeMember>, int>(
-        (ref, camporeeId) async {
+/// Family por [camporeeId] (int).
+final _camporeeMembersPaginatedProvider = FutureProvider.autoDispose
+    .family<PaginatedResult<CamporeeMember>, int>((ref, camporeeId) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final repository = ref.read(camporeesRepositoryProvider);
@@ -105,31 +106,41 @@ final camporeeMembersProvider =
 
   return result.fold(
     (failure) => throw Exception(failure.message),
-    (paginated) => paginated.data,
+    (paginated) => paginated,
   );
+});
+
+/// Provider para los miembros inscritos en un camporee (page 1, limit 50).
+///
+/// Family por [camporeeId]. Expone `List<CamporeeMember>` para que los widgets
+/// existentes no requieran cambios.
+///
+/// Internamente observa [_camporeeMembersPaginatedProvider] — Riverpod garantiza
+/// que compartir ese provider no dispara una segunda request de red.
+///
+/// TODO(pagination): convertir a un AsyncNotifier con load-more / infinite
+/// scroll cuando se requiera paginación completa en la UI.
+final camporeeMembersProvider =
+    FutureProvider.autoDispose.family<List<CamporeeMember>, int>(
+        (ref, camporeeId) async {
+  final paginated =
+      await ref.watch(_camporeeMembersPaginatedProvider(camporeeId).future);
+  return paginated.data;
 });
 
 /// Provider que expone los metadatos de paginación de los miembros de un camporee.
 ///
 /// Útil para mostrar totales (p.ej. "120 inscriptos") sin cambiar la UI de lista.
 /// Family por [camporeeId].
+///
+/// Comparte la misma request de red que [camporeeMembersProvider] vía
+/// [_camporeeMembersPaginatedProvider].
 final camporeeMembersMetaProvider =
     FutureProvider.autoDispose.family<PaginationMeta?, int>(
         (ref, camporeeId) async {
-  final cancelToken = CancelToken();
-  ref.onDispose(() => cancelToken.cancel());
-  final repository = ref.read(camporeesRepositoryProvider);
-  final result = await repository.getCamporeeMembers(
-    camporeeId,
-    page: 1,
-    limit: 50,
-    cancelToken: cancelToken,
-  );
-
-  return result.fold(
-    (_) => null,
-    (paginated) => paginated.meta,
-  );
+  final paginated =
+      await ref.watch(_camporeeMembersPaginatedProvider(camporeeId).future);
+  return paginated.meta;
 });
 
 // ── Mutation notifiers ────────────────────────────────────────────────────────

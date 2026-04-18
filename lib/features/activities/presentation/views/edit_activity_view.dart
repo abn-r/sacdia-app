@@ -6,7 +6,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
-import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -1016,61 +1015,3 @@ class _JointActivityReadOnlyBadge extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Campo de solo lectura para mostrar información no editable
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _ReadOnlyInfoField extends StatelessWidget {
-  final String label;
-  final String value;
-  final HugeIconData icon;
-
-  const _ReadOnlyInfoField({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: c.surfaceVariant,
-            borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-            border: Border.all(color: c.border),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-          child: Row(
-            children: [
-              HugeIcon(icon: icon, size: 20, color: c.textSecondary),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  value,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: c.textSecondary,
-                  ),
-                ),
-              ),
-              Icon(Icons.lock_outline_rounded, size: 16, color: c.textTertiary),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}

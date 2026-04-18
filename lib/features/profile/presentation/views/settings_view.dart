@@ -16,6 +16,8 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../auth/presentation/providers/logout_cleanup.dart';
 import '../providers/notification_preferences_providers.dart';
 import '../widgets/setting_tile.dart';
+import 'active_sessions_view.dart';
+import 'data_export_view.dart';
 import 'edit_profile_view.dart';
 
 class SettingsView extends ConsumerStatefulWidget {
@@ -626,6 +628,30 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           _SectionHeader(title: 'CUENTA'),
           _GroupContainer(
             children: [
+              SettingTile(
+                icon: HugeIcons.strokeRoundedDeviceAccess,
+                title: 'Sesiones activas',
+                iconColor: AppColors.primary,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ActiveSessionsView(),
+                  ),
+                ),
+              ),
+              _groupDivider(),
+              SettingTile(
+                icon: HugeIcons.strokeRoundedDownload02,
+                title: 'Descargar mis datos',
+                iconColor: AppColors.primary,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const DataExportView(),
+                  ),
+                ),
+              ),
+              _groupDivider(),
               SettingTile(
                 icon: HugeIcons.strokeRoundedLockPassword,
                 title: 'Cambiar contraseña',

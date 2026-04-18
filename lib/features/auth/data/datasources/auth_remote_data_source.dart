@@ -877,8 +877,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         data: {'password': password},
         options: Options(
           headers: {'Authorization': 'Bearer $token'},
-          // Aceptar 204 No Content como respuesta válida.
-          validateStatus: (status) => status != null && status < 500,
+          // Solo 200/204 son éxito. 4xx lanza DioException → catch maneja 401.
+          validateStatus: (s) => s == 200 || s == 204,
         ),
       );
 

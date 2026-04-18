@@ -79,12 +79,14 @@ abstract class HonorsRepository {
       List<Map<String, dynamic>> updates);
 
   /// Sube un archivo de evidencia para un requisito específico de una especialidad.
+  /// [mimeType] debe ser validado por el llamador antes de invocar este método.
   Future<Either<Failure, RequirementEvidence>> uploadRequirementEvidence(
     String userId,
     int honorId,
     int requirementId,
-    File file,
-  );
+    File file, {
+    required String mimeType,
+  });
 
   /// Agrega un enlace como evidencia de un requisito.
   Future<Either<Failure, RequirementEvidence>> addRequirementEvidenceLink(
