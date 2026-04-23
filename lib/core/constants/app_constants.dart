@@ -41,6 +41,11 @@ class AppConstants {
   static const String themeKey = 'app_theme';
   static const String localeKey = 'app_locale';
 
+  // Accessibility (MVP: SharedPreferences only)
+  static const String accessibilityTextSizeKey = 'app_a11y_text_size';
+  static const String accessibilityHighContrastKey = 'app_a11y_high_contrast';
+  static const String accessibilityReduceMotionKey = 'app_a11y_reduce_motion';
+
   // Caché de PII de usuario (SecureStorage)
   static const String cachedUserId = 'cached_user_id';
   static const String cachedUserEmail = 'cached_user_email';

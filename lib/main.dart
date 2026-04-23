@@ -16,6 +16,7 @@ import 'core/realtime/realtime_ref.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/utils/app_logger.dart';
+import 'features/accessibility/presentation/providers/accessibility_provider.dart';
 import 'firebase_options.dart';
 import 'providers/storage_provider.dart';
 
@@ -255,6 +256,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeNotifierProvider);
     final router = ref.watch(routerProvider);
+    final accessibility = ref.watch(accessibilityProvider);
 
     // Adaptar iconos del status bar al tema actual.
     // AnnotatedRegion is the declarative alternative to SystemChrome.setSystemUIOverlayStyle()
@@ -271,20 +273,44 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
             statusBarColor: Colors.transparent,
           );
 
+    // Accessibility MediaQuery override — fusiona preferencias del usuario
+    // con el MediaQuery provisto por el sistema. Se propaga a TODA la app
+    // porque envuelve a MaterialApp.router.
+    //
+    // IMPORTANTE: este widget DEBE vivir INSIDE EasyLocalization (provisto
+    // en main()) y AROUND MaterialApp.router. Orden exigido:
+    //   EasyLocalization > ProviderScope > MediaQuery(override) > MyApp(MaterialApp.router)
+    final baseMediaQuery = MediaQuery.of(context);
+    final effectiveMediaQueryData = mergedAccessibilityMediaQueryData(
+      baseMediaQuery,
+      accessibility,
+    );
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: overlayStyle,
-      child: ScrollConfiguration(
-        behavior: _AppScrollBehavior(),
-        child: MaterialApp.router(
-          title: 'Sacdia App',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: themeMode,
-          routerConfig: router,
-          locale: context.locale,
-          localizationsDelegates: context.localizationDelegates,
-          supportedLocales: context.supportedLocales,
+      child: MediaQuery(
+        data: effectiveMediaQueryData,
+        child: ScrollConfiguration(
+          behavior: _AppScrollBehavior(),
+          child: MaterialApp.router(
+            title: 'Sacdia App',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.themeFor(
+              brightness: Brightness.light,
+              highContrast: accessibility.highContrast,
+              reduceMotion: accessibility.reduceMotion,
+            ),
+            darkTheme: AppTheme.themeFor(
+              brightness: Brightness.dark,
+              highContrast: accessibility.highContrast,
+              reduceMotion: accessibility.reduceMotion,
+            ),
+            themeMode: themeMode,
+            routerConfig: router,
+            locale: context.locale,
+            localizationsDelegates: context.localizationDelegates,
+            supportedLocales: context.supportedLocales,
+          ),
         ),
       ),
     );

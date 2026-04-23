@@ -57,7 +57,20 @@
     "relative_time_just_now": "agora mesmo",
     "relative_time_min_ago": { "one": "há {} minuto", "other": "há {} minutos" },
     "relative_time_hour_ago": { "one": "há {} hora", "other": "há {} horas" },
-    "relative_time_day_ago": { "one": "há {} dia", "other": "há {} dias" }
+    "relative_time_day_ago": { "one": "há {} dia", "other": "há {} dias" },
+    "accessibility_tile": "Acessibilidade"
+  },
+  "accessibility": {
+    "title": "Acessibilidade",
+    "text_size_label": "Tamanho do texto",
+    "text_size_system": "Sistema",
+    "text_size_normal": "Normal",
+    "text_size_large": "Grande",
+    "text_size_extra_large": "Muito grande",
+    "high_contrast_tile": "Alto contraste",
+    "reduce_motion_tile": "Reduzir movimento",
+    "preview_title": "PRÉ-VISUALIZAÇÃO",
+    "preview_text": "Abc Lorem ipsum dolor sit amet, consectetur adipiscing elit."
   },
   "auth": {
     "login_title": "Bem-vindo",

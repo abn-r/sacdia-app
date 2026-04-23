@@ -57,7 +57,20 @@
     "relative_time_just_now": "just now",
     "relative_time_min_ago": { "one": "{} minute ago", "other": "{} minutes ago" },
     "relative_time_hour_ago": { "one": "{} hour ago", "other": "{} hours ago" },
-    "relative_time_day_ago": { "one": "{} day ago", "other": "{} days ago" }
+    "relative_time_day_ago": { "one": "{} day ago", "other": "{} days ago" },
+    "accessibility_tile": "Accessibility"
+  },
+  "accessibility": {
+    "title": "Accessibility",
+    "text_size_label": "Text size",
+    "text_size_system": "System",
+    "text_size_normal": "Normal",
+    "text_size_large": "Large",
+    "text_size_extra_large": "Extra large",
+    "high_contrast_tile": "High contrast",
+    "reduce_motion_tile": "Reduce motion",
+    "preview_title": "PREVIEW",
+    "preview_text": "Abc Lorem ipsum dolor sit amet, consectetur adipiscing elit."
   },
   "auth": {
     "login_title": "Welcome",

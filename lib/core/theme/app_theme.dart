@@ -799,4 +799,269 @@ class AppTheme {
       ),
     );
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // High-contrast + reduce-motion support (Accessibility feature)
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // Filosofía: ADITIVO. Los temas base ([lightTheme]/[darkTheme]) no se tocan.
+  // Derivamos variantes WCAG AAA (≥7:1) aplicando `copyWith` sobre `ColorScheme`,
+  // reforzando bordes (≥ 2.0) y eliminando transparencias. El motion-reducido
+  // se aplica mediante un [PageTransitionsTheme] con un builder que devuelve
+  // el child sin animar.
+
+  /// Color primario reforzado para alto contraste.
+  ///
+  /// El `primary` original (#F06151) aprobado en light mode contra blanco
+  /// tiene ~3.5:1 contra blanco — insuficiente para AAA. Usamos el tono
+  /// `primaryDark` (#D94A3B) que alcanza mayor contraste. Para dark mode
+  /// se refuerza con un rojo más luminoso.
+  static const Color _hcPrimaryLight = AppColors.primaryDark; // #D94A3B
+  static const Color _hcPrimaryDark = Color(0xFFFF8577); // red-300ish
+
+  /// Tema claro alto contraste — superficie blanca pura, texto negro puro,
+  /// bordes gruesos (2.0), sin transparencias.
+  static ThemeData get lightHighContrastTheme {
+    final base = lightTheme;
+    final hcScheme = base.colorScheme.copyWith(
+      primary: _hcPrimaryLight,
+      onPrimary: Colors.white,
+      secondary: AppColors.secondaryDark,
+      onSecondary: Colors.white,
+      error: AppColors.errorDark,
+      onError: Colors.white,
+      surface: Colors.white,
+      onSurface: Colors.black,
+      onSurfaceVariant: Colors.black,
+      outline: Colors.black,
+      outlineVariant: Colors.black,
+    );
+
+    return base.copyWith(
+      colorScheme: hcScheme,
+      scaffoldBackgroundColor: Colors.white,
+      cardTheme: base.cardTheme.copyWith(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radiusMD),
+          side: const BorderSide(color: Colors.black, width: 2),
+        ),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: Colors.black,
+        thickness: 2,
+        space: 2,
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: _hcPrimaryLight,
+          side: const BorderSide(color: Colors.black, width: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          minimumSize: const Size(0, 48),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radiusSM),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+      inputDecorationTheme: base.inputDecorationTheme.copyWith(
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusSM),
+          borderSide: const BorderSide(color: Colors.black, width: 2),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusSM),
+          borderSide: const BorderSide(color: Colors.black, width: 2),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusSM),
+          borderSide: const BorderSide(color: _hcPrimaryLight, width: 3),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusSM),
+          borderSide: const BorderSide(color: AppColors.errorDark, width: 2),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusSM),
+          borderSide: const BorderSide(color: AppColors.errorDark, width: 3),
+        ),
+        hintStyle: const TextStyle(color: Colors.black87, fontSize: 14),
+        labelStyle: const TextStyle(color: Colors.black, fontSize: 14),
+      ),
+      chipTheme: base.chipTheme.copyWith(
+        backgroundColor: Colors.white,
+        selectedColor: _hcPrimaryLight,
+        labelStyle: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: Colors.black,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radiusLG),
+          side: const BorderSide(color: Colors.black, width: 2),
+        ),
+      ),
+      checkboxTheme: base.checkboxTheme.copyWith(
+        side: const BorderSide(color: Colors.black, width: 2),
+      ),
+      textTheme: base.textTheme.apply(
+        bodyColor: Colors.black,
+        displayColor: Colors.black,
+      ),
+    );
+  }
+
+  /// Tema oscuro alto contraste — negro puro, texto blanco puro,
+  /// bordes gruesos (2.0), sin transparencias.
+  static ThemeData get darkHighContrastTheme {
+    final base = darkTheme;
+    final hcScheme = base.colorScheme.copyWith(
+      primary: _hcPrimaryDark,
+      onPrimary: Colors.black,
+      secondary: AppColors.secondaryLight,
+      onSecondary: Colors.black,
+      error: AppColors.errorLight,
+      onError: Colors.black,
+      surface: Colors.black,
+      onSurface: Colors.white,
+      onSurfaceVariant: Colors.white,
+      outline: Colors.white,
+      outlineVariant: Colors.white,
+    );
+
+    return base.copyWith(
+      colorScheme: hcScheme,
+      scaffoldBackgroundColor: Colors.black,
+      cardTheme: base.cardTheme.copyWith(
+        color: Colors.black,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radiusMD),
+          side: const BorderSide(color: Colors.white, width: 2),
+        ),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: Colors.white,
+        thickness: 2,
+        space: 2,
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: _hcPrimaryDark,
+          side: const BorderSide(color: Colors.white, width: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          minimumSize: const Size(0, 48),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radiusSM),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+      inputDecorationTheme: base.inputDecorationTheme.copyWith(
+        fillColor: Colors.black,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusSM),
+          borderSide: const BorderSide(color: Colors.white, width: 2),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusSM),
+          borderSide: const BorderSide(color: Colors.white, width: 2),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusSM),
+          borderSide: const BorderSide(color: _hcPrimaryDark, width: 3),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusSM),
+          borderSide: const BorderSide(color: AppColors.errorLight, width: 2),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusSM),
+          borderSide: const BorderSide(color: AppColors.errorLight, width: 3),
+        ),
+        hintStyle: const TextStyle(color: Colors.white70, fontSize: 14),
+        labelStyle: const TextStyle(color: Colors.white, fontSize: 14),
+      ),
+      chipTheme: base.chipTheme.copyWith(
+        backgroundColor: Colors.black,
+        selectedColor: _hcPrimaryDark,
+        labelStyle: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radiusLG),
+          side: const BorderSide(color: Colors.white, width: 2),
+        ),
+      ),
+      checkboxTheme: base.checkboxTheme.copyWith(
+        side: const BorderSide(color: Colors.white, width: 2),
+      ),
+      textTheme: base.textTheme.apply(
+        bodyColor: Colors.white,
+        displayColor: Colors.white,
+      ),
+    );
+  }
+
+  /// Aplica [_NoTransitionsBuilder] a todas las plataformas si
+  /// `reduceMotion = true`. Cuando es falso, retorna el theme tal cual.
+  static ThemeData _withMotionPreference(ThemeData theme, bool reduceMotion) {
+    if (!reduceMotion) return theme;
+    return theme.copyWith(
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: <TargetPlatform, PageTransitionsBuilder>{
+          TargetPlatform.android: _NoTransitionsBuilder(),
+          TargetPlatform.iOS: _NoTransitionsBuilder(),
+          TargetPlatform.linux: _NoTransitionsBuilder(),
+          TargetPlatform.macOS: _NoTransitionsBuilder(),
+          TargetPlatform.windows: _NoTransitionsBuilder(),
+          TargetPlatform.fuchsia: _NoTransitionsBuilder(),
+        },
+      ),
+    );
+  }
+
+  /// Resolver principal — devuelve el [ThemeData] correcto según preferencias
+  /// de accesibilidad. Usado por `main.dart` para alimentar
+  /// `MaterialApp.router.theme` / `darkTheme`.
+  static ThemeData themeFor({
+    required Brightness brightness,
+    required bool highContrast,
+    required bool reduceMotion,
+  }) {
+    final ThemeData base;
+    if (brightness == Brightness.dark) {
+      base = highContrast ? darkHighContrastTheme : darkTheme;
+    } else {
+      base = highContrast ? lightHighContrastTheme : lightTheme;
+    }
+    return _withMotionPreference(base, reduceMotion);
+  }
+}
+
+/// [PageTransitionsBuilder] que omite cualquier animación de transición
+/// entre rutas. Se combina con `MediaQuery.disableAnimations = true` para
+/// cubrir tanto transiciones del [Navigator] como animaciones internas
+/// de widgets (ver `core/animations/*`).
+class _NoTransitionsBuilder extends PageTransitionsBuilder {
+  const _NoTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return child;
+  }
 }
