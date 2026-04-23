@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/config/cache_config.dart';
@@ -18,52 +19,117 @@ import 'core/utils/app_logger.dart';
 import 'firebase_options.dart';
 import 'providers/storage_provider.dart';
 
+const _sentryDsn =
+    'https://48ff634d9f5d4213de75a751c2838383@o4510840511528960.ingest.us.sentry.io/4511270132645888';
+
+const _sensitiveFields = <String>{
+  'password',
+  'refresh_token',
+  'refreshToken',
+  'access_token',
+  'accessToken',
+  'blood',
+  'birthday',
+  'allergies',
+  'diseases',
+  'medicines',
+};
+
+const _sensitiveHeaders = <String>{
+  'authorization',
+  'cookie',
+  'x-session-token',
+  'x-refresh-token',
+};
+
+void _scrubMap(Map<dynamic, dynamic>? data, Set<String> keys) {
+  if (data == null) return;
+  for (final entry in data.entries.toList()) {
+    if (entry.key is String && keys.contains(entry.key)) {
+      data[entry.key] = '[REDACTED]';
+    }
+  }
+}
+
+SentryEvent? _scrubEvent(SentryEvent event, Hint hint) {
+  final request = event.request;
+  if (request != null) {
+    _scrubMap(request.headers, _sensitiveHeaders);
+    final data = request.data;
+    if (data is Map) _scrubMap(data, _sensitiveFields);
+  }
+  final breadcrumbs = event.breadcrumbs;
+  if (breadcrumbs != null) {
+    for (final crumb in breadcrumbs) {
+      _scrubMap(crumb.data, _sensitiveHeaders);
+      _scrubMap(crumb.data, _sensitiveFields);
+    }
+  }
+  return event;
+}
+
 /// Punto de entrada principal de la aplicación
 Future<void> main() async {
-  // Aseguramos que las dependencias de Flutter estén inicializadas
-  WidgetsFlutterBinding.ensureInitialized();
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = _sentryDsn;
+      options.environment = kReleaseMode ? 'production' : 'development';
+      options.tracesSampleRate = kReleaseMode ? 0.1 : 1.0;
+      // ignore: experimental_member_use
+      options.profilesSampleRate = kReleaseMode ? 0.1 : 1.0;
+      options.sendDefaultPii = false;
+      options.debug = kDebugMode;
+      options.beforeSend = _scrubEvent;
+    },
+    appRunner: () async {
+      // Aseguramos que las dependencias de Flutter estén inicializadas
+      WidgetsFlutterBinding.ensureInitialized();
 
-  // Paralelizamos operaciones independientes: orientación, SharedPreferences y
-  // Firebase.initializeApp() — este último DEBE ocurrir antes de runApp().
-  final results = await Future.wait([
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]),
-    SharedPreferences.getInstance(),
-    Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    ),
-  ]);
+      // Paralelizamos operaciones independientes: orientación, SharedPreferences y
+      // Firebase.initializeApp() — este último DEBE ocurrir antes de runApp().
+      final results = await Future.wait([
+        SystemChrome.setPreferredOrientations([
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+        ]),
+        SharedPreferences.getInstance(),
+        Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        ),
+      ]);
 
-  final sharedPreferences = results[1] as SharedPreferences;
+      final sharedPreferences = results[1] as SharedPreferences;
 
-  // Diferimos la activación de AppCheck al post-frame: no bloquea el primer
-  // frame y el handshake con el servidor de AppCheck puede tomar ~1-2 s.
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    _initializeFirebaseExtras();
-    // Eagerly initialize the app-wide image cache manager so the first
-    // honors/profile screen doesn't pay the singleton creation cost.
-    // SacCacheManager: 500 objects / 30-day stalePeriod (see cache_config.dart).
-    SacCacheManager.instance;
-  });
+      // Diferimos la activación de AppCheck al post-frame: no bloquea el primer
+      // frame y el handshake con el servidor de AppCheck puede tomar ~1-2 s.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _initializeFirebaseExtras();
+        // Eagerly initialize the app-wide image cache manager so the first
+        // honors/profile screen doesn't pay the singleton creation cost.
+        // SacCacheManager: 500 objects / 30-day stalePeriod (see cache_config.dart).
+        SacCacheManager.instance;
+      });
 
-  // Ejecutamos la aplicación con la configuración inicial
-  runApp(
-    ProviderScope(
-      overrides: [
-        // Proporcionamos la instancia de SharedPreferences a la aplicación
-        sharedPreferencesProvider.overrideWithValue(sharedPreferences),
-      ],
-      child: const MyApp(),
-    ),
+      // Ejecutamos la aplicación con la configuración inicial
+      runApp(
+        SentryWidget(
+          child: ProviderScope(
+            overrides: [
+              // Proporcionamos la instancia de SharedPreferences a la aplicación
+              sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+            ],
+            child: const MyApp(),
+          ),
+        ),
+      );
+
+      // La verificación de sesión no necesita bloquear el primer frame.
+      // Reutilizamos la instancia ya cargada para evitar un segundo getInstance().
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkAndCleanSessionAtStartup(sharedPreferences);
+      });
+    },
   );
-
-  // La verificación de sesión no necesita bloquear el primer frame.
-  // Reutilizamos la instancia ya cargada para evitar un segundo getInstance().
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    _checkAndCleanSessionAtStartup(sharedPreferences);
-  });
 }
 
 /// Activación de FirebaseAppCheck diferida al post-frame.

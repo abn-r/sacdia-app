@@ -8,6 +8,7 @@ environment:
   sdk: ^3.6.1
 
 dependencies:
+  sentry_flutter: ^9.19.0
   flutter:
     sdk: flutter
   flutter_localizations:
@@ -73,6 +74,7 @@ dependency_overrides:
   path_provider_foundation: 2.5.1
 
 dev_dependencies:
+  sentry_dart_plugin: ^3.3.0
   flutter_test:
     sdk: flutter
   
@@ -131,3 +133,9 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+sentry:
+  upload_debug_symbols: true
+  upload_source_maps: true
+  project: sacdia-app
+  org: sacdia-6g

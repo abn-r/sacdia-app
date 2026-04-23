@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "Sentry": {
+      "url": "https://mcp.sentry.dev/mcp/sacdia-6g/sacdia-app"
+    }
+  }
+}
