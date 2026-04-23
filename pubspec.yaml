@@ -22,6 +22,7 @@ dependencies:
   flutter_svg: ^2.2.0
   hugeicons: ^1.1.5
   loading_animation_widget: ^1.3.0
+  qr_flutter: ^4.1.0
   
   # Gestión de estado
   flutter_riverpod: ^2.6.1

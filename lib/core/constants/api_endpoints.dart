@@ -97,4 +97,7 @@ class ApiEndpoints {
 
   // ── Admin Analytics ───────────────────────────────────────────────────────
   static const String adminAnalytics = '/admin/analytics';
+
+  // ── QR ────────────────────────────────────────────────────────────────────
+  static const String qr = '/qr';
 }

@@ -16,6 +16,7 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../auth/presentation/providers/logout_cleanup.dart';
 import '../providers/notification_preferences_providers.dart';
 import '../widgets/setting_tile.dart';
+import '../../../qr/presentation/views/member_qr_view.dart';
 import 'active_sessions_view.dart';
 import 'data_export_view.dart';
 import 'edit_profile_view.dart';
@@ -628,6 +629,18 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           _SectionHeader(title: 'CUENTA'),
           _GroupContainer(
             children: [
+              SettingTile(
+                icon: HugeIcons.strokeRoundedQrCode,
+                title: 'Mi credencial QR',
+                iconColor: AppColors.primary,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const MemberQrView(),
+                  ),
+                ),
+              ),
+              _groupDivider(),
               SettingTile(
                 icon: HugeIcons.strokeRoundedDeviceAccess,
                 title: 'Sesiones activas',
