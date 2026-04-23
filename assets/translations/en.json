@@ -155,6 +155,22 @@
       "other": "Other"
     }
   },
+  "biometric": {
+    "tile_title": "Biometric unlock",
+    "enable_toggle": "Enable biometrics",
+    "enroll_reason": "Confirm your identity to enable biometric unlock",
+    "unlock_reason": "Authenticate to access SACDIA",
+    "unlock_title": "Unlock SACDIA",
+    "unlock_subtitle": "Use your biometrics to continue",
+    "authenticate_cta": "Authenticate",
+    "fallback_password": "Sign in with password",
+    "device_not_supported": "Your device does not support biometrics",
+    "no_biometric_enrolled": "No biometrics enrolled on this device",
+    "auth_failed": "We couldn't authenticate you",
+    "enabled_success": "Biometrics enabled",
+    "confirm_sensitive_action": "Confirm your identity to continue",
+    "confirm_delete_account": "Confirm your identity to delete your account"
+  },
   "errors": {
     "auth_failed": "Authentication error",
     "invalid_response": "Invalid server response",

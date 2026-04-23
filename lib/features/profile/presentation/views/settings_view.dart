@@ -21,6 +21,7 @@ import '../widgets/setting_tile.dart';
 import '../../../qr/presentation/views/member_qr_view.dart';
 import '../../../qr/presentation/views/qr_scanner_view.dart';
 import '../../../accessibility/presentation/widgets/accessibility_settings_section.dart';
+import '../../../biometric/presentation/widgets/biometric_settings_section.dart';
 import '../../../settings/presentation/widgets/language_picker_tile.dart';
 import '../../../settings/presentation/widgets/sync_cache_section.dart';
 import '../../../support/presentation/widgets/support_settings_section.dart';
@@ -702,6 +703,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 iconColor: AppColors.primary,
                 onTap: _showChangePasswordDialog,
               ),
+              _groupDivider(),
+              const BiometricSettingsSection(),
               _groupDivider(),
               const LanguagePickerTile(),
             ],

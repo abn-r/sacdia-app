@@ -6,6 +6,8 @@
     <!-- Permiso requerido por mobile_scanner (QR scanner de credenciales) -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <!-- Permiso requerido por local_auth (desbloqueo biométrico opt-in) -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
     <application
         android:label="sacdia_app"

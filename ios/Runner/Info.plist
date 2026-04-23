@@ -25,6 +25,9 @@
 	<!-- Permisos de ubicación requeridos por google_maps_flutter y geocoding -->
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>SACDIA necesita acceso a tu ubicacion para mostrar el mapa y seleccionar el lugar de la actividad.</string>
+	<!-- Biometric authentication (local_auth) — Face ID usage prompt -->
+	<key>NSFaceIDUsageDescription</key>
+	<string>SACDIA usa Face ID para proteger tu cuenta</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

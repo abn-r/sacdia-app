@@ -155,6 +155,22 @@
       "other": "Otro"
     }
   },
+  "biometric": {
+    "tile_title": "Desbloqueo biométrico",
+    "enable_toggle": "Habilitar biometría",
+    "enroll_reason": "Confirma tu identidad para activar el desbloqueo biométrico",
+    "unlock_reason": "Autenticate para acceder a SACDIA",
+    "unlock_title": "Desbloquear SACDIA",
+    "unlock_subtitle": "Usa tu biometría para continuar",
+    "authenticate_cta": "Autenticar",
+    "fallback_password": "Iniciar sesión con contraseña",
+    "device_not_supported": "Tu dispositivo no soporta biometría",
+    "no_biometric_enrolled": "No hay biometría configurada en el dispositivo",
+    "auth_failed": "No pudimos autenticarte",
+    "enabled_success": "Biometría habilitada",
+    "confirm_sensitive_action": "Confirma tu identidad para continuar",
+    "confirm_delete_account": "Confirma tu identidad para borrar tu cuenta"
+  },
   "errors": {
     "auth_failed": "Error de autenticación",
     "invalid_response": "Respuesta del servidor inválida",

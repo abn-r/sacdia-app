@@ -17,6 +17,7 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/utils/app_logger.dart';
 import 'features/accessibility/presentation/providers/accessibility_provider.dart';
+import 'features/biometric/presentation/widgets/biometric_gate.dart';
 import 'firebase_options.dart';
 import 'providers/storage_provider.dart';
 
@@ -310,6 +311,13 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
             locale: context.locale,
             localizationsDelegates: context.localizationDelegates,
             supportedLocales: context.supportedLocales,
+            // BiometricGate envuelve el árbol del router para que la pantalla
+            // de AppLock se renderee por encima de TODAS las rutas cuando
+            // biometría está habilitada y la sesión no ha sido desbloqueada
+            // en este cold start. Si está deshabilitada, es un passthrough.
+            builder: (context, child) => BiometricGate(
+              child: child ?? const SizedBox.shrink(),
+            ),
           ),
         ),
       ),

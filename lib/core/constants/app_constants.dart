@@ -58,6 +58,11 @@ class AppConstants {
   static const String cachedActiveClubName = 'cached_active_club_name';
   static const String cachedActiveClubType = 'cached_active_club_type';
 
+  // Biometric auth (SharedPreferences)
+  // MVP: opt-in only, boolean flag + ISO-8601 enrolledAt; no biometric data stored.
+  static const String biometricEnabledKey = 'biometric_enabled';
+  static const String biometricEnrolledAtKey = 'biometric_enrolled_at';
+
   // Dimensiones
   static const double paddingXS = 4.0;
   static const double paddingS = 8.0;
