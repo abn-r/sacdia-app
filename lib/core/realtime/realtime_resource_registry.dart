@@ -39,6 +39,7 @@ class RealtimeResourceRegistry {
 
   static final Map<String, InvalidationCallback> _handlers = {
     'activities': _invalidateActivities,
+    'members': _invalidateMembers,
   };
 
   // ── Public API ─────────────────────────────────────────────────────────────
@@ -108,6 +109,43 @@ class RealtimeResourceRegistry {
 
     debugPrint(
       '[RealtimeRegistry] activities: invalidated clubActivitiesProvider '
+      'for clubId=${ctx.clubId} (section=$sectionId)',
+    );
+  }
+
+  /// Invalidates [membersNotifierProvider] for the active club when the
+  /// incoming [sectionId] matches the user's current club context.
+  ///
+  /// The bridge: FCM sends section_id. We read [clubContextProvider] to get
+  /// the active [ClubContext], which exposes both [clubId] and [sectionId].
+  /// If [sectionId] matches, we invalidate [membersNotifierProvider] — it has
+  /// no family key because it resolves its own context via [clubContextProvider]
+  /// inside its build method.
+  static void _invalidateMembers(RealtimeRef ref, int sectionId) {
+    final ctxAsync = ref.read(clubContextProvider);
+
+    // Use .valueOrNull — safe even when the provider is in loading/error state.
+    final ctx = ctxAsync.valueOrNull;
+
+    if (ctx == null) {
+      debugPrint(
+        '[RealtimeRegistry] members: no active club context, skipping',
+      );
+      return;
+    }
+
+    if (ctx.sectionId != sectionId) {
+      debugPrint(
+        '[RealtimeRegistry] members: section $sectionId does not match '
+        'active section ${ctx.sectionId} — skipping invalidation',
+      );
+      return;
+    }
+
+    ref.invalidate(membersNotifierProvider);
+
+    debugPrint(
+      '[RealtimeRegistry] members: invalidated membersNotifierProvider '
       'for clubId=${ctx.clubId} (section=$sectionId)',
     );
   }
