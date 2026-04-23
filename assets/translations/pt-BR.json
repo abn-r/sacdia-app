@@ -27,11 +27,15 @@
   },
   "settings": {
     "title": "Configurações",
-    "section_account": "Conta",
-    "section_about": "Sobre",
+    "section_appearance": "APARÊNCIA",
+    "section_notifications": "NOTIFICAÇÕES",
+    "section_account": "CONTA",
+    "section_about": "SOBRE",
     "language_picker_title": "Idioma",
     "logout": "Sair",
     "change_password": "Alterar senha",
+    "active_sessions": "Sessões ativas",
+    "download_my_data": "Baixar meus dados",
     "member_qr": "Minha credencial QR",
     "scan_qr": "Escanear credencial"
   },
@@ -63,6 +67,10 @@
     "scan_another": "Escanear outro",
     "scan_success_registered": "Presença registrada",
     "scan_success_already_present": "Já estava marcado como presente",
-    "scan_error_title": "Não foi possível validar o QR"
+    "scan_error_title": "Não foi possível validar o QR",
+    "torch_tooltip": "Lanterna",
+    "switch_camera_tooltip": "Alternar câmera",
+    "generation_error_title": "Não foi possível gerar o QR",
+    "idle_hint": "É rotacionado ao tocar no botão"
   }
 }

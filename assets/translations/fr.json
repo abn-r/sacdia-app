@@ -27,11 +27,15 @@
   },
   "settings": {
     "title": "Paramètres",
-    "section_account": "Compte",
-    "section_about": "À propos",
+    "section_appearance": "APPARENCE",
+    "section_notifications": "NOTIFICATIONS",
+    "section_account": "COMPTE",
+    "section_about": "À PROPOS",
     "language_picker_title": "Langue",
     "logout": "Se déconnecter",
     "change_password": "Changer le mot de passe",
+    "active_sessions": "Sessions actives",
+    "download_my_data": "Télécharger mes données",
     "member_qr": "Ma carte QR",
     "scan_qr": "Scanner une carte"
   },
@@ -63,6 +67,10 @@
     "scan_another": "Scanner un autre",
     "scan_success_registered": "Présence enregistrée",
     "scan_success_already_present": "Déjà marqué comme présent",
-    "scan_error_title": "Impossible de valider le QR"
+    "scan_error_title": "Impossible de valider le QR",
+    "torch_tooltip": "Torche",
+    "switch_camera_tooltip": "Changer de caméra",
+    "generation_error_title": "Impossible de générer le QR",
+    "idle_hint": "Il est renouvelé lorsque vous appuyez sur le bouton"
   }
 }

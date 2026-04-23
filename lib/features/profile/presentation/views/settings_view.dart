@@ -12,6 +12,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../auth/domain/entities/user_entity.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../auth/presentation/providers/logout_cleanup.dart';
@@ -525,7 +526,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     return Scaffold(
       backgroundColor: c.surfaceVariant,
       appBar: AppBar(
-        title: const Text('Configuración'),
+        title: Text('settings.title'.tr()),
         backgroundColor: c.surfaceVariant,
         foregroundColor: c.text,
         elevation: 0,
@@ -541,7 +542,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           ],
 
           // ── APARIENCIA ────────────────────────────────────────────
-          _SectionHeader(title: 'APARIENCIA'),
+          _SectionHeader(title: 'settings.section_appearance'.tr()),
           _GroupContainer(
             children: [
               SettingTile(
@@ -556,7 +557,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           const SizedBox(height: 24),
 
           // ── NOTIFICACIONES ────────────────────────────────────────
-          _SectionHeader(title: 'NOTIFICACIONES'),
+          _SectionHeader(title: 'settings.section_notifications'.tr()),
           _GroupContainer(
             children: [
               _SwitchTile(
@@ -629,12 +630,12 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           const SizedBox(height: 24),
 
           // ── CUENTA ────────────────────────────────────────────────
-          _SectionHeader(title: 'CUENTA'),
+          _SectionHeader(title: 'settings.section_account'.tr()),
           _GroupContainer(
             children: [
               SettingTile(
                 icon: HugeIcons.strokeRoundedQrCode,
-                title: 'Mi credencial QR',
+                title: 'settings.member_qr'.tr(),
                 iconColor: AppColors.primary,
                 onTap: () => Navigator.push(
                   context,
@@ -647,7 +648,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 _groupDivider(),
                 SettingTile(
                   icon: HugeIcons.strokeRoundedQrCode01,
-                  title: 'Escanear credencial',
+                  title: 'settings.scan_qr'.tr(),
                   iconColor: AppColors.primary,
                   onTap: () => Navigator.push(
                     context,
@@ -660,7 +661,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               _groupDivider(),
               SettingTile(
                 icon: HugeIcons.strokeRoundedDeviceAccess,
-                title: 'Sesiones activas',
+                title: 'settings.active_sessions'.tr(),
                 iconColor: AppColors.primary,
                 onTap: () => Navigator.push(
                   context,
@@ -672,7 +673,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               _groupDivider(),
               SettingTile(
                 icon: HugeIcons.strokeRoundedDownload02,
-                title: 'Descargar mis datos',
+                title: 'settings.download_my_data'.tr(),
                 iconColor: AppColors.primary,
                 onTap: () => Navigator.push(
                   context,
@@ -684,7 +685,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               _groupDivider(),
               SettingTile(
                 icon: HugeIcons.strokeRoundedLockPassword,
-                title: 'Cambiar contraseña',
+                title: 'settings.change_password'.tr(),
                 iconColor: AppColors.primary,
                 onTap: _showChangePasswordDialog,
               ),
@@ -695,7 +696,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           const SizedBox(height: 24),
 
           // ── ACERCA DE ─────────────────────────────────────────────
-          _SectionHeader(title: 'ACERCA DE'),
+          _SectionHeader(title: 'settings.section_about'.tr()),
           _GroupContainer(
             children: [
               SettingTile(

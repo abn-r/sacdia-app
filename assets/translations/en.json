@@ -27,11 +27,15 @@
   },
   "settings": {
     "title": "Settings",
-    "section_account": "Account",
-    "section_about": "About",
+    "section_appearance": "APPEARANCE",
+    "section_notifications": "NOTIFICATIONS",
+    "section_account": "ACCOUNT",
+    "section_about": "ABOUT",
     "language_picker_title": "Language",
     "logout": "Sign out",
     "change_password": "Change password",
+    "active_sessions": "Active sessions",
+    "download_my_data": "Download my data",
     "member_qr": "My QR credential",
     "scan_qr": "Scan credential"
   },
@@ -63,6 +67,10 @@
     "scan_another": "Scan another",
     "scan_success_registered": "Attendance registered",
     "scan_success_already_present": "Already marked as attending",
-    "scan_error_title": "Could not validate QR"
+    "scan_error_title": "Could not validate QR",
+    "torch_tooltip": "Torch",
+    "switch_camera_tooltip": "Switch camera",
+    "generation_error_title": "Could not generate QR",
+    "idle_hint": "Rotates when you tap the button"
   }
 }

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../widgets/member_qr_card.dart';
@@ -9,7 +10,7 @@ class MemberQrView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mi credencial QR'),
+        title: Text('qr.my_credential'.tr()),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -42,16 +43,16 @@ class _InstructionsCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Como funciona',
+              'qr.how_it_works'.tr(),
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              '• El token se rota cada 24 h; guardalo activo solo el tiempo que lo necesites.\n'
-              '• Cualquier director o coordinador puede escanearlo para registrar asistencia.\n'
-              '• No compartas tu QR con personas externas a tu club.',
+              '• ${'qr.usage_tip_1'.tr()}\n'
+              '• ${'qr.usage_tip_2'.tr()}\n'
+              '• ${'qr.usage_tip_3'.tr()}',
               style: theme.textTheme.bodySmall,
             ),
           ],

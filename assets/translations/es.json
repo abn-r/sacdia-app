@@ -26,12 +26,16 @@
     "settings": "Ajustes"
   },
   "settings": {
-    "title": "Ajustes",
-    "section_account": "Cuenta",
-    "section_about": "Acerca de",
+    "title": "Configuración",
+    "section_appearance": "APARIENCIA",
+    "section_notifications": "NOTIFICACIONES",
+    "section_account": "CUENTA",
+    "section_about": "ACERCA DE",
     "language_picker_title": "Idioma",
     "logout": "Cerrar sesión",
     "change_password": "Cambiar contraseña",
+    "active_sessions": "Sesiones activas",
+    "download_my_data": "Descargar mis datos",
     "member_qr": "Mi credencial QR",
     "scan_qr": "Escanear credencial"
   },
@@ -63,6 +67,10 @@
     "scan_another": "Escanear otro",
     "scan_success_registered": "Asistencia registrada",
     "scan_success_already_present": "Ya estaba marcado como asistente",
-    "scan_error_title": "No se pudo validar el QR"
+    "scan_error_title": "No se pudo validar el QR",
+    "torch_tooltip": "Linterna",
+    "switch_camera_tooltip": "Cambiar cámara",
+    "generation_error_title": "No se pudo generar el QR",
+    "idle_hint": "Se rota al tocar el botón"
   }
 }

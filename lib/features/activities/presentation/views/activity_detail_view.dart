@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:easy_localization/easy_localization.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../qr/presentation/views/qr_scanner_view.dart';
@@ -468,7 +468,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                   color: Colors.white,
                   size: 22,
                 ),
-                label: const Text('Asistencia QR'),
+                label: Text('qr.scan_attendance_title'.tr()),
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
               )

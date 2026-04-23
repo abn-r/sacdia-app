@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -69,12 +70,12 @@ class _QrScannerViewState extends ConsumerState<QrScannerView> {
       appBar: AppBar(
         title: Text(
           widget.activityId != null
-              ? 'Asistencia por QR'
-              : 'Escanear credencial',
+              ? 'qr.scan_attendance_title'.tr()
+              : 'qr.scan_title'.tr(),
         ),
         actions: [
           IconButton(
-            tooltip: 'Linterna',
+            tooltip: 'qr.torch_tooltip'.tr(),
             onPressed: () => _controller.toggleTorch(),
             icon: const HugeIcon(
               icon: HugeIcons.strokeRoundedFlash,
@@ -83,7 +84,7 @@ class _QrScannerViewState extends ConsumerState<QrScannerView> {
             ),
           ),
           IconButton(
-            tooltip: 'Cambiar camara',
+            tooltip: 'qr.switch_camera_tooltip'.tr(),
             onPressed: () => _controller.switchCamera(),
             icon: const HugeIcon(
               icon: HugeIcons.strokeRoundedCameraRotated02,
@@ -117,8 +118,8 @@ class _HintCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = activityId != null
-        ? 'Apunta la camara al QR del miembro para registrar asistencia'
-        : 'Apunta la camara al QR del miembro';
+        ? 'qr.scan_hint_attendance'.tr()
+        : 'qr.scan_hint_lookup'.tr();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -205,8 +206,8 @@ class _SuccessBody extends StatelessWidget {
     String? attendanceLabel;
     if (attendance != null) {
       attendanceLabel = attendance.alreadyPresent
-          ? 'Ya estaba marcado como asistente'
-          : 'Asistencia registrada';
+          ? 'qr.scan_success_already_present'.tr()
+          : 'qr.scan_success_registered'.tr();
     }
 
     return Column(
@@ -268,7 +269,7 @@ class _SuccessBody extends StatelessWidget {
         const SizedBox(height: 20),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Escanear otro'),
+          child: Text('qr.scan_another'.tr()),
         ),
       ],
     );
@@ -291,7 +292,7 @@ class _ErrorBody extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          'No se pudo validar el QR',
+          'qr.scan_error_title'.tr(),
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -307,7 +308,7 @@ class _ErrorBody extends StatelessWidget {
         const SizedBox(height: 20),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Reintentar'),
+          child: Text('common.retry'.tr()),
         ),
       ],
     );
