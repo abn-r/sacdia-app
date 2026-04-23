@@ -12,11 +12,13 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../auth/domain/entities/user_entity.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../auth/presentation/providers/logout_cleanup.dart';
 import '../providers/notification_preferences_providers.dart';
 import '../widgets/setting_tile.dart';
 import '../../../qr/presentation/views/member_qr_view.dart';
+import '../../../qr/presentation/views/qr_scanner_view.dart';
 import 'active_sessions_view.dart';
 import 'data_export_view.dart';
 import 'edit_profile_view.dart';
@@ -640,6 +642,20 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   ),
                 ),
               ),
+              if (hasAnyPermission(user, const {'attendance:manage'})) ...[
+                _groupDivider(),
+                SettingTile(
+                  icon: HugeIcons.strokeRoundedQrCode01,
+                  title: 'Escanear credencial',
+                  iconColor: AppColors.primary,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const QrScannerView(),
+                    ),
+                  ),
+                ),
+              ],
               _groupDivider(),
               SettingTile(
                 icon: HugeIcons.strokeRoundedDeviceAccess,
