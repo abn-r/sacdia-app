@@ -72,5 +72,20 @@
     "switch_camera_tooltip": "Switch camera",
     "generation_error_title": "Could not generate QR",
     "idle_hint": "Rotates when you tap the button"
+  },
+  "errors": {
+    "auth_failed": "Authentication error",
+    "invalid_response": "Invalid server response",
+    "missing_token": "Authentication token was not received",
+    "missing_user_id": "User ID was not received",
+    "no_active_session": "No active session",
+    "refresh_user_failed": "Could not fetch the updated user",
+    "google_browser_open": "Could not open the browser for Google authentication",
+    "google_signin_failed": "Error signing in with Google. Please try again.",
+    "apple_browser_open": "Could not open the browser for Apple authentication",
+    "apple_signin_failed": "Error signing in with Apple. Please try again.",
+    "oauth_url_missing": "The server did not return an OAuth URL for {provider}",
+    "too_many_attempts": "Too many attempts. Please try again later.",
+    "unexpected": "Unexpected error: {details}"
   }
 }

@@ -72,5 +72,20 @@
     "switch_camera_tooltip": "Changer de caméra",
     "generation_error_title": "Impossible de générer le QR",
     "idle_hint": "Il est renouvelé lorsque vous appuyez sur le bouton"
+  },
+  "errors": {
+    "auth_failed": "Erreur d'authentification",
+    "invalid_response": "Réponse du serveur invalide",
+    "missing_token": "Jeton d'authentification non reçu",
+    "missing_user_id": "Identifiant d'utilisateur non reçu",
+    "no_active_session": "Aucune session active",
+    "refresh_user_failed": "Impossible de récupérer l'utilisateur mis à jour",
+    "google_browser_open": "Impossible d'ouvrir le navigateur pour l'authentification Google",
+    "google_signin_failed": "Erreur lors de la connexion avec Google. Réessayez.",
+    "apple_browser_open": "Impossible d'ouvrir le navigateur pour l'authentification Apple",
+    "apple_signin_failed": "Erreur lors de la connexion avec Apple. Réessayez.",
+    "oauth_url_missing": "Le serveur n'a pas renvoyé d'URL OAuth pour {provider}",
+    "too_many_attempts": "Trop de tentatives. Réessayez plus tard.",
+    "unexpected": "Erreur inattendue : {details}"
   }
 }
