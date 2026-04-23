@@ -6,6 +6,39 @@ import 'package:sacdia_app/core/utils/responsive.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 
+/// Placeholder de iniciales cuando la foto 404 o no existe.
+class _AvatarInitials extends StatelessWidget {
+  final String name;
+  final double fontSize;
+
+  const _AvatarInitials({required this.name, required this.fontSize});
+
+  String _initials() {
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name.isNotEmpty ? name[0].toUpperCase() : 'U';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      color: theme.colorScheme.primaryContainer,
+      alignment: Alignment.center,
+      child: Text(
+        _initials(),
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.w600,
+          color: theme.colorScheme.onPrimaryContainer,
+        ),
+      ),
+    );
+  }
+}
+
 /// Header del perfil con estilo Apple (iOS-inspired):
 /// - Sin gradiente, fondo blanco limpio
 /// - Avatar con borde rojo de marca y fondo neutro
@@ -49,22 +82,30 @@ class ProfileHeader extends StatelessWidget {
                     width: 2.5,
                   ),
                 ),
-                child: CircleAvatar(
-                  radius: avatarRadius,
-                  // Fondo muy sutil cuando no hay foto
-                  backgroundColor: AppColors.primarySurface,
-                  backgroundImage:
-                      avatar != null ? CachedNetworkImageProvider(avatar!) : null,
-                  child: avatar == null
-                      ? Text(
-                          name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                          style: TextStyle(
+                child: ClipOval(
+                  child: SizedBox(
+                    width: avatarRadius * 2,
+                    height: avatarRadius * 2,
+                    child: avatar != null
+                        ? CachedNetworkImage(
+                            imageUrl: avatar!,
+                            fit: BoxFit.cover,
+                            memCacheWidth: 176,
+                            memCacheHeight: 176,
+                            placeholder: (_, __) => _AvatarInitials(
+                              name: name,
+                              fontSize: fallbackFontSize,
+                            ),
+                            errorWidget: (_, __, ___) => _AvatarInitials(
+                              name: name,
+                              fontSize: fallbackFontSize,
+                            ),
+                          )
+                        : _AvatarInitials(
+                            name: name,
                             fontSize: fallbackFontSize,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
                           ),
-                        )
-                      : null,
+                  ),
                 ),
               ),
               // Botón editar foto — pequeño, minimalista

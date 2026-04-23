@@ -323,23 +323,21 @@ class _WinnerAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (member.photoUrl != null && member.photoUrl!.isNotEmpty) {
-      return CircleAvatar(
-        radius: 24,
-        backgroundImage: CachedNetworkImageProvider(member.photoUrl!),
-      );
-    }
     final initials = _initials(member.name);
-    return CircleAvatar(
-      radius: 24,
-      backgroundColor: const Color(0xFFD4A017).withValues(alpha: 0.2),
-      child: Text(
-        initials,
-        style: const TextStyle(
-          color: Color(0xFFB8860B),
-          fontWeight: FontWeight.w700,
-          fontSize: 14,
-        ),
+    return ClipOval(
+      child: SizedBox(
+        width: 48,
+        height: 48,
+        child: (member.photoUrl != null && member.photoUrl!.isNotEmpty)
+            ? CachedNetworkImage(
+                imageUrl: member.photoUrl!,
+                fit: BoxFit.cover,
+                memCacheWidth: 96,
+                memCacheHeight: 96,
+                placeholder: (_, __) => _MomInitials(initials: initials),
+                errorWidget: (_, __, ___) => _MomInitials(initials: initials),
+              )
+            : _MomInitials(initials: initials),
       ),
     );
   }
@@ -350,5 +348,28 @@ class _WinnerAvatar extends StatelessWidget {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     }
     return name.isNotEmpty ? name[0].toUpperCase() : '?';
+  }
+}
+
+/// Fallback de iniciales con colores de "Miembro del Mes".
+class _MomInitials extends StatelessWidget {
+  final String initials;
+
+  const _MomInitials({required this.initials});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFFD4A017).withValues(alpha: 0.2),
+      alignment: Alignment.center,
+      child: Text(
+        initials,
+        style: const TextStyle(
+          color: Color(0xFFB8860B),
+          fontWeight: FontWeight.w700,
+          fontSize: 14,
+        ),
+      ),
+    );
   }
 }

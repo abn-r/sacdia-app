@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -243,7 +244,7 @@ class _MemberHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Avatar
-          _buildAvatar(),
+          _buildAvatar(context),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -324,13 +325,7 @@ class _MemberHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatar() {
-    if (item.memberPhotoUrl != null && item.memberPhotoUrl!.isNotEmpty) {
-      return CircleAvatar(
-        radius: 24,
-        backgroundImage: NetworkImage(item.memberPhotoUrl!),
-      );
-    }
+  Widget _buildAvatar(BuildContext context) {
     final initials = item.memberName.isNotEmpty
         ? item.memberName
             .trim()
@@ -339,16 +334,33 @@ class _MemberHeader extends StatelessWidget {
             .map((w) => w[0].toUpperCase())
             .join()
         : '?';
-    return CircleAvatar(
-      radius: 24,
-      backgroundColor: AppColors.primaryLight,
+    final theme = Theme.of(context);
+    final fallback = Container(
+      color: theme.colorScheme.primaryContainer,
+      alignment: Alignment.center,
       child: Text(
         initials,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 15,
-          fontWeight: FontWeight.w700,
-          color: AppColors.primary,
+          fontWeight: FontWeight.w600,
+          color: theme.colorScheme.onPrimaryContainer,
         ),
+      ),
+    );
+    return ClipOval(
+      child: SizedBox(
+        width: 48,
+        height: 48,
+        child: (item.memberPhotoUrl != null && item.memberPhotoUrl!.isNotEmpty)
+            ? CachedNetworkImage(
+                imageUrl: item.memberPhotoUrl!,
+                fit: BoxFit.cover,
+                memCacheWidth: 96,
+                memCacheHeight: 96,
+                placeholder: (_, __) => fallback,
+                errorWidget: (_, __, ___) => fallback,
+              )
+            : fallback,
       ),
     );
   }

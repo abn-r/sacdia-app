@@ -93,21 +93,27 @@ class WelcomeHeader extends StatelessWidget {
                   width: 2,
                 ),
               ),
-              child: ClipOval(
-                child: userAvatar != null && userAvatar!.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: userAvatar!,
-                        fit: BoxFit.cover,
-                        memCacheWidth: 132,
-                        memCacheHeight: 132,
-                        placeholder: (_, __) => _AvatarFallback(
-                          initial: firstName,
-                        ),
-                        errorWidget: (_, __, ___) => _AvatarFallback(
-                          initial: firstName,
-                        ),
-                      )
-                    : _AvatarFallback(initial: firstName),
+              // RepaintBoundary isolates this subtree so Impeller can composite
+              // opacity without triggering the SetInheritedOpacity validation
+              // warning that arises when ClipOval is inside a FadeTransition
+              // from StaggeredListItem.
+              child: RepaintBoundary(
+                child: ClipOval(
+                  child: userAvatar != null && userAvatar!.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: userAvatar!,
+                          fit: BoxFit.cover,
+                          memCacheWidth: 132,
+                          memCacheHeight: 132,
+                          placeholder: (_, __) => _AvatarFallback(
+                            initial: firstName,
+                          ),
+                          errorWidget: (_, __, ___) => _AvatarFallback(
+                            initial: firstName,
+                          ),
+                        )
+                      : _AvatarFallback(initial: firstName),
+                ),
               ),
             ),
           ),

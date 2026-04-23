@@ -457,24 +457,21 @@ class _SingleAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (member.photoUrl != null && member.photoUrl!.isNotEmpty) {
-      return CircleAvatar(
-        radius: 28,
-        backgroundImage: CachedNetworkImageProvider(member.photoUrl!),
-      );
-    }
-    // Iniciales
     final initials = _initials(member.name);
-    return CircleAvatar(
-      radius: 28,
-      backgroundColor: const Color(0xFFD4A017).withValues(alpha: 0.2),
-      child: Text(
-        initials,
-        style: const TextStyle(
-          color: Color(0xFFB8860B),
-          fontWeight: FontWeight.w700,
-          fontSize: 16,
-        ),
+    return ClipOval(
+      child: SizedBox(
+        width: 56,
+        height: 56,
+        child: (member.photoUrl != null && member.photoUrl!.isNotEmpty)
+            ? CachedNetworkImage(
+                imageUrl: member.photoUrl!,
+                fit: BoxFit.cover,
+                memCacheWidth: 112,
+                memCacheHeight: 112,
+                placeholder: (_, __) => _MomInitials(initials: initials),
+                errorWidget: (_, __, ___) => _MomInitials(initials: initials),
+              )
+            : _MomInitials(initials: initials),
       ),
     );
   }
@@ -507,25 +504,26 @@ class _TieAvatarStack extends StatelessWidget {
       child: Stack(
         children: List.generate(visible.length, (i) {
           final member = visible[i];
+          final initials = _initials(member.name);
           return Positioned(
             left: i * overlap,
-            child: CircleAvatar(
-              radius: _size / 2,
-              backgroundColor: const Color(0xFFD4A017).withValues(alpha: 0.25),
-              backgroundImage: (member.photoUrl != null &&
-                      member.photoUrl!.isNotEmpty)
-                  ? CachedNetworkImageProvider(member.photoUrl!)
-                  : null,
-              child: (member.photoUrl == null || member.photoUrl!.isEmpty)
-                  ? Text(
-                      _initials(member.name),
-                      style: const TextStyle(
-                        color: Color(0xFFB8860B),
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
-                      ),
-                    )
-                  : null,
+            child: ClipOval(
+              child: SizedBox(
+                width: _size,
+                height: _size,
+                child: (member.photoUrl != null && member.photoUrl!.isNotEmpty)
+                    ? CachedNetworkImage(
+                        imageUrl: member.photoUrl!,
+                        fit: BoxFit.cover,
+                        memCacheWidth: 80,
+                        memCacheHeight: 80,
+                        placeholder: (_, __) =>
+                            _MomInitials(initials: initials, fontSize: 12),
+                        errorWidget: (_, __, ___) =>
+                            _MomInitials(initials: initials, fontSize: 12),
+                      )
+                    : _MomInitials(initials: initials, fontSize: 12),
+              ),
             ),
           );
         }),
@@ -539,6 +537,30 @@ class _TieAvatarStack extends StatelessWidget {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     }
     return name.isNotEmpty ? name[0].toUpperCase() : '?';
+  }
+}
+
+/// Fallback de iniciales con colores de "Miembro del Mes".
+class _MomInitials extends StatelessWidget {
+  final String initials;
+  final double fontSize;
+
+  const _MomInitials({required this.initials, this.fontSize = 16});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFFD4A017).withValues(alpha: 0.2),
+      alignment: Alignment.center,
+      child: Text(
+        initials,
+        style: TextStyle(
+          color: const Color(0xFFB8860B),
+          fontWeight: FontWeight.w700,
+          fontSize: fontSize,
+        ),
+      ),
+    );
   }
 }
 

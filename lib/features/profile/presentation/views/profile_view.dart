@@ -990,24 +990,32 @@ class _ProfileHeaderCard extends StatelessWidget {
                             child: Stack(
                               alignment: Alignment.center,
                               children: [
-                                CircleAvatar(
-                                  radius: avatarRadius,
-                                  backgroundColor: AppColors.primarySurface,
-                                  backgroundImage: avatar != null
-                                      ? CachedNetworkImageProvider(avatar!)
-                                      : null,
-                                  child: avatar == null
-                                      ? Text(
-                                          name.isNotEmpty
-                                              ? name[0].toUpperCase()
-                                              : 'U',
-                                          style: const TextStyle(
+                                ClipOval(
+                                  child: SizedBox(
+                                    width: avatarRadius * 2,
+                                    height: avatarRadius * 2,
+                                    child: avatar != null
+                                        ? CachedNetworkImage(
+                                            imageUrl: avatar!,
+                                            fit: BoxFit.cover,
+                                            memCacheWidth: 176,
+                                            memCacheHeight: 176,
+                                            placeholder: (_, __) =>
+                                                _AvatarInitials(
+                                              name: name,
+                                              fontSize: fallbackFontSize,
+                                            ),
+                                            errorWidget: (_, __, ___) =>
+                                                _AvatarInitials(
+                                              name: name,
+                                              fontSize: fallbackFontSize,
+                                            ),
+                                          )
+                                        : _AvatarInitials(
+                                            name: name,
                                             fontSize: fallbackFontSize,
-                                            fontWeight: FontWeight.w700,
-                                            color: AppColors.primary,
                                           ),
-                                        )
-                                      : null,
+                                  ),
                                 ),
                                 if (isUploadingPhoto)
                                   Container(
@@ -1142,6 +1150,40 @@ class _SectionLabel extends StatelessWidget {
         fontWeight: FontWeight.w600,
         color: context.sac.textTertiary,
         letterSpacing: 0.8,
+      ),
+    );
+  }
+}
+
+/// Placeholder de iniciales para cuando la imagen falla o no existe.
+/// Mostrado tanto en estado de error como cuando la URL es nula.
+class _AvatarInitials extends StatelessWidget {
+  final String name;
+  final double fontSize;
+
+  const _AvatarInitials({required this.name, required this.fontSize});
+
+  String _initials() {
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name.isNotEmpty ? name[0].toUpperCase() : 'U';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      color: theme.colorScheme.primaryContainer,
+      alignment: Alignment.center,
+      child: Text(
+        _initials(),
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.w600,
+          color: theme.colorScheme.onPrimaryContainer,
+        ),
       ),
     );
   }

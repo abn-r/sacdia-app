@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -402,25 +403,36 @@ class _Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (photoUrl != null && photoUrl!.isNotEmpty) {
-      return CircleAvatar(
-        radius: 20,
-        backgroundImage: NetworkImage(photoUrl!),
-      );
-    }
     final initials = name.isNotEmpty
         ? name.trim().split(' ').take(2).map((w) => w[0].toUpperCase()).join()
         : '?';
-    return CircleAvatar(
-      radius: 20,
-      backgroundColor: AppColors.primaryLight,
+    final theme = Theme.of(context);
+    final fallback = Container(
+      color: theme.colorScheme.primaryContainer,
+      alignment: Alignment.center,
       child: Text(
         initials,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: AppColors.primary,
+          fontWeight: FontWeight.w600,
+          color: theme.colorScheme.onPrimaryContainer,
         ),
+      ),
+    );
+    return ClipOval(
+      child: SizedBox(
+        width: 40,
+        height: 40,
+        child: (photoUrl != null && photoUrl!.isNotEmpty)
+            ? CachedNetworkImage(
+                imageUrl: photoUrl!,
+                fit: BoxFit.cover,
+                memCacheWidth: 80,
+                memCacheHeight: 80,
+                placeholder: (_, __) => fallback,
+                errorWidget: (_, __, ___) => fallback,
+              )
+            : fallback,
       ),
     );
   }

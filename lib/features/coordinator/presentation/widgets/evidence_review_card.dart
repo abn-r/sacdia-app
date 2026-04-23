@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
@@ -187,24 +188,38 @@ class _MemberAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (photoUrl != null && photoUrl!.isNotEmpty) {
-      return CircleAvatar(
-        radius: 22,
-        backgroundImage: NetworkImage(photoUrl!),
-      );
-    }
     final initials = name.isNotEmpty
         ? name.trim().split(' ').take(2).map((w) => w[0].toUpperCase()).join()
         : '?';
-    return CircleAvatar(
-      radius: 22,
-      backgroundColor: AppColors.primaryLight,
+    final theme = Theme.of(context);
+    return ClipOval(
+      child: SizedBox(
+        width: 44,
+        height: 44,
+        child: (photoUrl != null && photoUrl!.isNotEmpty)
+            ? CachedNetworkImage(
+                imageUrl: photoUrl!,
+                fit: BoxFit.cover,
+                memCacheWidth: 88,
+                memCacheHeight: 88,
+                placeholder: (_, __) => _initialsWidget(theme, initials),
+                errorWidget: (_, __, ___) => _initialsWidget(theme, initials),
+              )
+            : _initialsWidget(theme, initials),
+      ),
+    );
+  }
+
+  Widget _initialsWidget(ThemeData theme, String initials) {
+    return Container(
+      color: theme.colorScheme.primaryContainer,
+      alignment: Alignment.center,
       child: Text(
         initials,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 14,
-          fontWeight: FontWeight.w700,
-          color: AppColors.primary,
+          fontWeight: FontWeight.w600,
+          color: theme.colorScheme.onPrimaryContainer,
         ),
       ),
     );

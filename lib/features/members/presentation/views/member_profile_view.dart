@@ -17,7 +17,6 @@ import '../../domain/entities/club_member.dart';
 import '../providers/members_providers.dart';
 
 import '../../../classes/domain/entities/progressive_class.dart';
-import '../../../honors/domain/entities/user_honor.dart';
 
 /// Vista de perfil de miembro (solo lectura).
 ///
@@ -966,22 +965,30 @@ class _MemberProfileHeader extends StatelessWidget {
               ),
             ],
           ),
-          child: CircleAvatar(
-            radius: 44,
-            backgroundColor: AppColors.primarySurface,
-            backgroundImage: member.avatar != null
-                ? CachedNetworkImageProvider(member.avatar!)
-                : null,
-            child: member.avatar == null
-                ? Text(
-                    member.initials,
-                    style: const TextStyle(
+          child: ClipOval(
+            child: SizedBox(
+              width: 88,
+              height: 88,
+              child: member.avatar != null
+                  ? CachedNetworkImage(
+                      imageUrl: member.avatar!,
+                      fit: BoxFit.cover,
+                      memCacheWidth: 176,
+                      memCacheHeight: 176,
+                      placeholder: (_, __) => _AvatarInitials(
+                        initials: member.initials,
+                        fontSize: 28,
+                      ),
+                      errorWidget: (_, __, ___) => _AvatarInitials(
+                        initials: member.initials,
+                        fontSize: 28,
+                      ),
+                    )
+                  : _AvatarInitials(
+                      initials: member.initials,
                       fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
                     ),
-                  )
-                : null,
+            ),
           ),
         ),
         const SizedBox(width: 16),
@@ -1070,6 +1077,31 @@ class _ErrorState extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Iniciales de fallback cuando la foto 404 o no existe.
+class _AvatarInitials extends StatelessWidget {
+  final String initials;
+  final double fontSize;
+
+  const _AvatarInitials({required this.initials, required this.fontSize});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      color: theme.colorScheme.primaryContainer,
+      alignment: Alignment.center,
+      child: Text(
+        initials,
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.w600,
+          color: theme.colorScheme.onPrimaryContainer,
         ),
       ),
     );

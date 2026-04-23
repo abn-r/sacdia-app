@@ -482,22 +482,36 @@ class _MemberAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (member.avatar != null) {
-      return CircleAvatar(
-        radius: 22,
-        backgroundImage: CachedNetworkImageProvider(member.avatar!),
-      );
-    }
+    final theme = Theme.of(context);
+    return ClipOval(
+      child: SizedBox(
+        width: 44,
+        height: 44,
+        child: member.avatar != null
+            ? CachedNetworkImage(
+                imageUrl: member.avatar!,
+                fit: BoxFit.cover,
+                memCacheWidth: 88,
+                memCacheHeight: 88,
+                placeholder: (_, __) => _initialsWidget(theme, member.initials),
+                errorWidget: (_, __, ___) =>
+                    _initialsWidget(theme, member.initials),
+              )
+            : _initialsWidget(theme, member.initials),
+      ),
+    );
+  }
 
-    return CircleAvatar(
-      radius: 22,
-      backgroundColor: AppColors.primaryLight,
+  Widget _initialsWidget(ThemeData theme, String initials) {
+    return Container(
+      color: theme.colorScheme.primaryContainer,
+      alignment: Alignment.center,
       child: Text(
-        member.initials,
-        style: const TextStyle(
-          color: AppColors.primary,
-          fontWeight: FontWeight.w700,
+        initials,
+        style: TextStyle(
           fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: theme.colorScheme.onPrimaryContainer,
         ),
       ),
     );

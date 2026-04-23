@@ -163,21 +163,25 @@ class _MemberAvatar extends StatelessWidget {
           width: 2,
         ),
       ),
-      child: CircleAvatar(
-        radius: 24,
-        backgroundColor: AppColors.primarySurface,
-        backgroundImage:
-            member.avatar != null ? CachedNetworkImageProvider(member.avatar!) : null,
-        child: member.avatar == null
-            ? Text(
-                member.initials,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.primary,
-                ),
-              )
-            : null,
+      child: ClipOval(
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: member.avatar != null
+              ? CachedNetworkImage(
+                  imageUrl: member.avatar!,
+                  fit: BoxFit.cover,
+                  memCacheWidth: 96,
+                  memCacheHeight: 96,
+                  placeholder: (_, __) => _AvatarInitials(
+                    initials: member.initials,
+                  ),
+                  errorWidget: (_, __, ___) => _AvatarInitials(
+                    initials: member.initials,
+                  ),
+                )
+              : _AvatarInitials(initials: member.initials),
+        ),
       ),
     );
   }
@@ -224,6 +228,30 @@ class _AssignRoleButton extends StatelessWidget {
             color: AppColors.primary,
             size: 18,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Iniciales de fallback cuando la foto 404 o no existe.
+class _AvatarInitials extends StatelessWidget {
+  final String initials;
+
+  const _AvatarInitials({required this.initials});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      color: theme.colorScheme.primaryContainer,
+      alignment: Alignment.center,
+      child: Text(
+        initials,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: theme.colorScheme.onPrimaryContainer,
         ),
       ),
     );
