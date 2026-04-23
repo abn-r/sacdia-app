@@ -21,6 +21,7 @@ import '../widgets/setting_tile.dart';
 import '../../../qr/presentation/views/member_qr_view.dart';
 import '../../../qr/presentation/views/qr_scanner_view.dart';
 import '../../../settings/presentation/widgets/language_picker_tile.dart';
+import '../../../settings/presentation/widgets/sync_cache_section.dart';
 import '../../../support/presentation/widgets/support_settings_section.dart';
 import 'active_sessions_view.dart';
 import 'data_export_view.dart';
@@ -632,6 +633,10 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
           // ── AYUDA Y SOPORTE ───────────────────────────────────────
           const SupportSettingsSection(),
+          const SizedBox(height: 24),
+
+          // ── SINCRONIZACIÓN / CACHÉ ────────────────────────────────
+          const SyncCacheSection(),
           const SizedBox(height: 24),
 
           // ── CUENTA ────────────────────────────────────────────────
