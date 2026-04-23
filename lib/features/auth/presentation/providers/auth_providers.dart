@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failures.dart';
@@ -21,6 +22,7 @@ import '../../../../core/usecases/usecase.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/notifications/push_notification_provider.dart';
 import '../../../../providers/dio_provider.dart';
+import '../../../biometric/presentation/providers/biometric_provider.dart';
 import '../../../notifications/presentation/providers/unread_notifications_count_provider.dart';
 
 /// Provider para la URL base de la API
@@ -538,6 +540,17 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   /// Retorna null en éxito o un mensaje de error localizado.
   Future<String?> deleteAccount(String password) async {
     AppLogger.i('Iniciando eliminación de cuenta', tag: _tag);
+
+    // Confirmación biométrica antes de cualquier efecto destructivo
+    // (no-op si el usuario no tiene biometría habilitada).
+    final bioOk = await requireBiometricConfirmationRef(
+      ref,
+      reason: 'biometric.confirm_delete_account'.tr(),
+    );
+    if (!bioOk) {
+      AppLogger.w('Delete account cancelado por biometría', tag: _tag);
+      return 'Operación cancelada';
+    }
 
     // Desregistrar FCM antes de borrar la sesión (el interceptor aún puede
     // adjuntar el Bearer header porque los tokens aún existen).

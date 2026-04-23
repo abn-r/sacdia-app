@@ -21,6 +21,7 @@ import '../widgets/setting_tile.dart';
 import '../../../qr/presentation/views/member_qr_view.dart';
 import '../../../qr/presentation/views/qr_scanner_view.dart';
 import '../../../accessibility/presentation/widgets/accessibility_settings_section.dart';
+import '../../../biometric/presentation/providers/biometric_provider.dart';
 import '../../../biometric/presentation/widgets/biometric_settings_section.dart';
 import '../../../settings/presentation/widgets/language_picker_tile.dart';
 import '../../../settings/presentation/widgets/sync_cache_section.dart';
@@ -231,6 +232,35 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     );
 
     if (submitted != true || !mounted) return;
+
+    // Confirmación biométrica antes de cambiar la contraseña
+    // (no-op si el usuario no tiene biometría habilitada).
+    final bioOk = await requireBiometricConfirmation(
+      context,
+      ref,
+      reason: 'biometric.confirm_sensitive_action'.tr(),
+    );
+    if (!mounted) {
+      currentCtrl.dispose();
+      newCtrl.dispose();
+      confirmCtrl.dispose();
+      return;
+    }
+    if (!bioOk) {
+      currentCtrl.dispose();
+      newCtrl.dispose();
+      confirmCtrl.dispose();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Operación cancelada'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      return;
+    }
 
     final error = await ref
         .read(authNotifierProvider.notifier)

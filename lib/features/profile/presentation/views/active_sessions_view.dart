@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/utils/ip_masker.dart';
+import '../../../biometric/presentation/providers/biometric_provider.dart';
 import '../../domain/entities/active_session.dart';
 import '../providers/active_sessions_providers.dart';
 
@@ -133,6 +135,19 @@ class _ActiveSessionsViewState extends ConsumerState<ActiveSessionsView> {
     );
 
     if (confirmed != true || !mounted) return;
+
+    // Confirmación biométrica antes de revocar todas las otras sesiones
+    // (no-op si el usuario no tiene biometría habilitada).
+    final bioOk = await requireBiometricConfirmation(
+      context,
+      ref,
+      reason: 'biometric.confirm_sensitive_action'.tr(),
+    );
+    if (!mounted) return;
+    if (!bioOk) {
+      _showSnackBar('Operación cancelada', isError: true);
+      return;
+    }
 
     HapticFeedback.mediumImpact();
     setState(() => _revokingAll = true);

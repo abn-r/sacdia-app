@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/utils/icon_helper.dart';
+import '../../../biometric/presentation/providers/biometric_provider.dart';
 import '../../domain/entities/data_export.dart';
 import '../providers/data_export_providers.dart';
 
@@ -124,6 +126,20 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
 
   Future<void> _handleRequestExport() async {
     HapticFeedback.mediumImpact();
+
+    // Confirmación biométrica antes de solicitar la exportación
+    // (no-op si el usuario no tiene biometría habilitada).
+    final bioOk = await requireBiometricConfirmation(
+      context,
+      ref,
+      reason: 'biometric.confirm_sensitive_action'.tr(),
+    );
+    if (!mounted) return;
+    if (!bioOk) {
+      _showSnackBar('Operación cancelada', isError: true);
+      return;
+    }
+
     setState(() => _isRequesting = true);
 
     final error = await ref
