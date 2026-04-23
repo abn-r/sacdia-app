@@ -1,0 +1,68 @@
+{
+  "common": {
+    "loading": "Carregando…",
+    "retry": "Tentar de novo",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Salvar",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "close": "Fechar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "search": "Buscar",
+    "yes": "Sim",
+    "no": "Não",
+    "error_generic": "Ocorreu um erro. Tente novamente.",
+    "error_network": "Sem conexão com o servidor.",
+    "language": "Idioma"
+  },
+  "nav": {
+    "home": "Início",
+    "activities": "Atividades",
+    "classes": "Classes",
+    "honors": "Especialidades",
+    "profile": "Perfil",
+    "settings": "Configurações"
+  },
+  "settings": {
+    "title": "Configurações",
+    "section_account": "Conta",
+    "section_about": "Sobre",
+    "language_picker_title": "Idioma",
+    "logout": "Sair",
+    "change_password": "Alterar senha",
+    "member_qr": "Minha credencial QR",
+    "scan_qr": "Escanear credencial"
+  },
+  "auth": {
+    "login_title": "Bem-vindo",
+    "login_description": "Insira suas credenciais para continuar",
+    "email_label": "E-mail",
+    "password_label": "Senha",
+    "submit_idle": "Entrar",
+    "submit_loading": "Verificando…",
+    "forgot_password": "Esqueceu sua senha?",
+    "logout_confirm_title": "Sair?",
+    "logout_confirm_message": "Sua sessão atual será encerrada neste dispositivo."
+  },
+  "qr": {
+    "my_credential": "Minha credencial QR",
+    "rotate_token": "Rotacionar token",
+    "expires_in_hours_minutes": "Válido por {hours}h {minutes}m",
+    "expires_in_minutes": "Válido por {minutes}m",
+    "expired": "Token expirado, toque em rotacionar",
+    "how_it_works": "Como funciona",
+    "usage_tip_1": "O token é rotacionado a cada 24 h; mantenha-o ativo apenas pelo tempo necessário.",
+    "usage_tip_2": "Um diretor ou coordenador pode escaneá-lo para registrar presença.",
+    "usage_tip_3": "Não compartilhe seu QR com pessoas fora do seu clube.",
+    "scan_title": "Escanear credencial",
+    "scan_attendance_title": "Presença por QR",
+    "scan_hint_attendance": "Aponte a câmera para o QR do membro para registrar presença",
+    "scan_hint_lookup": "Aponte a câmera para o QR do membro",
+    "scan_another": "Escanear outro",
+    "scan_success_registered": "Presença registrada",
+    "scan_success_already_present": "Já estava marcado como presente",
+    "scan_error_title": "Não foi possível validar o QR"
+  }
+}

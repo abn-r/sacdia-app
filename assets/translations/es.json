@@ -1,0 +1,68 @@
+{
+  "common": {
+    "loading": "Cargando…",
+    "retry": "Reintentar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Guardar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "close": "Cerrar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "search": "Buscar",
+    "yes": "Sí",
+    "no": "No",
+    "error_generic": "Ocurrió un error. Intente nuevamente.",
+    "error_network": "Sin conexión con el servidor.",
+    "language": "Idioma"
+  },
+  "nav": {
+    "home": "Inicio",
+    "activities": "Actividades",
+    "classes": "Clases",
+    "honors": "Especialidades",
+    "profile": "Perfil",
+    "settings": "Ajustes"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "section_account": "Cuenta",
+    "section_about": "Acerca de",
+    "language_picker_title": "Idioma",
+    "logout": "Cerrar sesión",
+    "change_password": "Cambiar contraseña",
+    "member_qr": "Mi credencial QR",
+    "scan_qr": "Escanear credencial"
+  },
+  "auth": {
+    "login_title": "Bienvenido",
+    "login_description": "Ingrese sus credenciales para continuar",
+    "email_label": "Correo electrónico",
+    "password_label": "Contraseña",
+    "submit_idle": "Iniciar sesión",
+    "submit_loading": "Verificando…",
+    "forgot_password": "¿Olvidó su contraseña?",
+    "logout_confirm_title": "¿Cerrar sesión?",
+    "logout_confirm_message": "Su sesión actual se cerrará en este dispositivo."
+  },
+  "qr": {
+    "my_credential": "Mi credencial QR",
+    "rotate_token": "Rotar token",
+    "expires_in_hours_minutes": "Válido por {hours}h {minutes}m",
+    "expires_in_minutes": "Válido por {minutes}m",
+    "expired": "Token expirado, tocá rotar",
+    "how_it_works": "Cómo funciona",
+    "usage_tip_1": "El token se rota cada 24 h; manténgalo activo solo el tiempo necesario.",
+    "usage_tip_2": "Un director o coordinador puede escanearlo para registrar asistencia.",
+    "usage_tip_3": "No comparta su QR con personas externas a su club.",
+    "scan_title": "Escanear credencial",
+    "scan_attendance_title": "Asistencia por QR",
+    "scan_hint_attendance": "Apunte la cámara al QR del miembro para registrar asistencia",
+    "scan_hint_lookup": "Apunte la cámara al QR del miembro",
+    "scan_another": "Escanear otro",
+    "scan_success_registered": "Asistencia registrada",
+    "scan_success_already_present": "Ya estaba marcado como asistente",
+    "scan_error_title": "No se pudo validar el QR"
+  }
+}

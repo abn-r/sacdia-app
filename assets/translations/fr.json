@@ -1,0 +1,68 @@
+{
+  "common": {
+    "loading": "Chargement…",
+    "retry": "Réessayer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "save": "Enregistrer",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "close": "Fermer",
+    "back": "Retour",
+    "next": "Suivant",
+    "search": "Rechercher",
+    "yes": "Oui",
+    "no": "Non",
+    "error_generic": "Une erreur est survenue. Veuillez réessayer.",
+    "error_network": "Pas de connexion au serveur.",
+    "language": "Langue"
+  },
+  "nav": {
+    "home": "Accueil",
+    "activities": "Activités",
+    "classes": "Classes",
+    "honors": "Spécialités",
+    "profile": "Profil",
+    "settings": "Paramètres"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "section_account": "Compte",
+    "section_about": "À propos",
+    "language_picker_title": "Langue",
+    "logout": "Se déconnecter",
+    "change_password": "Changer le mot de passe",
+    "member_qr": "Ma carte QR",
+    "scan_qr": "Scanner une carte"
+  },
+  "auth": {
+    "login_title": "Bienvenue",
+    "login_description": "Saisissez vos identifiants pour continuer",
+    "email_label": "Adresse e-mail",
+    "password_label": "Mot de passe",
+    "submit_idle": "Se connecter",
+    "submit_loading": "Vérification…",
+    "forgot_password": "Mot de passe oublié ?",
+    "logout_confirm_title": "Se déconnecter ?",
+    "logout_confirm_message": "Votre session actuelle sera fermée sur cet appareil."
+  },
+  "qr": {
+    "my_credential": "Ma carte QR",
+    "rotate_token": "Renouveler le jeton",
+    "expires_in_hours_minutes": "Valide {hours}h {minutes}m",
+    "expires_in_minutes": "Valide {minutes}m",
+    "expired": "Jeton expiré, appuyez pour renouveler",
+    "how_it_works": "Comment ça marche",
+    "usage_tip_1": "Le jeton est renouvelé toutes les 24 h ; ne le laissez actif que le temps nécessaire.",
+    "usage_tip_2": "Un directeur ou coordinateur peut le scanner pour enregistrer la présence.",
+    "usage_tip_3": "Ne partagez pas votre QR avec des personnes extérieures à votre club.",
+    "scan_title": "Scanner une carte",
+    "scan_attendance_title": "Présence par QR",
+    "scan_hint_attendance": "Dirigez la caméra vers le QR du membre pour enregistrer la présence",
+    "scan_hint_lookup": "Dirigez la caméra vers le QR du membre",
+    "scan_another": "Scanner un autre",
+    "scan_success_registered": "Présence enregistrée",
+    "scan_success_already_present": "Déjà marqué comme présent",
+    "scan_error_title": "Impossible de valider le QR"
+  }
+}

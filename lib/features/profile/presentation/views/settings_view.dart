@@ -19,6 +19,7 @@ import '../providers/notification_preferences_providers.dart';
 import '../widgets/setting_tile.dart';
 import '../../../qr/presentation/views/member_qr_view.dart';
 import '../../../qr/presentation/views/qr_scanner_view.dart';
+import '../../../settings/presentation/widgets/language_picker_tile.dart';
 import 'active_sessions_view.dart';
 import 'data_export_view.dart';
 import 'edit_profile_view.dart';
@@ -687,6 +688,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 iconColor: AppColors.primary,
                 onTap: _showChangePasswordDialog,
               ),
+              _groupDivider(),
+              const LanguagePickerTile(),
             ],
           ),
           const SizedBox(height: 24),

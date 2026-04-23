@@ -52,6 +52,7 @@ dependencies:
 
   # Utilidades
   dartz: ^0.10.1
+  easy_localization: ^3.0.7
   equatable: ^2.0.7
   intl: ^0.20.1
   url_launcher: ^6.3.1
@@ -109,6 +110,7 @@ flutter:
     - assets/img/
     - assets/img/logos-clases/
     - assets/svg/
+    - assets/translations/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

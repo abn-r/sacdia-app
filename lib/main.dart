@@ -1,8 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -84,6 +84,10 @@ Future<void> main() async {
     appRunner: () async {
       // Aseguramos que las dependencias de Flutter estén inicializadas
       WidgetsFlutterBinding.ensureInitialized();
+      // EasyLocalization lee los catálogos en assets/translations/* y expone
+      // `context.tr` una vez que el widget se monta. ensureInitialized debe
+      // ejecutarse antes del primer runApp para tener el locale resuelto.
+      await EasyLocalization.ensureInitialized();
 
       // Paralelizamos operaciones independientes: orientación, SharedPreferences y
       // Firebase.initializeApp() — este último DEBE ocurrir antes de runApp().
@@ -112,13 +116,24 @@ Future<void> main() async {
 
       // Ejecutamos la aplicación con la configuración inicial
       runApp(
-        SentryWidget(
-          child: ProviderScope(
-            overrides: [
-              // Proporcionamos la instancia de SharedPreferences a la aplicación
-              sharedPreferencesProvider.overrideWithValue(sharedPreferences),
-            ],
-            child: const MyApp(),
+        EasyLocalization(
+          supportedLocales: const [
+            Locale('es'),
+            Locale('pt', 'BR'),
+            Locale('en'),
+            Locale('fr'),
+          ],
+          path: 'assets/translations',
+          fallbackLocale: const Locale('es'),
+          useOnlyLangCode: false,
+          child: SentryWidget(
+            child: ProviderScope(
+              overrides: [
+                // Proporcionamos la instancia de SharedPreferences a la aplicación
+                sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+              ],
+              child: const MyApp(),
+            ),
           ),
         ),
       );
@@ -267,16 +282,9 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
           darkTheme: AppTheme.darkTheme,
           themeMode: themeMode,
           routerConfig: router,
-          locale: const Locale('es'),
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [
-            Locale('es'),
-            Locale('en'),
-          ],
+          locale: context.locale,
+          localizationsDelegates: context.localizationDelegates,
+          supportedLocales: context.supportedLocales,
         ),
       ),
     );

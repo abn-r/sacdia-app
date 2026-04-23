@@ -1,0 +1,68 @@
+{
+  "common": {
+    "loading": "Loading…",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "search": "Search",
+    "yes": "Yes",
+    "no": "No",
+    "error_generic": "Something went wrong. Please try again.",
+    "error_network": "No connection to the server.",
+    "language": "Language"
+  },
+  "nav": {
+    "home": "Home",
+    "activities": "Activities",
+    "classes": "Classes",
+    "honors": "Honors",
+    "profile": "Profile",
+    "settings": "Settings"
+  },
+  "settings": {
+    "title": "Settings",
+    "section_account": "Account",
+    "section_about": "About",
+    "language_picker_title": "Language",
+    "logout": "Sign out",
+    "change_password": "Change password",
+    "member_qr": "My QR credential",
+    "scan_qr": "Scan credential"
+  },
+  "auth": {
+    "login_title": "Welcome",
+    "login_description": "Enter your credentials to continue",
+    "email_label": "Email",
+    "password_label": "Password",
+    "submit_idle": "Sign in",
+    "submit_loading": "Verifying…",
+    "forgot_password": "Forgot your password?",
+    "logout_confirm_title": "Sign out?",
+    "logout_confirm_message": "Your current session will be closed on this device."
+  },
+  "qr": {
+    "my_credential": "My QR credential",
+    "rotate_token": "Rotate token",
+    "expires_in_hours_minutes": "Valid for {hours}h {minutes}m",
+    "expires_in_minutes": "Valid for {minutes}m",
+    "expired": "Token expired, tap rotate",
+    "how_it_works": "How it works",
+    "usage_tip_1": "The token rotates every 24 h; keep it active only as long as needed.",
+    "usage_tip_2": "A director or coordinator can scan it to record attendance.",
+    "usage_tip_3": "Do not share your QR with people outside your club.",
+    "scan_title": "Scan credential",
+    "scan_attendance_title": "QR attendance",
+    "scan_hint_attendance": "Point the camera at the member's QR to record attendance",
+    "scan_hint_lookup": "Point the camera at the member's QR",
+    "scan_another": "Scan another",
+    "scan_success_registered": "Attendance registered",
+    "scan_success_already_present": "Already marked as attending",
+    "scan_error_title": "Could not validate QR"
+  }
+}
