@@ -9,6 +9,9 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../auth/domain/utils/authorization_utils.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../qr/presentation/views/qr_scanner_view.dart';
 import '../../domain/entities/activity.dart';
 import '../providers/activities_providers.dart';
 import '../widgets/activity_attendees_section.dart';
@@ -434,15 +437,42 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
 
   // ── main build ──────────────────────────────────────────────────────────────
 
+  void _openQrScanner() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => QrScannerView(activityId: widget.activityId),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final activityAsync = ref.watch(activityDetailProvider(widget.activityId));
     final deleteState = ref.watch(deleteActivityNotifierProvider);
+    final user = ref.watch(
+      authNotifierProvider.select((v) => v.valueOrNull),
+    );
+
+    final canScanAttendance = activityAsync.hasValue &&
+        hasAnyPermission(user, const {'attendance:manage'});
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: context.sac.background,
+        floatingActionButton: canScanAttendance
+            ? FloatingActionButton.extended(
+                onPressed: _openQrScanner,
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedQrCode01,
+                  color: Colors.white,
+                  size: 22,
+                ),
+                label: const Text('Asistencia QR'),
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              )
+            : null,
         body: activityAsync.when(
           loading: () => const ActivityDetailSkeleton(),
 
