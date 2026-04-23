@@ -48,6 +48,10 @@ import 'package:sacdia_app/features/coordinator/presentation/views/camporee_appr
 import 'package:sacdia_app/features/coordinator/domain/entities/evidence_review_item.dart';
 import 'package:sacdia_app/features/notifications/presentation/views/notifications_inbox_view.dart';
 import 'package:sacdia_app/features/achievements/presentation/views/achievements_view.dart';
+import 'package:sacdia_app/features/support/presentation/views/support_view.dart';
+import 'package:sacdia_app/features/support/presentation/views/faq_view.dart';
+import 'package:sacdia_app/features/support/presentation/views/contact_view.dart';
+import 'package:sacdia_app/features/support/presentation/views/report_problem_view.dart';
 
 import '../../features/auth/domain/entities/authorization_snapshot.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
@@ -921,6 +925,34 @@ final routerProvider = Provider<GoRouter>((ref) {
           state,
           const AchievementsView(),
         ),
+      ),
+
+      // Soporte / Ayuda — hub principal
+      GoRoute(
+        path: SupportView.routeName,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const SupportView()),
+      ),
+
+      // Soporte — FAQ
+      GoRoute(
+        path: FaqView.routeName,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const FaqView()),
+      ),
+
+      // Soporte — Contacto
+      GoRoute(
+        path: ContactView.routeName,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const ContactView()),
+      ),
+
+      // Soporte — Reportar problema
+      GoRoute(
+        path: ReportProblemView.routeName,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const ReportProblemView()),
       ),
 
       // OAuth callback deep link — io.sacdia.app://auth/callback?session_token=...&provider=...
