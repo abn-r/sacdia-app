@@ -16,7 +16,12 @@
     "no": "Non",
     "error_generic": "Une erreur est survenue. Veuillez réessayer.",
     "error_network": "Pas de connexion au serveur.",
-    "language": "Langue"
+    "language": "Langue",
+    "no_results": "Aucun résultat trouvé",
+    "none_selected": "Aucun élément sélectionné",
+    "clear": "Effacer",
+    "items_selected_one": "1 élément sélectionné",
+    "items_selected_other": "{count} éléments sélectionnés"
   },
   "nav": {
     "home": "Accueil",

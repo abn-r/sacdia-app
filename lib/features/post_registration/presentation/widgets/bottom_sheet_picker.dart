@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -27,7 +28,7 @@ Future<int?> showPickerSheet({
   required String title,
   required List<PickerItem> items,
   int? selectedId,
-  String searchHint = 'Buscar...',
+  String? searchHint,
   IconData icon = Icons.list_rounded,
 }) {
   return showModalBottomSheet<int>(
@@ -185,7 +186,7 @@ class BottomSheetPickerSheet extends StatefulWidget {
   final String title;
   final List<PickerItem> items;
   final int? selectedId;
-  final String searchHint;
+  final String? searchHint;
   final IconData icon;
 
   const BottomSheetPickerSheet({
@@ -193,7 +194,7 @@ class BottomSheetPickerSheet extends StatefulWidget {
     required this.title,
     required this.items,
     this.selectedId,
-    this.searchHint = 'Buscar...',
+    this.searchHint,
     this.icon = Icons.list_rounded,
   });
 
@@ -286,7 +287,7 @@ class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
               autofocus: false,
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
-                hintText: widget.searchHint,
+                hintText: widget.searchHint ?? tr('common.search'),
                 prefixIcon: const Icon(Icons.search_rounded, size: 20),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
@@ -338,7 +339,7 @@ class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'No se encontraron resultados',
+                          tr('common.no_results'),
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: context.sac.textSecondary,
                           ),

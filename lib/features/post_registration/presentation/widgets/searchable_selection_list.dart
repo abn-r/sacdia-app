@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -20,7 +21,7 @@ class SearchableSelectionList extends StatefulWidget {
   final List<SelectableItem> items;
   final List<int> selectedIds;
   final Function(List<int>) onSelectionChanged;
-  final String searchHint;
+  final String? searchHint;
   final bool hasNoneOption;
   final String noneOptionLabel;
 
@@ -29,7 +30,7 @@ class SearchableSelectionList extends StatefulWidget {
     required this.items,
     required this.selectedIds,
     required this.onSelectionChanged,
-    this.searchHint = 'Buscar...',
+    this.searchHint,
     this.hasNoneOption = true,
     this.noneOptionLabel = 'Ninguna',
   });
@@ -139,7 +140,7 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
           child: TextField(
             controller: _searchController,
             decoration: InputDecoration(
-              hintText: widget.searchHint,
+              hintText: widget.searchHint ?? tr('common.search'),
               prefixIcon:
                   HugeIcon(icon: HugeIcons.strokeRoundedSearch01, size: 22),
               suffixIcon: _searchQuery.isNotEmpty
@@ -182,7 +183,7 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'No se encontraron resultados',
+                        tr('common.no_results'),
                         style: TextStyle(
                           fontSize: 16,
                           color: context.sac.textSecondary,
@@ -240,7 +241,7 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
                 TextButton.icon(
                   icon:
                       HugeIcon(icon: HugeIcons.strokeRoundedCancel02, size: 20),
-                  label: const Text('Limpiar'),
+                  label: Text(tr('common.clear')),
                   onPressed: () {
                     setState(() {
                       for (var item in _items) {
@@ -262,11 +263,11 @@ class _SearchableSelectionListState extends State<SearchableSelectionList> {
         _items.where((i) => i.isSelected && i.id != _noneOptionId).length;
 
     if (count == 0) {
-      return 'Ningún elemento seleccionado';
+      return tr('common.none_selected');
     } else if (count == 1) {
-      return '1 elemento seleccionado';
+      return tr('common.items_selected_one');
     } else {
-      return '$count elementos seleccionados';
+      return tr('common.items_selected_other', namedArgs: {'count': '$count'});
     }
   }
 }

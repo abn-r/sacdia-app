@@ -16,7 +16,12 @@
     "no": "Não",
     "error_generic": "Ocorreu um erro. Tente novamente.",
     "error_network": "Sem conexão com o servidor.",
-    "language": "Idioma"
+    "language": "Idioma",
+    "no_results": "Nenhum resultado encontrado",
+    "none_selected": "Nenhum item selecionado",
+    "clear": "Limpar",
+    "items_selected_one": "1 item selecionado",
+    "items_selected_other": "{count} itens selecionados"
   },
   "nav": {
     "home": "Início",

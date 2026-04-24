@@ -16,7 +16,12 @@
     "no": "No",
     "error_generic": "Something went wrong. Please try again.",
     "error_network": "No connection to the server.",
-    "language": "Language"
+    "language": "Language",
+    "no_results": "No results found",
+    "none_selected": "No items selected",
+    "clear": "Clear",
+    "items_selected_one": "1 item selected",
+    "items_selected_other": "{count} items selected"
   },
   "nav": {
     "home": "Home",
