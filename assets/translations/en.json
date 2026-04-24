@@ -524,5 +524,12 @@
         "too_many_requests": "Too many requests, please wait a moment."
       }
     }
+  },
+  "club": {
+    "errors": {
+      "get_club": "Error fetching club",
+      "get_club_section": "Error fetching club section",
+      "update_club_section": "Error updating club section"
+    }
   }
 }

@@ -524,5 +524,12 @@
         "too_many_requests": "Trop de requêtes, veuillez patienter un moment."
       }
     }
+  },
+  "club": {
+    "errors": {
+      "get_club": "Erreur lors de la récupération du club",
+      "get_club_section": "Erreur lors de la récupération de la section du club",
+      "update_club_section": "Erreur lors de la mise à jour de la section du club"
+    }
   }
 }

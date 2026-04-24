@@ -524,5 +524,12 @@
         "too_many_requests": "Demasiadas solicitudes, esperá un momento."
       }
     }
+  },
+  "club": {
+    "errors": {
+      "get_club": "Error al obtener club",
+      "get_club_section": "Error al obtener sección del club",
+      "update_club_section": "Error al actualizar sección del club"
+    }
   }
 }
