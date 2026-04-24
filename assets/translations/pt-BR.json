@@ -464,6 +464,21 @@
         "delete_error": "Erro ao excluir: {error}",
         "load_error": "Erro: {error}"
       }
+    },
+    "photo": {
+      "title": "Dê um rosto à sua aventura!",
+      "subtitle": "Envie uma foto para que te reconheçam no seu clube",
+      "add": "Adicionar foto",
+      "take": "Tirar foto",
+      "gallery": "Galeria",
+      "remove": "Remover foto",
+      "crop_title": "Cortar foto",
+      "errors": {
+        "camera": "Erro ao acessar a câmera",
+        "gallery": "Erro ao acessar a galeria",
+        "crop": "Erro ao cortar a imagem",
+        "upload": "Erro ao enviar foto: {message}"
+      }
     }
   },
   "monthly_reports": {

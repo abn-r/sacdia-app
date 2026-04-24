@@ -464,6 +464,21 @@
         "delete_error": "Error al eliminar: {error}",
         "load_error": "Error: {error}"
       }
+    },
+    "photo": {
+      "title": "¡Ponle cara a tu aventura!",
+      "subtitle": "Subí una foto para que te reconozcan en tu club",
+      "add": "Agregar foto",
+      "take": "Tomar foto",
+      "gallery": "Galería",
+      "remove": "Eliminar foto",
+      "crop_title": "Recortar foto",
+      "errors": {
+        "camera": "Error al acceder a la cámara",
+        "gallery": "Error al acceder a la galería",
+        "crop": "Error al recortar la imagen",
+        "upload": "Error al subir foto: {message}"
+      }
     }
   },
   "monthly_reports": {

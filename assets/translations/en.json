@@ -464,6 +464,21 @@
         "delete_error": "Error deleting: {error}",
         "load_error": "Error: {error}"
       }
+    },
+    "photo": {
+      "title": "Put a face to your adventure!",
+      "subtitle": "Upload a photo so your club can recognize you",
+      "add": "Add photo",
+      "take": "Take photo",
+      "gallery": "Gallery",
+      "remove": "Remove photo",
+      "crop_title": "Crop photo",
+      "errors": {
+        "camera": "Error accessing the camera",
+        "gallery": "Error accessing the gallery",
+        "crop": "Error cropping the image",
+        "upload": "Error uploading photo: {message}"
+      }
     }
   },
   "monthly_reports": {

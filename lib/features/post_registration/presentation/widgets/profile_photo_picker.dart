@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math' as math;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -37,13 +38,13 @@ class ProfilePhotoPicker extends StatelessWidget {
 
         // Title
         Text(
-          '¡Ponle cara a tu aventura!',
+          'post_registration.photo.title'.tr(),
           style: Theme.of(context).textTheme.displayMedium,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
         Text(
-          'Sube una foto para que te reconozcan en tu club',
+          'post_registration.photo.subtitle'.tr(),
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: context.sac.textSecondary,
               ),
@@ -132,9 +133,9 @@ class ProfilePhotoPicker extends StatelessWidget {
                 size: 18,
                 color: AppColors.error,
               ),
-              label: const Text(
-                'Eliminar foto',
-                style: TextStyle(
+              label: Text(
+                'post_registration.photo.remove'.tr(),
+                style: const TextStyle(
                   color: AppColors.error,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -156,18 +157,18 @@ class ProfilePhotoPicker extends StatelessWidget {
                     shape: BoxShape.circle,
                     color: AppColors.primaryLight,
                   ),
-                  child: const Column(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      HugeIcon(
+                      const HugeIcon(
                         icon: HugeIcons.strokeRoundedCamera01,
                         size: 40,
                         color: AppColors.primary,
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
-                        'Agregar foto',
-                        style: TextStyle(
+                        'post_registration.photo.add'.tr(),
+                        style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.primary,
                           fontWeight: FontWeight.w500,
@@ -199,7 +200,7 @@ class ProfilePhotoPicker extends StatelessWidget {
                       ),
                       SizedBox(height: 8),
                       Text(
-                        'Tomar foto',
+                        'post_registration.photo.take'.tr(),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -224,7 +225,7 @@ class ProfilePhotoPicker extends StatelessWidget {
                       ),
                       SizedBox(height: 8),
                       Text(
-                        'Galería',
+                        'post_registration.photo.gallery'.tr(),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,

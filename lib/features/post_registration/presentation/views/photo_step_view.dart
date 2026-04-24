@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -42,7 +43,7 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Error al acceder a la cámara'),
+            content: Text('post_registration.photo.errors.camera'.tr()),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape:
@@ -70,7 +71,7 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Error al acceder a la galería'),
+            content: Text('post_registration.photo.errors.gallery'.tr()),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape:
@@ -89,14 +90,14 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
         compressQuality: 70,
         uiSettings: [
           AndroidUiSettings(
-            toolbarTitle: 'Recortar foto',
+            toolbarTitle: 'post_registration.photo.crop_title'.tr(),
             toolbarColor: AppColors.primary,
             toolbarWidgetColor: Colors.white,
             lockAspectRatio: true,
             hideBottomControls: false,
           ),
           IOSUiSettings(
-            title: 'Recortar foto',
+            title: 'post_registration.photo.crop_title'.tr(),
             aspectRatioLockEnabled: true,
             resetAspectRatioEnabled: false,
           ),
@@ -112,7 +113,7 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Error al recortar la imagen'),
+            content: Text('post_registration.photo.errors.crop'.tr()),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape:
@@ -140,7 +141,7 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Error al subir foto: ${failure.message}'),
+                content: Text('post_registration.photo.errors.upload'.tr(namedArgs: {'message': failure.message})),
                 backgroundColor: AppColors.error,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(

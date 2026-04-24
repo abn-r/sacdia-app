@@ -464,6 +464,21 @@
         "delete_error": "Erreur lors de la suppression : {error}",
         "load_error": "Erreur : {error}"
       }
+    },
+    "photo": {
+      "title": "Donnez un visage à votre aventure !",
+      "subtitle": "Ajoutez une photo pour que votre club vous reconnaisse",
+      "add": "Ajouter une photo",
+      "take": "Prendre une photo",
+      "gallery": "Galerie",
+      "remove": "Supprimer la photo",
+      "crop_title": "Recadrer la photo",
+      "errors": {
+        "camera": "Erreur lors de l'accès à la caméra",
+        "gallery": "Erreur lors de l'accès à la galerie",
+        "crop": "Erreur lors du recadrage de l'image",
+        "upload": "Erreur lors du téléchargement de la photo : {message}"
+      }
     }
   },
   "monthly_reports": {
