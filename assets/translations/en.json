@@ -166,6 +166,10 @@
       "dataissue": "Data issue",
       "performance": "Slowness / performance",
       "other": "Other"
+    },
+    "errors": {
+      "session_expired": "Your session expired. Please sign in again.",
+      "submit_report": "We could not send your report"
     }
   },
   "biometric": {
@@ -528,6 +532,25 @@
       "get_profile": "Error fetching user profile.",
       "update_profile": "Error updating profile.",
       "update_picture": "Error updating profile picture."
+    },
+    "data_export": {
+      "errors": {
+        "request_failed": "Error requesting data export",
+        "rate_limit_wait": "You can request another export in {wait}.",
+        "rate_limit": "Export limit reached. Please try again later.",
+        "request_invalid": "Invalid request.",
+        "request_auth": "Your session expired. Please sign in again.",
+        "request_forbidden": "You do not have permission to request an export.",
+        "list_failed": "Error fetching exports",
+        "list_auth": "Your session expired. Please sign in again.",
+        "unexpected_format": "Unexpected response format",
+        "download_not_found": "This export no longer exists.",
+        "download_conflict": "Your export is still being generated.",
+        "download_gone": "This export has expired. Please request a new one.",
+        "download_invalid": "The export failed. Please try again.",
+        "download_failed": "Error fetching download URL",
+        "unexpected": "Unexpected error: {detail}"
+      }
     }
   },
   "club": {

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -31,7 +32,7 @@ class SupportRemoteDataSourceImpl implements SupportRemoteDataSource {
       final code = e.response?.statusCode;
       if (code == 401 || code == 403) {
         throw AuthException(
-          message: 'Tu sesión expiró. Iniciá sesión nuevamente.',
+          message: tr('support.errors.session_expired'),
           code: code,
         );
       }
@@ -55,7 +56,7 @@ class SupportRemoteDataSourceImpl implements SupportRemoteDataSource {
         if (raw is String) return raw;
       }
     } catch (_) {/* noop */}
-    return e.message ?? 'Error de conexión';
+    return e.message ?? tr('common.error_network');
   }
 
   @override
@@ -80,7 +81,7 @@ class SupportRemoteDataSourceImpl implements SupportRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'No pudimos enviar tu reporte',
+        message: tr('support.errors.submit_report'),
         code: status,
       );
     } catch (e) {

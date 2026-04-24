@@ -166,6 +166,10 @@
       "dataissue": "Problème de données",
       "performance": "Lenteur / performance",
       "other": "Autre"
+    },
+    "errors": {
+      "session_expired": "Votre session a expiré. Veuillez vous reconnecter.",
+      "submit_report": "Impossible d’envoyer votre signalement"
     }
   },
   "biometric": {
@@ -528,6 +532,25 @@
       "get_profile": "Erreur lors de la récupération du profil.",
       "update_profile": "Erreur lors de la mise à jour du profil.",
       "update_picture": "Erreur lors de la mise à jour de la photo de profil."
+    },
+    "data_export": {
+      "errors": {
+        "request_failed": "Erreur lors de la demande d’exportation des données",
+        "rate_limit_wait": "Vous pouvez demander une nouvelle exportation dans {wait}.",
+        "rate_limit": "Limite d’exportations atteinte. Réessayez plus tard.",
+        "request_invalid": "Demande invalide.",
+        "request_auth": "Votre session a expiré. Veuillez vous reconnecter.",
+        "request_forbidden": "Vous n’avez pas la permission de demander une exportation.",
+        "list_failed": "Erreur lors de la récupération des exportations",
+        "list_auth": "Votre session a expiré. Veuillez vous reconnecter.",
+        "unexpected_format": "Format de réponse inattendu",
+        "download_not_found": "Cette exportation n’existe plus.",
+        "download_conflict": "Votre exportation est encore en cours de génération.",
+        "download_gone": "Cette exportation a expiré. Veuillez en demander une nouvelle.",
+        "download_invalid": "L’exportation a échoué. Veuillez réessayer.",
+        "download_failed": "Erreur lors de la récupération de l’URL de téléchargement",
+        "unexpected": "Erreur inattendue : {detail}"
+      }
     }
   },
   "club": {

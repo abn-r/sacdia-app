@@ -166,6 +166,10 @@
       "dataissue": "Problema com dados",
       "performance": "Lentidão / desempenho",
       "other": "Outro"
+    },
+    "errors": {
+      "session_expired": "Sua sessão expirou. Entre novamente.",
+      "submit_report": "Não foi possível enviar seu relato"
     }
   },
   "biometric": {
@@ -528,6 +532,25 @@
       "get_profile": "Erro ao obter o perfil do usuário.",
       "update_profile": "Erro ao atualizar o perfil.",
       "update_picture": "Erro ao atualizar a foto de perfil."
+    },
+    "data_export": {
+      "errors": {
+        "request_failed": "Erro ao solicitar exportação de dados",
+        "rate_limit_wait": "Você pode solicitar outra exportação em {wait}.",
+        "rate_limit": "Limite de exportações atingido. Tente mais tarde.",
+        "request_invalid": "Solicitação inválida.",
+        "request_auth": "Sua sessão expirou. Entre novamente.",
+        "request_forbidden": "Você não tem permissão para solicitar uma exportação.",
+        "list_failed": "Erro ao obter exportações",
+        "list_auth": "Sua sessão expirou. Entre novamente.",
+        "unexpected_format": "Formato de resposta inesperado",
+        "download_not_found": "Esta exportação não existe mais.",
+        "download_conflict": "Sua exportação ainda está sendo gerada.",
+        "download_gone": "Esta exportação expirou. Solicite uma nova.",
+        "download_invalid": "A exportação falhou. Tente novamente.",
+        "download_failed": "Erro ao obter URL de download",
+        "unexpected": "Erro inesperado: {detail}"
+      }
     }
   },
   "club": {
