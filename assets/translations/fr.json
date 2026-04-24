@@ -367,5 +367,18 @@
       "fetch_categories": "Erreur lors de la récupération des catégories",
       "fetch_paginated": "Erreur lors de la récupération des transactions"
     }
+  },
+  "members": {
+    "errors": {
+      "fetch_club_members": "Erreur lors de la récupération des membres du club",
+      "fetch_members": "Erreur lors de la récupération des membres",
+      "fetch_member_detail": "Erreur lors de la récupération du détail du membre",
+      "fetch_join_requests": "Erreur lors de la récupération des demandes d'inscription",
+      "fetch_requests": "Erreur lors de la récupération des demandes",
+      "approve_request": "Erreur lors de l'approbation de la demande",
+      "reject_request": "Erreur lors du rejet de la demande",
+      "assign_role": "Erreur lors de l'attribution du rôle",
+      "remove_role": "Erreur lors du retrait du rôle"
+    }
   }
 }
