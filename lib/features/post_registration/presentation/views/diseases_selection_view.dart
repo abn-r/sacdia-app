@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,9 +37,10 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
   ) async {
     final confirmed = await SacDialog.show(
       context,
-      title: 'Eliminar Enfermedad',
-      content: '¿Estás seguro de que deseas eliminar "$diseaseName"?',
-      confirmLabel: 'Eliminar',
+      title: 'post_registration.health.diseases.delete_dialog_title'.tr(),
+      content: 'post_registration.health.diseases.delete_dialog_content'
+          .tr(namedArgs: {'name': diseaseName}),
+      confirmLabel: 'common.delete'.tr(),
       confirmIsDestructive: true,
     );
 
@@ -50,7 +52,8 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Enfermedad eliminada correctamente'),
+              content: Text(
+                  'post_registration.health.diseases.delete_success'.tr()),
               backgroundColor: AppColors.secondary,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -63,7 +66,10 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error al eliminar: ${e.toString()}'),
+              content: Text(
+                'post_registration.health.diseases.delete_error'
+                    .tr(namedArgs: {'error': e.toString()}),
+              ),
               backgroundColor: AppColors.error,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -99,13 +105,14 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Enfermedades'),
+        title: Text('post_registration.health.diseases.title'.tr()),
         actions: [
           IconButton(
             icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 24),
             onPressed: () =>
                 ref.read(userDiseasesProvider.notifier).refresh(),
-            tooltip: 'Actualizar',
+            tooltip:
+                'post_registration.health.diseases.refresh_tooltip'.tr(),
           ),
           TextButton.icon(
             onPressed: () async {
@@ -119,7 +126,7 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
               icon: HugeIcons.strokeRoundedTick02,
               size: 20,
             ),
-            label: const Text('Guardar'),
+            label: Text('common.save'.tr()),
           ),
         ],
       ),
@@ -134,11 +141,12 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
                   size: 48,
                   color: AppColors.error),
               const SizedBox(height: 16),
-              Text('Error: $error'),
+              Text('post_registration.health.diseases.load_error'
+                  .tr(namedArgs: {'error': error.toString()})),
               const SizedBox(height: 16),
               ElevatedButton.icon(
                 icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 20),
-                label: const Text('Reintentar'),
+                label: Text('common.retry'.tr()),
                 onPressed: () => ref.refresh(diseasesCatalogProvider),
               ),
             ],
@@ -171,7 +179,7 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Selecciona todas las enfermedades o condiciones médicas que tengas. Si no tienes ninguna, marca "Ninguna".',
+                        'post_registration.health.diseases.info_text'.tr(),
                         style: TextStyle(
                           fontSize: 14,
                           color: AppColors.accentDark,
@@ -196,7 +204,8 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Enfermedades registradas',
+                        'post_registration.health.diseases.registered_label'
+                            .tr(),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -246,9 +255,11 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
                   onSelectionChanged: (ids) {
                     ref.read(selectedDiseasesProvider.notifier).state = ids;
                   },
-                  searchHint: 'Buscar enfermedad...',
+                  searchHint:
+                      'post_registration.health.diseases.search_hint'.tr(),
                   hasNoneOption: true,
-                  noneOptionLabel: 'Ninguna',
+                  noneOptionLabel:
+                      'post_registration.health.diseases.none_option'.tr(),
                 ),
               ),
             ],

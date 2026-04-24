@@ -423,6 +423,47 @@
       "phone_required": "O telefone é obrigatório",
       "phone_invalid": "Insira um telefone válido de 10 dígitos",
       "save_button": "Salvar Representante Legal"
+    },
+    "health": {
+      "diseases": {
+        "title": "Doenças",
+        "refresh_tooltip": "Atualizar",
+        "info_text": "Selecione todas as doenças ou condições médicas que você tiver. Se não tiver nenhuma, marque \"Nenhuma\".",
+        "registered_label": "Doenças registradas",
+        "search_hint": "Buscar doença...",
+        "none_option": "Nenhuma",
+        "delete_dialog_title": "Excluir Doença",
+        "delete_dialog_content": "Tem certeza de que deseja excluir \"{name}\"?",
+        "delete_success": "Doença excluída com sucesso",
+        "delete_error": "Erro ao excluir: {error}",
+        "load_error": "Erro: {error}"
+      },
+      "medicines": {
+        "title": "Medicamentos",
+        "refresh_tooltip": "Atualizar",
+        "info_text": "Selecione os medicamentos que você toma regularmente. Se não tomar nenhum, marque \"Nenhum\".",
+        "registered_label": "Medicamentos registrados",
+        "search_hint": "Buscar medicamento...",
+        "none_option": "Nenhum",
+        "delete_dialog_title": "Excluir Medicamento",
+        "delete_dialog_content": "Tem certeza de que deseja excluir \"{name}\"?",
+        "delete_success": "Medicamento excluído com sucesso",
+        "delete_error": "Erro ao excluir: {error}",
+        "load_error": "Erro: {error}"
+      },
+      "allergies": {
+        "title": "Alergias",
+        "refresh_tooltip": "Atualizar",
+        "info_text": "Selecione todas as alergias que você tiver. Se não tiver nenhuma, marque \"Nenhuma\".",
+        "registered_label": "Alergias registradas",
+        "search_hint": "Buscar alergia...",
+        "none_option": "Nenhuma",
+        "delete_dialog_title": "Excluir Alergia",
+        "delete_dialog_content": "Tem certeza de que deseja excluir \"{name}\"?",
+        "delete_success": "Alergia excluída com sucesso",
+        "delete_error": "Erro ao excluir: {error}",
+        "load_error": "Erro: {error}"
+      }
     }
   },
   "monthly_reports": {

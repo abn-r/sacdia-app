@@ -423,6 +423,47 @@
       "phone_required": "Le téléphone est obligatoire",
       "phone_invalid": "Entrez un numéro de téléphone valide à 10 chiffres",
       "save_button": "Enregistrer le représentant légal"
+    },
+    "health": {
+      "diseases": {
+        "title": "Maladies",
+        "refresh_tooltip": "Actualiser",
+        "info_text": "Sélectionnez toutes les maladies ou conditions médicales que vous avez. Si vous n'en avez aucune, choisissez \"Aucune\".",
+        "registered_label": "Maladies enregistrées",
+        "search_hint": "Rechercher une maladie...",
+        "none_option": "Aucune",
+        "delete_dialog_title": "Supprimer la maladie",
+        "delete_dialog_content": "Êtes-vous sûr de vouloir supprimer \"{name}\" ?",
+        "delete_success": "Maladie supprimée avec succès",
+        "delete_error": "Erreur lors de la suppression : {error}",
+        "load_error": "Erreur : {error}"
+      },
+      "medicines": {
+        "title": "Médicaments",
+        "refresh_tooltip": "Actualiser",
+        "info_text": "Sélectionnez les médicaments que vous prenez régulièrement. Si vous n'en prenez aucun, choisissez \"Aucun\".",
+        "registered_label": "Médicaments enregistrés",
+        "search_hint": "Rechercher un médicament...",
+        "none_option": "Aucun",
+        "delete_dialog_title": "Supprimer le médicament",
+        "delete_dialog_content": "Êtes-vous sûr de vouloir supprimer \"{name}\" ?",
+        "delete_success": "Médicament supprimé avec succès",
+        "delete_error": "Erreur lors de la suppression : {error}",
+        "load_error": "Erreur : {error}"
+      },
+      "allergies": {
+        "title": "Allergies",
+        "refresh_tooltip": "Actualiser",
+        "info_text": "Sélectionnez toutes les allergies que vous avez. Si vous n'en avez aucune, choisissez \"Aucune\".",
+        "registered_label": "Allergies enregistrées",
+        "search_hint": "Rechercher une allergie...",
+        "none_option": "Aucune",
+        "delete_dialog_title": "Supprimer l'allergie",
+        "delete_dialog_content": "Êtes-vous sûr de vouloir supprimer \"{name}\" ?",
+        "delete_success": "Allergie supprimée avec succès",
+        "delete_error": "Erreur lors de la suppression : {error}",
+        "load_error": "Erreur : {error}"
+      }
     }
   },
   "monthly_reports": {

@@ -423,6 +423,47 @@
       "phone_required": "Phone is required",
       "phone_invalid": "Enter a valid 10-digit phone number",
       "save_button": "Save Legal Representative"
+    },
+    "health": {
+      "diseases": {
+        "title": "Diseases",
+        "refresh_tooltip": "Refresh",
+        "info_text": "Select all diseases or medical conditions you have. If you have none, choose \"None\".",
+        "registered_label": "Registered diseases",
+        "search_hint": "Search disease...",
+        "none_option": "None",
+        "delete_dialog_title": "Delete Disease",
+        "delete_dialog_content": "Are you sure you want to delete \"{name}\"?",
+        "delete_success": "Disease deleted successfully",
+        "delete_error": "Error deleting: {error}",
+        "load_error": "Error: {error}"
+      },
+      "medicines": {
+        "title": "Medications",
+        "refresh_tooltip": "Refresh",
+        "info_text": "Select the medications you take regularly. If you take none, choose \"None\".",
+        "registered_label": "Registered medications",
+        "search_hint": "Search medication...",
+        "none_option": "None",
+        "delete_dialog_title": "Delete Medication",
+        "delete_dialog_content": "Are you sure you want to delete \"{name}\"?",
+        "delete_success": "Medication deleted successfully",
+        "delete_error": "Error deleting: {error}",
+        "load_error": "Error: {error}"
+      },
+      "allergies": {
+        "title": "Allergies",
+        "refresh_tooltip": "Refresh",
+        "info_text": "Select all allergies you have. If you have none, choose \"None\".",
+        "registered_label": "Registered allergies",
+        "search_hint": "Search allergy...",
+        "none_option": "None",
+        "delete_dialog_title": "Delete Allergy",
+        "delete_dialog_content": "Are you sure you want to delete \"{name}\"?",
+        "delete_success": "Allergy deleted successfully",
+        "delete_error": "Error deleting: {error}",
+        "load_error": "Error: {error}"
+      }
     }
   },
   "monthly_reports": {

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -37,9 +38,10 @@ class _MedicinesSelectionViewState
   ) async {
     final confirmed = await SacDialog.show(
       context,
-      title: 'Eliminar Medicamento',
-      content: '¿Estás seguro de que deseas eliminar "$medicineName"?',
-      confirmLabel: 'Eliminar',
+      title: 'post_registration.health.medicines.delete_dialog_title'.tr(),
+      content: 'post_registration.health.medicines.delete_dialog_content'
+          .tr(namedArgs: {'name': medicineName}),
+      confirmLabel: 'common.delete'.tr(),
       confirmIsDestructive: true,
     );
 
@@ -51,7 +53,8 @@ class _MedicinesSelectionViewState
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Medicamento eliminado correctamente'),
+              content: Text(
+                  'post_registration.health.medicines.delete_success'.tr()),
               backgroundColor: AppColors.secondary,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -64,7 +67,10 @@ class _MedicinesSelectionViewState
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error al eliminar: ${e.toString()}'),
+              content: Text(
+                'post_registration.health.medicines.delete_error'
+                    .tr(namedArgs: {'error': e.toString()}),
+              ),
               backgroundColor: AppColors.error,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -100,13 +106,14 @@ class _MedicinesSelectionViewState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Medicamentos'),
+        title: Text('post_registration.health.medicines.title'.tr()),
         actions: [
           IconButton(
             icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 24),
             onPressed: () =>
                 ref.read(userMedicinesProvider.notifier).refresh(),
-            tooltip: 'Actualizar',
+            tooltip:
+                'post_registration.health.medicines.refresh_tooltip'.tr(),
           ),
           TextButton.icon(
             onPressed: () async {
@@ -120,7 +127,7 @@ class _MedicinesSelectionViewState
               icon: HugeIcons.strokeRoundedTick02,
               size: 20,
             ),
-            label: const Text('Guardar'),
+            label: Text('common.save'.tr()),
           ),
         ],
       ),
@@ -135,11 +142,12 @@ class _MedicinesSelectionViewState
                   size: 48,
                   color: AppColors.error),
               const SizedBox(height: 16),
-              Text('Error: $error'),
+              Text('post_registration.health.medicines.load_error'
+                  .tr(namedArgs: {'error': error.toString()})),
               const SizedBox(height: 16),
               ElevatedButton.icon(
                 icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 20),
-                label: const Text('Reintentar'),
+                label: Text('common.retry'.tr()),
                 onPressed: () => ref.refresh(medicinesCatalogProvider),
               ),
             ],
@@ -172,7 +180,7 @@ class _MedicinesSelectionViewState
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Selecciona los medicamentos que tomas regularmente. Si no tomas ninguno, marca \'Ninguno\'.',
+                        'post_registration.health.medicines.info_text'.tr(),
                         style: TextStyle(
                           fontSize: 14,
                           color: AppColors.secondaryDark,
@@ -197,7 +205,8 @@ class _MedicinesSelectionViewState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Medicamentos registrados',
+                        'post_registration.health.medicines.registered_label'
+                            .tr(),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -247,9 +256,11 @@ class _MedicinesSelectionViewState
                   onSelectionChanged: (ids) {
                     ref.read(selectedMedicinesProvider.notifier).state = ids;
                   },
-                  searchHint: 'Buscar medicamento...',
+                  searchHint:
+                      'post_registration.health.medicines.search_hint'.tr(),
                   hasNoneOption: true,
-                  noneOptionLabel: 'Ninguno',
+                  noneOptionLabel:
+                      'post_registration.health.medicines.none_option'.tr(),
                 ),
               ),
             ],

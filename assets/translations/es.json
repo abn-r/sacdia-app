@@ -423,6 +423,47 @@
       "phone_required": "El teléfono es requerido",
       "phone_invalid": "Ingresa un teléfono válido de 10 dígitos",
       "save_button": "Guardar Representante Legal"
+    },
+    "health": {
+      "diseases": {
+        "title": "Enfermedades",
+        "refresh_tooltip": "Actualizar",
+        "info_text": "Selecciona todas las enfermedades o condiciones médicas que tengas. Si no tienes ninguna, marca \"Ninguna\".",
+        "registered_label": "Enfermedades registradas",
+        "search_hint": "Buscar enfermedad...",
+        "none_option": "Ninguna",
+        "delete_dialog_title": "Eliminar Enfermedad",
+        "delete_dialog_content": "¿Estás seguro de que deseas eliminar \"{name}\"?",
+        "delete_success": "Enfermedad eliminada correctamente",
+        "delete_error": "Error al eliminar: {error}",
+        "load_error": "Error: {error}"
+      },
+      "medicines": {
+        "title": "Medicamentos",
+        "refresh_tooltip": "Actualizar",
+        "info_text": "Selecciona los medicamentos que tomas regularmente. Si no tomas ninguno, marca \"Ninguno\".",
+        "registered_label": "Medicamentos registrados",
+        "search_hint": "Buscar medicamento...",
+        "none_option": "Ninguno",
+        "delete_dialog_title": "Eliminar Medicamento",
+        "delete_dialog_content": "¿Estás seguro de que deseas eliminar \"{name}\"?",
+        "delete_success": "Medicamento eliminado correctamente",
+        "delete_error": "Error al eliminar: {error}",
+        "load_error": "Error: {error}"
+      },
+      "allergies": {
+        "title": "Alergias",
+        "refresh_tooltip": "Actualizar",
+        "info_text": "Selecciona todas las alergias que tengas. Si no tienes ninguna, marca \"Ninguna\".",
+        "registered_label": "Alergias registradas",
+        "search_hint": "Buscar alergia...",
+        "none_option": "Ninguna",
+        "delete_dialog_title": "Eliminar Alergia",
+        "delete_dialog_content": "¿Estás seguro de que deseas eliminar \"{name}\"?",
+        "delete_success": "Alergia eliminada correctamente",
+        "delete_error": "Error al eliminar: {error}",
+        "load_error": "Error: {error}"
+      }
     }
   },
   "monthly_reports": {
