@@ -448,5 +448,13 @@
       "get_pending": "Error fetching pending investitures",
       "get_history": "Error fetching investiture history"
     }
+  },
+  "annual_folders": {
+    "errors": {
+      "get_folder": "Error fetching annual folder",
+      "upload_evidence": "Error uploading evidence",
+      "delete_evidence": "Error deleting evidence",
+      "submit_folder": "Error submitting folder"
+    }
   }
 }

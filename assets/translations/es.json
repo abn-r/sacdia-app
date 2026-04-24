@@ -448,5 +448,13 @@
       "get_pending": "Error al obtener investiduras pendientes",
       "get_history": "Error al obtener historial de investidura"
     }
+  },
+  "annual_folders": {
+    "errors": {
+      "get_folder": "Error al obtener la carpeta anual",
+      "upload_evidence": "Error al subir la evidencia",
+      "delete_evidence": "Error al eliminar la evidencia",
+      "submit_folder": "Error al enviar la carpeta"
+    }
   }
 }

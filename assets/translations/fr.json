@@ -448,5 +448,13 @@
       "get_pending": "Erreur lors de la récupération des investitures en attente",
       "get_history": "Erreur lors de la récupération de l'historique d'investiture"
     }
+  },
+  "annual_folders": {
+    "errors": {
+      "get_folder": "Erreur lors de la récupération du dossier annuel",
+      "upload_evidence": "Erreur lors de l'envoi de la preuve",
+      "delete_evidence": "Erreur lors de la suppression de la preuve",
+      "submit_folder": "Erreur lors de la soumission du dossier"
+    }
   }
 }

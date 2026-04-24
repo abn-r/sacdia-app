@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -50,12 +51,12 @@ class AnnualFoldersRemoteDataSourceImpl
       if (data is Map) {
         final msg = data['message'];
         if (msg is List) return msg.join(', ');
-        return (msg ?? e.message ?? 'Error de conexion').toString();
+        return (msg ?? e.message ?? tr('common.error_network')).toString();
       }
     } catch (e) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
     }
-    return e.message ?? 'Error de conexion';
+    return e.message ?? tr('common.error_network');
   }
 
   // ── GET /api/v1/annual-folders/enrollment/:enrollmentId ──────────────────
@@ -77,7 +78,7 @@ class AnnualFoldersRemoteDataSourceImpl
       }
 
       throw ServerException(
-          message: 'Error al obtener la carpeta anual',
+          message: tr('annual_folders.errors.get_folder'),
           code: response.statusCode);
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
@@ -118,7 +119,7 @@ class AnnualFoldersRemoteDataSourceImpl
       }
 
       throw ServerException(
-          message: 'Error al subir evidencia',
+          message: tr('annual_folders.errors.upload_evidence'),
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en uploadEvidence', tag: _tag, error: e);
@@ -142,7 +143,7 @@ class AnnualFoldersRemoteDataSourceImpl
       }
 
       throw ServerException(
-          message: 'Error al eliminar evidencia',
+          message: tr('annual_folders.errors.delete_evidence'),
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en deleteEvidence', tag: _tag, error: e);
@@ -168,7 +169,7 @@ class AnnualFoldersRemoteDataSourceImpl
       }
 
       throw ServerException(
-          message: 'Error al enviar la carpeta',
+          message: tr('annual_folders.errors.submit_folder'),
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en submitFolder', tag: _tag, error: e);
