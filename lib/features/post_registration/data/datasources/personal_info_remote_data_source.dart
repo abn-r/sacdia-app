@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../models/emergency_contact_model.dart';
 import '../models/legal_representative_model.dart';
@@ -92,7 +93,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
       AppLogger.d('PATCH /users/$userId ${response.statusCode}', tag: _tag);
     } on DioException catch (e) {
       AppLogger.e('Error PATCH /users/$userId', tag: _tag, error: e.response?.data ?? e.message);
-      throw Exception('Error al actualizar información personal: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.update_personal_info')}: ${e.message}');
     }
   }
 
@@ -113,7 +114,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
           .toList();
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
-      throw Exception('Error al obtener contactos de emergencia: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.fetch_emergency_contacts')}: ${e.message}');
     }
   }
 
@@ -136,7 +137,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
           : response.data as Map<String, dynamic>;
       return EmergencyContactModel.fromJson(responseData);
     } on DioException catch (e) {
-      throw Exception('Error al agregar contacto de emergencia: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.add_emergency_contact')}: ${e.message}');
     }
   }
 
@@ -160,7 +161,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
           : response.data as Map<String, dynamic>;
       return EmergencyContactModel.fromJson(responseData);
     } on DioException catch (e) {
-      throw Exception('Error al actualizar contacto de emergencia: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.update_emergency_contact')}: ${e.message}');
     }
   }
 
@@ -173,7 +174,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
 
       );
     } on DioException catch (e) {
-      throw Exception('Error al eliminar contacto de emergencia: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.delete_emergency_contact')}: ${e.message}');
     }
   }
 
@@ -193,7 +194,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
           .toList();
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
-      throw Exception('Error al obtener tipos de relación: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.fetch_relationship_types')}: ${e.message}');
     }
   }
 
@@ -211,7 +212,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
       return response.data['required'] as bool;
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
-      throw Exception('Error al verificar representante legal: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.verify_legal_representative')}: ${e.message}');
     }
   }
 
@@ -230,7 +231,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
 
       return LegalRepresentativeModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      throw Exception('Error al crear representante legal: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.create_legal_representative')}: ${e.message}');
     }
   }
 
@@ -258,7 +259,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
       if (e.response?.statusCode == 404) return null;
-      throw Exception('Error al obtener representante legal: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.fetch_legal_representative')}: ${e.message}');
     }
   }
 
@@ -277,7 +278,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
 
       return LegalRepresentativeModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      throw Exception('Error al actualizar representante legal: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.update_legal_representative')}: ${e.message}');
     }
   }
 
@@ -297,7 +298,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
           .toList();
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
-      throw Exception('Error al obtener catálogo de alergias: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.fetch_allergies_catalog')}: ${e.message}');
     }
   }
 
@@ -319,7 +320,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
       if (e.response?.statusCode == 404) return [];
-      throw Exception('Error al obtener alergias del usuario: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.fetch_user_allergies')}: ${e.message}');
     }
   }
 
@@ -333,7 +334,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
 
       );
     } on DioException catch (e) {
-      throw Exception('Error al guardar alergias: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.save_allergies')}: ${e.message}');
     }
   }
 
@@ -346,7 +347,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
 
       );
     } on DioException catch (e) {
-      throw Exception('Error al eliminar alergia: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.delete_allergy')}: ${e.message}');
     }
   }
 
@@ -366,7 +367,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
           .toList();
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
-      throw Exception('Error al obtener catálogo de enfermedades: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.fetch_diseases_catalog')}: ${e.message}');
     }
   }
 
@@ -388,7 +389,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
       if (e.response?.statusCode == 404) return [];
-      throw Exception('Error al obtener enfermedades del usuario: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.fetch_user_diseases')}: ${e.message}');
     }
   }
 
@@ -402,7 +403,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
 
       );
     } on DioException catch (e) {
-      throw Exception('Error al guardar enfermedades: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.save_diseases')}: ${e.message}');
     }
   }
 
@@ -415,7 +416,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
 
       );
     } on DioException catch (e) {
-      throw Exception('Error al eliminar enfermedad: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.delete_disease')}: ${e.message}');
     }
   }
 
@@ -435,7 +436,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
           .toList();
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
-      throw Exception('Error al obtener catálogo de medicamentos: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.fetch_medicines_catalog')}: ${e.message}');
     }
   }
 
@@ -457,7 +458,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
       if (e.response?.statusCode == 404) return [];
-      throw Exception('Error al obtener medicamentos del usuario: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.fetch_user_medicines')}: ${e.message}');
     }
   }
 
@@ -471,7 +472,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
 
       );
     } on DioException catch (e) {
-      throw Exception('Error al guardar medicamentos: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.save_medicines')}: ${e.message}');
     }
   }
 
@@ -484,7 +485,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
 
       );
     } on DioException catch (e) {
-      throw Exception('Error al eliminar medicamento: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.delete_medicine')}: ${e.message}');
     }
   }
 
@@ -497,7 +498,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
 
       );
     } on DioException catch (e) {
-      throw Exception('Error al completar paso 2: ${e.message}');
+      throw Exception('${tr('post_registration.personal_info.errors.complete_step_2')}: ${e.message}');
     }
   }
 }

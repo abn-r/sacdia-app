@@ -248,6 +248,33 @@
       "upload_profile_photo": "Error uploading profile photo",
       "delete_profile_photo": "Error deleting profile photo",
       "complete_step_1": "Error completing post-registration step 1"
+    },
+    "personal_info": {
+      "errors": {
+        "update_personal_info": "Error updating personal information",
+        "fetch_emergency_contacts": "Error fetching emergency contacts",
+        "add_emergency_contact": "Error adding emergency contact",
+        "update_emergency_contact": "Error updating emergency contact",
+        "delete_emergency_contact": "Error deleting emergency contact",
+        "fetch_relationship_types": "Error fetching relationship types",
+        "verify_legal_representative": "Error verifying legal representative",
+        "create_legal_representative": "Error creating legal representative",
+        "fetch_legal_representative": "Error fetching legal representative",
+        "update_legal_representative": "Error updating legal representative",
+        "fetch_allergies_catalog": "Error fetching allergies catalog",
+        "fetch_user_allergies": "Error fetching user allergies",
+        "save_allergies": "Error saving allergies",
+        "delete_allergy": "Error deleting allergy",
+        "fetch_diseases_catalog": "Error fetching diseases catalog",
+        "fetch_user_diseases": "Error fetching user diseases",
+        "save_diseases": "Error saving diseases",
+        "delete_disease": "Error deleting disease",
+        "fetch_medicines_catalog": "Error fetching medicines catalog",
+        "fetch_user_medicines": "Error fetching user medicines",
+        "save_medicines": "Error saving medicines",
+        "delete_medicine": "Error deleting medicine",
+        "complete_step_2": "Error completing step 2"
+      }
     }
   }
 }

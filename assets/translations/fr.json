@@ -248,6 +248,33 @@
       "upload_profile_photo": "Erreur lors du téléversement de la photo de profil",
       "delete_profile_photo": "Erreur lors de la suppression de la photo de profil",
       "complete_step_1": "Erreur lors de la finalisation de l'étape 1 du post-inscription"
+    },
+    "personal_info": {
+      "errors": {
+        "update_personal_info": "Erreur lors de la mise à jour des informations personnelles",
+        "fetch_emergency_contacts": "Erreur lors de la récupération des contacts d'urgence",
+        "add_emergency_contact": "Erreur lors de l'ajout du contact d'urgence",
+        "update_emergency_contact": "Erreur lors de la mise à jour du contact d'urgence",
+        "delete_emergency_contact": "Erreur lors de la suppression du contact d'urgence",
+        "fetch_relationship_types": "Erreur lors de la récupération des types de relation",
+        "verify_legal_representative": "Erreur lors de la vérification du représentant légal",
+        "create_legal_representative": "Erreur lors de la création du représentant légal",
+        "fetch_legal_representative": "Erreur lors de la récupération du représentant légal",
+        "update_legal_representative": "Erreur lors de la mise à jour du représentant légal",
+        "fetch_allergies_catalog": "Erreur lors de la récupération du catalogue des allergies",
+        "fetch_user_allergies": "Erreur lors de la récupération des allergies de l'utilisateur",
+        "save_allergies": "Erreur lors de l'enregistrement des allergies",
+        "delete_allergy": "Erreur lors de la suppression de l'allergie",
+        "fetch_diseases_catalog": "Erreur lors de la récupération du catalogue des maladies",
+        "fetch_user_diseases": "Erreur lors de la récupération des maladies de l'utilisateur",
+        "save_diseases": "Erreur lors de l'enregistrement des maladies",
+        "delete_disease": "Erreur lors de la suppression de la maladie",
+        "fetch_medicines_catalog": "Erreur lors de la récupération du catalogue des médicaments",
+        "fetch_user_medicines": "Erreur lors de la récupération des médicaments de l'utilisateur",
+        "save_medicines": "Erreur lors de l'enregistrement des médicaments",
+        "delete_medicine": "Erreur lors de la suppression du médicament",
+        "complete_step_2": "Erreur lors de la finalisation de l'étape 2"
+      }
     }
   }
 }

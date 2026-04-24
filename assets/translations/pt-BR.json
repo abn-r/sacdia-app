@@ -248,6 +248,33 @@
       "upload_profile_photo": "Erro ao enviar foto de perfil",
       "delete_profile_photo": "Erro ao excluir foto de perfil",
       "complete_step_1": "Erro ao concluir a etapa 1 do pós-cadastro"
+    },
+    "personal_info": {
+      "errors": {
+        "update_personal_info": "Erro ao atualizar informações pessoais",
+        "fetch_emergency_contacts": "Erro ao obter contatos de emergência",
+        "add_emergency_contact": "Erro ao adicionar contato de emergência",
+        "update_emergency_contact": "Erro ao atualizar contato de emergência",
+        "delete_emergency_contact": "Erro ao excluir contato de emergência",
+        "fetch_relationship_types": "Erro ao obter tipos de relação",
+        "verify_legal_representative": "Erro ao verificar representante legal",
+        "create_legal_representative": "Erro ao criar representante legal",
+        "fetch_legal_representative": "Erro ao obter representante legal",
+        "update_legal_representative": "Erro ao atualizar representante legal",
+        "fetch_allergies_catalog": "Erro ao obter catálogo de alergias",
+        "fetch_user_allergies": "Erro ao obter alergias do usuário",
+        "save_allergies": "Erro ao salvar alergias",
+        "delete_allergy": "Erro ao excluir alergia",
+        "fetch_diseases_catalog": "Erro ao obter catálogo de doenças",
+        "fetch_user_diseases": "Erro ao obter doenças do usuário",
+        "save_diseases": "Erro ao salvar doenças",
+        "delete_disease": "Erro ao excluir doença",
+        "fetch_medicines_catalog": "Erro ao obter catálogo de medicamentos",
+        "fetch_user_medicines": "Erro ao obter medicamentos do usuário",
+        "save_medicines": "Erro ao salvar medicamentos",
+        "delete_medicine": "Erro ao excluir medicamento",
+        "complete_step_2": "Erro ao concluir etapa 2"
+      }
     }
   }
 }
