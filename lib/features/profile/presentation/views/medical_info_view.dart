@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,14 +29,14 @@ class MedicalInfoView extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Información Médica'),
+        title: Text('profile.medical_info.title'.tr()),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           _MedicalSectionCard(
             icon: HugeIcons.strokeRoundedFirstAidKit,
-            title: 'Alergias',
+            title: 'profile.medical_info.allergies'.tr(),
             iconColor: AppColors.error,
             body: allergiesAsync.when(
               loading: () => const Padding(
@@ -49,7 +50,7 @@ class MedicalInfoView extends ConsumerWidget {
               data: (allergies) {
                 if (allergies.isEmpty) {
                   return Text(
-                    'Sin alergias registradas',
+                    'profile.medical_info.none_allergies'.tr(),
                     style: TextStyle(
                       fontSize: 14,
                       color: c.textTertiary,
@@ -84,7 +85,7 @@ class MedicalInfoView extends ConsumerWidget {
                 );
               },
             ),
-            actionLabel: 'Editar',
+            actionLabel: 'profile.medical_info.action_edit'.tr(),
             onAction: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => const AllergiesSelectionView(),
@@ -96,7 +97,7 @@ class MedicalInfoView extends ConsumerWidget {
 
           _MedicalSectionCard(
             icon: HugeIcons.strokeRoundedHealth,
-            title: 'Enfermedades',
+            title: 'profile.medical_info.diseases'.tr(),
             iconColor: AppColors.accent,
             body: diseasesAsync.when(
               loading: () => const Padding(
@@ -110,7 +111,7 @@ class MedicalInfoView extends ConsumerWidget {
               data: (diseases) {
                 if (diseases.isEmpty) {
                   return Text(
-                    'Sin enfermedades registradas',
+                    'profile.medical_info.none_diseases'.tr(),
                     style: TextStyle(
                       fontSize: 14,
                       color: c.textTertiary,
@@ -145,7 +146,7 @@ class MedicalInfoView extends ConsumerWidget {
                 );
               },
             ),
-            actionLabel: 'Editar',
+            actionLabel: 'profile.medical_info.action_edit'.tr(),
             onAction: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => const DiseasesSelectionView(),
@@ -157,7 +158,7 @@ class MedicalInfoView extends ConsumerWidget {
 
           _MedicalSectionCard(
             icon: HugeIcons.strokeRoundedMedicine01,
-            title: 'Medicamentos',
+            title: 'profile.medical_info.medicines'.tr(),
             iconColor: AppColors.secondary,
             body: medicinesAsync.when(
               loading: () => const Padding(
@@ -171,7 +172,7 @@ class MedicalInfoView extends ConsumerWidget {
               data: (medicines) {
                 if (medicines.isEmpty) {
                   return Text(
-                    'Sin medicamentos registrados',
+                    'profile.medical_info.none_medicines'.tr(),
                     style: TextStyle(
                       fontSize: 14,
                       color: c.textTertiary,
@@ -206,7 +207,7 @@ class MedicalInfoView extends ConsumerWidget {
                 );
               },
             ),
-            actionLabel: 'Editar',
+            actionLabel: 'profile.medical_info.action_edit'.tr(),
             onAction: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => const MedicinesSelectionView(),
@@ -218,7 +219,7 @@ class MedicalInfoView extends ConsumerWidget {
 
           _MedicalSectionCard(
             icon: HugeIcons.strokeRoundedContactBook,
-            title: 'Contactos de Emergencia',
+            title: 'profile.medical_info.emergency_contacts'.tr(),
             iconColor: AppColors.primary,
             body: contactsAsync.when(
               loading: () => const Padding(
@@ -232,7 +233,7 @@ class MedicalInfoView extends ConsumerWidget {
               data: (contacts) {
                 if (contacts.isEmpty) {
                   return Text(
-                    'Sin contactos de emergencia registrados',
+                    'profile.medical_info.none_contacts'.tr(),
                     style: TextStyle(
                       fontSize: 14,
                       color: c.textTertiary,
@@ -294,7 +295,7 @@ class MedicalInfoView extends ConsumerWidget {
                 );
               },
             ),
-            actionLabel: 'Administrar',
+            actionLabel: 'profile.medical_info.action_manage'.tr(),
             onAction: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => const EmergencyContactsView(),
@@ -311,7 +312,7 @@ class MedicalInfoView extends ConsumerWidget {
               if (!isRequired) return const SizedBox.shrink();
               return _MedicalSectionCard(
                 icon: HugeIcons.strokeRoundedUserShield01,
-                title: 'Representante Legal',
+                title: 'profile.medical_info.legal_rep'.tr(),
                 iconColor: AppColors.secondary,
                 body: legalRepAsync.when(
                   loading: () => const Padding(
@@ -325,7 +326,7 @@ class MedicalInfoView extends ConsumerWidget {
                   data: (rep) {
                     if (rep == null) {
                       return Text(
-                        'No registrado',
+                        'profile.medical_info.not_registered'.tr(),
                         style: TextStyle(
                           fontSize: 14,
                           color: c.textTertiary,
@@ -356,7 +357,7 @@ class MedicalInfoView extends ConsumerWidget {
                     );
                   },
                 ),
-                actionLabel: 'Editar',
+                actionLabel: 'profile.medical_info.action_edit'.tr(),
                 onAction: () => Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => const LegalRepresentativeView(),
@@ -485,7 +486,7 @@ class _SectionError extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: Text(
-            'Error al cargar',
+            'profile.medical_info.load_error'.tr(),
             style: TextStyle(
               fontSize: 13,
               color: AppColors.error,
@@ -500,9 +501,9 @@ class _SectionError extends StatelessWidget {
             minimumSize: Size.zero,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-          child: const Text(
-            'Reintentar',
-            style: TextStyle(fontSize: 12),
+          child: Text(
+            'common.retry'.tr(),
+            style: const TextStyle(fontSize: 12),
           ),
         ),
       ],

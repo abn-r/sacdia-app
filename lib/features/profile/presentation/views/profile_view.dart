@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -93,8 +94,8 @@ class _SettingsSheet extends StatelessWidget {
                 children: [
                   SettingTile(
                     icon: HugeIcons.strokeRoundedEdit02,
-                    title: 'Editar perfil',
-                    subtitle: 'Actualiza tu información personal',
+                    title: 'profile.view.edit_profile_title'.tr(),
+                    subtitle: 'profile.view.edit_profile_subtitle'.tr(),
                     iconColor: AppColors.primary,
                     onTap: () {
                       Navigator.pop(context);
@@ -114,8 +115,8 @@ class _SettingsSheet extends StatelessWidget {
                   ),
                   SettingTile(
                     icon: HugeIcons.strokeRoundedFirstAidKit,
-                    title: 'Información Médica',
-                    subtitle: 'Alergias, enfermedades, medicamentos y contactos de emergencia',
+                    title: 'profile.view.medical_info_title'.tr(),
+                    subtitle: 'profile.view.medical_info_subtitle'.tr(),
                     iconColor: AppColors.error,
                     onTap: () {
                       Navigator.pop(context);
@@ -135,8 +136,8 @@ class _SettingsSheet extends StatelessWidget {
                   ),
                   SettingTile(
                     icon: HugeIcons.strokeRoundedSettings01,
-                    title: 'Configuración',
-                    subtitle: 'Tema, notificaciones y más',
+                    title: 'profile.view.settings_tile_title'.tr(),
+                    subtitle: 'profile.view.settings_tile_subtitle'.tr(),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -165,15 +166,15 @@ class _SettingsSheet extends StatelessWidget {
               ),
               child: SettingTile(
                 icon: HugeIcons.strokeRoundedLogout01,
-                title: 'Cerrar sesión',
+                title: 'profile.view.logout_title'.tr(),
                 iconColor: AppColors.error,
                 onTap: () async {
                   Navigator.pop(context);
                   final shouldLogout = await SacDialog.show(
                     context,
-                    title: 'Cerrar sesión',
-                    content: '¿Estás seguro que deseas cerrar sesión?',
-                    confirmLabel: 'Cerrar sesión',
+                    title: 'profile.view.logout_title'.tr(),
+                    content: 'profile.view.logout_confirm'.tr(),
+                    confirmLabel: 'profile.view.logout_confirm_action'.tr(),
                     confirmIsDestructive: true,
                   );
 
@@ -228,14 +229,14 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         compressQuality: 70,
         uiSettings: [
           AndroidUiSettings(
-            toolbarTitle: 'Recortar foto',
+            toolbarTitle: 'profile.view.crop_photo_title'.tr(),
             toolbarColor: AppColors.primary,
             toolbarWidgetColor: Colors.white,
             lockAspectRatio: true,
             hideBottomControls: false,
           ),
           IOSUiSettings(
-            title: 'Recortar foto',
+            title: 'profile.view.crop_photo_title'.tr(),
             aspectRatioLockEnabled: true,
             resetAspectRatioEnabled: false,
           ),
@@ -259,7 +260,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: const Text('No se pudo subir la foto. Intentá de nuevo.'),
+                  content: Text('profile.view.photo_upload_error'.tr()),
                   backgroundColor: AppColors.error,
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
@@ -275,7 +276,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               ref.invalidate(authNotifierProvider);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: const Text('Foto actualizada correctamente'),
+                  content: Text('profile.view.photo_upload_success'.tr()),
                   backgroundColor: AppColors.secondary,
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
@@ -297,7 +298,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         setState(() => _isUploadingPhoto = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('No se pudo subir la foto. Intentá de nuevo.'),
+            content: Text('profile.view.photo_upload_error'.tr()),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -329,7 +330,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             if (profile == null) {
               return Center(
                 child: Text(
-                  'No se pudo cargar el perfil',
+                  'profile.view.load_profile_error'.tr(),
                   style: TextStyle(
                     fontSize: 16,
                     color: c.textSecondary,
@@ -390,7 +391,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Error al cargar el perfil',
+                    'profile.view.load_error'.tr(),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: c.text,
@@ -408,7 +409,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   ),
                   const SizedBox(height: 24),
                   SacButton.primary(
-                    text: 'Reintentar',
+                    text: 'common.retry'.tr(),
                     icon: HugeIcons.strokeRoundedRefresh,
                     onPressed: () {
                       ref.read(profileNotifierProvider.notifier).refresh();
@@ -489,7 +490,7 @@ class _ProfileScrollBody extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Perfil de usuario',
+                        'profile.view.user_profile'.tr(),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -508,7 +509,7 @@ class _ProfileScrollBody extends StatelessWidget {
                       size: 24,
                     ),
                     onPressed: onSettings,
-                    tooltip: 'Ajustes',
+                    tooltip: 'profile.view.settings_tooltip'.tr(),
                   ),
                 ],
               ),
@@ -556,7 +557,7 @@ class _ProfileScrollBody extends StatelessWidget {
                   ],
 
                   // ── 5. Clases Progresivas ─────────────────────────
-                  _SectionLabel(label: 'Clases Progresivas'),
+                  _SectionLabel(label: 'profile.view.section_progressive_classes'.tr()),
                   const SizedBox(height: 8),
                   Container(
                     decoration: BoxDecoration(
@@ -585,7 +586,7 @@ class _ProfileScrollBody extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  _SectionLabel(label: 'Mis Clases'),
+                  _SectionLabel(label: 'profile.view.section_my_classes'.tr()),
                   GestureDetector(
                     onTap: onRefreshClasses,
                     child: Container(
@@ -623,7 +624,7 @@ class _ProfileScrollBody extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  _SectionLabel(label: 'Especialidades'),
+                  _SectionLabel(label: 'profile.view.section_honors'.tr()),
                   Row(
                     children: [
                       // Add honor button
@@ -687,7 +688,7 @@ class _ProfileScrollBody extends StatelessWidget {
             // ── 7. Logros ─────────────────────────────────────────
             Padding(
               padding: EdgeInsets.symmetric(horizontal: hPad),
-              child: _SectionLabel(label: 'Logros'),
+              child: _SectionLabel(label: 'profile.view.section_achievements'.tr()),
             ),
             const SizedBox(height: 8),
             Padding(
@@ -928,7 +929,7 @@ class _ProfileHeaderCard extends StatelessWidget {
                           if (clubName != null) ...[
                             _MetaRow(
                               icon: HugeIcons.strokeRoundedUserGroup,
-                              text: 'Club: $clubName',
+                              text: 'profile.view.club_label'.tr(namedArgs: {'name': clubName!}),
                             ),
                             const SizedBox(height: 6),
                           ],
@@ -937,7 +938,7 @@ class _ProfileHeaderCard extends StatelessWidget {
                           if (clubType != null) ...[
                             _MetaRow(
                               icon: HugeIcons.strokeRoundedGridView,
-                              text: 'Tipo: $clubType',
+                              text: 'profile.view.type_label'.tr(namedArgs: {'type': clubType!}),
                             ),
                             const SizedBox(height: 6),
                           ],
@@ -946,7 +947,7 @@ class _ProfileHeaderCard extends StatelessWidget {
                           if (roleLabel != null) ...[
                             _MetaRow(
                               icon: HugeIcons.strokeRoundedLabel,
-                              text: 'Rol: $roleLabel',
+                              text: 'profile.view.role_label'.tr(namedArgs: {'role': roleLabel}),
                             ),
                             const SizedBox(height: 6),
                           ],
@@ -955,7 +956,7 @@ class _ProfileHeaderCard extends StatelessWidget {
                           if (currentClass != null) ...[
                             _MetaRow(
                               icon: HugeIcons.strokeRoundedSchool,
-                              text: 'Clase: $currentClass',
+                              text: 'profile.view.class_label'.tr(namedArgs: {'name': currentClass!}),
                             ),
                             const SizedBox(height: 6),
                           ],
@@ -1082,7 +1083,7 @@ class _ProfileHeaderCard extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: SacButton.primary(
-                    text: 'Actualizar perfil',
+                    text: 'profile.view.update_profile'.tr(),
                     icon: HugeIcons.strokeRoundedEdit02,
                     onPressed: onEditProfile,
                   ),
