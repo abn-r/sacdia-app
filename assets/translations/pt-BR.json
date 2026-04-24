@@ -287,7 +287,73 @@
         "save_medicines": "Erro ao salvar medicamentos",
         "delete_medicine": "Erro ao excluir medicamento",
         "complete_step_2": "Erro ao concluir etapa 2"
+      },
+      "title": "Conte-nos sobre você",
+      "subtitle": "Essas informações ajudam seu clube a cuidar melhor de você",
+      "admin_restricted_notice": "Seu acesso atual só permite a conclusão administrativa mínima. Os dados sensíveis do usuário não são exibidos.",
+      "basic_data": {
+        "section_title": "Dados básicos"
+      },
+      "gender": {
+        "label": "Gênero",
+        "male": "Masculino",
+        "female": "Feminino"
+      },
+      "birth": {
+        "label": "Data de nascimento",
+        "date_picker_help": "Selecione sua data de nascimento",
+        "select_date": "Selecionar data"
+      },
+      "baptism": {
+        "toggle_label": "Você foi batizado?",
+        "label": "Data de batismo",
+        "date_picker_help": "Selecione sua data de batismo"
+      },
+      "emergency_contacts": {
+        "section_title": "Contatos de emergência",
+        "hint": "Registre pelo menos um contato de emergência",
+        "empty": "Nenhum contato registrado",
+        "required_hint": "Obrigatório: pelo menos 1"
+      },
+      "legal_representative": {
+        "section_title": "Representante legal",
+        "minor_notice": "Você é menor de 18 anos, precisa registrar um representante legal.",
+        "empty": "Nenhum representante registrado"
+      },
+      "health": {
+        "section_title": "Informações médicas",
+        "optional": "Opcional",
+        "allergies_empty": "Alergias",
+        "diseases_empty": "Doenças",
+        "medicines_empty": "Medicamentos"
+      },
+      "validation": {
+        "complete_required": "Preencha os campos obrigatórios para continuar"
+      },
+      "date": {
+        "cancel": "Cancelar",
+        "confirm": "OK"
       }
+    },
+    "shell": {
+      "title": "Completar perfil",
+      "logout_tooltip": "Sair",
+      "step_counter": "{current} de {total}",
+      "logout_dialog_title": "Sair da conta?",
+      "logout_dialog_body": "Se sair agora, você precisará completar este processo quando entrar novamente.",
+      "logout_dialog_confirm": "Sair",
+      "error_step_failed": "Não foi possível concluir esta etapa. Por favor, tente novamente.",
+      "error_logout_failed": "Não foi possível sair. Tente novamente."
+    },
+    "navigation": {
+      "back": "Voltar",
+      "next": "Continuar",
+      "finish": "Finalizar"
+    },
+    "steps": {
+      "photo": "Foto",
+      "data": "Dados",
+      "club": "Clube"
     }
   },
   "monthly_reports": {

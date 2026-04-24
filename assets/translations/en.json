@@ -287,7 +287,73 @@
         "save_medicines": "Error saving medicines",
         "delete_medicine": "Error deleting medicine",
         "complete_step_2": "Error completing step 2"
+      },
+      "title": "Tell us about yourself",
+      "subtitle": "This information helps your club take better care of you",
+      "admin_restricted_notice": "Your current access only allows minimum administrative completion. Sensitive user data is not displayed.",
+      "basic_data": {
+        "section_title": "Basic information"
+      },
+      "gender": {
+        "label": "Gender",
+        "male": "Male",
+        "female": "Female"
+      },
+      "birth": {
+        "label": "Date of birth",
+        "date_picker_help": "Select your date of birth",
+        "select_date": "Select date"
+      },
+      "baptism": {
+        "toggle_label": "Are you baptized?",
+        "label": "Baptism date",
+        "date_picker_help": "Select your baptism date"
+      },
+      "emergency_contacts": {
+        "section_title": "Emergency contacts",
+        "hint": "Add at least one emergency contact",
+        "empty": "No contacts registered",
+        "required_hint": "Required: at least 1"
+      },
+      "legal_representative": {
+        "section_title": "Legal representative",
+        "minor_notice": "You are under 18 years old, you need to register a legal representative.",
+        "empty": "No representative registered"
+      },
+      "health": {
+        "section_title": "Medical information",
+        "optional": "Optional",
+        "allergies_empty": "Allergies",
+        "diseases_empty": "Diseases",
+        "medicines_empty": "Medications"
+      },
+      "validation": {
+        "complete_required": "Complete the required fields to continue"
+      },
+      "date": {
+        "cancel": "Cancel",
+        "confirm": "OK"
       }
+    },
+    "shell": {
+      "title": "Complete profile",
+      "logout_tooltip": "Sign out",
+      "step_counter": "{current} of {total}",
+      "logout_dialog_title": "Sign out?",
+      "logout_dialog_body": "If you sign out now, you will need to complete this process when you sign in again.",
+      "logout_dialog_confirm": "Sign out",
+      "error_step_failed": "Could not complete this step. Please try again.",
+      "error_logout_failed": "Could not sign out. Please try again."
+    },
+    "navigation": {
+      "back": "Back",
+      "next": "Continue",
+      "finish": "Finish"
+    },
+    "steps": {
+      "photo": "Photo",
+      "data": "Info",
+      "club": "Club"
     }
   },
   "monthly_reports": {

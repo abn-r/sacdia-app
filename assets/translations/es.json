@@ -287,7 +287,73 @@
         "save_medicines": "Error al guardar medicamentos",
         "delete_medicine": "Error al eliminar medicamento",
         "complete_step_2": "Error al completar paso 2"
+      },
+      "title": "Contanos sobre vos",
+      "subtitle": "Esta información ayuda a tu club a cuidarte mejor",
+      "admin_restricted_notice": "Tu acceso actual solo permite completar la etapa de manera administrativa mínima. Los datos sensibles del usuario no se muestran.",
+      "basic_data": {
+        "section_title": "Datos básicos"
+      },
+      "gender": {
+        "label": "Género",
+        "male": "Masculino",
+        "female": "Femenino"
+      },
+      "birth": {
+        "label": "Fecha de nacimiento",
+        "date_picker_help": "Seleccioná tu fecha de nacimiento",
+        "select_date": "Seleccionar fecha"
+      },
+      "baptism": {
+        "toggle_label": "¿Estás bautizado?",
+        "label": "Fecha de bautismo",
+        "date_picker_help": "Seleccioná tu fecha de bautismo"
+      },
+      "emergency_contacts": {
+        "section_title": "Contactos de emergencia",
+        "hint": "Registrá al menos un contacto de emergencia",
+        "empty": "Sin contactos registrados",
+        "required_hint": "Requerido: al menos 1"
+      },
+      "legal_representative": {
+        "section_title": "Representante legal",
+        "minor_notice": "Sos menor de 18 años, necesitás registrar un representante legal.",
+        "empty": "Sin representante registrado"
+      },
+      "health": {
+        "section_title": "Información médica",
+        "optional": "Opcional",
+        "allergies_empty": "Alergias",
+        "diseases_empty": "Enfermedades",
+        "medicines_empty": "Medicamentos"
+      },
+      "validation": {
+        "complete_required": "Completá los campos requeridos para continuar"
+      },
+      "date": {
+        "cancel": "Cancelar",
+        "confirm": "Aceptar"
       }
+    },
+    "shell": {
+      "title": "Completar perfil",
+      "logout_tooltip": "Cerrar sesión",
+      "step_counter": "{current} de {total}",
+      "logout_dialog_title": "¿Cerrar sesión?",
+      "logout_dialog_body": "Si cerrás sesión ahora, deberás completar este proceso cuando vuelvas a ingresar.",
+      "logout_dialog_confirm": "Cerrar sesión",
+      "error_step_failed": "No se pudo completar este paso. Por favor intentá de nuevo.",
+      "error_logout_failed": "No se pudo cerrar la sesión. Intenta de nuevo."
+    },
+    "navigation": {
+      "back": "Atrás",
+      "next": "Continuar",
+      "finish": "Finalizar"
+    },
+    "steps": {
+      "photo": "Foto",
+      "data": "Datos",
+      "club": "Club"
     }
   },
   "monthly_reports": {

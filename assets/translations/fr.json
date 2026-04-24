@@ -287,7 +287,73 @@
         "save_medicines": "Erreur lors de l'enregistrement des médicaments",
         "delete_medicine": "Erreur lors de la suppression du médicament",
         "complete_step_2": "Erreur lors de la finalisation de l'étape 2"
+      },
+      "title": "Parlez-nous de vous",
+      "subtitle": "Ces informations aident votre club à mieux prendre soin de vous",
+      "admin_restricted_notice": "Votre accès actuel ne permet que la complétion administrative minimale. Les données sensibles de l’utilisateur ne sont pas affichées.",
+      "basic_data": {
+        "section_title": "Informations de base"
+      },
+      "gender": {
+        "label": "Genre",
+        "male": "Masculin",
+        "female": "Féminin"
+      },
+      "birth": {
+        "label": "Date de naissance",
+        "date_picker_help": "Sélectionnez votre date de naissance",
+        "select_date": "Sélectionner une date"
+      },
+      "baptism": {
+        "toggle_label": "Êtes-vous baptisé ?",
+        "label": "Date de baptême",
+        "date_picker_help": "Sélectionnez votre date de baptême"
+      },
+      "emergency_contacts": {
+        "section_title": "Contacts d’urgence",
+        "hint": "Enregistrez au moins un contact d’urgence",
+        "empty": "Aucun contact enregistré",
+        "required_hint": "Requis : au moins 1"
+      },
+      "legal_representative": {
+        "section_title": "Représentant légal",
+        "minor_notice": "Vous avez moins de 18 ans, vous devez enregistrer un représentant légal.",
+        "empty": "Aucun représentant enregistré"
+      },
+      "health": {
+        "section_title": "Informations médicales",
+        "optional": "Facultatif",
+        "allergies_empty": "Allergies",
+        "diseases_empty": "Maladies",
+        "medicines_empty": "Médicaments"
+      },
+      "validation": {
+        "complete_required": "Complétez les champs obligatoires pour continuer"
+      },
+      "date": {
+        "cancel": "Annuler",
+        "confirm": "OK"
       }
+    },
+    "shell": {
+      "title": "Compléter le profil",
+      "logout_tooltip": "Se déconnecter",
+      "step_counter": "{current} sur {total}",
+      "logout_dialog_title": "Se déconnecter ?",
+      "logout_dialog_body": "Si vous vous déconnectez maintenant, vous devrez compléter ce processus lors de votre prochaine connexion.",
+      "logout_dialog_confirm": "Se déconnecter",
+      "error_step_failed": "Impossible de terminer cette étape. Veuillez réessayer.",
+      "error_logout_failed": "Impossible de se déconnecter. Veuillez réessayer."
+    },
+    "navigation": {
+      "back": "Précédent",
+      "next": "Continuer",
+      "finish": "Terminer"
+    },
+    "steps": {
+      "photo": "Photo",
+      "data": "Infos",
+      "club": "Club"
     }
   },
   "monthly_reports": {

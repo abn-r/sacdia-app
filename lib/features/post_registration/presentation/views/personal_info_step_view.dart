@@ -1,9 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
@@ -86,12 +86,12 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
 
           // Title
           Text(
-            'Cuéntanos sobre ti',
+            tr('post_registration.personal_info.title'),
             style: titleStyle,
           ),
           const SizedBox(height: 8),
           Text(
-            'Esta información ayuda a tu club a cuidarte mejor',
+            tr('post_registration.personal_info.subtitle'),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: context.sac.textSecondary,
                 ),
@@ -114,7 +114,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Tu acceso actual solo permite completion administrativa mínima. Los datos sensibles del usuario no se muestran.',
+                      tr('post_registration.personal_info.admin_restricted_notice'),
                       style: TextStyle(
                         fontSize: 13,
                         color: AppColors.accentDark,
@@ -140,13 +140,13 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
             // === Section 1: Basic Data ===
             _SectionHeader(
               icon: HugeIcons.strokeRoundedUser,
-              title: 'Datos básicos',
+              title: tr('post_registration.personal_info.basic_data.section_title'),
               isCompleted:
                   formState.gender != null && formState.birthdate != null,
             ),
             const SizedBox(height: 12),
             Text(
-              'Género',
+              tr('post_registration.personal_info.gender.label'),
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: context.sac.textSecondary,
                   ),
@@ -155,7 +155,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
             Row(
               children: [
                 _GenderChip(
-                  label: 'Masculino',
+                  label: tr('post_registration.personal_info.gender.male'),
                   icon: HugeIcons.strokeRoundedUser,
                   isSelected: formState.gender == 'M',
                   onTap: () {
@@ -165,7 +165,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                 ),
                 const SizedBox(width: 12),
                 _GenderChip(
-                  label: 'Femenino',
+                  label: tr('post_registration.personal_info.gender.female'),
                   icon: HugeIcons.strokeRoundedUser,
                   isSelected: formState.gender == 'F',
                   onTap: () {
@@ -177,7 +177,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
             ),
             const SizedBox(height: 20),
             _DatePickerCard(
-              label: 'Fecha de nacimiento',
+              label: tr('post_registration.personal_info.birth.label'),
               icon: HugeIcons.strokeRoundedBirthdayCake,
               date: formState.birthdate,
               onTap: () => _selectBirthdate(context),
@@ -186,9 +186,9 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
             SacCard(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: SwitchListTile(
-                title: const Text(
-                  '¿Estás bautizado?',
-                  style: TextStyle(
+                title: Text(
+                  tr('post_registration.personal_info.baptism.toggle_label'),
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                   ),
@@ -209,7 +209,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
             if (formState.baptized) ...[
               const SizedBox(height: 12),
               _DatePickerCard(
-                label: 'Fecha de bautismo',
+                label: tr('post_registration.personal_info.baptism.label'),
                 icon: HugeIcons.strokeRoundedBlood,
                 date: formState.baptismDate,
                 onTap: () => _selectBaptismDate(context),
@@ -222,13 +222,13 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
             // === Section 2: Emergency Contacts ===
             _SectionHeader(
               icon: HugeIcons.strokeRoundedCall02,
-              title: 'Contactos de emergencia',
+              title: tr('post_registration.personal_info.emergency_contacts.section_title'),
               isCompleted: contactsAsync.hasValue &&
                   (contactsAsync.value?.isNotEmpty ?? false),
             ),
             const SizedBox(height: 8),
             Text(
-              'Registra al menos un contacto de emergencia',
+              tr('post_registration.personal_info.emergency_contacts.hint'),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: context.sac.textTertiary,
                   ),
@@ -272,7 +272,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                         children: [
                           Text(
                             contacts.isEmpty
-                                ? 'Sin contactos registrados'
+                                ? tr('post_registration.personal_info.emergency_contacts.empty')
                                 : '${contacts.length} contacto(s)',
                             style: const TextStyle(
                               fontSize: 15,
@@ -280,9 +280,9 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                             ),
                           ),
                           if (contacts.isEmpty)
-                            const Text(
-                              'Requerido: al menos 1',
-                              style: TextStyle(
+                            Text(
+                              tr('post_registration.personal_info.emergency_contacts.required_hint'),
+                              style: const TextStyle(
                                 fontSize: 12,
                                 color: AppColors.accent,
                               ),
@@ -313,7 +313,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                   children: [
                     _SectionHeader(
                       icon: HugeIcons.strokeRoundedUserGroup,
-                      title: 'Representante legal',
+                      title: tr('post_registration.personal_info.legal_representative.section_title'),
                       isCompleted:
                           legalRepAsync.hasValue && legalRepAsync.value != null,
                     ),
@@ -331,7 +331,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Eres menor de 18 años, necesitas registrar un representante legal.',
+                              tr('post_registration.personal_info.legal_representative.minor_notice'),
                               style: TextStyle(
                                 fontSize: 13,
                                 color: AppColors.accentDark,
@@ -379,7 +379,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                               child: Text(
                                 rep != null
                                     ? rep.fullName
-                                    : 'Sin representante registrado',
+                                    : tr('post_registration.personal_info.legal_representative.empty'),
                                 style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w500,
@@ -404,8 +404,8 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
             // === Section 3: Medical Info ===
             _SectionHeader(
               icon: HugeIcons.strokeRoundedFirstAidKit,
-              title: 'Información médica',
-              subtitle: 'Opcional',
+              title: tr('post_registration.personal_info.health.section_title'),
+              subtitle: tr('post_registration.personal_info.health.optional'),
               isCompleted:
                   selectedAllergies.isNotEmpty || selectedDiseases.isNotEmpty || selectedMedicines.isNotEmpty,
             ),
@@ -437,7 +437,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                   Expanded(
                     child: Text(
                       selectedAllergies.isEmpty
-                          ? 'Alergias'
+                          ? tr('post_registration.personal_info.health.allergies_empty')
                           : '${selectedAllergies.length} alergia(s)',
                       style: const TextStyle(
                         fontSize: 15,
@@ -480,7 +480,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                   Expanded(
                     child: Text(
                       selectedDiseases.isEmpty
-                          ? 'Enfermedades'
+                          ? tr('post_registration.personal_info.health.diseases_empty')
                           : '${selectedDiseases.length} enfermedad(es)',
                       style: const TextStyle(
                         fontSize: 15,
@@ -523,7 +523,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                   Expanded(
                     child: Text(
                       selectedMedicines.isEmpty
-                          ? 'Medicamentos'
+                          ? tr('post_registration.personal_info.health.medicines_empty')
                           : '${selectedMedicines.length} medicamento(s)',
                       style: const TextStyle(
                         fontSize: 15,
@@ -556,7 +556,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Completa los campos requeridos para continuar',
+                      tr('post_registration.personal_info.validation.complete_required'),
                       style: TextStyle(
                         fontSize: 13,
                         color: AppColors.accentDark,
@@ -584,9 +584,9 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
       initialDate: initialDate,
       firstDate: minDate,
       lastDate: maxDate,
-      helpText: 'Selecciona tu fecha de nacimiento',
-      cancelText: 'Cancelar',
-      confirmText: 'Aceptar',
+      helpText: tr('post_registration.personal_info.birth.date_picker_help'),
+      cancelText: tr('post_registration.personal_info.date.cancel'),
+      confirmText: tr('post_registration.personal_info.date.confirm'),
     );
     if (picked != null) {
       ref.read(personalInfoFormProvider.notifier).state =
@@ -604,9 +604,9 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
       initialDate: initialDate,
       firstDate: birthdate ?? DateTime(1900),
       lastDate: now,
-      helpText: 'Selecciona tu fecha de bautismo',
-      cancelText: 'Cancelar',
-      confirmText: 'Aceptar',
+      helpText: tr('post_registration.personal_info.baptism.date_picker_help'),
+      cancelText: tr('post_registration.personal_info.date.cancel'),
+      confirmText: tr('post_registration.personal_info.date.confirm'),
     );
     if (picked != null) {
       ref.read(personalInfoFormProvider.notifier).state =
@@ -823,7 +823,7 @@ class _DatePickerCard extends StatelessWidget {
                 Text(
                   date != null
                       ? DateFormat('yyyy-MM-dd').format(date!)
-                      : 'Seleccionar fecha',
+                      : tr('post_registration.personal_info.birth.select_date'),
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,

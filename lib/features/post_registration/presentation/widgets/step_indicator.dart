@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -19,11 +20,18 @@ class StepIndicator extends StatelessWidget {
     super.key,
     required this.totalSteps,
     required this.currentStep,
-    this.labels = const ['Foto', 'Datos', 'Club'],
+    this.labels = const [],
   });
 
   @override
   Widget build(BuildContext context) {
+    final resolvedLabels = labels.isNotEmpty
+        ? labels
+        : [
+            tr('post_registration.steps.photo'),
+            tr('post_registration.steps.data'),
+            tr('post_registration.steps.club'),
+          ];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
       child: Row(
@@ -51,7 +59,7 @@ class StepIndicator extends StatelessWidget {
           final isActive = stepNumber == currentStep;
           final isCompleted = stepNumber < currentStep;
           final label =
-              stepNumber <= labels.length ? labels[stepNumber - 1] : '';
+              stepNumber <= resolvedLabels.length ? resolvedLabels[stepNumber - 1] : '';
 
           return Column(
             mainAxisSize: MainAxisSize.min,

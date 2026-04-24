@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -52,7 +53,7 @@ class BottomNavigationButtons extends StatelessWidget {
                   Expanded(
                     flex: 2,
                     child: SacButton.outline(
-                      text: 'Atrás',
+                      text: tr('post_registration.navigation.back'),
                       onPressed: isLoading ? null : onBack,
                       icon: HugeIcons.strokeRoundedArrowLeft01,
                     ),
@@ -64,7 +65,7 @@ class BottomNavigationButtons extends StatelessWidget {
                 Expanded(
                   flex: showBack ? 3 : 1,
                   child: SacButton.primary(
-                    text: isLastStep ? 'Finalizar' : 'Continuar',
+                    text: isLastStep ? tr('post_registration.navigation.finish') : tr('post_registration.navigation.next'),
                     isLoading: isLoading,
                     isEnabled: canContinue,
                     onPressed: canContinue ? onContinue : null,
