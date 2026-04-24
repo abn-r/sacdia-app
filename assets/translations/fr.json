@@ -408,5 +408,15 @@
       "get_signed_url": "Erreur lors de la récupération de l'URL de téléchargement",
       "get_categories": "Erreur lors de la récupération des catégories"
     }
+  },
+  "inventory": {
+    "errors": {
+      "get_categories": "Erreur lors de la récupération des catégories d'inventaire",
+      "get_items": "Erreur lors de la récupération de l'inventaire",
+      "get_item": "Erreur lors de la récupération de l'article",
+      "create_item": "Erreur lors de la création de l'article",
+      "update_item": "Erreur lors de la mise à jour de l'article",
+      "delete_item": "Erreur lors de la suppression de l'article"
+    }
   }
 }

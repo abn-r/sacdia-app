@@ -408,5 +408,15 @@
       "get_signed_url": "Error al obtener URL de descarga",
       "get_categories": "Error al obtener categorías"
     }
+  },
+  "inventory": {
+    "errors": {
+      "get_categories": "Error al obtener categorías de inventario",
+      "get_items": "Error al obtener el inventario",
+      "get_item": "Error al obtener el ítem",
+      "create_item": "Error al crear el ítem",
+      "update_item": "Error al actualizar el ítem",
+      "delete_item": "Error al eliminar el ítem"
+    }
   }
 }

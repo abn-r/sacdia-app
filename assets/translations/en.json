@@ -408,5 +408,15 @@
       "get_signed_url": "Error fetching download URL",
       "get_categories": "Error fetching categories"
     }
+  },
+  "inventory": {
+    "errors": {
+      "get_categories": "Error fetching inventory categories",
+      "get_items": "Error fetching inventory",
+      "get_item": "Error fetching item",
+      "create_item": "Error creating item",
+      "update_item": "Error updating item",
+      "delete_item": "Error deleting item"
+    }
   }
 }
