@@ -113,7 +113,11 @@
     "torch_tooltip": "Torch",
     "switch_camera_tooltip": "Switch camera",
     "generation_error_title": "Could not generate QR",
-    "idle_hint": "Rotates when you tap the button"
+    "idle_hint": "Rotates when you tap the button",
+    "errors": {
+      "empty_qr_response": "Empty response from QR server",
+      "empty_response": "Empty response from server"
+    }
   },
   "support": {
     "title": "Help and support",

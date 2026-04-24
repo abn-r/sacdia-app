@@ -113,7 +113,11 @@
     "torch_tooltip": "Torche",
     "switch_camera_tooltip": "Changer de caméra",
     "generation_error_title": "Impossible de générer le QR",
-    "idle_hint": "Il est renouvelé lorsque vous appuyez sur le bouton"
+    "idle_hint": "Il est renouvelé lorsque vous appuyez sur le bouton",
+    "errors": {
+      "empty_qr_response": "Réponse vide du serveur QR",
+      "empty_response": "Réponse vide du serveur"
+    }
   },
   "support": {
     "title": "Aide et support",

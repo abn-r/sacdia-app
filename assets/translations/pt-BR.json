@@ -113,7 +113,11 @@
     "torch_tooltip": "Lanterna",
     "switch_camera_tooltip": "Alternar câmera",
     "generation_error_title": "Não foi possível gerar o QR",
-    "idle_hint": "É rotacionado ao tocar no botão"
+    "idle_hint": "É rotacionado ao tocar no botão",
+    "errors": {
+      "empty_qr_response": "Resposta vazia do servidor QR",
+      "empty_response": "Resposta vazia do servidor"
+    }
   },
   "support": {
     "title": "Ajuda e suporte",

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -37,7 +38,7 @@ class QrRemoteDataSourceImpl implements QrRemoteDataSource {
       );
       final data = response.data;
       if (data == null) {
-        throw ServerException(message: 'Respuesta vacia del servidor QR');
+        throw ServerException(message: tr('qr.errors.empty_qr_response'));
       }
       return QrMemberTokenModel.fromJson(data);
     } on DioException catch (e) {
@@ -65,7 +66,7 @@ class QrRemoteDataSourceImpl implements QrRemoteDataSource {
       );
       final data = response.data;
       if (data == null) {
-        throw ServerException(message: 'Respuesta vacia del servidor');
+        throw ServerException(message: tr('qr.errors.empty_response'));
       }
       return QrScanResultModel.fromJson(data);
     } on DioException catch (e) {
@@ -81,6 +82,6 @@ class QrRemoteDataSourceImpl implements QrRemoteDataSource {
     if (data is Map && data['message'] != null) {
       return data['message'].toString();
     }
-    return e.message ?? 'Error de conexion';
+    return e.message ?? tr('common.error_network');
   }
 }

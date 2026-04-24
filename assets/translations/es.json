@@ -113,7 +113,11 @@
     "torch_tooltip": "Linterna",
     "switch_camera_tooltip": "Cambiar cámara",
     "generation_error_title": "No se pudo generar el QR",
-    "idle_hint": "Se rota al tocar el botón"
+    "idle_hint": "Se rota al tocar el botón",
+    "errors": {
+      "empty_qr_response": "Respuesta vacía del servidor QR",
+      "empty_response": "Respuesta vacía del servidor"
+    }
   },
   "support": {
     "title": "Ayuda y soporte",
