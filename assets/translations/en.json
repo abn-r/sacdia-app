@@ -217,5 +217,18 @@
       "fetch_requirement_evidences": "Error fetching requirement evidences",
       "delete_requirement_evidence": "Error deleting requirement evidence"
     }
+  },
+  "activities": {
+    "errors": {
+      "fetch_list": "Error fetching activities",
+      "fetch_one": "Error fetching activity",
+      "fetch_attendance": "Error fetching attendance",
+      "create": "Error creating activity",
+      "update": "Error updating activity",
+      "delete": "Error deleting activity",
+      "register_attendance": "Error registering attendance",
+      "upload_image": "Error uploading activity image",
+      "fetch_club_sections": "Error fetching club sections"
+    }
   }
 }

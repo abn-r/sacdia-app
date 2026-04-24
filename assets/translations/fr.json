@@ -217,5 +217,18 @@
       "fetch_requirement_evidences": "Erreur lors de la récupération des preuves de l'exigence",
       "delete_requirement_evidence": "Erreur lors de la suppression de la preuve de l'exigence"
     }
+  },
+  "activities": {
+    "errors": {
+      "fetch_list": "Erreur lors de la récupération des activités",
+      "fetch_one": "Erreur lors de la récupération de l'activité",
+      "fetch_attendance": "Erreur lors de la récupération de la présence",
+      "create": "Erreur lors de la création de l'activité",
+      "update": "Erreur lors de la mise à jour de l'activité",
+      "delete": "Erreur lors de la suppression de l'activité",
+      "register_attendance": "Erreur lors de l'enregistrement de la présence",
+      "upload_image": "Erreur lors du téléversement de l'image de l'activité",
+      "fetch_club_sections": "Erreur lors de la récupération des sections du club"
+    }
   }
 }

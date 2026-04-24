@@ -217,5 +217,18 @@
       "fetch_requirement_evidences": "Error al obtener evidencias del requisito",
       "delete_requirement_evidence": "Error al eliminar evidencia del requisito"
     }
+  },
+  "activities": {
+    "errors": {
+      "fetch_list": "Error al obtener actividades",
+      "fetch_one": "Error al obtener actividad",
+      "fetch_attendance": "Error al obtener asistencia",
+      "create": "Error al crear actividad",
+      "update": "Error al actualizar actividad",
+      "delete": "Error al eliminar actividad",
+      "register_attendance": "Error al registrar asistencia",
+      "upload_image": "Error al subir imagen de actividad",
+      "fetch_club_sections": "Error al obtener secciones del club"
+    }
   }
 }
