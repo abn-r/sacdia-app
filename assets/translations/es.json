@@ -230,5 +230,18 @@
       "upload_image": "Error al subir imagen de actividad",
       "fetch_club_sections": "Error al obtener secciones del club"
     }
+  },
+  "post_registration": {
+    "club_selection": {
+      "errors": {
+        "fetch_countries": "Error al obtener países",
+        "fetch_unions": "Error al obtener uniones",
+        "fetch_local_fields": "Error al obtener campos locales",
+        "fetch_clubs": "Error al obtener clubes",
+        "fetch_club_sections": "Error al obtener secciones de club",
+        "fetch_classes": "Error al obtener clases",
+        "complete_step_3": "Error al completar el paso 3 del post-registro"
+      }
+    }
   }
 }

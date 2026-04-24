@@ -230,5 +230,18 @@
       "upload_image": "Error uploading activity image",
       "fetch_club_sections": "Error fetching club sections"
     }
+  },
+  "post_registration": {
+    "club_selection": {
+      "errors": {
+        "fetch_countries": "Error fetching countries",
+        "fetch_unions": "Error fetching unions",
+        "fetch_local_fields": "Error fetching local fields",
+        "fetch_clubs": "Error fetching clubs",
+        "fetch_club_sections": "Error fetching club sections",
+        "fetch_classes": "Error fetching classes",
+        "complete_step_3": "Error completing post-registration step 3"
+      }
+    }
   }
 }

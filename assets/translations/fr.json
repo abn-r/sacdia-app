@@ -230,5 +230,18 @@
       "upload_image": "Erreur lors du téléversement de l'image de l'activité",
       "fetch_club_sections": "Erreur lors de la récupération des sections du club"
     }
+  },
+  "post_registration": {
+    "club_selection": {
+      "errors": {
+        "fetch_countries": "Erreur lors de la récupération des pays",
+        "fetch_unions": "Erreur lors de la récupération des unions",
+        "fetch_local_fields": "Erreur lors de la récupération des champs locaux",
+        "fetch_clubs": "Erreur lors de la récupération des clubs",
+        "fetch_club_sections": "Erreur lors de la récupération des sections du club",
+        "fetch_classes": "Erreur lors de la récupération des classes",
+        "complete_step_3": "Erreur lors de la finalisation de l'étape 3 du post-inscription"
+      }
+    }
   }
 }
