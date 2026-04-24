@@ -484,5 +484,12 @@
       "get_current": "Erro ao obter a inscrição ativa",
       "update": "Erro ao atualizar a inscrição"
     }
+  },
+  "validation": {
+    "errors": {
+      "submit_for_review": "Erro ao enviar para revisão",
+      "get_history": "Erro ao obter histórico",
+      "check_eligibility": "Erro ao verificar elegibilidade"
+    }
   }
 }

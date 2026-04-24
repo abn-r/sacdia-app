@@ -484,5 +484,12 @@
       "get_current": "Error retrieving current enrollment",
       "update": "Error updating enrollment"
     }
+  },
+  "validation": {
+    "errors": {
+      "submit_for_review": "Error submitting for review",
+      "get_history": "Error fetching validation history",
+      "check_eligibility": "Error checking eligibility"
+    }
   }
 }
