@@ -428,6 +428,15 @@
       "get_expiring": "Error fetching expiring insurance records"
     }
   },
+  "evidence_folder": {
+    "errors": {
+      "get_folder": "Error fetching evidence folder",
+      "submit_folder": "Error submitting folder for validation",
+      "submit_section": "Error submitting section for validation",
+      "upload_file": "Error uploading file",
+      "delete_file": "Error deleting file"
+    }
+  },
   "investiture": {
     "errors": {
       "no_permission": "You do not have permission to perform this action",

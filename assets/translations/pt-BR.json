@@ -428,6 +428,15 @@
       "get_expiring": "Erro ao obter os seguros a vencer"
     }
   },
+  "evidence_folder": {
+    "errors": {
+      "get_folder": "Erro ao obter a pasta de evidências",
+      "submit_folder": "Erro ao enviar a pasta para validação",
+      "submit_section": "Erro ao enviar a seção para validação",
+      "upload_file": "Erro ao enviar o arquivo",
+      "delete_file": "Erro ao excluir o arquivo"
+    }
+  },
   "investiture": {
     "errors": {
       "no_permission": "Você não tem permissão para realizar esta ação",
