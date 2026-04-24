@@ -531,5 +531,10 @@
       "get_club_section": "Erreur lors de la récupération de la section du club",
       "update_club_section": "Erreur lors de la mise à jour de la section du club"
     }
+  },
+  "role_assignments": {
+    "errors": {
+      "get_assignments": "Erreur lors de la récupération des attributions de rôles"
+    }
   }
 }

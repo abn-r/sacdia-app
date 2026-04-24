@@ -531,5 +531,10 @@
       "get_club_section": "Error fetching club section",
       "update_club_section": "Error updating club section"
     }
+  },
+  "role_assignments": {
+    "errors": {
+      "get_assignments": "Error retrieving role assignments"
+    }
   }
 }

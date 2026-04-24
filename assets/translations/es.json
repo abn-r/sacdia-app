@@ -531,5 +531,10 @@
       "get_club_section": "Error al obtener sección del club",
       "update_club_section": "Error al actualizar sección del club"
     }
+  },
+  "role_assignments": {
+    "errors": {
+      "get_assignments": "Error al obtener las asignaciones de roles"
+    }
   }
 }

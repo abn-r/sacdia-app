@@ -531,5 +531,10 @@
       "get_club_section": "Erro ao obter seção do clube",
       "update_club_section": "Erro ao atualizar seção do clube"
     }
+  },
+  "role_assignments": {
+    "errors": {
+      "get_assignments": "Erro ao obter as atribuições de papéis"
+    }
   }
 }

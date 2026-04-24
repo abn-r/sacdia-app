@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -37,12 +38,12 @@ class RoleAssignmentsRemoteDataSourceImpl
       if (data is Map) {
         final msg = data['message'];
         if (msg is List) return msg.join(', ');
-        return (msg ?? e.message ?? 'Error de conexion').toString();
+        return (msg ?? e.message ?? tr('common.error_network')).toString();
       }
     } catch (e) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
     }
-    return e.message ?? 'Error de conexion';
+    return e.message ?? tr('common.error_network');
   }
 
   // ── GET /api/v1/requests/assignments ─────────────────────────────────────
@@ -76,7 +77,7 @@ class RoleAssignmentsRemoteDataSourceImpl
       }
 
       throw ServerException(
-          message: 'Error al obtener asignaciones',
+          message: tr('role_assignments.errors.get_assignments'),
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getAssignments', tag: _tag, error: e);
