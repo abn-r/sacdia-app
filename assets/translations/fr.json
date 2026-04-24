@@ -741,6 +741,153 @@
       "reject_camporee_member": "Erreur lors du rejet de l'inscription du membre",
       "approve_camporee_payment": "Erreur lors de l'approbation du paiement",
       "reject_camporee_payment": "Erreur lors du rejet du paiement"
+    },
+    "hub": {
+      "title": "Coordination",
+      "greeting": "Bonjour, {name}",
+      "panel": "Panneau coordinateur",
+      "modules_section": "Modules"
+    },
+    "nav": {
+      "investitures_title": "Investitures en attente",
+      "investitures_subtitle": "Valider les demandes d'investiture",
+      "evidence_title": "Révision des preuves",
+      "evidence_subtitle": "Approuver ou rejeter dossiers, cours et honneurs",
+      "camporees_title": "Approbations de camporées",
+      "camporees_subtitle": "Clubs, membres et paiements en attente",
+      "dashboard_title": "Tableau de bord opérationnel",
+      "dashboard_subtitle": "KPIs et métriques SLA en temps réel"
+    },
+    "summary": {
+      "investitures": "Investitures",
+      "evidence": "Preuves",
+      "camporees": "Camporées",
+      "overdue": "En retard"
+    },
+    "camporee_approvals": {
+      "title": "Approbations de camporées",
+      "no_active": "Aucune camporée active",
+      "no_active_scope": "Aucune camporée {scope} active",
+      "access_restricted": "Accès restreint",
+      "access_restricted_msg": "Seuls les coordinateurs avec la permission attendance:approve_late peuvent accéder.",
+      "error_load": "Erreur lors du chargement des camporées",
+      "error_load_approvals": "Erreur lors du chargement des approbations",
+      "retry": "Réessayer",
+      "no_clubs_pending": "Aucun club en attente",
+      "no_members_pending": "Aucun membre en attente",
+      "no_payments_pending": "Aucun paiement en attente",
+      "count_pending_one": "{count} {type} en attente",
+      "count_pending_other": "{count} {type}s en attente",
+      "requested_by": "Demandé par {name}",
+      "approve_club_title": "Approuver le club",
+      "approve_club_msg": "Confirmer l'inscription de {name} à la camporée ?",
+      "reject_club_title": "Rejeter le club",
+      "reject_club_msg": "Rejeter l'inscription de {name} à la camporée ?",
+      "approve_member_title": "Approuver le membre",
+      "approve_member_msg": "Confirmer l'inscription de {name} à la camporée ?",
+      "reject_member_title": "Rejeter le membre",
+      "reject_member_msg": "Rejeter l'inscription de {name} à la camporée ?",
+      "approve_payment_title": "Approuver le paiement",
+      "approve_payment_msg": "Confirmer le paiement de {amount} $ de {name} ?",
+      "reject_payment_title": "Rejeter le paiement",
+      "reject_payment_msg": "Rejeter le paiement de {amount} $ de {name} ?",
+      "club_approved": "Club approuvé",
+      "club_rejected": "Club rejeté",
+      "member_approved": "Membre approuvé",
+      "member_rejected": "Membre rejeté",
+      "payment_approved": "Paiement approuvé",
+      "payment_rejected": "Paiement rejeté",
+      "error_approve": "Erreur lors de l'approbation",
+      "error_reject": "Erreur lors du rejet",
+      "payment_type_inscription": "Inscription",
+      "payment_type_materials": "Matériaux",
+      "payment_type_other": "Autre"
+    },
+    "evidence_review": {
+      "list": {
+        "title": "Révision des preuves",
+        "refresh_tooltip": "Actualiser",
+        "no_pending": "Aucune preuve en attente",
+        "all_up_to_date": "Toutes les révisions sont à jour",
+        "no_pending_type": "Aucun(e) {type} en attente",
+        "count_one": "{count} en attente",
+        "count_other": "{count} en attente",
+        "filter_all": "Tous",
+        "filter_folders": "Dossiers",
+        "filter_classes": "Cours",
+        "filter_honors": "Honneurs",
+        "access_restricted": "Accès restreint",
+        "access_restricted_msg": "Seuls les coordinateurs et administrateurs peuvent accéder à cette section.",
+        "error_load": "Erreur lors du chargement des preuves",
+        "retry": "Réessayer"
+      },
+      "detail": {
+        "refresh_tooltip": "Actualiser",
+        "section_files": "Fichiers joints",
+        "section_history": "Historique de validation",
+        "approve_title": "Approuver la preuve",
+        "approve_msg": "Confirmer l'approbation de la preuve de {name} ?",
+        "reject_title": "Rejeter la preuve",
+        "reject_msg": "Rejeter la preuve de {name} ?",
+        "approved_ok": "Preuve approuvée avec succès",
+        "rejected_ok": "Preuve rejetée",
+        "error_approve": "Erreur lors de l'approbation",
+        "error_reject": "Erreur lors du rejet",
+        "error_load": "Erreur lors du chargement de la preuve",
+        "retry": "Réessayer",
+        "submitted_on": "Soumis le {date}"
+      },
+      "card": {
+        "files_one": "{count} fichier",
+        "files_other": "{count} fichiers"
+      },
+      "gallery": {
+        "no_files": "Aucun fichier joint",
+        "pdf_document": "Document PDF",
+        "file": "Fichier"
+      }
+    },
+    "status": {
+      "pending": "En attente",
+      "approved": "Approuvé",
+      "rejected": "Rejeté"
+    },
+    "sla": {
+      "dashboard": {
+        "title": "Tableau de bord opérationnel",
+        "refresh_tooltip": "Actualiser",
+        "current_status": "État actuel",
+        "auto_refresh_note": "Actualisation automatique toutes les 60 sec.",
+        "access_restricted": "Accès restreint",
+        "access_restricted_msg": "Seuls les coordinateurs et administrateurs peuvent accéder à cette section.",
+        "error_load": "Erreur lors du chargement du tableau de bord",
+        "retry": "Réessayer"
+      },
+      "pipeline": {
+        "title": "Pipeline de révision",
+        "no_data": "Aucune donnée de pipeline",
+        "throughput_title": "Débit hebdomadaire",
+        "throughput_no_data": "Aucune donnée de débit",
+        "legend_approved": "Approuvés",
+        "legend_rejected": "Rejetés"
+      },
+      "stat": {
+        "pending": "En attente",
+        "avg_days": "Jours moy.",
+        "overdue": "En retard",
+        "overdue_alert_one": "{count} en retard",
+        "overdue_alert_other": "{count} en retard"
+      }
+    },
+    "actions": {
+      "approve": "Approuver",
+      "reject": "Rejeter",
+      "cancel": "Annuler",
+      "comment_label": "Commentaire (facultatif)",
+      "comment_hint": "Ex. : Documentation complète et correcte",
+      "reject_reason_label": "Motif du rejet *",
+      "reject_reason_hint": "Le motif est obligatoire",
+      "reject_reason_required": "Le motif est obligatoire"
     }
   },
   "classes": {

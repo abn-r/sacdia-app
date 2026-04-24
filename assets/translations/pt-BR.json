@@ -741,6 +741,153 @@
       "reject_camporee_member": "Erro ao rejeitar inscrição de membro",
       "approve_camporee_payment": "Erro ao aprovar pagamento",
       "reject_camporee_payment": "Erro ao rejeitar pagamento"
+    },
+    "hub": {
+      "title": "Coordenação",
+      "greeting": "Olá, {name}",
+      "panel": "Painel do coordenador",
+      "modules_section": "Módulos"
+    },
+    "nav": {
+      "investitures_title": "Investiduras Pendentes",
+      "investitures_subtitle": "Validar solicitações de investidura",
+      "evidence_title": "Revisão de Evidências",
+      "evidence_subtitle": "Aprovar ou rejeitar pastas, aulas e honras",
+      "camporees_title": "Aprovações de Camporis",
+      "camporees_subtitle": "Clubes, membros e pagamentos pendentes",
+      "dashboard_title": "Painel Operacional",
+      "dashboard_subtitle": "KPIs e métricas SLA em tempo real"
+    },
+    "summary": {
+      "investitures": "Investiduras",
+      "evidence": "Evidências",
+      "camporees": "Camporis",
+      "overdue": "Vencidos"
+    },
+    "camporee_approvals": {
+      "title": "Aprovações de Camporis",
+      "no_active": "Sem camporis ativos",
+      "no_active_scope": "Não há camporis {scope} ativos",
+      "access_restricted": "Acesso restrito",
+      "access_restricted_msg": "Somente coordenadores com permissão attendance:approve_late podem acessar.",
+      "error_load": "Erro ao carregar camporis",
+      "error_load_approvals": "Erro ao carregar aprovações",
+      "retry": "Tentar novamente",
+      "no_clubs_pending": "Sem clubes pendentes",
+      "no_members_pending": "Sem membros pendentes",
+      "no_payments_pending": "Sem pagamentos pendentes",
+      "count_pending_one": "{count} {type} pendente",
+      "count_pending_other": "{count} {type}s pendentes",
+      "requested_by": "Solicitado por {name}",
+      "approve_club_title": "Aprovar clube",
+      "approve_club_msg": "Confirma a inscrição de {name} no campori?",
+      "reject_club_title": "Rejeitar clube",
+      "reject_club_msg": "Rejeita a inscrição de {name} no campori?",
+      "approve_member_title": "Aprovar membro",
+      "approve_member_msg": "Confirma a inscrição de {name} no campori?",
+      "reject_member_title": "Rejeitar membro",
+      "reject_member_msg": "Rejeita a inscrição de {name} no campori?",
+      "approve_payment_title": "Aprovar pagamento",
+      "approve_payment_msg": "Confirma o pagamento de ${amount} de {name}?",
+      "reject_payment_title": "Rejeitar pagamento",
+      "reject_payment_msg": "Rejeita o pagamento de ${amount} de {name}?",
+      "club_approved": "Clube aprovado",
+      "club_rejected": "Clube rejeitado",
+      "member_approved": "Membro aprovado",
+      "member_rejected": "Membro rejeitado",
+      "payment_approved": "Pagamento aprovado",
+      "payment_rejected": "Pagamento rejeitado",
+      "error_approve": "Erro ao aprovar",
+      "error_reject": "Erro ao rejeitar",
+      "payment_type_inscription": "Inscrição",
+      "payment_type_materials": "Materiais",
+      "payment_type_other": "Outro"
+    },
+    "evidence_review": {
+      "list": {
+        "title": "Revisão de Evidências",
+        "refresh_tooltip": "Atualizar",
+        "no_pending": "Sem evidências pendentes",
+        "all_up_to_date": "Todas as revisões estão em dia",
+        "no_pending_type": "Não há {type}s pendentes",
+        "count_one": "{count} pendente",
+        "count_other": "{count} pendentes",
+        "filter_all": "Todos",
+        "filter_folders": "Pastas",
+        "filter_classes": "Aulas",
+        "filter_honors": "Honras",
+        "access_restricted": "Acesso restrito",
+        "access_restricted_msg": "Somente coordenadores e administradores podem acessar esta seção.",
+        "error_load": "Erro ao carregar evidências",
+        "retry": "Tentar novamente"
+      },
+      "detail": {
+        "refresh_tooltip": "Atualizar",
+        "section_files": "Arquivos anexados",
+        "section_history": "Histórico de validação",
+        "approve_title": "Aprovar evidência",
+        "approve_msg": "Confirma a aprovação da evidência de {name}?",
+        "reject_title": "Rejeitar evidência",
+        "reject_msg": "Rejeita a evidência de {name}?",
+        "approved_ok": "Evidência aprovada com sucesso",
+        "rejected_ok": "Evidência rejeitada",
+        "error_approve": "Erro ao aprovar",
+        "error_reject": "Erro ao rejeitar",
+        "error_load": "Erro ao carregar a evidência",
+        "retry": "Tentar novamente",
+        "submitted_on": "Enviado em {date}"
+      },
+      "card": {
+        "files_one": "{count} arquivo",
+        "files_other": "{count} arquivos"
+      },
+      "gallery": {
+        "no_files": "Sem arquivos anexados",
+        "pdf_document": "Documento PDF",
+        "file": "Arquivo"
+      }
+    },
+    "status": {
+      "pending": "Pendente",
+      "approved": "Aprovado",
+      "rejected": "Rejeitado"
+    },
+    "sla": {
+      "dashboard": {
+        "title": "Painel Operacional",
+        "refresh_tooltip": "Atualizar",
+        "current_status": "Status atual",
+        "auto_refresh_note": "Atualiza automaticamente a cada 60 seg.",
+        "access_restricted": "Acesso restrito",
+        "access_restricted_msg": "Somente coordenadores e administradores podem acessar esta seção.",
+        "error_load": "Erro ao carregar o painel",
+        "retry": "Tentar novamente"
+      },
+      "pipeline": {
+        "title": "Pipeline de revisão",
+        "no_data": "Sem dados de pipeline",
+        "throughput_title": "Throughput semanal",
+        "throughput_no_data": "Sem dados de throughput",
+        "legend_approved": "Aprovados",
+        "legend_rejected": "Rejeitados"
+      },
+      "stat": {
+        "pending": "Pendentes",
+        "avg_days": "Dias méd.",
+        "overdue": "Vencidos",
+        "overdue_alert_one": "{count} vencido",
+        "overdue_alert_other": "{count} vencidos"
+      }
+    },
+    "actions": {
+      "approve": "Aprovar",
+      "reject": "Rejeitar",
+      "cancel": "Cancelar",
+      "comment_label": "Comentário (opcional)",
+      "comment_hint": "Ex: Documentação completa e correta",
+      "reject_reason_label": "Motivo da rejeição *",
+      "reject_reason_hint": "É obrigatório indicar o motivo",
+      "reject_reason_required": "O motivo é obrigatório"
     }
   },
   "classes": {

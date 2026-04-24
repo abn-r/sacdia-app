@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -11,20 +12,25 @@ class ApprovalActionBar extends StatelessWidget {
   final bool isLoading;
   final VoidCallback onApprove;
   final VoidCallback onReject;
-  final String approveLabel;
-  final String rejectLabel;
+  final String? approveLabel;
+  final String? rejectLabel;
 
   const ApprovalActionBar({
     super.key,
     required this.isLoading,
     required this.onApprove,
     required this.onReject,
-    this.approveLabel = 'Aprobar',
-    this.rejectLabel = 'Rechazar',
+    this.approveLabel,
+    this.rejectLabel,
   });
 
   @override
   Widget build(BuildContext context) {
+    final effectiveApproveLabel =
+        approveLabel ?? 'coordinator.actions.approve'.tr();
+    final effectiveRejectLabel =
+        rejectLabel ?? 'coordinator.actions.reject'.tr();
+
     if (isLoading) {
       return const SizedBox(
         height: 48,
@@ -53,7 +59,7 @@ class ApprovalActionBar extends StatelessWidget {
               color: AppColors.error,
             ),
             label: Text(
-              rejectLabel,
+              effectiveRejectLabel,
               style: const TextStyle(color: AppColors.error),
             ),
             style: OutlinedButton.styleFrom(
@@ -73,7 +79,7 @@ class ApprovalActionBar extends StatelessWidget {
               size: 16,
               color: Colors.white,
             ),
-            label: Text(approveLabel),
+            label: Text(effectiveApproveLabel),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.secondary,
               foregroundColor: Colors.white,
@@ -111,10 +117,10 @@ Future<String?> showApproveDialog({
           TextField(
             controller: commentsCtrl,
             maxLines: 3,
-            decoration: const InputDecoration(
-              labelText: 'Comentario (opcional)',
-              hintText: 'Ej: Documentación completa y correcta',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: 'coordinator.actions.comment_label'.tr(),
+              hintText: 'coordinator.actions.comment_hint'.tr(),
+              border: const OutlineInputBorder(),
             ),
           ),
         ],
@@ -122,7 +128,7 @@ Future<String?> showApproveDialog({
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('Cancelar'),
+          child: Text('coordinator.actions.cancel'.tr()),
         ),
         ElevatedButton(
           onPressed: () => Navigator.pop(ctx, true),
@@ -130,7 +136,7 @@ Future<String?> showApproveDialog({
             backgroundColor: AppColors.secondary,
             foregroundColor: Colors.white,
           ),
-          child: const Text('Aprobar'),
+          child: Text('coordinator.actions.approve'.tr()),
         ),
       ],
     ),
@@ -166,14 +172,14 @@ Future<String?> showRejectDialog({
             TextFormField(
               controller: reasonCtrl,
               maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Motivo del rechazo *',
-                hintText: 'Es obligatorio indicar el motivo',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: 'coordinator.actions.reject_reason_label'.tr(),
+                hintText: 'coordinator.actions.reject_reason_hint'.tr(),
+                border: const OutlineInputBorder(),
               ),
               validator: (v) =>
                   (v == null || v.trim().isEmpty)
-                      ? 'El motivo es obligatorio'
+                      ? 'coordinator.actions.reject_reason_required'.tr()
                       : null,
             ),
           ],
@@ -182,7 +188,7 @@ Future<String?> showRejectDialog({
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('Cancelar'),
+          child: Text('coordinator.actions.cancel'.tr()),
         ),
         ElevatedButton(
           onPressed: () {
@@ -194,7 +200,7 @@ Future<String?> showRejectDialog({
             backgroundColor: AppColors.error,
             foregroundColor: Colors.white,
           ),
-          child: const Text('Rechazar'),
+          child: Text('coordinator.actions.reject'.tr()),
         ),
       ],
     ),

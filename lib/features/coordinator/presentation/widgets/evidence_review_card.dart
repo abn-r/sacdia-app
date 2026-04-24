@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/evidence_review_item.dart';
@@ -116,7 +116,12 @@ class EvidenceReviewCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${item.fileCount} archivo${item.fileCount != 1 ? 's' : ''}',
+                          (item.fileCount == 1
+                                  ? 'coordinator.evidence_review.card.files_one'
+                                  : 'coordinator.evidence_review.card.files_other')
+                              .tr(namedArgs: {
+                            'count': item.fileCount.toString()
+                          }),
                           style: TextStyle(
                             fontSize: 11,
                             color: c.textTertiary,

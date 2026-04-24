@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -81,19 +82,19 @@ class SlaStatCard extends StatelessWidget {
           Row(
             children: [
               _Metric(
-                label: 'Pendientes',
+                label: 'coordinator.sla.stat.pending'.tr(),
                 value: stat.pending.toString(),
                 valueColor: stat.pending > 0 ? accentColor : c.textSecondary,
               ),
               const SizedBox(width: 12),
               _Metric(
-                label: 'Días prom.',
+                label: 'coordinator.sla.stat.avg_days'.tr(),
                 value: stat.avgDays.toStringAsFixed(1),
                 valueColor: c.textSecondary,
               ),
               const SizedBox(width: 12),
               _Metric(
-                label: 'Vencidos',
+                label: 'coordinator.sla.stat.overdue'.tr(),
                 value: stat.overdue.toString(),
                 valueColor: hasOverdue ? AppColors.error : c.textTertiary,
               ),
@@ -120,7 +121,10 @@ class SlaStatCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 5),
                   Text(
-                    '${stat.overdue} vencido${stat.overdue != 1 ? 's' : ''}',
+                    (stat.overdue == 1
+                            ? 'coordinator.sla.stat.overdue_alert_one'
+                            : 'coordinator.sla.stat.overdue_alert_other')
+                        .tr(namedArgs: {'count': stat.overdue.toString()}),
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,

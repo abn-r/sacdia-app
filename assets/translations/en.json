@@ -741,6 +741,153 @@
       "reject_camporee_member": "Error rejecting member enrollment",
       "approve_camporee_payment": "Error approving payment",
       "reject_camporee_payment": "Error rejecting payment"
+    },
+    "hub": {
+      "title": "Coordination",
+      "greeting": "Hello, {name}",
+      "panel": "Coordinator panel",
+      "modules_section": "Modules"
+    },
+    "nav": {
+      "investitures_title": "Pending Investitures",
+      "investitures_subtitle": "Validate investiture requests",
+      "evidence_title": "Evidence Review",
+      "evidence_subtitle": "Approve or reject folders, classes and honors",
+      "camporees_title": "Camporee Approvals",
+      "camporees_subtitle": "Clubs, members and pending payments",
+      "dashboard_title": "Operational Dashboard",
+      "dashboard_subtitle": "Real-time KPIs and SLA metrics"
+    },
+    "summary": {
+      "investitures": "Investitures",
+      "evidence": "Evidence",
+      "camporees": "Camporees",
+      "overdue": "Overdue"
+    },
+    "camporee_approvals": {
+      "title": "Camporee Approvals",
+      "no_active": "No active camporees",
+      "no_active_scope": "No active {scope} camporees",
+      "access_restricted": "Access restricted",
+      "access_restricted_msg": "Only coordinators with attendance:approve_late permission can access.",
+      "error_load": "Error loading camporees",
+      "error_load_approvals": "Error loading approvals",
+      "retry": "Retry",
+      "no_clubs_pending": "No pending clubs",
+      "no_members_pending": "No pending members",
+      "no_payments_pending": "No pending payments",
+      "count_pending_one": "{count} {type} pending",
+      "count_pending_other": "{count} {type}s pending",
+      "requested_by": "Requested by {name}",
+      "approve_club_title": "Approve club",
+      "approve_club_msg": "Confirm enrollment of {name} to the camporee?",
+      "reject_club_title": "Reject club",
+      "reject_club_msg": "Reject enrollment of {name} to the camporee?",
+      "approve_member_title": "Approve member",
+      "approve_member_msg": "Confirm enrollment of {name} to the camporee?",
+      "reject_member_title": "Reject member",
+      "reject_member_msg": "Reject enrollment of {name} to the camporee?",
+      "approve_payment_title": "Approve payment",
+      "approve_payment_msg": "Confirm payment of \\${amount} from {name}?",
+      "reject_payment_title": "Reject payment",
+      "reject_payment_msg": "Reject payment of \\${amount} from {name}?",
+      "club_approved": "Club approved",
+      "club_rejected": "Club rejected",
+      "member_approved": "Member approved",
+      "member_rejected": "Member rejected",
+      "payment_approved": "Payment approved",
+      "payment_rejected": "Payment rejected",
+      "error_approve": "Error approving",
+      "error_reject": "Error rejecting",
+      "payment_type_inscription": "Registration",
+      "payment_type_materials": "Materials",
+      "payment_type_other": "Other"
+    },
+    "evidence_review": {
+      "list": {
+        "title": "Evidence Review",
+        "refresh_tooltip": "Refresh",
+        "no_pending": "No pending evidence",
+        "all_up_to_date": "All reviews are up to date",
+        "no_pending_type": "No pending {type}s",
+        "count_one": "{count} pending",
+        "count_other": "{count} pending",
+        "filter_all": "All",
+        "filter_folders": "Folders",
+        "filter_classes": "Classes",
+        "filter_honors": "Honors",
+        "access_restricted": "Access restricted",
+        "access_restricted_msg": "Only coordinators and administrators can access this section.",
+        "error_load": "Error loading evidence",
+        "retry": "Retry"
+      },
+      "detail": {
+        "refresh_tooltip": "Refresh",
+        "section_files": "Attached files",
+        "section_history": "Validation history",
+        "approve_title": "Approve evidence",
+        "approve_msg": "Confirm approval of evidence for {name}?",
+        "reject_title": "Reject evidence",
+        "reject_msg": "Reject evidence for {name}?",
+        "approved_ok": "Evidence approved successfully",
+        "rejected_ok": "Evidence rejected",
+        "error_approve": "Error approving",
+        "error_reject": "Error rejecting",
+        "error_load": "Error loading evidence",
+        "retry": "Retry",
+        "submitted_on": "Submitted on {date}"
+      },
+      "card": {
+        "files_one": "{count} file",
+        "files_other": "{count} files"
+      },
+      "gallery": {
+        "no_files": "No attached files",
+        "pdf_document": "PDF Document",
+        "file": "File"
+      }
+    },
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "sla": {
+      "dashboard": {
+        "title": "Operational Dashboard",
+        "refresh_tooltip": "Refresh",
+        "current_status": "Current status",
+        "auto_refresh_note": "Auto-refreshes every 60 sec.",
+        "access_restricted": "Access restricted",
+        "access_restricted_msg": "Only coordinators and administrators can access this section.",
+        "error_load": "Error loading dashboard",
+        "retry": "Retry"
+      },
+      "pipeline": {
+        "title": "Review pipeline",
+        "no_data": "No pipeline data",
+        "throughput_title": "Weekly throughput",
+        "throughput_no_data": "No throughput data",
+        "legend_approved": "Approved",
+        "legend_rejected": "Rejected"
+      },
+      "stat": {
+        "pending": "Pending",
+        "avg_days": "Avg days",
+        "overdue": "Overdue",
+        "overdue_alert_one": "{count} overdue",
+        "overdue_alert_other": "{count} overdue"
+      }
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "cancel": "Cancel",
+      "comment_label": "Comment (optional)",
+      "comment_hint": "E.g.: Complete and correct documentation",
+      "reject_reason_label": "Reason for rejection *",
+      "reject_reason_hint": "A reason is required",
+      "reject_reason_required": "The reason is required"
     }
   },
   "classes": {

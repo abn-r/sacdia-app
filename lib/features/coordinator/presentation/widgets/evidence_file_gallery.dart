@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -28,7 +29,7 @@ class EvidenceFileGallery extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Sin archivos adjuntos',
+              'coordinator.evidence_review.gallery.no_files'.tr(),
               style: TextStyle(fontSize: 13, color: c.textTertiary),
             ),
           ],
@@ -189,7 +190,11 @@ class _DocumentTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  file.name ?? (isPdf ? 'Documento PDF' : 'Archivo'),
+                  file.name ??
+                      (isPdf
+                          ? 'coordinator.evidence_review.gallery.pdf_document'
+                              .tr()
+                          : 'coordinator.evidence_review.gallery.file'.tr()),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,

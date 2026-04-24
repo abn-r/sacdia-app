@@ -741,6 +741,153 @@
       "reject_camporee_member": "Error al rechazar inscripción de miembro",
       "approve_camporee_payment": "Error al aprobar pago",
       "reject_camporee_payment": "Error al rechazar pago"
+    },
+    "hub": {
+      "title": "Coordinación",
+      "greeting": "Hola, {name}",
+      "panel": "Panel de coordinador",
+      "modules_section": "Módulos"
+    },
+    "nav": {
+      "investitures_title": "Investiduras Pendientes",
+      "investitures_subtitle": "Validar solicitudes de investidura",
+      "evidence_title": "Revisión de Evidencias",
+      "evidence_subtitle": "Aprobar o rechazar carpetas, clases y honores",
+      "camporees_title": "Aprobaciones de Camporees",
+      "camporees_subtitle": "Clubs, miembros y pagos pendientes",
+      "dashboard_title": "Dashboard Operativo",
+      "dashboard_subtitle": "KPIs y métricas SLA en tiempo real"
+    },
+    "summary": {
+      "investitures": "Investiduras",
+      "evidence": "Evidencias",
+      "camporees": "Camporees",
+      "overdue": "Vencidos"
+    },
+    "camporee_approvals": {
+      "title": "Aprobaciones de Camporees",
+      "no_active": "Sin camporees activos",
+      "no_active_scope": "No hay camporees {scope} activos",
+      "access_restricted": "Acceso restringido",
+      "access_restricted_msg": "Solo coordinadores con permisos attendance:approve_late pueden acceder.",
+      "error_load": "Error al cargar camporees",
+      "error_load_approvals": "Error al cargar aprobaciones",
+      "retry": "Reintentar",
+      "no_clubs_pending": "Sin clubs pendientes",
+      "no_members_pending": "Sin miembros pendientes",
+      "no_payments_pending": "Sin pagos pendientes",
+      "count_pending_one": "{count} {type} pendiente",
+      "count_pending_other": "{count} {type}s pendientes",
+      "requested_by": "Solicitado por {name}",
+      "approve_club_title": "Aprobar club",
+      "approve_club_msg": "¿Confirmas la inscripción de {name} al camporee?",
+      "reject_club_title": "Rechazar club",
+      "reject_club_msg": "¿Rechazas la inscripción de {name} al camporee?",
+      "approve_member_title": "Aprobar miembro",
+      "approve_member_msg": "¿Confirmas la inscripción de {name} al camporee?",
+      "reject_member_title": "Rechazar miembro",
+      "reject_member_msg": "¿Rechazas la inscripción de {name} al camporee?",
+      "approve_payment_title": "Aprobar pago",
+      "approve_payment_msg": "¿Confirmás el pago de ${amount} de {name}?",
+      "reject_payment_title": "Rechazar pago",
+      "reject_payment_msg": "¿Rechazás el pago de ${amount} de {name}?",
+      "club_approved": "Club aprobado",
+      "club_rejected": "Club rechazado",
+      "member_approved": "Miembro aprobado",
+      "member_rejected": "Miembro rechazado",
+      "payment_approved": "Pago aprobado",
+      "payment_rejected": "Pago rechazado",
+      "error_approve": "Error al aprobar",
+      "error_reject": "Error al rechazar",
+      "payment_type_inscription": "Inscripción",
+      "payment_type_materials": "Materiales",
+      "payment_type_other": "Otro"
+    },
+    "evidence_review": {
+      "list": {
+        "title": "Revisión de Evidencias",
+        "refresh_tooltip": "Actualizar",
+        "no_pending": "Sin evidencias pendientes",
+        "all_up_to_date": "Todas las revisiones están al día",
+        "no_pending_type": "No hay {type}s pendientes",
+        "count_one": "{count} pendiente",
+        "count_other": "{count} pendientes",
+        "filter_all": "Todos",
+        "filter_folders": "Carpetas",
+        "filter_classes": "Clases",
+        "filter_honors": "Honores",
+        "access_restricted": "Acceso restringido",
+        "access_restricted_msg": "Solo coordinadores y administradores pueden acceder a esta sección.",
+        "error_load": "Error al cargar evidencias",
+        "retry": "Reintentar"
+      },
+      "detail": {
+        "refresh_tooltip": "Actualizar",
+        "section_files": "Archivos adjuntos",
+        "section_history": "Historial de validación",
+        "approve_title": "Aprobar evidencia",
+        "approve_msg": "¿Confirmas la aprobación de la evidencia de {name}?",
+        "reject_title": "Rechazar evidencia",
+        "reject_msg": "¿Rechazas la evidencia de {name}?",
+        "approved_ok": "Evidencia aprobada correctamente",
+        "rejected_ok": "Evidencia rechazada",
+        "error_approve": "Error al aprobar",
+        "error_reject": "Error al rechazar",
+        "error_load": "Error al cargar la evidencia",
+        "retry": "Reintentar",
+        "submitted_on": "Enviado el {date}"
+      },
+      "card": {
+        "files_one": "{count} archivo",
+        "files_other": "{count} archivos"
+      },
+      "gallery": {
+        "no_files": "Sin archivos adjuntos",
+        "pdf_document": "Documento PDF",
+        "file": "Archivo"
+      }
+    },
+    "status": {
+      "pending": "Pendiente",
+      "approved": "Aprobado",
+      "rejected": "Rechazado"
+    },
+    "sla": {
+      "dashboard": {
+        "title": "Dashboard Operativo",
+        "refresh_tooltip": "Actualizar",
+        "current_status": "Estado actual",
+        "auto_refresh_note": "Se actualiza automáticamente cada 60 seg.",
+        "access_restricted": "Acceso restringido",
+        "access_restricted_msg": "Solo coordinadores y administradores pueden acceder a esta sección.",
+        "error_load": "Error al cargar el dashboard",
+        "retry": "Reintentar"
+      },
+      "pipeline": {
+        "title": "Pipeline de revisión",
+        "no_data": "Sin datos de pipeline",
+        "throughput_title": "Throughput semanal",
+        "throughput_no_data": "Sin datos de throughput",
+        "legend_approved": "Aprobados",
+        "legend_rejected": "Rechazados"
+      },
+      "stat": {
+        "pending": "Pendientes",
+        "avg_days": "Días prom.",
+        "overdue": "Vencidos",
+        "overdue_alert_one": "{count} vencido",
+        "overdue_alert_other": "{count} vencidos"
+      }
+    },
+    "actions": {
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "cancel": "Cancelar",
+      "comment_label": "Comentario (opcional)",
+      "comment_hint": "Ej: Documentación completa y correcta",
+      "reject_reason_label": "Motivo del rechazo *",
+      "reject_reason_hint": "Es obligatorio indicar el motivo",
+      "reject_reason_required": "El motivo es obligatorio"
     }
   },
   "classes": {

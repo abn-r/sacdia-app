@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
@@ -46,7 +46,7 @@ class EvidenceReviewDetailView extends ConsumerWidget {
               icon: HugeIcons.strokeRoundedRefresh,
               size: 22,
             ),
-            tooltip: 'Actualizar',
+            tooltip: 'coordinator.evidence_review.detail.refresh_tooltip'.tr(),
           ),
         ],
       ),
@@ -83,7 +83,7 @@ class EvidenceReviewDetailView extends ConsumerWidget {
 
                 // ── Files ────────────────────────────────────────────────
                 _Section(
-                  title: 'Archivos adjuntos',
+                  title: 'coordinator.evidence_review.detail.section_files'.tr(),
                   icon: HugeIcons.strokeRoundedAttachment01,
                   child: EvidenceFileGallery(files: item.files),
                 ),
@@ -92,7 +92,7 @@ class EvidenceReviewDetailView extends ConsumerWidget {
                 // ── History ──────────────────────────────────────────────
                 if (item.history.isNotEmpty)
                   _Section(
-                    title: 'Historial de validación',
+                    title: 'coordinator.evidence_review.detail.section_history'.tr(),
                     icon: HugeIcons.strokeRoundedClock01,
                     child: _HistoryTimeline(history: item.history, c: c),
                   ),
@@ -127,9 +127,9 @@ class EvidenceReviewDetailView extends ConsumerWidget {
   ) async {
     final comment = await showApproveDialog(
       context: context,
-      title: 'Aprobar evidencia',
-      confirmMessage:
-          '¿Confirmas la aprobación de la evidencia de ${item.memberName}?',
+      title: 'coordinator.evidence_review.detail.approve_title'.tr(),
+      confirmMessage: 'coordinator.evidence_review.detail.approve_msg'
+          .tr(namedArgs: {'name': item.memberName}),
     );
 
     if (!context.mounted) return;
@@ -140,7 +140,9 @@ class EvidenceReviewDetailView extends ConsumerWidget {
     if (!context.mounted) return;
     showActionSnackbar(
       context,
-      message: ok ? 'Evidencia aprobada correctamente' : 'Error al aprobar',
+      message: ok
+          ? 'coordinator.evidence_review.detail.approved_ok'.tr()
+          : 'coordinator.evidence_review.detail.error_approve'.tr(),
       success: ok,
     );
     if (ok && context.mounted) Navigator.of(context).pop();
@@ -154,9 +156,9 @@ class EvidenceReviewDetailView extends ConsumerWidget {
   ) async {
     final reason = await showRejectDialog(
       context: context,
-      title: 'Rechazar evidencia',
-      confirmMessage:
-          '¿Rechazas la evidencia de ${item.memberName}?',
+      title: 'coordinator.evidence_review.detail.reject_title'.tr(),
+      confirmMessage: 'coordinator.evidence_review.detail.reject_msg'
+          .tr(namedArgs: {'name': item.memberName}),
     );
 
     if (reason == null || !context.mounted) return;
@@ -167,7 +169,9 @@ class EvidenceReviewDetailView extends ConsumerWidget {
     if (!context.mounted) return;
     showActionSnackbar(
       context,
-      message: ok ? 'Evidencia rechazada' : 'Error al rechazar',
+      message: ok
+          ? 'coordinator.evidence_review.detail.rejected_ok'.tr()
+          : 'coordinator.evidence_review.detail.error_reject'.tr(),
       success: ok,
     );
     if (ok && context.mounted) Navigator.of(context).pop();
@@ -195,7 +199,7 @@ class EvidenceReviewDetailView extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error al cargar la evidencia',
+              'coordinator.evidence_review.detail.error_load'.tr(),
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -210,7 +214,7 @@ class EvidenceReviewDetailView extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             SacButton.primary(
-              text: 'Reintentar',
+              text: 'coordinator.evidence_review.detail.retry'.tr(),
               icon: HugeIcons.strokeRoundedRefresh,
               onPressed: () => ref.invalidate(evidenceDetailProvider(key)),
             ),
@@ -311,7 +315,12 @@ class _MemberHeader extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'Enviado el ${DateFormat('dd/MM/yyyy').format(item.submittedAt.toLocal())}',
+                      'coordinator.evidence_review.detail.submitted_on'.tr(
+                        namedArgs: {
+                          'date': DateFormat('dd/MM/yyyy')
+                              .format(item.submittedAt.toLocal()),
+                        },
+                      ),
                       style:
                           TextStyle(fontSize: 11, color: c.textTertiary),
                     ),
@@ -384,10 +393,19 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (label, color) = switch (status) {
-      EvidenceReviewStatus.pending => ('Pendiente', AppColors.accent),
-      EvidenceReviewStatus.approved => ('Aprobado', AppColors.secondary),
-      EvidenceReviewStatus.rejected => ('Rechazado', AppColors.error),
+    final (labelKey, color) = switch (status) {
+      EvidenceReviewStatus.pending => (
+          'coordinator.status.pending',
+          AppColors.accent
+        ),
+      EvidenceReviewStatus.approved => (
+          'coordinator.status.approved',
+          AppColors.secondary
+        ),
+      EvidenceReviewStatus.rejected => (
+          'coordinator.status.rejected',
+          AppColors.error
+        ),
     };
 
     return Container(
@@ -397,7 +415,7 @@ class _StatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
-        label,
+        labelKey.tr(),
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w700,

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -28,7 +29,7 @@ class EvidenceReviewListView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: c.background,
       appBar: AppBar(
-        title: const Text('Revisión de Evidencias'),
+        title: Text('coordinator.evidence_review.list.title'.tr()),
         actions: [
           IconButton(
             onPressed: () =>
@@ -37,7 +38,7 @@ class EvidenceReviewListView extends ConsumerWidget {
               icon: HugeIcons.strokeRoundedRefresh,
               size: 22,
             ),
-            tooltip: 'Actualizar',
+            tooltip: 'coordinator.evidence_review.list.refresh_tooltip'.tr(),
           ),
         ],
       ),
@@ -91,14 +92,15 @@ class EvidenceReviewListView extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Sin evidencias pendientes',
+              'coordinator.evidence_review.list.no_pending'.tr(),
               style: TextStyle(fontSize: 16, color: c.textSecondary),
             ),
             const SizedBox(height: 6),
             Text(
               activeFilter != null
-                  ? 'No hay ${activeFilter.displayLabel.toLowerCase()}s pendientes'
-                  : 'Todas las revisiones están al día',
+                  ? 'coordinator.evidence_review.list.no_pending_type'
+                      .tr(namedArgs: {'type': activeFilter.displayLabel.toLowerCase()})
+                  : 'coordinator.evidence_review.list.all_up_to_date'.tr(),
               style: TextStyle(fontSize: 13, color: c.textTertiary),
             ),
           ],
@@ -115,6 +117,9 @@ class EvidenceReviewListView extends ConsumerWidget {
         itemCount: list.length + 1,
         itemBuilder: (context, index) {
           if (index == 0) {
+            final countKey = list.length == 1
+                ? 'coordinator.evidence_review.list.count_one'
+                : 'coordinator.evidence_review.list.count_other';
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Row(
@@ -126,7 +131,7 @@ class EvidenceReviewListView extends ConsumerWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    '${list.length} pendiente${list.length != 1 ? 's' : ''}',
+                    countKey.tr(namedArgs: {'count': list.length.toString()}),
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -180,7 +185,9 @@ class EvidenceReviewListView extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              is403 ? 'Acceso restringido' : 'Error al cargar evidencias',
+              is403
+                  ? 'coordinator.evidence_review.list.access_restricted'.tr()
+                  : 'coordinator.evidence_review.list.error_load'.tr(),
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -190,7 +197,7 @@ class EvidenceReviewListView extends ConsumerWidget {
             const SizedBox(height: 8),
             Text(
               is403
-                  ? 'Solo coordinadores y administradores pueden acceder a esta sección.'
+                  ? 'coordinator.evidence_review.list.access_restricted_msg'.tr()
                   : msg,
               style: TextStyle(fontSize: 14, color: c.textSecondary),
               textAlign: TextAlign.center,
@@ -198,7 +205,7 @@ class EvidenceReviewListView extends ConsumerWidget {
             if (!is403) ...[
               const SizedBox(height: 24),
               SacButton.primary(
-                text: 'Reintentar',
+                text: 'coordinator.evidence_review.list.retry'.tr(),
                 icon: HugeIcons.strokeRoundedRefresh,
                 onPressed: () =>
                     ref.invalidate(pendingEvidenceProvider(activeFilter)),
@@ -225,10 +232,22 @@ class _FilterChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final filters = <({String label, EvidenceReviewType? value})>[
-      (label: 'Todos', value: null),
-      (label: 'Carpetas', value: EvidenceReviewType.folder),
-      (label: 'Clases', value: EvidenceReviewType.classType),
-      (label: 'Honores', value: EvidenceReviewType.honor),
+      (
+        label: 'coordinator.evidence_review.list.filter_all'.tr(),
+        value: null
+      ),
+      (
+        label: 'coordinator.evidence_review.list.filter_folders'.tr(),
+        value: EvidenceReviewType.folder
+      ),
+      (
+        label: 'coordinator.evidence_review.list.filter_classes'.tr(),
+        value: EvidenceReviewType.classType
+      ),
+      (
+        label: 'coordinator.evidence_review.list.filter_honors'.tr(),
+        value: EvidenceReviewType.honor
+      ),
     ];
 
     return SizedBox(

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -59,7 +60,7 @@ class CoordinatorHubView extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Coordinación',
+                            'coordinator.hub.title'.tr(),
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
@@ -69,8 +70,9 @@ class CoordinatorHubView extends ConsumerWidget {
                           const SizedBox(height: 4),
                           Text(
                             user?.name != null
-                                ? 'Hola, ${user!.name}'
-                                : 'Panel de coordinador',
+                                ? 'coordinator.hub.greeting'
+                                    .tr(namedArgs: {'name': user!.name ?? ''})
+                                : 'coordinator.hub.panel'.tr(),
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.white.withValues(alpha: 0.85),
@@ -100,7 +102,7 @@ class CoordinatorHubView extends ConsumerWidget {
 
                   // ── Navigation cards ───────────────────────────────────
                   Text(
-                    'Módulos',
+                    'coordinator.hub.modules_section'.tr(),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: c.text,
@@ -111,8 +113,8 @@ class CoordinatorHubView extends ConsumerWidget {
                   _NavCard(
                     icon: HugeIcons.strokeRoundedAward01,
                     color: AppColors.primary,
-                    title: 'Investiduras Pendientes',
-                    subtitle: 'Validar solicitudes de investidura',
+                    title: 'coordinator.nav.investitures_title'.tr(),
+                    subtitle: 'coordinator.nav.investitures_subtitle'.tr(),
                     onTap: () => context.push(RouteNames.investiturePendingList),
                   ),
                   const SizedBox(height: 10),
@@ -120,8 +122,8 @@ class CoordinatorHubView extends ConsumerWidget {
                   _NavCard(
                     icon: HugeIcons.strokeRoundedFolder01,
                     color: AppColors.accent,
-                    title: 'Revisión de Evidencias',
-                    subtitle: 'Aprobar o rechazar carpetas, clases y honores',
+                    title: 'coordinator.nav.evidence_title'.tr(),
+                    subtitle: 'coordinator.nav.evidence_subtitle'.tr(),
                     onTap: () => context.push(RouteNames.coordinatorEvidenceReview),
                   ),
                   const SizedBox(height: 10),
@@ -129,8 +131,8 @@ class CoordinatorHubView extends ConsumerWidget {
                   _NavCard(
                     icon: HugeIcons.strokeRoundedCalendar04,
                     color: AppColors.secondary,
-                    title: 'Aprobaciones de Camporees',
-                    subtitle: 'Clubs, miembros y pagos pendientes',
+                    title: 'coordinator.nav.camporees_title'.tr(),
+                    subtitle: 'coordinator.nav.camporees_subtitle'.tr(),
                     onTap: () =>
                         context.push(RouteNames.coordinatorCamporeeApprovals),
                   ),
@@ -139,8 +141,8 @@ class CoordinatorHubView extends ConsumerWidget {
                   _NavCard(
                     icon: HugeIcons.strokeRoundedAnalytics01,
                     color: AppColors.info,
-                    title: 'Dashboard Operativo',
-                    subtitle: 'KPIs y métricas SLA en tiempo real',
+                    title: 'coordinator.nav.dashboard_title'.tr(),
+                    subtitle: 'coordinator.nav.dashboard_subtitle'.tr(),
                     onTap: () => context.push(RouteNames.coordinatorSla),
                   ),
                 ]),
@@ -174,7 +176,7 @@ class _SummaryRow extends StatelessWidget {
             children: [
               Expanded(
                 child: _SummaryTile(
-                  label: 'Investiduras',
+                  label: 'coordinator.summary.investitures'.tr(),
                   count: sla.investiture.pending,
                   color: AppColors.primary,
                   icon: HugeIcons.strokeRoundedAward01,
@@ -183,7 +185,7 @@ class _SummaryRow extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: _SummaryTile(
-                  label: 'Evidencias',
+                  label: 'coordinator.summary.evidence'.tr(),
                   count: sla.evidence.pending,
                   color: AppColors.accent,
                   icon: HugeIcons.strokeRoundedFolder01,
@@ -199,7 +201,7 @@ class _SummaryRow extends StatelessWidget {
             children: [
               Expanded(
                 child: _SummaryTile(
-                  label: 'Camporees',
+                  label: 'coordinator.summary.camporees'.tr(),
                   count: sla.camporee.pending,
                   color: AppColors.secondary,
                   icon: HugeIcons.strokeRoundedCalendar04,
@@ -208,7 +210,7 @@ class _SummaryRow extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: _SummaryTile(
-                  label: 'Vencidos',
+                  label: 'coordinator.summary.overdue'.tr(),
                   count: sla.totalOverdue,
                   color: AppColors.error,
                   icon: HugeIcons.strokeRoundedAlert02,

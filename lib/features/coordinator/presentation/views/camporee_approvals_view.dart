@@ -1,7 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
@@ -53,7 +53,7 @@ class _CamporeeApprovalsViewState extends ConsumerState<CamporeeApprovalsView>
       backgroundColor: c.background,
       appBar: AppBar(
         title: selected == null
-            ? const Text('Aprobaciones de Camporees')
+            ? Text('coordinator.camporee_approvals.title'.tr())
             : Text(selected.name, overflow: TextOverflow.ellipsis),
         leading: selected != null
             ? IconButton(
@@ -160,12 +160,13 @@ class _CamporeePickerTab extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Sin camporees activos',
+            'coordinator.camporee_approvals.no_active'.tr(),
             style: TextStyle(fontSize: 16, color: c.textSecondary),
           ),
           const SizedBox(height: 6),
           Text(
-            'No hay camporees ${scope.displayLabel.toLowerCase()}es activos',
+            'coordinator.camporee_approvals.no_active_scope'
+                .tr(namedArgs: {'scope': scope.displayLabel.toLowerCase()}),
             style: TextStyle(fontSize: 13, color: c.textTertiary),
           ),
         ],
@@ -198,7 +199,9 @@ class _CamporeePickerTab extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              is403 ? 'Acceso restringido' : 'Error al cargar camporees',
+              is403
+                  ? 'coordinator.camporee_approvals.access_restricted'.tr()
+                  : 'coordinator.camporee_approvals.error_load'.tr(),
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -208,7 +211,7 @@ class _CamporeePickerTab extends ConsumerWidget {
             const SizedBox(height: 8),
             Text(
               is403
-                  ? 'Solo coordinadores con permisos attendance:approve_late pueden acceder.'
+                  ? 'coordinator.camporee_approvals.access_restricted_msg'.tr()
                   : msg,
               style: TextStyle(fontSize: 14, color: c.textSecondary),
               textAlign: TextAlign.center,
@@ -216,7 +219,7 @@ class _CamporeePickerTab extends ConsumerWidget {
             if (!is403) ...[
               const SizedBox(height: 24),
               SacButton.primary(
-                text: 'Reintentar',
+                text: 'coordinator.camporee_approvals.retry'.tr(),
                 icon: HugeIcons.strokeRoundedRefresh,
                 onPressed: () {
                   if (scope == CamporeeScope.local) {
@@ -435,7 +438,7 @@ class _CamporeeApprovalDetailState
             ),
             const SizedBox(height: 16),
             Text(
-              'Error al cargar aprobaciones',
+              'coordinator.camporee_approvals.error_load_approvals'.tr(),
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -450,7 +453,7 @@ class _CamporeeApprovalDetailState
             ),
             const SizedBox(height: 24),
             SacButton.primary(
-              text: 'Reintentar',
+              text: 'coordinator.camporee_approvals.retry'.tr(),
               icon: HugeIcons.strokeRoundedRefresh,
               onPressed: () => ref.invalidate(camporeePendingProvider(_pendingKey)),
             ),
@@ -519,7 +522,7 @@ class _ClubsTab extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Sin clubs pendientes',
+            'coordinator.camporee_approvals.no_clubs_pending'.tr(),
             style: TextStyle(fontSize: 16, color: c.textSecondary),
           ),
         ],
@@ -586,7 +589,7 @@ class _MembersTab extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Sin miembros pendientes',
+            'coordinator.camporee_approvals.no_members_pending'.tr(),
             style: TextStyle(fontSize: 16, color: c.textSecondary),
           ),
         ],
@@ -653,7 +656,7 @@ class _PaymentsTab extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Sin pagos pendientes',
+            'coordinator.camporee_approvals.no_payments_pending'.tr(),
             style: TextStyle(fontSize: 16, color: c.textSecondary),
           ),
         ],
@@ -688,7 +691,8 @@ class _ClubEnrollmentCard extends ConsumerWidget {
       iconColor: AppColors.primary,
       title: item.displayName,
       subtitle: item.registeredByName != null
-          ? 'Solicitado por ${item.registeredByName}'
+          ? 'coordinator.camporee_approvals.requested_by'
+              .tr(namedArgs: {'name': item.registeredByName!})
           : null,
       date: item.createdAt,
       isLoading: actionState.isLoading,
@@ -701,15 +705,16 @@ class _ClubEnrollmentCard extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Aprobar club'),
+        title: Text('coordinator.camporee_approvals.approve_club_title'.tr()),
         content: Text(
-          '¿Confirmas la inscripción de ${item.displayName} al camporee?',
+          'coordinator.camporee_approvals.approve_club_msg'
+              .tr(namedArgs: {'name': item.displayName}),
           style: const TextStyle(fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text('coordinator.actions.cancel'.tr()),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -717,7 +722,7 @@ class _ClubEnrollmentCard extends ConsumerWidget {
               backgroundColor: AppColors.secondary,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Aprobar'),
+            child: Text('coordinator.actions.approve'.tr()),
           ),
         ],
       ),
@@ -732,7 +737,9 @@ class _ClubEnrollmentCard extends ConsumerWidget {
     if (!context.mounted) return;
     showActionSnackbar(
       context,
-      message: ok ? 'Club aprobado' : 'Error al aprobar',
+      message: ok
+          ? 'coordinator.camporee_approvals.club_approved'.tr()
+          : 'coordinator.camporee_approvals.error_approve'.tr(),
       success: ok,
     );
   }
@@ -740,9 +747,9 @@ class _ClubEnrollmentCard extends ConsumerWidget {
   Future<void> _handleReject(BuildContext context, WidgetRef ref) async {
     final reason = await showRejectDialog(
       context: context,
-      title: 'Rechazar club',
-      confirmMessage:
-          '¿Rechazas la inscripción de ${item.displayName} al camporee?',
+      title: 'coordinator.camporee_approvals.reject_club_title'.tr(),
+      confirmMessage: 'coordinator.camporee_approvals.reject_club_msg'
+          .tr(namedArgs: {'name': item.displayName}),
     );
 
     if (reason == null || !context.mounted) return;
@@ -754,7 +761,9 @@ class _ClubEnrollmentCard extends ConsumerWidget {
     if (!context.mounted) return;
     showActionSnackbar(
       context,
-      message: ok ? 'Club rechazado' : 'Error al rechazar',
+      message: ok
+          ? 'coordinator.camporee_approvals.club_rejected'.tr()
+          : 'coordinator.camporee_approvals.error_reject'.tr(),
       success: ok,
     );
   }
@@ -797,15 +806,16 @@ class _MemberEnrollmentCard extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Aprobar miembro'),
+        title: Text('coordinator.camporee_approvals.approve_member_title'.tr()),
         content: Text(
-          '¿Confirmas la inscripción de ${item.displayName} al camporee?',
+          'coordinator.camporee_approvals.approve_member_msg'
+              .tr(namedArgs: {'name': item.displayName}),
           style: const TextStyle(fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text('coordinator.actions.cancel'.tr()),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -813,7 +823,7 @@ class _MemberEnrollmentCard extends ConsumerWidget {
               backgroundColor: AppColors.secondary,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Aprobar'),
+            child: Text('coordinator.actions.approve'.tr()),
           ),
         ],
       ),
@@ -828,7 +838,9 @@ class _MemberEnrollmentCard extends ConsumerWidget {
     if (!context.mounted) return;
     showActionSnackbar(
       context,
-      message: ok ? 'Miembro aprobado' : 'Error al aprobar',
+      message: ok
+          ? 'coordinator.camporee_approvals.member_approved'.tr()
+          : 'coordinator.camporee_approvals.error_approve'.tr(),
       success: ok,
     );
   }
@@ -836,9 +848,9 @@ class _MemberEnrollmentCard extends ConsumerWidget {
   Future<void> _handleReject(BuildContext context, WidgetRef ref) async {
     final reason = await showRejectDialog(
       context: context,
-      title: 'Rechazar miembro',
-      confirmMessage:
-          '¿Rechazas la inscripción de ${item.displayName} al camporee?',
+      title: 'coordinator.camporee_approvals.reject_member_title'.tr(),
+      confirmMessage: 'coordinator.camporee_approvals.reject_member_msg'
+          .tr(namedArgs: {'name': item.displayName}),
     );
 
     if (reason == null || !context.mounted) return;
@@ -850,7 +862,9 @@ class _MemberEnrollmentCard extends ConsumerWidget {
     if (!context.mounted) return;
     showActionSnackbar(
       context,
-      message: ok ? 'Miembro rechazado' : 'Error al rechazar',
+      message: ok
+          ? 'coordinator.camporee_approvals.member_rejected'.tr()
+          : 'coordinator.camporee_approvals.error_reject'.tr(),
       success: ok,
     );
   }
@@ -895,11 +909,11 @@ class _PaymentEnrollmentCard extends ConsumerWidget {
   String _paymentTypeLabel(String type) {
     switch (type) {
       case 'inscription':
-        return 'Inscripción';
+        return 'coordinator.camporee_approvals.payment_type_inscription'.tr();
       case 'materials':
-        return 'Materiales';
+        return 'coordinator.camporee_approvals.payment_type_materials'.tr();
       default:
-        return 'Otro';
+        return 'coordinator.camporee_approvals.payment_type_other'.tr();
     }
   }
 
@@ -907,15 +921,20 @@ class _PaymentEnrollmentCard extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Aprobar pago'),
+        title: Text('coordinator.camporee_approvals.approve_payment_title'.tr()),
         content: Text(
-          '¿Confirmás el pago de \$${item.amount.toStringAsFixed(2)} de ${item.displayName}?',
+          'coordinator.camporee_approvals.approve_payment_msg'.tr(
+            namedArgs: {
+              'amount': item.amount.toStringAsFixed(2),
+              'name': item.displayName,
+            },
+          ),
           style: const TextStyle(fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text('coordinator.actions.cancel'.tr()),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -923,7 +942,7 @@ class _PaymentEnrollmentCard extends ConsumerWidget {
               backgroundColor: AppColors.secondary,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Aprobar'),
+            child: Text('coordinator.actions.approve'.tr()),
           ),
         ],
       ),
@@ -938,7 +957,9 @@ class _PaymentEnrollmentCard extends ConsumerWidget {
     if (!context.mounted) return;
     showActionSnackbar(
       context,
-      message: ok ? 'Pago aprobado' : 'Error al aprobar',
+      message: ok
+          ? 'coordinator.camporee_approvals.payment_approved'.tr()
+          : 'coordinator.camporee_approvals.error_approve'.tr(),
       success: ok,
     );
   }
@@ -946,9 +967,13 @@ class _PaymentEnrollmentCard extends ConsumerWidget {
   Future<void> _handleReject(BuildContext context, WidgetRef ref) async {
     final reason = await showRejectDialog(
       context: context,
-      title: 'Rechazar pago',
-      confirmMessage:
-          '¿Rechazás el pago de \$${item.amount.toStringAsFixed(2)} de ${item.displayName}?',
+      title: 'coordinator.camporee_approvals.reject_payment_title'.tr(),
+      confirmMessage: 'coordinator.camporee_approvals.reject_payment_msg'.tr(
+        namedArgs: {
+          'amount': item.amount.toStringAsFixed(2),
+          'name': item.displayName,
+        },
+      ),
     );
 
     if (reason == null || !context.mounted) return;
@@ -960,7 +985,9 @@ class _PaymentEnrollmentCard extends ConsumerWidget {
     if (!context.mounted) return;
     showActionSnackbar(
       context,
-      message: ok ? 'Pago rechazado' : 'Error al rechazar',
+      message: ok
+          ? 'coordinator.camporee_approvals.payment_rejected'.tr()
+          : 'coordinator.camporee_approvals.error_reject'.tr(),
       success: ok,
     );
   }
@@ -1122,14 +1149,16 @@ class _ApprovalCard extends StatelessWidget {
 Widget _countLabel(
   BuildContext context,
   int count,
-  String singular,
+  String type,
   SacColors c,
 ) {
-  final plural = count != 1 ? 's' : '';
+  final key = count == 1
+      ? 'coordinator.camporee_approvals.count_pending_one'
+      : 'coordinator.camporee_approvals.count_pending_other';
   return Padding(
     padding: const EdgeInsets.only(bottom: 12),
     child: Text(
-      '$count $singular$plural pendiente$plural',
+      key.tr(namedArgs: {'count': count.toString(), 'type': type}),
       style: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w600,
