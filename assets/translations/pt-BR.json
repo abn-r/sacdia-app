@@ -465,5 +465,12 @@
       "mark_as_read": "Erro ao marcar notificação como lida",
       "mark_all_as_read": "Erro ao marcar todas as notificações como lidas"
     }
+  },
+  "achievements": {
+    "errors": {
+      "fetch_achievements": "Erro ao obter o catálogo de conquistas",
+      "fetch_user_achievements": "Erro ao obter as conquistas do usuário",
+      "fetch_categories": "Erro ao obter as categorias de conquistas"
+    }
   }
 }

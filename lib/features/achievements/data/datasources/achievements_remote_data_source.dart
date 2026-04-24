@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -98,7 +99,7 @@ class AchievementsRemoteDataSourceImpl implements AchievementsRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener catálogo de logros',
+        message: tr('achievements.errors.fetch_achievements'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -106,7 +107,7 @@ class AchievementsRemoteDataSourceImpl implements AchievementsRemoteDataSource {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
-          message: e.message ?? 'Error de conexión',
+          message: e.message ?? tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }
@@ -141,7 +142,7 @@ class AchievementsRemoteDataSourceImpl implements AchievementsRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener logros del usuario',
+        message: tr('achievements.errors.fetch_user_achievements'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -149,7 +150,7 @@ class AchievementsRemoteDataSourceImpl implements AchievementsRemoteDataSource {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
-          message: e.message ?? 'Error de conexión',
+          message: e.message ?? tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }
@@ -177,7 +178,7 @@ class AchievementsRemoteDataSourceImpl implements AchievementsRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener categorías de logros',
+        message: tr('achievements.errors.fetch_categories'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -185,7 +186,7 @@ class AchievementsRemoteDataSourceImpl implements AchievementsRemoteDataSource {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
-          message: e.message ?? 'Error de conexión',
+          message: e.message ?? tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }

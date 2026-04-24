@@ -465,5 +465,12 @@
       "mark_as_read": "Erreur lors du marquage de la notification comme lue",
       "mark_all_as_read": "Erreur lors du marquage de toutes les notifications comme lues"
     }
+  },
+  "achievements": {
+    "errors": {
+      "fetch_achievements": "Erreur lors de la récupération du catalogue de succès",
+      "fetch_user_achievements": "Erreur lors de la récupération des succès de l’utilisateur",
+      "fetch_categories": "Erreur lors de la récupération des catégories de succès"
+    }
   }
 }

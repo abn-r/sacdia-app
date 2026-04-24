@@ -465,5 +465,12 @@
       "mark_as_read": "Error marking notification as read",
       "mark_all_as_read": "Error marking all notifications as read"
     }
+  },
+  "achievements": {
+    "errors": {
+      "fetch_achievements": "Failed to fetch achievements catalog",
+      "fetch_user_achievements": "Failed to fetch user achievements",
+      "fetch_categories": "Failed to fetch achievement categories"
+    }
   }
 }
