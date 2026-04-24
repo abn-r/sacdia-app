@@ -456,5 +456,14 @@
       "delete_evidence": "Erreur lors de la suppression de la preuve",
       "submit_folder": "Erreur lors de la soumission du dossier"
     }
+  },
+  "notifications": {
+    "errors": {
+      "no_permission": "Vous n'avez pas la permission de voir les notifications",
+      "get_history": "Erreur lors de la récupération de l'historique des notifications",
+      "get_unread_count": "Erreur lors de la récupération du compteur de non lus",
+      "mark_as_read": "Erreur lors du marquage de la notification comme lue",
+      "mark_all_as_read": "Erreur lors du marquage de toutes les notifications comme lues"
+    }
   }
 }

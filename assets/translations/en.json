@@ -456,5 +456,14 @@
       "delete_evidence": "Error deleting evidence",
       "submit_folder": "Error submitting folder"
     }
+  },
+  "notifications": {
+    "errors": {
+      "no_permission": "You do not have permission to view notifications",
+      "get_history": "Error fetching notification history",
+      "get_unread_count": "Error fetching unread count",
+      "mark_as_read": "Error marking notification as read",
+      "mark_all_as_read": "Error marking all notifications as read"
+    }
   }
 }

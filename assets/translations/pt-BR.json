@@ -456,5 +456,14 @@
       "delete_evidence": "Erro ao excluir a evidência",
       "submit_folder": "Erro ao enviar a pasta"
     }
+  },
+  "notifications": {
+    "errors": {
+      "no_permission": "Você não tem permissão para ver as notificações",
+      "get_history": "Erro ao obter histórico de notificações",
+      "get_unread_count": "Erro ao obter contador de não lidas",
+      "mark_as_read": "Erro ao marcar notificação como lida",
+      "mark_all_as_read": "Erro ao marcar todas as notificações como lidas"
+    }
   }
 }
