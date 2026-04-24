@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -142,7 +143,7 @@ class _InfoItemWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    item.value ?? 'No especificado',
+                    item.value ?? 'profile.info_section.not_specified'.tr(),
                     style: item.value != null
                         ? TextStyle(
                             fontSize: 14,

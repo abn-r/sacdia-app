@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -27,7 +28,7 @@ class ProfileClassesSection extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Center(
           child: Text(
-            'Error al cargar clases',
+            'profile.classes_section.error_load'.tr(),
             style: TextStyle(color: AppColors.error, fontSize: 14),
           ),
         ),
@@ -46,7 +47,7 @@ class ProfileClassesSection extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Aún no tienes clases registradas',
+                  'profile.classes_section.no_classes'.tr(),
                   style: TextStyle(
                     fontSize: 15,
                     color: context.sac.textSecondary,
@@ -55,7 +56,7 @@ class ProfileClassesSection extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
                 SacButton.outline(
-                  text: 'Ver clases disponibles',
+                  text: 'profile.classes_section.browse_classes'.tr(),
                   icon: HugeIcons.strokeRoundedAdd01,
                   onPressed: () {
                     Navigator.push(
@@ -109,7 +110,7 @@ class ProfileClassesSection extends ConsumerWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Mis Clases',
+                      'profile.classes_section.my_classes_header'.tr(),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 17,
