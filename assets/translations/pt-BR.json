@@ -355,5 +355,17 @@
       "fetch_member_payments": "Erro ao obter pagamentos do membro",
       "fetch_camporee_payments": "Erro ao obter pagamentos do campori"
     }
+  },
+  "finances": {
+    "errors": {
+      "fetch_finances": "Erro ao obter movimentos financeiros",
+      "fetch_summary": "Erro ao obter o resumo financeiro",
+      "fetch_transaction": "Erro ao obter o movimento",
+      "create": "Erro ao criar o movimento",
+      "update": "Erro ao atualizar o movimento",
+      "delete": "Erro ao excluir o movimento",
+      "fetch_categories": "Erro ao obter categorias",
+      "fetch_paginated": "Erro ao obter transações"
+    }
   }
 }

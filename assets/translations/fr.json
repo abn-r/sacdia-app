@@ -355,5 +355,17 @@
       "fetch_member_payments": "Erreur lors de la recuperation des paiements du membre",
       "fetch_camporee_payments": "Erreur lors de la recuperation des paiements du camporee"
     }
+  },
+  "finances": {
+    "errors": {
+      "fetch_finances": "Erreur lors de la récupération des mouvements financiers",
+      "fetch_summary": "Erreur lors de la récupération du résumé financier",
+      "fetch_transaction": "Erreur lors de la récupération du mouvement",
+      "create": "Erreur lors de la création du mouvement",
+      "update": "Erreur lors de la mise à jour du mouvement",
+      "delete": "Erreur lors de la suppression du mouvement",
+      "fetch_categories": "Erreur lors de la récupération des catégories",
+      "fetch_paginated": "Erreur lors de la récupération des transactions"
+    }
   }
 }

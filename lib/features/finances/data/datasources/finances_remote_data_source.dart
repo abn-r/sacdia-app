@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -105,7 +106,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener movimientos financieros',
+        message: tr('finances.errors.fetch_finances'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -135,7 +136,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener el resumen financiero',
+        message: tr('finances.errors.fetch_summary'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -165,7 +166,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener el movimiento',
+        message: tr('finances.errors.fetch_transaction'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -213,7 +214,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al crear el movimiento',
+        message: tr('finances.errors.create'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -255,7 +256,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al actualizar el movimiento',
+        message: tr('finances.errors.update'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -280,7 +281,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al eliminar el movimiento',
+        message: tr('finances.errors.delete'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -313,7 +314,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener categorías',
+        message: tr('finances.errors.fetch_categories'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -361,7 +362,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener transacciones',
+        message: tr('finances.errors.fetch_paginated'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -386,11 +387,11 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? 'Error de conexión').toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
       }
     } catch (e) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
     }
-    return e.message ?? 'Error de conexión';
+    return e.message ?? tr('common.error_network');
   }
 }

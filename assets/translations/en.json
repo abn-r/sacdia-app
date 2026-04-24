@@ -355,5 +355,17 @@
       "fetch_member_payments": "Error fetching member payments",
       "fetch_camporee_payments": "Error fetching camporee payments"
     }
+  },
+  "finances": {
+    "errors": {
+      "fetch_finances": "Error fetching financial movements",
+      "fetch_summary": "Error fetching financial summary",
+      "fetch_transaction": "Error fetching transaction",
+      "create": "Error creating transaction",
+      "update": "Error updating transaction",
+      "delete": "Error deleting transaction",
+      "fetch_categories": "Error fetching categories",
+      "fetch_paginated": "Error fetching transactions"
+    }
   }
 }
