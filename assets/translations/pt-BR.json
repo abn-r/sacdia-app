@@ -242,6 +242,12 @@
         "fetch_classes": "Erro ao obter classes",
         "complete_step_3": "Erro ao concluir a etapa 3 do pós-cadastro"
       }
+    },
+    "errors": {
+      "fetch_completion_status": "Erro ao obter status de conclusão",
+      "upload_profile_photo": "Erro ao enviar foto de perfil",
+      "delete_profile_photo": "Erro ao excluir foto de perfil",
+      "complete_step_1": "Erro ao concluir a etapa 1 do pós-cadastro"
     }
   }
 }

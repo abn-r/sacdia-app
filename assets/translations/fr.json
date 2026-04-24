@@ -242,6 +242,12 @@
         "fetch_classes": "Erreur lors de la récupération des classes",
         "complete_step_3": "Erreur lors de la finalisation de l'étape 3 du post-inscription"
       }
+    },
+    "errors": {
+      "fetch_completion_status": "Erreur lors de la récupération du statut de complétion",
+      "upload_profile_photo": "Erreur lors du téléversement de la photo de profil",
+      "delete_profile_photo": "Erreur lors de la suppression de la photo de profil",
+      "complete_step_1": "Erreur lors de la finalisation de l'étape 1 du post-inscription"
     }
   }
 }

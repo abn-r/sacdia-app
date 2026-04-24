@@ -242,6 +242,12 @@
         "fetch_classes": "Error fetching classes",
         "complete_step_3": "Error completing post-registration step 3"
       }
+    },
+    "errors": {
+      "fetch_completion_status": "Error fetching completion status",
+      "upload_profile_photo": "Error uploading profile photo",
+      "delete_profile_photo": "Error deleting profile photo",
+      "complete_step_1": "Error completing post-registration step 1"
     }
   }
 }
