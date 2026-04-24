@@ -287,5 +287,23 @@
       "fetch_list": "Error fetching monthly reports",
       "fetch_detail": "Error fetching report detail"
     }
+  },
+  "units": {
+    "errors": {
+      "fetch_club_units": "Error fetching club units",
+      "fetch_unit_detail": "Error fetching unit detail",
+      "create_unit": "Error creating unit",
+      "update_unit": "Error updating unit",
+      "delete_unit": "Error deleting unit",
+      "add_member": "Error adding member to unit",
+      "remove_member": "Error removing member from unit",
+      "fetch_weekly_records": "Error fetching weekly records",
+      "create_weekly_record": "Error creating weekly record",
+      "update_weekly_record": "Error updating weekly record",
+      "fetch_scoring_categories": "Error fetching scoring categories",
+      "fetch_member_of_month": "Error fetching member of the month",
+      "fetch_member_of_month_history": "Error fetching member-of-the-month history",
+      "unexpected_response": "Unexpected server response"
+    }
   }
 }

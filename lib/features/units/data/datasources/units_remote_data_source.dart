@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -146,7 +147,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
         cancelToken: cancelToken,
       );
 
-      _assertSuccess(response, 'Error al obtener las unidades del club');
+      _assertSuccess(response, tr('units.errors.fetch_club_units'));
 
       final body = response.data;
       final List<dynamic> rawList = body is List
@@ -177,7 +178,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
         cancelToken: cancelToken,
       );
 
-      _assertSuccess(response, 'Error al obtener el detalle de la unidad');
+      _assertSuccess(response, tr('units.errors.fetch_unit_detail'));
 
       final json = _extractObject(response.data);
       return UnitModel.fromJson(json);
@@ -218,7 +219,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
         data: body,
       );
 
-      _assertSuccess(response, 'Error al crear la unidad');
+      _assertSuccess(response, tr('units.errors.create_unit'));
 
       final json = _extractObject(response.data);
       return UnitModel.fromJson(json);
@@ -261,7 +262,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
         data: body,
       );
 
-      _assertSuccess(response, 'Error al actualizar la unidad');
+      _assertSuccess(response, tr('units.errors.update_unit'));
 
       final json = _extractObject(response.data);
       return UnitModel.fromJson(json);
@@ -279,7 +280,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
       final response = await _dio.delete(
         '${_unitsBase(clubId)}/$unitId',
       );
-      _assertSuccess(response, 'Error al eliminar la unidad');
+      _assertSuccess(response, tr('units.errors.delete_unit'));
     } catch (e) {
       AppLogger.e('Error en deleteUnit', tag: _tag, error: e);
       _rethrow(e);
@@ -300,7 +301,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
         data: {'user_id': userId},
       );
 
-      _assertSuccess(response, 'Error al agregar el miembro a la unidad');
+      _assertSuccess(response, tr('units.errors.add_member'));
 
       final json = _extractObject(response.data);
       return UnitMemberModel.fromJson(json);
@@ -322,7 +323,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
       final response = await _dio.delete(
         '${_unitsBase(clubId)}/$unitId/members/$memberId',
       );
-      _assertSuccess(response, 'Error al remover el miembro de la unidad');
+      _assertSuccess(response, tr('units.errors.remove_member'));
     } catch (e) {
       AppLogger.e('Error en removeUnitMember', tag: _tag, error: e);
       _rethrow(e);
@@ -343,7 +344,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
         cancelToken: cancelToken,
       );
 
-      _assertSuccess(response, 'Error al obtener los registros semanales');
+      _assertSuccess(response, tr('units.errors.fetch_weekly_records'));
 
       final body = response.data;
       final List<dynamic> rawList = body is List
@@ -388,7 +389,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
         data: body,
       );
 
-      _assertSuccess(response, 'Error al crear el registro semanal');
+      _assertSuccess(response, tr('units.errors.create_weekly_record'));
 
       final json = _extractObject(response.data);
       return WeeklyRecordModel.fromJson(json);
@@ -421,7 +422,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
         data: body,
       );
 
-      _assertSuccess(response, 'Error al actualizar el registro semanal');
+      _assertSuccess(response, tr('units.errors.update_weekly_record'));
 
       final json = _extractObject(response.data);
       return WeeklyRecordModel.fromJson(json);
@@ -444,7 +445,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
         cancelToken: cancelToken,
       );
 
-      _assertSuccess(response, 'Error al obtener las categorías de puntuación');
+      _assertSuccess(response, tr('units.errors.fetch_scoring_categories'));
 
       final body = response.data;
       final List<dynamic> rawList = body is List
@@ -476,7 +477,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
         cancelToken: cancelToken,
       );
 
-      _assertSuccess(response, 'Error al obtener el miembro del mes');
+      _assertSuccess(response, tr('units.errors.fetch_member_of_month'));
 
       final body = response.data;
       // Si el backend retorna null o un objeto sin members, no hay datos.
@@ -522,7 +523,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
       );
 
       _assertSuccess(
-          response, 'Error al obtener el historial de miembro del mes');
+          response, tr('units.errors.fetch_member_of_month_history'));
 
       final body = response.data;
       final json = body is Map<String, dynamic>
@@ -551,7 +552,7 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
           ? body['data'] as Map<String, dynamic>
           : body;
     }
-    throw ServerException(message: 'Respuesta inesperada del servidor');
+    throw ServerException(message: tr('units.errors.unexpected_response'));
   }
 
   Never _rethrow(Object e) {
@@ -567,11 +568,11 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? 'Error de conexión').toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
       }
     } catch (e) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
     }
-    return e.message ?? 'Error de conexión';
+    return e.message ?? tr('common.error_network');
   }
 }

@@ -287,5 +287,23 @@
       "fetch_list": "Erreur lors de la récupération des rapports mensuels",
       "fetch_detail": "Erreur lors de la récupération du détail du rapport"
     }
+  },
+  "units": {
+    "errors": {
+      "fetch_club_units": "Erreur lors de la récupération des unités du club",
+      "fetch_unit_detail": "Erreur lors de la récupération du détail de l'unité",
+      "create_unit": "Erreur lors de la création de l'unité",
+      "update_unit": "Erreur lors de la mise à jour de l'unité",
+      "delete_unit": "Erreur lors de la suppression de l'unité",
+      "add_member": "Erreur lors de l'ajout du membre à l'unité",
+      "remove_member": "Erreur lors du retrait du membre de l'unité",
+      "fetch_weekly_records": "Erreur lors de la récupération des registres hebdomadaires",
+      "create_weekly_record": "Erreur lors de la création du registre hebdomadaire",
+      "update_weekly_record": "Erreur lors de la mise à jour du registre hebdomadaire",
+      "fetch_scoring_categories": "Erreur lors de la récupération des catégories de score",
+      "fetch_member_of_month": "Erreur lors de la récupération du membre du mois",
+      "fetch_member_of_month_history": "Erreur lors de la récupération de l'historique du membre du mois",
+      "unexpected_response": "Réponse inattendue du serveur"
+    }
   }
 }

@@ -287,5 +287,23 @@
       "fetch_list": "Error al obtener informes mensuales",
       "fetch_detail": "Error al obtener detalle del informe"
     }
+  },
+  "units": {
+    "errors": {
+      "fetch_club_units": "Error al obtener las unidades del club",
+      "fetch_unit_detail": "Error al obtener el detalle de la unidad",
+      "create_unit": "Error al crear la unidad",
+      "update_unit": "Error al actualizar la unidad",
+      "delete_unit": "Error al eliminar la unidad",
+      "add_member": "Error al agregar el miembro a la unidad",
+      "remove_member": "Error al remover el miembro de la unidad",
+      "fetch_weekly_records": "Error al obtener los registros semanales",
+      "create_weekly_record": "Error al crear el registro semanal",
+      "update_weekly_record": "Error al actualizar el registro semanal",
+      "fetch_scoring_categories": "Error al obtener las categorías de puntuación",
+      "fetch_member_of_month": "Error al obtener el miembro del mes",
+      "fetch_member_of_month_history": "Error al obtener el historial de miembro del mes",
+      "unexpected_response": "Respuesta inesperada del servidor"
+    }
   }
 }
