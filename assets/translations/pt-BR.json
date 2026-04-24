@@ -55,9 +55,18 @@
     "last_sync_label": "Última sincronização",
     "last_sync_never": "Nunca",
     "relative_time_just_now": "agora mesmo",
-    "relative_time_min_ago": { "one": "há {} minuto", "other": "há {} minutos" },
-    "relative_time_hour_ago": { "one": "há {} hora", "other": "há {} horas" },
-    "relative_time_day_ago": { "one": "há {} dia", "other": "há {} dias" },
+    "relative_time_min_ago": {
+      "one": "há {} minuto",
+      "other": "há {} minutos"
+    },
+    "relative_time_hour_ago": {
+      "one": "há {} hora",
+      "other": "há {} horas"
+    },
+    "relative_time_day_ago": {
+      "one": "há {} dia",
+      "other": "há {} dias"
+    },
     "accessibility_tile": "Acessibilidade"
   },
   "accessibility": {
@@ -185,5 +194,28 @@
     "oauth_url_missing": "O servidor não retornou URL para OAuth de {provider}",
     "too_many_attempts": "Muitas tentativas. Tente mais tarde.",
     "unexpected": "Erro inesperado: {details}"
+  },
+  "honors": {
+    "errors": {
+      "fetch_categories": "Erro ao obter categorias",
+      "fetch_honors": "Erro ao obter especialidades",
+      "fetch_honor": "Erro ao obter especialidade",
+      "fetch_user_honors": "Erro ao obter especialidades do usuário",
+      "fetch_stats": "Erro ao obter estatísticas",
+      "enroll": "Erro ao inscrever na especialidade",
+      "update": "Erro ao atualizar especialidade",
+      "delete": "Erro ao excluir especialidade",
+      "register": "Erro ao registrar especialidade",
+      "fetch_grouped": "Erro ao obter especialidades agrupadas",
+      "fetch_requirements": "Erro ao obter requisitos da especialidade",
+      "fetch_progress": "Erro ao obter progresso dos requisitos",
+      "update_requirement": "Erro ao atualizar requisito",
+      "bulk_update_progress": "Erro ao atualizar progresso dos requisitos",
+      "upload_evidence": "Erro ao enviar evidência",
+      "upload_requirement_evidence": "Erro ao enviar evidência do requisito",
+      "add_evidence_link": "Erro ao adicionar link de evidência",
+      "fetch_requirement_evidences": "Erro ao obter evidências do requisito",
+      "delete_requirement_evidence": "Erro ao excluir evidência do requisito"
+    }
   }
 }

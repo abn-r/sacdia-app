@@ -55,9 +55,18 @@
     "last_sync_label": "Última sincronización",
     "last_sync_never": "Nunca",
     "relative_time_just_now": "hace un momento",
-    "relative_time_min_ago": { "one": "hace {} minuto", "other": "hace {} minutos" },
-    "relative_time_hour_ago": { "one": "hace {} hora", "other": "hace {} horas" },
-    "relative_time_day_ago": { "one": "hace {} día", "other": "hace {} días" },
+    "relative_time_min_ago": {
+      "one": "hace {} minuto",
+      "other": "hace {} minutos"
+    },
+    "relative_time_hour_ago": {
+      "one": "hace {} hora",
+      "other": "hace {} horas"
+    },
+    "relative_time_day_ago": {
+      "one": "hace {} día",
+      "other": "hace {} días"
+    },
     "accessibility_tile": "Accesibilidad"
   },
   "accessibility": {
@@ -185,5 +194,28 @@
     "oauth_url_missing": "El servidor no devolvió URL para OAuth de {provider}",
     "too_many_attempts": "Demasiados intentos. Intente más tarde.",
     "unexpected": "Error inesperado: {details}"
+  },
+  "honors": {
+    "errors": {
+      "fetch_categories": "Error al obtener categorías",
+      "fetch_honors": "Error al obtener especialidades",
+      "fetch_honor": "Error al obtener especialidad",
+      "fetch_user_honors": "Error al obtener especialidades del usuario",
+      "fetch_stats": "Error al obtener estadísticas",
+      "enroll": "Error al inscribir en especialidad",
+      "update": "Error al actualizar especialidad",
+      "delete": "Error al eliminar especialidad",
+      "register": "Error al registrar especialidad",
+      "fetch_grouped": "Error al obtener especialidades agrupadas",
+      "fetch_requirements": "Error al obtener requisitos de la especialidad",
+      "fetch_progress": "Error al obtener progreso de requisitos",
+      "update_requirement": "Error al actualizar requisito",
+      "bulk_update_progress": "Error al actualizar progreso de requisitos",
+      "upload_evidence": "Error al subir evidencia",
+      "upload_requirement_evidence": "Error al subir evidencia de requisito",
+      "add_evidence_link": "Error al agregar enlace de evidencia",
+      "fetch_requirement_evidences": "Error al obtener evidencias del requisito",
+      "delete_requirement_evidence": "Error al eliminar evidencia del requisito"
+    }
   }
 }

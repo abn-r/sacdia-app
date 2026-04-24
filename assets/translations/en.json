@@ -55,9 +55,18 @@
     "last_sync_label": "Last sync",
     "last_sync_never": "Never",
     "relative_time_just_now": "just now",
-    "relative_time_min_ago": { "one": "{} minute ago", "other": "{} minutes ago" },
-    "relative_time_hour_ago": { "one": "{} hour ago", "other": "{} hours ago" },
-    "relative_time_day_ago": { "one": "{} day ago", "other": "{} days ago" },
+    "relative_time_min_ago": {
+      "one": "{} minute ago",
+      "other": "{} minutes ago"
+    },
+    "relative_time_hour_ago": {
+      "one": "{} hour ago",
+      "other": "{} hours ago"
+    },
+    "relative_time_day_ago": {
+      "one": "{} day ago",
+      "other": "{} days ago"
+    },
     "accessibility_tile": "Accessibility"
   },
   "accessibility": {
@@ -185,5 +194,28 @@
     "oauth_url_missing": "The server did not return an OAuth URL for {provider}",
     "too_many_attempts": "Too many attempts. Please try again later.",
     "unexpected": "Unexpected error: {details}"
+  },
+  "honors": {
+    "errors": {
+      "fetch_categories": "Error fetching categories",
+      "fetch_honors": "Error fetching honors",
+      "fetch_honor": "Error fetching honor",
+      "fetch_user_honors": "Error fetching user honors",
+      "fetch_stats": "Error fetching statistics",
+      "enroll": "Error enrolling in honor",
+      "update": "Error updating honor",
+      "delete": "Error deleting honor",
+      "register": "Error registering honor",
+      "fetch_grouped": "Error fetching grouped honors",
+      "fetch_requirements": "Error fetching honor requirements",
+      "fetch_progress": "Error fetching requirements progress",
+      "update_requirement": "Error updating requirement",
+      "bulk_update_progress": "Error updating requirements progress",
+      "upload_evidence": "Error uploading evidence",
+      "upload_requirement_evidence": "Error uploading requirement evidence",
+      "add_evidence_link": "Error adding evidence link",
+      "fetch_requirement_evidences": "Error fetching requirement evidences",
+      "delete_requirement_evidence": "Error deleting requirement evidence"
+    }
   }
 }

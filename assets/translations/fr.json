@@ -55,9 +55,18 @@
     "last_sync_label": "Dernière synchronisation",
     "last_sync_never": "Jamais",
     "relative_time_just_now": "à l'instant",
-    "relative_time_min_ago": { "one": "il y a {} minute", "other": "il y a {} minutes" },
-    "relative_time_hour_ago": { "one": "il y a {} heure", "other": "il y a {} heures" },
-    "relative_time_day_ago": { "one": "il y a {} jour", "other": "il y a {} jours" },
+    "relative_time_min_ago": {
+      "one": "il y a {} minute",
+      "other": "il y a {} minutes"
+    },
+    "relative_time_hour_ago": {
+      "one": "il y a {} heure",
+      "other": "il y a {} heures"
+    },
+    "relative_time_day_ago": {
+      "one": "il y a {} jour",
+      "other": "il y a {} jours"
+    },
     "accessibility_tile": "Accessibilité"
   },
   "accessibility": {
@@ -185,5 +194,28 @@
     "oauth_url_missing": "Le serveur n'a pas renvoyé d'URL OAuth pour {provider}",
     "too_many_attempts": "Trop de tentatives. Réessayez plus tard.",
     "unexpected": "Erreur inattendue : {details}"
+  },
+  "honors": {
+    "errors": {
+      "fetch_categories": "Erreur lors de la récupération des catégories",
+      "fetch_honors": "Erreur lors de la récupération des spécialités",
+      "fetch_honor": "Erreur lors de la récupération de la spécialité",
+      "fetch_user_honors": "Erreur lors de la récupération des spécialités de l'utilisateur",
+      "fetch_stats": "Erreur lors de la récupération des statistiques",
+      "enroll": "Erreur lors de l'inscription à la spécialité",
+      "update": "Erreur lors de la mise à jour de la spécialité",
+      "delete": "Erreur lors de la suppression de la spécialité",
+      "register": "Erreur lors de l'enregistrement de la spécialité",
+      "fetch_grouped": "Erreur lors de la récupération des spécialités groupées",
+      "fetch_requirements": "Erreur lors de la récupération des exigences de la spécialité",
+      "fetch_progress": "Erreur lors de la récupération de la progression des exigences",
+      "update_requirement": "Erreur lors de la mise à jour de l'exigence",
+      "bulk_update_progress": "Erreur lors de la mise à jour de la progression des exigences",
+      "upload_evidence": "Erreur lors du téléversement de la preuve",
+      "upload_requirement_evidence": "Erreur lors du téléversement de la preuve de l'exigence",
+      "add_evidence_link": "Erreur lors de l'ajout du lien de preuve",
+      "fetch_requirement_evidences": "Erreur lors de la récupération des preuves de l'exigence",
+      "delete_requirement_evidence": "Erreur lors de la suppression de la preuve de l'exigence"
+    }
   }
 }
