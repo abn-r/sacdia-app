@@ -254,7 +254,43 @@
         "fetch_club_sections": "Erreur lors de la récupération des sections du club",
         "fetch_classes": "Erreur lors de la récupération des classes",
         "complete_step_3": "Erreur lors de la finalisation de l'étape 3 du post-inscription"
-      }
+      },
+      "title": "Trouvez votre club",
+      "subtitle": "Sélectionnez votre emplacement et votre club pour rejoindre l'aventure",
+      "location": "Emplacement",
+      "country": "Pays",
+      "select_country": "Sélectionner un pays",
+      "search_country": "Rechercher un pays...",
+      "loading_countries": "Chargement des pays...",
+      "error_loading_countries": "Erreur lors du chargement des pays : {error}",
+      "no_unions": "Aucune union disponible",
+      "union": "Union",
+      "select_union": "Sélectionner une union",
+      "search_union": "Rechercher une union...",
+      "loading_unions": "Chargement des unions...",
+      "error_loading_unions": "Erreur lors du chargement des unions : {error}",
+      "no_local_fields": "Aucun champ local disponible",
+      "local_field": "Champ local",
+      "select_local_field": "Sélectionner un champ local",
+      "search_local_field": "Rechercher un champ local...",
+      "loading_local_fields": "Chargement des champs locaux...",
+      "error_loading_local_fields": "Erreur lors du chargement des champs locaux : {error}",
+      "your_club": "Votre club",
+      "no_clubs": "Aucun club disponible",
+      "club": "Club",
+      "select_club": "Sélectionner un club",
+      "search_club": "Rechercher un club...",
+      "loading_clubs": "Chargement des clubs...",
+      "error_loading_clubs": "Erreur lors du chargement des clubs : {error}",
+      "club_type_section": "Type de club",
+      "your_class": "Votre classe",
+      "no_classes": "Aucune classe disponible",
+      "progressive_class": "Classe progressive",
+      "select_class": "Sélectionner une classe",
+      "search_class": "Rechercher une classe...",
+      "select_progressive_class": "Sélectionner une classe progressive",
+      "loading_classes": "Chargement des classes...",
+      "error_loading_classes": "Erreur lors du chargement des classes : {error}"
     },
     "errors": {
       "fetch_completion_status": "Erreur lors de la récupération du statut de complétion",
@@ -479,6 +515,23 @@
         "crop": "Erreur lors du recadrage de l'image",
         "upload": "Erreur lors du téléchargement de la photo : {message}"
       }
+    },
+    "club_type": {
+      "no_instances": "Ce club n'a pas d'instances actives. Choisissez un autre club.",
+      "label": "Type de club",
+      "recommended": "Recommandé",
+      "error_loading": "Erreur lors du chargement des types de club : {error}",
+      "for_age_adventurers": "Pour votre âge ({age} ans), nous recommandons le club des Aventuriers.",
+      "for_age_pathfinders": "Pour votre âge ({age} ans), nous recommandons le club des Conquérants.",
+      "for_age_master_guild": "Pour votre âge ({age} ans), nous recommandons le club des Guides majeurs."
+    },
+    "recommendation": {
+      "recommended_class": "Classe recommandée",
+      "for_age": "Pour votre âge ({age} ans), nous recommandons la classe \"{class_name}\"",
+      "age_range": "Tranche d'âge : {min} - {max} ans"
+    },
+    "dropdown": {
+      "select_label": "Sélectionner {label}"
     }
   },
   "monthly_reports": {

@@ -254,7 +254,43 @@
         "fetch_club_sections": "Error fetching club sections",
         "fetch_classes": "Error fetching classes",
         "complete_step_3": "Error completing post-registration step 3"
-      }
+      },
+      "title": "Find your club",
+      "subtitle": "Select your location and club to join the adventure",
+      "location": "Location",
+      "country": "Country",
+      "select_country": "Select country",
+      "search_country": "Search country...",
+      "loading_countries": "Loading countries...",
+      "error_loading_countries": "Error loading countries: {error}",
+      "no_unions": "No unions available",
+      "union": "Union",
+      "select_union": "Select union",
+      "search_union": "Search union...",
+      "loading_unions": "Loading unions...",
+      "error_loading_unions": "Error loading unions: {error}",
+      "no_local_fields": "No local fields available",
+      "local_field": "Local Field",
+      "select_local_field": "Select local field",
+      "search_local_field": "Search local field...",
+      "loading_local_fields": "Loading local fields...",
+      "error_loading_local_fields": "Error loading local fields: {error}",
+      "your_club": "Your club",
+      "no_clubs": "No clubs available",
+      "club": "Club",
+      "select_club": "Select club",
+      "search_club": "Search club...",
+      "loading_clubs": "Loading clubs...",
+      "error_loading_clubs": "Error loading clubs: {error}",
+      "club_type_section": "Club type",
+      "your_class": "Your class",
+      "no_classes": "No classes available",
+      "progressive_class": "Progressive Class",
+      "select_class": "Select class",
+      "search_class": "Search class...",
+      "select_progressive_class": "Select progressive class",
+      "loading_classes": "Loading classes...",
+      "error_loading_classes": "Error loading classes: {error}"
     },
     "errors": {
       "fetch_completion_status": "Error fetching completion status",
@@ -479,6 +515,23 @@
         "crop": "Error cropping the image",
         "upload": "Error uploading photo: {message}"
       }
+    },
+    "club_type": {
+      "no_instances": "This club has no active instances. Choose another club.",
+      "label": "Club Type",
+      "recommended": "Recommended",
+      "error_loading": "Error loading club types: {error}",
+      "for_age_adventurers": "For your age ({age} years old), we recommend the Adventurers club.",
+      "for_age_pathfinders": "For your age ({age} years old), we recommend the Pathfinders club.",
+      "for_age_master_guild": "For your age ({age} years old), we recommend the Master Guides club."
+    },
+    "recommendation": {
+      "recommended_class": "Recommended Class",
+      "for_age": "For your age ({age} years old), we recommend the class \"{class_name}\"",
+      "age_range": "Age range: {min} - {max} years old"
+    },
+    "dropdown": {
+      "select_label": "Select {label}"
     }
   },
   "monthly_reports": {

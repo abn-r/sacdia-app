@@ -254,7 +254,43 @@
         "fetch_club_sections": "Erro ao obter seções de clube",
         "fetch_classes": "Erro ao obter classes",
         "complete_step_3": "Erro ao concluir a etapa 3 do pós-cadastro"
-      }
+      },
+      "title": "Encontre seu clube",
+      "subtitle": "Selecione sua localização e clube para se juntar à aventura",
+      "location": "Localização",
+      "country": "País",
+      "select_country": "Selecionar país",
+      "search_country": "Buscar país...",
+      "loading_countries": "Carregando países...",
+      "error_loading_countries": "Erro ao carregar países: {error}",
+      "no_unions": "Nenhuma união disponível",
+      "union": "União",
+      "select_union": "Selecionar união",
+      "search_union": "Buscar união...",
+      "loading_unions": "Carregando uniões...",
+      "error_loading_unions": "Erro ao carregar uniões: {error}",
+      "no_local_fields": "Nenhum campo local disponível",
+      "local_field": "Campo Local",
+      "select_local_field": "Selecionar campo local",
+      "search_local_field": "Buscar campo local...",
+      "loading_local_fields": "Carregando campos locais...",
+      "error_loading_local_fields": "Erro ao carregar campos locais: {error}",
+      "your_club": "Seu clube",
+      "no_clubs": "Nenhum clube disponível",
+      "club": "Clube",
+      "select_club": "Selecionar clube",
+      "search_club": "Buscar clube...",
+      "loading_clubs": "Carregando clubes...",
+      "error_loading_clubs": "Erro ao carregar clubes: {error}",
+      "club_type_section": "Tipo de clube",
+      "your_class": "Sua classe",
+      "no_classes": "Nenhuma classe disponível",
+      "progressive_class": "Classe Progressiva",
+      "select_class": "Selecionar classe",
+      "search_class": "Buscar classe...",
+      "select_progressive_class": "Selecionar classe progressiva",
+      "loading_classes": "Carregando classes...",
+      "error_loading_classes": "Erro ao carregar classes: {error}"
     },
     "errors": {
       "fetch_completion_status": "Erro ao obter status de conclusão",
@@ -479,6 +515,23 @@
         "crop": "Erro ao cortar a imagem",
         "upload": "Erro ao enviar foto: {message}"
       }
+    },
+    "club_type": {
+      "no_instances": "Este clube não tem instâncias ativas. Escolha outro clube.",
+      "label": "Tipo de Clube",
+      "recommended": "Recomendado",
+      "error_loading": "Erro ao carregar tipos de clube: {error}",
+      "for_age_adventurers": "Para a sua idade ({age} anos), recomendamos o clube de Aventureiros.",
+      "for_age_pathfinders": "Para a sua idade ({age} anos), recomendamos o clube de Conquistadores.",
+      "for_age_master_guild": "Para a sua idade ({age} anos), recomendamos o clube de Guias Maiores."
+    },
+    "recommendation": {
+      "recommended_class": "Classe Recomendada",
+      "for_age": "Para a sua idade ({age} anos), recomendamos a classe \"{class_name}\"",
+      "age_range": "Faixa etária: {min} - {max} anos"
+    },
+    "dropdown": {
+      "select_label": "Selecionar {label}"
     }
   },
   "monthly_reports": {

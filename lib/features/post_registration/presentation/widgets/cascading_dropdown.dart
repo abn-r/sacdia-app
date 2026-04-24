@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -58,7 +59,9 @@ class CascadingDropdown<T> extends StatelessWidget {
           DropdownButtonFormField<dynamic>(
             value: selectedValue != null ? getItemValue(selectedValue as T) : null,
             decoration: InputDecoration(
-              hintText: hintText ?? 'Seleccionar $label',
+              hintText: hintText ??
+                  'post_registration.dropdown.select_label'
+                      .tr(namedArgs: {'label': label}),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
               ),

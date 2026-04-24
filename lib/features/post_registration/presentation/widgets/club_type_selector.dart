@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -41,7 +42,7 @@ class ClubTypeSelector extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Este club no tiene instancias activas. Elige otro club.',
+                    'post_registration.club_type.no_instances'.tr(),
                     style: TextStyle(
                       fontSize: 13,
                       color: AppColors.accentDark,
@@ -58,7 +59,7 @@ class ClubTypeSelector extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Tipo de Club',
+              'post_registration.club_type.label'.tr(),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -132,7 +133,7 @@ class ClubTypeSelector extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              'Recomendado',
+                              'post_registration.club_type.recommended'.tr(),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: AppColors.secondaryDark,
@@ -158,7 +159,8 @@ class ClubTypeSelector extends ConsumerWidget {
       error: (error, stack) => Padding(
         padding: const EdgeInsets.all(16),
         child: Text(
-          'Error al cargar tipos de club: $error',
+          'post_registration.club_type.error_loading'
+              .tr(namedArgs: {'error': error.toString()}),
           style: TextStyle(color: AppColors.error),
         ),
       ),
@@ -171,18 +173,18 @@ class ClubTypeSelector extends ConsumerWidget {
     Color color = AppColors.primary;
 
     if (age >= 4 && age <= 9) {
-      recommendation =
-          'Para tu edad ($age años), recomendamos el club de Aventureros.';
+      recommendation = 'post_registration.club_type.for_age_adventurers'
+          .tr(namedArgs: {'age': age.toString()});
       icon = HugeIcons.strokeRoundedBaby01;
       color = AppColors.accent;
     } else if (age >= 10 && age <= 15) {
-      recommendation =
-          'Para tu edad ($age años), recomendamos el club de Conquistadores.';
+      recommendation = 'post_registration.club_type.for_age_pathfinders'
+          .tr(namedArgs: {'age': age.toString()});
       icon = HugeIcons.strokeRoundedCompass01;
       color = AppColors.primary;
     } else if (age >= 16) {
-      recommendation =
-          'Para tu edad ($age años), recomendamos el club de Guías Mayores.';
+      recommendation = 'post_registration.club_type.for_age_master_guild'
+          .tr(namedArgs: {'age': age.toString()});
       icon = HugeIcons.strokeRoundedUserGroup;
       color = AppColors.secondary;
     }
