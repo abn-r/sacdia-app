@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -165,7 +166,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw ServerException(
-          message: 'Error al obtener miembros del club',
+          message: tr('members.errors.fetch_club_members'),
           code: response.statusCode,
         );
       }
@@ -176,7 +177,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error al obtener miembros', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? 'Error al obtener miembros',
+        message: e.response?.data?['message'] ?? tr('members.errors.fetch_members'),
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -196,7 +197,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw ServerException(
-          message: 'Error al obtener detalle del miembro',
+          message: tr('members.errors.fetch_member_detail'),
           code: response.statusCode,
         );
       }
@@ -208,7 +209,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       AppLogger.e('Error al obtener detalle del miembro', tag: _tag, error: e);
       throw ServerException(
         message: e.response?.data?['message'] ??
-            'Error al obtener detalle del miembro',
+            tr('members.errors.fetch_member_detail'),
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -232,7 +233,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw ServerException(
-          message: 'Error al obtener solicitudes de ingreso',
+          message: tr('members.errors.fetch_join_requests'),
           code: response.statusCode,
         );
       }
@@ -248,7 +249,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       }
       AppLogger.e('Error al obtener solicitudes', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? 'Error al obtener solicitudes',
+        message: e.response?.data?['message'] ?? tr('members.errors.fetch_requests'),
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -267,7 +268,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw ServerException(
-          message: 'Error al aprobar solicitud',
+          message: tr('members.errors.approve_request'),
           code: response.statusCode,
         );
       }
@@ -277,7 +278,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
     } on DioException catch (e) {
       AppLogger.e('Error al aprobar solicitud', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? 'Error al aprobar solicitud',
+        message: e.response?.data?['message'] ?? tr('members.errors.approve_request'),
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -295,7 +296,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw ServerException(
-          message: 'Error al rechazar solicitud',
+          message: tr('members.errors.reject_request'),
           code: response.statusCode,
         );
       }
@@ -305,7 +306,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
     } on DioException catch (e) {
       AppLogger.e('Error al rechazar solicitud', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? 'Error al rechazar solicitud',
+        message: e.response?.data?['message'] ?? tr('members.errors.reject_request'),
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -346,7 +347,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
     } on DioException catch (e) {
       AppLogger.e('Error al asignar rol', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? 'Error al asignar rol',
+        message: e.response?.data?['message'] ?? tr('members.errors.assign_role'),
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -368,7 +369,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
     } on DioException catch (e) {
       AppLogger.e('Error al remover rol', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? 'Error al remover rol',
+        message: e.response?.data?['message'] ?? tr('members.errors.remove_role'),
         code: e.response?.statusCode,
       );
     } catch (e) {

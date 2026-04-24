@@ -367,5 +367,18 @@
       "fetch_categories": "Error fetching categories",
       "fetch_paginated": "Error fetching transactions"
     }
+  },
+  "members": {
+    "errors": {
+      "fetch_club_members": "Error fetching club members",
+      "fetch_members": "Error fetching members",
+      "fetch_member_detail": "Error fetching member detail",
+      "fetch_join_requests": "Error fetching join requests",
+      "fetch_requests": "Error fetching requests",
+      "approve_request": "Error approving request",
+      "reject_request": "Error rejecting request",
+      "assign_role": "Error assigning role",
+      "remove_role": "Error removing role"
+    }
   }
 }

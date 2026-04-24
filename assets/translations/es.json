@@ -367,5 +367,18 @@
       "fetch_categories": "Error al obtener categorías",
       "fetch_paginated": "Error al obtener transacciones"
     }
+  },
+  "members": {
+    "errors": {
+      "fetch_club_members": "Error al obtener miembros del club",
+      "fetch_members": "Error al obtener miembros",
+      "fetch_member_detail": "Error al obtener detalle del miembro",
+      "fetch_join_requests": "Error al obtener solicitudes de ingreso",
+      "fetch_requests": "Error al obtener solicitudes",
+      "approve_request": "Error al aprobar solicitud",
+      "reject_request": "Error al rechazar solicitud",
+      "assign_role": "Error al asignar rol",
+      "remove_role": "Error al remover rol"
+    }
   }
 }
