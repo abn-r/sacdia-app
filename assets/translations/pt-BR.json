@@ -280,5 +280,12 @@
         "complete_step_2": "Erro ao concluir etapa 2"
       }
     }
+  },
+  "monthly_reports": {
+    "errors": {
+      "fetch_preview": "Erro ao obter pré-visualização do informe",
+      "fetch_list": "Erro ao obter informes mensais",
+      "fetch_detail": "Erro ao obter detalhe do informe"
+    }
   }
 }

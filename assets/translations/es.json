@@ -280,5 +280,12 @@
         "complete_step_2": "Error al completar paso 2"
       }
     }
+  },
+  "monthly_reports": {
+    "errors": {
+      "fetch_preview": "Error al obtener preview del informe",
+      "fetch_list": "Error al obtener informes mensuales",
+      "fetch_detail": "Error al obtener detalle del informe"
+    }
   }
 }

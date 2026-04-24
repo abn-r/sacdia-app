@@ -280,5 +280,12 @@
         "complete_step_2": "Erreur lors de la finalisation de l'étape 2"
       }
     }
+  },
+  "monthly_reports": {
+    "errors": {
+      "fetch_preview": "Erreur lors de la récupération de l'aperçu du rapport",
+      "fetch_list": "Erreur lors de la récupération des rapports mensuels",
+      "fetch_detail": "Erreur lors de la récupération du détail du rapport"
+    }
   }
 }
