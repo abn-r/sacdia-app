@@ -491,5 +491,12 @@
       "get_history": "Error fetching validation history",
       "check_eligibility": "Error checking eligibility"
     }
+  },
+  "transfers": {
+    "errors": {
+      "create": "Error creating the transfer request.",
+      "get_list": "Error fetching transfer requests.",
+      "get_detail": "Error fetching the transfer request detail."
+    }
   }
 }

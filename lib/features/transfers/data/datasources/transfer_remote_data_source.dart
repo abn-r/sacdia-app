@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -73,14 +74,14 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al crear solicitud de traslado',
+        message: tr('transfers.errors.create'),
         code: response.statusCode,
       );
     } on DioException catch (e) {
       AppLogger.e('DioException en createTransferRequest', tag: _tag, error: e);
       final msg = e.response?.data is Map
-          ? (e.response!.data['message'] ?? e.message ?? 'Error de red')
-          : (e.message ?? 'Error de red');
+          ? (e.response!.data['message'] ?? e.message ?? tr('common.error_network'))
+          : (e.message ?? tr('common.error_network'));
       throw ServerException(
           message: msg.toString(), code: e.response?.statusCode);
     } catch (e) {
@@ -108,14 +109,14 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener solicitudes',
+        message: tr('transfers.errors.get_list'),
         code: response.statusCode,
       );
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('DioException en getMyTransferRequests', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? e.message ?? 'Error de red',
+        message: e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -143,14 +144,14 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener solicitud de traslado',
+        message: tr('transfers.errors.get_detail'),
         code: response.statusCode,
       );
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('DioException en getTransferRequest', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? e.message ?? 'Error de red',
+        message: e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
         code: e.response?.statusCode,
       );
     } catch (e) {

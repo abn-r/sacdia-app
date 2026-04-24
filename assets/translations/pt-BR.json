@@ -491,5 +491,12 @@
       "get_history": "Erro ao obter histórico",
       "check_eligibility": "Erro ao verificar elegibilidade"
     }
+  },
+  "transfers": {
+    "errors": {
+      "create": "Erro ao criar a solicitação de transferência.",
+      "get_list": "Erro ao obter as solicitações de transferência.",
+      "get_detail": "Erro ao obter o detalhe da solicitação de transferência."
+    }
   }
 }

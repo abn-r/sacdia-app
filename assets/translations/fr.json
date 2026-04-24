@@ -491,5 +491,12 @@
       "get_history": "Erreur lors de la récupération de l’historique",
       "check_eligibility": "Erreur lors de la vérification de l’éligibilité"
     }
+  },
+  "transfers": {
+    "errors": {
+      "create": "Erreur lors de la création de la demande de transfert.",
+      "get_list": "Erreur lors de la récupération des demandes de transfert.",
+      "get_detail": "Erreur lors de la récupération du détail de la demande de transfert."
+    }
   }
 }
