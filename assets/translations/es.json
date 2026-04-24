@@ -418,5 +418,14 @@
       "update_item": "Error al actualizar el ítem",
       "delete_item": "Error al eliminar el ítem"
     }
+  },
+  "insurance": {
+    "errors": {
+      "get_members": "Error al obtener los seguros del club",
+      "get_detail": "Error al obtener el detalle del seguro",
+      "create": "Error al registrar el seguro",
+      "update": "Error al actualizar el seguro",
+      "get_expiring": "Error al obtener los seguros por vencer"
+    }
   }
 }

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -105,7 +106,7 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener los seguros del club',
+        message: tr('insurance.errors.get_members'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -136,7 +137,7 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener el detalle del seguro',
+        message: tr('insurance.errors.get_detail'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -224,7 +225,7 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al registrar el seguro',
+        message: tr('insurance.errors.create'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -306,7 +307,7 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al actualizar el seguro',
+        message: tr('insurance.errors.update'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -341,7 +342,7 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener los seguros por vencer',
+        message: tr('insurance.errors.get_expiring'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -369,11 +370,11 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? 'Error de conexión').toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
       }
     } catch (e) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
     }
-    return e.message ?? 'Error de conexión';
+    return e.message ?? tr('common.error_network');
   }
 }

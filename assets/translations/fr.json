@@ -418,5 +418,14 @@
       "update_item": "Erreur lors de la mise à jour de l'article",
       "delete_item": "Erreur lors de la suppression de l'article"
     }
+  },
+  "insurance": {
+    "errors": {
+      "get_members": "Erreur lors de la récupération des assurances du club",
+      "get_detail": "Erreur lors de la récupération des détails de l'assurance",
+      "create": "Erreur lors de la création de l'assurance",
+      "update": "Erreur lors de la mise à jour de l'assurance",
+      "get_expiring": "Erreur lors de la récupération des assurances expirant"
+    }
   }
 }

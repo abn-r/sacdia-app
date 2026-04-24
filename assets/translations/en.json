@@ -418,5 +418,14 @@
       "update_item": "Error updating item",
       "delete_item": "Error deleting item"
     }
+  },
+  "insurance": {
+    "errors": {
+      "get_members": "Error fetching club insurance records",
+      "get_detail": "Error fetching insurance details",
+      "create": "Error creating insurance record",
+      "update": "Error updating insurance record",
+      "get_expiring": "Error fetching expiring insurance records"
+    }
   }
 }
