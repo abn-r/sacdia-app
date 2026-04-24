@@ -523,6 +523,11 @@
         "revoke_not_found": "Cette session n'existe plus.",
         "too_many_requests": "Trop de requêtes, veuillez patienter un moment."
       }
+    },
+    "errors": {
+      "get_profile": "Erreur lors de la récupération du profil.",
+      "update_profile": "Erreur lors de la mise à jour du profil.",
+      "update_picture": "Erreur lors de la mise à jour de la photo de profil."
     }
   },
   "club": {

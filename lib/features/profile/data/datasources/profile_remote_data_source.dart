@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -35,7 +36,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw ServerException(
-          message: 'Error al obtener perfil del usuario',
+          message: tr('profile.errors.get_profile'),
           code: response.statusCode,
         );
       }
@@ -49,7 +50,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     } on DioException catch (e) {
       AppLogger.e('Error al obtener perfil', tag: _tag, error: e.message);
       throw ServerException(
-        message: e.response?.data?['message'] ?? 'Error al obtener perfil',
+        message: e.response?.data?['message'] ?? tr('common.error_network'),
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -72,7 +73,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw ServerException(
-          message: 'Error al actualizar perfil',
+          message: tr('profile.errors.update_profile'),
           code: response.statusCode,
         );
       }
@@ -81,7 +82,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     } on DioException catch (e) {
       AppLogger.e('Error al actualizar perfil', tag: _tag, error: e.message);
       throw ServerException(
-        message: e.response?.data?['message'] ?? 'Error al actualizar perfil',
+        message: e.response?.data?['message'] ?? tr('common.error_network'),
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -114,7 +115,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw ServerException(
-          message: 'Error al actualizar foto de perfil',
+          message: tr('profile.errors.update_picture'),
           code: response.statusCode,
         );
       }
@@ -125,7 +126,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     } on DioException catch (e) {
       AppLogger.e('Error al actualizar foto de perfil', tag: _tag, error: e.message);
       throw ServerException(
-        message: e.response?.data?['message'] ?? 'Error al actualizar foto',
+        message: e.response?.data?['message'] ?? tr('common.error_network'),
         code: e.response?.statusCode,
       );
     } catch (e) {

@@ -523,6 +523,11 @@
         "revoke_not_found": "This session no longer exists.",
         "too_many_requests": "Too many requests, please wait a moment."
       }
+    },
+    "errors": {
+      "get_profile": "Error fetching user profile.",
+      "update_profile": "Error updating profile.",
+      "update_picture": "Error updating profile picture."
     }
   },
   "club": {
