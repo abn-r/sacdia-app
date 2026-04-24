@@ -400,5 +400,13 @@
       "get_churches": "Error fetching churches",
       "get_ecclesiastical_years": "Error fetching ecclesiastical years"
     }
+  },
+  "resources": {
+    "errors": {
+      "get_resources": "Error fetching resources",
+      "get_resource": "Error fetching resource",
+      "get_signed_url": "Error fetching download URL",
+      "get_categories": "Error fetching categories"
+    }
   }
 }

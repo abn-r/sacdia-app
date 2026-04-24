@@ -400,5 +400,13 @@
       "get_churches": "Error al obtener iglesias",
       "get_ecclesiastical_years": "Error al obtener años eclesiásticos"
     }
+  },
+  "resources": {
+    "errors": {
+      "get_resources": "Error al obtener recursos",
+      "get_resource": "Error al obtener recurso",
+      "get_signed_url": "Error al obtener URL de descarga",
+      "get_categories": "Error al obtener categorías"
+    }
   }
 }

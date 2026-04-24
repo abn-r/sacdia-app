@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -66,7 +67,7 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener recursos',
+        message: tr('resources.errors.get_resources'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -74,7 +75,7 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
-          message: e.message ?? 'Error de conexión',
+          message: e.message ?? tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }
@@ -96,7 +97,7 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener recurso',
+        message: tr('resources.errors.get_resource'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -104,7 +105,7 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
-          message: e.message ?? 'Error de conexión',
+          message: e.message ?? tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }
@@ -130,7 +131,7 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener URL de descarga',
+        message: tr('resources.errors.get_signed_url'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -138,7 +139,7 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
-          message: e.message ?? 'Error de conexión',
+          message: e.message ?? tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }
@@ -166,7 +167,7 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener categorías',
+        message: tr('resources.errors.get_categories'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -174,7 +175,7 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
-          message: e.message ?? 'Error de conexión',
+          message: e.message ?? tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }
