@@ -391,5 +391,14 @@
       "update_section_progress": "Error updating section progress",
       "unenroll_certification": "Error unenrolling from certification"
     }
+  },
+  "catalogs": {
+    "errors": {
+      "get_club_types": "Error fetching club types",
+      "get_activity_types": "Error fetching activity types",
+      "get_districts": "Error fetching districts",
+      "get_churches": "Error fetching churches",
+      "get_ecclesiastical_years": "Error fetching ecclesiastical years"
+    }
   }
 }

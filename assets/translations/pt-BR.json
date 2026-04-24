@@ -391,5 +391,14 @@
       "update_section_progress": "Erro ao atualizar progresso da seção",
       "unenroll_certification": "Erro ao cancelar inscrição na certificação"
     }
+  },
+  "catalogs": {
+    "errors": {
+      "get_club_types": "Erro ao obter tipos de clube",
+      "get_activity_types": "Erro ao obter tipos de atividade",
+      "get_districts": "Erro ao obter distritos",
+      "get_churches": "Erro ao obter igrejas",
+      "get_ecclesiastical_years": "Erro ao obter anos eclesiásticos"
+    }
   }
 }
