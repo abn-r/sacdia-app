@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/constants/maps_constants.dart';
@@ -109,7 +110,7 @@ class ActivityHeroSection extends StatelessWidget {
           TextButton.icon(
             onPressed: () => _openInMaps(),
             icon: const Icon(Icons.map_outlined, size: 16),
-            label: const Text('Abrir en Maps'),
+            label: Text('activities.widgets.open_in_maps'.tr()),
             style: TextButton.styleFrom(
               foregroundColor: AppColors.secondaryDark,
               padding:
@@ -206,7 +207,7 @@ class ActivityHeroSection extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Actividad Virtual',
+            'activities.widgets.virtual_fallback'.tr(),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: AppColors.sacBlue,
                   fontWeight: FontWeight.w600,
@@ -307,9 +308,9 @@ class _JoinMeetChip extends StatelessWidget {
               color: Colors.white,
             ),
             const SizedBox(width: 6),
-            const Text(
-              'Unirse',
-              style: TextStyle(
+            Text(
+              'activities.widgets.join_button'.tr(),
+              style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
                 color: Colors.white,

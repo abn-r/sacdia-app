@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -77,9 +78,9 @@ class ActivityVirtualBanner extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            const Text(
-              'Actividad Virtual',
-              style: TextStyle(
+            Text(
+              'activities.widgets.virtual_fallback'.tr(),
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 14,
                 fontWeight: FontWeight.w700,

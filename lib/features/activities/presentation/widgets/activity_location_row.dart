@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -36,7 +37,7 @@ class ActivityLocationRow extends StatelessWidget {
     Clipboard.setData(ClipboardData(text: activity.activityPlace));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Dirección copiada'),
+        content: Text('activities.widgets.address_copied'.tr()),
         backgroundColor: AppColors.secondaryDark,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
@@ -91,7 +92,7 @@ class ActivityLocationRow extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'UBICACIÓN',
+                      'activities.widgets.location_label_short'.tr(),
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
@@ -115,9 +116,9 @@ class ActivityLocationRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
-                'Abrir',
-                style: TextStyle(
+              Text(
+                'activities.widgets.open_action'.tr(),
+                style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: AppColors.primary,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
@@ -60,34 +60,54 @@ class ActivityInfoStrip extends StatelessWidget {
       final past = now.difference(target);
       final String text;
       if (past.inMinutes < 60) {
-        text = 'Finalizada';
+        text = 'activities.widgets.countdown_finished'.tr();
       } else if (past.inHours < 24) {
-        text = 'Finalizada hace ${past.inHours}h';
+        text = 'activities.widgets.countdown_finished_hours'
+            .tr(namedArgs: {'hours': '${past.inHours}'});
       } else if (past.inDays == 1) {
-        text = 'Finalizada ayer';
+        text = 'activities.widgets.countdown_finished_yesterday'.tr();
       } else if (past.inDays < 7) {
-        text = 'Finalizada hace ${past.inDays} días';
+        text = 'activities.widgets.countdown_finished_days'
+            .tr(namedArgs: {'days': '${past.inDays}'});
       } else {
-        text = 'Finalizada';
+        text = 'activities.widgets.countdown_finished'.tr();
       }
       return (text: text, isPast: true, isUrgent: false);
     }
 
     if (diff.inMinutes < 60) {
       final m = diff.inMinutes.clamp(1, 59);
-      return (text: 'En $m min', isPast: false, isUrgent: true);
+      return (
+        text: 'activities.widgets.countdown_minutes'
+            .tr(namedArgs: {'minutes': '$m'}),
+        isPast: false,
+        isUrgent: true
+      );
     }
     if (diff.inHours < 24) {
       final h = diff.inHours;
       final m = diff.inMinutes.remainder(60);
-      final text = m > 0 ? 'En ${h}h ${m}m' : 'En ${h}h';
+      final text = m > 0
+          ? 'activities.widgets.countdown_hours_minutes'
+              .tr(namedArgs: {'hours': '$h', 'minutes': '$m'})
+          : 'activities.widgets.countdown_hours'
+              .tr(namedArgs: {'hours': '$h'});
       return (text: text, isPast: false, isUrgent: false);
     }
     if (diff.inDays == 1) {
-      return (text: 'Mañana', isPast: false, isUrgent: false);
+      return (
+        text: 'activities.widgets.countdown_tomorrow'.tr(),
+        isPast: false,
+        isUrgent: false
+      );
     }
     if (diff.inDays < 7) {
-      return (text: 'En ${diff.inDays} días', isPast: false, isUrgent: false);
+      return (
+        text: 'activities.widgets.countdown_days'
+            .tr(namedArgs: {'days': '${diff.inDays}'}),
+        isPast: false,
+        isUrgent: false
+      );
     }
     return null;
   }
@@ -118,7 +138,7 @@ class ActivityInfoStrip extends StatelessWidget {
                 Expanded(
                   child: _InfoCell(
                     icon: HugeIcons.strokeRoundedCalendar01,
-                    label: 'FECHA',
+                    label: 'activities.widgets.date_label_short'.tr(),
                     value: _formatDate(),
                   ),
                 ),
@@ -130,7 +150,7 @@ class ActivityInfoStrip extends StatelessWidget {
                 Expanded(
                   child: _InfoCell(
                     icon: HugeIcons.strokeRoundedClock01,
-                    label: 'HORA',
+                    label: 'activities.widgets.time_label_short'.tr(),
                     value: activity.activityTime ?? '—',
                   ),
                 ),
@@ -165,7 +185,8 @@ class ActivityInfoStrip extends StatelessWidget {
     final sectionLabel = (activity.clubTypeName != null &&
             activity.clubTypeName!.trim().isNotEmpty)
         ? activity.clubTypeName!.trim()
-        : 'Sección ${activity.clubSectionId}';
+        : 'activities.widgets.section_fallback'
+            .tr(namedArgs: {'section': '${activity.clubSectionId}'});
 
     items.add(_MetaItem(
       icon: Icons.groups_rounded,

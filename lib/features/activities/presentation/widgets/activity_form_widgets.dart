@@ -1,9 +1,9 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
@@ -107,7 +107,7 @@ class _TimePickerSheetState extends State<_TimePickerSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Seleccionar hora',
+                  'activities.widgets.time_picker_title'.tr(),
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: c.text,
@@ -126,7 +126,7 @@ class _TimePickerSheetState extends State<_TimePickerSheet> {
                       vertical: 6,
                     ),
                   ),
-                  child: const Text('Listo'),
+                  child: Text('activities.widgets.time_picker_done'.tr()),
                 ),
               ],
             ),
@@ -417,7 +417,7 @@ class ActivityLocationPickerField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Lugar de la actividad *',
+          'activities.widgets.location_label'.tr(),
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -491,7 +491,7 @@ class ActivityLocationPickerField extends StatelessWidget {
                           ],
                         )
                       : Text(
-                          'Seleccionar lugar en el mapa',
+                          'activities.widgets.location_hint'.tr(),
                           style: TextStyle(
                             fontSize: 14,
                             color: c.textTertiary,
@@ -512,7 +512,7 @@ class ActivityLocationPickerField extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 6, left: 6),
             child: Text(
-              'Selecciona el lugar de la actividad',
+              'activities.widgets.location_error'.tr(),
               style: TextStyle(
                 color: theme.colorScheme.error,
                 fontSize: 12,
@@ -597,7 +597,7 @@ class ActivityDatePickerField extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    formatted ?? 'Seleccionar fecha',
+                    formatted ?? 'activities.widgets.date_hint'.tr(),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight:
@@ -752,7 +752,7 @@ class ActivityImagePicker extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Imagen de la actividad',
+          'activities.widgets.image_label'.tr(),
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -820,7 +820,7 @@ class _ActivityUploadingBody extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Subiendo imagen...',
+            'activities.widgets.image_uploading'.tr(),
             style: TextStyle(
               fontSize: 13,
               color: c.textSecondary,
@@ -853,7 +853,7 @@ class _ActivityPickerBody extends StatelessWidget {
           Expanded(
             child: _ActivityImageSourceButton(
               icon: HugeIcons.strokeRoundedImage01,
-              label: 'Galeria',
+              label: 'activities.widgets.gallery'.tr(),
               enabled: enabled,
               onTap: onPickGallery,
             ),
@@ -862,7 +862,7 @@ class _ActivityPickerBody extends StatelessWidget {
           Expanded(
             child: _ActivityImageSourceButton(
               icon: HugeIcons.strokeRoundedCamera01,
-              label: 'Camara',
+              label: 'activities.widgets.camera'.tr(),
               enabled: enabled,
               onTap: onPickCamera,
             ),
@@ -986,7 +986,7 @@ class _ActivityPreviewBody extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                'Imagen cargada correctamente',
+                'activities.widgets.image_loaded'.tr(),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -1017,7 +1017,7 @@ class _ActivityRepickMenu extends StatelessWidget {
         if (value == 'gallery') onPickGallery();
         if (value == 'camera') onPickCamera();
       },
-      itemBuilder: (_) => const [
+      itemBuilder: (_) => [
         PopupMenuItem(
           value: 'gallery',
           child: Row(
@@ -1028,7 +1028,7 @@ class _ActivityRepickMenu extends StatelessWidget {
                 color: AppColors.primary,
               ),
               SizedBox(width: 10),
-              Text('Galeria'),
+              Text('activities.widgets.gallery'.tr()),
             ],
           ),
         ),
@@ -1042,7 +1042,7 @@ class _ActivityRepickMenu extends StatelessWidget {
                 color: AppColors.primary,
               ),
               SizedBox(width: 10),
-              Text('Camara'),
+              Text('activities.widgets.camera'.tr()),
             ],
           ),
         ),
