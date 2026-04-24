@@ -498,5 +498,18 @@
       "get_list": "Erro ao obter as solicitações de transferência.",
       "get_detail": "Erro ao obter o detalhe da solicitação de transferência."
     }
+  },
+  "profile": {
+    "notification_preferences": {
+      "errors": {
+        "get_status": "Erro ao obter preferências de notificação",
+        "get_http": "Erro ao obter preferências",
+        "get_unexpected": "Erro inesperado",
+        "update_status": "Erro ao atualizar preferências de notificação",
+        "update_http": "Erro ao atualizar preferências",
+        "update_unexpected": "Erro inesperado",
+        "unexpected_format": "Formato de resposta inesperado"
+      }
+    }
   }
 }

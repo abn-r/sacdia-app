@@ -498,5 +498,18 @@
       "get_list": "Erreur lors de la récupération des demandes de transfert.",
       "get_detail": "Erreur lors de la récupération du détail de la demande de transfert."
     }
+  },
+  "profile": {
+    "notification_preferences": {
+      "errors": {
+        "get_status": "Erreur lors de la récupération des préférences de notification",
+        "get_http": "Erreur lors de la récupération des préférences",
+        "get_unexpected": "Erreur inattendue",
+        "update_status": "Erreur lors de la mise à jour des préférences de notification",
+        "update_http": "Erreur lors de la mise à jour des préférences",
+        "update_unexpected": "Erreur inattendue",
+        "unexpected_format": "Format de réponse inattendu"
+      }
+    }
   }
 }

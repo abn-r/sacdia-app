@@ -498,5 +498,18 @@
       "get_list": "Error fetching transfer requests.",
       "get_detail": "Error fetching the transfer request detail."
     }
+  },
+  "profile": {
+    "notification_preferences": {
+      "errors": {
+        "get_status": "Error fetching notification preferences",
+        "get_http": "Error fetching preferences",
+        "get_unexpected": "Unexpected error",
+        "update_status": "Error updating notification preferences",
+        "update_http": "Error updating preferences",
+        "update_unexpected": "Unexpected error",
+        "unexpected_format": "Unexpected response format"
+      }
+    }
   }
 }
