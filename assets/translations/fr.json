@@ -541,5 +541,10 @@
     "errors": {
       "get_assignments": "Erreur lors de la récupération des attributions de rôles"
     }
+  },
+  "dashboard": {
+    "errors": {
+      "get_summary": "Erreur lors de la récupération du résumé du tableau de bord"
+    }
   }
 }

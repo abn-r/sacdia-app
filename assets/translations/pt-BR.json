@@ -541,5 +541,10 @@
     "errors": {
       "get_assignments": "Erro ao obter as atribuições de papéis"
     }
+  },
+  "dashboard": {
+    "errors": {
+      "get_summary": "Erro ao obter o resumo do dashboard"
+    }
   }
 }

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -45,7 +46,7 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener el resumen del dashboard',
+        message: tr('dashboard.errors.get_summary'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -69,11 +70,11 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? 'Error de conexión').toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
       }
     } catch (e) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
     }
-    return e.message ?? 'Error de conexión';
+    return e.message ?? tr('common.error_network');
   }
 }

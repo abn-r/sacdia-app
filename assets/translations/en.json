@@ -541,5 +541,10 @@
     "errors": {
       "get_assignments": "Error retrieving role assignments"
     }
+  },
+  "dashboard": {
+    "errors": {
+      "get_summary": "Error fetching dashboard summary"
+    }
   }
 }
