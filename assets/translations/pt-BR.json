@@ -510,6 +510,19 @@
         "update_unexpected": "Erro inesperado",
         "unexpected_format": "Formato de resposta inesperado"
       }
+    },
+    "active_sessions": {
+      "errors": {
+        "get_sessions": "Erro ao obter sessões ativas",
+        "get_sessions_format": "Formato de resposta inesperado",
+        "unexpected": "Erro inesperado",
+        "revoke_session": "Erro ao revogar sessão",
+        "revoke_all": "Erro ao revogar sessões",
+        "revoke_current_forbidden": "Você não pode revogar a sessão atual por aqui. Use 'Sair'.",
+        "revoke_forbidden": "Você não tem permissão para revogar esta sessão.",
+        "revoke_not_found": "Esta sessão não existe mais.",
+        "too_many_requests": "Muitas solicitações, aguarde um momento."
+      }
     }
   }
 }

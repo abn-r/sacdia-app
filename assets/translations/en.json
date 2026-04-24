@@ -510,6 +510,19 @@
         "update_unexpected": "Unexpected error",
         "unexpected_format": "Unexpected response format"
       }
+    },
+    "active_sessions": {
+      "errors": {
+        "get_sessions": "Error fetching active sessions",
+        "get_sessions_format": "Unexpected response format",
+        "unexpected": "Unexpected error",
+        "revoke_session": "Error revoking session",
+        "revoke_all": "Error revoking sessions",
+        "revoke_current_forbidden": "You can't revoke the current session here. Use 'Sign out'.",
+        "revoke_forbidden": "You do not have permission to revoke this session.",
+        "revoke_not_found": "This session no longer exists.",
+        "too_many_requests": "Too many requests, please wait a moment."
+      }
     }
   }
 }
