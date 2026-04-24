@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -77,7 +78,7 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
         final contactId = widget.contact!.id;
         if (contactId == null) {
           throw Exception(
-              'No se pudo obtener el ID del contacto. Intenta cerrar y abrir la pantalla.');
+              'post_registration.contact_form.error_no_id'.tr());
         }
         await notifier.updateContact(contactId, contact);
       } else {
@@ -90,8 +91,8 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
           SnackBar(
             content: Text(
               _isEditing
-                  ? 'Contacto actualizado correctamente'
-                  : 'Contacto agregado correctamente',
+                  ? 'post_registration.contact_form.contact_updated'.tr()
+                  : 'post_registration.contact_form.contact_added'.tr(),
             ),
             backgroundColor: AppColors.secondary,
             behavior: SnackBarBehavior.floating,
@@ -105,7 +106,10 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: Text(
+              'post_registration.contact_form.error_saving'
+                  .tr(namedArgs: {'error': e.toString()}),
+            ),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -127,7 +131,9 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Editar Contacto' : 'Agregar Contacto'),
+        title: Text(_isEditing
+            ? 'post_registration.contact_form.edit_title'.tr()
+            : 'post_registration.contact_form.add_title'.tr()),
         actions: [
           if (_isLoading)
             const Center(
@@ -144,7 +150,7 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
             IconButton(
               icon: HugeIcon(icon: HugeIcons.strokeRoundedTick02, size: 24),
               onPressed: _handleSave,
-              tooltip: 'Guardar',
+              tooltip: 'post_registration.contact_form.save_tooltip'.tr(),
             ),
         ],
       ),
@@ -159,11 +165,14 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
                   size: 48,
                   color: AppColors.error),
               const SizedBox(height: 16),
-              Text('Error: $error'),
+              Text(
+                'post_registration.contact_form.error_loading'
+                    .tr(namedArgs: {'error': error.toString()}),
+              ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
                 icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 20),
-                label: const Text('Reintentar'),
+                label: Text('common.retry'.tr()),
                 onPressed: () => ref.refresh(relationshipTypesProvider),
               ),
             ],
@@ -177,16 +186,17 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
               // Nombre
               SacTextField(
                 controller: _nameController,
-                label: 'Nombre completo',
-                hint: 'Ej: Juan Pérez González',
+                label: 'post_registration.contact_form.name_label'.tr(),
+                hint: 'post_registration.contact_form.name_hint'.tr(),
                 prefixIcon: HugeIcons.strokeRoundedUser,
                 textCapitalization: TextCapitalization.words,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'El nombre es requerido';
+                    return 'post_registration.contact_form.name_required'.tr();
                   }
                   if (value.trim().length < 3) {
-                    return 'El nombre debe tener al menos 3 caracteres';
+                    return 'post_registration.contact_form.name_min_length'
+                        .tr();
                   }
                   return null;
                 },
@@ -233,12 +243,12 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
                   onChanged: _isLoading
                       ? null
                       : (value) => setState(() => _isPrimary = value),
-                  title: const Text(
-                    'Contacto primario',
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                  title: Text(
+                    'post_registration.contact_form.primary_title'.tr(),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                   subtitle: Text(
-                    'Se notificará primero en caso de emergencia',
+                    'post_registration.contact_form.primary_subtitle'.tr(),
                     style: TextStyle(
                       fontSize: 12,
                       color: context.sac.textSecondary,
@@ -268,18 +278,18 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
               // Teléfono
               SacTextField(
                 controller: _phoneController,
-                label: 'Teléfono',
-                hint: 'Ej: 5512345678',
+                label: 'post_registration.contact_form.phone_label'.tr(),
+                hint: 'post_registration.contact_form.phone_hint'.tr(),
                 prefixIcon: HugeIcons.strokeRoundedCall,
                 keyboardType: TextInputType.phone,
                 maxLength: 10,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'El teléfono es requerido';
+                    return 'post_registration.contact_form.phone_required'.tr();
                   }
                   final phoneRegex = RegExp(r'^\d{10}$');
                   if (!phoneRegex.hasMatch(value.trim())) {
-                    return 'Ingresa un teléfono válido de 10 dígitos';
+                    return 'post_registration.contact_form.phone_invalid'.tr();
                   }
                   return null;
                 },
@@ -299,8 +309,9 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
                         )
                       : HugeIcon(
                           icon: HugeIcons.strokeRoundedFloppyDisk, size: 22),
-                  label: Text(
-                      _isEditing ? 'Actualizar Contacto' : 'Guardar Contacto'),
+                  label: Text(_isEditing
+                      ? 'post_registration.contact_form.update_button'.tr()
+                      : 'post_registration.contact_form.save_button'.tr()),
                   onPressed: _isLoading ? null : _handleSave,
                 ),
               ),
@@ -326,7 +337,7 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'El contacto de emergencia será notificado en caso de alguna eventualidad.',
+                        'post_registration.contact_form.info_note'.tr(),
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.primaryDark,
@@ -378,7 +389,7 @@ class _RelationshipPickerField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Tipo de relación',
+          'post_registration.contact_form.relationship_label'.tr(),
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -431,7 +442,9 @@ class _RelationshipPickerField extends StatelessWidget {
                 ),
                 Expanded(
                   child: Text(
-                    label ?? 'Selecciona un tipo de relación',
+                    label ??
+                        'post_registration.contact_form.relationship_placeholder'
+                            .tr(),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: label != null
                           ? context.sac.text
@@ -452,7 +465,7 @@ class _RelationshipPickerField extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 6, left: 6),
             child: Text(
-              'Selecciona un tipo de relación',
+              'post_registration.contact_form.relationship_required'.tr(),
               style: TextStyle(
                 color: theme.colorScheme.error,
                 fontSize: 12,
@@ -551,7 +564,7 @@ class _RelationshipTypePickerSheetState
             padding:
                 const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: Text(
-              'Seleccionar relación',
+              'post_registration.contact_form.relationship_sheet_title'.tr(),
               style: theme.textTheme.headlineSmall,
             ),
           ),
@@ -566,7 +579,9 @@ class _RelationshipTypePickerSheetState
               autofocus: false,
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
-                hintText: 'Buscar...',
+                hintText:
+                    'post_registration.contact_form.relationship_search_hint'
+                        .tr(),
                 prefixIcon: const Icon(Icons.search, size: 20),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -611,7 +626,8 @@ class _RelationshipTypePickerSheetState
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'No se encontraron resultados',
+                          'post_registration.contact_form.relationship_no_results'
+                              .tr(),
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: context.sac.textSecondary,
                           ),
