@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
@@ -15,13 +15,14 @@ import '../providers/honors_providers.dart';
 String _skillLevelLabel(int level) {
   switch (level) {
     case 1:
-      return 'Básico';
+      return 'honors.completion.skill_basic'.tr();
     case 2:
-      return 'Intermedio';
+      return 'honors.completion.skill_intermediate'.tr();
     case 3:
-      return 'Avanzado';
+      return 'honors.completion.skill_advanced'.tr();
     default:
-      return 'Nivel $level';
+      return 'honors.completion.skill_level_n'
+          .tr(namedArgs: {'level': '$level'});
   }
 }
 
@@ -58,14 +59,14 @@ class HonorCompletionView extends ConsumerWidget {
 
     // Surface any hard error from userHonorsProvider
     if (userHonorsAsync.hasError) {
-      return const _ErrorScaffold(
-        message: 'Error al cargar la especialidad',
+      return _ErrorScaffold(
+        message: 'honors.completion.error_load'.tr(),
       );
     }
 
     if (userHonor == null) {
-      return const _ErrorScaffold(
-        message: 'Especialidad no encontrada',
+      return _ErrorScaffold(
+        message: 'honors.completion.not_found'.tr(),
       );
     }
 
@@ -120,9 +121,9 @@ class _ErrorScaffold extends StatelessWidget {
             const SizedBox(height: 20),
             TextButton(
               onPressed: () => context.pop(),
-              child: const Text(
-                'Volver',
-                style: TextStyle(color: AppColors.sacBlue, fontSize: 14),
+              child: Text(
+                'honors.completion.back'.tr(),
+                style: const TextStyle(color: AppColors.sacBlue, fontSize: 14),
               ),
             ),
           ],
@@ -182,9 +183,9 @@ class _CompletionBody extends StatelessWidget {
                       const SizedBox(height: 12),
 
                       // Title
-                      const Text(
-                        'Especialidad Completa',
-                        style: TextStyle(
+                      Text(
+                        'honors.completion.title'.tr(),
+                        style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
@@ -259,9 +260,9 @@ class _CompletionBody extends StatelessWidget {
                         ),
                         elevation: 0,
                       ),
-                      child: const Text(
-                        'Ver más especialidades',
-                        style: TextStyle(
+                      child: Text(
+                        'honors.completion.see_more'.tr(),
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                         ),
@@ -286,9 +287,9 @@ class _CompletionBody extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'Volver',
-                        style: TextStyle(
+                      child: Text(
+                        'honors.completion.back'.tr(),
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -392,8 +393,8 @@ class _PillsRow extends StatelessWidget {
           ),
 
         // Badge obtained pill (yellow tint) — always shown on completion
-        const _StatusPill(
-          label: 'Insignia obtenida',
+        _StatusPill(
+          label: 'honors.completion.badge_obtained'.tr(),
           color: AppColors.sacYellow,
         ),
       ],
@@ -456,7 +457,7 @@ class _StatsCard extends StatelessWidget {
             // Evidence count — sacBlue
             _StatItem(
               value: '${userHonor.evidenceCount}',
-              label: 'Evidencias',
+              label: 'honors.completion.stat_evidences'.tr(),
               color: AppColors.sacBlue,
             ),
 
@@ -470,7 +471,7 @@ class _StatsCard extends StatelessWidget {
             // Enrollment date — sacRed
             _StatItem(
               value: DateFormat('d MMM', 'es').format(enrollmentDate),
-              label: 'Inscripción',
+              label: 'honors.completion.stat_enrollment'.tr(),
               color: AppColors.sacRed,
             ),
 
@@ -484,7 +485,7 @@ class _StatsCard extends StatelessWidget {
             // Duration — sacGreen
             _StatItem(
               value: duration,
-              label: 'Duración',
+              label: 'honors.completion.stat_duration'.tr(),
               color: AppColors.sacGreen,
             ),
           ],

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,26 +34,28 @@ const _kHeroHeight = 300.0;
 String _approvalLabel(int level) {
   switch (level) {
     case 1:
-      return 'General';
+      return 'honors.detail.approval_general'.tr();
     case 2:
-      return 'Avanzado';
+      return 'honors.detail.approval_advanced'.tr();
     case 3:
-      return 'Master';
+      return 'honors.detail.approval_master'.tr();
     default:
-      return 'Nivel $level';
+      return 'honors.detail.approval_level'.tr(namedArgs: {'level': '$level'});
   }
 }
 
 String _skillLevelLabel(int? level) {
   switch (level) {
     case 1:
-      return 'Básico';
+      return 'honors.detail.skill_basic'.tr();
     case 2:
-      return 'Intermedio';
+      return 'honors.detail.skill_intermediate'.tr();
     case 3:
-      return 'Avanzado';
+      return 'honors.detail.skill_advanced'.tr();
     default:
-      return level != null ? 'Nivel $level' : '';
+      return level != null
+          ? 'honors.detail.skill_level_n'.tr(namedArgs: {'level': '$level'})
+          : '';
   }
 }
 
@@ -144,15 +147,15 @@ class _ErrorScaffold extends StatelessWidget {
             const Icon(Icons.error_outline, size: 48, color: AppColors.primary),
             const SizedBox(height: 16),
             Text(
-              'No se pudo cargar la especialidad',
+              'honors.detail.error_load'.tr(),
               style: TextStyle(fontSize: 15, color: context.sac.textSecondary),
             ),
             const SizedBox(height: 20),
             TextButton(
               onPressed: onRetry,
-              child: const Text(
-                'Reintentar',
-                style: TextStyle(color: AppColors.sacBlue, fontSize: 14),
+              child: Text(
+                'honors.catalog.retry'.tr(),
+                style: const TextStyle(color: AppColors.sacBlue, fontSize: 14),
               ),
             ),
           ],
@@ -417,7 +420,10 @@ class _HeroSectionState extends State<_HeroSection>
                   if (widget.isEnrolled && progressStats != null) ...[
                     // Progress summary text
                     Text(
-                      '${progressStats.completed} de ${progressStats.total} completados',
+                      'honors.detail.progress_summary'.tr(namedArgs: {
+                        'completed': '${progressStats.completed}',
+                        'total': '${progressStats.total}',
+                      }),
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.85),
                         fontSize: 13,
@@ -603,15 +609,15 @@ class _StatusBadgePill extends StatelessWidget {
   String _label() {
     switch (status) {
       case 'validado':
-        return 'Validada';
+        return 'honors.detail.status_validated'.tr();
       case 'enviado':
-        return 'En revisión';
+        return 'honors.detail.status_sent'.tr();
       case 'en_progreso':
-        return 'En progreso';
+        return 'honors.detail.status_in_progress'.tr();
       case 'rechazado':
-        return 'Rechazada';
+        return 'honors.detail.status_rejected'.tr();
       default:
-        return 'Inscrita';
+        return 'honors.detail.status_enrolled'.tr();
     }
   }
 
@@ -840,23 +846,25 @@ class _JourneyPreviewCard extends ConsumerWidget {
             icon: HugeIcons.strokeRoundedTaskEdit01,
             iconColor: categoryColor,
             label: requirementsCount != null
-                ? '$requirementsCount requisitos'
-                : 'Cargando requisitos...',
+                ? 'honors.detail.requirements_count'
+                    .tr(namedArgs: {'count': '$requirementsCount'})
+                : 'honors.detail.requirements_loading'.tr(),
           ),
           _CardDivider(),
           _PreviewRow(
             icon: HugeIcons.strokeRoundedStar,
             iconColor: categoryColor,
             label: honor.skillLevel != null
-                ? 'Nivel: ${_skillLevelLabel(honor.skillLevel)}'
-                : 'Nivel: General',
+                ? 'honors.detail.skill_level_with'
+                    .tr(namedArgs: {'level': _skillLevelLabel(honor.skillLevel)})
+                : 'honors.detail.skill_level_general'.tr(),
           ),
           if (honor.materialUrl != null && honor.materialUrl!.isNotEmpty) ...[
             _CardDivider(),
             _PreviewRow(
               icon: HugeIcons.strokeRoundedPdf01,
               iconColor: categoryColor,
-              label: 'Material disponible',
+              label: 'honors.detail.material_available'.tr(),
               trailing: Icon(
                 Icons.download_rounded,
                 size: 16,
@@ -955,7 +963,7 @@ class _DescriptionSectionState extends State<_DescriptionSection> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Descripción',
+              'honors.detail.description_label'.tr(),
               style: TextStyle(
                 color: context.sac.text,
                 fontSize: 16,
@@ -991,7 +999,9 @@ class _DescriptionSectionState extends State<_DescriptionSection> {
             GestureDetector(
               onTap: () => setState(() => _expanded = !_expanded),
               child: Text(
-                _expanded ? 'Ver menos' : 'Ver más',
+                _expanded
+                    ? 'honors.detail.see_less'.tr()
+                    : 'honors.detail.see_more'.tr(),
                 style: TextStyle(
                   color: AppColors.sacBlue,
                   fontSize: 13,
@@ -1013,27 +1023,27 @@ class _JourneyStepperPath extends StatelessWidget {
 
   const _JourneyStepperPath({required this.categoryColor});
 
-  static const _steps = [
-    (
-      title: 'Regístrate',
-      subtitle: 'Regístrate en la especialidad para comenzar tu camino',
-    ),
-    (
-      title: 'Completa los requisitos',
-      subtitle: 'Marca cada requisito cumplido en la app o con tu instructor',
-    ),
-    (
-      title: 'Sube las evidencias',
-      subtitle: 'Fotografía o escanea las hojas firmadas como respaldo',
-    ),
-    (
-      title: 'Envía a revisión',
-      subtitle: 'Cuando estés listo, envía tu progreso para ser validado',
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final steps = [
+      (
+        title: 'honors.detail.step1_title'.tr(),
+        subtitle: 'honors.detail.step1_subtitle'.tr(),
+      ),
+      (
+        title: 'honors.detail.step2_title'.tr(),
+        subtitle: 'honors.detail.step2_subtitle'.tr(),
+      ),
+      (
+        title: 'honors.detail.step3_title'.tr(),
+        subtitle: 'honors.detail.step3_subtitle'.tr(),
+      ),
+      (
+        title: 'honors.detail.step4_title'.tr(),
+        subtitle: 'honors.detail.step4_subtitle'.tr(),
+      ),
+    ];
+
     return _ShadowCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -1041,7 +1051,7 @@ class _JourneyStepperPath extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '¿Cómo funciona?',
+              'honors.detail.how_it_works'.tr(),
               style: TextStyle(
                 color: context.sac.text,
                 fontSize: 16,
@@ -1049,10 +1059,10 @@ class _JourneyStepperPath extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            ..._steps.asMap().entries.map((entry) {
+            ...steps.asMap().entries.map((entry) {
               final i = entry.key;
               final step = entry.value;
-              final isLast = i == _steps.length - 1;
+              final isLast = i == steps.length - 1;
               return _StepItem(
                 index: i,
                 title: step.title,
@@ -1210,7 +1220,7 @@ class _QuickStatsRow extends ConsumerWidget {
         Expanded(
           child: _StatMiniCard(
             value: '${stats.completed}',
-            label: 'completados',
+            label: 'honors.detail.stat_completed'.tr(),
             categoryColor: categoryColor,
           ),
         ),
@@ -1218,7 +1228,7 @@ class _QuickStatsRow extends ConsumerWidget {
         Expanded(
           child: _StatMiniCard(
             value: '$remaining',
-            label: 'pendientes',
+            label: 'honors.detail.stat_pending'.tr(),
             categoryColor: categoryColor,
           ),
         ),
@@ -1226,7 +1236,7 @@ class _QuickStatsRow extends ConsumerWidget {
         Expanded(
           child: _StatMiniCard(
             value: '${userHonor.evidenceCount}',
-            label: 'evidencias',
+            label: 'honors.detail.stat_evidences'.tr(),
             categoryColor: categoryColor,
           ),
         ),
@@ -1326,7 +1336,7 @@ class _RequirementsPreviewCard extends ConsumerWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Requisitos',
+                        'honors.detail.requirements_label'.tr(),
                         style: TextStyle(
                           color: context.sac.text,
                           fontSize: 16,
@@ -1346,7 +1356,8 @@ class _RequirementsPreviewCard extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                   child: Text(
-                    'y $remaining más...',
+                    'honors.detail.more_requirements'
+                        .tr(namedArgs: {'count': '$remaining'}),
                     style: TextStyle(
                       color: context.sac.textTertiary,
                       fontSize: 12,
@@ -1377,7 +1388,7 @@ class _RequirementsPreviewCard extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Completar requisitos',
+                          'honors.detail.complete_requirements'.tr(),
                           style: TextStyle(
                             color: categoryColor,
                             fontSize: 14,
@@ -1506,8 +1517,9 @@ class _EvidenceSection extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   userHonor.evidenceCount > 0
-                      ? '${userHonor.evidenceCount} archivos subidos'
-                      : 'Sin evidencia aún',
+                      ? 'honors.detail.evidence_count'.tr(
+                          namedArgs: {'count': '${userHonor.evidenceCount}'})
+                      : 'honors.detail.evidence_empty'.tr(),
                   style: TextStyle(
                     color: context.sac.text,
                     fontSize: 16,
@@ -1577,7 +1589,7 @@ class _EvidenceSection extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Subir evidencia',
+                      'honors.detail.upload_evidence'.tr(),
                       style: TextStyle(
                         color: categoryColor,
                         fontSize: 14,
@@ -1626,17 +1638,17 @@ class _MaterialDownloadCardState extends State<_MaterialDownloadCard> {
     try {
       final uri = Uri.tryParse(widget.materialUrl);
       if (uri == null || !['http', 'https'].contains(uri.scheme)) {
-        _showError('No se pudo abrir el material');
+        _showError('honors.detail.material_error'.tr());
         return;
       }
       final canLaunch = await canLaunchUrl(uri);
       if (canLaunch) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
-        _showError('No se pudo abrir el material');
+        _showError('honors.detail.material_error'.tr());
       }
     } catch (_) {
-      _showError('Error al abrir el material PDF');
+      _showError('honors.detail.material_pdf_error'.tr());
     } finally {
       if (mounted) setState(() => _isLaunching = false);
     }
@@ -1682,7 +1694,7 @@ class _MaterialDownloadCardState extends State<_MaterialDownloadCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Material de estudio',
+                      'honors.detail.study_material'.tr(),
                       style: TextStyle(
                         color: context.sac.text,
                         fontSize: 14,
@@ -1691,7 +1703,7 @@ class _MaterialDownloadCardState extends State<_MaterialDownloadCard> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'PDF — descarga para completar offline',
+                      'honors.detail.material_subtitle'.tr(),
                       style: TextStyle(
                         color: context.sac.textTertiary,
                         fontSize: 12,
@@ -1885,9 +1897,9 @@ class _EnrollCtaButtonState extends ConsumerState<_EnrollCtaButton>
             ],
           ),
           alignment: Alignment.center,
-          child: const Text(
-            'Inscribirme',
-            style: TextStyle(
+          child: Text(
+            'honors.detail.enroll_cta'.tr(),
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.w700,
@@ -1955,14 +1967,14 @@ class _EnrolledCtaButton extends StatelessWidget {
           border: Border.all(color: AppColors.sacYellow, width: 1.5),
         ),
         alignment: Alignment.center,
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.hourglass_top_rounded, size: 16, color: AppColors.sacYellow),
-            SizedBox(width: 8),
+            const Icon(Icons.hourglass_top_rounded, size: 16, color: AppColors.sacYellow),
+            const SizedBox(width: 8),
             Text(
-              'En revisión',
-              style: TextStyle(
+              'honors.detail.under_review_cta'.tr(),
+              style: const TextStyle(
                 color: AppColors.sacYellow,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -1984,14 +1996,14 @@ class _EnrolledCtaButton extends StatelessWidget {
           border: Border.all(color: AppColors.sacGreen, width: 1.5),
         ),
         alignment: Alignment.center,
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.check_circle_rounded, size: 18, color: AppColors.sacGreen),
-            SizedBox(width: 8),
+            const Icon(Icons.check_circle_rounded, size: 18, color: AppColors.sacGreen),
+            const SizedBox(width: 8),
             Text(
-              'Especialidad completada',
-              style: TextStyle(
+              'honors.detail.completed_cta'.tr(),
+              style: const TextStyle(
                 color: AppColors.sacGreen,
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
@@ -2004,7 +2016,9 @@ class _EnrolledCtaButton extends StatelessWidget {
 
     // Can submit — show submit button (with evidence) or go to evidence (without)
     final bool hasEvidence = userHonor.hasEvidence;
-    final label = hasEvidence ? 'Enviar a revisión' : 'Ver mi progreso';
+    final label = hasEvidence
+        ? 'honors.detail.send_review_cta'.tr()
+        : 'honors.detail.my_progress_cta'.tr();
 
     return GestureDetector(
       onTap: () {

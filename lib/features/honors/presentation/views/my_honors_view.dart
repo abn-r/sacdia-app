@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -56,7 +57,7 @@ class MyHonorsView extends ConsumerWidget {
                           color: AppColors.accent),
                       const SizedBox(width: 10),
                       Text(
-                        'Mis Especialidades',
+                        'honors.my_honors.title'.tr(),
                         style: Theme.of(context)
                             .textTheme
                             .headlineSmall
@@ -79,21 +80,21 @@ class MyHonorsView extends ConsumerWidget {
                       children: [
                         _StatMini(
                           value: stats['total'] ?? 0,
-                          label: 'Total',
+                          label: 'honors.my_honors.stat_total'.tr(),
                           color: AppColors.primary,
                           bgColor: AppColors.primaryLight,
                         ),
                         const SizedBox(width: 10),
                         _StatMini(
                           value: stats['in_progress'] ?? 0,
-                          label: 'En progreso',
+                          label: 'honors.my_honors.stat_in_progress'.tr(),
                           color: AppColors.primary,
                           bgColor: AppColors.primaryLight,
                         ),
                         const SizedBox(width: 10),
                         _StatMini(
                           value: stats['completed'] ?? 0,
-                          label: 'Completadas',
+                          label: 'honors.my_honors.stat_completed'.tr(),
                           color: AppColors.accent,
                           bgColor: AppColors.accentLight,
                         ),
@@ -105,8 +106,8 @@ class MyHonorsView extends ConsumerWidget {
                   error: (_, __) => Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: Text(
-                      'No se pudieron cargar las estadísticas',
-                      style: TextStyle(color: AppColors.error, fontSize: 12),
+                      'honors.my_honors.stats_error'.tr(),
+                      style: const TextStyle(color: AppColors.error, fontSize: 12),
                     ),
                   ),
                 ),
@@ -143,9 +144,9 @@ class MyHonorsView extends ConsumerWidget {
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
-                    tabs: const [
-                      Tab(text: 'En progreso'),
-                      Tab(text: 'Completados'),
+                    tabs: [
+                      Tab(text: 'honors.my_honors.tab_in_progress'.tr()),
+                      Tab(text: 'honors.my_honors.tab_completed'.tr()),
                     ],
                   ),
                 ),
@@ -167,7 +168,7 @@ class MyHonorsView extends ConsumerWidget {
                                 color: context.sac.textTertiary),
                             const SizedBox(height: 12),
                             Text(
-                              'No tienes especialidades',
+                              'honors.my_honors.empty_title'.tr(),
                               style: TextStyle(
                                 fontSize: 16,
                                 color: context.sac.textSecondary,
@@ -175,7 +176,7 @@ class MyHonorsView extends ConsumerWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Inscríbete en el catálogo',
+                              'honors.my_honors.empty_subtitle'.tr(),
                               style: TextStyle(
                                 fontSize: 14,
                                 color: context.sac.textTertiary,
@@ -201,14 +202,16 @@ class MyHonorsView extends ConsumerWidget {
                           context,
                           ref,
                           inProgress,
-                          emptyMessage: 'No tienes honores en progreso',
+                          emptyMessage:
+                              'honors.my_honors.empty_in_progress'.tr(),
                           hPad: hPad,
                         ),
                         _buildHonorsList(
                           context,
                           ref,
                           completed,
-                          emptyMessage: 'Aún no has completado honores',
+                          emptyMessage:
+                              'honors.my_honors.empty_completed'.tr(),
                           hPad: hPad,
                         ),
                       ],
@@ -226,7 +229,7 @@ class MyHonorsView extends ConsumerWidget {
                               size: 56,
                               color: AppColors.error),
                           const SizedBox(height: 16),
-                          Text('Error al cargar especialidades',
+                          Text('honors.my_honors.error_load'.tr(),
                               style: Theme.of(context).textTheme.titleMedium),
                           const SizedBox(height: 24),
                           SacButton.primary(
@@ -287,7 +290,7 @@ class MyHonorsView extends ConsumerWidget {
           // categoryId defaults to 0 — only display fields matter here.
           final minimalHonor = Honor(
             id: userHonor.honorId,
-            name: userHonor.honorName ?? 'Especialidad',
+            name: userHonor.honorName ?? 'honors.my_honors.honor_fallback'.tr(),
             imageUrl: userHonor.honorImageUrl,
             skillLevel: userHonor.honorSkillLevel,
             categoryId: 0,

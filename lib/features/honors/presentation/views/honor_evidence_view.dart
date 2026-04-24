@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -75,13 +76,13 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     if (userHonorsAsync.hasError) {
       return Scaffold(
         appBar: AppBar(backgroundColor: AppColors.sacRed),
-        body: const Center(child: Text('Error al cargar')),
+        body: Center(child: Text('honors.evidence.error_load'.tr())),
       );
     }
 
     if (userHonor == null) {
-      return const Scaffold(
-        body: Center(child: Text('Honor no encontrado')),
+      return Scaffold(
+        body: Center(child: Text('honors.evidence.not_found'.tr())),
       );
     }
 
@@ -136,8 +137,8 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
       ref.invalidate(userHonorForHonorProvider(widget.honorId));
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Enviada a revision'),
+        SnackBar(
+          content: Text('honors.evidence.sent_review'.tr()),
           backgroundColor: AppColors.sacGreen,
         ),
       );
@@ -169,7 +170,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
                 Icons.camera_alt_rounded,
                 color: AppColors.sacBlue,
               ),
-              title: const Text('Tomar foto'),
+              title: Text('honors.evidence.pick_camera'.tr()),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickFromCamera();
@@ -180,7 +181,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
                 Icons.photo_library_rounded,
                 color: AppColors.sacGreen,
               ),
-              title: const Text('Elegir de galeria'),
+              title: Text('honors.evidence.pick_gallery'.tr()),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickFromGallery();
@@ -191,7 +192,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
                 Icons.picture_as_pdf_rounded,
                 color: AppColors.sacRed,
               ),
-              title: const Text('Seleccionar PDF'),
+              title: Text('honors.evidence.pick_pdf'.tr()),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickPdf();
@@ -259,7 +260,8 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('$fileName excede el limite de 10MB'),
+            content: Text('honors.evidence.file_size_error'
+                .tr(namedArgs: {'name': fileName})),
             backgroundColor: AppColors.sacRed,
           ),
         );
@@ -271,8 +273,8 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     if (userId == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No hay sesion activa'),
+          SnackBar(
+            content: Text('honors.evidence.no_session'.tr()),
             backgroundColor: AppColors.sacRed,
           ),
         );
@@ -296,8 +298,8 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Evidencia subida correctamente'),
+          SnackBar(
+            content: Text('honors.evidence.upload_success'.tr()),
             backgroundColor: AppColors.sacGreen,
           ),
         );
@@ -306,7 +308,8 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al subir $fileName'),
+            content: Text('honors.evidence.upload_error'
+                .tr(namedArgs: {'name': fileName})),
             backgroundColor: AppColors.sacRed,
           ),
         );
@@ -339,8 +342,8 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Evidencia eliminada'),
+          SnackBar(
+            content: Text('honors.evidence.delete_success'.tr()),
             backgroundColor: AppColors.sacGreen,
           ),
         );
@@ -348,8 +351,8 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al eliminar evidencia'),
+          SnackBar(
+            content: Text('honors.evidence.delete_error'.tr()),
             backgroundColor: AppColors.sacRed,
           ),
         );
@@ -377,8 +380,8 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No se pudo abrir el archivo'),
+          SnackBar(
+            content: Text('honors.evidence.open_error'.tr()),
             backgroundColor: AppColors.sacRed,
           ),
         );
@@ -446,7 +449,7 @@ class _EvidenceBody extends StatelessWidget {
                 ),
                 // Category name or "Mi especialidad" as compact title
                 title: Text(
-                  'Mi especialidad',
+                  'honors.evidence.my_honor_title'.tr(),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 14,
@@ -572,7 +575,7 @@ class _HeroSection extends StatelessWidget {
 
               // Honor name
               Text(
-                honor?.name ?? userHonor.honorName ?? 'Especialidad',
+                honor?.name ?? userHonor.honorName ?? 'honors.evidence.honor_fallback'.tr(),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -672,15 +675,15 @@ class _StatusPill extends StatelessWidget {
   String _label() {
     switch (status) {
       case 'validado':
-        return 'Validada';
+        return 'honors.evidence.status_validated'.tr();
       case 'enviado':
-        return 'En revision';
+        return 'honors.evidence.status_sent'.tr();
       case 'en_progreso':
-        return 'En progreso';
+        return 'honors.evidence.status_in_progress'.tr();
       case 'rechazado':
-        return 'Rechazada';
+        return 'honors.evidence.status_rejected'.tr();
       default:
-        return 'Inscrita';
+        return 'honors.evidence.status_enrolled'.tr();
     }
   }
 
@@ -757,7 +760,7 @@ class _MaterialCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Material de estudio',
+                    'honors.evidence.material_title'.tr(),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -766,7 +769,7 @@ class _MaterialCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Descargar PDF',
+                    'honors.evidence.material_subtitle'.tr(),
                     style: TextStyle(
                       fontSize: 12,
                       color: context.sac.textSecondary,
@@ -832,7 +835,7 @@ class _EvidenceSectionCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Evidencia',
+                'honors.evidence.section_title'.tr(),
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
@@ -925,7 +928,7 @@ class _EmptyEvidenceState extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Subi tu primera evidencia',
+            'honors.evidence.empty_first'.tr(),
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -934,7 +937,7 @@ class _EmptyEvidenceState extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Fotos, imagenes o documentos PDF',
+            'honors.evidence.empty_subtitle'.tr(),
             style: TextStyle(
               fontSize: 12,
               color: context.sac.textTertiary,
@@ -953,14 +956,14 @@ class _EmptyEvidenceState extends StatelessWidget {
                   color: categoryColor,
                   borderRadius: BorderRadius.circular(24),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.add_rounded, color: Colors.white, size: 18),
-                    SizedBox(width: 6),
+                    const Icon(Icons.add_rounded, color: Colors.white, size: 18),
+                    const SizedBox(width: 6),
                     Text(
-                      'Agregar evidencia',
-                      style: TextStyle(
+                      'honors.evidence.add_button'.tr(),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -1071,7 +1074,7 @@ class _AddEvidenceCell extends StatelessWidget {
             ),
             const SizedBox(height: 2),
             Text(
-              'Agregar',
+              'honors.evidence.add_cell_label'.tr(),
               style: TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.w600,
@@ -1114,14 +1117,14 @@ class _EvidenceThumbnail extends StatelessWidget {
               showDialog(
                 context: context,
                 builder: (ctx) => AlertDialog(
-                  title: const Text('Eliminar evidencia'),
-                  content: const Text(
-                    'Estas seguro de que queres eliminar esta evidencia?',
+                  title: Text('honors.evidence.delete_title'.tr()),
+                  content: Text(
+                    'honors.evidence.delete_content'.tr(),
                   ),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx),
-                      child: const Text('Cancelar'),
+                      child: Text('honors.evidence.delete_cancel'.tr()),
                     ),
                     TextButton(
                       onPressed: () {
@@ -1131,7 +1134,7 @@ class _EvidenceThumbnail extends StatelessWidget {
                       style: TextButton.styleFrom(
                         foregroundColor: AppColors.sacRed,
                       ),
-                      child: const Text('Eliminar'),
+                      child: Text('honors.evidence.delete_confirm'.tr()),
                     ),
                   ],
                 ),
@@ -1274,9 +1277,9 @@ class _RejectionCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Evidencia rechazada',
-                  style: TextStyle(
+                Text(
+                  'honors.evidence.rejection_title'.tr(),
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.sacRed,
@@ -1286,7 +1289,7 @@ class _RejectionCard extends StatelessWidget {
                 Text(
                   reason?.isNotEmpty == true
                       ? reason!
-                      : 'Sin motivo especificado',
+                      : 'honors.evidence.rejection_no_reason'.tr(),
                   style: const TextStyle(
                     fontSize: 12,
                     height: 1.5,
@@ -1295,7 +1298,7 @@ class _RejectionCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Podes corregir y reenviar',
+                  'honors.evidence.rejection_hint'.tr(),
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.sacRed.withValues(alpha: 0.70),
@@ -1357,7 +1360,7 @@ class _BottomCtaBar extends ConsumerWidget {
       case 'inscrito':
         // No evidence yet — prompt to upload
         return _CtaButton(
-          label: 'Subir evidencia',
+          label: 'honors.evidence.cta_upload'.tr(),
           icon: Icons.upload_rounded,
           color: categoryColor,
           onPressed: onAddEvidence,
@@ -1366,7 +1369,7 @@ class _BottomCtaBar extends ConsumerWidget {
       case 'en_progreso':
         // Has evidence, not submitted — send for review
         return _CtaButton(
-          label: 'Enviar a revision',
+          label: 'honors.evidence.cta_send'.tr(),
           icon: Icons.send_rounded,
           color: categoryColor,
           isLoading: submitState.isLoading,
@@ -1376,7 +1379,7 @@ class _BottomCtaBar extends ConsumerWidget {
       case 'enviado':
         // Under review — disabled
         return _CtaButton(
-          label: 'Enviada — en revision',
+          label: 'honors.evidence.cta_sent'.tr(),
           icon: Icons.hourglass_top_rounded,
           color: AppColors.sacGrey,
           onPressed: null,
@@ -1386,7 +1389,7 @@ class _BottomCtaBar extends ConsumerWidget {
         // Completed — navigate to completion screen
         return Builder(
           builder: (context) => _CtaButton(
-            label: 'Especialidad completada',
+            label: 'honors.evidence.cta_completed'.tr(),
             icon: Icons.emoji_events_rounded,
             color: AppColors.sacGreen,
             onPressed: () {
@@ -1403,7 +1406,7 @@ class _BottomCtaBar extends ConsumerWidget {
       case 'rechazado':
         // Rejected — correct and resubmit
         return _CtaButton(
-          label: 'Corregir y reenviar',
+          label: 'honors.evidence.cta_fix'.tr(),
           icon: Icons.refresh_rounded,
           color: categoryColor,
           onPressed: onAddEvidence,

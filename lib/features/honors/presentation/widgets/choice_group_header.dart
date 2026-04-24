@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -59,7 +60,10 @@ class ChoiceGroupHeader extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Text(
-            'Completá $choiceMin de $totalChildren',
+            'honors.choice_group.complete_n_of_m'.tr(namedArgs: {
+              'min': '$choiceMin',
+              'total': '$totalChildren',
+            }),
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -77,7 +81,11 @@ class ChoiceGroupHeader extends StatelessWidget {
               color: accentColor.withValues(alpha: 0.4),
             ),
             Text(
-              '$completedChildren completado${completedChildren == 1 ? '' : 's'}',
+              completedChildren == 1
+                  ? 'honors.choice_group.completed_one'
+                      .tr(namedArgs: {'count': '$completedChildren'})
+                  : 'honors.choice_group.completed_other'
+                      .tr(namedArgs: {'count': '$completedChildren'}),
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,

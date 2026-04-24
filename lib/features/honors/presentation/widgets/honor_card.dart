@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -126,7 +127,7 @@ class HonorCard extends StatelessWidget {
                                     const SizedBox(height: 3),
                                     Text(
                                       _isCompleted
-                                          ? 'Completada ✓'
+                                          ? 'honors.card.completed_label'.tr()
                                           : userHonor!.statusLabel,
                                       style: TextStyle(
                                         fontSize: 12,

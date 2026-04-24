@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -193,7 +194,9 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
                           child: Padding(
                             padding: const EdgeInsets.only(top: 4),
                             child: Text(
-                              _textExpanded ? 'Ver menos' : 'Ver mas',
+                              _textExpanded
+                                  ? 'honors.requirements.see_less'.tr()
+                                  : 'honors.requirements.see_more'.tr(),
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -233,7 +236,7 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
                     // requiresEvidence indicator (informational only)
                     if (req.requiresEvidence)
                       Tooltip(
-                        message: 'Requiere demostración',
+                        message: 'honors.requirements.requires_demo'.tr(),
                         child: Padding(
                           padding: const EdgeInsets.all(2),
                           child: Icon(
@@ -267,7 +270,7 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
                   height: 1.5,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Agregar respuesta (opcional)',
+                  hintText: 'honors.requirements.response_hint'.tr(),
                   hintStyle: TextStyle(
                     fontSize: 12,
                     color: context.sac.textTertiary,
@@ -350,7 +353,7 @@ class _ReferenceAccordion extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'Referencia',
+                  'honors.requirements.reference_label'.tr(),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
