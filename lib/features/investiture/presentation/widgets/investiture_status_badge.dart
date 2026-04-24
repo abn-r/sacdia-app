@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -33,7 +34,7 @@ class InvestitureStatusBadge extends StatelessWidget {
           HugeIcon(icon: _icon, size: 13, color: _textColor(isDark)),
           const SizedBox(width: 5),
           Text(
-            status.label,
+            _statusLabel,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -43,6 +44,27 @@ class InvestitureStatusBadge extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String get _statusLabel {
+    switch (status) {
+      case InvestitureStatus.inProgress:
+        return 'investiture.status.in_progress'.tr();
+      case InvestitureStatus.submittedForValidation:
+        return 'investiture.status.submitted'.tr();
+      case InvestitureStatus.clubApproved:
+        return 'investiture.status.club_approved'.tr();
+      case InvestitureStatus.coordinatorApproved:
+        return 'investiture.status.coordinator_approved'.tr();
+      case InvestitureStatus.fieldApproved:
+        return 'investiture.status.field_approved'.tr();
+      case InvestitureStatus.approved:
+        return 'investiture.status.approved'.tr();
+      case InvestitureStatus.rejected:
+        return 'investiture.status.rejected'.tr();
+      case InvestitureStatus.investido:
+        return 'investiture.status.investido'.tr();
+    }
   }
 
   Color _bgColor(bool isDark) {

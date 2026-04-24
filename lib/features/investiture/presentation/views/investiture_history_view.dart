@@ -1,7 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
@@ -30,7 +30,7 @@ class InvestitureHistoryView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: c.background,
       appBar: AppBar(
-        title: const Text('Historial de Investidura'),
+        title: Text('investiture.history.title'.tr()),
         actions: [
           IconButton(
             onPressed: () =>
@@ -39,7 +39,7 @@ class InvestitureHistoryView extends ConsumerWidget {
               icon: HugeIcons.strokeRoundedRefresh,
               size: 22,
             ),
-            tooltip: 'Actualizar',
+            tooltip: 'investiture.history.tooltip_refresh'.tr(),
           ),
         ],
       ),
@@ -71,7 +71,7 @@ class InvestitureHistoryView extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Sin historial registrado',
+              'investiture.history.empty'.tr(),
               style: TextStyle(fontSize: 16, color: c.textSecondary),
             ),
           ],
@@ -106,7 +106,7 @@ class InvestitureHistoryView extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error al cargar historial',
+              'investiture.history.error_title'.tr(),
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -120,7 +120,7 @@ class InvestitureHistoryView extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             SacButton.primary(
-              text: 'Reintentar',
+              text: 'common.retry'.tr(),
               icon: HugeIcons.strokeRoundedRefresh,
               onPressed: () =>
                   ref.invalidate(investitureHistoryProvider(enrollmentId)),
@@ -191,7 +191,7 @@ class _TimelineEntry extends StatelessWidget {
                 children: [
                   // Título de la acción
                   Text(
-                    entry.action.label,
+                    _actionLabel,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: color,
@@ -269,6 +269,19 @@ class _TimelineEntry extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String get _actionLabel {
+    switch (entry.action) {
+      case InvestitureAction.submitted:
+        return 'investiture.history.action_submitted'.tr();
+      case InvestitureAction.approved:
+        return 'investiture.history.action_approved'.tr();
+      case InvestitureAction.rejected:
+        return 'investiture.history.action_rejected'.tr();
+      case InvestitureAction.invested:
+        return 'investiture.history.action_invested'.tr();
+    }
   }
 
   Color get _actionColor {

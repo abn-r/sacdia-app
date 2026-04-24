@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -53,7 +54,7 @@ class InvestitureSubmitView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: c.background,
       appBar: AppBar(
-        title: const Text('Enviar para Validación'),
+        title: Text('investiture.submit.title'.tr()),
       ),
       body: SafeArea(
         child: ListView(
@@ -66,7 +67,7 @@ class InvestitureSubmitView extends ConsumerWidget {
             // ── Miembros disponibles para envío ──────────────────────────
             if (submittable.isNotEmpty) ...[
               Text(
-                'Disponibles para envío',
+                'investiture.submit.section_available'.tr(),
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: c.text,
@@ -85,7 +86,7 @@ class InvestitureSubmitView extends ConsumerWidget {
             if (alreadySent.isNotEmpty) ...[
               const SizedBox(height: 16),
               Text(
-                'Estado actual',
+                'investiture.submit.section_status'.tr(),
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: c.text,
@@ -111,7 +112,7 @@ class InvestitureSubmitView extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'No hay miembros en esta sección',
+                      'investiture.submit.empty'.tr(),
                       style: TextStyle(fontSize: 16, color: c.textSecondary),
                     ),
                   ],
@@ -148,7 +149,7 @@ class _InfoBanner extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Envía el enrollment de cada miembro cuando hayas verificado que cumple todos los requisitos. El coordinador recibirá la solicitud para aprobarla.',
+              'investiture.submit.info_banner'.tr(),
               style: TextStyle(
                 fontSize: 12,
                 color: AppColors.accentDark,
@@ -245,7 +246,7 @@ class _MemberSubmitCard extends ConsumerWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  child: const Text('Enviar'),
+                  child: Text('investiture.submit.btn_send'.tr()),
                 ),
         ],
       ),
@@ -258,23 +259,24 @@ class _MemberSubmitCard extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Enviar para validación'),
+        title: Text('investiture.submit.dialog_title'.tr()),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '¿Enviás el enrollment de ${member.fullName} para validación de investidura?',
+              'investiture.submit.dialog_body'
+                  .tr(namedArgs: {'name': member.fullName}),
               style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: commentsCtrl,
               maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Comentarios (opcional)',
-                hintText: 'Ej: Completó todos los requisitos del año',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: 'investiture.submit.field_comments_label'.tr(),
+                hintText: 'investiture.submit.field_comments_hint'.tr(),
+                border: const OutlineInputBorder(),
               ),
             ),
           ],
@@ -282,7 +284,7 @@ class _MemberSubmitCard extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text('common.cancel'.tr()),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -290,7 +292,7 @@ class _MemberSubmitCard extends ConsumerWidget {
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Enviar'),
+            child: Text('investiture.submit.btn_send'.tr()),
           ),
         ],
       ),
@@ -310,9 +312,11 @@ class _MemberSubmitCard extends ConsumerWidget {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(ok
-            ? 'Enrollment enviado para validación'
-            : 'Error al enviar'),
+        content: Text(
+          ok
+              ? 'investiture.submit.snack_sent'.tr()
+              : 'investiture.submit.snack_send_error'.tr(),
+        ),
         backgroundColor: ok ? AppColors.secondary : AppColors.error,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -385,7 +389,7 @@ class _MemberStatusCard extends StatelessWidget {
               size: 20,
               color: c.textSecondary,
             ),
-            tooltip: 'Ver historial',
+            tooltip: 'investiture.submit.tooltip_history'.tr(),
           ),
         ],
       ),
