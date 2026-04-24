@@ -380,5 +380,16 @@
       "assign_role": "Error al asignar rol",
       "remove_role": "Error al remover rol"
     }
+  },
+  "certifications": {
+    "errors": {
+      "get_certifications": "Error al obtener certificaciones",
+      "get_certification_detail": "Error al obtener detalle de certificación",
+      "get_user_certifications": "Error al obtener certificaciones del usuario",
+      "get_certification_progress": "Error al obtener progreso de certificación",
+      "enroll_certification": "Error al inscribirse en la certificación",
+      "update_section_progress": "Error al actualizar progreso de sección",
+      "unenroll_certification": "Error al desinscribirse de la certificación"
+    }
   }
 }

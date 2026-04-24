@@ -380,5 +380,16 @@
       "assign_role": "Erro ao atribuir função",
       "remove_role": "Erro ao remover função"
     }
+  },
+  "certifications": {
+    "errors": {
+      "get_certifications": "Erro ao obter certificações",
+      "get_certification_detail": "Erro ao obter detalhes da certificação",
+      "get_user_certifications": "Erro ao obter certificações do usuário",
+      "get_certification_progress": "Erro ao obter progresso da certificação",
+      "enroll_certification": "Erro ao inscrever-se na certificação",
+      "update_section_progress": "Erro ao atualizar progresso da seção",
+      "unenroll_certification": "Erro ao cancelar inscrição na certificação"
+    }
   }
 }

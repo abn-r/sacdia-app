@@ -380,5 +380,16 @@
       "assign_role": "Error assigning role",
       "remove_role": "Error removing role"
     }
+  },
+  "certifications": {
+    "errors": {
+      "get_certifications": "Error fetching certifications",
+      "get_certification_detail": "Error fetching certification detail",
+      "get_user_certifications": "Error fetching user certifications",
+      "get_certification_progress": "Error fetching certification progress",
+      "enroll_certification": "Error enrolling in certification",
+      "update_section_progress": "Error updating section progress",
+      "unenroll_certification": "Error unenrolling from certification"
+    }
   }
 }

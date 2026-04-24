@@ -380,5 +380,16 @@
       "assign_role": "Erreur lors de l'attribution du rôle",
       "remove_role": "Erreur lors du retrait du rôle"
     }
+  },
+  "certifications": {
+    "errors": {
+      "get_certifications": "Erreur lors de la récupération des certifications",
+      "get_certification_detail": "Erreur lors de la récupération du détail de la certification",
+      "get_user_certifications": "Erreur lors de la récupération des certifications de l'utilisateur",
+      "get_certification_progress": "Erreur lors de la récupération de la progression de la certification",
+      "enroll_certification": "Erreur lors de l'inscription à la certification",
+      "update_section_progress": "Erreur lors de la mise à jour de la progression de la section",
+      "unenroll_certification": "Erreur lors de la désinscription de la certification"
+    }
   }
 }
