@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -224,7 +225,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
     if (formState == null || !formState.validate()) return;
 
     if (_selectedLocation == null) {
-      _showError('Selecciona el lugar de la actividad en el mapa');
+      _showError('activities.form.error_no_location'.tr());
       return;
     }
 
@@ -232,7 +233,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
     final clubCtx = ref.read(clubContextProvider).valueOrNull;
     final isDirector = clubCtx?.isDirector ?? false;
     if (isDirector && _isJoint && _selectedSectionIds.length < 2) {
-      _showError('Selecciona al menos 2 secciones para una actividad conjunta');
+      _showError('activities.form.error_joint_min_sections'.tr());
       return;
     }
 
@@ -306,7 +307,8 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Actividad actualizada, pero hubo un error al subir la imagen: ${failure.message}',
+                'activities.edit.success_image_error'
+                    .tr(namedArgs: {'error': failure.message}),
               ),
               backgroundColor: AppColors.error,
               behavior: SnackBarBehavior.floating,
@@ -324,7 +326,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Actividad actualizada correctamente'),
+        content: Text('activities.edit.success'.tr()),
         backgroundColor: AppColors.secondary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -389,7 +391,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
             size: 22,
           ),
           onPressed: isLoading ? null : () => Navigator.pop(context),
-          tooltip: 'Volver',
+          tooltip: 'common.back'.tr(),
         ),
         title: Row(
           children: [
@@ -404,7 +406,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'EDITAR ACTIVIDAD',
+                  'activities.edit.title'.tr(),
                   style: TextStyle(
                     color: c.text,
                     fontSize: 18,
@@ -413,7 +415,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
                   ),
                 ),
                 Text(
-                  'Modifica los datos de la actividad',
+                  'activities.edit.subtitle'.tr(),
                   style: TextStyle(
                     color: c.textSecondary,
                     fontSize: 12,
@@ -437,24 +439,24 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
             // ── Sección: Información general ──────────────────────────
             ActivitySectionHeader(
               icon: HugeIcons.strokeRoundedInformationCircle,
-              label: 'Información general',
+              label: 'activities.form.section_general'.tr(),
             ),
             const SizedBox(height: 12),
 
             // Nombre *
             SacTextField(
               controller: _nameController,
-              label: 'Nombre de la actividad *',
-              hint: 'Ej: Campamento Distrital',
+              label: 'activities.form.name_label'.tr(),
+              hint: 'activities.form.name_hint'.tr(),
               prefixIcon: HugeIcons.strokeRoundedCalendar01,
               textCapitalization: TextCapitalization.sentences,
               enabled: !isLoading,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'El nombre es requerido';
+                  return 'activities.form.name_required'.tr();
                 }
                 if (value.trim().length < 3) {
-                  return 'El nombre debe tener al menos 3 caracteres';
+                  return 'activities.form.name_min_length'.tr();
                 }
                 return null;
               },
@@ -464,8 +466,8 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
             // Descripción (opcional)
             SacTextField(
               controller: _descriptionController,
-              label: 'Descripción',
-              hint: 'Describe brevemente la actividad...',
+              label: 'activities.form.description_label'.tr(),
+              hint: 'activities.form.description_hint'.tr(),
               prefixIcon: HugeIcons.strokeRoundedNote,
               maxLines: 3,
               enabled: !isLoading,
@@ -475,10 +477,10 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
 
             // Tipo de actividad
             ActivityPickerField(
-              label: 'Tipo de actividad',
+              label: 'activities.form.type_label'.tr(),
               hint: activityTypesAsync.isLoading
-                  ? 'Cargando tipos...'
-                  : 'Seleccionar tipo de actividad',
+                  ? 'activities.form.type_loading'.tr()
+                  : 'activities.form.type_hint'.tr(),
               icon: HugeIcons.strokeRoundedLabel,
               selectedName: _selectedActivityTypeName,
               enabled: !isLoading &&
@@ -489,7 +491,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
                 if (activityTypeItems.isEmpty) return;
                 final selected = await showPickerSheet(
                   context: context,
-                  title: 'Tipo de actividad',
+                  title: 'activities.form.type_picker_title'.tr(),
                   items: activityTypeItems,
                   selectedId: _selectedActivityType,
                   icon: Icons.label_rounded,
@@ -512,7 +514,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
             if (isDirector && ownSectionId != null) ...[
               ActivitySectionHeader(
                 icon: HugeIcons.strokeRoundedUserGroup,
-                label: 'Actividad conjunta',
+                label: 'activities.form.section_joint'.tr(),
               ),
               const SizedBox(height: 8),
               _JointActivityToggle(
@@ -568,7 +570,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
             // ── Sección: Lugar y tiempo ───────────────────────────────
             ActivitySectionHeader(
               icon: HugeIcons.strokeRoundedLocation01,
-              label: 'Lugar y tiempo',
+              label: 'activities.form.section_place_time'.tr(),
             ),
             const SizedBox(height: 12),
 
@@ -583,7 +585,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
 
             // Fecha de inicio
             ActivityDatePickerField(
-              label: 'Fecha',
+              label: 'activities.form.date_label'.tr(),
               value: _activityDate,
               enabled: !isLoading,
               onTap: isLoading ? null : _pickActivityDate,
@@ -599,7 +601,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
             // Hora
             SacTextField(
               controller: _timeController,
-              label: 'Hora',
+              label: 'activities.form.time_label'.tr(),
               hint: '09:00',
               prefixIcon: HugeIcons.strokeRoundedClock01,
               readOnly: true,
@@ -618,7 +620,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
 
             // Fecha de fin (opcional)
             ActivityDatePickerField(
-              label: 'Fecha de fin (opcional)',
+              label: 'activities.form.end_date_label'.tr(),
               value: _activityEndDate,
               enabled: !isLoading && _activityDate != null,
               onTap: (isLoading || _activityDate == null)
@@ -633,17 +635,21 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
             // ── Sección: Modalidad ────────────────────────────────────
             ActivitySectionHeader(
               icon: HugeIcons.strokeRoundedComputerVideoCall,
-              label: 'Modalidad',
+              label: 'activities.form.section_modality'.tr(),
             ),
             const SizedBox(height: 12),
 
             // Plataforma (presencial / virtual)
             ActivitySegmentedSelector<int>(
-              label: 'Tipo de actividad',
+              label: 'activities.form.modality_label'.tr(),
               value: _selectedPlatform,
-              options: const [
-                ActivitySegmentOption(value: 0, label: 'Presencial'),
-                ActivitySegmentOption(value: 1, label: 'Virtual'),
+              options: [
+                ActivitySegmentOption(
+                    value: 0,
+                    label: 'activities.form.modality_in_person'.tr()),
+                ActivitySegmentOption(
+                    value: 1,
+                    label: 'activities.form.modality_virtual'.tr()),
               ],
               onChanged: isLoading
                   ? null
@@ -663,8 +669,8 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
                       children: [
                         SacTextField(
                           controller: _linkMeetController,
-                          label: 'Link de videoconferencia',
-                          hint: 'https://meet.google.com/...',
+                          label: 'activities.form.link_meet_label'.tr(),
+                          hint: 'activities.form.link_meet_hint'.tr(),
                           prefixIcon: HugeIcons.strokeRoundedComputerVideoCall,
                           keyboardType: TextInputType.url,
                           enabled: !isLoading,
@@ -689,7 +695,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
 
             // ── Botón guardar ─────────────────────────────────────────
             SacButton.primary(
-              text: 'Guardar cambios',
+              text: 'activities.edit.save_button'.tr(),
               icon: HugeIcons.strokeRoundedFloppyDisk,
               isLoading: isLoading,
               isEnabled: !isLoading,
@@ -744,7 +750,7 @@ class _JointActivityToggle extends StatelessWidget {
         onChanged: enabled ? onChanged : null,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         title: Text(
-          'Actividad conjunta',
+          'activities.form.joint_toggle_title'.tr(),
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -752,7 +758,7 @@ class _JointActivityToggle extends StatelessWidget {
           ),
         ),
         subtitle: Text(
-          'Incluye otras secciones del club',
+          'activities.form.joint_toggle_subtitle'.tr(),
           style: TextStyle(
             fontSize: 12,
             color: c.textSecondary,
@@ -801,14 +807,14 @@ class _SectionMultiPicker extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Secciones participantes',
+          'activities.form.sections_title'.tr(),
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
         ),
         const SizedBox(height: 6),
         Text(
-          'Selecciona al menos 2 secciones. Tu sección siempre participa.',
+          'activities.form.sections_hint'.tr(),
           style: TextStyle(
             fontSize: 12,
             color: c.textSecondary,
@@ -825,7 +831,7 @@ class _SectionMultiPicker extends ConsumerWidget {
             ),
           ),
           error: (_, __) => Text(
-            'No se pudieron cargar las secciones',
+            'activities.form.sections_error_load'.tr(),
             style: TextStyle(
               fontSize: 12,
               color: c.textSecondary,
@@ -834,7 +840,7 @@ class _SectionMultiPicker extends ConsumerWidget {
           data: (sections) {
             if (sections.isEmpty) {
               return Text(
-                'No hay secciones disponibles',
+                'activities.form.sections_empty'.tr(),
                 style: TextStyle(fontSize: 12, color: c.textSecondary),
               );
             }
@@ -894,7 +900,7 @@ class _SectionMultiPicker extends ConsumerWidget {
         if (selectedIds.length < 2) ...[
           const SizedBox(height: 6),
           Text(
-            'Selecciona al menos 1 sección adicional',
+            'activities.form.sections_min_hint'.tr(),
             style: TextStyle(
               fontSize: 11,
               color: AppColors.error,
@@ -958,7 +964,7 @@ class _JointActivityReadOnlyBadge extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Actividad conjunta',
+                  'activities.edit.joint_badge_title'.tr(),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: AppColors.primaryDark,
@@ -999,7 +1005,7 @@ class _JointActivityReadOnlyBadge extends StatelessWidget {
                 ] else ...[
                   const SizedBox(height: 4),
                   Text(
-                    'Esta actividad incluye múltiples secciones',
+                    'activities.edit.joint_badge_fallback'.tr(),
                     style: TextStyle(
                       fontSize: 12,
                       color: c.textSecondary,
