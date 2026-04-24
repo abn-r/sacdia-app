@@ -341,5 +341,19 @@
       "upload_file": "Error al subir el archivo de evidencia",
       "delete_file": "Error al eliminar el archivo de evidencia"
     }
+  },
+  "camporees": {
+    "errors": {
+      "fetch_list": "Error al obtener camporees",
+      "fetch_detail": "Error al obtener detalle del camporee",
+      "register_member": "Error al registrar miembro en el camporee",
+      "fetch_members": "Error al obtener miembros del camporee",
+      "remove_member": "Error al remover miembro del camporee",
+      "enroll_club": "Error al inscribir club en el camporee",
+      "fetch_enrolled_clubs": "Error al obtener clubes inscritos",
+      "create_payment": "Error al registrar pago",
+      "fetch_member_payments": "Error al obtener pagos del miembro",
+      "fetch_camporee_payments": "Error al obtener pagos del camporee"
+    }
   }
 }

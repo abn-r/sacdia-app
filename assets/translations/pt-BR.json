@@ -341,5 +341,19 @@
       "upload_file": "Erro ao enviar arquivo de evidência",
       "delete_file": "Erro ao excluir arquivo de evidência"
     }
+  },
+  "camporees": {
+    "errors": {
+      "fetch_list": "Erro ao obter campóris",
+      "fetch_detail": "Erro ao obter detalhe do campori",
+      "register_member": "Erro ao registrar membro no campori",
+      "fetch_members": "Erro ao obter membros do campori",
+      "remove_member": "Erro ao remover membro do campori",
+      "enroll_club": "Erro ao inscrever clube no campori",
+      "fetch_enrolled_clubs": "Erro ao obter clubes inscritos",
+      "create_payment": "Erro ao registrar pagamento",
+      "fetch_member_payments": "Erro ao obter pagamentos do membro",
+      "fetch_camporee_payments": "Erro ao obter pagamentos do campori"
+    }
   }
 }

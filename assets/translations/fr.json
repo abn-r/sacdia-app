@@ -341,5 +341,19 @@
       "upload_file": "Erreur lors du téléversement du fichier de preuve",
       "delete_file": "Erreur lors de la suppression du fichier de preuve"
     }
+  },
+  "camporees": {
+    "errors": {
+      "fetch_list": "Erreur lors de la recuperation des camporees",
+      "fetch_detail": "Erreur lors de la recuperation du detail du camporee",
+      "register_member": "Erreur lors de l'inscription du membre au camporee",
+      "fetch_members": "Erreur lors de la recuperation des membres du camporee",
+      "remove_member": "Erreur lors du retrait du membre du camporee",
+      "enroll_club": "Erreur lors de l'inscription du club au camporee",
+      "fetch_enrolled_clubs": "Erreur lors de la recuperation des clubs inscrits",
+      "create_payment": "Erreur lors de la creation du paiement",
+      "fetch_member_payments": "Erreur lors de la recuperation des paiements du membre",
+      "fetch_camporee_payments": "Erreur lors de la recuperation des paiements du camporee"
+    }
   }
 }

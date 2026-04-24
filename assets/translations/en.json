@@ -341,5 +341,19 @@
       "upload_file": "Error uploading evidence file",
       "delete_file": "Error deleting evidence file"
     }
+  },
+  "camporees": {
+    "errors": {
+      "fetch_list": "Error fetching camporees",
+      "fetch_detail": "Error fetching camporee detail",
+      "register_member": "Error registering member in camporee",
+      "fetch_members": "Error fetching camporee members",
+      "remove_member": "Error removing member from camporee",
+      "enroll_club": "Error enrolling club in camporee",
+      "fetch_enrolled_clubs": "Error fetching enrolled clubs",
+      "create_payment": "Error creating payment",
+      "fetch_member_payments": "Error fetching member payments",
+      "fetch_camporee_payments": "Error fetching camporee payments"
+    }
   }
 }
