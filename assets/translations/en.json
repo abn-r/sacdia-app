@@ -305,5 +305,26 @@
       "fetch_member_of_month_history": "Error fetching member-of-the-month history",
       "unexpected_response": "Unexpected server response"
     }
+  },
+  "coordinator": {
+    "errors": {
+      "fetch_sla_dashboard": "Error fetching SLA dashboard",
+      "fetch_pending_evidence": "Error fetching pending evidence",
+      "fetch_evidence_detail": "Error fetching evidence detail",
+      "approve_evidence": "Error approving evidence",
+      "reject_evidence": "Error rejecting evidence",
+      "bulk_approve_evidence": "Error in bulk approval",
+      "bulk_reject_evidence": "Error in bulk rejection",
+      "fetch_local_camporees": "Error fetching camporees",
+      "fetch_union_camporees": "Error fetching union camporees",
+      "fetch_local_pending": "Error fetching pending approvals",
+      "fetch_union_pending": "Error fetching pending approvals (union)",
+      "approve_camporee_club": "Error approving club enrollment",
+      "reject_camporee_club": "Error rejecting club enrollment",
+      "approve_camporee_member": "Error approving member enrollment",
+      "reject_camporee_member": "Error rejecting member enrollment",
+      "approve_camporee_payment": "Error approving payment",
+      "reject_camporee_payment": "Error rejecting payment"
+    }
   }
 }

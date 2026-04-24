@@ -305,5 +305,26 @@
       "fetch_member_of_month_history": "Erreur lors de la récupération de l'historique du membre du mois",
       "unexpected_response": "Réponse inattendue du serveur"
     }
+  },
+  "coordinator": {
+    "errors": {
+      "fetch_sla_dashboard": "Erreur lors de la récupération du tableau de bord SLA",
+      "fetch_pending_evidence": "Erreur lors de la récupération des preuves en attente",
+      "fetch_evidence_detail": "Erreur lors de la récupération du détail de la preuve",
+      "approve_evidence": "Erreur lors de l'approbation de la preuve",
+      "reject_evidence": "Erreur lors du rejet de la preuve",
+      "bulk_approve_evidence": "Erreur lors de l'approbation en lot",
+      "bulk_reject_evidence": "Erreur lors du rejet en lot",
+      "fetch_local_camporees": "Erreur lors de la récupération des camporées",
+      "fetch_union_camporees": "Erreur lors de la récupération des camporées d'union",
+      "fetch_local_pending": "Erreur lors de la récupération des approbations en attente",
+      "fetch_union_pending": "Erreur lors de la récupération des approbations en attente (union)",
+      "approve_camporee_club": "Erreur lors de l'approbation de l'inscription du club",
+      "reject_camporee_club": "Erreur lors du rejet de l'inscription du club",
+      "approve_camporee_member": "Erreur lors de l'approbation de l'inscription du membre",
+      "reject_camporee_member": "Erreur lors du rejet de l'inscription du membre",
+      "approve_camporee_payment": "Erreur lors de l'approbation du paiement",
+      "reject_camporee_payment": "Erreur lors du rejet du paiement"
+    }
   }
 }

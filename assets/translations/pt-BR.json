@@ -305,5 +305,26 @@
       "fetch_member_of_month_history": "Erro ao obter o histórico do membro do mês",
       "unexpected_response": "Resposta inesperada do servidor"
     }
+  },
+  "coordinator": {
+    "errors": {
+      "fetch_sla_dashboard": "Erro ao obter dashboard SLA",
+      "fetch_pending_evidence": "Erro ao obter evidências pendentes",
+      "fetch_evidence_detail": "Erro ao obter detalhe da evidência",
+      "approve_evidence": "Erro ao aprovar evidência",
+      "reject_evidence": "Erro ao rejeitar evidência",
+      "bulk_approve_evidence": "Erro na aprovação em massa",
+      "bulk_reject_evidence": "Erro na rejeição em massa",
+      "fetch_local_camporees": "Erro ao obter camporis",
+      "fetch_union_camporees": "Erro ao obter camporis da união",
+      "fetch_local_pending": "Erro ao obter aprovações pendentes",
+      "fetch_union_pending": "Erro ao obter aprovações pendentes (união)",
+      "approve_camporee_club": "Erro ao aprovar inscrição de clube",
+      "reject_camporee_club": "Erro ao rejeitar inscrição de clube",
+      "approve_camporee_member": "Erro ao aprovar inscrição de membro",
+      "reject_camporee_member": "Erro ao rejeitar inscrição de membro",
+      "approve_camporee_payment": "Erro ao aprovar pagamento",
+      "reject_camporee_payment": "Erro ao rejeitar pagamento"
+    }
   }
 }
