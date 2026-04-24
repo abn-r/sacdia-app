@@ -427,5 +427,17 @@
       "update": "Error al actualizar el seguro",
       "get_expiring": "Error al obtener los seguros por vencer"
     }
+  },
+  "investiture": {
+    "errors": {
+      "no_permission": "No tienes permiso para realizar esta acción",
+      "invalid_state": "El enrollment no está en el estado correcto para esta acción",
+      "enrollment_not_found": "Enrollment no encontrado",
+      "submit_for_validation": "Error al enviar para validación",
+      "validate_enrollment": "Error al validar enrollment",
+      "mark_as_investido": "Error al registrar investidura",
+      "get_pending": "Error al obtener investiduras pendientes",
+      "get_history": "Error al obtener historial de investidura"
+    }
   }
 }

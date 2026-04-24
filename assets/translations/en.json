@@ -427,5 +427,17 @@
       "update": "Error updating insurance record",
       "get_expiring": "Error fetching expiring insurance records"
     }
+  },
+  "investiture": {
+    "errors": {
+      "no_permission": "You do not have permission to perform this action",
+      "invalid_state": "The enrollment is not in the correct state for this action",
+      "enrollment_not_found": "Enrollment not found",
+      "submit_for_validation": "Error submitting for validation",
+      "validate_enrollment": "Error validating enrollment",
+      "mark_as_investido": "Error recording investiture",
+      "get_pending": "Error fetching pending investitures",
+      "get_history": "Error fetching investiture history"
+    }
   }
 }

@@ -427,5 +427,17 @@
       "update": "Erreur lors de la mise à jour de l'assurance",
       "get_expiring": "Erreur lors de la récupération des assurances expirant"
     }
+  },
+  "investiture": {
+    "errors": {
+      "no_permission": "Vous n'avez pas la permission d'effectuer cette action",
+      "invalid_state": "L'enrollment n'est pas dans le bon état pour cette action",
+      "enrollment_not_found": "Enrollment non trouvé",
+      "submit_for_validation": "Erreur lors de la soumission pour validation",
+      "validate_enrollment": "Erreur lors de la validation de l'enrollment",
+      "mark_as_investido": "Erreur lors de l'enregistrement de l'investiture",
+      "get_pending": "Erreur lors de la récupération des investitures en attente",
+      "get_history": "Erreur lors de la récupération de l'historique d'investiture"
+    }
   }
 }
