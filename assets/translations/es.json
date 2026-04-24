@@ -326,5 +326,20 @@
       "approve_camporee_payment": "Error al aprobar pago",
       "reject_camporee_payment": "Error al rechazar pago"
     }
+  },
+  "classes": {
+    "errors": {
+      "enroll": "Error al inscribir en la clase",
+      "fetch_list": "Error al obtener clases",
+      "fetch_one": "Error al obtener clase",
+      "fetch_modules": "Error al obtener módulos",
+      "fetch_user_classes": "Error al obtener clases del usuario",
+      "fetch_progress": "Error al obtener progreso de clase",
+      "update_progress": "Error al actualizar progreso de clase",
+      "fetch_with_progress": "Error al obtener clase con progreso",
+      "submit_requirement": "Error al enviar el requerimiento a validación",
+      "upload_file": "Error al subir el archivo de evidencia",
+      "delete_file": "Error al eliminar el archivo de evidencia"
+    }
   }
 }

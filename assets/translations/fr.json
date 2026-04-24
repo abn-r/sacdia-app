@@ -326,5 +326,20 @@
       "approve_camporee_payment": "Erreur lors de l'approbation du paiement",
       "reject_camporee_payment": "Erreur lors du rejet du paiement"
     }
+  },
+  "classes": {
+    "errors": {
+      "enroll": "Erreur lors de l'inscription à la classe",
+      "fetch_list": "Erreur lors de la récupération des classes",
+      "fetch_one": "Erreur lors de la récupération de la classe",
+      "fetch_modules": "Erreur lors de la récupération des modules",
+      "fetch_user_classes": "Erreur lors de la récupération des classes de l'utilisateur",
+      "fetch_progress": "Erreur lors de la récupération de la progression de la classe",
+      "update_progress": "Erreur lors de la mise à jour de la progression de la classe",
+      "fetch_with_progress": "Erreur lors de la récupération de la classe avec progression",
+      "submit_requirement": "Erreur lors de l'envoi de l'exigence pour validation",
+      "upload_file": "Erreur lors du téléversement du fichier de preuve",
+      "delete_file": "Erreur lors de la suppression du fichier de preuve"
+    }
   }
 }

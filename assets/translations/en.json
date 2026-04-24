@@ -326,5 +326,20 @@
       "approve_camporee_payment": "Error approving payment",
       "reject_camporee_payment": "Error rejecting payment"
     }
+  },
+  "classes": {
+    "errors": {
+      "enroll": "Error enrolling in class",
+      "fetch_list": "Error fetching classes",
+      "fetch_one": "Error fetching class",
+      "fetch_modules": "Error fetching modules",
+      "fetch_user_classes": "Error fetching user classes",
+      "fetch_progress": "Error fetching class progress",
+      "update_progress": "Error updating class progress",
+      "fetch_with_progress": "Error fetching class with progress",
+      "submit_requirement": "Error submitting requirement for validation",
+      "upload_file": "Error uploading evidence file",
+      "delete_file": "Error deleting evidence file"
+    }
   }
 }
