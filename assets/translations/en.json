@@ -472,5 +472,12 @@
       "fetch_user_achievements": "Failed to fetch user achievements",
       "fetch_categories": "Failed to fetch achievement categories"
     }
+  },
+  "enrollment": {
+    "errors": {
+      "create": "Error creating enrollment",
+      "get_current": "Error retrieving current enrollment",
+      "update": "Error updating enrollment"
+    }
   }
 }

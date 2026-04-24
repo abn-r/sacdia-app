@@ -472,5 +472,12 @@
       "fetch_user_achievements": "Erreur lors de la récupération des succès de l’utilisateur",
       "fetch_categories": "Erreur lors de la récupération des catégories de succès"
     }
+  },
+  "enrollment": {
+    "errors": {
+      "create": "Erreur lors de la création de l’inscription",
+      "get_current": "Erreur lors de la récupération de l’inscription active",
+      "update": "Erreur lors de la mise à jour de l’inscription"
+    }
   }
 }

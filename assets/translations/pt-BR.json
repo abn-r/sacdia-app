@@ -472,5 +472,12 @@
       "fetch_user_achievements": "Erro ao obter as conquistas do usuário",
       "fetch_categories": "Erro ao obter as categorias de conquistas"
     }
+  },
+  "enrollment": {
+    "errors": {
+      "create": "Erro ao criar a inscrição",
+      "get_current": "Erro ao obter a inscrição ativa",
+      "update": "Erro ao atualizar a inscrição"
+    }
   }
 }

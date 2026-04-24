@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -164,14 +165,14 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al crear inscripción',
+        message: tr('enrollment.errors.create'),
         code: response.statusCode,
       );
     } on DioException catch (e) {
       AppLogger.e('DioException en createEnrollment', tag: _tag, error: e);
       final msg = e.response?.data is Map
-          ? (e.response!.data['message'] ?? e.message ?? 'Error de red')
-          : (e.message ?? 'Error de red');
+          ? (e.response!.data['message'] ?? e.message ?? tr('common.error_network'))
+          : (e.message ?? tr('common.error_network'));
       throw ServerException(message: msg.toString(), code: e.response?.statusCode);
     } catch (e) {
       if (e is AuthException || e is ServerException) rethrow;
@@ -203,7 +204,7 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
       if (response.statusCode == 404) return null;
 
       throw ServerException(
-        message: 'Error al obtener inscripción',
+        message: tr('enrollment.errors.get_current'),
         code: response.statusCode,
       );
     } on DioException catch (e) {
@@ -223,7 +224,7 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
       }
       AppLogger.e('DioException en getCurrentEnrollment', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? e.message ?? 'Error de red',
+        message: e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
         code: statusCode,
       );
     } catch (e) {
@@ -287,14 +288,14 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al actualizar inscripción',
+        message: tr('enrollment.errors.update'),
         code: response.statusCode,
       );
     } on DioException catch (e) {
       AppLogger.e('DioException en updateEnrollment', tag: _tag, error: e);
       final msg = e.response?.data is Map
-          ? (e.response!.data['message'] ?? e.message ?? 'Error de red')
-          : (e.message ?? 'Error de red');
+          ? (e.response!.data['message'] ?? e.message ?? tr('common.error_network'))
+          : (e.message ?? tr('common.error_network'));
       throw ServerException(message: msg.toString(), code: e.response?.statusCode);
     } catch (e) {
       if (e is AuthException || e is ServerException) rethrow;
