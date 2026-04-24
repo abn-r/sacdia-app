@@ -197,7 +197,12 @@
     "apple_signin_failed": "Error signing in with Apple. Please try again.",
     "oauth_url_missing": "The server did not return an OAuth URL for {provider}",
     "too_many_attempts": "Too many attempts. Please try again later.",
-    "unexpected": "Unexpected error: {details}"
+    "unexpected": "Unexpected error: {details}",
+    "update_password": "Error updating password",
+    "get_oauth_url": "Error getting {provider} URL",
+    "switch_context": "Error switching context",
+    "delete_account": "Error deleting account",
+    "check_completion_status": "Error checking completion status"
   },
   "honors": {
     "errors": {

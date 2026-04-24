@@ -197,7 +197,12 @@
     "apple_signin_failed": "Erro ao entrar com Apple. Tente novamente.",
     "oauth_url_missing": "O servidor não retornou URL para OAuth de {provider}",
     "too_many_attempts": "Muitas tentativas. Tente mais tarde.",
-    "unexpected": "Erro inesperado: {details}"
+    "unexpected": "Erro inesperado: {details}",
+    "update_password": "Erro ao atualizar senha",
+    "get_oauth_url": "Erro ao obter URL de {provider}",
+    "switch_context": "Erro ao trocar contexto",
+    "delete_account": "Erro ao excluir a conta",
+    "check_completion_status": "Erro ao verificar status de conclusão"
   },
   "honors": {
     "errors": {

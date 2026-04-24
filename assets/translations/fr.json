@@ -197,7 +197,12 @@
     "apple_signin_failed": "Erreur lors de la connexion avec Apple. Réessayez.",
     "oauth_url_missing": "Le serveur n'a pas renvoyé d'URL OAuth pour {provider}",
     "too_many_attempts": "Trop de tentatives. Réessayez plus tard.",
-    "unexpected": "Erreur inattendue : {details}"
+    "unexpected": "Erreur inattendue : {details}",
+    "update_password": "Erreur lors de la mise à jour du mot de passe",
+    "get_oauth_url": "Erreur lors de l’obtention de l’URL de {provider}",
+    "switch_context": "Erreur lors du changement de contexte",
+    "delete_account": "Erreur lors de la suppression du compte",
+    "check_completion_status": "Erreur lors de la vérification du statut de complétion"
   },
   "honors": {
     "errors": {

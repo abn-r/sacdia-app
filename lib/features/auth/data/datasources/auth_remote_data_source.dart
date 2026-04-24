@@ -611,7 +611,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } catch (e) {
       if (e is DioException) {
         throw AuthException(
-            message: e.message ?? 'Error al actualizar contraseña');
+            message: e.message ?? tr('errors.update_password'));
       }
       if (e is AuthException) rethrow;
       throw AuthException(message: e.toString());
@@ -747,7 +747,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   String _extractOAuthUrl(dynamic response, String provider) {
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw AuthException(
-        message: response.data?['message'] ?? 'Error al obtener URL de $provider',
+        message: response.data?['message'] ?? tr('errors.get_oauth_url', namedArgs: {'provider': provider}),
       );
     }
     final data = response.data;
@@ -862,7 +862,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw AuthException(
-        message: response.data?['message'] ?? 'Error al cambiar contexto',
+        message: response.data?['message'] ?? tr('errors.switch_context'),
       );
     }
   }
@@ -908,7 +908,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         );
       }
       throw AuthException(
-        message: serverMsg ?? 'Error al eliminar la cuenta',
+        message: serverMsg ?? tr('errors.delete_account'),
         code: status,
       );
     } on AuthException {
@@ -944,7 +944,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } catch (e) {
       if (e is DioException) {
         throw AuthException(
-          message: e.message ?? 'Error al verificar estado de completitud',
+          message: e.message ?? tr('errors.check_completion_status'),
         );
       }
       if (e is AuthException) rethrow;
