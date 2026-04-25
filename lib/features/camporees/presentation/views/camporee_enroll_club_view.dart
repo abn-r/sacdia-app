@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -49,7 +50,7 @@ class _CamporeeEnrollClubViewState
         backgroundColor: c.background,
         surfaceTintColor: Colors.transparent,
         title: Text(
-          'Inscripción de clubes',
+          'camporees.enroll_club.title'.tr(),
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 18,
@@ -98,7 +99,7 @@ class _CamporeeEnrollClubViewState
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        'Inscribir club',
+                        'camporees.enroll_club.enroll_club'.tr(),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -141,7 +142,7 @@ class _CamporeeEnrollClubViewState
                   ],
 
                   Text(
-                    'ID de sección del club *',
+                    'camporees.enroll_club.section_id_label'.tr(),
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -153,7 +154,7 @@ class _CamporeeEnrollClubViewState
                     controller: _sectionIdCtrl,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      hintText: 'ID de la sección (ej. 42)',
+                      hintText: 'camporees.enroll_club.section_id_hint'.tr(),
                       hintStyle:
                           TextStyle(fontSize: 13, color: c.textTertiary),
                       prefixIcon: HugeIcon(
@@ -186,11 +187,11 @@ class _CamporeeEnrollClubViewState
                     ),
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) {
-                        return 'Ingresa el ID de sección';
+                        return 'camporees.enroll_club.section_id_required'.tr();
                       }
                       final parsed = int.tryParse(v.trim());
                       if (parsed == null || parsed <= 0) {
-                        return 'Ingresa un ID válido';
+                        return 'camporees.enroll_club.section_id_invalid'.tr();
                       }
                       return null;
                     },
@@ -198,7 +199,7 @@ class _CamporeeEnrollClubViewState
                   const SizedBox(height: 16),
 
                   SacButton.primary(
-                    text: 'Inscribir club',
+                    text: 'camporees.enroll_club.enroll_club'.tr(),
                     icon: HugeIcons.strokeRoundedBuilding01,
                     isLoading: enrollState.isLoading,
                     onPressed: enrollState.isLoading ? null : _submit,
@@ -212,7 +213,7 @@ class _CamporeeEnrollClubViewState
 
           // ── Lista de clubes inscritos ────────────────────────────────
           Text(
-            'Clubes inscritos',
+            'camporees.enroll_club.enrolled_clubs'.tr(),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
@@ -253,7 +254,7 @@ class _CamporeeEnrollClubViewState
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          'No hay clubes inscritos aún',
+                          'camporees.enroll_club.no_clubs_yet'.tr(),
                           style: TextStyle(
                             fontSize: 14,
                             color: c.textSecondary,
@@ -297,7 +298,7 @@ class _CamporeeEnrollClubViewState
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        club.clubName ?? 'Club desconocido',
+                                        club.clubName ?? 'camporees.enroll_club.unknown_club'.tr(),
                                         style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w700,
@@ -314,7 +315,7 @@ class _CamporeeEnrollClubViewState
                                         )
                                       else
                                         Text(
-                                          'Sección #${club.clubSectionId}',
+                                          'camporees.enroll_club.section_number'.tr(namedArgs: {'number': '${club.clubSectionId}'}),
                                           style: TextStyle(
                                             fontSize: 12,
                                             color: c.textSecondary,
@@ -330,8 +331,8 @@ class _CamporeeEnrollClubViewState
                                     color: AppColors.secondaryLight,
                                     borderRadius: BorderRadius.circular(20),
                                   ),
-                                  child: const Text(
-                                    'inscrito',
+                                  child: Text(
+                                    'camporees.enroll_club.enrolled_badge'.tr(),
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
@@ -368,7 +369,7 @@ class _CamporeeEnrollClubViewState
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Club inscrito exitosamente'),
+          content: Text('camporees.enroll_club.success'.tr()),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(

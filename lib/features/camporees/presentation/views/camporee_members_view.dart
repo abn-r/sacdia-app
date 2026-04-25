@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -34,7 +35,7 @@ class CamporeeMembersView extends ConsumerWidget {
       backgroundColor: c.background,
       appBar: AppBar(
         title: Text(
-          'Miembros inscritos',
+          'camporees.members.title'.tr(),
           style: TextStyle(color: c.text),
         ),
         backgroundColor: c.surface,
@@ -57,7 +58,7 @@ class CamporeeMembersView extends ConsumerWidget {
               size: 22,
               color: AppColors.primary,
             ),
-            tooltip: 'Inscribir miembro',
+            tooltip: 'camporees.members.enroll_member_tooltip'.tr(),
           ),
         ],
       ),
@@ -76,7 +77,7 @@ class CamporeeMembersView extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'No hay miembros inscritos',
+                      'camporees.members.empty'.tr(),
                       style: TextStyle(
                         fontSize: 16,
                         color: c.textSecondary,
@@ -85,7 +86,7 @@ class CamporeeMembersView extends ConsumerWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Usá el botón + para inscribir miembros',
+                      'camporees.members.empty_hint'.tr(),
                       style: TextStyle(
                         fontSize: 13,
                         color: c.textTertiary,
@@ -93,7 +94,7 @@ class CamporeeMembersView extends ConsumerWidget {
                     ),
                     const SizedBox(height: 24),
                     SacButton.primary(
-                      text: 'Inscribir primer miembro',
+                      text: 'camporees.members.enroll_first'.tr(),
                       icon: HugeIcons.strokeRoundedUserAdd01,
                       onPressed: () {
                         Navigator.push(
@@ -179,7 +180,7 @@ class CamporeeMembersView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
                   SacButton.primary(
-                    text: 'Reintentar',
+                    text: 'common.retry'.tr(),
                     icon: HugeIcons.strokeRoundedRefresh,
                     onPressed: () =>
                         ref.invalidate(camporeeMembersProvider(camporeeId)),
@@ -201,21 +202,21 @@ class CamporeeMembersView extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Remover miembro'),
+        title: Text('camporees.members.remove_title'.tr()),
         content: Text(
-          '¿Quieres remover a "${member.userName ?? member.userId}" del camporee?',
+          'camporees.members.remove_confirm'.tr(namedArgs: {'name': member.userName ?? member.userId}),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             style: TextButton.styleFrom(
               foregroundColor: AppColors.error,
             ),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Remover'),
+            child: Text('camporees.members.remove'.tr()),
           ),
         ],
       ),
@@ -232,7 +233,7 @@ class CamporeeMembersView extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Miembro "${member.userName ?? member.userId}" removido',
+              'camporees.members.member_removed'.tr(namedArgs: {'name': member.userName ?? member.userId}),
             ),
             backgroundColor: AppColors.secondary,
             behavior: SnackBarBehavior.floating,
@@ -247,7 +248,7 @@ class CamporeeMembersView extends ConsumerWidget {
             .errorMessage;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(errorMsg ?? 'Error al remover miembro'),
+            content: Text(errorMsg ?? 'camporees.members.remove_error'.tr()),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -287,8 +288,8 @@ class _StatsSummary extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: _StatChip(
-              label: 'Total',
+            child:             _StatChip(
+              label: 'camporees.members.total'.tr(),
               value: '$total',
               color: AppColors.primary,
             ),
@@ -296,8 +297,8 @@ class _StatsSummary extends StatelessWidget {
           Container(width: 1, height: 32, color: c.border,
               margin: const EdgeInsets.symmetric(horizontal: 12)),
           Expanded(
-            child: _StatChip(
-              label: 'Con seguro',
+            child:             _StatChip(
+              label: 'camporees.members.with_insurance'.tr(),
               value: '$verified',
               color: AppColors.secondary,
             ),
@@ -305,8 +306,8 @@ class _StatsSummary extends StatelessWidget {
           Container(width: 1, height: 32, color: c.border,
               margin: const EdgeInsets.symmetric(horizontal: 12)),
           Expanded(
-            child: _StatChip(
-              label: 'Sin seguro',
+            child:             _StatChip(
+              label: 'camporees.members.without_insurance'.tr(),
               value: '$unverified',
               color: unverified > 0 ? AppColors.warning : AppColors.secondary,
             ),
@@ -448,7 +449,7 @@ class _MemberTile extends StatelessWidget {
               size: 20,
               color: AppColors.error,
             ),
-            tooltip: 'Remover',
+            tooltip: 'camporees.members.remove_tooltip'.tr(),
             style: IconButton.styleFrom(
               backgroundColor: AppColors.error.withValues(alpha: 0.08),
               minimumSize: const Size(36, 36),
@@ -470,7 +471,7 @@ class _InsuranceStatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = verified ? AppColors.secondary : AppColors.warning;
-    final label = verified ? 'Seguro verificado' : 'Sin seguro';
+    final label = verified ? 'camporees.members.insurance_verified'.tr() : 'camporees.members.without_insurance'.tr();
     final icon = verified
         ? HugeIcons.strokeRoundedCheckmarkCircle01
         : HugeIcons.strokeRoundedAlert02;
@@ -510,7 +511,7 @@ class _TypeLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = type == 'union' ? 'Unión' : 'Local';
+    final label = type == 'union' ? 'camporees.members.union'.tr() : 'camporees.members.local'.tr();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(

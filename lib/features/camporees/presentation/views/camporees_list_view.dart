@@ -1,7 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
@@ -44,7 +44,7 @@ class CamporeesListView extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'No hay camporees disponibles',
+                      'camporees.list.empty'.tr(),
                       style: TextStyle(
                         fontSize: 16,
                         color: c.textSecondary,
@@ -76,7 +76,7 @@ class CamporeesListView extends ConsumerWidget {
                           ),
                           const SizedBox(width: 10),
                           Text(
-                            'Camporees',
+                            'camporees.list.title'.tr(),
                             style: Theme.of(context)
                                 .textTheme
                                 .headlineSmall
@@ -124,7 +124,7 @@ class CamporeesListView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Error al cargar camporees',
+                    'camporees.list.error_loading'.tr(),
                     style: Theme.of(context)
                         .textTheme
                         .titleMedium
@@ -138,7 +138,7 @@ class CamporeesListView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
                   SacButton.primary(
-                    text: 'Reintentar',
+                    text: 'common.retry'.tr(),
                     icon: HugeIcons.strokeRoundedRefresh,
                     onPressed: () => ref.invalidate(camporeesProvider),
                   ),
@@ -275,7 +275,7 @@ class _CamporeeCard extends StatelessWidget {
   }
 
   String _formatCost(double cost) {
-    if (cost == 0) return 'Gratuito';
+    if (cost == 0) return 'camporees.common.free'.tr();
     final formatted = NumberFormat.currency(
       locale: 'es',
       symbol: '\$',
@@ -327,13 +327,13 @@ class _ClubTypeBadges extends StatelessWidget {
     final badges = <Widget>[];
 
     if (camporee.includesAdventurers) {
-      badges.add(_Badge(label: 'Aventureros', color: AppColors.warning));
+      badges.add(_Badge(label: 'camporees.common.adventurers'.tr(), color: AppColors.warning));
     }
     if (camporee.includesPathfinders) {
-      badges.add(_Badge(label: 'Conquistadores', color: AppColors.primary));
+      badges.add(_Badge(label: 'camporees.common.pathfinders'.tr(), color: AppColors.primary));
     }
     if (camporee.includesMasterGuides) {
-      badges.add(_Badge(label: 'G. Mayores', color: AppColors.secondary));
+      badges.add(_Badge(label: 'camporees.common.master_guides'.tr(), color: AppColors.secondary));
     }
 
     if (badges.isEmpty) return const SizedBox.shrink();

@@ -1,7 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -40,7 +40,7 @@ class CamporeePaymentsView extends ConsumerWidget {
         backgroundColor: c.background,
         surfaceTintColor: Colors.transparent,
         title: Text(
-          memberName != null ? 'Pagos — $memberName' : 'Pagos del miembro',
+          memberName != null ? 'camporees.payments.title'.tr(namedArgs: {'name': memberName!}) : 'camporees.payments.title_fallback'.tr(),
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 18,
@@ -63,7 +63,7 @@ class CamporeePaymentsView extends ConsumerWidget {
               color: AppColors.primary,
               size: 22,
             ),
-            tooltip: 'Registrar pago',
+            tooltip: 'camporees.payments.register_tooltip'.tr(),
             onPressed: () => _openPaymentForm(context, ref),
           ),
           const SizedBox(width: 4),
@@ -123,9 +123,9 @@ class CamporeePaymentsView extends ConsumerWidget {
           color: Colors.white,
           size: 20,
         ),
-        label: const Text(
-          'Registrar pago',
-          style: TextStyle(fontWeight: FontWeight.w600),
+        label: Text(
+          'camporees.payments.register_button'.tr(),
+          style: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -163,7 +163,6 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
     final currencyFmt = NumberFormat.currency(
       locale: 'es_AR',
       symbol: '\$',
@@ -198,7 +197,7 @@ class _SummaryCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Total pagado',
+                  'camporees.payments.total_paid'.tr(),
                   style: TextStyle(
                     fontSize: 12,
                     color: AppColors.primaryDark,
@@ -222,7 +221,9 @@ class _SummaryCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              '$paymentCount ${paymentCount == 1 ? 'pago' : 'pagos'}',
+              paymentCount == 1
+                  ? 'camporees.payments.payment_count_one'.tr(namedArgs: {'count': '$paymentCount'})
+                  : 'camporees.payments.payment_count_other'.tr(namedArgs: {'count': '$paymentCount'}),
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
@@ -375,13 +376,13 @@ class _PaymentCard extends StatelessWidget {
   String _paymentTypeLabel(String type) {
     switch (type) {
       case 'cash':
-        return 'Efectivo';
+        return 'camporees.payments.payment_type_cash'.tr();
       case 'transfer':
-        return 'Transferencia';
+        return 'camporees.payments.payment_type_transfer'.tr();
       case 'check':
-        return 'Cheque';
+        return 'camporees.payments.payment_type_check'.tr();
       case 'card':
-        return 'Tarjeta';
+        return 'camporees.payments.payment_type_card'.tr();
       default:
         return type;
     }
@@ -443,11 +444,11 @@ class _CamporeePaymentFormSheetState
   String _paymentType = 'cash';
   DateTime? _paymentDate;
 
-  static const _paymentTypes = [
-    ('cash', 'Efectivo'),
-    ('transfer', 'Transferencia'),
-    ('check', 'Cheque'),
-    ('card', 'Tarjeta'),
+  List<(String, String)> get _paymentTypes => [
+    ('cash', 'camporees.payments.payment_type_cash'.tr()),
+    ('transfer', 'camporees.payments.payment_type_transfer'.tr()),
+    ('check', 'camporees.payments.payment_type_check'.tr()),
+    ('card', 'camporees.payments.payment_type_card'.tr()),
   ];
 
   @override
@@ -498,7 +499,7 @@ class _CamporeePaymentFormSheetState
                 const SizedBox(height: 16),
 
                 Text(
-                  'Registrar pago',
+                  'camporees.payments.form_title'.tr(),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
@@ -540,7 +541,7 @@ class _CamporeePaymentFormSheetState
 
                 // Monto
                 Text(
-                  'Monto *',
+                  'camporees.payments.amount_label'.tr(),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -560,11 +561,11 @@ class _CamporeePaymentFormSheetState
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
-                      return 'Ingresa el monto';
+                      return 'camporees.payments.amount_required'.tr();
                     }
                     final parsed = double.tryParse(v.trim().replaceAll(',', '.'));
                     if (parsed == null || parsed <= 0) {
-                      return 'Ingresa un monto válido';
+                      return 'camporees.payments.amount_invalid'.tr();
                     }
                     return null;
                   },
@@ -573,7 +574,7 @@ class _CamporeePaymentFormSheetState
 
                 // Tipo de pago
                 Text(
-                  'Tipo de pago *',
+                  'camporees.payments.payment_type_label'.tr(),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -611,7 +612,7 @@ class _CamporeePaymentFormSheetState
 
                 // Referencia (opcional)
                 Text(
-                  'Referencia (opcional)',
+                  'camporees.payments.reference_label'.tr(),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -622,7 +623,7 @@ class _CamporeePaymentFormSheetState
                 TextFormField(
                   controller: _referenceCtrl,
                   decoration: _inputDecoration(
-                    hintText: 'Número de comprobante o referencia',
+                    hintText: 'camporees.payments.reference_hint'.tr(),
                     context: context,
                     prefixIcon: HugeIcons.strokeRoundedTag01,
                   ),
@@ -631,7 +632,7 @@ class _CamporeePaymentFormSheetState
 
                 // Fecha de pago
                 Text(
-                  'Fecha de pago (opcional)',
+                  'camporees.payments.payment_date_label'.tr(),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -661,7 +662,7 @@ class _CamporeePaymentFormSheetState
                           _paymentDate != null
                               ? DateFormat('dd/MM/yyyy', 'es')
                                   .format(_paymentDate!)
-                              : 'Seleccionar fecha',
+                              : 'camporees.payments.select_date'.tr(),
                           style: TextStyle(
                             fontSize: 14,
                             color: _paymentDate != null
@@ -677,7 +678,7 @@ class _CamporeePaymentFormSheetState
 
                 // Notas (opcional)
                 Text(
-                  'Notas (opcional)',
+                  'camporees.payments.notes_label'.tr(),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -689,14 +690,14 @@ class _CamporeePaymentFormSheetState
                   controller: _notesCtrl,
                   maxLines: 2,
                   decoration: _inputDecoration(
-                    hintText: 'Observaciones adicionales...',
+                    hintText: 'camporees.payments.notes_hint'.tr(),
                     context: context,
                   ),
                 ),
                 const SizedBox(height: 24),
 
                 SacButton.primary(
-                  text: 'Registrar pago',
+                  text: 'camporees.payments.register_button'.tr(),
                   icon: HugeIcons.strokeRoundedCheckmarkCircle02,
                   isLoading: formState.isLoading,
                   onPressed: formState.isLoading ? null : _submit,
@@ -787,7 +788,7 @@ class _CamporeePaymentFormSheetState
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Pago registrado exitosamente'),
+          content: Text('camporees.payments.success'.tr()),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -823,7 +824,7 @@ class _EmptyBody extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Sin pagos registrados',
+              'camporees.payments.empty'.tr(),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -832,13 +833,13 @@ class _EmptyBody extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Este miembro no tiene pagos registrados para este camporee.',
+              'camporees.payments.empty_hint'.tr(),
               style: TextStyle(fontSize: 14, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
             SacButton.primary(
-              text: 'Registrar pago',
+              text: 'camporees.payments.register_button'.tr(),
               icon: HugeIcons.strokeRoundedAdd01,
               onPressed: onAdd,
             ),
@@ -876,7 +877,7 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             SacButton.primary(
-              text: 'Reintentar',
+              text: 'common.retry'.tr(),
               icon: HugeIcons.strokeRoundedRefresh,
               onPressed: onRetry,
             ),
