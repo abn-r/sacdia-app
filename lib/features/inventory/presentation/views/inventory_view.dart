@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -67,7 +68,7 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
                 backgroundColor: context.sac.background,
                 surfaceTintColor: Colors.transparent,
                 title: Text(
-                  'Inventario',
+                  'inventory.view.title'.tr(),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: context.sac.text,
@@ -146,7 +147,8 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
                           child: Text(
-                            '${items.length} artículo${items.length != 1 ? 's' : ''}',
+                            'inventory.view.item_count'
+                                .plural(items.length),
                             style: Theme.of(context)
                                 .textTheme
                                 .bodySmall
@@ -237,13 +239,13 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar artículo'),
-        content: Text(
-            '¿Estás seguro de que deseas eliminar "${item.name}"? Esta acción no se puede deshacer.'),
+        title: Text('inventory.detail.delete_title'.tr()),
+        content: Text('inventory.detail.delete_confirm'.tr(
+            namedArgs: {'name': item.name})),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: Text('common.cancel'.tr()),
           ),
           Consumer(
             builder: (consumerContext, ref, _) {
@@ -262,8 +264,8 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
                             SnackBar(
                               content: Text(
                                 success
-                                    ? 'Artículo eliminado correctamente'
-                                    : 'No se pudo eliminar el artículo',
+                                    ? 'inventory.detail.deleted_success'.tr()
+                                    : 'inventory.detail.delete_error'.tr(),
                               ),
                               backgroundColor: success
                                   ? AppColors.secondary
@@ -275,7 +277,7 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
                       },
                 style: FilledButton.styleFrom(
                     backgroundColor: AppColors.error),
-                child: const Text('Eliminar'),
+                child: Text('common.delete'.tr()),
               );
             },
           ),
@@ -304,7 +306,8 @@ class _ActiveFiltersRow extends ConsumerWidget {
         runSpacing: 4,
         children: [
           _FilterTag(
-            label: 'Estado: ${filters.condition!.shortLabel}',
+            label: 'inventory.view.filter_status'
+                .tr(namedArgs: {'status': filters.condition!.shortLabel}),
             onRemove: () {
               ref.read(inventoryFiltersProvider.notifier).state =
                   filters.copyWith(clearCondition: true);
@@ -500,7 +503,7 @@ class _ErrorBody extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Error al cargar el inventario',
+            'inventory.view.error_load'.tr(),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: context.sac.text,
                   fontWeight: FontWeight.w700,
@@ -523,7 +526,7 @@ class _ErrorBody extends StatelessWidget {
               size: 18,
               color: Colors.white,
             ),
-            label: const Text('Reintentar'),
+            label: Text('common.retry'.tr()),
             style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary),
           ),
@@ -591,7 +594,7 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 20),
 
           Text(
-            'Tu inventario está vacío',
+            'inventory.view.empty_title'.tr(),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: c.text,
                   fontWeight: FontWeight.w700,
@@ -603,8 +606,8 @@ class _EmptyState extends StatelessWidget {
 
           Text(
             canAdd
-                ? 'Empieza registrando el primer artículo\nde tu club'
-                : 'El inventario del club está vacío.',
+                ? 'inventory.view.empty_subtitle_can_add'.tr()
+                : 'inventory.view.empty_subtitle_cannot_add'.tr(),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: c.textSecondary,
                   height: 1.5,
@@ -623,9 +626,9 @@ class _EmptyState extends StatelessWidget {
                   size: 18,
                   color: Colors.white,
                 ),
-                label: const Text(
-                  'Agregar primer artículo',
-                  style: TextStyle(fontWeight: FontWeight.w700),
+                label: Text(
+                  'inventory.view.add_first_item'.tr(),
+                  style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -661,9 +664,9 @@ class _AddFab extends StatelessWidget {
         size: 20,
         color: Colors.white,
       ),
-      label: const Text(
-        'Agregar',
-        style: TextStyle(fontWeight: FontWeight.w700),
+      label: Text(
+        'inventory.view.add_button'.tr(),
+        style: const TextStyle(fontWeight: FontWeight.w700),
       ),
     );
   }
