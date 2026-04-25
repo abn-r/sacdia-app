@@ -2140,6 +2140,24 @@
       "submit_for_review": "Erreur lors de l’envoi en révision",
       "get_history": "Erreur lors de la récupération de l’historique",
       "check_eligibility": "Erreur lors de la vérification de l’éligibilité"
+    },
+    "section": {
+      "title": "VALIDATION",
+      "submitButton": "Envoyer pour révision",
+      "submitSuccess": "Envoyé pour révision avec succès",
+      "historyError": "Impossible de charger l'historique",
+      "emptyHistory": "Aucun historique de validations",
+      "reviewer": "Réviseur : {name}"
+    },
+    "eligibility": {
+      "title": "Éligible à l'investiture :",
+      "progress": "{percent}% terminé"
+    },
+    "status": {
+      "inProgress": "En cours",
+      "pendingReview": "En révision",
+      "approved": "Approuvé",
+      "rejected": "Rejeté"
     }
   },
   "transfers": {
@@ -2147,6 +2165,35 @@
       "create": "Erreur lors de la création de la demande de transfert.",
       "get_list": "Erreur lors de la récupération des demandes de transfert.",
       "get_detail": "Erreur lors de la récupération du détail de la demande de transfert."
+    },
+    "detail": {
+      "title": "Détail du transfert",
+      "request_number": "Demande #{id}",
+      "destination_section": "Section destination",
+      "destination_club": "Club destination",
+      "request_date": "Date de la demande",
+      "reason": "Motif",
+      "reviewer_comment": "Commentaire du réviseur"
+    },
+    "list": {
+      "title": "Demandes de transfert",
+      "new_request": "Nouvelle demande",
+      "section_number": "Section #{id}",
+      "empty_title": "Aucune demande de transfert",
+      "empty_subtitle": "Vous pouvez demander un transfert vers une autre section du club depuis ici.",
+      "empty_action": "Demander un transfert"
+    },
+    "form": {
+      "title": "Nouvelle demande de transfert",
+      "success_message": "Demande envoyée avec succès",
+      "info_banner": "Saisissez l'ID de la section destination. Vous pouvez l'obtenir depuis les informations du club.",
+      "section_id_label": "ID de la section destination",
+      "section_id_hint": "Ex : 42",
+      "section_id_required": "Saisissez l'ID de la section",
+      "section_id_invalid": "Saisissez un ID de section valide",
+      "reason": "Motif",
+      "reason_hint": "Expliquez brièvement pourquoi vous demandez le transfert...",
+      "submit": "Envoyer la demande"
     }
   },
   "profile": {

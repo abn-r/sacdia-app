@@ -2140,6 +2140,24 @@
       "submit_for_review": "Erro ao enviar para revisão",
       "get_history": "Erro ao obter histórico",
       "check_eligibility": "Erro ao verificar elegibilidade"
+    },
+    "section": {
+      "title": "VALIDAÇÃO",
+      "submitButton": "Enviar para revisão",
+      "submitSuccess": "Enviado para revisão com sucesso",
+      "historyError": "Não foi possível carregar o histórico",
+      "emptyHistory": "Sem histórico de validações",
+      "reviewer": "Revisor: {name}"
+    },
+    "eligibility": {
+      "title": "Apto para investidura:",
+      "progress": "{percent}% concluído"
+    },
+    "status": {
+      "inProgress": "Em andamento",
+      "pendingReview": "Em revisão",
+      "approved": "Aprovado",
+      "rejected": "Rejeitado"
     }
   },
   "transfers": {
@@ -2147,6 +2165,35 @@
       "create": "Erro ao criar a solicitação de transferência.",
       "get_list": "Erro ao obter as solicitações de transferência.",
       "get_detail": "Erro ao obter o detalhe da solicitação de transferência."
+    },
+    "detail": {
+      "title": "Detalhe da transferência",
+      "request_number": "Solicitação #{id}",
+      "destination_section": "Seção destino",
+      "destination_club": "Clube destino",
+      "request_date": "Data da solicitação",
+      "reason": "Motivo",
+      "reviewer_comment": "Comentário do revisor"
+    },
+    "list": {
+      "title": "Solicitações de transferência",
+      "new_request": "Nova solicitação",
+      "section_number": "Seção #{id}",
+      "empty_title": "Sem solicitações de transferência",
+      "empty_subtitle": "Você pode solicitar uma transferência para outra seção do clube daqui.",
+      "empty_action": "Solicitar transferência"
+    },
+    "form": {
+      "title": "Nova solicitação de transferência",
+      "success_message": "Solicitação enviada com sucesso",
+      "info_banner": "Digite o ID da seção destino. Você pode obtê-lo nas informações do clube.",
+      "section_id_label": "ID da seção destino",
+      "section_id_hint": "Ex: 42",
+      "section_id_required": "Digite o ID da seção",
+      "section_id_invalid": "Digite um ID de seção válido",
+      "reason": "Motivo",
+      "reason_hint": "Explique brevemente por que você está solicitando a transferência...",
+      "submit": "Enviar solicitação"
     }
   },
   "profile": {

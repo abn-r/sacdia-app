@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
@@ -29,7 +29,7 @@ class TransferRequestDetailView extends ConsumerWidget {
         backgroundColor: c.background,
         surfaceTintColor: Colors.transparent,
         title: Text(
-          'Detalle de traslado',
+          tr('transfers.detail.title'),
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 18,
@@ -67,7 +67,7 @@ class TransferRequestDetailView extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 SacButton.primary(
-                  text: 'Reintentar',
+                  text: tr('common.retry'),
                   icon: HugeIcons.strokeRoundedRefresh,
                   onPressed: () =>
                       ref.invalidate(transferRequestDetailProvider(requestId)),
@@ -129,7 +129,7 @@ class _DetailBody extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Solicitud #${request.id}',
+                      tr('transfers.detail.request_number', namedArgs: {'id': '${request.id}'}),
                       style: TextStyle(
                         fontSize: 12,
                         color: statusConfig.fg.withValues(alpha: 0.7),
@@ -156,28 +156,28 @@ class _DetailBody extends StatelessWidget {
             children: [
               _DetailRow(
                 icon: HugeIcons.strokeRoundedUserGroup,
-                label: 'Sección destino',
-                value: request.toSectionName ?? 'Sección #${request.toSectionId}',
+                label: tr('transfers.detail.destination_section'),
+                value: request.toSectionName ?? tr('transfers.list.section_number', namedArgs: {'id': '${request.toSectionId}'}),
               ),
               if (request.toClubName != null) ...[
                 Divider(height: 1, color: c.borderLight),
                 _DetailRow(
                   icon: HugeIcons.strokeRoundedBuilding01,
-                  label: 'Club destino',
+                  label: tr('transfers.detail.destination_club'),
                   value: request.toClubName!,
                 ),
               ],
               Divider(height: 1, color: c.borderLight),
               _DetailRow(
                 icon: HugeIcons.strokeRoundedCalendar01,
-                label: 'Fecha de solicitud',
+                label: tr('transfers.detail.request_date'),
                 value: dateStr,
               ),
               if (request.reason != null) ...[
                 Divider(height: 1, color: c.borderLight),
                 _DetailRow(
                   icon: HugeIcons.strokeRoundedMessage01,
-                  label: 'Motivo',
+                  label: tr('transfers.detail.reason'),
                   value: request.reason!,
                 ),
               ],
@@ -201,7 +201,7 @@ class _DetailBody extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
                     HugeIcon(
                       icon: HugeIcons.strokeRoundedComment01,
@@ -210,7 +210,7 @@ class _DetailBody extends StatelessWidget {
                     ),
                     SizedBox(width: 6),
                     Text(
-                      'Comentario del revisor',
+                      tr('transfers.detail.reviewer_comment'),
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,

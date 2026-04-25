@@ -2140,6 +2140,24 @@
       "submit_for_review": "Error al enviar a revisión",
       "get_history": "Error al obtener historial",
       "check_eligibility": "Error al verificar elegibilidad"
+    },
+    "section": {
+      "title": "VALIDACIÓN",
+      "submitButton": "Enviar a revisión",
+      "submitSuccess": "Enviado a revisión correctamente",
+      "historyError": "No se pudo cargar el historial",
+      "emptyHistory": "Sin historial de validaciones",
+      "reviewer": "Revisor: {name}"
+    },
+    "eligibility": {
+      "title": "Apto para investidura:",
+      "progress": "{percent}% completado"
+    },
+    "status": {
+      "inProgress": "En progreso",
+      "pendingReview": "En revisión",
+      "approved": "Aprobado",
+      "rejected": "Rechazado"
     }
   },
   "transfers": {
@@ -2147,6 +2165,35 @@
       "create": "Error al crear la solicitud de traslado.",
       "get_list": "Error al obtener las solicitudes de traslado.",
       "get_detail": "Error al obtener el detalle de la solicitud de traslado."
+    },
+    "detail": {
+      "title": "Detalle de traslado",
+      "request_number": "Solicitud #{id}",
+      "destination_section": "Sección destino",
+      "destination_club": "Club destino",
+      "request_date": "Fecha de solicitud",
+      "reason": "Motivo",
+      "reviewer_comment": "Comentario del revisor"
+    },
+    "list": {
+      "title": "Solicitudes de traslado",
+      "new_request": "Nueva solicitud",
+      "section_number": "Sección #{id}",
+      "empty_title": "Sin solicitudes de traslado",
+      "empty_subtitle": "Podés solicitar un traslado a otra sección del club desde aquí.",
+      "empty_action": "Solicitar traslado"
+    },
+    "form": {
+      "title": "Nueva solicitud de traslado",
+      "success_message": "Solicitud enviada correctamente",
+      "info_banner": "Ingresá el ID de la sección destino. Podés obtenerlo desde la información del club.",
+      "section_id_label": "ID de sección destino",
+      "section_id_hint": "Ej: 42",
+      "section_id_required": "Ingresá el ID de sección",
+      "section_id_invalid": "Ingresá un ID de sección válido",
+      "reason": "Motivo",
+      "reason_hint": "Explicá brevemente por qué solicitás el traslado...",
+      "submit": "Enviar solicitud"
     }
   },
   "profile": {
