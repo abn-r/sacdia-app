@@ -131,7 +131,7 @@ class ActivityCard extends StatelessWidget {
               if (activity.activityDate != null)
                 _MetaItem(
                   icon: HugeIcons.strokeRoundedCalendar01,
-                  label: DateFormat('d MMM yyyy', 'es')
+                  label: DateFormat('d MMM yyyy', context.locale.toString())
                       .format(activity.activityDate!.toLocal()),
                   c: c,
                 ),

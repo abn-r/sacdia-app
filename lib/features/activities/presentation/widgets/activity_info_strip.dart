@@ -24,13 +24,13 @@ class ActivityInfoStrip extends StatelessWidget {
 
   // ── formatting helpers ─────────────────────────────────────────────────────
 
-  String _formatDate() {
+  String _formatDate(String locale) {
     final start = activity.activityDate;
     if (start == null) return '—';
-    final startFmt = DateFormat('d MMM yyyy', 'es').format(start.toLocal());
+    final startFmt = DateFormat('d MMM yyyy', locale).format(start.toLocal());
     final end = activity.activityEndDate;
     if (end != null && !_isSameDay(start, end)) {
-      final endFmt = DateFormat('d MMM', 'es').format(end.toLocal());
+      final endFmt = DateFormat('d MMM', locale).format(end.toLocal());
       return '$startFmt – $endFmt';
     }
     return startFmt;
@@ -139,7 +139,7 @@ class ActivityInfoStrip extends StatelessWidget {
                   child: _InfoCell(
                     icon: HugeIcons.strokeRoundedCalendar01,
                     label: 'activities.widgets.date_label_short'.tr(),
-                    value: _formatDate(),
+                    value: _formatDate(context.locale.toString()),
                   ),
                 ),
                 Container(

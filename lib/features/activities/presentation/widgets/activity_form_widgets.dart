@@ -552,7 +552,7 @@ class ActivityDatePickerField extends StatelessWidget {
     final theme = Theme.of(context);
     final hasValue = value != null;
     final formatted = hasValue
-        ? DateFormat('d MMM yyyy', 'es').format(value!.toLocal())
+        ? DateFormat('d MMM yyyy', context.locale.toString()).format(value!.toLocal())
         : null;
 
     return Column(
