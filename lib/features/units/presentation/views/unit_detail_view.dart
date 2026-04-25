@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -90,7 +91,9 @@ class UnitDetailView extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
-                    canRegisterPoints ? 'Puntos del dia' : 'Puntajes',
+                    canRegisterPoints
+                        ? 'units.detail.scores_title'.tr()
+                        : 'units.detail.read_only_scores_title'.tr(),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: c.textSecondary,
                           fontWeight: FontWeight.w600,
@@ -148,9 +151,9 @@ class UnitDetailView extends ConsumerWidget {
       if (!context.mounted) return;
       if (!saved) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Todos los miembros deben tener puntaje o ninguno.',
+              'units.detail.save_error_all_or_none'.tr(),
             ),
             behavior: SnackBarBehavior.floating,
           ),
@@ -159,7 +162,7 @@ class UnitDetailView extends ConsumerWidget {
         HapticFeedback.mediumImpact();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Puntos del dia guardados correctamente'),
+            content: Text('units.detail.save_success'.tr()),
             backgroundColor: AppColors.secondary,
             behavior: SnackBarBehavior.floating,
           ),
@@ -212,14 +215,16 @@ class _UnitHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${unit.memberCount} miembros',
+                  'units.detail.members_count'
+                      .tr(namedArgs: {'count': '${unit.memberCount}'}),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: c.textSecondary,
                       ),
                 ),
                 if (unit.leaderName != null)
                   Text(
-                    'Lider: ${unit.leaderName}',
+                    'units.detail.leader_label'
+                        .tr(namedArgs: {'name': unit.leaderName!}),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: c.textTertiary,
                         ),
@@ -253,7 +258,7 @@ class _SavedTodayBanner extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Ya registraste los puntos de hoy',
+              'units.detail.saved_today_banner'.tr(),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.secondaryDark,
                     fontWeight: FontWeight.w600,
@@ -329,7 +334,8 @@ class _MemberCategoryScoreCard extends StatelessWidget {
                 ),
               ),
               Text(
-                '$total / $totalMax pts',
+                'units.detail.points_total'
+                    .tr(namedArgs: {'total': '$total', 'max': '$totalMax'}),
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w700,
@@ -450,7 +456,11 @@ class _CategoryRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  '$points/${category.maxPoints}',
+                  'units.detail.category_points'
+                      .tr(namedArgs: {
+                    'points': '$points',
+                    'max': '${category.maxPoints}',
+                  }),
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: isDisabled
                             ? AppColors.primary.withValues(alpha: 0.4)
@@ -596,17 +606,17 @@ class _SaveFooter extends StatelessWidget {
           top: BorderSide(color: c.border, width: 1),
         ),
       ),
-      child: isSavedToday
-          ? SacButton.outline(
-              text: 'Reiniciar puntos',
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onReset,
-            )
-          : SacButton.primary(
-              text: 'Guardar puntos del dia',
-              icon: HugeIcons.strokeRoundedFloppyDisk,
-              onPressed: onSave,
-            ),
+          child: isSavedToday
+              ? SacButton.outline(
+                  text: 'units.detail.reset_button'.tr(),
+                  icon: HugeIcons.strokeRoundedRefresh,
+                  onPressed: onReset,
+                )
+              : SacButton.primary(
+                  text: 'units.detail.save_button'.tr(),
+                  icon: HugeIcons.strokeRoundedFloppyDisk,
+                  onPressed: onSave,
+                ),
     );
   }
 }
