@@ -1,9 +1,9 @@
 import 'dart:ui' as ui;
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -76,19 +76,19 @@ class _EvidenceSectionDetailViewState
         final confirm = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Archivos sin enviar'),
-            content: const Text(
-              'Tienes archivos sin enviar. ¿Seguro que quieres salir?',
+            title: Text('evidence_folder.unsaved_files_dialog.title'.tr()),
+            content: Text(
+              'evidence_folder.unsaved_files_dialog.message'.tr(),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Quedarme'),
+                child: Text('evidence_folder.stay'.tr()),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
                 style: TextButton.styleFrom(foregroundColor: AppColors.error),
-                child: const Text('Salir'),
+                child: Text('evidence_folder.exit'.tr()),
               ),
             ],
           ),
@@ -101,7 +101,7 @@ class _EvidenceSectionDetailViewState
         backgroundColor: c.background,
         appBar: AppBar(
           title: Text(
-            'Sección',
+            'evidence_folder.section_title'.tr(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w700, color: AppColors.sacRed),
             overflow: TextOverflow.ellipsis,
@@ -127,7 +127,7 @@ class _EvidenceSectionDetailViewState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Detalle de la sección',
+                          'evidence_folder.section_detail_label'.tr(),
                           style:
                               Theme.of(context).textTheme.labelSmall?.copyWith(
                                     color: c.textSecondary,
@@ -158,13 +158,13 @@ class _EvidenceSectionDetailViewState
                   // Estado actual del sección (chip visual, solo lectura)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                    child: Text(
-                      'Estado de la sección',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: c.textSecondary,
-                            letterSpacing: 0.8,
-                          ),
-                    ),
+                  child: Text(
+                    'evidence_folder.section_status_label'.tr(),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: c.textSecondary,
+                          letterSpacing: 0.8,
+                        ),
+                  ),
                   ),
                   const SizedBox(height: 8),
                   Padding(
@@ -187,7 +187,7 @@ class _EvidenceSectionDetailViewState
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                       child: Text(
-                        'Resultado de evaluación',
+                        'evidence_folder.evaluation_result_title'.tr(),
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w700,
                               color: c.text,
@@ -206,13 +206,13 @@ class _EvidenceSectionDetailViewState
                   // Archivos de evidencia header
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                    child: Text(
-                      'Archivos de evidencia',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: c.text,
-                          ),
-                    ),
+                  child: Text(
+                    'evidence_folder.evidence_files_title'.tr(),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: c.text,
+                        ),
+                  ),
                   ),
 
                   // Notas del revisor por archivo — solo si existen
@@ -268,14 +268,17 @@ class _EvidenceSectionDetailViewState
                         // ignore: use_build_context_synchronously
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: const Row(
+                            content: Row(
                               children: [
-                                Icon(Icons.check_circle_rounded,
+                                const Icon(Icons.check_circle_rounded,
                                     color: Colors.white, size: 18),
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                      'Sección enviada a validación exitosamente'),
+                                    'evidence_folder.submit_success'.tr(namedArgs: {
+                                      'sectionName': widget.section.name,
+                                    }),
+                                  ),
                                 ),
                               ],
                             ),
@@ -385,15 +388,17 @@ class _SectionMetaCard extends StatelessWidget {
             children: [
               _MetaItem(
                 icon: HugeIcons.strokeRoundedStar,
-                label: 'Puntos',
-                value: '${section.pointValue} pts',
+                label: 'evidence_folder.points_label'.tr(),
+                value: 'evidence_folder.points_value'.tr(namedArgs: {
+                  'points': '${section.pointValue}',
+                }),
                 color: AppColors.accent,
                 context: context,
               ),
               const SizedBox(width: 24),
               _MetaItem(
                 icon: HugeIcons.strokeRoundedPercent,
-                label: 'Peso',
+                label: 'evidence_folder.weight_label'.tr(),
                 value: '${section.percentage.toStringAsFixed(1)}%',
                 color: AppColors.primary,
                 context: context,
@@ -401,8 +406,10 @@ class _SectionMetaCard extends StatelessWidget {
               const SizedBox(width: 24),
               _MetaItem(
                 icon: HugeIcons.strokeRoundedFiles01,
-                label: 'Límite',
-                value: '${section.maxFiles} archivos',
+                label: 'evidence_folder.limit_label'.tr(),
+                value: 'evidence_folder.files_count'.tr(namedArgs: {
+                  'count': '${section.maxFiles}',
+                }),
                 color: c.textSecondary,
                 context: context,
               ),
@@ -488,7 +495,7 @@ class _EvidenceStatusChip extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: 'Estado de la sección: $_label. Tocar para ver historial.',
+      label: 'evidence_folder.status_semantics'.tr(namedArgs: {'label': _label}),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -530,15 +537,15 @@ class _EvidenceStatusChip extends StatelessWidget {
   String get _label {
     switch (status) {
       case EvidenceSectionStatus.pending:
-        return 'Pendiente';
+        return 'evidence_folder.status.pending'.tr();
       case EvidenceSectionStatus.submitted:
-        return 'Enviado';
+        return 'evidence_folder.status.submitted'.tr();
       case EvidenceSectionStatus.preapprovedLf:
-        return 'Preaprobado';
+        return 'evidence_folder.status.preapproved'.tr();
       case EvidenceSectionStatus.validated:
-        return 'Validado';
+        return 'evidence_folder.status.validated'.tr();
       case EvidenceSectionStatus.rejected:
-        return 'Rechazado';
+        return 'evidence_folder.status.rejected'.tr();
     }
   }
 
@@ -646,11 +653,11 @@ class _EvaluationResultCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Column(
+                  Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Puntos obtenidos',
+                    'evidence_folder.earned_points'.tr(),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
@@ -691,8 +698,12 @@ class _EvaluationResultCard extends StatelessWidget {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      'Preaprobado por ${section.lfApproverName}'
-                      '${section.lfApprovedAt != null ? " · ${dateFormat.format(section.lfApprovedAt!.toLocal())}" : ""}',
+                      'evidence_folder.trace.preapproved_by'.tr(namedArgs: {
+                        'name': section.lfApproverName!,
+                        'date': section.lfApprovedAt != null
+                            ? ' · ${dateFormat.format(section.lfApprovedAt!.toLocal())}'
+                            : '',
+                      }),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: AppColors.accentDark,
                             fontWeight: FontWeight.w600,
@@ -716,8 +727,12 @@ class _EvaluationResultCard extends StatelessWidget {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      'Validado por ${section.unionApproverName}'
-                      '${section.unionApprovedAt != null ? " · ${dateFormat.format(section.unionApprovedAt!.toLocal())}" : ""}',
+                      'evidence_folder.trace.validated_by'.tr(namedArgs: {
+                        'name': section.unionApproverName!,
+                        'date': section.unionApprovedAt != null
+                            ? ' · ${dateFormat.format(section.unionApprovedAt!.toLocal())}'
+                            : '',
+                      }),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: AppColors.secondaryDark,
                             fontWeight: FontWeight.w600,
@@ -735,7 +750,7 @@ class _EvaluationResultCard extends StatelessWidget {
               section.evaluationNotes!.isNotEmpty) ...[
             const SizedBox(height: 12),
             Text(
-              'Notas del evaluador',
+              'evidence_folder.evaluator_notes'.tr(),
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
@@ -782,7 +797,7 @@ class _ReviewerNotesBlock extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Comentarios del revisor',
+            'evidence_folder.reviewer_comments'.tr(),
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: context.sac.textSecondary,
                   letterSpacing: 0.8,
@@ -941,7 +956,9 @@ class _ExpandToggle extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Text(
-              expanded ? 'Ver menos' : 'Ver más',
+              expanded
+                  ? 'evidence_folder.show_less'.tr()
+                  : 'evidence_folder.show_more'.tr(),
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,

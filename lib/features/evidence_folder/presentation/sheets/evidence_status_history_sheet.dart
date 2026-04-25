@@ -1,6 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -80,7 +80,7 @@ class EvidenceStatusHistorySheet extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Historial de estados',
+                          'evidence_folder.status_history.title'.tr(),
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
@@ -145,8 +145,8 @@ class EvidenceStatusHistorySheet extends StatelessWidget {
     // Evento implícito de creación/inicio — siempre presente
     entries.add(
       _StatusEntry(
-        label: 'Pendiente',
-        description: 'Sección creada, esperando evidencias.',
+        label: 'evidence_folder.status.pending'.tr(),
+        description: 'evidence_folder.status_history.pending_desc'.tr(),
         icon: HugeIcons.strokeRoundedClock01,
         color: AppColors.accent,
         author: null,
@@ -163,8 +163,8 @@ class EvidenceStatusHistorySheet extends StatelessWidget {
     if (wasSubmitted) {
       entries.add(
         _StatusEntry(
-          label: 'Enviado',
-          description: 'Evidencias enviadas a validación.',
+          label: 'evidence_folder.status.submitted'.tr(),
+          description: 'evidence_folder.status_history.submitted_desc'.tr(),
           icon: HugeIcons.strokeRoundedSent,
           color: AppColors.sacBlue,
           author: section.submittedByName,
@@ -177,8 +177,8 @@ class EvidenceStatusHistorySheet extends StatelessWidget {
     if (section.status == EvidenceSectionStatus.rejected) {
       entries.add(
         _StatusEntry(
-          label: 'Rechazado',
-          description: 'Sección rechazada. Podés reenviar evidencias.',
+          label: 'evidence_folder.status.rejected'.tr(),
+          description: 'evidence_folder.status_history.rejected_desc'.tr(),
           icon: HugeIcons.strokeRoundedCancel01,
           color: AppColors.error,
           author: section.lfApproverName ?? section.validatedByName,
@@ -193,8 +193,8 @@ class EvidenceStatusHistorySheet extends StatelessWidget {
         section.status == EvidenceSectionStatus.validated) {
       entries.add(
         _StatusEntry(
-          label: 'Preaprobado',
-          description: 'Sección pre-aprobada por el campo local.',
+          label: 'evidence_folder.status.preapproved'.tr(),
+          description: 'evidence_folder.status_history.preapproved_desc'.tr(),
           icon: HugeIcons.strokeRoundedAnalytics01,
           color: AppColors.accentDark,
           author: section.lfApproverName,
@@ -208,8 +208,8 @@ class EvidenceStatusHistorySheet extends StatelessWidget {
         section.unionApproverName != null) {
       entries.add(
         _StatusEntry(
-          label: 'Validado',
-          description: 'Sección validada definitivamente por la unión.',
+          label: 'evidence_folder.status.validated'.tr(),
+          description: 'evidence_folder.status_history.validated_desc'.tr(),
           icon: HugeIcons.strokeRoundedCheckmarkCircle01,
           color: AppColors.secondary,
           author: section.unionApproverName,
@@ -497,7 +497,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Sin cambios registrados',
+            'evidence_folder.status_history.empty_title'.tr(),
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
@@ -506,7 +506,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Esta sección aún no tiene cambios de estado registrados.',
+            'evidence_folder.status_history.empty_description'.tr(),
             style: TextStyle(fontSize: 13, color: c.textSecondary),
             textAlign: TextAlign.center,
           ),

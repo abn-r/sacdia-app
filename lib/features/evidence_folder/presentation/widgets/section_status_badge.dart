@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -53,15 +54,15 @@ class SectionStatusBadge extends StatelessWidget {
   String get _label {
     switch (status) {
       case EvidenceSectionStatus.pending:
-        return 'Pendiente';
+        return 'evidence_folder.status.pending'.tr();
       case EvidenceSectionStatus.submitted:
-        return 'Enviado';
+        return 'evidence_folder.status.submitted'.tr();
       case EvidenceSectionStatus.preapprovedLf:
-        return 'Preaprobado';
+        return 'evidence_folder.status.preapproved'.tr();
       case EvidenceSectionStatus.validated:
-        return 'Validado';
+        return 'evidence_folder.status.validated'.tr();
       case EvidenceSectionStatus.rejected:
-        return 'Rechazado';
+        return 'evidence_folder.status.rejected'.tr();
     }
   }
 
