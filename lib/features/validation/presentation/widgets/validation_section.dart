@@ -1,7 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -41,7 +41,7 @@ class ValidationSection extends ConsumerWidget {
         Row(
           children: [
             Text(
-              'VALIDACIÓN',
+              'validation.section.title'.tr(),
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
@@ -78,7 +78,7 @@ class ValidationSection extends ConsumerWidget {
             if (!canSubmit) return const SizedBox.shrink();
 
             return SacButton.primary(
-              text: 'Enviar a revisión',
+              text: 'validation.section.submitButton'.tr(),
               icon: HugeIcons.strokeRoundedSent,
               isLoading: submitState.isLoading,
               onPressed: submitState.isLoading
@@ -126,13 +126,13 @@ class ValidationSection extends ConsumerWidget {
         historyAsync.when(
           loading: () => const SizedBox(height: 60, child: Center(child: SacLoading())),
           error: (e, _) => Text(
-            'No se pudo cargar el historial',
+            'validation.section.historyError'.tr(),
             style: TextStyle(fontSize: 13, color: c.textSecondary),
           ),
           data: (history) {
             if (history.isEmpty) {
               return Text(
-                'Sin historial de validaciones',
+                'validation.section.emptyHistory'.tr(),
                 style: TextStyle(fontSize: 13, color: c.textTertiary),
               );
             }
@@ -167,7 +167,7 @@ class ValidationSection extends ConsumerWidget {
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Enviado a revisión correctamente'),
+          content: Text('validation.section.submitSuccess'.tr()),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
           shape:
@@ -256,7 +256,7 @@ class _HistoryItem extends StatelessWidget {
                   if (entry.reviewerName != null) ...[
                     const SizedBox(height: 4),
                     Text(
-                      'Revisor: ${entry.reviewerName}',
+                      'validation.section.reviewer'.tr(namedArgs: {'name': entry.reviewerName!}),
                       style: TextStyle(
                         fontSize: 12,
                         color: c.textSecondary,

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -31,7 +32,7 @@ class ValidationStatusBadge extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            status.label,
+            _statusLabel(status),
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
@@ -41,6 +42,19 @@ class ValidationStatusBadge extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _statusLabel(ValidationStatus status) {
+    switch (status) {
+      case ValidationStatus.inProgress:
+        return 'validation.status.inProgress'.tr();
+      case ValidationStatus.pendingReview:
+        return 'validation.status.pendingReview'.tr();
+      case ValidationStatus.approved:
+        return 'validation.status.approved'.tr();
+      case ValidationStatus.rejected:
+        return 'validation.status.rejected'.tr();
+    }
   }
 
   _BadgeConfig _configFor(ValidationStatus status) {
