@@ -879,6 +879,29 @@
       "fetch_preview": "Error fetching report preview",
       "fetch_list": "Error fetching monthly reports",
       "fetch_detail": "Error fetching report detail"
+    },
+    "list": {
+      "title": "Monthly Reports",
+      "activity_summary": "{activities} activities · {members} members",
+      "empty_title": "No monthly reports",
+      "empty_subtitle": "Monthly reports will appear here once they are available."
+    },
+    "detail": {
+      "title": "Report Detail",
+      "download_pdf_tooltip": "Download PDF",
+      "downloading_pdf": "Downloading PDF…",
+      "pdf_viewer_title": "Monthly Report",
+      "pdf_error": "Error getting the PDF: {error}",
+      "section_auto_data": "Automatically calculated data",
+      "section_manual_data": "Additional data",
+      "view_pdf_button": "View PDF",
+      "stat_activities": "Activities",
+      "stat_total_attendance": "Total attendance",
+      "stat_members": "Members",
+      "stat_attendance_rate": "Attendance rate",
+      "label_new_members": "New members",
+      "label_dropped_members": "Dropouts",
+      "label_notes": "Notes"
     }
   },
   "units": {
@@ -2241,6 +2264,46 @@
       "get_club": "Error fetching club",
       "get_club_section": "Error fetching club section",
       "update_club_section": "Error updating club section"
+    },
+    "unsaved_changes_title": "Unsaved changes",
+    "discard_changes_body": "Do you want to discard the changes made?",
+    "discard": "Discard",
+    "update_success": "Club information updated",
+    "my_club_title": "MY CLUB",
+    "save_changes": "Save changes",
+    "section": {
+      "general_info": "General information",
+      "contact": "Contact"
+    },
+    "name_label": "Club name",
+    "name_hint": "Ex: Club Falcons",
+    "name": "Name",
+    "type_label": "Club type",
+    "address": "Address",
+    "address_label": "Club address",
+    "phone": "Phone",
+    "phone_hint": "+1 555 000 0000",
+    "email": "Email",
+    "email_hint": "club@example.com",
+    "website": "Website",
+    "website_hint": "https://myclub.com",
+    "logo": "Club logo",
+    "logo_url": "Logo URL",
+    "logo_url_hint": "https://cdn.example.com/logo.png",
+    "select_address_map": "Select address on map",
+    "load_error": "Error loading club",
+    "no_club_assigned": "No club assigned",
+    "no_club_description": "You don't have a club assigned in your profile. Complete your club selection registration to access this section.",
+    "detail_title": "CLUB DETAIL",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "id_label": "Club ID",
+    "detail_note": "To view the full detail of the club sections (Adventurers, Pathfinders, Master Guides) access from the My Club module.",
+    "validation": {
+      "invalid_email": "Enter a valid email",
+      "invalid_url": "Enter a valid URL (e.g: https://...)",
+      "invalid_url_short": "Enter a valid URL"
     }
   },
   "role_assignments": {

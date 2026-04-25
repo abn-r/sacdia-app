@@ -879,6 +879,29 @@
       "fetch_preview": "Error al obtener preview del informe",
       "fetch_list": "Error al obtener informes mensuales",
       "fetch_detail": "Error al obtener detalle del informe"
+    },
+    "list": {
+      "title": "Informes Mensuales",
+      "activity_summary": "{activities} actividades · {members} miembros",
+      "empty_title": "Sin informes mensuales",
+      "empty_subtitle": "Los informes mensuales aparecerán aquí una vez que estén disponibles."
+    },
+    "detail": {
+      "title": "Detalle del informe",
+      "download_pdf_tooltip": "Descargar PDF",
+      "downloading_pdf": "Descargando PDF…",
+      "pdf_viewer_title": "Informe mensual",
+      "pdf_error": "Error al obtener el PDF: {error}",
+      "section_auto_data": "Datos calculados automáticamente",
+      "section_manual_data": "Datos adicionales",
+      "view_pdf_button": "Ver PDF",
+      "stat_activities": "Actividades",
+      "stat_total_attendance": "Asistencia total",
+      "stat_members": "Miembros",
+      "stat_attendance_rate": "Tasa asistencia",
+      "label_new_members": "Nuevos miembros",
+      "label_dropped_members": "Bajas",
+      "label_notes": "Notas"
     }
   },
   "units": {
@@ -2241,6 +2264,46 @@
       "get_club": "Error al obtener club",
       "get_club_section": "Error al obtener sección del club",
       "update_club_section": "Error al actualizar sección del club"
+    },
+    "unsaved_changes_title": "Cambios sin guardar",
+    "discard_changes_body": "¿Deseas descartar los cambios realizados?",
+    "discard": "Descartar",
+    "update_success": "Información del club actualizada",
+    "my_club_title": "MI CLUB",
+    "save_changes": "Guardar cambios",
+    "section": {
+      "general_info": "Información general",
+      "contact": "Contacto"
+    },
+    "name_label": "Nombre del club",
+    "name_hint": "Ej: Club Halcones",
+    "name": "Nombre",
+    "type_label": "Tipo de club",
+    "address": "Dirección",
+    "address_label": "Dirección del club",
+    "phone": "Teléfono",
+    "phone_hint": "+52 55 0000 0000",
+    "email": "Correo electrónico",
+    "email_hint": "club@ejemplo.com",
+    "website": "Sitio web",
+    "website_hint": "https://miclub.com",
+    "logo": "Logo del club",
+    "logo_url": "URL del logo",
+    "logo_url_hint": "https://cdn.ejemplo.com/logo.png",
+    "select_address_map": "Seleccionar dirección en el mapa",
+    "load_error": "Error al cargar el club",
+    "no_club_assigned": "Sin club asignado",
+    "no_club_description": "No tienes un club asignado en tu perfil. Completa tu registro de selección de club para acceder a esta sección.",
+    "detail_title": "DETALLE DEL CLUB",
+    "status": "Estado",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "id_label": "ID del club",
+    "detail_note": "Para ver el detalle completo de las secciones del club (Aventureros, Conquistadores, Guías Mayores) accedé desde el módulo Mi Club.",
+    "validation": {
+      "invalid_email": "Ingresa un correo válido",
+      "invalid_url": "Ingresa una URL válida (ej: https://...)",
+      "invalid_url_short": "Ingresa una URL válida"
     }
   },
   "role_assignments": {

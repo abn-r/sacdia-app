@@ -879,6 +879,29 @@
       "fetch_preview": "Erreur lors de la récupération de l'aperçu du rapport",
       "fetch_list": "Erreur lors de la récupération des rapports mensuels",
       "fetch_detail": "Erreur lors de la récupération du détail du rapport"
+    },
+    "list": {
+      "title": "Rapports mensuels",
+      "activity_summary": "{activities} activités · {members} membres",
+      "empty_title": "Aucun rapport mensuel",
+      "empty_subtitle": "Les rapports mensuels apparaîtront ici dès qu'ils seront disponibles."
+    },
+    "detail": {
+      "title": "Détail du rapport",
+      "download_pdf_tooltip": "Télécharger le PDF",
+      "downloading_pdf": "Téléchargement du PDF…",
+      "pdf_viewer_title": "Rapport mensuel",
+      "pdf_error": "Erreur lors de la récupération du PDF : {error}",
+      "section_auto_data": "Données calculées automatiquement",
+      "section_manual_data": "Données supplémentaires",
+      "view_pdf_button": "Voir le PDF",
+      "stat_activities": "Activités",
+      "stat_total_attendance": "Présence totale",
+      "stat_members": "Membres",
+      "stat_attendance_rate": "Taux de présence",
+      "label_new_members": "Nouveaux membres",
+      "label_dropped_members": "Départs",
+      "label_notes": "Notes"
     }
   },
   "units": {
@@ -2241,6 +2264,46 @@
       "get_club": "Erreur lors de la récupération du club",
       "get_club_section": "Erreur lors de la récupération de la section du club",
       "update_club_section": "Erreur lors de la mise à jour de la section du club"
+    },
+    "unsaved_changes_title": "Modifications non enregistrées",
+    "discard_changes_body": "Voulez-vous abandonner les modifications apportées ?",
+    "discard": "Abandonner",
+    "update_success": "Informations du club mises à jour",
+    "my_club_title": "MON CLUB",
+    "save_changes": "Enregistrer les modifications",
+    "section": {
+      "general_info": "Informations générales",
+      "contact": "Contact"
+    },
+    "name_label": "Nom du club",
+    "name_hint": "Ex : Club Faucons",
+    "name": "Nom",
+    "type_label": "Type de club",
+    "address": "Adresse",
+    "address_label": "Adresse du club",
+    "phone": "Téléphone",
+    "phone_hint": "+33 1 23 45 67 89",
+    "email": "E-mail",
+    "email_hint": "club@exemple.com",
+    "website": "Site web",
+    "website_hint": "https://monclub.com",
+    "logo": "Logo du club",
+    "logo_url": "URL du logo",
+    "logo_url_hint": "https://cdn.exemple.com/logo.png",
+    "select_address_map": "Sélectionner l'adresse sur la carte",
+    "load_error": "Erreur lors du chargement du club",
+    "no_club_assigned": "Aucun club attribué",
+    "no_club_description": "Vous n'avez pas de club attribué dans votre profil. Complétez votre inscription de sélection de club pour accéder à cette section.",
+    "detail_title": "DÉTAIL DU CLUB",
+    "status": "Statut",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "id_label": "ID du club",
+    "detail_note": "Pour voir le détail complet des sections du club (Aventuriers, Conquérants, Guides Maîtres) accédez depuis le module Mon Club.",
+    "validation": {
+      "invalid_email": "Saisissez un e-mail valide",
+      "invalid_url": "Saisissez une URL valide (ex : https://...)",
+      "invalid_url_short": "Saisissez une URL valide"
     }
   },
   "role_assignments": {

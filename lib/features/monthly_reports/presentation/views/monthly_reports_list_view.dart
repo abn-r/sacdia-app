@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -31,7 +32,7 @@ class MonthlyReportsListView extends ConsumerWidget {
         backgroundColor: c.background,
         surfaceTintColor: Colors.transparent,
         title: Text(
-          'Informes Mensuales',
+          'monthly_reports.list.title'.tr(),
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 18,
@@ -202,8 +203,10 @@ class _ReportCard extends StatelessWidget {
                   const SizedBox(height: 2),
                   if (report.totalActivities != null)
                     Text(
-                      '${report.totalActivities} actividades · '
-                      '${report.totalMembers ?? 0} miembros',
+                      'monthly_reports.list.activity_summary'.tr(namedArgs: {
+                        'activities': '${report.totalActivities}',
+                        'members': '${report.totalMembers ?? 0}',
+                      }),
                       style: TextStyle(
                         fontSize: 12,
                         color: c.textTertiary,
@@ -301,7 +304,7 @@ class _EmptyBody extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Sin informes mensuales',
+              'monthly_reports.list.empty_title'.tr(),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -310,7 +313,7 @@ class _EmptyBody extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Los informes mensuales aparecerán aquí una vez que estén disponibles.',
+              'monthly_reports.list.empty_subtitle'.tr(),
               style: TextStyle(fontSize: 14, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
@@ -354,7 +357,7 @@ class _ErrorBody extends StatelessWidget {
                 size: 16,
                 color: AppColors.primary,
               ),
-              label: const Text('Reintentar'),
+              label: Text('common.retry'.tr()),
             ),
           ],
         ),
