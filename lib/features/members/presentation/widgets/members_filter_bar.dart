@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -49,7 +50,7 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
             },
             style: TextStyle(fontSize: 14, color: c.text),
             decoration: InputDecoration(
-              hintText: 'Buscar por nombre...',
+              hintText: 'members.filter_bar.search_hint'.tr(),
               hintStyle: TextStyle(color: c.textTertiary, fontSize: 14),
               prefixIcon: HugeIcon(
                 icon: HugeIcons.strokeRoundedSearch01,
@@ -89,7 +90,7 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
               // Clase filter
               if (availableClasses.isNotEmpty)
                 _FilterChip(
-                  label: filters.classFilter ?? 'Clase',
+                  label: filters.classFilter ?? 'members.filter_bar.class_filter'.tr(),
                   isActive: filters.classFilter != null,
                   onTap: () => _showClassPicker(
                     context,
@@ -111,7 +112,7 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
                 _FilterChip(
                   label: filters.roleFilter != null
                       ? RoleUtils.translate(filters.roleFilter)
-                      : 'Cargo',
+                      : 'members.filter_bar.role_filter'.tr(),
                   isActive: filters.roleFilter != null,
                   onTap: () => _showRolePicker(
                     context,
@@ -131,10 +132,10 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
               // Inscripción filter
               _FilterChip(
                 label: filters.enrolledFilter == null
-                    ? 'Estado'
+                    ? 'members.filter_bar.status_filter'.tr()
                     : filters.enrolledFilter!
-                        ? 'Inscrito'
-                        : 'No inscrito',
+                        ? 'members.common.enrolled'.tr()
+                        : 'members.common.not_enrolled'.tr(),
                 isActive: filters.enrolledFilter != null,
                 onTap: () => _showEnrollmentPicker(
                   context,
@@ -173,8 +174,8 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
                           size: 14,
                         ),
                         const SizedBox(width: 4),
-                        const Text(
-                          'Limpiar',
+                        Text(
+                          'common.clear'.tr(),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -203,7 +204,7 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (_) => _PickerSheet(
-        title: 'Filtrar por clase',
+        title: 'members.filter_bar.class_picker_title'.tr(),
         options: classes,
         selected: current,
       ),
@@ -224,7 +225,7 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (_) => _PickerSheet(
-        title: 'Filtrar por cargo',
+        title: 'members.filter_bar.role_picker_title'.tr(),
         options: roles,
         selected: current,
         labelBuilder: RoleUtils.translate,
@@ -447,7 +448,7 @@ class _EnrollmentPickerSheet extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
-              'Filtrar por estado',
+              'members.filter_bar.enrollment_picker_title'.tr(),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -458,7 +459,7 @@ class _EnrollmentPickerSheet extends StatelessWidget {
           const SizedBox(height: 12),
           ListTile(
             title: Text(
-              'Inscrito',
+              'members.common.enrolled'.tr(),
               style: TextStyle(
                 fontSize: 15,
                 color: current == true ? AppColors.primary : c.text,
@@ -477,7 +478,7 @@ class _EnrollmentPickerSheet extends StatelessWidget {
           ),
           ListTile(
             title: Text(
-              'No inscrito',
+              'members.common.not_enrolled'.tr(),
               style: TextStyle(
                 fontSize: 15,
                 color: current == false ? AppColors.primary : c.text,

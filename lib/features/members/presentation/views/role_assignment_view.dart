@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -71,7 +72,7 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Cargo asignado: ${RoleUtils.translate(_selectedRole, gender: widget.member.gender)}',
+            tr('members.role_assignment.assigned_role', namedArgs: {'role': RoleUtils.translate(_selectedRole, gender: widget.member.gender)}),
           ),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
@@ -80,8 +81,8 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
       Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Error al asignar el cargo. Intenta de nuevo.'),
+        SnackBar(
+          content: Text('members.role_assignment.assign_error'.tr()),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ),
@@ -109,7 +110,7 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
                 onPressed: () => Navigator.pop(context),
               ),
         title: Text(
-          'Asignar cargo',
+          'members.role_assignment.title'.tr(),
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w700,
@@ -158,7 +159,7 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
                         ),
                         if (widget.member.clubRole != null)
                           Text(
-                            'Cargo actual: ${RoleUtils.translate(widget.member.clubRole, gender: widget.member.gender)}',
+                            tr('members.role_assignment.current_role', namedArgs: {'role': RoleUtils.translate(widget.member.clubRole, gender: widget.member.gender)}),
                             style: TextStyle(
                               fontSize: 13,
                               color: c.textSecondary,
@@ -251,7 +252,7 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
                 border: Border(top: BorderSide(color: c.border)),
               ),
               child: SacButton.primary(
-                text: 'Guardar cargo',
+                text: 'members.role_assignment.save_button'.tr(),
                 icon: HugeIcons.strokeRoundedCheckmarkCircle01,
                 isLoading: _isLoading,
                 onPressed: _isLoading || _selectedRole == null ? null : _save,

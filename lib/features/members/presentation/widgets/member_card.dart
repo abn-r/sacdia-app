@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -196,10 +197,10 @@ class _EnrollmentBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isEnrolled) {
-      return const SacBadge.success(label: 'Inscrito');
+      return SacBadge.success(label: 'members.common.enrolled'.tr());
     }
     return SacBadge(
-      label: 'No inscrito',
+      label: 'members.common.not_enrolled'.tr(),
       variant: SacBadgeVariant.neutral,
     );
   }

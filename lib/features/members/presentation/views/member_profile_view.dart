@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
@@ -62,7 +62,7 @@ class MemberProfileView extends ConsumerWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          title ?? 'Perfil del miembro',
+          title ?? 'members.profile_view.title'.tr(),
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w700,
@@ -83,7 +83,7 @@ class MemberProfileView extends ConsumerWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'Solo lectura',
+                  'members.profile_view.read_only'.tr(),
                   style: TextStyle(
                     fontSize: 12,
                     color: c.textTertiary,
@@ -170,47 +170,47 @@ class _PersonalInfoSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InfoSection(
-      title: 'Información Personal',
+      title: 'members.profile_view.personal_info_title'.tr(),
       items: [
         InfoItem(
           icon: HugeIcons.strokeRoundedUser,
-          label: 'Nombre completo',
+          label: 'members.profile_view.full_name_label'.tr(),
           value: detail.fullName,
         ),
         if (detail.email != null)
           InfoItem(
             icon: HugeIcons.strokeRoundedMail01,
-            label: 'Correo electrónico',
+            label: 'members.profile_view.email_label'.tr(),
             value: detail.email,
           ),
         if (detail.phone != null)
           InfoItem(
             icon: HugeIcons.strokeRoundedCall,
-            label: 'Teléfono',
+            label: 'members.profile_view.phone_label'.tr(),
             value: detail.phone,
           ),
         if (detail.birthDate != null)
           InfoItem(
             icon: HugeIcons.strokeRoundedBirthdayCake,
-            label: 'Fecha de nacimiento',
+            label: 'members.profile_view.birth_date_label'.tr(),
             value: DateFormat('dd/MM/yyyy').format(detail.birthDate!),
           ),
         if (detail.gender != null)
           InfoItem(
             icon: HugeIcons.strokeRoundedUser,
-            label: 'Género',
+            label: 'members.profile_view.gender_label'.tr(),
             value: detail.gender,
           ),
         if (detail.address != null && detail.address!.isNotEmpty)
           InfoItem(
             icon: HugeIcons.strokeRoundedLocation01,
-            label: 'Dirección',
+            label: 'members.profile_view.address_label'.tr(),
             value: detail.address,
           ),
         if (detail.blood != null && detail.blood!.isNotEmpty)
           InfoItem(
             icon: HugeIcons.strokeRoundedBlood,
-            label: 'Grupo sanguíneo',
+            label: 'members.profile_view.blood_type_label'.tr(),
             value: detail.blood,
           ),
       ],
@@ -231,39 +231,39 @@ class _ClubInfoSection extends StatelessWidget {
     if (detail.baptism == true) {
       if (detail.baptismDate != null) {
         baptismValue =
-            'Sí · ${DateFormat('dd/MM/yyyy').format(detail.baptismDate!)}';
+            "\${'common.yes'.tr()} · \${DateFormat('dd/MM/yyyy').format(detail.baptismDate!)}";
       } else {
-        baptismValue = 'Sí';
+        baptismValue = 'common.yes'.tr();
       }
     } else if (detail.baptism == false) {
-      baptismValue = 'No';
+      baptismValue = 'common.no'.tr();
     }
 
     return InfoSection(
-      title: 'Información del Club',
+      title: 'members.profile_view.club_info_title'.tr(),
       items: [
         if (detail.clubRole != null)
           InfoItem(
             icon: HugeIcons.strokeRoundedLabel,
-            label: 'Cargo en el club',
+            label: 'members.profile_view.club_role_label'.tr(),
             value:
                 RoleUtils.translate(detail.clubRole, gender: detail.gender),
           ),
         if (detail.currentClass != null)
           InfoItem(
             icon: HugeIcons.strokeRoundedSchool,
-            label: 'Clase progresiva',
+            label: 'members.profile_view.progressive_class_label'.tr(),
             value: detail.currentClass,
           ),
         InfoItem(
           icon: HugeIcons.strokeRoundedTicketStar,
-          label: 'Estado de inscripción',
-          value: detail.isEnrolled ? 'Inscrito' : 'No inscrito',
+          label: 'members.profile_view.enrollment_status_label'.tr(),
+          value: detail.isEnrolled ? 'members.common.enrolled'.tr() : 'members.common.not_enrolled'.tr(),
         ),
         if (baptismValue != null)
           InfoItem(
             icon: HugeIcons.strokeRoundedWaterEnergy,
-            label: 'Bautizado',
+            label: 'members.profile_view.baptized_label'.tr(),
             value: baptismValue,
           ),
       ],
@@ -282,7 +282,7 @@ class _ClassesSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return _MedicalCard(
       icon: HugeIcons.strokeRoundedSchool,
-      title: 'Clases Progresivas',
+      title: 'members.profile_view.progressive_classes_title'.tr(),
       iconColor: AppColors.sacBlue,
       child: _ClassesSectionBody(userId: userId),
     );
@@ -308,7 +308,7 @@ class _ClassesSectionBody extends ConsumerWidget {
       ),
       data: (classes) {
         if (classes.isEmpty) {
-          return _EmptyLabel('Sin clases registradas');
+          return _EmptyLabel('members.profile_view.no_classes'.tr());
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -370,7 +370,7 @@ class _ClassItem extends StatelessWidget {
                 ),
                 if (progress != null)
                   Text(
-                    'Progreso: $progress%',
+                    tr('members.profile_view.progress', namedArgs: {'progress': '$progress'}),
                     style: TextStyle(
                       fontSize: 12,
                       color: c.textSecondary,
@@ -415,9 +415,9 @@ class _ClassItem extends StatelessWidget {
   String _investitureLabel(String status) {
     switch (status.toUpperCase()) {
       case 'INVESTIDO':
-        return 'Investido';
+        return 'members.common.invested'.tr();
       case 'PENDIENTE':
-        return 'Pendiente';
+        return 'members.common.pending'.tr();
       default:
         return status;
     }
@@ -435,7 +435,7 @@ class _SpecialtiesSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return _MedicalCard(
       icon: HugeIcons.strokeRoundedMedal01,
-      title: 'Especialidades',
+      title: 'members.profile_view.specialties_title'.tr(),
       iconColor: AppColors.accent,
       child: _SpecialtiesSectionBody(userId: userId),
     );
@@ -461,7 +461,7 @@ class _SpecialtiesSectionBody extends ConsumerWidget {
       ),
       data: (honors) {
         if (honors.isEmpty) {
-          return _EmptyLabel('Sin especialidades registradas');
+          return _EmptyLabel('members.profile_view.no_specialties'.tr());
         }
 
         final validated = honors.where((h) => h.isCompleted).toList();
@@ -472,13 +472,13 @@ class _SpecialtiesSectionBody extends ConsumerWidget {
           children: [
             if (validated.isNotEmpty) ...[
               _SpecialtiesSubheader(
-                label: 'Completadas · ${validated.length}',
+                label: tr('members.profile_view.completed_count', namedArgs: {'count': '${validated.length}'}),
                 color: AppColors.secondary,
               ),
               const SizedBox(height: 6),
               _ChipWrap(
                 items: validated
-                    .map((h) => h.honorName ?? 'Especialidad')
+                    .map((h) => h.honorName ?? 'members.common.specialty'.tr())
                     .toList(),
                 chipColor: AppColors.secondaryLight,
                 textColor: AppColors.secondaryDark,
@@ -489,7 +489,7 @@ class _SpecialtiesSectionBody extends ConsumerWidget {
               const SizedBox(height: 10),
             if (inProgress.isNotEmpty) ...[
               _SpecialtiesSubheader(
-                label: 'En progreso · ${inProgress.length}',
+                label: tr('members.profile_view.in_progress_count', namedArgs: {'count': '${inProgress.length}'}),
                 color: AppColors.accentDark,
               ),
               const SizedBox(height: 6),
@@ -548,7 +548,7 @@ class _MedicalInfoSection extends ConsumerWidget {
           child: Row(
             children: [
               Text(
-                'INFORMACIÓN MÉDICA',
+                'members.profile_view.medical_info_title'.tr(),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -564,7 +564,7 @@ class _MedicalInfoSection extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  'Confidencial',
+                  'members.profile_view.confidential'.tr(),
                   style: TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.w600,
@@ -578,28 +578,28 @@ class _MedicalInfoSection extends ConsumerWidget {
         ),
         _MedicalCard(
           icon: HugeIcons.strokeRoundedFirstAidKit,
-          title: 'Alergias',
+          title: 'members.profile_view.allergies_title'.tr(),
           iconColor: AppColors.error,
           child: _AllergiesBody(userId: userId),
         ),
         const SizedBox(height: 10),
         _MedicalCard(
           icon: HugeIcons.strokeRoundedHealth,
-          title: 'Enfermedades',
+          title: 'members.profile_view.diseases_title'.tr(),
           iconColor: AppColors.accent,
           child: _DiseasesBody(userId: userId),
         ),
         const SizedBox(height: 10),
         _MedicalCard(
           icon: HugeIcons.strokeRoundedMedicine01,
-          title: 'Medicamentos',
+          title: 'members.profile_view.medicines_title'.tr(),
           iconColor: AppColors.secondary,
           child: _MedicinesBody(userId: userId),
         ),
         const SizedBox(height: 10),
         _MedicalCard(
           icon: HugeIcons.strokeRoundedContactBook,
-          title: 'Contactos de Emergencia',
+          title: 'members.profile_view.emergency_contacts_title'.tr(),
           iconColor: AppColors.primary,
           child: _EmergencyContactsBody(userId: userId),
         ),
@@ -696,7 +696,7 @@ class _AllergiesBody extends ConsumerWidget {
         onRetry: () => ref.invalidate(memberAllergiesProvider(userId)),
       ),
       data: (allergies) => allergies.isEmpty
-          ? _EmptyLabel('Sin alergias registradas')
+          ? _EmptyLabel('members.profile_view.no_allergies'.tr())
           : _ChipWrap(
               items: allergies.map((a) => a.name).toList(),
               chipColor: AppColors.errorLight,
@@ -725,7 +725,7 @@ class _DiseasesBody extends ConsumerWidget {
         onRetry: () => ref.invalidate(memberDiseasesProvider(userId)),
       ),
       data: (diseases) => diseases.isEmpty
-          ? _EmptyLabel('Sin enfermedades registradas')
+          ? _EmptyLabel('members.profile_view.no_diseases'.tr())
           : _ChipWrap(
               items: diseases.map((d) => d.name).toList(),
               chipColor: AppColors.accentLight,
@@ -754,7 +754,7 @@ class _MedicinesBody extends ConsumerWidget {
         onRetry: () => ref.invalidate(memberMedicinesProvider(userId)),
       ),
       data: (medicines) => medicines.isEmpty
-          ? _EmptyLabel('Sin medicamentos registrados')
+          ? _EmptyLabel('members.profile_view.no_medicines'.tr())
           : _ChipWrap(
               items: medicines.map((m) => m.name).toList(),
               chipColor: AppColors.secondaryLight,
@@ -785,7 +785,7 @@ class _EmergencyContactsBody extends ConsumerWidget {
       ),
       data: (contacts) {
         if (contacts.isEmpty) {
-          return _EmptyLabel('Sin contactos de emergencia registrados');
+          return _EmptyLabel('members.profile_view.no_emergency_contacts'.tr());
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -917,7 +917,7 @@ class _MedicalError extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: Text(
-            'Error al cargar',
+            'members.profile_view.load_error'.tr(),
             style: TextStyle(fontSize: 13, color: AppColors.error),
           ),
         ),
@@ -929,7 +929,7 @@ class _MedicalError extends StatelessWidget {
             minimumSize: Size.zero,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-          child: const Text('Reintentar', style: TextStyle(fontSize: 12)),
+          child: Text('common.retry'.tr(), style: const TextStyle(fontSize: 12)),
         ),
       ],
     );
@@ -1024,7 +1024,7 @@ class _MemberProfileHeader extends StatelessWidget {
                       variant: SacBadgeVariant.secondary,
                     ),
                   SacBadge(
-                    label: member.isEnrolled ? 'Inscrito' : 'No inscrito',
+                    label: member.isEnrolled ? 'members.common.enrolled'.tr() : 'members.common.not_enrolled'.tr(),
                     variant: member.isEnrolled
                         ? SacBadgeVariant.secondary
                         : SacBadgeVariant.neutral,
@@ -1062,7 +1062,7 @@ class _ErrorState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error al cargar el perfil',
+              'members.profile_view.profile_load_error'.tr(),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
