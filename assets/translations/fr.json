@@ -1910,11 +1910,96 @@
   },
   "evidence_folder": {
     "errors": {
-      "get_folder": "Erreur lors de la récupération du dossier de preuves",
-      "submit_folder": "Erreur lors de la soumission du dossier à la validation",
-      "submit_section": "Erreur lors de la soumission de la section à la validation",
-      "upload_file": "Erreur lors de l'envoi du fichier",
+      "get_folder": "Erreur lors de l'obtention du dossier de preuves",
+      "submit_folder": "Erreur lors de l'envoi du dossier pour validation",
+      "submit_section": "Erreur lors de l'envoi de la section pour validation",
+      "upload_file": "Erreur lors du téléversement du fichier",
       "delete_file": "Erreur lors de la suppression du fichier"
+    },
+    "title": "Dossier de Preuves",
+    "section_title": "Section",
+    "send": "Envoyer",
+    "stay": "Rester",
+    "exit": "Quitter",
+    "show_more": "Voir plus",
+    "show_less": "Voir moins",
+    "points_label": "Points",
+    "weight_label": "Poids",
+    "limit_label": "Limite",
+    "earned_points": "Points obtenus",
+    "sending": "Envoi en cours...",
+    "send_to_validation": "Envoyer pour validation",
+    "submit_success": "Section \"{sectionName}\" envoyée pour validation avec succès",
+    "status": {
+      "open": "Ouverte",
+      "closed": "Fermée",
+      "pending": "En attente",
+      "submitted": "Envoyé",
+      "preapproved": "Pré-approuvé",
+      "validated": "Validé",
+      "rejected": "Rejeté"
+    },
+    "stats": {
+      "pending": "En attente",
+      "submitted": "Envoyées",
+      "validated": "Validées"
+    },
+    "sections_title": "Sections",
+    "empty_sections": "Aucune section disponible",
+    "section_detail_label": "Détail de la section",
+    "section_status_label": "État de la section",
+    "evaluation_result_title": "Résultat de l'évaluation",
+    "evidence_files_title": "Fichiers de preuve",
+    "evaluator_notes": "Notes de l'évaluateur",
+    "reviewer_comments": "Commentaires du réviseur",
+    "status_semantics": "État de la section : {label}. Appuyez pour voir l'historique.",
+    "submit_section_dialog": {
+      "title": "Envoyer la section pour validation",
+      "message": "Êtes-vous sûr de vouloir envoyer la section \"{sectionName}\" pour validation ?\n\nVous ne pourrez pas modifier les fichiers tant que le terrain local ne l'aura pas révisée."
+    },
+    "unsaved_files_dialog": {
+      "title": "Fichiers non envoyés",
+      "message": "Vous avez des fichiers non envoyés. Êtes-vous sûr de vouloir quitter ?"
+    },
+    "evaluation_banner": {
+      "title": "En cours d'évaluation",
+      "description": "L'évaluateur du terrain examine les preuves de ce club."
+    },
+    "evaluated_banner": {
+      "title": "Dossier évalué{date}",
+      "points": "Points obtenus : {earned} / {max}"
+    },
+    "closed_banner": {
+      "title": "Dossier fermé",
+      "description": "Le dossier de preuves a été fermé. Pour modifier vos preuves, veuillez contacter l'administration du terrain local."
+    },
+    "no_folder": {
+      "title": "Dossier non disponible",
+      "description1": "Le dossier de preuves annuel n'a pas encore été créé pour cette section.",
+      "description2": "Contactez l'administration du terrain local pour connaître le statut."
+    },
+    "error_load_title": "Erreur lors du chargement du dossier",
+    "status_history": {
+      "title": "Historique des états",
+      "empty_title": "Aucun changement enregistré",
+      "empty_description": "Cette section n'a pas encore d'historique d'états enregistrés.",
+      "pending_desc": "Section créée, en attente de preuves.",
+      "submitted_desc": "Preuves envoyées pour validation.",
+      "rejected_desc": "Section rejetée. Vous pouvez renvoyer des preuves.",
+      "preapproved_desc": "Section pré-approuvée par le terrain local.",
+      "validated_desc": "Section validée définitivement par l'union."
+    },
+    "trace": {
+      "sent_by": "Envoyé par {name}{date}",
+      "preapproved_by": "Pré-approuvé par {name}{date}",
+      "validated_by": "Validé par {name}{date}"
+    },
+    "timeline": {
+      "waiting_evidence": "En attente de preuves",
+      "waiting_send": "En attente d'envoi",
+      "rejected": "Section rejetée",
+      "local_review": "Examen du terrain local",
+      "waiting_validation": "En attente de validation"
     }
   },
   "investiture": {
@@ -1998,7 +2083,34 @@
       "upload_evidence": "Erreur lors de l'envoi de la preuve",
       "delete_evidence": "Erreur lors de la suppression de la preuve",
       "submit_folder": "Erreur lors de la soumission du dossier"
-    }
+    },
+    "title": "Dossier Annuel",
+    "sections": "Sections",
+    "no_sections": "Aucune section définie pour ce dossier.",
+    "submit_for_review": "Envoyer le dossier pour révision",
+    "submit_dialog_title": "Envoyer le dossier",
+    "submit_dialog_content": "En envoyant le dossier, vous ne pourrez plus ajouter de preuves. Confirmez-vous l'envoi ?",
+    "send": "Envoyer",
+    "submit_success": "Dossier envoyé avec succès",
+    "folder_title": "Dossier {year}",
+    "sections_with_evidence": "{completed} / {total} sections avec preuves",
+    "progress_text": "{percentage}% complété — {count} preuves au total",
+    "evidence_count_one": "{count} preuve",
+    "evidence_count_other": "{count} preuves",
+    "add_evidence_tooltip": "Ajouter une preuve",
+    "delete_evidence_title": "Supprimer la preuve",
+    "delete_evidence_confirm": "Supprimer \"{fileName}\" ?",
+    "add_evidence_title": "Ajouter une preuve",
+    "section_label": "Section : {sectionName}",
+    "file_url_label": "URL du fichier *",
+    "file_url_hint": "https://...",
+    "file_url_required": "Entrez l'URL du fichier",
+    "file_name_label": "Nom du fichier *",
+    "file_name_hint": "ex. preuve_section_1.pdf",
+    "file_name_required": "Entrez le nom du fichier",
+    "notes_label": "Notes (optionnel)",
+    "notes_hint": "Description de la preuve...",
+    "evidence_added_success": "Preuve ajoutée"
   },
   "notifications": {
     "errors": {

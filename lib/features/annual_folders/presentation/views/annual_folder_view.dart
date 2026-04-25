@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
@@ -31,7 +32,7 @@ class AnnualFolderView extends ConsumerWidget {
         backgroundColor: c.background,
         surfaceTintColor: Colors.transparent,
         title: Text(
-          'Carpeta Anual',
+          'annual_folders.title'.tr(),
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 18,
@@ -126,7 +127,7 @@ class _FolderContent extends ConsumerWidget {
 
           // ── Sections ────────────────────────────────────────────────
           Text(
-            'Secciones',
+            'annual_folders.sections'.tr(),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
@@ -145,7 +146,7 @@ class _FolderContent extends ConsumerWidget {
               ),
               child: Center(
                 child: Text(
-                  'No hay secciones definidas para esta carpeta.',
+                  'annual_folders.no_sections'.tr(),
                   style: TextStyle(fontSize: 14, color: c.textSecondary),
                   textAlign: TextAlign.center,
                 ),
@@ -169,7 +170,7 @@ class _FolderContent extends ConsumerWidget {
           // ── Submit button ───────────────────────────────────────────
           if (isOpen)
             SacButton.primary(
-              text: 'Enviar carpeta para revisión',
+              text: 'annual_folders.submit_for_review'.tr(),
               icon: HugeIcons.strokeRoundedSent,
               isLoading: submitState.isLoading,
               onPressed: submitState.isLoading
@@ -191,21 +192,20 @@ class _FolderContent extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Enviar carpeta'),
-        content: const Text(
-          'Al enviar la carpeta no podrás agregar más evidencias. '
-          '¿Confirmas el envío?',
+        title: Text('annual_folders.submit_dialog_title'.tr()),
+        content: Text(
+          'annual_folders.submit_dialog_content'.tr(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              'Enviar',
-              style: TextStyle(color: AppColors.primary),
+            child: Text(
+              'annual_folders.send'.tr(),
+              style: const TextStyle(color: AppColors.primary),
             ),
           ),
         ],
@@ -220,7 +220,7 @@ class _FolderContent extends ConsumerWidget {
       if (success && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Carpeta enviada exitosamente'),
+            content: Text('annual_folders.submit_success'.tr()),
             backgroundColor: AppColors.secondary,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -274,7 +274,7 @@ class _FolderHeaderCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Carpeta ${folder.year}',
+                      'annual_folders.folder_title'.tr(namedArgs: {'year': '${folder.year}'}),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -282,7 +282,10 @@ class _FolderHeaderCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '${folder.sectionsWithEvidence} / ${folder.sections.length} secciones con evidencia',
+                      'annual_folders.sections_with_evidence'.tr(namedArgs: {
+                        'completed': '${folder.sectionsWithEvidence}',
+                        'total': '${folder.sections.length}',
+                      }),
                       style: TextStyle(
                         fontSize: 12,
                         color: c.textSecondary,
@@ -322,8 +325,10 @@ class _FolderHeaderCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            '${(folder.progress * 100).round()}% completado — '
-            '${folder.totalEvidences} evidencias en total',
+            'annual_folders.progress_text'.tr(namedArgs: {
+              'percentage': '${(folder.progress * 100).round()}',
+              'count': '${folder.totalEvidences}',
+            }),
             style: TextStyle(
               fontSize: 11,
               color: c.textTertiary,
@@ -444,7 +449,9 @@ class _SectionCardState extends ConsumerState<_SectionCard> {
                           ),
                         ),
                         Text(
-                          '${widget.section.evidenceCount} evidencia${widget.section.evidenceCount != 1 ? 's' : ''}',
+                          widget.section.evidenceCount == 1
+                              ? 'annual_folders.evidence_count_one'.tr(namedArgs: {'count': '${widget.section.evidenceCount}'})
+                              : 'annual_folders.evidence_count_other'.tr(namedArgs: {'count': '${widget.section.evidenceCount}'}),
                           style: TextStyle(
                             fontSize: 12,
                             color: c.textTertiary,
@@ -460,7 +467,7 @@ class _SectionCardState extends ConsumerState<_SectionCard> {
                         color: AppColors.primary,
                         size: 20,
                       ),
-                      tooltip: 'Agregar evidencia',
+                      tooltip: 'annual_folders.add_evidence_tooltip'.tr(),
                       onPressed: () => _showUploadSheet(context),
                     ),
                   HugeIcon(
@@ -488,21 +495,21 @@ class _SectionCardState extends ConsumerState<_SectionCard> {
                   final confirmed = await showDialog<bool>(
                     context: context,
                     builder: (_) => AlertDialog(
-                      title: const Text('Eliminar evidencia'),
+                      title: Text('annual_folders.delete_evidence_title'.tr()),
                       content: Text(
-                          '¿Eliminar "${evidence.fileName}"?'),
+                          'annual_folders.delete_evidence_confirm'.tr(namedArgs: {'fileName': evidence.fileName})),
                       actions: [
                         TextButton(
                           onPressed: () =>
                               Navigator.of(context).pop(false),
-                          child: const Text('Cancelar'),
+                          child: Text('common.cancel'.tr()),
                         ),
                         TextButton(
                           onPressed: () =>
                               Navigator.of(context).pop(true),
-                          child: const Text(
-                            'Eliminar',
-                            style: TextStyle(color: AppColors.error),
+                          child: Text(
+                            'common.delete'.tr(),
+                            style: const TextStyle(color: AppColors.error),
                           ),
                         ),
                       ],
@@ -701,7 +708,7 @@ class _UploadEvidenceSheetState
                 const SizedBox(height: 16),
 
                 Text(
-                  'Agregar evidencia',
+                  'annual_folders.add_evidence_title'.tr(),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
@@ -709,7 +716,7 @@ class _UploadEvidenceSheetState
                   ),
                 ),
                 Text(
-                  'Sección: ${widget.sectionName}',
+                  'annual_folders.section_label'.tr(namedArgs: {'sectionName': widget.sectionName}),
                   style: TextStyle(
                     fontSize: 13,
                     color: c.textSecondary,
@@ -747,57 +754,57 @@ class _UploadEvidenceSheetState
                   const SizedBox(height: 12),
                 ],
 
-                _Label(label: 'URL del archivo *'),
+                _Label(label: 'annual_folders.file_url_label'.tr()),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _fileUrlCtrl,
                   keyboardType: TextInputType.url,
                   decoration: _inputDecoration(
-                    hintText: 'https://...',
+                    hintText: 'annual_folders.file_url_hint'.tr(),
                     context: context,
                     icon: HugeIcons.strokeRoundedLink01,
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
-                      return 'Ingresa la URL del archivo';
+                      return 'annual_folders.file_url_required'.tr();
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
 
-                _Label(label: 'Nombre del archivo *'),
+                _Label(label: 'annual_folders.file_name_label'.tr()),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _fileNameCtrl,
                   decoration: _inputDecoration(
-                    hintText: 'ej. evidencia_seccion_1.pdf',
+                    hintText: 'annual_folders.file_name_hint'.tr(),
                     context: context,
                     icon: HugeIcons.strokeRoundedFile01,
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
-                      return 'Ingresa el nombre del archivo';
+                      return 'annual_folders.file_name_required'.tr();
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
 
-                _Label(label: 'Notas (opcional)'),
+                _Label(label: 'annual_folders.notes_label'.tr()),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _notesCtrl,
                   maxLines: 2,
                   decoration: _inputDecoration(
-                    hintText: 'Descripción de la evidencia...',
+                    hintText: 'annual_folders.notes_hint'.tr(),
                     context: context,
                   ),
                 ),
                 const SizedBox(height: 24),
 
                 SacButton.primary(
-                  text: 'Agregar evidencia',
+                  text: 'annual_folders.add_evidence_title'.tr(),
                   icon: HugeIcons.strokeRoundedUpload01,
                   isLoading: uploadState.isLoading,
                   onPressed: uploadState.isLoading ? null : _submit,
@@ -870,7 +877,7 @@ class _UploadEvidenceSheetState
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Evidencia agregada'),
+          content: Text('annual_folders.evidence_added_success'.tr()),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -929,7 +936,7 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             SacButton.primary(
-              text: 'Reintentar',
+              text: 'common.retry'.tr(),
               icon: HugeIcons.strokeRoundedRefresh,
               onPressed: onRetry,
             ),

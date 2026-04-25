@@ -1913,8 +1913,93 @@
       "get_folder": "Erro ao obter a pasta de evidências",
       "submit_folder": "Erro ao enviar a pasta para validação",
       "submit_section": "Erro ao enviar a seção para validação",
-      "upload_file": "Erro ao enviar o arquivo",
+      "upload_file": "Erro ao fazer upload do arquivo",
       "delete_file": "Erro ao excluir o arquivo"
+    },
+    "title": "Pasta de Evidências",
+    "section_title": "Seção",
+    "send": "Enviar",
+    "stay": "Ficar",
+    "exit": "Sair",
+    "show_more": "Ver mais",
+    "show_less": "Ver menos",
+    "points_label": "Pontos",
+    "weight_label": "Peso",
+    "limit_label": "Limite",
+    "earned_points": "Pontos obtidos",
+    "sending": "Enviando...",
+    "send_to_validation": "Enviar para validação",
+    "submit_success": "Seção \"{sectionName}\" enviada para validação com sucesso",
+    "status": {
+      "open": "Aberta",
+      "closed": "Fechada",
+      "pending": "Pendente",
+      "submitted": "Enviado",
+      "preapproved": "Pré-aprovado",
+      "validated": "Validado",
+      "rejected": "Rejeitado"
+    },
+    "stats": {
+      "pending": "Pendentes",
+      "submitted": "Enviadas",
+      "validated": "Validadas"
+    },
+    "sections_title": "Seções",
+    "empty_sections": "Não há seções disponíveis",
+    "section_detail_label": "Detalhe da seção",
+    "section_status_label": "Estado da seção",
+    "evaluation_result_title": "Resultado da avaliação",
+    "evidence_files_title": "Arquivos de evidência",
+    "evaluator_notes": "Notas do avaliador",
+    "reviewer_comments": "Comentários do revisor",
+    "status_semantics": "Estado da seção: {label}. Toque para ver o histórico.",
+    "submit_section_dialog": {
+      "title": "Enviar seção para validação",
+      "message": "Tem certeza de que deseja enviar a seção \"{sectionName}\" para validação?\n\nVocê não poderá modificar os arquivos até que o campo local revise."
+    },
+    "unsaved_files_dialog": {
+      "title": "Arquivos não enviados",
+      "message": "Você tem arquivos não enviados. Tem certeza de que deseja sair?"
+    },
+    "evaluation_banner": {
+      "title": "Em processo de avaliação",
+      "description": "O avaliador do campo está revisando as evidências deste clube."
+    },
+    "evaluated_banner": {
+      "title": "Pasta avaliada{date}",
+      "points": "Pontos obtidos: {earned} / {max}"
+    },
+    "closed_banner": {
+      "title": "Pasta fechada",
+      "description": "A pasta de evidências foi fechada. Para modificar suas evidências, entre em contato com a administração do campo local."
+    },
+    "no_folder": {
+      "title": "Pasta não disponível",
+      "description1": "A pasta anual de evidências ainda não foi criada para esta seção.",
+      "description2": "Entre em contato com a administração do campo local para consultar o status."
+    },
+    "error_load_title": "Erro ao carregar a pasta",
+    "status_history": {
+      "title": "Histórico de estados",
+      "empty_title": "Sem alterações registradas",
+      "empty_description": "Esta seção ainda não possui alterações de estado registradas.",
+      "pending_desc": "Seção criada, aguardando evidências.",
+      "submitted_desc": "Evidências enviadas para validação.",
+      "rejected_desc": "Seção rejeitada. Você pode reenviar evidências.",
+      "preapproved_desc": "Seção pré-aprovada pelo campo local.",
+      "validated_desc": "Seção validada definitivamente pela união."
+    },
+    "trace": {
+      "sent_by": "Enviado por {name}{date}",
+      "preapproved_by": "Pré-aprovado por {name}{date}",
+      "validated_by": "Validado por {name}{date}"
+    },
+    "timeline": {
+      "waiting_evidence": "Aguardando evidências",
+      "waiting_send": "Aguardando envio",
+      "rejected": "Seção rejeitada",
+      "local_review": "Revisão do campo local",
+      "waiting_validation": "Aguardando validação"
     }
   },
   "investiture": {
@@ -1998,7 +2083,34 @@
       "upload_evidence": "Erro ao enviar a evidência",
       "delete_evidence": "Erro ao excluir a evidência",
       "submit_folder": "Erro ao enviar a pasta"
-    }
+    },
+    "title": "Pasta Anual",
+    "sections": "Seções",
+    "no_sections": "Não há seções definidas para esta pasta.",
+    "submit_for_review": "Enviar pasta para revisão",
+    "submit_dialog_title": "Enviar pasta",
+    "submit_dialog_content": "Ao enviar a pasta, você não poderá adicionar mais evidências. Confirma o envio?",
+    "send": "Enviar",
+    "submit_success": "Pasta enviada com sucesso",
+    "folder_title": "Pasta {year}",
+    "sections_with_evidence": "{completed} / {total} seções com evidência",
+    "progress_text": "{percentage}% concluído — {count} evidências no total",
+    "evidence_count_one": "{count} evidência",
+    "evidence_count_other": "{count} evidências",
+    "add_evidence_tooltip": "Adicionar evidência",
+    "delete_evidence_title": "Excluir evidência",
+    "delete_evidence_confirm": "Excluir \"{fileName}\"?",
+    "add_evidence_title": "Adicionar evidência",
+    "section_label": "Seção: {sectionName}",
+    "file_url_label": "URL do arquivo *",
+    "file_url_hint": "https://...",
+    "file_url_required": "Insira a URL do arquivo",
+    "file_name_label": "Nome do arquivo *",
+    "file_name_hint": "ex. evidencia_secao_1.pdf",
+    "file_name_required": "Insira o nome do arquivo",
+    "notes_label": "Notas (opcional)",
+    "notes_hint": "Descrição da evidência...",
+    "evidence_added_success": "Evidência adicionada"
   },
   "notifications": {
     "errors": {

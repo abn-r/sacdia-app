@@ -1915,6 +1915,91 @@
       "submit_section": "Error al enviar la sección a validación",
       "upload_file": "Error al subir el archivo",
       "delete_file": "Error al eliminar el archivo"
+    },
+    "title": "Carpeta de Evidencias",
+    "section_title": "Sección",
+    "send": "Enviar",
+    "stay": "Quedarme",
+    "exit": "Salir",
+    "show_more": "Ver más",
+    "show_less": "Ver menos",
+    "points_label": "Puntos",
+    "weight_label": "Peso",
+    "limit_label": "Límite",
+    "earned_points": "Puntos obtenidos",
+    "sending": "Enviando...",
+    "send_to_validation": "Enviar a validación",
+    "submit_success": "Sección \"{sectionName}\" enviada a validación exitosamente",
+    "status": {
+      "open": "Abierta",
+      "closed": "Cerrada",
+      "pending": "Pendiente",
+      "submitted": "Enviado",
+      "preapproved": "Preaprobado",
+      "validated": "Validado",
+      "rejected": "Rechazado"
+    },
+    "stats": {
+      "pending": "Pendientes",
+      "submitted": "Enviadas",
+      "validated": "Validadas"
+    },
+    "sections_title": "Secciones",
+    "empty_sections": "No hay secciones disponibles",
+    "section_detail_label": "Detalle de la sección",
+    "section_status_label": "Estado de la sección",
+    "evaluation_result_title": "Resultado de evaluación",
+    "evidence_files_title": "Archivos de evidencia",
+    "evaluator_notes": "Notas del evaluador",
+    "reviewer_comments": "Comentarios del revisor",
+    "status_semantics": "Estado de la sección: {label}. Tocar para ver historial.",
+    "submit_section_dialog": {
+      "title": "Enviar sección a validación",
+      "message": "¿Confirmás que querés enviar la sección \"{sectionName}\" a validación?\n\nNo podrás modificar los archivos hasta que el campo local la revise."
+    },
+    "unsaved_files_dialog": {
+      "title": "Archivos sin enviar",
+      "message": "Tienes archivos sin enviar. ¿Seguro que quieres salir?"
+    },
+    "evaluation_banner": {
+      "title": "En proceso de evaluación",
+      "description": "El evaluador del campo está revisando las evidencias de este club."
+    },
+    "evaluated_banner": {
+      "title": "Carpeta evaluada{date}",
+      "points": "Puntos obtenidos: {earned} / {max}"
+    },
+    "closed_banner": {
+      "title": "Carpeta cerrada",
+      "description": "La carpeta de evidencias ha sido cerrada. Para modificar sus evidencias, contacte a la administración del campo local."
+    },
+    "no_folder": {
+      "title": "Carpeta no disponible",
+      "description1": "La carpeta anual de evidencias aún no ha sido creada para esta sección.",
+      "description2": "Contactá a la administración del campo local para consultar el estatus."
+    },
+    "error_load_title": "Error al cargar la carpeta",
+    "status_history": {
+      "title": "Historial de estados",
+      "empty_title": "Sin cambios registrados",
+      "empty_description": "Esta sección aún no tiene cambios de estado registrados.",
+      "pending_desc": "Sección creada, esperando evidencias.",
+      "submitted_desc": "Evidencias enviadas a validación.",
+      "rejected_desc": "Sección rechazada. Podés reenviar evidencias.",
+      "preapproved_desc": "Sección pre-aprobada por el campo local.",
+      "validated_desc": "Sección validada definitivamente por la unión."
+    },
+    "trace": {
+      "sent_by": "Enviado por {name}{date}",
+      "preapproved_by": "Preaprobado por {name}{date}",
+      "validated_by": "Validado por {name}{date}"
+    },
+    "timeline": {
+      "waiting_evidence": "En espera de evidencias",
+      "waiting_send": "Esperando envío",
+      "rejected": "Sección rechazada",
+      "local_review": "Revisión de campo local",
+      "waiting_validation": "Esperando validación"
     }
   },
   "investiture": {
@@ -1998,7 +2083,34 @@
       "upload_evidence": "Error al subir la evidencia",
       "delete_evidence": "Error al eliminar la evidencia",
       "submit_folder": "Error al enviar la carpeta"
-    }
+    },
+    "title": "Carpeta Anual",
+    "sections": "Secciones",
+    "no_sections": "No hay secciones definidas para esta carpeta.",
+    "submit_for_review": "Enviar carpeta para revisión",
+    "submit_dialog_title": "Enviar carpeta",
+    "submit_dialog_content": "Al enviar la carpeta no podrás agregar más evidencias. ¿Confirmas el envío?",
+    "send": "Enviar",
+    "submit_success": "Carpeta enviada exitosamente",
+    "folder_title": "Carpeta {year}",
+    "sections_with_evidence": "{completed} / {total} secciones con evidencia",
+    "progress_text": "{percentage}% completado — {count} evidencias en total",
+    "evidence_count_one": "{count} evidencia",
+    "evidence_count_other": "{count} evidencias",
+    "add_evidence_tooltip": "Agregar evidencia",
+    "delete_evidence_title": "Eliminar evidencia",
+    "delete_evidence_confirm": "¿Eliminar \"{fileName}\"?",
+    "add_evidence_title": "Agregar evidencia",
+    "section_label": "Sección: {sectionName}",
+    "file_url_label": "URL del archivo *",
+    "file_url_hint": "https://...",
+    "file_url_required": "Ingresa la URL del archivo",
+    "file_name_label": "Nombre del archivo *",
+    "file_name_hint": "ej. evidencia_seccion_1.pdf",
+    "file_name_required": "Ingresa el nombre del archivo",
+    "notes_label": "Notas (opcional)",
+    "notes_hint": "Descripción de la evidencia...",
+    "evidence_added_success": "Evidencia agregada"
   },
   "notifications": {
     "errors": {

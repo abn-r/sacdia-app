@@ -1910,11 +1910,96 @@
   },
   "evidence_folder": {
     "errors": {
-      "get_folder": "Error fetching evidence folder",
-      "submit_folder": "Error submitting folder for validation",
-      "submit_section": "Error submitting section for validation",
+      "get_folder": "Error getting evidence folder",
+      "submit_folder": "Error sending folder for validation",
+      "submit_section": "Error sending section for validation",
       "upload_file": "Error uploading file",
       "delete_file": "Error deleting file"
+    },
+    "title": "Evidence Folder",
+    "section_title": "Section",
+    "send": "Send",
+    "stay": "Stay",
+    "exit": "Exit",
+    "show_more": "Show more",
+    "show_less": "Show less",
+    "points_label": "Points",
+    "weight_label": "Weight",
+    "limit_label": "Limit",
+    "earned_points": "Earned points",
+    "sending": "Sending...",
+    "send_to_validation": "Send for validation",
+    "submit_success": "Section \"{sectionName}\" sent for validation successfully",
+    "status": {
+      "open": "Open",
+      "closed": "Closed",
+      "pending": "Pending",
+      "submitted": "Submitted",
+      "preapproved": "Pre-approved",
+      "validated": "Validated",
+      "rejected": "Rejected"
+    },
+    "stats": {
+      "pending": "Pending",
+      "submitted": "Submitted",
+      "validated": "Validated"
+    },
+    "sections_title": "Sections",
+    "empty_sections": "No sections available",
+    "section_detail_label": "Section detail",
+    "section_status_label": "Section status",
+    "evaluation_result_title": "Evaluation result",
+    "evidence_files_title": "Evidence files",
+    "evaluator_notes": "Evaluator notes",
+    "reviewer_comments": "Reviewer comments",
+    "status_semantics": "Section status: {label}. Tap to view history.",
+    "submit_section_dialog": {
+      "title": "Send section for validation",
+      "message": "Are you sure you want to send section \"{sectionName}\" for validation?\n\nYou will not be able to modify files until the local field reviews it."
+    },
+    "unsaved_files_dialog": {
+      "title": "Unsent files",
+      "message": "You have unsent files. Are you sure you want to exit?"
+    },
+    "evaluation_banner": {
+      "title": "Under evaluation",
+      "description": "The field evaluator is reviewing this club's evidence."
+    },
+    "evaluated_banner": {
+      "title": "Folder evaluated{date}",
+      "points": "Earned points: {earned} / {max}"
+    },
+    "closed_banner": {
+      "title": "Folder closed",
+      "description": "The evidence folder has been closed. To modify your evidence, please contact your local field administration."
+    },
+    "no_folder": {
+      "title": "Folder not available",
+      "description1": "The annual evidence folder has not yet been created for this section.",
+      "description2": "Contact your local field administration to inquire about the status."
+    },
+    "error_load_title": "Error loading folder",
+    "status_history": {
+      "title": "Status history",
+      "empty_title": "No changes recorded",
+      "empty_description": "This section has no recorded status changes yet.",
+      "pending_desc": "Section created, waiting for evidence.",
+      "submitted_desc": "Evidence sent for validation.",
+      "rejected_desc": "Section rejected. You can resubmit evidence.",
+      "preapproved_desc": "Section pre-approved by the local field.",
+      "validated_desc": "Section validated definitively by the union."
+    },
+    "trace": {
+      "sent_by": "Sent by {name}{date}",
+      "preapproved_by": "Pre-approved by {name}{date}",
+      "validated_by": "Validated by {name}{date}"
+    },
+    "timeline": {
+      "waiting_evidence": "Waiting for evidence",
+      "waiting_send": "Waiting to be sent",
+      "rejected": "Section rejected",
+      "local_review": "Local field review",
+      "waiting_validation": "Waiting for validation"
     }
   },
   "investiture": {
@@ -1998,7 +2083,34 @@
       "upload_evidence": "Error uploading evidence",
       "delete_evidence": "Error deleting evidence",
       "submit_folder": "Error submitting folder"
-    }
+    },
+    "title": "Annual Folder",
+    "sections": "Sections",
+    "no_sections": "No sections defined for this folder.",
+    "submit_for_review": "Submit folder for review",
+    "submit_dialog_title": "Submit folder",
+    "submit_dialog_content": "Once submitted, you will not be able to add more evidence. Do you confirm the submission?",
+    "send": "Send",
+    "submit_success": "Folder submitted successfully",
+    "folder_title": "Folder {year}",
+    "sections_with_evidence": "{completed} / {total} sections with evidence",
+    "progress_text": "{percentage}% completed — {count} total evidences",
+    "evidence_count_one": "{count} evidence",
+    "evidence_count_other": "{count} evidences",
+    "add_evidence_tooltip": "Add evidence",
+    "delete_evidence_title": "Delete evidence",
+    "delete_evidence_confirm": "Delete \"{fileName}\"?",
+    "add_evidence_title": "Add evidence",
+    "section_label": "Section: {sectionName}",
+    "file_url_label": "File URL *",
+    "file_url_hint": "https://...",
+    "file_url_required": "Enter the file URL",
+    "file_name_label": "File name *",
+    "file_name_hint": "e.g. evidence_section_1.pdf",
+    "file_name_required": "Enter the file name",
+    "notes_label": "Notes (optional)",
+    "notes_hint": "Evidence description...",
+    "evidence_added_success": "Evidence added"
   },
   "notifications": {
     "errors": {
