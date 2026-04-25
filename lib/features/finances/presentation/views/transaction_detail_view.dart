@@ -1,7 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -36,7 +36,7 @@ class TransactionDetailView extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: context.sac.background,
         surfaceTintColor: Colors.transparent,
-        title: const Text('Detalle del Movimiento'),
+        title: Text('finances.transaction_detail.title'.tr()),
         actions: [
           if (canEdit) ...[
             IconButton(
@@ -159,21 +159,21 @@ class TransactionDetailView extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar movimiento'),
+        title: Text('finances.transaction_detail.delete_dialog_title'.tr()),
         content: const Text(
           '¿Estás seguro de que quieres eliminar este movimiento? Esta acción no se puede deshacer.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancelar'),
+            child: Text('common.cancel'.tr()),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.error,
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Eliminar'),
+            child: Text('common.delete'.tr()),
           ),
         ],
       ),
@@ -189,7 +189,7 @@ class TransactionDetailView extends ConsumerWidget {
     if (success) {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Movimiento eliminado')),
+        SnackBar(content: Text('finances.transaction_detail.delete_success'.tr())),
       );
     } else {
       final error = ref.read(transactionFormNotifierProvider).errorMessage;

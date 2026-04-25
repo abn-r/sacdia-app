@@ -1,8 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -91,7 +91,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  _isEditing ? 'Editar Movimiento' : 'Nuevo Movimiento',
+                  _isEditing ? 'finances.add_transaction.edit_title'.tr() : 'finances.add_transaction.new_title'.tr(),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -130,7 +130,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     const SizedBox(height: 16),
 
                     // Amount
-                    _SectionLabel('Monto'),
+                    _SectionLabel('finances.add_transaction.amount_label'.tr()),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _amountController,
@@ -141,7 +141,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                             RegExp(r'^\d*\.?\d{0,2}')),
                       ],
                       decoration: _inputDecoration(
-                        hint: '0',
+                        hint: 'finances.add_transaction.amount_hint'.tr(),
                         prefix: '\$',
                         context: context,
                       ),
@@ -166,11 +166,11 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       loading: () => const LinearProgressIndicator(),
                       error: (_, __) => Row(
                         children: [
-                          const Text('Error al cargar categorías'),
+                          Text('finances.add_transaction.category_error'.tr()),
                           TextButton(
                             onPressed: () =>
                                 ref.invalidate(financeCategoriesProvider),
-                            child: const Text('Reintentar'),
+                            child: Text('common.retry'.tr()),
                           ),
                         ],
                       ),
@@ -336,8 +336,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     if (success && mounted) {
       ref.read(transactionFormNotifierProvider.notifier).reset();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Transacción guardada correctamente'),
+        SnackBar(
+          content: Text('finances.add_transaction.save_success'.tr()),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
         ),

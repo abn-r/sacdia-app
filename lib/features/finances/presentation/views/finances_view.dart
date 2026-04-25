@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -60,7 +61,7 @@ class FinancesView extends ConsumerWidget {
                 backgroundColor: context.sac.background,
                 surfaceTintColor: Colors.transparent,
                 title: Text(
-                  'Finanzas',
+                  'finances.view.title'.tr(),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: context.sac.text,
@@ -278,7 +279,7 @@ class _EmptyTransactions extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Sin movimientos este mes',
+            'finances.view.empty_title'.tr(),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: context.sac.textSecondary,
@@ -286,7 +287,7 @@ class _EmptyTransactions extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Pulsa + para agregar el primer registro.',
+            'finances.view.empty_subtitle'.tr(),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: context.sac.textTertiary,
@@ -321,7 +322,7 @@ class _ErrorBody extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Error al cargar finanzas',
+            'finances.view.error_title'.tr(),
             style: Theme.of(context).textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
@@ -341,7 +342,7 @@ class _ErrorBody extends StatelessWidget {
               size: 18,
               color: Colors.white,
             ),
-            label: const Text('Reintentar'),
+            label: Text('common.retry'.tr()),
             style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
           ),
         ],
@@ -414,7 +415,7 @@ class _TransactionsSectionHeader extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Transacciones Recientes',
+            'finances.view.recent_transactions'.tr(),
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w700,
@@ -424,7 +425,7 @@ class _TransactionsSectionHeader extends StatelessWidget {
           GestureDetector(
             onTap: onViewAll,
             child: Text(
-              'Ver todo →',
+              'finances.view.view_all'.tr(),
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -453,7 +454,7 @@ class _VerTodoLink extends StatelessWidget {
         child: GestureDetector(
           onTap: onTap,
           child: Text(
-            'Ver todas las transacciones →',
+            'finances.view.view_all_link'.tr(),
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
