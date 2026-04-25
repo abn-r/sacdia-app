@@ -2000,7 +2000,11 @@
       "rejected": "Section rejetée",
       "local_review": "Examen du terrain local",
       "waiting_validation": "En attente de validation"
-    }
+    },
+    "points_ratio": "{earned} / {max} pts",
+    "points_value": "{points} pts",
+    "files_count": "{count} fichiers",
+    "files_ratio": "{current} / {max} fichiers"
   },
   "investiture": {
     "errors": {
@@ -2133,6 +2137,72 @@
       "create": "Erreur lors de la création de l’inscription",
       "get_current": "Erreur lors de la récupération de l’inscription active",
       "update": "Erreur lors de la mise à jour de l’inscription"
+    },
+    "form": {
+      "title_create": "Inscription annuelle",
+      "title_edit": "Modifier l'inscription",
+      "section_location": "Lieu de réunion",
+      "section_schedule": "Jours et horaires de réunion",
+      "schedule_hint": "Touchez un jour pour le sélectionner. Touchez l'horaire pour le modifier.",
+      "section_club_data": "Données du club",
+      "label_souls_target": "Âmes (objectif de nouveaux membres)",
+      "hint_souls": "Ex : 5",
+      "label_fee_toggle": "Collecte des cotisations",
+      "subtitle_fee_toggle": "Le club collecte une cotisation mensuelle auprès de ses membres",
+      "label_fee_amount": "Montant de la cotisation",
+      "hint_fee_amount": "0.00",
+      "error_fee_amount_required": "Saisissez le montant de la cotisation",
+      "error_fee_amount_positive": "Le montant doit être supérieur à 0",
+      "section_leadership": "Dirigeants",
+      "label_director": "Directeur",
+      "placeholder_director": "Le directeur est désigné par le rôle du club",
+      "label_deputy_directors": "Directeur(s) adjoint(s)",
+      "placeholder_deputy_directors": "Sélectionner le(s) directeur(s) adjoint(s)",
+      "label_use_secretary_treasurer": "Utiliser Secrétaire-Trésorier",
+      "subtitle_use_secretary_treasurer": "Un seul poste combinant Secrétaire et Trésorier (exclusif)",
+      "label_secretary": "Secrétaire",
+      "placeholder_secretary": "Sélectionner le secrétaire",
+      "label_treasurer": "Trésorier",
+      "placeholder_treasurer": "Sélectionner le trésorier",
+      "label_secretary_treasurer": "Secrétaire-Trésorier",
+      "placeholder_secretary_treasurer": "Sélectionner le secrétaire-trésorier",
+      "button_save_changes": "Enregistrer les modifications",
+      "button_enroll": "M'inscrire",
+      "location_hint": "Toucher pour sélectionner sur la carte",
+      "location_error_hint": "Sélectionnez l'emplacement sur la carte",
+      "badge_automatic": "Automatique",
+      "role_director": "Directeur",
+      "tap_to_edit": "Toucher pour modifier",
+      "error_location_required": "Sélectionnez le lieu de réunion sur la carte",
+      "error_days_required": "Sélectionnez au moins un jour de réunion",
+      "success_created": "Inscription créée avec succès",
+      "success_updated": "Inscription mise à jour avec succès",
+      "empty_members": "Aucun membre disponible",
+      "days": {
+        "monday": "Lundi",
+        "tuesday": "Mardi",
+        "wednesday": "Mercredi",
+        "thursday": "Jeudi",
+        "friday": "Vendredi",
+        "saturday": "Samedi",
+        "sunday": "Dimanche"
+      }
+    },
+    "picker": {
+      "title_members": "Sélectionner des membres",
+      "title_member": "Sélectionner un membre",
+      "selected_count": "{current}/{max} sélectionnés",
+      "done": "Terminé",
+      "search_hint": "Rechercher un membre...",
+      "no_results": "Aucun membre trouvé"
+    },
+    "status": {
+      "title_pending": "Inscription annuelle en attente",
+      "subtitle_pending_action": "Complétez l'inscription pour cette année",
+      "subtitle_pending_viewer": "Le club n'a pas encore complété l'inscription pour cette année",
+      "subtitle_inactive_action": "L'inscription pour cette année requiert attention",
+      "subtitle_inactive_viewer": "L'inscription du club pour cette année n'est pas active",
+      "button_enroll": "S'inscrire"
     }
   },
   "validation": {

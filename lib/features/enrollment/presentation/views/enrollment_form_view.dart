@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,7 +32,7 @@ import '../providers/enrollment_providers.dart';
 //     mutuamente exclusivo con Secretario y Tesorero por separado)
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Días de la semana disponibles.
+/// Días de la semana disponibles (valores canónicos para el backend).
 const _kWeekDays = [
   'Lunes',
   'Martes',
@@ -41,6 +42,27 @@ const _kWeekDays = [
   'Sábado',
   'Domingo',
 ];
+
+String _dayLabel(String day) {
+  switch (day) {
+    case 'Lunes':
+      return 'enrollment.form.days.monday'.tr();
+    case 'Martes':
+      return 'enrollment.form.days.tuesday'.tr();
+    case 'Miércoles':
+      return 'enrollment.form.days.wednesday'.tr();
+    case 'Jueves':
+      return 'enrollment.form.days.thursday'.tr();
+    case 'Viernes':
+      return 'enrollment.form.days.friday'.tr();
+    case 'Sábado':
+      return 'enrollment.form.days.saturday'.tr();
+    case 'Domingo':
+      return 'enrollment.form.days.sunday'.tr();
+    default:
+      return day;
+  }
+}
 
 /// Pantalla para crear o actualizar la inscripción anual al club.
 class EnrollmentFormView extends ConsumerStatefulWidget {
@@ -340,11 +362,11 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
     if (formState == null || !formState.validate()) return;
 
     if (_selectedLocation == null) {
-      _showError('Seleccioná el lugar de reunión en el mapa');
+      _showError('enrollment.form.error_location_required'.tr());
       return;
     }
     if (_meetingSchedule.isEmpty) {
-      _showError('Seleccioná al menos un día de reunión');
+      _showError('enrollment.form.error_days_required'.tr());
       return;
     }
 
@@ -404,8 +426,8 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(_isEdit
-              ? 'Inscripción actualizada correctamente'
-              : 'Inscripción creada correctamente'),
+              ? 'enrollment.form.success_updated'.tr()
+              : 'enrollment.form.success_created'.tr()),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -453,7 +475,7 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
         backgroundColor: c.background,
         surfaceTintColor: Colors.transparent,
         title: Text(
-          _isEdit ? 'Editar inscripción' : 'Inscripción anual',
+          _isEdit ? 'enrollment.form.title_edit'.tr() : 'enrollment.form.title_create'.tr(),
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 18,
@@ -482,7 +504,7 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
             // ── Sección: Lugar de reunión ────────────────────────────────
             _SectionHeader(
               icon: HugeIcons.strokeRoundedLocation03,
-              label: 'Lugar de reunión',
+              label: 'enrollment.form.section_location'.tr(),
             ),
             const SizedBox(height: 12),
 
@@ -498,11 +520,11 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
             // ── Sección: Días y horarios de reunión ──────────────────────
             _SectionHeader(
               icon: HugeIcons.strokeRoundedCalendar01,
-              label: 'Días y horarios de reunión',
+              label: 'enrollment.form.section_schedule'.tr(),
             ),
             const SizedBox(height: 4),
             Text(
-              'Tocá un día para seleccionarlo. Tocá el horario para cambiarlo.',
+              'enrollment.form.schedule_hint'.tr(),
               style: TextStyle(
                 fontSize: 12,
                 color: c.textTertiary,
@@ -518,7 +540,7 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
                 final isSelected = _meetingSchedule.containsKey(day);
                 final time = _meetingSchedule[day];
                 return _DayScheduleChip(
-                  day: day,
+                  day: _dayLabel(day),
                   isSelected: isSelected,
                   time: time,
                   enabled: !formState.isLoading,
@@ -535,12 +557,12 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
             // ── Sección: Datos del club ──────────────────────────────────
             _SectionHeader(
               icon: HugeIcons.strokeRoundedBuilding01,
-              label: 'Datos del club',
+              label: 'enrollment.form.section_club_data'.tr(),
             ),
             const SizedBox(height: 12),
 
             // Almas (objetivo)
-            _FieldLabel(label: 'Almas (objetivo de nuevos miembros)'),
+            _FieldLabel(label: 'enrollment.form.label_souls_target'.tr()),
             const SizedBox(height: 8),
             TextFormField(
               controller: _soulsCtrl,
@@ -549,7 +571,7 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: _inputDecoration(
                 c,
-                hintText: 'Ej: 5',
+                hintText: 'enrollment.form.hint_souls'.tr(),
                 prefixIcon: HugeIcons.strokeRoundedUserAdd01,
               ),
               textInputAction: TextInputAction.done,
@@ -560,8 +582,8 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
             // Cuota (toggle)
             _ToggleRow(
               icon: HugeIcons.strokeRoundedCreditCard,
-              label: 'Cobra cuota',
-              subtitle: 'El club recauda cuota mensual de sus miembros',
+              label: 'enrollment.form.label_fee_toggle'.tr(),
+              subtitle: 'enrollment.form.subtitle_fee_toggle'.tr(),
               value: _fee,
               enabled: !formState.isLoading,
               onChanged: (v) => setState(() {
@@ -573,7 +595,7 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
             // Monto de cuota (visible solo cuando el toggle está activo)
             if (_fee) ...[
               const SizedBox(height: 12),
-              _FieldLabel(label: 'Monto de cuota'),
+              _FieldLabel(label: 'enrollment.form.label_fee_amount'.tr()),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _feeAmountCtrl,
@@ -588,7 +610,7 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
                 ],
                 decoration: _inputDecoration(
                   c,
-                  hintText: '0.00',
+                  hintText: 'enrollment.form.hint_fee_amount'.tr(),
                   prefixIcon: HugeIcons.strokeRoundedMoney01,
                 ).copyWith(
                   prefixText: '\$ ',
@@ -603,11 +625,11 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
                   if (!_fee) return null;
                   final text = value?.trim() ?? '';
                   if (text.isEmpty) {
-                    return 'Ingresá el monto de la cuota';
+                    return 'enrollment.form.error_fee_amount_required'.tr();
                   }
                   final amount = double.tryParse(text);
                   if (amount == null || amount <= 0) {
-                    return 'El monto debe ser mayor a 0';
+                    return 'enrollment.form.error_fee_amount_positive'.tr();
                   }
                   return null;
                 },
@@ -619,23 +641,23 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
             // ── Sección: Directivos ──────────────────────────────────────
             _SectionHeader(
               icon: HugeIcons.strokeRoundedUserGroup,
-              label: 'Directivos',
+              label: 'enrollment.form.section_leadership'.tr(),
             ),
             const SizedBox(height: 12),
 
             // Director (solo lectura — viene del contexto)
-            _FieldLabel(label: 'Director'),
+            _FieldLabel(label: 'enrollment.form.label_director'.tr()),
             const SizedBox(height: 8),
             _ReadOnlyMemberField(
               member: directorMember,
-              placeholder: 'El director se asigna por rol de club',
+              placeholder: 'enrollment.form.placeholder_director'.tr(),
             ),
 
             const SizedBox(height: 20),
 
             // Subdirector (multi, hasta 2)
             _FieldLabel(
-              label: 'Subdirector(es)',
+              label: 'enrollment.form.label_deputy_directors'.tr(),
               badge: '${_deputyDirectorIds.length}/2',
             ),
             const SizedBox(height: 8),
@@ -643,8 +665,8 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
               selectedIds: _deputyDirectorIds,
               members: members,
               maxCount: 2,
-              placeholder: 'Seleccionar subdirector(es)',
-              emptyMessage: 'No hay miembros disponibles',
+              placeholder: 'enrollment.form.placeholder_deputy_directors'.tr(),
+              emptyMessage: 'enrollment.form.empty_members'.tr(),
               enabled: !formState.isLoading && members.isNotEmpty,
               onChanged: (ids) => setState(() => _deputyDirectorIds = ids),
             ),
@@ -657,9 +679,9 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
               // Toggle para elegir el modo
               _ToggleRow(
                 icon: HugeIcons.strokeRoundedUserShield01,
-                label: 'Usar Secretario-Tesorero',
+                label: 'enrollment.form.label_use_secretary_treasurer'.tr(),
                 subtitle:
-                    'Un solo cargo que combina Secretario y Tesorero (excluyente)',
+                    'enrollment.form.subtitle_use_secretary_treasurer'.tr(),
                 value: _secretaryTreasurerId != null,
                 enabled: !formState.isLoading,
                 onChanged: (v) => setState(() {
@@ -680,13 +702,13 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
             // Secretario y Tesorero: solo se muestran si NO se usa el cargo combinado
             if (!widget.hasSecretaryTreasurerRole ||
                 _secretaryTreasurerId == null) ...[
-              _FieldLabel(label: 'Secretario'),
+              _FieldLabel(label: 'enrollment.form.label_secretary'.tr()),
               const SizedBox(height: 8),
               _SingleMemberSelector(
                 selectedId: _secretaryId,
                 members: members,
-                placeholder: 'Seleccionar secretario',
-                emptyMessage: 'No hay miembros disponibles',
+                placeholder: 'enrollment.form.placeholder_secretary'.tr(),
+                emptyMessage: 'enrollment.form.empty_members'.tr(),
                 enabled: !formState.isLoading && members.isNotEmpty,
                 onChanged: (id) => setState(() => _secretaryId = id),
                 onClear: () => setState(() => _secretaryId = null),
@@ -694,13 +716,13 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
 
               const SizedBox(height: 20),
 
-              _FieldLabel(label: 'Tesorero'),
+              _FieldLabel(label: 'enrollment.form.label_treasurer'.tr()),
               const SizedBox(height: 8),
               _SingleMemberSelector(
                 selectedId: _treasurerId,
                 members: members,
-                placeholder: 'Seleccionar tesorero',
-                emptyMessage: 'No hay miembros disponibles',
+                placeholder: 'enrollment.form.placeholder_treasurer'.tr(),
+                emptyMessage: 'enrollment.form.empty_members'.tr(),
                 enabled: !formState.isLoading && members.isNotEmpty,
                 onChanged: (id) => setState(() => _treasurerId = id),
                 onClear: () => setState(() => _treasurerId = null),
@@ -712,15 +734,15 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
             // Selector de Secretario-Tesorero (visible solo cuando está activo el toggle)
             if (widget.hasSecretaryTreasurerRole &&
                 _secretaryTreasurerId != null) ...[
-              _FieldLabel(label: 'Secretario-Tesorero'),
+              _FieldLabel(label: 'enrollment.form.label_secretary_treasurer'.tr()),
               const SizedBox(height: 8),
               _SingleMemberSelector(
                 selectedId: _secretaryTreasurerId!.isEmpty
                     ? null
                     : _secretaryTreasurerId,
                 members: members,
-                placeholder: 'Seleccionar secretario-tesorero',
-                emptyMessage: 'No hay miembros disponibles',
+                placeholder: 'enrollment.form.placeholder_secretary_treasurer'.tr(),
+                emptyMessage: 'enrollment.form.empty_members'.tr(),
                 enabled: !formState.isLoading && members.isNotEmpty,
                 onChanged: (id) =>
                     setState(() => _secretaryTreasurerId = id),
@@ -763,7 +785,7 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
 
             // ── Submit ───────────────────────────────────────────────────
             SacButton.primary(
-              text: _isEdit ? 'Guardar cambios' : 'Inscribirme',
+              text: _isEdit ? 'enrollment.form.button_save_changes'.tr() : 'enrollment.form.button_enroll'.tr(),
               icon: _isEdit
                   ? HugeIcons.strokeRoundedCheckmarkCircle02
                   : HugeIcons.strokeRoundedUserAdd01,
@@ -960,8 +982,8 @@ class _LocationPickerField extends StatelessWidget {
                     )
                   : Text(
                       hasError
-                          ? 'Seleccioná la ubicación en el mapa'
-                          : 'Tocar para seleccionar en el mapa',
+                          ? 'enrollment.form.location_error_hint'.tr()
+                          : 'enrollment.form.location_hint'.tr(),
                       style: TextStyle(
                         fontSize: 14,
                         color: hasError ? AppColors.error : c.textTertiary,
@@ -1218,7 +1240,7 @@ class _ReadOnlyMemberField extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        member!.clubRole ?? 'Director',
+                        member!.clubRole ?? 'enrollment.form.role_director'.tr(),
                         style: TextStyle(
                           fontSize: 12,
                           color: c.textSecondary,
@@ -1238,9 +1260,9 @@ class _ReadOnlyMemberField extends StatelessWidget {
                 color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Text(
-                'Automático',
-                style: TextStyle(
+              child: Text(
+                'enrollment.form.badge_automatic'.tr(),
+                style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
                   color: AppColors.primary,
@@ -1469,7 +1491,7 @@ class _MultiMemberSelector extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Tocar para editar',
+                    'enrollment.form.tap_to_edit'.tr(),
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.primary,
@@ -1602,8 +1624,8 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                   children: [
                     Text(
                       widget.multiSelect
-                          ? 'Seleccionar miembros'
-                          : 'Seleccionar miembro',
+                          ? 'enrollment.picker.title_members'.tr()
+                          : 'enrollment.picker.title_member'.tr(),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -1612,7 +1634,10 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                     ),
                     if (widget.multiSelect)
                       Text(
-                        '${_selected.length}/${widget.maxSelect} seleccionados',
+                        'enrollment.picker.selected_count'.tr(namedArgs: {
+                          'current': '${_selected.length}',
+                          'max': '${widget.maxSelect}',
+                        }),
                         style: TextStyle(
                           fontSize: 12,
                           color: c.textSecondary,
@@ -1629,7 +1654,7 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                       fontSize: 15,
                     ),
                   ),
-                  child: const Text('Listo'),
+                  child: Text('enrollment.picker.done'.tr()),
                 ),
               ],
             ),
@@ -1642,7 +1667,7 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
               controller: _searchCtrl,
               onChanged: (v) => setState(() => _searchQuery = v),
               decoration: InputDecoration(
-                hintText: 'Buscar miembro...',
+                hintText: 'enrollment.picker.search_hint'.tr(),
                 prefixIcon: HugeIcon(
                   icon: HugeIcons.strokeRoundedSearch01,
                   color: c.textTertiary,
@@ -1675,7 +1700,7 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
             child: filtered.isEmpty
                 ? Center(
                     child: Text(
-                      'No se encontraron miembros',
+                      'enrollment.picker.no_results'.tr(),
                       style: TextStyle(color: c.textSecondary),
                     ),
                   )

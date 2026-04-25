@@ -2000,7 +2000,11 @@
       "rejected": "Section rejected",
       "local_review": "Local field review",
       "waiting_validation": "Waiting for validation"
-    }
+    },
+    "points_ratio": "{earned} / {max} pts",
+    "points_value": "{points} pts",
+    "files_count": "{count} files",
+    "files_ratio": "{current} / {max} files"
   },
   "investiture": {
     "errors": {
@@ -2133,6 +2137,72 @@
       "create": "Error creating enrollment",
       "get_current": "Error retrieving current enrollment",
       "update": "Error updating enrollment"
+    },
+    "form": {
+      "title_create": "Annual enrollment",
+      "title_edit": "Edit enrollment",
+      "section_location": "Meeting place",
+      "section_schedule": "Meeting days and times",
+      "schedule_hint": "Tap a day to select it. Tap the time to change it.",
+      "section_club_data": "Club data",
+      "label_souls_target": "Souls (new member goal)",
+      "hint_souls": "E.g.: 5",
+      "label_fee_toggle": "Collects fee",
+      "subtitle_fee_toggle": "The club collects a monthly fee from its members",
+      "label_fee_amount": "Fee amount",
+      "hint_fee_amount": "0.00",
+      "error_fee_amount_required": "Enter the fee amount",
+      "error_fee_amount_positive": "Amount must be greater than 0",
+      "section_leadership": "Leadership",
+      "label_director": "Director",
+      "placeholder_director": "Director is assigned by club role",
+      "label_deputy_directors": "Deputy Director(s)",
+      "placeholder_deputy_directors": "Select deputy director(s)",
+      "label_use_secretary_treasurer": "Use Secretary-Treasurer",
+      "subtitle_use_secretary_treasurer": "A single role combining Secretary and Treasurer (exclusive)",
+      "label_secretary": "Secretary",
+      "placeholder_secretary": "Select secretary",
+      "label_treasurer": "Treasurer",
+      "placeholder_treasurer": "Select treasurer",
+      "label_secretary_treasurer": "Secretary-Treasurer",
+      "placeholder_secretary_treasurer": "Select secretary-treasurer",
+      "button_save_changes": "Save changes",
+      "button_enroll": "Enroll",
+      "location_hint": "Tap to select on map",
+      "location_error_hint": "Select the location on the map",
+      "badge_automatic": "Automatic",
+      "role_director": "Director",
+      "tap_to_edit": "Tap to edit",
+      "error_location_required": "Select the meeting place on the map",
+      "error_days_required": "Select at least one meeting day",
+      "success_created": "Enrollment created successfully",
+      "success_updated": "Enrollment updated successfully",
+      "empty_members": "No members available",
+      "days": {
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday"
+      }
+    },
+    "picker": {
+      "title_members": "Select members",
+      "title_member": "Select member",
+      "selected_count": "{current}/{max} selected",
+      "done": "Done",
+      "search_hint": "Search member...",
+      "no_results": "No members found"
+    },
+    "status": {
+      "title_pending": "Annual enrollment pending",
+      "subtitle_pending_action": "Complete the enrollment for this year",
+      "subtitle_pending_viewer": "The club has not completed the enrollment for this year",
+      "subtitle_inactive_action": "The enrollment for this year requires attention",
+      "subtitle_inactive_viewer": "The club enrollment for this year is not active",
+      "button_enroll": "Enroll"
     }
   },
   "validation": {

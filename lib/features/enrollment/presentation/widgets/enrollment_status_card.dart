@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -50,8 +51,8 @@ class EnrollmentStatusCard extends ConsumerWidget {
             child: _PendingCard(
             showButton: canEnroll,
             subtitle: canEnroll
-                ? 'Completa la inscripción para este año'
-                : 'El club aún no ha completado la inscripción para este año',
+                ? 'enrollment.status.subtitle_pending_action'.tr()
+                : 'enrollment.status.subtitle_pending_viewer'.tr(),
             onTap: canEnroll
                 ? () => clubContextAsync.whenData(
                       (ctx) {
@@ -77,8 +78,8 @@ class EnrollmentStatusCard extends ConsumerWidget {
           child: _PendingCard(
             showButton: canEnroll,
             subtitle: canEnroll
-                ? 'La inscripción para este año requiere atención'
-                : 'La inscripción del club para este año no está activa',
+                ? 'enrollment.status.subtitle_inactive_action'.tr()
+                : 'enrollment.status.subtitle_inactive_viewer'.tr(),
             onTap: canEnroll
                 ? () => clubContextAsync.whenData(
                       (ctx) {
@@ -146,7 +147,7 @@ class _PendingCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Inscripción anual pendiente',
+                  'enrollment.status.title_pending'.tr(),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -167,7 +168,7 @@ class _PendingCard extends StatelessWidget {
           if (showButton) ...[
             const SizedBox(width: 8),
             SacButton(
-              text: 'Inscribirse',
+              text: 'enrollment.status.button_enroll'.tr(),
               variant: SacButtonVariant.primary,
               size: SacButtonSize.small,
               onPressed: onTap,
@@ -180,4 +181,3 @@ class _PendingCard extends StatelessWidget {
     );
   }
 }
-

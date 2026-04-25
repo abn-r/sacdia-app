@@ -2000,7 +2000,11 @@
       "rejected": "Seção rejeitada",
       "local_review": "Revisão do campo local",
       "waiting_validation": "Aguardando validação"
-    }
+    },
+    "points_ratio": "{earned} / {max} pts",
+    "points_value": "{points} pts",
+    "files_count": "{count} arquivos",
+    "files_ratio": "{current} / {max} arquivos"
   },
   "investiture": {
     "errors": {
@@ -2133,6 +2137,72 @@
       "create": "Erro ao criar a inscrição",
       "get_current": "Erro ao obter a inscrição ativa",
       "update": "Erro ao atualizar a inscrição"
+    },
+    "form": {
+      "title_create": "Inscrição anual",
+      "title_edit": "Editar inscrição",
+      "section_location": "Local de reunião",
+      "section_schedule": "Dias e horários de reunião",
+      "schedule_hint": "Toque em um dia para selecioná-lo. Toque no horário para alterá-lo.",
+      "section_club_data": "Dados do clube",
+      "label_souls_target": "Almas (meta de novos membros)",
+      "hint_souls": "Ex: 5",
+      "label_fee_toggle": "Cobra mensalidade",
+      "subtitle_fee_toggle": "O clube recolhe mensalidade dos seus membros",
+      "label_fee_amount": "Valor da mensalidade",
+      "hint_fee_amount": "0.00",
+      "error_fee_amount_required": "Digite o valor da mensalidade",
+      "error_fee_amount_positive": "O valor deve ser maior que 0",
+      "section_leadership": "Diretoria",
+      "label_director": "Diretor",
+      "placeholder_director": "O diretor é designado pelo cargo do clube",
+      "label_deputy_directors": "Subdiretor(es)",
+      "placeholder_deputy_directors": "Selecionar subdiretor(es)",
+      "label_use_secretary_treasurer": "Usar Secretário-Tesoureiro",
+      "subtitle_use_secretary_treasurer": "Um único cargo que combina Secretário e Tesoureiro (exclusivo)",
+      "label_secretary": "Secretário",
+      "placeholder_secretary": "Selecionar secretário",
+      "label_treasurer": "Tesoureiro",
+      "placeholder_treasurer": "Selecionar tesoureiro",
+      "label_secretary_treasurer": "Secretário-Tesoureiro",
+      "placeholder_secretary_treasurer": "Selecionar secretário-tesoureiro",
+      "button_save_changes": "Salvar alterações",
+      "button_enroll": "Inscrever-me",
+      "location_hint": "Toque para selecionar no mapa",
+      "location_error_hint": "Selecione a localização no mapa",
+      "badge_automatic": "Automático",
+      "role_director": "Diretor",
+      "tap_to_edit": "Toque para editar",
+      "error_location_required": "Selecione o local de reunião no mapa",
+      "error_days_required": "Selecione pelo menos um dia de reunião",
+      "success_created": "Inscrição criada com sucesso",
+      "success_updated": "Inscrição atualizada com sucesso",
+      "empty_members": "Não há membros disponíveis",
+      "days": {
+        "monday": "Segunda-feira",
+        "tuesday": "Terça-feira",
+        "wednesday": "Quarta-feira",
+        "thursday": "Quinta-feira",
+        "friday": "Sexta-feira",
+        "saturday": "Sábado",
+        "sunday": "Domingo"
+      }
+    },
+    "picker": {
+      "title_members": "Selecionar membros",
+      "title_member": "Selecionar membro",
+      "selected_count": "{current}/{max} selecionados",
+      "done": "Pronto",
+      "search_hint": "Buscar membro...",
+      "no_results": "Nenhum membro encontrado"
+    },
+    "status": {
+      "title_pending": "Inscrição anual pendente",
+      "subtitle_pending_action": "Complete a inscrição para este ano",
+      "subtitle_pending_viewer": "O clube ainda não completou a inscrição para este ano",
+      "subtitle_inactive_action": "A inscrição para este ano requer atenção",
+      "subtitle_inactive_viewer": "A inscrição do clube para este ano não está ativa",
+      "button_enroll": "Inscrever-se"
     }
   },
   "validation": {
