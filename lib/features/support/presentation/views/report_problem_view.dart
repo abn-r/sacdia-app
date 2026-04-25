@@ -238,13 +238,17 @@ class _ReportProblemViewState extends ConsumerState<ReportProblemView> {
                     ),
                     const SizedBox(height: 6),
                     deviceInfoAsync.when(
-                      loading: () => const Text('...'),
+                      loading: () => Text('common.loading'.tr()),
                       error: (_, __) =>
                           Text('support.report_device_info_error'.tr()),
                       data: (info) => Text(
-                        '${info['platform']} ${info['osVersion']}\n'
-                        '${info['model']}\n'
-                        'App ${info['appVersion']} (${info['buildNumber']})',
+                        'support.report_device_info'.tr(namedArgs: {
+                          'platform': info['platform']!,
+                          'osVersion': info['osVersion']!,
+                          'model': info['model']!,
+                          'appVersion': info['appVersion']!,
+                          'buildNumber': info['buildNumber']!,
+                        }),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ),

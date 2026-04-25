@@ -175,7 +175,8 @@
     "errors": {
       "session_expired": "Votre session a expiré. Veuillez vous reconnecter.",
       "submit_report": "Impossible d’envoyer votre signalement"
-    }
+    },
+    "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})"
   },
   "biometric": {
     "tile_title": "Déverrouillage biométrique",

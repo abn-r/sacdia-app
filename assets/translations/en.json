@@ -175,7 +175,8 @@
     "errors": {
       "session_expired": "Your session expired. Please sign in again.",
       "submit_report": "We could not send your report"
-    }
+    },
+    "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})"
   },
   "biometric": {
     "tile_title": "Biometric unlock",

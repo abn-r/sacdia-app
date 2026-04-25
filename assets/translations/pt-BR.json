@@ -175,7 +175,8 @@
     "errors": {
       "session_expired": "Sua sessão expirou. Entre novamente.",
       "submit_report": "Não foi possível enviar seu relato"
-    }
+    },
+    "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})"
   },
   "biometric": {
     "tile_title": "Desbloqueio biométrico",
