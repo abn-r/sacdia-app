@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -89,19 +90,19 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
         final confirm = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Archivos sin enviar'),
-            content: const Text(
-              'Tienes archivos sin enviar. ¿Seguro que quieres salir?',
+            title: Text('classes.requirement_detail.unsaved_files_title'.tr()),
+            content: Text(
+              'classes.requirement_detail.unsaved_files_body'.tr(),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Quedarme'),
+                child: Text('classes.requirement_detail.stay_button'.tr()),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
                 style: TextButton.styleFrom(foregroundColor: AppColors.error),
-                child: const Text('Salir'),
+                child: Text('classes.requirement_detail.leave_button'.tr()),
               ),
             ],
           ),
@@ -114,7 +115,8 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
         backgroundColor: c.background,
         appBar: AppBar(
           title: Text(
-            'Requisito: ${requirement.name}',
+            'classes.requirement_detail.requirement_title'
+                .tr(namedArgs: {'name': requirement.name}),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -127,7 +129,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
               size: 22,
             ),
             onPressed: isLoading ? null : () => Navigator.pop(context),
-            tooltip: 'Volver',
+            tooltip: 'common.back'.tr(),
           ),
           backgroundColor: c.background,
           surfaceTintColor: Colors.transparent,
@@ -153,7 +155,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Detalle del requisito",
+                          'classes.requirement_detail.detail_header'.tr(),
                           style:
                               Theme.of(context).textTheme.labelSmall?.copyWith(
                                     color: c.textSecondary,
@@ -179,7 +181,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                     child: Text(
-                      "Detalle del requisito",
+                      'classes.requirement_detail.detail_header'.tr(),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: c.textSecondary,
                             letterSpacing: 0.8,
@@ -201,7 +203,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                     child: Text(
-                      "Estado del requisito",
+                      'classes.requirement_detail.status_header'.tr(),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: c.textSecondary,
                             letterSpacing: 0.8,
@@ -226,7 +228,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                     child: Text(
-                      'Archivos de evidencia',
+                      'classes.requirement_detail.evidence_files_header'.tr(),
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w700,
                             color: c.text,
@@ -282,14 +284,15 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                         // ignore: use_build_context_synchronously
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: const Row(
+                            content: Row(
                               children: [
-                                Icon(Icons.check_circle_rounded,
+                                const Icon(Icons.check_circle_rounded,
                                     color: Colors.white, size: 18),
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                      'Requerimiento enviado a validación exitosamente'),
+                                      'classes.requirement_detail.submit_success'
+                                          .tr()),
                                 ),
                               ],
                             ),
@@ -449,7 +452,7 @@ class _RequirementMetaCard extends StatelessWidget {
               // const SizedBox(width: 24),
               _MetaItem(
                 icon: HugeIcons.strokeRoundedFiles01,
-                label: 'Limite archivos',
+                label: 'classes.requirement_detail.file_limit_label'.tr(),
                 value: '${requirement.maxFiles}',
                 color: c.textSecondary,
                 context: context,
@@ -457,7 +460,7 @@ class _RequirementMetaCard extends StatelessWidget {
               const SizedBox(width: 40),
               _MetaItem(
                 icon: HugeIcons.strokeRoundedTag01,
-                label: 'Tipo',
+                label: 'classes.requirement_detail.type_label'.tr(),
                 value: _typeLabel(requirement.type),
                 color: AppColors.primary,
                 context: context,
@@ -472,11 +475,11 @@ class _RequirementMetaCard extends StatelessWidget {
   String _typeLabel(RequirementType type) {
     switch (type) {
       case RequirementType.honor:
-        return 'Especialidad';
+        return 'classes.requirement_detail.type_honor'.tr();
       case RequirementType.service:
-        return 'Servicio';
+        return 'classes.requirement_detail.type_service'.tr();
       case RequirementType.general:
-        return 'General';
+        return 'classes.requirement_detail.type_general'.tr();
     }
   }
 }
@@ -579,7 +582,7 @@ class _LinkedHonorSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Especialidad requerida',
+                  'classes.requirement_detail.linked_honor_title'.tr(),
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
@@ -605,7 +608,9 @@ class _LinkedHonorSection extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              isCompleted ? 'Completada' : 'Pendiente',
+              isCompleted
+                  ? 'classes.status.completed'.tr()
+                  : 'classes.status.pending'.tr(),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
@@ -645,7 +650,8 @@ class _StatusChip extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: 'Estado del requisito: $_label. Tocar para ver historial.',
+      label: 'classes.requirement_detail.semantics_status'
+          .tr(namedArgs: {'status': _label}),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -686,13 +692,13 @@ class _StatusChip extends StatelessWidget {
   String get _label {
     switch (requirement.status) {
       case RequirementStatus.pendiente:
-        return 'Pendiente';
+        return 'classes.status.pending'.tr();
       case RequirementStatus.enviado:
-        return 'Enviado';
+        return 'classes.status.sent'.tr();
       case RequirementStatus.validado:
-        return 'Validado';
+        return 'classes.status.validated'.tr();
       case RequirementStatus.rechazado:
-        return 'Rechazado';
+        return 'classes.status.rejected'.tr();
     }
   }
 

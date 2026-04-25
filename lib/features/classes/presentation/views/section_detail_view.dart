@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -38,7 +39,7 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detalle de Sección'),
+        title: Text('classes.section_detail.title'.tr()),
         backgroundColor: AppColors.primary,
       ),
       body: SingleChildScrollView(
@@ -71,7 +72,9 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _isCompleted ? 'Completada' : 'Pendiente',
+                            _isCompleted
+                                ? 'classes.status.completed'.tr()
+                                : 'classes.status.pending'.tr(),
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: _isCompleted
@@ -82,8 +85,8 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
                           const SizedBox(height: 4),
                           Text(
                             _isCompleted
-                                ? 'Has completado esta sección'
-                                : 'Marca esta sección como completada',
+                                ? 'classes.section_detail.completed_subtitle'.tr()
+                                : 'classes.section_detail.pending_subtitle'.tr(),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -124,15 +127,17 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
                     SnackBar(
                       content: Text(
                         newStatus
-                            ? 'Sección marcada como completada'
-                            : 'Sección marcada como pendiente',
+                            ? 'classes.section_detail.mark_completed_snack'.tr()
+                            : 'classes.section_detail.mark_pending_snack'.tr(),
                       ),
                       backgroundColor: newStatus ? AppColors.success : AppColors.warning,
                     ),
                   );
                 },
                 icon: HugeIcon(icon: _isCompleted ? HugeIcons.strokeRoundedCancel01 : HugeIcons.strokeRoundedTick02, color: Colors.white, size: 24),
-                label: Text(_isCompleted ? 'Marcar como pendiente' : 'Marcar como completada'),
+                label: Text(_isCompleted
+                    ? 'classes.section_detail.button_completed'.tr()
+                    : 'classes.section_detail.button_pending'.tr()),
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
                       _isCompleted ? AppColors.warning : AppColors.primary,

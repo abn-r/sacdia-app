@@ -1141,6 +1141,108 @@
       "submit_requirement": "Erreur lors de l'envoi de l'exigence pour validation",
       "upload_file": "Erreur lors du téléversement du fichier de preuve",
       "delete_file": "Erreur lors de la suppression du fichier de preuve"
+    },
+    "status": {
+      "pending": "En attente",
+      "sent": "Envoyé",
+      "validated": "Validé",
+      "rejected": "Rejeté",
+      "completed": "Terminée"
+    },
+    "progress_ring": {
+      "percent": "{percent}%"
+    },
+    "class_card": {
+      "current_badge": "Classe actuelle"
+    },
+    "requirement_card": {
+      "files_label": "{count} / {max} fichiers",
+      "sent_by": "Envoyé par {name}{date}",
+      "validated_by": "Validé par {name}{date}"
+    },
+    "requirement_detail": {
+      "unsaved_files_title": "Fichiers non envoyés",
+      "unsaved_files_body": "Vous avez des fichiers non envoyés. Êtes-vous sûr de vouloir quitter ?",
+      "stay_button": "Rester",
+      "leave_button": "Quitter",
+      "requirement_title": "Exigence : {name}",
+      "detail_header": "Détail de l'exigence",
+      "status_header": "Statut de l'exigence",
+      "evidence_files_header": "Fichiers de preuve",
+      "submit_success": "Exigence soumise pour validation avec succès",
+      "file_limit_label": "Limite de fichiers",
+      "type_label": "Type",
+      "type_honor": "Spécialité",
+      "type_service": "Service",
+      "type_general": "Général",
+      "linked_honor_title": "Spécialité requise",
+      "honor_completed": "Terminée",
+      "honor_pending": "En attente",
+      "semantics_status": "Statut de l'exigence : {status}. Appuyez pour voir l'historique."
+    },
+    "section_detail": {
+      "title": "Détail de la section",
+      "completed_subtitle": "Vous avez terminé cette section",
+      "pending_subtitle": "Marquez cette section comme terminée",
+      "mark_completed_snack": "Section marquée comme terminée",
+      "mark_pending_snack": "Section marquée comme en attente",
+      "button_completed": "Marquer comme en attente",
+      "button_pending": "Marquer comme terminée"
+    },
+    "modules": {
+      "title": "Modules",
+      "empty": "Aucun module disponible",
+      "section_completed_snack": "Section terminée",
+      "section_pending_snack": "Section marquée comme en attente",
+      "error_loading": "Erreur lors du chargement des modules"
+    },
+    "detail": {
+      "progress_label": "progression",
+      "description_header": "Description",
+      "view_modules_button": "Voir les modules",
+      "error_loading": "Erreur lors du chargement des détails"
+    },
+    "detail_with_progress": {
+      "modules_header": "Modules et exigences",
+      "search_hint": "Rechercher un module ou une exigence...",
+      "no_results": "Aucun résultat pour \"{query}\"",
+      "stat_requirements": "exigences",
+      "stat_pending": "en att.",
+      "stat_sent": "env.",
+      "stat_validated": "valid.",
+      "empty_requirements": "Aucune exigence dans ce module.",
+      "empty_modules_title": "Pas encore de modules",
+      "empty_modules_body": "Les modules apparaîtront lorsqu'ils seront disponibles pour cette classe.",
+      "error_loading": "Erreur lors du chargement de la classe"
+    },
+    "list": {
+      "empty": "Vous n'avez pas de classes assignées",
+      "title": "Mes classes",
+      "enroll_tooltip": "Inscrire une classe antérieure",
+      "error_loading": "Erreur lors du chargement des classes"
+    },
+    "status_history": {
+      "title": "Historique des statuts",
+      "empty_title": "Aucun changement enregistré",
+      "empty_body": "Cette exigence n'a pas encore de changements de statut enregistrés.",
+      "created_desc": "Exigence créée, en attente de preuves.",
+      "sent_desc": "Preuves envoyées pour validation.",
+      "validated_desc": "Exigence approuvée par le leader.",
+      "rejected_desc": "Exigence rejetée. Vous pouvez renvoyer des preuves."
+    },
+    "enroll_sheet": {
+      "title": "Inscrire une classe antérieure",
+      "subtitle": "Sélectionnez une classe que vous avez déjà terminée",
+      "year_error": "Impossible de déterminer l'année ecclésiastique en cours",
+      "year_label": "Année ecclésiastique : ",
+      "error_loading": "Erreur lors du chargement des classes",
+      "empty_catalog": "Aucune classe disponible dans le catalogue",
+      "select_class": "Sélectionnez une classe",
+      "no_auth": "Vous devez vous connecter pour inscrire une classe antérieure",
+      "close_button": "Fermer",
+      "enroll_button": "S'inscrire",
+      "already_enrolled": "Vous êtes déjà inscrit dans cette classe",
+      "enroll_success": "Inscription à \"{className}\" enregistrée avec succès"
     }
   },
   "camporees": {

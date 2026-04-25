@@ -1141,6 +1141,108 @@
       "submit_requirement": "Erro ao enviar requisito para validação",
       "upload_file": "Erro ao enviar arquivo de evidência",
       "delete_file": "Erro ao excluir arquivo de evidência"
+    },
+    "status": {
+      "pending": "Pendente",
+      "sent": "Enviado",
+      "validated": "Validado",
+      "rejected": "Rejeitado",
+      "completed": "Concluída"
+    },
+    "progress_ring": {
+      "percent": "{percent}%"
+    },
+    "class_card": {
+      "current_badge": "Classe atual"
+    },
+    "requirement_card": {
+      "files_label": "{count} / {max} arquivos",
+      "sent_by": "Enviado por {name}{date}",
+      "validated_by": "Validado por {name}{date}"
+    },
+    "requirement_detail": {
+      "unsaved_files_title": "Arquivos não enviados",
+      "unsaved_files_body": "Você tem arquivos não enviados. Tem certeza de que deseja sair?",
+      "stay_button": "Ficar",
+      "leave_button": "Sair",
+      "requirement_title": "Requisito: {name}",
+      "detail_header": "Detalhe do requisito",
+      "status_header": "Status do requisito",
+      "evidence_files_header": "Arquivos de evidência",
+      "submit_success": "Requisito enviado para validação com sucesso",
+      "file_limit_label": "Limite de arquivos",
+      "type_label": "Tipo",
+      "type_honor": "Especialidade",
+      "type_service": "Serviço",
+      "type_general": "Geral",
+      "linked_honor_title": "Especialidade requerida",
+      "honor_completed": "Concluída",
+      "honor_pending": "Pendente",
+      "semantics_status": "Status do requisito: {status}. Toque para ver o histórico."
+    },
+    "section_detail": {
+      "title": "Detalhe da Seção",
+      "completed_subtitle": "Você concluiu esta seção",
+      "pending_subtitle": "Marque esta seção como concluída",
+      "mark_completed_snack": "Seção marcada como concluída",
+      "mark_pending_snack": "Seção marcada como pendente",
+      "button_completed": "Marcar como pendente",
+      "button_pending": "Marcar como concluída"
+    },
+    "modules": {
+      "title": "Módulos",
+      "empty": "Não há módulos disponíveis",
+      "section_completed_snack": "Seção concluída",
+      "section_pending_snack": "Seção marcada como pendente",
+      "error_loading": "Erro ao carregar módulos"
+    },
+    "detail": {
+      "progress_label": "progresso",
+      "description_header": "Descrição",
+      "view_modules_button": "Ver Módulos",
+      "error_loading": "Erro ao carregar detalhes"
+    },
+    "detail_with_progress": {
+      "modules_header": "Módulos e Requisitos",
+      "search_hint": "Buscar módulo ou requisito...",
+      "no_results": "Sem resultados para \"{query}\"",
+      "stat_requirements": "requisitos",
+      "stat_pending": "pend.",
+      "stat_sent": "env.",
+      "stat_validated": "val.",
+      "empty_requirements": "Não há requisitos neste módulo.",
+      "empty_modules_title": "Sem módulos ainda",
+      "empty_modules_body": "Os módulos aparecerão quando estiverem disponíveis para esta classe.",
+      "error_loading": "Erro ao carregar a classe"
+    },
+    "list": {
+      "empty": "Você não tem classes atribuídas",
+      "title": "Minhas Classes",
+      "enroll_tooltip": "Inscrever classe anterior",
+      "error_loading": "Erro ao carregar classes"
+    },
+    "status_history": {
+      "title": "Histórico de status",
+      "empty_title": "Sem alterações registradas",
+      "empty_body": "Este requisito ainda não tem alterações de status registradas.",
+      "created_desc": "Requisito criado, aguardando evidências.",
+      "sent_desc": "Evidências enviadas para validação.",
+      "validated_desc": "Requisito aprovado pelo líder.",
+      "rejected_desc": "Requisito rejeitado. Você pode reenviar evidências."
+    },
+    "enroll_sheet": {
+      "title": "Inscrever classe anterior",
+      "subtitle": "Selecione uma classe que você já concluiu",
+      "year_error": "Não foi possível determinar o ano eclesiástico atual",
+      "year_label": "Ano eclesiástico: ",
+      "error_loading": "Erro ao carregar classes",
+      "empty_catalog": "Não há classes disponíveis no catálogo",
+      "select_class": "Selecione uma classe",
+      "no_auth": "Você deve fazer login para inscrever uma classe anterior",
+      "close_button": "Fechar",
+      "enroll_button": "Inscrever-se",
+      "already_enrolled": "Você já está inscrito nesta classe",
+      "enroll_success": "Inscrição em \"{className}\" registrada com sucesso"
     }
   },
   "camporees": {

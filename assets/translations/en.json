@@ -1141,6 +1141,108 @@
       "submit_requirement": "Error submitting requirement for validation",
       "upload_file": "Error uploading evidence file",
       "delete_file": "Error deleting evidence file"
+    },
+    "status": {
+      "pending": "Pending",
+      "sent": "Sent",
+      "validated": "Validated",
+      "rejected": "Rejected",
+      "completed": "Completed"
+    },
+    "progress_ring": {
+      "percent": "{percent}%"
+    },
+    "class_card": {
+      "current_badge": "Current class"
+    },
+    "requirement_card": {
+      "files_label": "{count} / {max} files",
+      "sent_by": "Sent by {name}{date}",
+      "validated_by": "Validated by {name}{date}"
+    },
+    "requirement_detail": {
+      "unsaved_files_title": "Unsent files",
+      "unsaved_files_body": "You have unsent files. Are you sure you want to leave?",
+      "stay_button": "Stay",
+      "leave_button": "Leave",
+      "requirement_title": "Requirement: {name}",
+      "detail_header": "Requirement detail",
+      "status_header": "Requirement status",
+      "evidence_files_header": "Evidence files",
+      "submit_success": "Requirement submitted for validation successfully",
+      "file_limit_label": "File limit",
+      "type_label": "Type",
+      "type_honor": "Honor",
+      "type_service": "Service",
+      "type_general": "General",
+      "linked_honor_title": "Required honor",
+      "honor_completed": "Completed",
+      "honor_pending": "Pending",
+      "semantics_status": "Requirement status: {status}. Tap to view history."
+    },
+    "section_detail": {
+      "title": "Section Detail",
+      "completed_subtitle": "You have completed this section",
+      "pending_subtitle": "Mark this section as completed",
+      "mark_completed_snack": "Section marked as completed",
+      "mark_pending_snack": "Section marked as pending",
+      "button_completed": "Mark as pending",
+      "button_pending": "Mark as completed"
+    },
+    "modules": {
+      "title": "Modules",
+      "empty": "No modules available",
+      "section_completed_snack": "Section completed",
+      "section_pending_snack": "Section marked as pending",
+      "error_loading": "Error loading modules"
+    },
+    "detail": {
+      "progress_label": "progress",
+      "description_header": "Description",
+      "view_modules_button": "View Modules",
+      "error_loading": "Error loading detail"
+    },
+    "detail_with_progress": {
+      "modules_header": "Modules and Requirements",
+      "search_hint": "Search module or requirement...",
+      "no_results": "No results for \"{query}\"",
+      "stat_requirements": "requirements",
+      "stat_pending": "pend.",
+      "stat_sent": "sent",
+      "stat_validated": "val.",
+      "empty_requirements": "No requirements in this module.",
+      "empty_modules_title": "No modules yet",
+      "empty_modules_body": "Modules will appear when available for this class.",
+      "error_loading": "Error loading class"
+    },
+    "list": {
+      "empty": "You have no assigned classes",
+      "title": "My Classes",
+      "enroll_tooltip": "Enroll previous class",
+      "error_loading": "Error loading classes"
+    },
+    "status_history": {
+      "title": "Status history",
+      "empty_title": "No changes recorded",
+      "empty_body": "This requirement has no recorded status changes yet.",
+      "created_desc": "Requirement created, awaiting evidence.",
+      "sent_desc": "Evidence sent for validation.",
+      "validated_desc": "Requirement approved by the leader.",
+      "rejected_desc": "Requirement rejected. You can resubmit evidence."
+    },
+    "enroll_sheet": {
+      "title": "Enroll previous class",
+      "subtitle": "Select a class you have already completed",
+      "year_error": "Could not determine the current ecclesiastical year",
+      "year_label": "Ecclesiastical year: ",
+      "error_loading": "Error loading classes",
+      "empty_catalog": "No classes available in the catalog",
+      "select_class": "Select a class",
+      "no_auth": "You must log in to enroll a previous class",
+      "close_button": "Close",
+      "enroll_button": "Enroll",
+      "already_enrolled": "You are already enrolled in this class",
+      "enroll_success": "Enrollment in \"{className}\" registered successfully"
     }
   },
   "camporees": {

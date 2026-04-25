@@ -1141,6 +1141,108 @@
       "submit_requirement": "Error al enviar el requerimiento a validación",
       "upload_file": "Error al subir el archivo de evidencia",
       "delete_file": "Error al eliminar el archivo de evidencia"
+    },
+    "status": {
+      "pending": "Pendiente",
+      "sent": "Enviado",
+      "validated": "Validado",
+      "rejected": "Rechazado",
+      "completed": "Completada"
+    },
+    "progress_ring": {
+      "percent": "{percent}%"
+    },
+    "class_card": {
+      "current_badge": "Clase actual"
+    },
+    "requirement_card": {
+      "files_label": "{count} / {max} archivos",
+      "sent_by": "Enviado por {name}{date}",
+      "validated_by": "Validado por {name}{date}"
+    },
+    "requirement_detail": {
+      "unsaved_files_title": "Archivos sin enviar",
+      "unsaved_files_body": "Tienes archivos sin enviar. ¿Seguro que quieres salir?",
+      "stay_button": "Quedarme",
+      "leave_button": "Salir",
+      "requirement_title": "Requisito: {name}",
+      "detail_header": "Detalle del requisito",
+      "status_header": "Estado del requisito",
+      "evidence_files_header": "Archivos de evidencia",
+      "submit_success": "Requerimiento enviado a validación exitosamente",
+      "file_limit_label": "Limite archivos",
+      "type_label": "Tipo",
+      "type_honor": "Especialidad",
+      "type_service": "Servicio",
+      "type_general": "General",
+      "linked_honor_title": "Especialidad requerida",
+      "honor_completed": "Completada",
+      "honor_pending": "Pendiente",
+      "semantics_status": "Estado del requisito: {status}. Tocar para ver historial."
+    },
+    "section_detail": {
+      "title": "Detalle de Sección",
+      "completed_subtitle": "Has completado esta sección",
+      "pending_subtitle": "Marca esta sección como completada",
+      "mark_completed_snack": "Sección marcada como completada",
+      "mark_pending_snack": "Sección marcada como pendiente",
+      "button_completed": "Marcar como pendiente",
+      "button_pending": "Marcar como completada"
+    },
+    "modules": {
+      "title": "Módulos",
+      "empty": "No hay módulos disponibles",
+      "section_completed_snack": "Sección completada",
+      "section_pending_snack": "Sección marcada como pendiente",
+      "error_loading": "Error al cargar módulos"
+    },
+    "detail": {
+      "progress_label": "progreso",
+      "description_header": "Descripción",
+      "view_modules_button": "Ver Módulos",
+      "error_loading": "Error al cargar detalle"
+    },
+    "detail_with_progress": {
+      "modules_header": "Modulos y Requerimientos",
+      "search_hint": "Buscar modulo o requerimiento...",
+      "no_results": "Sin resultados para \"{query}\"",
+      "stat_requirements": "requisitos",
+      "stat_pending": "pend.",
+      "stat_sent": "env.",
+      "stat_validated": "val.",
+      "empty_requirements": "No hay requerimientos en este modulo.",
+      "empty_modules_title": "Sin módulos aún",
+      "empty_modules_body": "Los módulos aparecerán cuando estén disponibles para esta clase.",
+      "error_loading": "Error al cargar la clase"
+    },
+    "list": {
+      "empty": "No tienes clases asignadas",
+      "title": "Mis Clases",
+      "enroll_tooltip": "Inscribir clase anterior",
+      "error_loading": "Error al cargar clases"
+    },
+    "status_history": {
+      "title": "Historial de estados",
+      "empty_title": "Sin cambios registrados",
+      "empty_body": "Este requisito aún no tiene cambios de estado registrados.",
+      "created_desc": "Requisito creado, esperando evidencias.",
+      "sent_desc": "Evidencias enviadas a validación.",
+      "validated_desc": "Requisito aprobado por el líder.",
+      "rejected_desc": "Requisito rechazado. Podés reenviar evidencias."
+    },
+    "enroll_sheet": {
+      "title": "Inscribir clase anterior",
+      "subtitle": "Seleccioná una clase que ya completaste",
+      "year_error": "No se pudo determinar el año eclesiástico actual",
+      "year_label": "Año eclesiástico: ",
+      "error_loading": "Error al cargar clases",
+      "empty_catalog": "No hay clases disponibles en el catálogo",
+      "select_class": "Seleccioná una clase",
+      "no_auth": "Debés iniciar sesión para inscribir una clase anterior",
+      "close_button": "Cerrar",
+      "enroll_button": "Inscribirse",
+      "already_enrolled": "Ya estás inscrito en esta clase",
+      "enroll_success": "Inscripción en \"{className}\" registrada exitosamente"
     }
   },
   "camporees": {

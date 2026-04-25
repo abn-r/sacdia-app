@@ -1,6 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -77,7 +77,7 @@ class RequirementStatusHistorySheet extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Historial de estados',
+                          'classes.status_history.title'.tr(),
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
@@ -141,8 +141,8 @@ class RequirementStatusHistorySheet extends StatelessWidget {
     entries.add(
       _StatusEntry(
         status: RequirementStatus.pendiente,
-        label: 'Pendiente',
-        description: 'Requisito creado, esperando evidencias.',
+        label: 'classes.status.pending'.tr(),
+        description: 'classes.status_history.created_desc'.tr(),
         icon: HugeIcons.strokeRoundedClock01,
         color: AppColors.accent,
         author: null,
@@ -157,8 +157,8 @@ class RequirementStatusHistorySheet extends StatelessWidget {
       entries.add(
         _StatusEntry(
           status: RequirementStatus.enviado,
-          label: 'Enviado',
-          description: 'Evidencias enviadas a validación.',
+          label: 'classes.status.sent'.tr(),
+          description: 'classes.status_history.sent_desc'.tr(),
           icon: HugeIcons.strokeRoundedSent,
           color: AppColors.sacBlue,
           author: requirement.submittedByName,
@@ -172,8 +172,8 @@ class RequirementStatusHistorySheet extends StatelessWidget {
       entries.add(
         _StatusEntry(
           status: RequirementStatus.validado,
-          label: 'Validado',
-          description: 'Requisito aprobado por el líder.',
+          label: 'classes.status.validated'.tr(),
+          description: 'classes.status_history.validated_desc'.tr(),
           icon: HugeIcons.strokeRoundedCheckmarkCircle01,
           color: AppColors.secondary,
           author: requirement.validatedByName,
@@ -187,8 +187,8 @@ class RequirementStatusHistorySheet extends StatelessWidget {
       entries.add(
         _StatusEntry(
           status: RequirementStatus.rechazado,
-          label: 'Rechazado',
-          description: 'Requisito rechazado. Podés reenviar evidencias.',
+          label: 'classes.status.rejected'.tr(),
+          description: 'classes.status_history.rejected_desc'.tr(),
           icon: HugeIcons.strokeRoundedCancel01,
           color: AppColors.error,
           author: requirement.validatedByName,
@@ -480,7 +480,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Sin cambios registrados',
+            'classes.status_history.empty_title'.tr(),
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
@@ -489,7 +489,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Este requisito aún no tiene cambios de estado registrados.',
+            'classes.status_history.empty_body'.tr(),
             style: TextStyle(fontSize: 13, color: c.textSecondary),
             textAlign: TextAlign.center,
           ),

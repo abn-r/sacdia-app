@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -106,7 +107,7 @@ class _EnrollPreviousClassSheetState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Inscribir clase anterior',
+                'classes.enroll_sheet.title'.tr(),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -114,7 +115,7 @@ class _EnrollPreviousClassSheetState
                 ),
               ),
               Text(
-                'Seleccioná una clase que ya completaste',
+                'classes.enroll_sheet.subtitle'.tr(),
                 style: TextStyle(
                   fontSize: 13,
                   color: c.textSecondary,

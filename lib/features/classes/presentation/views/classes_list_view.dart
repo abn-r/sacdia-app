@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -59,7 +60,7 @@ class ClassesListView extends ConsumerWidget {
                         color: c.textTertiary),
                     const SizedBox(height: 12),
                     Text(
-                      'No tienes clases asignadas',
+                      'classes.list.empty'.tr(),
                       style: TextStyle(
                         fontSize: 16,
                         color: c.textSecondary,
@@ -102,7 +103,7 @@ class ClassesListView extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Mis Clases',
+                                  'classes.list.title'.tr(),
                                   style: Theme.of(context)
                                       .textTheme
                                       .headlineSmall
@@ -113,7 +114,7 @@ class ClassesListView extends ConsumerWidget {
                           ),
                           if (hasActiveClub)
                             Tooltip(
-                              message: 'Inscribir clase anterior',
+                              message: 'classes.list.enroll_tooltip'.tr(),
                               child: IconButton(
                                 onPressed: () => _openEnrollSheet(context),
                                 icon: HugeIcon(
@@ -185,7 +186,7 @@ class ClassesListView extends ConsumerWidget {
                       color: AppColors.error),
                   const SizedBox(height: 16),
                   Text(
-                    'Error al cargar clases',
+                    'classes.list.error_loading'.tr(),
                     style: Theme.of(context)
                         .textTheme
                         .titleMedium
@@ -199,7 +200,7 @@ class ClassesListView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
                   SacButton.primary(
-                    text: 'Reintentar',
+                    text: 'common.retry'.tr(),
                     icon: HugeIcons.strokeRoundedRefresh,
                     onPressed: () {
                       ref.invalidate(userClassesProvider);

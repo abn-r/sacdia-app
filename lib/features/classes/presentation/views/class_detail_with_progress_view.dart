@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -159,7 +160,7 @@ class _ClassBodyState extends State<_ClassBody> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                   child: Text(
-                    'Modulos y Requerimientos',
+                    'classes.detail_with_progress.modules_header'.tr(),
                     style: Theme.of(context)
                         .textTheme
                         .titleMedium
@@ -180,7 +181,7 @@ class _ClassBodyState extends State<_ClassBody> {
                           color: c.text,
                         ),
                     decoration: InputDecoration(
-                      hintText: 'Buscar modulo o requerimiento...',
+                      hintText: 'classes.detail_with_progress.search_hint'.tr(),
                       hintStyle: TextStyle(color: c.textTertiary),
                       prefixIcon: HugeIcon(
                         icon: HugeIcons.strokeRoundedSearch01,
@@ -238,7 +239,8 @@ class _ClassBodyState extends State<_ClassBody> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      'Sin resultados para "$_query"',
+                      'classes.detail_with_progress.no_results'
+                          .tr(namedArgs: {'query': _query}),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: c.textSecondary,
                           ),
@@ -349,7 +351,7 @@ class _ProgressCard extends StatelessWidget {
                 icon: HugeIcons.strokeRoundedCheckList,
                 color: AppColors.secondary,
                 value: '$validated/$total',
-                label: 'requisitos',
+                label: 'classes.detail_with_progress.stat_requirements'.tr(),
                 context: context,
               ),
               Container(
@@ -362,7 +364,7 @@ class _ProgressCard extends StatelessWidget {
                 icon: HugeIcons.strokeRoundedClock01,
                 color: AppColors.accent,
                 value: '$pending',
-                label: 'pend.',
+                label: 'classes.detail_with_progress.stat_pending'.tr(),
                 context: context,
               ),
               Container(
@@ -375,7 +377,7 @@ class _ProgressCard extends StatelessWidget {
                 icon: HugeIcons.strokeRoundedSent,
                 color: AppColors.sacBlue,
                 value: '$submitted',
-                label: 'env.',
+                label: 'classes.detail_with_progress.stat_sent'.tr(),
                 context: context,
               ),
               Container(
@@ -388,7 +390,7 @@ class _ProgressCard extends StatelessWidget {
                 icon: HugeIcons.strokeRoundedCheckmarkCircle01,
                 color: AppColors.secondary,
                 value: '$validated',
-                label: 'val.',
+                label: 'classes.detail_with_progress.stat_validated'.tr(),
                 context: context,
               ),
             ],
@@ -590,7 +592,7 @@ class _ModuleSectionState extends State<_ModuleSection> {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'No hay requerimientos en este modulo.',
+                  'classes.detail_with_progress.empty_requirements'.tr(),
                   style: TextStyle(
                     fontSize: 14,
                     color: c.textSecondary,
@@ -653,7 +655,7 @@ class _EmptyModules extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Sin módulos aún',
+            'classes.detail_with_progress.empty_modules_title'.tr(),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: c.textSecondary,
@@ -661,7 +663,7 @@ class _EmptyModules extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Los módulos aparecerán cuando estén disponibles para esta clase.',
+            'classes.detail_with_progress.empty_modules_body'.tr(),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: c.textTertiary,
                 ),
@@ -696,7 +698,7 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error al cargar la clase',
+              'classes.detail_with_progress.error_loading'.tr(),
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -713,7 +715,7 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             SacButton.primary(
-              text: 'Reintentar',
+              text: 'common.retry'.tr(),
               icon: HugeIcons.strokeRoundedRefresh,
               onPressed: onRetry,
             ),
