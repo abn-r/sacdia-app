@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -65,7 +66,7 @@ class _InsuranceViewState extends ConsumerState<InsuranceView> {
                 backgroundColor: context.sac.background,
                 surfaceTintColor: Colors.transparent,
                 title: Text(
-                  'Seguros del Club',
+                  'insurance.view.title'.tr(),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: context.sac.text,
@@ -255,6 +256,10 @@ class _ExpiringBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final key = count == 1
+        ? 'insurance.view.expiring_banner_one'
+        : 'insurance.view.expiring_banner_other';
+
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -273,8 +278,7 @@ class _ExpiringBanner extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              '$count seguro${count > 1 ? 's' : ''} '
-              '${count > 1 ? 'vencen' : 'vence'} en los próximos 30 días',
+              key.tr(namedArgs: {'count': '$count'}),
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -304,7 +308,7 @@ class _SearchBar extends StatelessWidget {
         controller: controller,
         onChanged: onChanged,
         decoration: InputDecoration(
-          hintText: 'Buscar miembro...',
+          hintText: 'insurance.view.search_hint'.tr(),
           hintStyle: TextStyle(
               color: context.sac.textTertiary, fontSize: 14),
           prefixIcon: Padding(
@@ -415,12 +419,16 @@ class _SortCountRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final key = count == 1
+        ? 'insurance.view.member_count_one'
+        : 'insurance.view.member_count_other';
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: Row(
         children: [
           Text(
-            '$count miembro${count != 1 ? 's' : ''}',
+            key.tr(namedArgs: {'count': '$count'}),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
@@ -510,7 +518,7 @@ class _SortSheet extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
             child: Text(
-              'Ordenar por',
+              'insurance.view.sort_title'.tr(),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -583,7 +591,7 @@ class _ErrorBody extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Error al cargar los seguros',
+            'insurance.view.error_title'.tr(),
             style: Theme.of(context).textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
@@ -604,7 +612,7 @@ class _ErrorBody extends StatelessWidget {
               size: 18,
               color: Colors.white,
             ),
-            label: const Text('Reintentar'),
+            label: Text('common.retry'.tr()),
             style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary),
           ),
@@ -639,8 +647,8 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             hasFilters
-                ? 'No hay miembros con ese filtro'
-                : 'No hay información de seguros',
+                ? 'insurance.view.empty_filtered_title'.tr()
+                : 'insurance.view.empty_title'.tr(),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
@@ -650,10 +658,10 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             hasFilters
-                ? 'Intenta con otro filtro o búsqueda.'
+                ? 'insurance.view.empty_filtered_subtitle'.tr()
                 : canManage
-                    ? 'Registra los seguros de los miembros del club.'
-                    : 'Aún no hay registros de seguros para este club.',
+                    ? 'insurance.view.empty_subtitle_manager'.tr()
+                    : 'insurance.view.empty_subtitle_member'.tr(),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context)
                       .colorScheme
@@ -686,8 +694,8 @@ class _AddFab extends StatelessWidget {
         size: 20,
         color: Colors.white,
       ),
-      label: const Text(
-        'Registrar seguro',
+      label: Text(
+        'insurance.view.fab_register'.tr(),
         style: TextStyle(fontWeight: FontWeight.w700),
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -64,7 +65,7 @@ class InsuranceSummaryHeader extends StatelessWidget {
 
               // Title
               Text(
-                'Cobertura de Seguros',
+                'insurance.view.coverage_title'.tr(),
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: c.text,
                       fontWeight: FontWeight.w600,
@@ -116,20 +117,20 @@ class InsuranceSummaryHeader extends StatelessWidget {
           Row(
             children: [
               _StatPill(
-                label: 'Total',
+                label: 'insurance.summary.total'.tr(),
                 count: summary.total,
                 color: c.textSecondary,
               ),
               const SizedBox(width: 8),
               _StatPill(
-                label: 'Asegurados',
+                label: 'insurance.summary.insured'.tr(),
                 count: summary.asegurados,
                 color: AppColors.secondary,
               ),
               if (summary.vencidos > 0) ...[
                 const SizedBox(width: 8),
                 _StatPill(
-                  label: 'Vencidos',
+                  label: 'insurance.summary.expired'.tr(),
                   count: summary.vencidos,
                   color: AppColors.accent,
                 ),
@@ -137,7 +138,7 @@ class InsuranceSummaryHeader extends StatelessWidget {
               if (summary.sinSeguro > 0) ...[
                 const SizedBox(width: 8),
                 _StatPill(
-                  label: 'Sin seguro',
+                  label: 'insurance.summary.uninsured'.tr(),
                   count: summary.sinSeguro,
                   color: AppColors.error,
                 ),

@@ -1,11 +1,11 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -103,8 +103,8 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
               children: [
                 Text(
                   _isEditing
-                      ? 'Editar seguro'
-                      : 'Registrar seguro',
+                      ? 'insurance.form.title_edit'.tr()
+                      : 'insurance.form.title_create'.tr(),
                   style: Theme.of(context)
                       .textTheme
                       .titleMedium
@@ -137,7 +137,7 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Insurance type selector
-                    _SectionLabel('Tipo de seguro *'),
+                    _SectionLabel('insurance.form.label_type'.tr()),
                     const SizedBox(height: 8),
                     _InsuranceTypeSelector(
                       selected: _insuranceType,
@@ -148,13 +148,13 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                     const SizedBox(height: 16),
 
                     // Policy number
-                    _SectionLabel('N. de póliza / folio (opcional)'),
+                    _SectionLabel('insurance.form.label_policy'.tr()),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _policyController,
                       textCapitalization: TextCapitalization.characters,
                       decoration: _inputDecoration(
-                        hint: 'POL-001234',
+                        hint: 'insurance.form.hint_policy'.tr(),
                         context: context,
                       ),
                     ),
@@ -162,13 +162,13 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                     const SizedBox(height: 14),
 
                     // Provider / company
-                    _SectionLabel('Aseguradora / empresa (opcional)'),
+                    _SectionLabel('insurance.form.label_provider'.tr()),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _providerController,
                       textCapitalization: TextCapitalization.words,
                       decoration: _inputDecoration(
-                        hint: 'Nombre de la aseguradora...',
+                        hint: 'insurance.form.hint_provider'.tr(),
                         context: context,
                       ),
                     ),
@@ -176,11 +176,11 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                     const SizedBox(height: 14),
 
                     // Start date (required)
-                    _SectionLabel('Fecha de inicio de cobertura *'),
+                    _SectionLabel('insurance.form.label_start_date'.tr()),
                     const SizedBox(height: 6),
                     _DatePickerField(
                       selectedDate: _startDate,
-                      placeholder: 'Seleccionar fecha de inicio',
+                      placeholder: 'insurance.form.placeholder_start_date'.tr(),
                       onDateSelected: (d) =>
                           setState(() => _startDate = d),
                       onClear: () => setState(() => _startDate = null),
@@ -191,11 +191,11 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                     const SizedBox(height: 14),
 
                     // End date (required)
-                    _SectionLabel('Fecha de fin de cobertura *'),
+                    _SectionLabel('insurance.form.label_end_date'.tr()),
                     const SizedBox(height: 6),
                     _DatePickerField(
                       selectedDate: _endDate,
-                      placeholder: 'Seleccionar fecha de vencimiento',
+                      placeholder: 'insurance.form.placeholder_end_date'.tr(),
                       onDateSelected: (d) =>
                           setState(() => _endDate = d),
                       onClear: () => setState(() => _endDate = null),
@@ -206,7 +206,7 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                     const SizedBox(height: 14),
 
                     // Coverage amount
-                    _SectionLabel('Monto de cobertura / prima (opcional)'),
+                    _SectionLabel('insurance.form.label_amount'.tr()),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _amountController,
@@ -218,7 +218,7 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                             RegExp(r'^\d+\.?\d{0,2}')),
                       ],
                       decoration: _inputDecoration(
-                        hint: '0.00',
+                        hint: 'insurance.form.hint_amount'.tr(),
                         prefix: '\$',
                         context: context,
                       ),
@@ -228,7 +228,10 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
 
                     // Evidence file upload
                     _SectionLabel(
-                        'Comprobante de pago (imagen o PDF)${!_isEditing ? ' *' : ' (opcional)'}'),
+                      _isEditing
+                          ? 'insurance.form.label_evidence_optional'.tr()
+                          : 'insurance.form.label_evidence_required'.tr(),
+                    ),
                     const SizedBox(height: 6),
                     _EvidenceUploader(
                       currentFile: ref
@@ -279,8 +282,8 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                                 color: Colors.white, strokeWidth: 2)
                             : Text(
                                 _isEditing
-                                    ? 'Guardar cambios'
-                                    : 'Registrar seguro',
+                                    ? 'insurance.form.button_save_edit'.tr()
+                                    : 'insurance.form.button_save_create'.tr(),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 16,
@@ -305,8 +308,8 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
     // Validate required dates
     if (_startDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Selecciona la fecha de inicio de cobertura'),
+        SnackBar(
+          content: Text('insurance.form.error_start_date_required'.tr()),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ),
@@ -316,8 +319,8 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
 
     if (_endDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Selecciona la fecha de fin de cobertura'),
+        SnackBar(
+          content: Text('insurance.form.error_end_date_required'.tr()),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ),
@@ -327,8 +330,8 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
 
     if (_endDate!.isBefore(_startDate!)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('La fecha de fin debe ser posterior a la de inicio'),
+        SnackBar(
+          content: Text('insurance.form.error_end_after_start'.tr()),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ),
@@ -341,8 +344,8 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
         ref.read(insuranceFormNotifierProvider).selectedFile;
     if (!_isEditing && selectedFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Adjunta el comprobante de pago'),
+        SnackBar(
+          content: Text('insurance.form.error_evidence_required'.tr()),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ),
@@ -352,8 +355,8 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
 
     if (_memberId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo determinar el miembro'),
+        SnackBar(
+          content: Text('insurance.form.error_member_unknown'.tr()),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ),
@@ -388,8 +391,8 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(_isEditing
-              ? 'Seguro actualizado correctamente'
-              : 'Seguro registrado correctamente'),
+              ? 'insurance.form.success_updated'.tr()
+              : 'insurance.form.success_created'.tr()),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
         ),
@@ -635,7 +638,7 @@ class _EvidenceUploader extends StatelessWidget {
 
     if (existingFileUrl != null && existingFileUrl!.isNotEmpty) {
       return _ExistingFileTile(
-        fileName: existingFileName ?? 'Comprobante actual',
+        fileName: existingFileName ?? 'insurance.form.current_receipt_fallback'.tr(),
         onReplace: () => _showPicker(context),
       );
     }
@@ -684,8 +687,8 @@ class _PickerButton extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Subir comprobante',
-              style: const TextStyle(
+              'insurance.form.upload_receipt'.tr(),
+              style: TextStyle(
                 color: AppColors.primary,
                 fontWeight: FontWeight.w700,
                 fontSize: 14,
@@ -693,7 +696,7 @@ class _PickerButton extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'JPG, PNG o PDF',
+              'insurance.form.upload_formats'.tr(),
               style: TextStyle(
                 color: AppColors.primary.withValues(alpha: 0.6),
                 fontSize: 12,
@@ -758,7 +761,7 @@ class _SelectedFileTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Archivo seleccionado',
+                  'insurance.form.file_selected'.tr(),
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.secondaryDark.withValues(alpha: 0.7),
@@ -838,7 +841,7 @@ class _ExistingFileTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  'Comprobante actual',
+                  'insurance.form.current_receipt_label'.tr(),
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.primary.withValues(alpha: 0.7),
@@ -849,8 +852,8 @@ class _ExistingFileTile extends StatelessWidget {
           ),
           TextButton(
             onPressed: onReplace,
-            child: const Text(
-              'Reemplazar',
+            child: Text(
+              'insurance.form.replace_button'.tr(),
               style: TextStyle(
                 color: AppColors.primary,
                 fontWeight: FontWeight.w700,
@@ -894,7 +897,7 @@ class _FilePickerSheet extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
             child: Text(
-              'Seleccionar comprobante',
+              'insurance.form.picker_title'.tr(),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -916,11 +919,11 @@ class _FilePickerSheet extends StatelessWidget {
                 ),
               ),
             ),
-            title: const Text(
-              'Tomar foto',
+            title: Text(
+              'insurance.form.picker_camera'.tr(),
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
-            subtitle: const Text('Usar la cámara del dispositivo'),
+            subtitle: Text('insurance.form.picker_camera_subtitle'.tr()),
             onTap: () async {
               Navigator.pop(context);
               final picker = ImagePicker();
@@ -947,11 +950,11 @@ class _FilePickerSheet extends StatelessWidget {
                 ),
               ),
             ),
-            title: const Text(
-              'Elegir de la galería',
+            title: Text(
+              'insurance.form.picker_gallery'.tr(),
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
-            subtitle: const Text('JPG o PNG desde tu galería'),
+            subtitle: Text('insurance.form.picker_gallery_subtitle'.tr()),
             onTap: () async {
               Navigator.pop(context);
               final picker = ImagePicker();
@@ -978,11 +981,11 @@ class _FilePickerSheet extends StatelessWidget {
                 ),
               ),
             ),
-            title: const Text(
-              'Seleccionar PDF',
+            title: Text(
+              'insurance.form.picker_pdf'.tr(),
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
-            subtitle: const Text('Archivo PDF de tu dispositivo'),
+            subtitle: Text('insurance.form.picker_pdf_subtitle'.tr()),
             onTap: () async {
               Navigator.pop(context);
               final picker = ImagePicker();
