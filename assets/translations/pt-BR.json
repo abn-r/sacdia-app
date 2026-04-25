@@ -1092,6 +1092,68 @@
       "enroll_certification": "Erro ao inscrever-se na certificação",
       "update_section_progress": "Erro ao atualizar progresso da seção",
       "unenroll_certification": "Erro ao cancelar inscrição na certificação"
+    },
+    "common": {
+      "module": "módulo"
+    },
+    "detail": {
+      "description": "Descrição",
+      "modules_and_sections": "Módulos e Seções",
+      "no_modules": "Não há módulos disponíveis para esta certificação.",
+      "modules": "Módulos",
+      "sections": "Seções",
+      "enrolled": "Você está inscrito",
+      "progress_percent": "Progresso: {percentage}%",
+      "view_progress": "Ver meu progresso",
+      "enroll_cta": "Inscrever-me nesta certificação",
+      "enroll_dialog_title": "Inscrever-se",
+      "enroll_dialog_content": "Confirmar inscrição nesta certificação?",
+      "enroll_success": "Inscrição realizada com sucesso!",
+      "no_sections_module": "Não há seções neste módulo.",
+      "load_error": "Erro ao carregar a certificação"
+    },
+    "list": {
+      "no_certifications": "Não há certificações disponíveis",
+      "title": "Certificações",
+      "load_error": "Erro ao carregar certificações",
+      "enroll_dialog_title": "Inscrever-se",
+      "enroll_dialog_content": "Quer se inscrever em « {name} »?",
+      "enroll_button": "Inscrever-me",
+      "enroll_success": "Você se inscreveu em « {name} »",
+      "eligibility_banner": "As certificações são exclusivas para Guias Maiores investidos.",
+      "enrolled_badge": "inscrito",
+      "modules_count": "{count} módulos",
+      "view_progress": "Ver progresso"
+    },
+    "progress": {
+      "modules_title": "Módulos",
+      "no_modules": "Não há módulos nesta certificação.",
+      "completed": "Certificação concluída",
+      "in_progress": "Em andamento",
+      "modules_completed": "{completed} / {total} módulos concluídos",
+      "no_sections_module": "Não há seções neste módulo.",
+      "load_error": "Erro ao carregar o progresso"
+    },
+    "my": {
+      "empty_title": "Você não está inscrito em nenhuma certificação",
+      "empty_subtitle": "Explore o catálogo de certificações",
+      "title": "Minhas Certificações",
+      "stat_total": "Total",
+      "stat_active": "Em andamento",
+      "stat_completed": "Concluídas",
+      "section_active": "Em andamento",
+      "section_completed": "Concluídas",
+      "load_error": "Erro ao carregar minhas certificações",
+      "unenroll_dialog_title": "Cancelar inscrição",
+      "unenroll_dialog_content": "Tem certeza de que deseja cancelar a inscrição em « {name} »? Seu progresso será perdido.",
+      "unenroll_dialog_confirm": "Cancelar inscrição",
+      "unenroll_success": "Você cancelou a inscrição em « {name} »",
+      "enrolled_date": "inscrito em {date}",
+      "status_completed": "Concluída",
+      "status_in_progress": "Em andamento",
+      "progress_label": "Progresso",
+      "progress_modules": "{percentage}% · {completed}/{total} módulos",
+      "unenroll_button": "Cancelar inscrição"
     }
   },
   "catalogs": {

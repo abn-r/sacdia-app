@@ -1092,6 +1092,68 @@
       "enroll_certification": "Error al inscribirse en la certificación",
       "update_section_progress": "Error al actualizar progreso de sección",
       "unenroll_certification": "Error al desinscribirse de la certificación"
+    },
+    "common": {
+      "module": "módulo"
+    },
+    "detail": {
+      "description": "Descripción",
+      "modules_and_sections": "Módulos y Secciones",
+      "no_modules": "No hay módulos disponibles para esta certificación.",
+      "modules": "Módulos",
+      "sections": "Secciones",
+      "enrolled": "Estás inscrito",
+      "progress_percent": "Progreso: {percentage}%",
+      "view_progress": "Ver mi progreso",
+      "enroll_cta": "Inscribirme en esta certificación",
+      "enroll_dialog_title": "Inscribirse",
+      "enroll_dialog_content": "¿Confirmar inscripción en esta certificación?",
+      "enroll_success": "¡Inscripción exitosa!",
+      "no_sections_module": "No hay secciones en este módulo.",
+      "load_error": "Error al cargar la certificación"
+    },
+    "list": {
+      "no_certifications": "No hay certificaciones disponibles",
+      "title": "Certificaciones",
+      "load_error": "Error al cargar certificaciones",
+      "enroll_dialog_title": "Inscribirse",
+      "enroll_dialog_content": "¿Querés inscribirte en « {name} »?",
+      "enroll_button": "Inscribirme",
+      "enroll_success": "Te inscribiste en « {name} »",
+      "eligibility_banner": "Las certificaciones son exclusivas para Guías Mayores investidos.",
+      "enrolled_badge": "inscrito",
+      "modules_count": "{count} módulos",
+      "view_progress": "Ver progreso"
+    },
+    "progress": {
+      "modules_title": "Módulos",
+      "no_modules": "No hay módulos en esta certificación.",
+      "completed": "Certificación completada",
+      "in_progress": "En progreso",
+      "modules_completed": "{completed} / {total} módulos completados",
+      "no_sections_module": "No hay secciones en este módulo.",
+      "load_error": "Error al cargar el progreso"
+    },
+    "my": {
+      "empty_title": "No estás inscrito en ninguna certificación",
+      "empty_subtitle": "Explorá el catálogo de certificaciones",
+      "title": "Mis Certificaciones",
+      "stat_total": "Total",
+      "stat_active": "En progreso",
+      "stat_completed": "Completadas",
+      "section_active": "En progreso",
+      "section_completed": "Completadas",
+      "load_error": "Error al cargar mis certificaciones",
+      "unenroll_dialog_title": "Desinscribirse",
+      "unenroll_dialog_content": "¿Seguro que querés desinscribirte de « {name} »? Se perderá tu progreso.",
+      "unenroll_dialog_confirm": "Desinscribirme",
+      "unenroll_success": "Te desinscribiste de « {name} »",
+      "enrolled_date": "inscrito el {date}",
+      "status_completed": "Completada",
+      "status_in_progress": "En progreso",
+      "progress_label": "Progreso",
+      "progress_modules": "{percentage}% · {completed}/{total} módulos",
+      "unenroll_button": "Desinscribirme"
     }
   },
   "catalogs": {

@@ -1092,6 +1092,68 @@
       "enroll_certification": "Erreur lors de l'inscription à la certification",
       "update_section_progress": "Erreur lors de la mise à jour de la progression de la section",
       "unenroll_certification": "Erreur lors de la désinscription de la certification"
+    },
+    "common": {
+      "module": "module"
+    },
+    "detail": {
+      "description": "Description",
+      "modules_and_sections": "Modules et Sections",
+      "no_modules": "Aucun module disponible pour cette certification.",
+      "modules": "Modules",
+      "sections": "Sections",
+      "enrolled": "Vous êtes inscrit",
+      "progress_percent": "Progression : {percentage} %",
+      "view_progress": "Voir ma progression",
+      "enroll_cta": "M'inscrire à cette certification",
+      "enroll_dialog_title": "Inscription",
+      "enroll_dialog_content": "Confirmer l'inscription à cette certification ?",
+      "enroll_success": "Inscription réussie !",
+      "no_sections_module": "Aucune section dans ce module.",
+      "load_error": "Erreur lors du chargement de la certification"
+    },
+    "list": {
+      "no_certifications": "Aucune certification disponible",
+      "title": "Certifications",
+      "load_error": "Erreur lors du chargement des certifications",
+      "enroll_dialog_title": "Inscription",
+      "enroll_dialog_content": "Voulez-vous vous inscrire à « {name} » ?",
+      "enroll_button": "M'inscrire",
+      "enroll_success": "Vous vous êtes inscrit à « {name} »",
+      "eligibility_banner": "Les certifications sont exclusives aux Guides Maîtres investis.",
+      "enrolled_badge": "inscrit",
+      "modules_count": "{count} modules",
+      "view_progress": "Voir la progression"
+    },
+    "progress": {
+      "modules_title": "Modules",
+      "no_modules": "Aucun module dans cette certification.",
+      "completed": "Certification terminée",
+      "in_progress": "En cours",
+      "modules_completed": "{completed} / {total} modules terminés",
+      "no_sections_module": "Aucune section dans ce module.",
+      "load_error": "Erreur lors du chargement de la progression"
+    },
+    "my": {
+      "empty_title": "Vous n'êtes inscrit à aucune certification",
+      "empty_subtitle": "Explorez le catalogue des certifications",
+      "title": "Mes Certifications",
+      "stat_total": "Total",
+      "stat_active": "En cours",
+      "stat_completed": "Terminées",
+      "section_active": "En cours",
+      "section_completed": "Terminées",
+      "load_error": "Erreur lors du chargement de mes certifications",
+      "unenroll_dialog_title": "Désinscription",
+      "unenroll_dialog_content": "Êtes-vous sûr de vouloir vous désinscrire de « {name} » ? Votre progression sera perdue.",
+      "unenroll_dialog_confirm": "Me désinscrire",
+      "unenroll_success": "Vous vous êtes désinscrit de « {name} »",
+      "enrolled_date": "inscrit le {date}",
+      "status_completed": "Terminée",
+      "status_in_progress": "En cours",
+      "progress_label": "Progression",
+      "progress_modules": "{percentage} % · {completed} / {total} modules",
+      "unenroll_button": "Me désinscrire"
     }
   },
   "catalogs": {

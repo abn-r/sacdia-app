@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -109,7 +110,7 @@ class _ProgressBody extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Text(
-                'Módulos',
+                'certifications.progress.modules_title'.tr(),
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: c.text,
@@ -125,7 +126,7 @@ class _ProgressBody extends ConsumerWidget {
                 padding: const EdgeInsets.all(40),
                 child: Center(
                   child: Text(
-                    'No hay módulos en esta certificación.',
+                    'certifications.progress.no_modules'.tr(),
                     style: TextStyle(fontSize: 14, color: c.textSecondary),
                     textAlign: TextAlign.center,
                   ),
@@ -205,9 +206,11 @@ class _GlobalProgressCard extends StatelessWidget {
                 color: Colors.white,
               ),
               const SizedBox(width: 8),
-              Expanded(
+                Expanded(
                 child: Text(
-                  isComplete ? 'Certificación completada' : 'En progreso',
+                  isComplete
+                      ? 'certifications.progress.completed'.tr()
+                      : 'certifications.progress.in_progress'.tr(),
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -244,7 +247,10 @@ class _GlobalProgressCard extends StatelessWidget {
               ),
               const SizedBox(width: 5),
               Text(
-                '$completedModules / ${progress.modules.length} módulos completados',
+                'certifications.progress.modules_completed'.tr(namedArgs: {
+                  'completed': '$completedModules',
+                  'total': '${progress.modules.length}',
+                }),
                 style: const TextStyle(
                   fontSize: 12,
                   color: Colors.white70,
@@ -388,7 +394,7 @@ class _ModuleProgressSectionState
               Padding(
                 padding: const EdgeInsets.all(14),
                 child: Text(
-                  'No hay secciones en este módulo.',
+                  'certifications.progress.no_sections_module'.tr(),
                   style: TextStyle(fontSize: 13, color: c.textSecondary),
                 ),
               )
@@ -566,7 +572,7 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error al cargar el progreso',
+              'certifications.progress.load_error'.tr(),
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -584,7 +590,7 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             SacButton.primary(
-              text: 'Reintentar',
+              text: 'common.retry'.tr(),
               icon: HugeIcons.strokeRoundedRefresh,
               onPressed: onRetry,
             ),

@@ -1,7 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -44,7 +44,7 @@ class MyCertificationsView extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'No estás inscrito en ninguna certificación',
+                      'certifications.my.empty_title'.tr(),
                       style: TextStyle(
                         fontSize: 16,
                         color: c.textSecondary,
@@ -53,7 +53,7 @@ class MyCertificationsView extends ConsumerWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Explorá el catálogo de certificaciones',
+                      'certifications.my.empty_subtitle'.tr(),
                       style: TextStyle(
                         fontSize: 14,
                         color: c.textTertiary,
@@ -94,7 +94,7 @@ class MyCertificationsView extends ConsumerWidget {
                           ),
                           const SizedBox(width: 10),
                           Text(
-                            'Mis Certificaciones',
+                            'certifications.my.title'.tr(),
                             style: Theme.of(context)
                                 .textTheme
                                 .headlineSmall
@@ -114,19 +114,19 @@ class MyCertificationsView extends ConsumerWidget {
                         children: [
                           _StatMini(
                             value: userCertifications.length,
-                            label: 'Total',
+                            label: 'certifications.my.stat_total'.tr(),
                             color: AppColors.primary,
                           ),
                           const SizedBox(width: 10),
                           _StatMini(
                             value: active.length,
-                            label: 'En progreso',
+                            label: 'certifications.my.stat_active'.tr(),
                             color: AppColors.accent,
                           ),
                           const SizedBox(width: 10),
                           _StatMini(
                             value: completed.length,
-                            label: 'Completadas',
+                            label: 'certifications.my.stat_completed'.tr(),
                             color: AppColors.secondary,
                           ),
                         ],
@@ -141,7 +141,7 @@ class MyCertificationsView extends ConsumerWidget {
                       child: Padding(
                         padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 10),
                         child: Text(
-                          'En progreso',
+                          'certifications.my.section_active'.tr(),
                           style: Theme.of(context)
                               .textTheme
                               .titleSmall
@@ -179,7 +179,7 @@ class MyCertificationsView extends ConsumerWidget {
                       child: Padding(
                         padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 10),
                         child: Text(
-                          'Completadas',
+                          'certifications.my.section_completed'.tr(),
                           style: Theme.of(context)
                               .textTheme
                               .titleSmall
@@ -230,7 +230,7 @@ class MyCertificationsView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Error al cargar mis certificaciones',
+                    'certifications.my.load_error'.tr(),
                     style: Theme.of(context)
                         .textTheme
                         .titleMedium
@@ -244,7 +244,7 @@ class MyCertificationsView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
                   SacButton.primary(
-                    text: 'Reintentar',
+                    text: 'common.retry'.tr(),
                     icon: HugeIcons.strokeRoundedRefresh,
                     onPressed: () {
                       ref.invalidate(userCertificationsProvider);
@@ -279,19 +279,21 @@ class MyCertificationsView extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Desinscribirse'),
+        title: Text('certifications.my.unenroll_dialog_title'.tr()),
         content: Text(
-          '¿Seguro que quieres desinscribirte de "${uc.certificationName}"? Se perderá tu progreso.',
+          'certifications.my.unenroll_dialog_content'.tr(namedArgs: {
+            'name': uc.certificationName,
+          }),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Desinscribirme'),
+            child: Text('certifications.my.unenroll_dialog_confirm'.tr()),
           ),
         ],
       ),
@@ -308,7 +310,9 @@ class MyCertificationsView extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Te desinscribiste de "${uc.certificationName}"'),
+            content: Text('certifications.my.unenroll_success'.tr(namedArgs: {
+              'name': uc.certificationName,
+            })),
             backgroundColor: AppColors.secondary,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -419,7 +423,10 @@ class _UserCertificationCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'inscrito el ${DateFormat('dd/MM/yyyy').format(uc.enrollmentDate.toLocal())}',
+                        'certifications.my.enrolled_date'.tr(namedArgs: {
+                          'date': DateFormat('dd/MM/yyyy')
+                              .format(uc.enrollmentDate.toLocal()),
+                        }),
                         style: TextStyle(
                           fontSize: 11,
                           color: c.textTertiary,
@@ -441,7 +448,9 @@ class _UserCertificationCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    isComplete ? 'Completada' : 'En progreso',
+                    isComplete
+                        ? 'certifications.my.status_completed'.tr()
+                        : 'certifications.my.status_in_progress'.tr(),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -461,7 +470,7 @@ class _UserCertificationCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Progreso',
+                  'certifications.my.progress_label'.tr(),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -469,7 +478,11 @@ class _UserCertificationCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '${uc.progressPercentage.toStringAsFixed(0)}% · ${uc.modulesCompleted}/${uc.modulesTotal} módulos',
+                  'certifications.my.progress_modules'.tr(namedArgs: {
+                    'percentage': uc.progressPercentage.toStringAsFixed(0),
+                    'completed': '${uc.modulesCompleted}',
+                    'total': '${uc.modulesTotal}',
+                  }),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -504,7 +517,7 @@ class _UserCertificationCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Desinscribirme',
+                          'certifications.my.unenroll_button'.tr(),
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -140,7 +141,7 @@ class _DetailBody extends ConsumerWidget {
                     detail.description!.isNotEmpty) ...[
                   _SectionTitle(
                     icon: HugeIcons.strokeRoundedInformationCircle,
-                    label: 'Descripción',
+                    label: 'certifications.detail.description'.tr(),
                   ),
                   const SizedBox(height: 10),
                   Text(
@@ -187,7 +188,7 @@ class _DetailBody extends ConsumerWidget {
                 // Árbol de módulos y secciones
                 _SectionTitle(
                   icon: HugeIcons.strokeRoundedCheckList,
-                  label: 'Módulos y Secciones',
+                  label: 'certifications.detail.modules_and_sections'.tr(),
                 ),
                 const SizedBox(height: 12),
               ],
@@ -202,7 +203,7 @@ class _DetailBody extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
               child: Center(
                 child: Text(
-                  'No hay módulos disponibles para esta certificación.',
+                  'certifications.detail.no_modules'.tr(),
                   style: TextStyle(
                     fontSize: 14,
                     color: context.sac.textSecondary,
@@ -259,7 +260,7 @@ class _StatsRow extends StatelessWidget {
           _StatItem(
             icon: HugeIcons.strokeRoundedCheckList,
             value: '${detail.modulesCount}',
-            label: 'Módulos',
+            label: 'certifications.detail.modules'.tr(),
           ),
           Container(
             width: 1,
@@ -270,7 +271,7 @@ class _StatsRow extends StatelessWidget {
           _StatItem(
             icon: HugeIcons.strokeRoundedTaskDone01,
             value: '$totalSections',
-            label: 'Secciones',
+            label: 'certifications.detail.sections'.tr(),
           ),
         ],
       ),
@@ -366,7 +367,7 @@ class _EnrolledCTA extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Estás inscrito',
+                      'certifications.detail.enrolled'.tr(),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -374,7 +375,9 @@ class _EnrolledCTA extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Progreso: ${progressPercentage.toStringAsFixed(0)}%',
+                      'certifications.detail.progress_percent'.tr(namedArgs: {
+                        'percentage': progressPercentage.toStringAsFixed(0),
+                      }),
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.secondaryDark,
@@ -388,7 +391,7 @@ class _EnrolledCTA extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         SacButton.primary(
-          text: 'Ver mi progreso',
+          text: 'certifications.detail.view_progress'.tr(),
           icon: HugeIcons.strokeRoundedAnalytics01,
           onPressed: () {
             Navigator.push(
@@ -417,7 +420,7 @@ class _NotEnrolledCTA extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SacButton.primary(
-      text: 'Inscribirme en esta certificación',
+      text: 'certifications.detail.enroll_cta'.tr(),
       icon: HugeIcons.strokeRoundedAdd01,
       onPressed: () => _enroll(context, ref),
     );
@@ -427,18 +430,18 @@ class _NotEnrolledCTA extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Inscribirse'),
-        content: const Text(
-          '¿Confirmar inscripción en esta certificación?',
+        title: Text('certifications.detail.enroll_dialog_title'.tr()),
+        content: Text(
+          'certifications.detail.enroll_dialog_content'.tr(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Confirmar'),
+            child: Text('common.confirm'.tr()),
           ),
         ],
       ),
@@ -455,7 +458,7 @@ class _NotEnrolledCTA extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('¡Inscripción exitosa!'),
+            content: Text('certifications.detail.enroll_success'.tr()),
             backgroundColor: AppColors.secondary,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -566,7 +569,7 @@ class _ModuleTreeCardState extends State<_ModuleTreeCard> {
               Padding(
                 padding: const EdgeInsets.all(14),
                 child: Text(
-                  'No hay secciones en este módulo.',
+                  'certifications.detail.no_sections_module'.tr(),
                   style: TextStyle(fontSize: 13, color: c.textSecondary),
                 ),
               )
@@ -656,7 +659,7 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error al cargar la certificación',
+              'certifications.detail.load_error'.tr(),
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -674,7 +677,7 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             SacButton.primary(
-              text: 'Reintentar',
+              text: 'common.retry'.tr(),
               icon: HugeIcons.strokeRoundedRefresh,
               onPressed: onRetry,
             ),

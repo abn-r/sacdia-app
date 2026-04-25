@@ -1092,6 +1092,68 @@
       "enroll_certification": "Error enrolling in certification",
       "update_section_progress": "Error updating section progress",
       "unenroll_certification": "Error unenrolling from certification"
+    },
+    "common": {
+      "module": "module"
+    },
+    "detail": {
+      "description": "Description",
+      "modules_and_sections": "Modules and Sections",
+      "no_modules": "No modules available for this certification.",
+      "modules": "Modules",
+      "sections": "Sections",
+      "enrolled": "You are enrolled",
+      "progress_percent": "Progress: {percentage}%",
+      "view_progress": "View my progress",
+      "enroll_cta": "Enroll in this certification",
+      "enroll_dialog_title": "Enroll",
+      "enroll_dialog_content": "Confirm enrollment in this certification?",
+      "enroll_success": "Enrollment successful!",
+      "no_sections_module": "No sections in this module.",
+      "load_error": "Error loading certification"
+    },
+    "list": {
+      "no_certifications": "No certifications available",
+      "title": "Certifications",
+      "load_error": "Error loading certifications",
+      "enroll_dialog_title": "Enroll",
+      "enroll_dialog_content": "Do you want to enroll in \"{name}\"?",
+      "enroll_button": "Enroll",
+      "enroll_success": "You enrolled in \"{name}\"",
+      "eligibility_banner": "Certifications are exclusive to invested Master Guides.",
+      "enrolled_badge": "enrolled",
+      "modules_count": "{count} modules",
+      "view_progress": "View progress"
+    },
+    "progress": {
+      "modules_title": "Modules",
+      "no_modules": "No modules in this certification.",
+      "completed": "Certification completed",
+      "in_progress": "In progress",
+      "modules_completed": "{completed} / {total} modules completed",
+      "no_sections_module": "No sections in this module.",
+      "load_error": "Error loading progress"
+    },
+    "my": {
+      "empty_title": "You are not enrolled in any certification",
+      "empty_subtitle": "Explore the certification catalog",
+      "title": "My Certifications",
+      "stat_total": "Total",
+      "stat_active": "In progress",
+      "stat_completed": "Completed",
+      "section_active": "In progress",
+      "section_completed": "Completed",
+      "load_error": "Error loading my certifications",
+      "unenroll_dialog_title": "Unenroll",
+      "unenroll_dialog_content": "Are you sure you want to unenroll from \"{name}\"? Your progress will be lost.",
+      "unenroll_dialog_confirm": "Unenroll",
+      "unenroll_success": "You unenrolled from \"{name}\"",
+      "enrolled_date": "enrolled on {date}",
+      "status_completed": "Completed",
+      "status_in_progress": "In progress",
+      "progress_label": "Progress",
+      "progress_modules": "{percentage}% · {completed}/{total} modules",
+      "unenroll_button": "Unenroll"
     }
   },
   "catalogs": {
