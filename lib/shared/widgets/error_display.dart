@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
@@ -17,14 +18,14 @@ class ErrorDisplay extends StatelessWidget {
   final dynamic icon;
 
   /// Etiqueta del botón de reintentar
-  final String retryLabel;
+  final String? retryLabel;
 
   const ErrorDisplay({
     super.key,
     required this.message,
     this.onRetry,
     this.icon = HugeIcons.strokeRoundedAlert02,
-    this.retryLabel = 'Reintentar',
+    this.retryLabel,
   });
 
   @override
@@ -50,7 +51,7 @@ class ErrorDisplay extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: onRetry,
                 icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, color: Colors.white, size: 20),
-                label: Text(retryLabel),
+                label: Text(retryLabel ?? 'common.retry'.tr()),
               ),
             ],
           ],
