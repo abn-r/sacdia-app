@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -17,35 +18,35 @@ class ResourceTypeFilter {
   });
 }
 
-const _filters = <ResourceTypeFilter>[
+List<ResourceTypeFilter> get _filters => <ResourceTypeFilter>[
   ResourceTypeFilter(
     value: null,
-    label: 'Todos',
+    label: 'resources.filter.all'.tr(),
     icon: HugeIcons.strokeRoundedGridView,
   ),
   ResourceTypeFilter(
     value: 'document',
-    label: 'Documentos',
+    label: 'resources.filter.document'.tr(),
     icon: HugeIcons.strokeRoundedFile01,
   ),
   ResourceTypeFilter(
     value: 'audio',
-    label: 'Audio',
+    label: 'resources.filter.audio'.tr(),
     icon: HugeIcons.strokeRoundedHeadphones,
   ),
   ResourceTypeFilter(
     value: 'image',
-    label: 'Imágenes',
+    label: 'resources.filter.image'.tr(),
     icon: HugeIcons.strokeRoundedImage01,
   ),
   ResourceTypeFilter(
     value: 'video_link',
-    label: 'Videos',
+    label: 'resources.filter.video'.tr(),
     icon: HugeIcons.strokeRoundedPlayCircle,
   ),
   ResourceTypeFilter(
     value: 'text',
-    label: 'Texto',
+    label: 'resources.filter.text'.tr(),
     icon: HugeIcons.strokeRoundedTextWrap,
   ),
 ];

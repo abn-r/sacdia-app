@@ -1660,6 +1660,48 @@
       "get_resource": "Erreur lors de la récupération de la ressource",
       "get_signed_url": "Erreur lors de la récupération de l'URL de téléchargement",
       "get_categories": "Erreur lors de la récupération des catégories"
+    },
+    "title": "Recursos",
+    "search_hint": "Buscar recursos...",
+    "header_title": "Todos los recursos",
+    "error_loading": "Error al cargar recursos",
+    "empty_title": "No hay recursos disponibles",
+    "empty_subtitle": "Prueba con otro filtro o búsqueda",
+    "no_more": "No hay más recursos",
+    "list_label": {
+      "all": "Todos los archivos",
+      "document": "Documentos",
+      "audio": "Archivos de audio",
+      "image": "Imágenes",
+      "video": "Videos",
+      "text": "Contenido de texto",
+      "files": "Archivos"
+    },
+    "filter": {
+      "all": "Todos",
+      "document": "Documentos",
+      "audio": "Audio",
+      "image": "Imágenes",
+      "video": "Videos",
+      "text": "Texto"
+    },
+    "type_label": {
+      "audio": "AUDIO",
+      "image": "IMG",
+      "video": "VIDEO",
+      "text": "TXT",
+      "document": "DOC"
+    },
+    "action": {
+      "watch_video": "Ver video",
+      "download": "Descargar",
+      "opening": "Abriendo..."
+    },
+    "error": {
+      "download_url": "No se pudo obtener la URL de descarga",
+      "video_url_missing": "URL de video no disponible",
+      "invalid_url": "URL no válida",
+      "open_url_failed": "No se pudo abrir la URL"
     }
   },
   "inventory": {

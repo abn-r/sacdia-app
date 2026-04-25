@@ -1,7 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -49,7 +49,7 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
     if (url != null && mounted) {
       await _launchUrl(url);
     } else if (mounted) {
-      _showError('No se pudo obtener la URL de descarga');
+      _showError('resources.error.download_url'.tr());
     }
 
     if (mounted) setState(() => _isOpeningUrl = false);
@@ -58,7 +58,7 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
   Future<void> _openExternalUrl() async {
     final rawUrl = _resource.externalUrl;
     if (rawUrl == null || rawUrl.isEmpty) {
-      _showError('URL de video no disponible');
+      _showError('resources.error.video_url_missing'.tr());
       return;
     }
     setState(() => _isOpeningUrl = true);
@@ -69,14 +69,14 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
   Future<void> _launchUrl(String rawUrl) async {
     final uri = Uri.tryParse(rawUrl);
     if (uri == null || !['http', 'https'].contains(uri.scheme)) {
-      _showError('URL no válida');
+      _showError('resources.error.invalid_url'.tr());
       return;
     }
     final canLaunch = await canLaunchUrl(uri);
     if (canLaunch) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else if (mounted) {
-      _showError('No se pudo abrir la URL');
+      _showError('resources.error.open_url_failed'.tr());
     }
   }
 
@@ -266,7 +266,9 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
     if (isText) return const SizedBox.shrink();
 
     final bool isVideo = type == 'video_link';
-    final label = isVideo ? 'Ver video' : 'Descargar';
+    final label = isVideo
+        ? 'resources.action.watch_video'.tr()
+        : 'resources.action.download'.tr();
     final icon = isVideo
         ? HugeIcons.strokeRoundedPlayCircle
         : HugeIcons.strokeRoundedDownload01;
@@ -305,7 +307,7 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
                 color: Colors.white,
               ),
         label: Text(
-          _isOpeningUrl ? 'Abriendo...' : label,
+          _isOpeningUrl ? 'resources.action.opening'.tr() : label,
           style: const TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,

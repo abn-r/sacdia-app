@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -95,10 +96,10 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
             size: 22,
           ),
           onPressed: () => context.go(RouteNames.homeDashboard),
-          tooltip: 'Volver',
+          tooltip: 'common.back'.tr(),
         ),
         title: Text(
-          'Recursos',
+          'resources.title'.tr(),
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 17,
@@ -193,7 +194,7 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   child: Center(
                     child: Text(
-                      'No hay más recursos',
+                      'resources.no_more'.tr(),
                       style: TextStyle(
                         fontSize: 13,
                         color: c.textTertiary,
@@ -233,7 +234,7 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
               onChanged: _onSearchChanged,
               style: TextStyle(fontSize: 14, color: c.text),
               decoration: InputDecoration(
-                hintText: 'Buscar recursos...',
+                hintText: 'resources.search_hint'.tr(),
                 hintStyle:
                     TextStyle(fontSize: 14, color: c.textTertiary),
                 border: InputBorder.none,
@@ -283,7 +284,7 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
         ),
         const SizedBox(width: 10),
         Text(
-          'Todos los recursos',
+          'resources.header_title'.tr(),
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: c.text,
@@ -326,7 +327,7 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Error al cargar recursos',
+                'resources.error_loading'.tr(),
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -342,7 +343,7 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
               const SizedBox(height: 16),
               TextButton(
                 onPressed: _onRefresh,
-                child: const Text('Reintentar'),
+                child: Text('common.retry'.tr()),
               ),
             ],
           ),
@@ -363,7 +364,7 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
               ),
               const SizedBox(height: 12),
               Text(
-                'No hay recursos disponibles',
+                'resources.empty_title'.tr(),
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -372,7 +373,7 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Prueba con otro filtro o búsqueda',
+                'resources.empty_subtitle'.tr(),
                 style: TextStyle(fontSize: 13, color: c.textSecondary),
               ),
             ],
@@ -399,20 +400,20 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
   }
 
   String _buildListLabel(String? activeType) {
-    if (activeType == null) return 'Todos los archivos';
+    if (activeType == null) return 'resources.list_label.all'.tr();
     switch (activeType) {
       case 'document':
-        return 'Documentos';
+        return 'resources.list_label.document'.tr();
       case 'audio':
-        return 'Archivos de audio';
+        return 'resources.list_label.audio'.tr();
       case 'image':
-        return 'Imágenes';
+        return 'resources.list_label.image'.tr();
       case 'video_link':
-        return 'Videos';
+        return 'resources.list_label.video'.tr();
       case 'text':
-        return 'Contenido de texto';
+        return 'resources.list_label.text'.tr();
       default:
-        return 'Archivos';
+        return 'resources.list_label.files'.tr();
     }
   }
 }
