@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/validators.dart';
@@ -65,7 +66,7 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = 'Error inesperado. Intenta de nuevo.';
+        _errorMessage = 'auth.forgot_password_error'.tr();
         _isLoading = false;
       });
     }
@@ -123,13 +124,13 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
 
                 // Title
                 Text(
-                  'Recuperar contraseña',
+                  'auth.forgot_password_title'.tr(),
                   style: Theme.of(context).textTheme.displayMedium,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.',
+                  'auth.forgot_password_description'.tr(),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: context.sac.textSecondary,
                         height: 1.5,
@@ -152,9 +153,9 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                           color: AppColors.secondary,
                         ),
                         const SizedBox(height: 12),
-                        const Text(
-                          'Enlace enviado',
-                          style: TextStyle(
+                        Text(
+                          'auth.forgot_password_success_title'.tr(),
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
                             color: AppColors.secondaryDark,
@@ -162,7 +163,7 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Revisa tu bandeja de entrada en ${_emailController.text.trim()}',
+                          'auth.forgot_password_success_body'.tr(namedArgs: {'email': _emailController.text.trim()}),
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 14,
@@ -175,15 +176,15 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                   ),
                   const SizedBox(height: 40),
                   SacButton.outline(
-                    text: 'Volver al inicio de sesión',
+                    text: 'auth.back_to_login'.tr(),
                     onPressed: () => context.pop(),
                   ),
                 ] else ...[
                   // Email input
                   SacTextField(
                     controller: _emailController,
-                    label: 'Correo electrónico',
-                    hint: 'tu@correo.com',
+                    label: 'auth.email_label'.tr(),
+                    hint: 'auth.email_hint'.tr(),
                     keyboardType: TextInputType.emailAddress,
                     prefixIcon: HugeIcons.strokeRoundedMail01,
                     validator: Validators.validateEmail,
@@ -223,13 +224,13 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
 
                   // Submit button
                   SacButton.primary(
-                    text: 'Enviar enlace',
+                    text: 'auth.forgot_password_button'.tr(),
                     isLoading: _isLoading,
                     onPressed: _handleSubmit,
                   ),
                   const SizedBox(height: 40),
                   SacButton.ghost(
-                    text: 'Volver al inicio de sesión',
+                    text: 'auth.back_to_login'.tr(),
                     onPressed: () => context.pop(),
                   ),
                 ],

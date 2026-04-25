@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/sac_loading.dart';
 
@@ -36,7 +37,7 @@ class AuthGate extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Error de autenticación',
+                    'auth.error_title'.tr(),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
@@ -47,7 +48,7 @@ class AuthGate extends ConsumerWidget {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => ref.invalidate(authNotifierProvider),
-                    child: const Text('Reintentar'),
+                    child: Text('common.retry'.tr()),
                   ),
                 ],
               ),

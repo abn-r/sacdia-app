@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import '../../../../core/providers/app_bootstrap_provider.dart';
@@ -58,7 +59,7 @@ class _SplashViewState extends ConsumerState<SplashView>
 
     return bootstrapAsync.when(
       loading: () => const SacLoading(),
-      error: (_, __) => _buildErrorWidget('Ocurrió un error inesperado'),
+      error: (_, __) => _buildErrorWidget('auth.error_unexpected'.tr()),
       data: (state) => switch (state) {
         AppBootstrapError(:final message) => _buildErrorWidget(message),
         _ => const SacLoading(),
@@ -88,7 +89,7 @@ class _SplashViewState extends ConsumerState<SplashView>
           onPressed: () =>
               ref.read(appBootstrapProvider.notifier).retry(),
           icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Reintentar'),
+          label: Text('common.retry'.tr()),
         ),
       ],
     );

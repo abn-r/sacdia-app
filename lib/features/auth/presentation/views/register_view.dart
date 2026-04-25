@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
@@ -100,7 +101,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
       context.pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Cuenta creada. Ya puedes iniciar sesión.'),
+          content: Text('auth.register_success'.tr()),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
           shape:
@@ -116,7 +117,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
     final authState = ref.watch(authNotifierProvider);
     final isLoading = authState.isLoading;
     final errorMessage = authState.hasError
-        ? (authState.error?.toString() ?? 'Error al registrar la cuenta')
+        ? (authState.error?.toString() ?? 'auth.register_error'.tr())
         : null;
 
     // Responsive title: smaller on very small phones
@@ -160,7 +161,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                             ),
                             const SizedBox(width: 16),
                             Text(
-                              'Crear cuenta',
+                              'auth.register_title'.tr(),
                               style: titleStyle,
                             ),
                           ],
@@ -171,8 +172,8 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                       // Name fields
                       SacTextField(
                         controller: _nameController,
-                        label: 'Nombre',
-                        hint: 'Tu nombre',
+                        label: 'auth.name_label'.tr(),
+                        hint: 'auth.name_hint'.tr(),
                         keyboardType: TextInputType.name,
                         prefixIcon: HugeIcons.strokeRoundedUser,
                         validator: Validators.validateName,
@@ -183,26 +184,26 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                       // Surnames in a row
                       Row(
                         children: [
-                          Expanded(
-                            child: SacTextField(
-                              controller: _paternalController,
-                              label: 'Apellido paterno',
-                              hint: 'Paterno',
-                              keyboardType: TextInputType.name,
-                              validator: (v) => Validators.validateRequired(
-                                  v, 'apellido paterno'),
+                            Expanded(
+                              child: SacTextField(
+                                controller: _paternalController,
+                                label: 'auth.paternal_surname_label'.tr(),
+                                hint: 'auth.paternal_surname_hint'.tr(),
+                                keyboardType: TextInputType.name,
+                                validator: (v) => Validators.validateRequired(
+                                    v, 'auth.paternal_surname_field_name'.tr()),
                               textInputAction: TextInputAction.next,
                             ),
                           ),
                           const SizedBox(width: 12),
-                          Expanded(
-                            child: SacTextField(
-                              controller: _maternalController,
-                              label: 'Apellido materno',
-                              hint: 'Materno',
-                              keyboardType: TextInputType.name,
-                              validator: (v) => Validators.validateRequired(
-                                  v, 'apellido materno'),
+                            Expanded(
+                              child: SacTextField(
+                                controller: _maternalController,
+                                label: 'auth.maternal_surname_label'.tr(),
+                                hint: 'auth.maternal_surname_hint'.tr(),
+                                keyboardType: TextInputType.name,
+                                validator: (v) => Validators.validateRequired(
+                                    v, 'auth.maternal_surname_field_name'.tr()),
                               textInputAction: TextInputAction.next,
                             ),
                           ),
@@ -213,8 +214,8 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                       // Email
                       SacTextField(
                         controller: _emailController,
-                        label: 'Correo electrónico',
-                        hint: 'tu@correo.com',
+                        label: 'auth.email_label'.tr(),
+                        hint: 'auth.email_hint'.tr(),
                         keyboardType: TextInputType.emailAddress,
                         prefixIcon: HugeIcons.strokeRoundedMail01,
                         validator: Validators.validateEmail,
@@ -225,8 +226,8 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                       // Password
                       SacTextField(
                         controller: _passwordController,
-                        label: 'Contraseña',
-                        hint: 'Mínimo 8 caracteres, mayúscula, minúscula y número',
+                        label: 'auth.password_label'.tr(),
+                        hint: 'auth.password_hint'.tr(),
                         obscureText: true,
                         prefixIcon: HugeIcons.strokeRoundedLockKey,
                         validator: Validators.validatePassword,
@@ -244,8 +245,8 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                       // Confirm password
                       SacTextField(
                         controller: _confirmPasswordController,
-                        label: 'Confirmar contraseña',
-                        hint: 'Repite tu contraseña',
+                        label: 'auth.confirm_password_label'.tr(),
+                        hint: 'auth.confirm_password_hint'.tr(),
                         obscureText: true,
                         prefixIcon: HugeIcons.strokeRoundedLockKey,
                         validator: _validateConfirmPassword,
@@ -285,7 +286,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
 
                       // Register button
                       SacButton.primary(
-                        text: 'Crear Cuenta',
+                        text: 'auth.register_button'.tr(),
                         isLoading: isLoading,
                         isEnabled: _isButtonEnabled,
                         onPressed: _isButtonEnabled ? _signUp : null,
@@ -295,8 +296,8 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                       // Link to login
                       Center(
                         child: RichText(
-                          text: TextSpan(
-                            text: '¿Ya tienes cuenta? ',
+                        text: TextSpan(
+                          text: 'auth.have_account'.tr(),
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -304,8 +305,8 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                                   color: context.sac.textSecondary,
                                 ),
                             children: [
-                              TextSpan(
-                                text: 'Inicia sesión',
+                            TextSpan(
+                              text: 'auth.login_link'.tr(),
                                 style: const TextStyle(
                                   color: AppColors.primary,
                                   fontWeight: FontWeight.w600,
@@ -354,13 +355,13 @@ class _PasswordStrengthIndicator extends StatelessWidget {
       case 0:
         return '';
       case 1:
-        return 'Muy débil';
+        return 'auth.password_strength_very_weak'.tr();
       case 2:
-        return 'Débil';
+        return 'auth.password_strength_weak'.tr();
       case 3:
-        return 'Buena';
+        return 'auth.password_strength_good'.tr();
       case 4:
-        return 'Fuerte';
+        return 'auth.password_strength_strong'.tr();
       default:
         return '';
     }
