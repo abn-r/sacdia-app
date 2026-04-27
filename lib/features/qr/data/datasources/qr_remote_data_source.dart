@@ -11,12 +11,24 @@ abstract class QrRemoteDataSource {
   /// GET /qr/member/token
   Future<QrMemberTokenModel> getMemberToken({CancelToken? cancelToken});
 
-  /// POST /qr/scan
-  Future<QrScanResultModel> scanToken({
+  /// POST /qr/validate
+  Future<QrScanResultModel> validateToken({
     required String token,
     int? activityId,
     CancelToken? cancelToken,
   });
+
+  /// Legacy alias kept for callers that still use the scan naming.
+  Future<QrScanResultModel> scanToken({
+    required String token,
+    int? activityId,
+    CancelToken? cancelToken,
+  }) =>
+      validateToken(
+        token: token,
+        activityId: activityId,
+        cancelToken: cancelToken,
+      );
 }
 
 class QrRemoteDataSourceImpl implements QrRemoteDataSource {
@@ -50,14 +62,14 @@ class QrRemoteDataSourceImpl implements QrRemoteDataSource {
   }
 
   @override
-  Future<QrScanResultModel> scanToken({
+  Future<QrScanResultModel> validateToken({
     required String token,
     int? activityId,
     CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
-        '$_baseUrl${ApiEndpoints.qr}/scan',
+        '$_baseUrl${ApiEndpoints.qr}/validate',
         data: {
           'token': token,
           if (activityId != null) 'activity_id': activityId,
@@ -76,6 +88,18 @@ class QrRemoteDataSourceImpl implements QrRemoteDataSource {
       throw ServerException(message: msg, code: e.response?.statusCode);
     }
   }
+
+  @override
+  Future<QrScanResultModel> scanToken({
+    required String token,
+    int? activityId,
+    CancelToken? cancelToken,
+  }) =>
+      validateToken(
+        token: token,
+        activityId: activityId,
+        cancelToken: cancelToken,
+      );
 
   String _extractDioMessage(DioException e) {
     final data = e.response?.data;

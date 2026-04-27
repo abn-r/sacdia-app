@@ -26,7 +26,7 @@ class QrScanNotifier extends AutoDisposeAsyncNotifier<QrScanResult?> {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       final repo = ref.read(_qrScanRepositoryProvider);
-      return repo.scanToken(token: token, activityId: activityId);
+      return repo.validateToken(token: token, activityId: activityId);
     });
   }
 

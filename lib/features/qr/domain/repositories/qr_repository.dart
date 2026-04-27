@@ -8,8 +8,15 @@ abstract class QrRepository {
 
   /// Sends a scanned QR token to the backend for validation. When
   /// [activityId] is provided the backend also registers attendance.
-  Future<QrScanResult> scanToken({
+  Future<QrScanResult> validateToken({
     required String token,
     int? activityId,
   });
+
+  /// Legacy alias kept for older scan naming in the presentation layer.
+  Future<QrScanResult> scanToken({
+    required String token,
+    int? activityId,
+  }) =>
+      validateToken(token: token, activityId: activityId);
 }

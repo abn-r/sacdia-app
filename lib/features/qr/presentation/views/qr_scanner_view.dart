@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import '../../../../core/errors/exceptions.dart';
 import '../../domain/entities/qr_scan_result.dart';
 import '../providers/qr_scan_provider.dart';
 
@@ -299,7 +300,7 @@ class _ErrorBody extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          error.toString(),
+          qrScanErrorMessageKey(error).tr(),
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodySmall,
           maxLines: 4,
@@ -313,4 +314,12 @@ class _ErrorBody extends StatelessWidget {
       ],
     );
   }
+}
+
+String qrScanErrorMessageKey(Object error) {
+  if (error is ConnectionException) {
+    return 'common.error_network';
+  }
+
+  return 'qr.errors.scan_failed';
 }

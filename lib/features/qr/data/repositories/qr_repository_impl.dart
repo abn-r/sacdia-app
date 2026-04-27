@@ -15,10 +15,17 @@ class QrRepositoryImpl implements QrRepository {
   }
 
   @override
-  Future<QrScanResult> scanToken({
+  Future<QrScanResult> validateToken({
     required String token,
     int? activityId,
   }) {
-    return _remote.scanToken(token: token, activityId: activityId);
+    return _remote.validateToken(token: token, activityId: activityId);
   }
+
+  @override
+  Future<QrScanResult> scanToken({
+    required String token,
+    int? activityId,
+  }) =>
+      validateToken(token: token, activityId: activityId);
 }
