@@ -257,7 +257,8 @@
     "password_reset_sent": "Si el correo existe, recibirás un enlace de recuperación",
     "oauth_callback_failed": "Error al procesar el inicio de sesión con {provider}",
     "wrong_password": "Contraseña incorrecta",
-    "invalid_user_response": "La respuesta del servidor no contiene un ID de usuario válido"
+    "invalid_user_response": "La respuesta del servidor no contiene un ID de usuario válido",
+    "user_not_authenticated": "Usuario no autenticado"
   },
   "honors": {
     "errors": {
@@ -643,7 +644,8 @@
       "fetch_completion_status": "Error al obtener estado de completitud",
       "upload_profile_photo": "Error al subir foto de perfil",
       "delete_profile_photo": "Error al eliminar foto de perfil",
-      "complete_step_1": "Error al completar el paso 1 del post-registro"
+      "complete_step_1": "Error al completar el paso 1 del post-registro",
+      "max_emergency_contacts": "Máximo 5 contactos de emergencia permitidos"
     },
     "personal_info": {
       "errors": {
@@ -1170,7 +1172,8 @@
       "fetch_with_progress": "Error al obtener clase con progreso",
       "submit_requirement": "Error al enviar el requerimiento a validación",
       "upload_file": "Error al subir el archivo de evidencia",
-      "delete_file": "Error al eliminar el archivo de evidencia"
+      "delete_file": "Error al eliminar el archivo de evidencia",
+      "upload_failed": "Error al subir el archivo de evidencia"
     },
     "status": {
       "pending": "Pendiente",
@@ -1921,7 +1924,8 @@
       "submit_folder": "Error al enviar la carpeta a validación",
       "submit_section": "Error al enviar la sección a validación",
       "upload_file": "Error al subir el archivo",
-      "delete_file": "Error al eliminar el archivo"
+      "delete_file": "Error al eliminar el archivo",
+      "upload_failed": "Error al subir el archivo"
     },
     "title": "Carpeta de Evidencias",
     "section_title": "Sección",

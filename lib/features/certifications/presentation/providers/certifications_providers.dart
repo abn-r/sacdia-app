@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/dio_provider.dart';
@@ -83,7 +84,7 @@ final userCertificationsProvider =
   );
 
   if (userId == null) {
-    throw Exception('Usuario no autenticado');
+    throw Exception(tr('errors.user_not_authenticated'));
   }
 
   final repository = ref.read(certificationsRepositoryProvider);
@@ -111,7 +112,7 @@ final certificationProgressProvider =
   );
 
   if (userId == null) {
-    throw Exception('Usuario no autenticado');
+    throw Exception(tr('errors.user_not_authenticated'));
   }
 
   final repository = ref.read(certificationsRepositoryProvider);

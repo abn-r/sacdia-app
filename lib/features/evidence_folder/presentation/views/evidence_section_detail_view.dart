@@ -249,7 +249,7 @@ class _EvidenceSectionDetailViewState
                             onProgress: onProgress,
                             skipInvalidation: true,
                           );
-                      if (!success) throw Exception('Upload failed');
+                      if (!success) throw Exception(tr('evidence_folder.errors.upload_failed'));
                     },
                     onDeleteRemote: (fileId) async {
                       await ref

@@ -257,7 +257,8 @@
     "password_reset_sent": "Se o e-mail existir, você receberá um link de recuperação",
     "oauth_callback_failed": "Erro ao processar retorno de autenticação com {provider}",
     "wrong_password": "Senha incorreta",
-    "invalid_user_response": "A resposta do servidor não contém um ID de usuário válido"
+    "invalid_user_response": "A resposta do servidor não contém um ID de usuário válido",
+    "user_not_authenticated": "Usuário não autenticado"
   },
   "honors": {
     "errors": {
@@ -643,7 +644,8 @@
       "fetch_completion_status": "Erro ao obter status de conclusão",
       "upload_profile_photo": "Erro ao enviar foto de perfil",
       "delete_profile_photo": "Erro ao excluir foto de perfil",
-      "complete_step_1": "Erro ao concluir a etapa 1 do pós-cadastro"
+      "complete_step_1": "Erro ao concluir a etapa 1 do pós-cadastro",
+      "max_emergency_contacts": "Máximo de 5 contatos de emergência permitidos"
     },
     "personal_info": {
       "errors": {
@@ -1170,7 +1172,8 @@
       "fetch_with_progress": "Erro ao obter classe com progresso",
       "submit_requirement": "Erro ao enviar requisito para validação",
       "upload_file": "Erro ao enviar arquivo de evidência",
-      "delete_file": "Erro ao excluir arquivo de evidência"
+      "delete_file": "Erro ao excluir arquivo de evidência",
+      "upload_failed": "Erro ao enviar arquivo de evidência"
     },
     "status": {
       "pending": "Pendente",
@@ -1921,7 +1924,8 @@
       "submit_folder": "Erro ao enviar a pasta para validação",
       "submit_section": "Erro ao enviar a seção para validação",
       "upload_file": "Erro ao fazer upload do arquivo",
-      "delete_file": "Erro ao excluir o arquivo"
+      "delete_file": "Erro ao excluir o arquivo",
+      "upload_failed": "Erro ao fazer upload do arquivo"
     },
     "title": "Pasta de Evidências",
     "section_title": "Seção",

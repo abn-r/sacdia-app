@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/datasources/personal_info_remote_data_source.dart';
 import '../../data/models/emergency_contact_model.dart';
@@ -120,7 +121,7 @@ class UserAllergiesNotifier
       final authState = ref.read(authNotifierProvider);
       final userId = authState.valueOrNull?.id;
 
-      if (userId == null) throw Exception('Usuario no autenticado');
+      if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
       await dataSource.deleteUserAllergy(userId, allergyId);
@@ -141,7 +142,7 @@ class UserAllergiesNotifier
       final authState = ref.read(authNotifierProvider);
       final userId = authState.valueOrNull?.id;
 
-      if (userId == null) throw Exception('Usuario no autenticado');
+      if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
       await dataSource.saveUserAllergies(userId, allergyIds);
@@ -200,7 +201,7 @@ class UserDiseasesNotifier
       final authState = ref.read(authNotifierProvider);
       final userId = authState.valueOrNull?.id;
 
-      if (userId == null) throw Exception('Usuario no autenticado');
+      if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
       await dataSource.deleteUserDisease(userId, diseaseId);
@@ -221,7 +222,7 @@ class UserDiseasesNotifier
       final authState = ref.read(authNotifierProvider);
       final userId = authState.valueOrNull?.id;
 
-      if (userId == null) throw Exception('Usuario no autenticado');
+      if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
       await dataSource.saveUserDiseases(userId, diseaseIds);
@@ -293,7 +294,7 @@ class UserMedicinesNotifier
       final authState = ref.read(authNotifierProvider);
       final userId = authState.valueOrNull?.id;
 
-      if (userId == null) throw Exception('Usuario no autenticado');
+      if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
       await dataSource.deleteUserMedicine(userId, medicineId);
@@ -314,7 +315,7 @@ class UserMedicinesNotifier
       final authState = ref.read(authNotifierProvider);
       final userId = authState.valueOrNull?.id;
 
-      if (userId == null) throw Exception('Usuario no autenticado');
+      if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
       await dataSource.saveUserMedicines(userId, medicineIds);
@@ -388,10 +389,10 @@ class EmergencyContactsNotifier
       final authState = ref.read(authNotifierProvider);
       final userId = authState.valueOrNull?.id;
 
-      if (userId == null) throw Exception('Usuario no autenticado');
+      if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
       if (currentContacts.length >= 5) {
-        throw Exception('Máximo 5 contactos de emergencia permitidos');
+        throw Exception(tr('post_registration.errors.max_emergency_contacts'));
       }
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
@@ -410,7 +411,7 @@ class EmergencyContactsNotifier
       final authState = ref.read(authNotifierProvider);
       final userId = authState.valueOrNull?.id;
 
-      if (userId == null) throw Exception('Usuario no autenticado');
+      if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
       await dataSource.updateEmergencyContact(userId, contactId, contact);
@@ -427,7 +428,7 @@ class EmergencyContactsNotifier
       final authState = ref.read(authNotifierProvider);
       final userId = authState.valueOrNull?.id;
 
-      if (userId == null) throw Exception('Usuario no autenticado');
+      if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
       await dataSource.deleteEmergencyContact(userId, contactId);
@@ -483,7 +484,7 @@ class LegalRepresentativeNotifier
       final authState = ref.read(authNotifierProvider);
       final userId = authState.valueOrNull?.id;
 
-      if (userId == null) throw Exception('Usuario no autenticado');
+      if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
       final existing = await dataSource.getLegalRepresentative(userId);
@@ -556,7 +557,7 @@ class SavePersonalInfoNotifier extends AutoDisposeAsyncNotifier<void> {
       final authState = ref.read(authNotifierProvider);
       final userId = authState.valueOrNull?.id;
 
-      if (userId == null) throw Exception('Usuario no autenticado');
+      if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
       final formState = ref.read(personalInfoFormProvider);
       final dataSource = ref.read(personalInfoDataSourceProvider);

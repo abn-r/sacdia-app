@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -96,7 +97,7 @@ final userClassesProvider =
   );
 
   if (userId == null) {
-    throw Exception('Usuario no autenticado');
+    throw Exception(tr('errors.user_not_authenticated'));
   }
 
   final getUserClasses = ref.read(getUserClassesProvider);
@@ -179,7 +180,7 @@ final classWithProgressProvider = FutureProvider.autoDispose
   );
 
   if (userId == null) {
-    throw Exception('Usuario no autenticado');
+    throw Exception(tr('errors.user_not_authenticated'));
   }
 
   final useCase = ref.read(getClassWithProgressUseCaseProvider);
