@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/auth/domain/entities/user_entity.dart';
@@ -84,7 +85,7 @@ class AppBootstrapNotifier extends AsyncNotifier<AppBootstrapState> {
       user = await ref.read(authNotifierProvider.future);
     } catch (e, st) {
       AppLogger.e('Auth future threw: $e', tag: _tag, error: e, stackTrace: st);
-      return const AppBootstrapError('Error inesperado al verificar sesión', 0);
+      return AppBootstrapError(tr('core.bootstrap.unexpected_session_error'), 0);
     }
 
     if (user == null) {
@@ -127,7 +128,7 @@ class AppBootstrapNotifier extends AsyncNotifier<AppBootstrapState> {
 
     AppLogger.w('Auto-retries exhausted', tag: _tag);
     return AppBootstrapError(
-      'No pudimos cargar tus permisos',
+      tr('core.bootstrap.permissions_load_failed'),
       _autoRetryCount,
     );
   }

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/sac_colors.dart';
@@ -18,10 +19,10 @@ class TransactionTypeTabs extends StatelessWidget {
     required this.onChanged,
   });
 
-  static const _tabs = <(String, TransactionType?)>[
-    ('Todo', null),
-    ('Ingresos', TransactionType.income),
-    ('Egresos', TransactionType.expense),
+  static List<(String, TransactionType?)> get _tabs => [
+    ('finances.widgets.tab_all'.tr(), null),
+    ('finances.widgets.tab_income'.tr(), TransactionType.income),
+    ('finances.widgets.tab_expense'.tr(), TransactionType.expense),
   ];
 
   @override

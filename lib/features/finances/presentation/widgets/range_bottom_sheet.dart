@@ -1,5 +1,5 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -78,7 +78,7 @@ class _RangeBottomSheetState extends State<RangeBottomSheet> {
           Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              'Rango de fechas',
+              'finances.widgets.range_title'.tr(),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -94,19 +94,19 @@ class _RangeBottomSheetState extends State<RangeBottomSheet> {
               children: [
                 _RangeOption(
                   preset: DateRangePreset.thisMonth,
-                  label: 'Este mes',
+                  label: 'finances.widgets.range_this_month'.tr(),
                 ),
                 _RangeOption(
                   preset: DateRangePreset.last3Months,
-                  label: 'Últimos 3 meses',
+                  label: 'finances.widgets.range_last_3_months'.tr(),
                 ),
                 _RangeOption(
                   preset: DateRangePreset.lastYear,
-                  label: 'Último año',
+                  label: 'finances.widgets.range_last_year'.tr(),
                 ),
                 _RangeOption(
                   preset: DateRangePreset.custom,
-                  label: 'Rango personalizado',
+                  label: 'finances.widgets.range_custom'.tr(),
                 ),
               ],
             ),
@@ -204,7 +204,7 @@ class _CustomDateFields extends StatelessWidget {
         children: [
           Expanded(
             child: _DateField(
-              label: 'Desde',
+              label: 'finances.widgets.range_from'.tr(),
               date: startDate,
               onTap: () => _pickDate(
                 context,
@@ -216,7 +216,7 @@ class _CustomDateFields extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: _DateField(
-              label: 'Hasta',
+              label: 'finances.widgets.range_to'.tr(),
               date: endDate,
               onTap: () => _pickDate(
                 context,
@@ -321,9 +321,9 @@ class _BottomSheetApplyButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
           ),
         ),
-        child: const Text(
-          'Aplicar',
-          style: TextStyle(
+        child: Text(
+          'finances.widgets.apply'.tr(),
+          style: const TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,
             color: Colors.white,

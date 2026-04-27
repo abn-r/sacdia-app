@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -41,7 +42,7 @@ class ClubContextCard extends ConsumerWidget {
 
     // Try to get the club type name from the section data
     final sectionAsync = ref.watch(currentClubSectionProvider);
-    final clubTypeName = sectionAsync.valueOrNull?.clubTypeName ?? 'Club';
+    final clubTypeName = sectionAsync.valueOrNull?.clubTypeName ?? tr('home.club_context.default_club_type');
 
     final c = context.sac;
 
@@ -144,9 +145,9 @@ class _MembershipStatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (String label, Color bg, Color fg) = switch (grant.status) {
-      'pending' => ('Pendiente', AppColors.accentLight, AppColors.accentDark),
-      'rejected' => ('Rechazado', AppColors.errorLight, AppColors.errorDark),
-      'expired' => ('Expirado', AppColors.lightBorderLight, AppColors.lightTextSecondary),
+      'pending' => (tr('home.club_context.status_pending'), AppColors.accentLight, AppColors.accentDark),
+      'rejected' => (tr('home.club_context.status_rejected'), AppColors.errorLight, AppColors.errorDark),
+      'expired' => (tr('home.club_context.status_expired'), AppColors.lightBorderLight, AppColors.lightTextSecondary),
       _ => ('', Colors.transparent, Colors.transparent),
     };
 

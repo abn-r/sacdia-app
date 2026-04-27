@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
@@ -391,7 +392,7 @@ final membersByClassProvider = Provider.autoDispose<Map<String, List<ClubMember>
   final grouped = <String, List<ClubMember>>{};
 
   for (final member in members) {
-    final key = member.currentClass ?? 'Sin clase';
+    final key = member.currentClass ?? tr('members.errors.no_class');
     grouped.putIfAbsent(key, () => []).add(member);
   }
 
@@ -400,8 +401,9 @@ final membersByClassProvider = Provider.autoDispose<Map<String, List<ClubMember>
   final sortedKeys = grouped.keys.toList()
     ..sort((a, b) {
       // "Sin clase" siempre al final
-      if (a == 'Sin clase') return 1;
-      if (b == 'Sin clase') return -1;
+      final noClass = tr('members.errors.no_class');
+      if (a == noClass) return 1;
+      if (b == noClass) return -1;
       return _classOrder(a).compareTo(_classOrder(b));
     });
   for (final key in sortedKeys) {

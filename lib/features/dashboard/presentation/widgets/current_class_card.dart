@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -100,7 +101,7 @@ class CurrentClassCard extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Mi Clase Actual',
+                  tr('dashboard.class_card.label'),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: context.sac.textSecondary,
@@ -109,7 +110,7 @@ class CurrentClassCard extends ConsumerWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  currentClassName ?? 'Sin clase asignada',
+                  currentClassName ?? tr('dashboard.class_card.no_class'),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: context.sac.text,
@@ -227,7 +228,7 @@ class _CompletadaBadge extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            'Completada',
+            tr('dashboard.class_card.completed'),
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,

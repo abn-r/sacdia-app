@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -599,7 +600,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           final userHonorId =
               int.tryParse(state.pathParameters['userHonorId']!) ?? 0;
           final honorName =
-              state.uri.queryParameters['name'] ?? 'Requisitos';
+              state.uri.queryParameters['name'] ?? tr('router.honor_requirements.default_title');
           return _sharedAxisBuild(
             context,
             state,
@@ -692,7 +693,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           final camporeeIdStr = state.pathParameters['camporeeId']!;
           final camporeeId = int.tryParse(camporeeIdStr) ?? 0;
           final camporeeName =
-              state.uri.queryParameters['name'] ?? 'Camporee';
+              state.uri.queryParameters['name'] ?? tr('router.camporee_members.default_name');
           return _sharedAxisBuild(
             context,
             state,
@@ -1008,16 +1009,19 @@ class _NavItemConfig {
   final int branchIndex;
   final String route;
   final List<List<dynamic>> icon;
-  final String label;
+  /// i18n key resolved via tr() at build time.
+  final String labelKey;
   final Set<String> requiredPermissions;
 
   const _NavItemConfig({
     required this.branchIndex,
     required this.route,
     required this.icon,
-    required this.label,
+    required this.labelKey,
     this.requiredPermissions = const {},
   });
+
+  String get label => tr(labelKey);
 }
 
 const List<_NavItemConfig> _navItemsConfig = [
@@ -1025,27 +1029,27 @@ const List<_NavItemConfig> _navItemsConfig = [
     branchIndex: 0,
     route: RouteNames.homeDashboard,
     icon: HugeIcons.strokeRoundedHome01,
-    label: 'Inicio',
+    labelKey: 'router.nav.home',
   ),
   _NavItemConfig(
     branchIndex: 1,
     route: RouteNames.homeClasses,
     icon: HugeIcons.strokeRoundedSchool,
-    label: 'Clases',
+    labelKey: 'router.nav.classes',
     requiredPermissions: {'classes:read'},
   ),
   _NavItemConfig(
     branchIndex: 2,
     route: RouteNames.homeActivities,
     icon: HugeIcons.strokeRoundedCalendar01,
-    label: 'Actividades',
+    labelKey: 'router.nav.activities',
     requiredPermissions: {'activities:read'},
   ),
   _NavItemConfig(
     branchIndex: 3,
     route: RouteNames.homeProfile,
     icon: HugeIcons.strokeRoundedUser,
-    label: 'Perfil',
+    labelKey: 'router.nav.profile',
   ),
 ];
 
@@ -1186,12 +1190,14 @@ class _EvidenceFolderShell extends ConsumerWidget {
         ),
       ),
       error: (e, _) => Scaffold(
-        appBar: AppBar(title: const Text('Carpeta de Evidencias')),
+        appBar: AppBar(title: Text(tr('router.evidence_folder.title'))),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(32),
             child: Text(
-              'No se pudo cargar el contexto del club.\n${e.toString().replaceFirst("Exception: ", "")}',
+              tr('router.evidence_folder.context_error', namedArgs: {
+                'error': e.toString().replaceFirst('Exception: ', ''),
+              }),
               textAlign: TextAlign.center,
             ),
           ),
@@ -1200,12 +1206,12 @@ class _EvidenceFolderShell extends ConsumerWidget {
       data: (section) {
         if (section == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Carpeta de Evidencias')),
-            body: const Center(
+            appBar: AppBar(title: Text(tr('router.evidence_folder.title'))),
+            body: Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: const EdgeInsets.all(32),
                 child: Text(
-                  'No hay un club activo seleccionado. Por favor selecciona un club desde tu perfil.',
+                  tr('router.evidence_folder.no_active_club'),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -1243,12 +1249,14 @@ class _ActiveClassDetailShell extends ConsumerWidget {
         ),
       ),
       error: (e, _) => Scaffold(
-        appBar: AppBar(title: const Text('Mi Clase')),
+        appBar: AppBar(title: Text(tr('router.active_class.title'))),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(32),
             child: Text(
-              'No se pudo cargar la clase.\n${e.toString().replaceFirst("Exception: ", "")}',
+              tr('router.active_class.load_error', namedArgs: {
+                'error': e.toString().replaceFirst('Exception: ', ''),
+              }),
               textAlign: TextAlign.center,
             ),
           ),
@@ -1257,12 +1265,12 @@ class _ActiveClassDetailShell extends ConsumerWidget {
       data: (classes) {
         if (classes.isEmpty) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Mi Clase')),
-            body: const Center(
+            appBar: AppBar(title: Text(tr('router.active_class.title'))),
+            body: Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: const EdgeInsets.all(32),
                 child: Text(
-                  'No tienes ninguna clase asignada. Inscríbete en un club para comenzar.',
+                  tr('router.active_class.no_class_assigned'),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -1356,7 +1364,7 @@ class _OAuthCallbackScreenState extends ConsumerState<_OAuthCallbackScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'Completando inicio de sesión...',
+              tr('router.oauth_callback.completing_signin'),
               style: Theme.of(context).textTheme.bodyLarge,
             ),
           ],

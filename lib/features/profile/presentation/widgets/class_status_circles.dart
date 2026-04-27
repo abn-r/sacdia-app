@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -42,36 +43,36 @@ class ClassStatusCircles extends ConsumerWidget {
 
     if (type.contains('aventurero')) {
       return const [
-        _ClassLogoData('Corderitos', 'assets/img/logos-clases/AV-01.png', AppColors.colorCorderitos),
-        _ClassLogoData('Aves Madrugadoras', 'assets/img/logos-clases/AV-02.png', AppColors.colorCastores),
-        _ClassLogoData('Abejitas Industriosas', 'assets/img/logos-clases/AV-03.png', AppColors.colorAbejas),
-        _ClassLogoData('Rayos de Sol', 'assets/img/logos-clases/AV-04.png', AppColors.colorRayos),
-        _ClassLogoData('Constructores', 'assets/img/logos-clases/AV-05.png', AppColors.colorConstructores),
-        _ClassLogoData('Manos Ayudadoras', 'assets/img/logos-clases/AV-06.png', AppColors.colorManos),
+        _ClassLogoData('Corderitos', 'assets/img/logos-clases/AV-01.png', AppColors.colorCorderitos, 'domain.classes.lambs'),
+        _ClassLogoData('Aves Madrugadoras', 'assets/img/logos-clases/AV-02.png', AppColors.colorCastores, 'domain.classes.eager_beavers'),
+        _ClassLogoData('Abejitas Industriosas', 'assets/img/logos-clases/AV-03.png', AppColors.colorAbejas, 'domain.classes.busy_bees'),
+        _ClassLogoData('Rayos de Sol', 'assets/img/logos-clases/AV-04.png', AppColors.colorRayos, 'domain.classes.sunbeams'),
+        _ClassLogoData('Constructores', 'assets/img/logos-clases/AV-05.png', AppColors.colorConstructores, 'domain.classes.builders'),
+        _ClassLogoData('Manos Ayudadoras', 'assets/img/logos-clases/AV-06.png', AppColors.colorManos, 'domain.classes.helping_hands'),
       ];
     }
 
     if (type.contains('guía') || type.contains('guia')) {
       // Guías Mayores: all Conquistador classes + GM-01
       return const [
-        _ClassLogoData('Amigo', 'assets/img/logos-clases/CQ-01.png', AppColors.colorAmigo),
-        _ClassLogoData('Compañero', 'assets/img/logos-clases/CQ-02.png', AppColors.colorCompanero),
-        _ClassLogoData('Explorador', 'assets/img/logos-clases/CQ-03.png', AppColors.colorExplorador),
-        _ClassLogoData('Orientador', 'assets/img/logos-clases/CQ-04.png', AppColors.colorOrientador),
-        _ClassLogoData('Viajero', 'assets/img/logos-clases/CQ-05.png', AppColors.colorViajero),
-        _ClassLogoData('Guía', 'assets/img/logos-clases/CQ-06.png', AppColors.colorGuia),
-        _ClassLogoData('Guía Mayor', 'assets/img/logos-clases/GM-01.png', AppColors.colorGuiaMayor),
+        _ClassLogoData('Amigo', 'assets/img/logos-clases/CQ-01.png', AppColors.colorAmigo, 'domain.classes.friend'),
+        _ClassLogoData('Compañero', 'assets/img/logos-clases/CQ-02.png', AppColors.colorCompanero, 'domain.classes.companion'),
+        _ClassLogoData('Explorador', 'assets/img/logos-clases/CQ-03.png', AppColors.colorExplorador, 'domain.classes.explorer'),
+        _ClassLogoData('Orientador', 'assets/img/logos-clases/CQ-04.png', AppColors.colorOrientador, 'domain.classes.pioneer'),
+        _ClassLogoData('Viajero', 'assets/img/logos-clases/CQ-05.png', AppColors.colorViajero, 'domain.classes.voyager'),
+        _ClassLogoData('Guía', 'assets/img/logos-clases/CQ-06.png', AppColors.colorGuia, 'domain.classes.guide'),
+        _ClassLogoData('Guía Mayor', 'assets/img/logos-clases/GM-01.png', AppColors.colorGuiaMayor, 'domain.classes.master_guide'),
       ];
     }
 
     // Default: Conquistadores
     return const [
-      _ClassLogoData('Amigo', 'assets/img/logos-clases/CQ-01.png', AppColors.colorAmigo),
-      _ClassLogoData('Compañero', 'assets/img/logos-clases/CQ-02.png', AppColors.colorCompanero),
-      _ClassLogoData('Explorador', 'assets/img/logos-clases/CQ-03.png', AppColors.colorExplorador),
-      _ClassLogoData('Orientador', 'assets/img/logos-clases/CQ-04.png', AppColors.colorOrientador),
-      _ClassLogoData('Viajero', 'assets/img/logos-clases/CQ-05.png', AppColors.colorViajero),
-      _ClassLogoData('Guía', 'assets/img/logos-clases/CQ-06.png', AppColors.colorGuia),
+      _ClassLogoData('Amigo', 'assets/img/logos-clases/CQ-01.png', AppColors.colorAmigo, 'domain.classes.friend'),
+      _ClassLogoData('Compañero', 'assets/img/logos-clases/CQ-02.png', AppColors.colorCompanero, 'domain.classes.companion'),
+      _ClassLogoData('Explorador', 'assets/img/logos-clases/CQ-03.png', AppColors.colorExplorador, 'domain.classes.explorer'),
+      _ClassLogoData('Orientador', 'assets/img/logos-clases/CQ-04.png', AppColors.colorOrientador, 'domain.classes.pioneer'),
+      _ClassLogoData('Viajero', 'assets/img/logos-clases/CQ-05.png', AppColors.colorViajero, 'domain.classes.voyager'),
+      _ClassLogoData('Guía', 'assets/img/logos-clases/CQ-06.png', AppColors.colorGuia, 'domain.classes.guide'),
     ];
   }
 
@@ -115,6 +116,7 @@ class ClassStatusCircles extends ConsumerWidget {
               assetPath: gmLogo.assetPath,
               color: gmLogo.color,
               state: _resolveState(gmLogo, enrolledByName),
+              translationKey: gmLogo.translationKey,
               classId: enrolledByName[gmLogo.className]?.id,
               fallbackProgress:
                   enrolledByName[gmLogo.className]?.overallProgress,
@@ -135,6 +137,7 @@ class ClassStatusCircles extends ConsumerWidget {
                     assetPath: logo.assetPath,
                     color: logo.color,
                     state: _resolveState(logo, enrolledByName),
+                    translationKey: logo.translationKey,
                     classId: enrolledByName[logo.className]?.id,
                     fallbackProgress:
                         enrolledByName[logo.className]?.overallProgress,
@@ -156,7 +159,12 @@ class _ClassLogoData {
   final String assetPath;
   final Color color;
 
-  const _ClassLogoData(this.className, this.assetPath, this.color);
+  /// Translation key used for display. Falls back to [className] if not provided.
+  final String? translationKey;
+
+  const _ClassLogoData(this.className, this.assetPath, this.color, [this.translationKey]);
+
+  String get displayName => translationKey != null ? translationKey!.tr() : className;
 }
 
 // ── Logo widget con soporte para los 3 estados ───────────────────────────────
@@ -166,6 +174,7 @@ class _ClassLogo extends ConsumerWidget {
   final String assetPath;
   final _ClassState state;
   final Color color;
+  final String? translationKey;
 
   /// ID de la clase para obtener el progreso preciso desde
   /// [classWithProgressProvider]. Null cuando el usuario no está inscrito.
@@ -180,6 +189,7 @@ class _ClassLogo extends ConsumerWidget {
     required this.assetPath,
     required this.state,
     required this.color,
+    this.translationKey,
     this.classId,
     this.fallbackProgress,
   });
@@ -244,7 +254,7 @@ class _ClassLogo extends ConsumerWidget {
         SizedBox(
           width: size + 8,
           child: Text(
-            className,
+            translationKey != null ? translationKey!.tr() : className,
             style: TextStyle(
               fontSize: 9,
               fontWeight: state == _ClassState.invested

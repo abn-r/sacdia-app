@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -91,17 +92,17 @@ class UserHonor extends Equatable {
   String get statusLabel {
     switch (displayStatus) {
       case 'validado':
-        return 'Validada';
+        return tr('honors.user_status.validated');
       case 'enviado':
-        return 'Enviada — en revision';
+        return tr('honors.user_status.submitted');
       case 'en_progreso':
-        return 'En progreso';
+        return tr('honors.user_status.in_progress');
       case 'rechazado':
-        return 'Rechazada';
+        return tr('honors.user_status.rejected');
       case 'inscrito':
-        return 'Inscrito — sin evidencia';
+        return tr('honors.user_status.enrolled');
       default:
-        return 'Disponible';
+        return tr('honors.user_status.available');
     }
   }
 

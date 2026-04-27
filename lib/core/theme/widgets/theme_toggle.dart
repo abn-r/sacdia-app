@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -42,7 +43,7 @@ class ThemeToggle extends ConsumerWidget {
             if (showText) ...[
               const SizedBox(width: AppConstants.paddingS),
               Text(
-                isDarkMode ? 'Tema claro' : 'Tema oscuro',
+                isDarkMode ? tr('core.theme.light_mode') : tr('core.theme.dark_mode'),
                 style: TextStyle(color: color),
               ),
             ],

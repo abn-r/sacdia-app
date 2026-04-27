@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -97,7 +98,7 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         title: Text(
-          'Notificaciones',
+          'notifications.inbox.title'.tr(),
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: c.text,
@@ -115,7 +116,7 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
                   size: 22,
                   color: c.text,
                 ),
-                tooltip: 'Notificaciones',
+                tooltip: 'notifications.inbox.tooltip_bell'.tr(),
               ),
               if (unreadCount > 0)
                 Positioned(
@@ -153,7 +154,7 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
                 size: 22,
                 color: c.text,
               ),
-              tooltip: 'Marcar todas como leídas',
+              tooltip: 'notifications.inbox.tooltip_mark_read'.tr(),
             ),
           // Refresh
           IconButton(
@@ -165,7 +166,7 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
               size: 22,
               color: c.text,
             ),
-            tooltip: 'Actualizar',
+            tooltip: 'notifications.inbox.tooltip_refresh'.tr(),
           ),
         ],
       ),
@@ -240,7 +241,7 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
             ),
             const SizedBox(height: 16),
             Text(
-              'No tienes notificaciones',
+              'notifications.inbox.empty_title'.tr(),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: c.text,
@@ -248,7 +249,7 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
             ),
             const SizedBox(height: 8),
             Text(
-              'Cuando recibas notificaciones, van a aparecer acá.',
+              'notifications.inbox.empty_subtitle'.tr(),
               style: TextStyle(fontSize: 14, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
@@ -277,7 +278,7 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
             ),
             const SizedBox(height: 16),
             Text(
-              'Error al cargar notificaciones',
+              'notifications.inbox.error_title'.tr(),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -290,7 +291,7 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
             ),
             const SizedBox(height: 24),
             SacButton.primary(
-              text: 'Reintentar',
+              text: 'notifications.inbox.retry'.tr(),
               icon: HugeIcons.strokeRoundedRefresh,
               onPressed: () =>
                   ref.read(notificationsInboxProvider.notifier).refresh(),
@@ -330,7 +331,7 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
             icon:
                 Icon(Icons.refresh_rounded, size: 16, color: AppColors.primary),
             label: Text(
-              'Error al cargar más. Tocar para reintentar.',
+              'notifications.inbox.load_more_error'.tr(),
               style: TextStyle(fontSize: 13, color: c.textSecondary),
             ),
           ),

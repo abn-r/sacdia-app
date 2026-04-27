@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -104,7 +105,7 @@ class ProfileNotifier extends AutoDisposeAsyncNotifier<UserDetail?> {
 
     if (user == null) {
       state = AsyncValue.error(
-        'No hay usuario autenticado',
+        'profile.errors.not_authenticated'.tr(),
         StackTrace.current,
       );
       return;

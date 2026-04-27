@@ -22,7 +22,22 @@
     "clear": "Effacer",
     "items_selected_one": "1 élément sélectionné",
     "items_selected_other": "{count} éléments sélectionnés",
-    "optional": "(optionnel)"
+    "optional": "(optionnel)",
+    "months": {
+      "january": "Janvier",
+      "february": "Février",
+      "march": "Mars",
+      "april": "Avril",
+      "may": "Mai",
+      "june": "Juin",
+      "july": "Juillet",
+      "august": "Août",
+      "september": "Septembre",
+      "october": "Octobre",
+      "november": "Novembre",
+      "december": "Décembre",
+      "unknown": "Mois {month}"
+    }
   },
   "nav": {
     "home": "Accueil",
@@ -133,7 +148,17 @@
     "password_strength_weak": "Faible",
     "password_strength_good": "Bonne",
     "password_strength_strong": "Fort",
-    "email_hint": "vous@email.com"
+    "email_hint": "vous@email.com",
+    "errors": {
+      "sign_in_failed": "Erreur de connexion",
+      "sign_up_failed": "Erreur d'inscription",
+      "sign_in_google_failed": "Erreur de connexion Google",
+      "sign_in_apple_failed": "Erreur de connexion Apple",
+      "change_password_failed": "Erreur lors du changement de mot de passe",
+      "delete_account_failed": "Erreur lors de la suppression du compte",
+      "sign_out_failed": "Erreur lors de la déconnexion",
+      "operation_cancelled": "Opération annulée"
+    }
   },
   "qr": {
     "my_credential": "Ma carte QR",
@@ -258,7 +283,14 @@
     "oauth_callback_failed": "Erreur lors du traitement du retour d'authentification {provider}",
     "wrong_password": "Mot de passe incorrect",
     "invalid_user_response": "La réponse du serveur ne contient pas d'identifiant utilisateur valide",
-    "user_not_authenticated": "Utilisateur non authentifié"
+    "user_not_authenticated": "Utilisateur non authentifié",
+    "connection_timeout": "Délai de connexion expiré. Vérifiez votre connexion.",
+    "server_error": "Erreur du serveur",
+    "request_cancelled": "Requête annulée",
+    "connection_error": "Erreur de connexion. Vérifiez votre réseau.",
+    "no_internet": "Pas de connexion Internet",
+    "ssl_invalid": "Certificat SSL invalide",
+    "oauth_redirecting": "Redirection vers {provider}. Terminez le processus dans votre navigateur."
   },
   "honors": {
     "errors": {
@@ -439,6 +471,14 @@
       "complete_n_of_m": "Complétez {min} sur {total}",
       "completed_one": "{count} complété",
       "completed_other": "{count} complétés"
+    },
+    "user_status": {
+      "validated": "Validée",
+      "submitted": "Soumise — en révision",
+      "in_progress": "En cours",
+      "rejected": "Rejetée",
+      "enrolled": "Inscrit — sans preuve",
+      "available": "Disponible"
     }
   },
   "activities": {
@@ -928,7 +968,9 @@
       "fetch_scoring_categories": "Erreur lors de la récupération des catégories de score",
       "fetch_member_of_month": "Erreur lors de la récupération du membre du mois",
       "fetch_member_of_month_history": "Erreur lors de la récupération de l'historique du membre du mois",
-      "unexpected_response": "Réponse inattendue du serveur"
+      "unexpected_response": "Réponse inattendue du serveur",
+      "save_failed_one": "Échec d'enregistrement pour 1 membre",
+      "save_failed_other": "Échec d'enregistrement pour {count} membres"
     },
     "list": {
       "title": "Mis Unidades",
@@ -1071,7 +1113,8 @@
       "error_reject": "Erreur lors du rejet",
       "payment_type_inscription": "Inscription",
       "payment_type_materials": "Matériaux",
-      "payment_type_other": "Autre"
+      "payment_type_other": "Autre",
+      "unknown_club": "Club inconnu"
     },
     "evidence_review": {
       "list": {
@@ -1158,6 +1201,20 @@
       "reject_reason_label": "Motif du rejet *",
       "reject_reason_hint": "Le motif est obligatoire",
       "reject_reason_required": "Le motif est obligatoire"
+    },
+    "camporee_scope": {
+      "local": "Local",
+      "union": "Union"
+    },
+    "approval_type": {
+      "clubs": "Clubs",
+      "members": "Membres",
+      "payments": "Paiements"
+    },
+    "evidence_type": {
+      "folder": "Dossier",
+      "class_type": "Classe",
+      "honor": "Honneur"
     }
   },
   "classes": {
@@ -1399,6 +1456,9 @@
       "notes_label": "Notes (optionnel)",
       "notes_hint": "Observations supplémentaires...",
       "success": "Paiement enregistré avec succès"
+    },
+    "payment_status": {
+      "verified": "Vérifié"
     }
   },
   "finances": {
@@ -1501,7 +1561,11 @@
       "tab_all": "Tout",
       "tab_income": "Revenus",
       "tab_expense": "Dépenses",
-      "apply": "Appliquer"
+      "apply": "Appliquer",
+      "range_custom_label": "Personnalisé"
+    },
+    "providers": {
+      "club_unavailable": "Club non disponible"
     }
   },
   "members": {
@@ -1514,7 +1578,8 @@
       "approve_request": "Erreur lors de l'approbation de la demande",
       "reject_request": "Erreur lors du rejet de la demande",
       "assign_role": "Erreur lors de l'attribution du rôle",
-      "remove_role": "Erreur lors du retrait du rôle"
+      "remove_role": "Erreur lors du retrait du rôle",
+      "no_class": "Sans classe"
     },
     "common": {
       "enrolled": "Inscrit",
@@ -1812,6 +1877,37 @@
       "registered_success": "Article enregistré avec succès",
       "select_date": "Sélectionner une date",
       "categories_error": "Impossible de charger les catégories"
+    },
+    "filter": {
+      "sort_name_asc": "Nom A-Z",
+      "sort_name_desc": "Nom Z-A",
+      "sort_newest": "Plus récents",
+      "sort_oldest": "Plus anciens",
+      "sort_value_desc": "Valeur la plus élevée"
+    },
+    "filter_sheet": {
+      "title": "Filtres",
+      "clear": "Effacer",
+      "sort_by": "Trier par",
+      "condition_title": "État de conservation",
+      "condition_all": "Tous",
+      "apply": "Appliquer les filtres"
+    },
+    "item_card": {
+      "edit_label": "Modifier",
+      "delete_label": "Supprimer",
+      "quantity": "Qté : {count}"
+    },
+    "summary_header": {
+      "search_hint": "Rechercher des articles...",
+      "category_all": "Toutes"
+    },
+    "conditions": {
+      "good": "Bon état",
+      "good_short": "Bon",
+      "regular": "Moyen",
+      "bad": "Mauvais état",
+      "bad_short": "Mauvais"
     }
   },
   "insurance": {
@@ -1916,6 +2012,16 @@
       "valid_until": "Valide jusqu'au {date}",
       "expired_since_one": "Expiré il y a {days} jour",
       "expired_since_other": "Expiré il y a {days} jours"
+    },
+    "filter": {
+      "status_all": "Tous",
+      "status_insured": "Assuré",
+      "status_expired": "Expiré",
+      "status_uninsured": "Non assuré",
+      "sort_name_asc": "Nom A-Z",
+      "sort_name_desc": "Nom Z-A",
+      "sort_expiry_asc": "Expiration proche",
+      "sort_expiry_desc": "Expiration lointaine"
     }
   },
   "evidence_folder": {
@@ -1925,7 +2031,9 @@
       "submit_section": "Erreur lors de l'envoi de la section pour validation",
       "upload_file": "Erreur lors du téléversement du fichier",
       "delete_file": "Erreur lors de la suppression du fichier",
-      "upload_failed": "Échec du téléversement"
+      "upload_failed": "Échec du téléversement",
+      "folder_not_exists": "Le dossier n'existe pas encore. Les opérations ne peuvent pas être effectuées sans dossier créé.",
+      "folder_not_loaded": "Le dossier n'est pas chargé. Assurez-vous que evidenceFolderProvider est terminé avant d'invoquer des opérations de mutation."
     },
     "title": "Dossier de Preuves",
     "section_title": "Section",
@@ -2125,7 +2233,12 @@
     "file_name_required": "Entrez le nom du fichier",
     "notes_label": "Notes (optionnel)",
     "notes_hint": "Description de la preuve...",
-    "evidence_added_success": "Preuve ajoutée"
+    "evidence_added_success": "Preuve ajoutée",
+    "status": {
+      "open": "Ouverte",
+      "submitted": "Soumise",
+      "closed": "Fermée"
+    }
   },
   "notifications": {
     "errors": {
@@ -2134,6 +2247,17 @@
       "get_unread_count": "Erreur lors de la récupération du compteur de non lus",
       "mark_as_read": "Erreur lors du marquage de la notification comme lue",
       "mark_all_as_read": "Erreur lors du marquage de toutes les notifications comme lues"
+    },
+    "inbox": {
+      "title": "Notifications",
+      "tooltip_bell": "Notifications",
+      "tooltip_mark_read": "Tout marquer comme lu",
+      "tooltip_refresh": "Actualiser",
+      "empty_title": "Aucune notification",
+      "empty_subtitle": "Lorsque vous recevrez des notifications, elles apparaîtront ici.",
+      "error_title": "Erreur lors du chargement des notifications",
+      "retry": "Réessayer",
+      "load_more_error": "Erreur lors du chargement. Appuyer pour réessayer."
     }
   },
   "achievements": {
@@ -2141,6 +2265,30 @@
       "fetch_achievements": "Erreur lors de la récupération du catalogue de succès",
       "fetch_user_achievements": "Erreur lors de la récupération des succès de l’utilisateur",
       "fetch_categories": "Erreur lors de la récupération des catégories de succès"
+    },
+    "views": {
+      "title": "Réalisations",
+      "empty_title": "Aucune réalisation disponible",
+      "error_title": "Erreur lors du chargement des réalisations",
+      "error_subtitle": "Vérifiez votre connexion et réessayez.",
+      "retry": "Réessayer",
+      "profile_summary_label": "Réalisations",
+      "profile_summary_empty": "Vous n'avez pas encore obtenu de réalisations.",
+      "unlock_tap_to_close": "Appuyer pour fermer",
+      "detail_repeatable": "Répétable",
+      "detail_times_completed": "Fois complété",
+      "detail_completed_on": "Complété le",
+      "detail_progress": "Progression",
+      "detail_collection": "Collection",
+      "detail_streak": "Série",
+      "detail_prerequisite": "Nécessite : Réalisation #{id}"
+    },
+    "tiers": {
+      "bronze": "Bronze",
+      "silver": "Argent",
+      "gold": "Or",
+      "platinum": "Platine",
+      "diamond": "Diamant"
     }
   },
   "enrollment": {
@@ -2373,7 +2521,10 @@
         "history_header": "HISTORIQUE DES DEMANDES",
         "no_exports": "Vous n’avez pas encore demandé d’exportation",
         "expires_at": "Expire le {date}",
-        "export_error_generic": "Une erreur s’est produite lors de la génération de l’exportation."
+        "export_error_generic": "Une erreur s’est produite lors de la génération de l’exportation.",
+        "empty_title": "Aucune exportation demandée pour l'instant",
+        "expires_on": "Expire le {date}",
+        "error_generating": "Une erreur s'est produite lors de la génération de votre exportation."
       }
     },
     "view": {
@@ -2562,11 +2713,310 @@
   "role_assignments": {
     "errors": {
       "get_assignments": "Erreur lors de la récupération des attributions de rôles"
+    },
+    "view": {
+      "title": "Mes rôles attribués",
+      "admin_note": "Les attributions sont gérées par les administrateurs du club.",
+      "fallback_role": "Rôle #{id}",
+      "fallback_section": "Section #{id}",
+      "label_assigned": "Attribué",
+      "label_revoked": "Révoqué",
+      "empty_title": "Aucun rôle attribué",
+      "empty_body": "Vous n'avez aucun rôle attribué dans aucun club. Les administrateurs peuvent vous attribuer des rôles depuis le panneau d'administration.",
+      "retry": "Réessayer"
     }
   },
   "dashboard": {
     "errors": {
       "get_summary": "Erreur lors de la récupération du résumé du tableau de bord"
+    },
+    "load_null_error": "Impossible de charger le tableau de bord",
+    "load_error": "Erreur lors du chargement du tableau de bord",
+    "notifications_tooltip": "Notifications",
+    "club_info": {
+      "no_club": "Aucun club assigné"
+    },
+    "class_card": {
+      "label": "Ma classe actuelle",
+      "no_class": "Aucune classe assignée",
+      "completed": "Terminée"
+    },
+    "banner": {
+      "pending_title": "Votre demande d'adhésion est en attente d'approbation",
+      "pending_expires": "Expire le {date}",
+      "rejected_title": "Votre demande d'adhésion a été refusée",
+      "expired_title": "Votre demande d'adhésion a expiré",
+      "reapply": "Faire une nouvelle demande"
+    },
+    "quick_access": {
+      "title": "Accès rapide",
+      "coordination": "Coordination",
+      "members": "Membres",
+      "club": "Club",
+      "evidence_folder": "Dossier de preuves",
+      "finances": "Finances",
+      "units": "Unités",
+      "grouped_class": "Classe groupée",
+      "insurance": "Assurances du club",
+      "inventory": "Inventaire",
+      "resources": "Ressources"
+    },
+    "stats": {
+      "honors_completed": "Spéc. terminées",
+      "honors_in_progress": "Spéc. en cours",
+      "attendance": "Présence"
+    },
+    "activities": {
+      "title": "Activités à venir",
+      "view_all": "Voir tout",
+      "empty": "Aucune activité programmée",
+      "today": "Aujourd'hui",
+      "tomorrow": "Demain"
+    }
+  },
+  "domain": {
+    "classes": {
+      "lambs": "Petits Agneaux",
+      "eager_beavers": "Oiseaux Matineux",
+      "busy_bees": "Petites Abeilles Industrieuses",
+      "sunbeams": "Rayons de Soleil",
+      "builders": "Bâtisseurs",
+      "helping_hands": "Mains Secourables",
+      "friend": "Ami",
+      "companion": "Compagnon",
+      "explorer": "Explorateur",
+      "pioneer": "Guide",
+      "voyager": "Voyageur",
+      "guide": "Guide",
+      "master_guide": "Guide Majeur"
+    },
+    "honor_categories": {
+      "agricultural_activities": "Activités Agricoles",
+      "health_sciences": "Sciences de la Santé",
+      "domestic_arts": "Arts Domestiques",
+      "arts_and_crafts": "Arts et Activités Manuelles",
+      "spiritual_growth": "Croissance Spirituelle, Service et Vie Familiale",
+      "nature_study": "Étude de la Nature",
+      "vocational_activities": "Activités Professionnelles",
+      "recreational_activities": "Recreational Activities"
+    },
+    "statuses": {
+      "pending": "En attente",
+      "approved": "Approuvé",
+      "rejected": "Rejeté",
+      "submitted": "Soumis",
+      "draft": "Brouillon",
+      "verified": "Vérifié",
+      "cancelled": "Annulé",
+      "in_review": "En révision"
+    }
+  },
+  "core": {
+    "validators": {
+      "email_required": "L'e-mail est requis",
+      "email_invalid": "Veuillez saisir un e-mail valide",
+      "password_required": "Le mot de passe est requis",
+      "password_min_length": "Le mot de passe doit comporter au moins 8 caractères",
+      "password_uppercase": "Le mot de passe doit inclure au moins une lettre majuscule",
+      "password_lowercase": "Le mot de passe doit inclure au moins une lettre minuscule",
+      "password_number": "Le mot de passe doit inclure au moins un chiffre",
+      "confirm_password_required": "Veuillez confirmer votre mot de passe",
+      "passwords_mismatch": "Les mots de passe ne correspondent pas",
+      "name_required": "Le nom est requis",
+      "name_min_length": "Le nom doit comporter au moins 2 caractères",
+      "phone_invalid": "Veuillez saisir un numéro de téléphone valide",
+      "url_invalid": "Veuillez saisir une URL valide"
+    },
+    "bootstrap": {
+      "unexpected_session_error": "Erreur inattendue lors de la vérification de session",
+      "permissions_load_failed": "Impossible de charger vos autorisations"
+    },
+    "dialog": {
+      "cancel": "Annuler"
+    },
+    "evidence_staging": {
+      "badge_extra": "Extra",
+      "badge_new": "Nouveau",
+      "btn_continue": "Continuer",
+      "btn_continue_partial": "Continuer avec les téléversés ({count})",
+      "btn_image": "Image",
+      "btn_retry_failed": "Réessayer les échecs ({count})",
+      "btn_submit": "Envoyer pour validation",
+      "cancel": "Annuler",
+      "delete": "Supprimer",
+      "delete_dialog_body": "Êtes-vous sûr de vouloir supprimer « {name} » ? Cette action est irréversible.",
+      "delete_dialog_title": "Supprimer le fichier",
+      "empty_can_modify": "Aucun fichier pour l'instant. Utilisez les boutons ci-dessous pour ajouter des preuves.",
+      "empty_read_only": "Aucun fichier de preuve.",
+      "error_delete_file": "Impossible de supprimer le fichier.",
+      "error_over_limit": "Vous avez trop de fichiers. Supprimez-en quelques-uns pour continuer.",
+      "error_select_image": "Impossible de sélectionner l'image.",
+      "error_select_pdf": "Impossible de sélectionner le PDF.",
+      "error_upload_none": "Aucun fichier n'a pu être téléversé. Réessayez avant d'envoyer.",
+      "excess_warning_one": "{count} fichier en trop, supprimez-en pour continuer",
+      "excess_warning_other": "{count} fichiers en trop, supprimez-en pour continuer",
+      "image_size_exceeded_one": "{count} image dépasse la limite de 10 Mo et n'a pas été ajoutée.",
+      "image_size_exceeded_other": "{count} images dépassent la limite de 10 Mo et n'ont pas été ajoutées.",
+      "image_source_camera": "Appareil photo",
+      "image_source_camera_sub": "Prendre une photo maintenant",
+      "image_source_gallery": "Galerie",
+      "image_source_gallery_sub": "Choisir dans la galerie de photos",
+      "image_source_title": "Sélectionner une image",
+      "partial_dialog_body": "Les {count} fichiers qui ont échoué ne seront pas inclus dans la validation.",
+      "partial_dialog_title": "Continuer sans tous les fichiers",
+      "pdf_size_exceeded_one": "{count} PDF dépasse la limite de 10 Mo et n'a pas été ajouté.",
+      "pdf_size_exceeded_other": "{count} PDFs dépassent la limite de 10 Mo et n'ont pas été ajoutés.",
+      "submit": "Envoyer",
+      "submit_dialog_body": "Une fois envoyé, vous ne pourrez pas modifier les fichiers jusqu'à réception d'un retour.",
+      "submit_dialog_file_count": "Fichiers totaux : {total}",
+      "submit_dialog_file_count_with_new": "Fichiers totaux : {total} ({new_files} nouveaux à téléverser)",
+      "submit_dialog_title": "Envoyer pour validation",
+      "upload_all_failed": "Tous les fichiers ont échoué",
+      "upload_all_success": "Tous les fichiers ont été téléversés",
+      "upload_partial": "{completed} sur {total} téléversés, {failed} ont échoué",
+      "uploading_progress": "Envoi {current} sur {total} fichiers..."
+    },
+    "image_viewer": {
+      "error_load": "Impossible de charger l'image"
+    },
+    "pdf_viewer": {
+      "downloading": "Téléchargement du PDF...",
+      "error_download": "Impossible de télécharger le PDF",
+      "error_not_found": "Le fichier PDF n'a pas été trouvé sur l'appareil",
+      "error_open": "Erreur lors de l'ouverture du PDF",
+      "page_indicator": "Page {current} sur {total}",
+      "retry": "Réessayer"
+    },
+    "section_switcher": {
+      "default_club_name": "Club",
+      "status_expired": "Expiré",
+      "status_pending": "En attente",
+      "status_rejected": "Rejeté",
+      "subtitle": "Changez entre vos clubs assignés",
+      "switch_error": "Impossible de changer de club. Réessayez.",
+      "switch_success": "Club changé avec succès",
+      "title": "Sélectionner la section"
+    },
+    "theme": {
+      "dark_mode": "Mode sombre",
+      "light_mode": "Mode clair"
+    }
+  },
+  "roles": {
+    "super_admin": {
+      "masculine": "Super administrateur",
+      "feminine": "Super administratrice"
+    },
+    "admin": {
+      "masculine": "Administrateur",
+      "feminine": "Administratrice"
+    },
+    "assistant_admin": {
+      "masculine": "Administrateur assistant",
+      "feminine": "Administratrice assistante"
+    },
+    "coordinator": {
+      "masculine": "Coordinateur",
+      "feminine": "Coordinatrice"
+    },
+    "pastor": {
+      "masculine": "Pasteur",
+      "feminine": "Pasteure"
+    },
+    "user": {
+      "masculine": "Utilisateur",
+      "feminine": "Utilisatrice"
+    },
+    "director": {
+      "masculine": "Directeur",
+      "feminine": "Directrice"
+    },
+    "deputy_director": {
+      "masculine": "Directeur adjoint",
+      "feminine": "Directrice adjointe"
+    },
+    "secretary": {
+      "masculine": "Secrétaire",
+      "feminine": "Secrétaire"
+    },
+    "treasurer": {
+      "masculine": "Trésorier",
+      "feminine": "Trésorière"
+    },
+    "counselor": {
+      "masculine": "Conseiller",
+      "feminine": "Conseillère"
+    },
+    "instructor": {
+      "masculine": "Instructeur",
+      "feminine": "Instructrice"
+    },
+    "member": {
+      "masculine": "Membre",
+      "feminine": "Membre"
+    },
+    "secretary_treasurer": {
+      "masculine": "Secrétaire-Trésorier",
+      "feminine": "Secrétaire-Trésorière"
+    }
+  },
+  "router": {
+    "nav": {
+      "home": "Accueil",
+      "classes": "Classes",
+      "activities": "Activités",
+      "profile": "Profil"
+    },
+    "evidence_folder": {
+      "title": "Dossier de preuves",
+      "context_error": "Impossible de charger le contexte du club.\n{error}",
+      "no_active_club": "Aucun club actif sélectionné. Veuillez sélectionner un club depuis votre profil."
+    },
+    "active_class": {
+      "title": "Ma classe",
+      "load_error": "Impossible de charger la classe.\n{error}",
+      "no_class_assigned": "Vous n'avez aucune classe assignée. Rejoignez un club pour commencer."
+    },
+    "honor_requirements": {
+      "default_title": "Exigences"
+    },
+    "camporee_members": {
+      "default_name": "Camporée"
+    },
+    "oauth_callback": {
+      "completing_signin": "Finalisation de la connexion..."
+    }
+  },
+  "home": {
+    "load_error": "Erreur lors du chargement des données",
+    "welcome_back": "Bienvenue à nouveau !",
+    "honors_completed_title": "Spécialités terminées",
+    "upcoming_activities_title": "Activités à venir",
+    "no_upcoming_activities": "Aucune activité à venir",
+    "logout_success": "Session fermée avec succès",
+    "logout_error": "Erreur lors de la fermeture de session",
+    "club_context": {
+      "default_club_type": "Club",
+      "status_pending": "En attente",
+      "status_rejected": "Refusé",
+      "status_expired": "Expiré"
+    },
+    "recent_activity": {
+      "hours_ago": {
+        "one": "Il y a 1 heure",
+        "other": "Il y a {count} heures"
+      }
+    },
+    "resources": {
+      "title": "Ressources",
+      "view_all": "Voir tout",
+      "recent_files": "Fichiers récents",
+      "no_files_in_category": "Aucun fichier dans cette catégorie",
+      "categories": "Catégories",
+      "filter_all": "Tous",
+      "filter_documents": "Documents",
+      "filter_images": "Images",
+      "filter_audio": "Audio"
     }
   }
 }

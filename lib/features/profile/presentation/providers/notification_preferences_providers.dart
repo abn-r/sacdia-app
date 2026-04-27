@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/app_logger.dart';
@@ -79,7 +80,7 @@ class NotificationPreferencesNotifier
   /// Retorna null en éxito o un mensaje de error localizado.
   Future<String?> patch(Map<String, bool> delta) async {
     final previous = state.valueOrNull;
-    if (previous == null) return 'No hay preferencias cargadas';
+    if (previous == null) return 'profile.notification_preferences.errors.no_prefs_loaded'.tr();
 
     // Optimistic update — aplicar delta localmente de forma inmediata.
     final optimistic = _applyDelta(previous, delta);

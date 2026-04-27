@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -51,7 +52,7 @@ class InventoryFilterSheet extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Filtros',
+                    'inventory.filter_sheet.title'.tr(),
                     style:
                         Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w700,
@@ -67,9 +68,9 @@ class InventoryFilterSheet extends ConsumerWidget {
                         sortOrder: InventorySortOrder.nameAsc,
                       );
                     },
-                    child: const Text(
-                      'Limpiar',
-                      style: TextStyle(color: AppColors.primary),
+                    child: Text(
+                      'inventory.filter_sheet.clear'.tr(),
+                      style: const TextStyle(color: AppColors.primary),
                     ),
                   ),
                 ],
@@ -83,7 +84,7 @@ class InventoryFilterSheet extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // ── Sort ──────────────────────────────────────────────
-                    _SectionTitle('Ordenar por'),
+                    _SectionTitle('inventory.filter_sheet.sort_by'.tr()),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 8,
@@ -105,12 +106,12 @@ class InventoryFilterSheet extends ConsumerWidget {
                     const SizedBox(height: 24),
 
                     // ── Condition ─────────────────────────────────────────
-                    _SectionTitle('Estado de conservación'),
+                    _SectionTitle('inventory.filter_sheet.condition_title'.tr()),
                     const SizedBox(height: 10),
                     Row(
                       children: [
                         _ConditionChip(
-                          label: 'Todos',
+                          label: 'inventory.filter_sheet.condition_all'.tr(),
                           isSelected: filters.condition == null,
                           color: AppColors.primary,
                           onTap: () {
@@ -153,9 +154,9 @@ class InventoryFilterSheet extends ConsumerWidget {
                                 BorderRadius.circular(AppTheme.radiusSM),
                           ),
                         ),
-                        child: const Text(
-                          'Aplicar filtros',
-                          style: TextStyle(fontWeight: FontWeight.w700),
+                        child: Text(
+                          'inventory.filter_sheet.apply'.tr(),
+                          style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                       ),
                     ),

@@ -1,10 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/utils/app_logger.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
@@ -117,14 +117,14 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
         compressQuality: 70,
         uiSettings: [
           AndroidUiSettings(
-            toolbarTitle: 'Recortar foto',
+            toolbarTitle: tr('profile.edit.crop_photo_title'),
             toolbarColor: AppColors.primary,
             toolbarWidgetColor: Colors.white,
             lockAspectRatio: true,
             hideBottomControls: false,
           ),
           IOSUiSettings(
-            title: 'Recortar foto',
+            title: tr('profile.edit.crop_photo_title'),
             aspectRatioLockEnabled: true,
             resetAspectRatioEnabled: false,
           ),
@@ -147,7 +147,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
           (failure) {
             if (mounted) {
               _showSnackbar(
-                'No se pudo subir la foto. Intentá de nuevo.',
+                tr('profile.edit.photo_upload_error'),
                 AppColors.error,
                 HugeIcons.strokeRoundedAlert02,
               );
@@ -158,7 +158,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
               ref.invalidate(profileNotifierProvider);
               ref.invalidate(authNotifierProvider);
               _showSnackbar(
-                'Foto actualizada correctamente',
+                tr('profile.edit.photo_upload_success'),
                 AppColors.secondary,
                 HugeIcons.strokeRoundedCheckmarkCircle02,
               );
@@ -175,7 +175,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
       if (mounted) {
         setState(() => _isUploadingPhoto = false);
         _showSnackbar(
-          'No se pudo subir la foto. Intentá de nuevo.',
+          tr('profile.edit.photo_upload_error'),
           AppColors.error,
           HugeIcons.strokeRoundedAlert02,
         );
@@ -192,17 +192,16 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     String? newBaptismDateError;
 
     if (_birthdate != null && _birthdate!.isAfter(DateTime.now())) {
-      newBirthdateError = 'La fecha de nacimiento no puede ser futura';
+      newBirthdateError = tr('profile.edit.birthdate_error_future');
       valid = false;
     }
 
     if (_baptized) {
       if (_baptismDate == null) {
-        newBaptismDateError = 'Ingresa la fecha de bautismo';
+        newBaptismDateError = tr('profile.edit.baptism_date_error_null');
         valid = false;
       } else if (_birthdate != null && _baptismDate!.isBefore(_birthdate!)) {
-        newBaptismDateError =
-            'La fecha de bautismo no puede ser anterior a tu nacimiento';
+        newBaptismDateError = tr('profile.edit.baptism_date_error_before_birth');
         valid = false;
       }
     }
@@ -257,14 +256,14 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
       // without waiting for the next /auth/me call on app restart.
       ref.invalidate(authNotifierProvider);
       _showSnackbar(
-        'Perfil actualizado correctamente',
+        tr('profile.edit.save_success'),
         AppColors.secondary,
         HugeIcons.strokeRoundedCheckmarkCircle02,
       );
       Navigator.pop(context);
     } else {
       _showSnackbar(
-        'Error al actualizar el perfil',
+        tr('profile.edit.save_error'),
         AppColors.error,
         HugeIcons.strokeRoundedAlert02,
       );
@@ -286,9 +285,9 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
           : (initialDate.isAfter(maxDate) ? maxDate : initialDate),
       firstDate: minDate,
       lastDate: maxDate,
-      helpText: 'Seleccioná tu fecha de nacimiento',
-      cancelText: 'Cancelar',
-      confirmText: 'Aceptar',
+      helpText: tr('profile.edit.birthdate_picker_help'),
+      cancelText: tr('profile.edit.date_picker_cancel'),
+      confirmText: tr('profile.edit.date_picker_confirm'),
     );
 
     if (picked != null) {
@@ -314,9 +313,9 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
       initialDate: initialDate.isBefore(firstDate) ? firstDate : initialDate,
       firstDate: firstDate,
       lastDate: now,
-      helpText: 'Seleccioná tu fecha de bautismo',
-      cancelText: 'Cancelar',
-      confirmText: 'Aceptar',
+      helpText: tr('profile.edit.baptism_date_picker_help'),
+      cancelText: tr('profile.edit.date_picker_cancel'),
+      confirmText: tr('profile.edit.date_picker_confirm'),
     );
 
     if (picked != null) {
@@ -380,10 +379,10 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
             size: 22,
           ),
           onPressed: () => Navigator.pop(context),
-          tooltip: 'Volver',
+          tooltip: tr('profile.edit.back_tooltip'),
         ),
         title: Text(
-          'Editar Perfil',
+          tr('profile.edit.title'),
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 17,
@@ -420,19 +419,19 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
                     // ── 2. Sección: Nombre ────────────────────────────────
                     _SectionHeader(
                       icon: HugeIcons.strokeRoundedUser,
-                      label: 'Nombre',
+                      label: tr('profile.edit.section_name'),
                     ),
                     const SizedBox(height: 6),
                     SacTextField(
                       controller: _nameController,
-                      label: 'Nombre(s)',
-                      hint: 'Tu nombre',
+                      label: tr('profile.edit.field_name_label'),
+                      hint: tr('profile.edit.field_name_placeholder'),
                       prefixIcon: HugeIcons.strokeRoundedUser,
                       textCapitalization: TextCapitalization.words,
                       textInputAction: TextInputAction.next,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'El nombre es requerido';
+                          return tr('profile.edit.field_name_required');
                         }
                         return null;
                       },
@@ -443,8 +442,8 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
                         Expanded(
                           child: SacTextField(
                             controller: _paternalSurnameController,
-                            label: 'Apellido Paterno',
-                            hint: 'Primer apellido',
+                            label: tr('profile.edit.field_paternal_label'),
+                            hint: tr('profile.edit.field_paternal_placeholder'),
                             prefixIcon: HugeIcons.strokeRoundedUser,
                             textCapitalization: TextCapitalization.words,
                             textInputAction: TextInputAction.next,
@@ -454,8 +453,8 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
                         Expanded(
                           child: SacTextField(
                             controller: _maternalSurnameController,
-                            label: 'Apellido Materno',
-                            hint: 'Segundo apellido',
+                            label: tr('profile.edit.field_maternal_label'),
+                            hint: tr('profile.edit.field_maternal_placeholder'),
                             prefixIcon: HugeIcons.strokeRoundedUser,
                             textCapitalization: TextCapitalization.words,
                             textInputAction: TextInputAction.next,
@@ -469,13 +468,13 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
                     // ── 5. Sección: Información Personal (F3) ─────
                     _SectionHeader(
                       icon: HugeIcons.strokeRoundedUser,
-                      label: 'Información Personal',
+                      label: tr('profile.edit.section_personal_info'),
                     ),
                     const SizedBox(height: 12),
 
                     // Gender chip selector
                     Text(
-                      'Género',
+                      tr('profile.edit.gender_label'),
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
                             color: context.sac.textSecondary,
                           ),
@@ -484,14 +483,14 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
                     Row(
                       children: [
                         _GenderChip(
-                          label: 'Masculino',
+                          label: tr('profile.edit.gender_male'),
                           value: 'M',
                           selectedValue: _selectedGender,
                           onTap: () => setState(() => _selectedGender = 'M'),
                         ),
                         const SizedBox(width: 12),
                         _GenderChip(
-                          label: 'Femenino',
+                          label: tr('profile.edit.gender_female'),
                           value: 'F',
                           selectedValue: _selectedGender,
                           onTap: () => setState(() => _selectedGender = 'F'),
@@ -503,7 +502,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
                     // Birthdate picker
                     _DatePickerField(
-                      label: 'Fecha de nacimiento',
+                      label: tr('profile.edit.birthdate_label'),
                       icon: HugeIcons.strokeRoundedBirthdayCake,
                       date: _birthdate,
                       errorText: _birthdateError,
@@ -517,9 +516,9 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
                       child: SwitchListTile(
-                        title: const Text(
-                          '¿Estás bautizado/a?',
-                          style: TextStyle(
+                        title: Text(
+                          tr('profile.edit.baptism_toggle'),
+                          style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
                           ),
@@ -545,7 +544,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
                     if (_baptized) ...[
                       const SizedBox(height: 12),
                       _DatePickerField(
-                        label: 'Fecha de bautismo',
+                        label: tr('profile.edit.baptism_date_label'),
                         icon: HugeIcons.strokeRoundedBlood,
                         date: _baptismDate,
                         errorText: _baptismDateError,
@@ -557,7 +556,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
                     // ── 6. CTA Guardar (thumb zone) ───────────────
                     SacButton.primary(
-                      text: 'Guardar cambios',
+                      text: tr('profile.edit.save_changes'),
                       icon: HugeIcons.strokeRoundedFloppyDisk,
                       isLoading: _isLoading,
                       onPressed:
@@ -711,7 +710,7 @@ class _AvatarHeader extends StatelessWidget {
           GestureDetector(
             onTap: onChangeTap,
             child: Text(
-              isUploading ? 'Subiendo foto...' : 'Cambiar foto de perfil',
+              isUploading ? tr('profile.edit.photo_uploading') : tr('profile.edit.change_photo'),
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -895,7 +894,7 @@ class _DatePickerField extends StatelessWidget {
                     Text(
                       date != null
                           ? DateFormat('yyyy-MM-dd').format(date!)
-                          : 'Seleccionar fecha',
+                          : tr('profile.edit.date_placeholder'),
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,

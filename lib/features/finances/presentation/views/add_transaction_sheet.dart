@@ -147,11 +147,11 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       ),
                       validator: (v) {
                         if (v == null || v.isEmpty) {
-                          return 'Ingresa el monto';
+                          return 'finances.add_transaction.amount_required'.tr();
                         }
                         final parsed = double.tryParse(v);
                         if (parsed == null || parsed <= 0) {
-                          return 'Monto inválido';
+                          return 'finances.add_transaction.amount_invalid'.tr();
                         }
                         return null;
                       },
@@ -160,7 +160,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     const SizedBox(height: 16),
 
                     // Category
-                    _SectionLabel('Categoría'),
+                    _SectionLabel('finances.add_transaction.category_label'.tr()),
                     const SizedBox(height: 6),
                     categoriesAsync.when(
                       loading: () => const LinearProgressIndicator(),
@@ -192,7 +192,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                           // ignore: deprecated_member_use
                           value: dropdownValue,
                           decoration: _inputDecoration(
-                            hint: 'Selecciona una categoría',
+                            hint: 'finances.add_transaction.category_hint'.tr(),
                             context: context,
                           ),
                           items: filtered
@@ -206,7 +206,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                           onChanged: (c) =>
                               setState(() => _selectedCategory = c),
                           validator: (v) =>
-                              v == null ? 'Selecciona una categoría' : null,
+                              v == null ? 'finances.add_transaction.category_required'.tr() : null,
                         );
                       },
                     ),
@@ -214,25 +214,25 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     const SizedBox(height: 16),
 
                     // Description
-                    _SectionLabel('Concepto'),
+                    _SectionLabel('finances.add_transaction.description_label'.tr()),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _descController,
                       decoration: _inputDecoration(
-                        hint: 'Describe el movimiento',
+                        hint: 'finances.add_transaction.description_hint'.tr(),
                         context: context,
                       ),
                       maxLength: 200,
                       validator: (v) =>
                           (v == null || v.trim().isEmpty)
-                              ? 'Ingresa el concepto'
+                              ? 'finances.add_transaction.description_required'.tr()
                               : null,
                     ),
 
                     const SizedBox(height: 16),
 
                     // Date
-                    _SectionLabel('Fecha'),
+                    _SectionLabel('finances.add_transaction.date_label'.tr()),
                     const SizedBox(height: 6),
                     _DatePickerField(
                       selectedDate: _selectedDate,
@@ -243,13 +243,13 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     const SizedBox(height: 16),
 
                     // Notes (optional)
-                    _SectionLabel('Notas (opcional)'),
+                    _SectionLabel('finances.add_transaction.notes_label'.tr()),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _notesController,
                       maxLines: 3,
                       decoration: _inputDecoration(
-                        hint: 'Observaciones adicionales...',
+                        hint: 'finances.add_transaction.notes_hint'.tr(),
                         context: context,
                       ),
                     ),
@@ -293,8 +293,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                               )
                             : Text(
                                 _isEditing
-                                    ? 'Guardar cambios'
-                                    : 'Registrar movimiento',
+                                    ? 'finances.add_transaction.save_button'.tr()
+                                    : 'finances.add_transaction.register_button'.tr(),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 16,
@@ -390,7 +390,7 @@ class _TypeToggle extends StatelessWidget {
       children: [
         Expanded(
           child: _TypeChip(
-            label: 'Ingreso',
+            label: 'finances.add_transaction.income'.tr(),
             icon: HugeIcons.strokeRoundedArrowDown01,
             color: AppColors.secondary,
             isSelected: selected == TransactionType.income,
@@ -400,7 +400,7 @@ class _TypeToggle extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _TypeChip(
-            label: 'Egreso',
+            label: 'finances.add_transaction.expense'.tr(),
             icon: HugeIcons.strokeRoundedArrowUp01,
             color: AppColors.error,
             isSelected: selected == TransactionType.expense,

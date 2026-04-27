@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 
 // ── Camporee type ─────────────────────────────────────────────────────────────
@@ -10,9 +11,9 @@ enum CamporeeScope {
   String get displayLabel {
     switch (this) {
       case CamporeeScope.local:
-        return 'Local';
+        return tr('coordinator.camporee_scope.local');
       case CamporeeScope.union:
-        return 'Unión';
+        return tr('coordinator.camporee_scope.union');
     }
   }
 }
@@ -41,11 +42,11 @@ enum CamporeeApprovalType {
   String get displayLabel {
     switch (this) {
       case CamporeeApprovalType.club:
-        return 'Clubs';
+        return tr('coordinator.approval_type.clubs');
       case CamporeeApprovalType.member:
-        return 'Miembros';
+        return tr('coordinator.approval_type.members');
       case CamporeeApprovalType.payment:
-        return 'Pagos';
+        return tr('coordinator.approval_type.payments');
     }
   }
 }
@@ -150,7 +151,7 @@ class CamporeeClubEnrollment extends Equatable {
     this.rejectionReason,
   });
 
-  String get displayName => clubName ?? sectionName ?? 'Club desconocido';
+  String get displayName => clubName ?? sectionName ?? tr('coordinator.camporee_approvals.unknown_club');
 
   @override
   List<Object?> get props => [camporeeClubId, camporeeId, clubSectionId, status];

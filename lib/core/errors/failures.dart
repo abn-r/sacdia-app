@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 
 /// Clase base para todos los fallos en la aplicación
@@ -97,11 +98,13 @@ class OAuthFlowInitiatedFailure extends Failure {
   /// Nombre del proveedor OAuth ("Google", "Apple", etc.).
   final String provider;
 
-  const OAuthFlowInitiatedFailure({
+  OAuthFlowInitiatedFailure({
     required this.provider,
   }) : super(
-          message:
-              'Redirigiendo a $provider. Completa el proceso en el navegador.',
+          message: tr(
+            'errors.oauth_redirecting',
+            namedArgs: {'provider': provider},
+          ),
         );
 
   @override

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,7 +10,8 @@ import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 
 class _QuickAccessItemConfig {
-  final String label;
+  /// Translation key resolved at render time via tr(labelKey).
+  final String labelKey;
   final List<List<dynamic>> icon;
   final Color? color;
   final String route;
@@ -22,7 +24,7 @@ class _QuickAccessItemConfig {
   final Set<String> requiredRoles;
 
   const _QuickAccessItemConfig({
-    required this.label,
+    required this.labelKey,
     required this.icon,
     this.color,
     required this.route,
@@ -37,7 +39,7 @@ const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   // directors also hold operational permissions like `investiture:validate`;
   // using those would incorrectly reveal the hub to directors.
   _QuickAccessItemConfig(
-    label: 'Coordinación',
+    labelKey: 'dashboard.quick_access.coordination',
     icon: HugeIcons.strokeRoundedAnalytics01,
     color: AppColors.info,
     route: RouteNames.coordinator,
@@ -45,7 +47,7 @@ const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   ),
   // Administrative: member list — users:read_detail is held by counselor+
   _QuickAccessItemConfig(
-    label: 'Miembros',
+    labelKey: 'dashboard.quick_access.members',
     icon: HugeIcons.strokeRoundedUserGroup,
     color: AppColors.primary,
     route: RouteNames.homeMembers,
@@ -53,7 +55,7 @@ const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   ),
   // Administrative: club management — clubs:update is held by secretary+
   _QuickAccessItemConfig(
-    label: 'Club',
+    labelKey: 'dashboard.quick_access.club',
     icon: HugeIcons.strokeRoundedBuilding01,
     color: AppColors.secondary,
     route: RouteNames.homeClub,
@@ -62,7 +64,7 @@ const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   // Administrative: evidence folder management — uses users:read_detail.
   // Members access their OWN evidence via the profile screen, not this view.
   _QuickAccessItemConfig(
-    label: 'Carpeta de Evidencias',
+    labelKey: 'dashboard.quick_access.evidence_folder',
     icon: HugeIcons.strokeRoundedFolder01,
     color: AppColors.accent,
     route: RouteNames.homeEvidences,
@@ -70,7 +72,7 @@ const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   ),
   // Administrative: financial records — finances:read is held by treasurer+
   _QuickAccessItemConfig(
-    label: 'Finanzas',
+    labelKey: 'dashboard.quick_access.finances',
     icon: HugeIcons.strokeRoundedCreditCard,
     color: AppColors.info,
     route: RouteNames.homeFinances,
@@ -78,7 +80,7 @@ const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   ),
   // Administrative: unit management — units:update is held by counselor+
   _QuickAccessItemConfig(
-    label: 'Unidades',
+    labelKey: 'dashboard.quick_access.units',
     icon: HugeIcons.strokeRoundedCompass01,
     color: AppColors.secondary,
     route: RouteNames.homeUnits,
@@ -86,7 +88,7 @@ const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   ),
   // Administrative: group class management — classes:submit_progress is held by counselor+
   _QuickAccessItemConfig(
-    label: 'Clase Agrupada',
+    labelKey: 'dashboard.quick_access.grouped_class',
     icon: HugeIcons.strokeRoundedBookOpen01,
     color: AppColors.primary,
     route: RouteNames.homeGroupedClass,
@@ -94,7 +96,7 @@ const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   ),
   // Administrative: insurance management
   _QuickAccessItemConfig(
-    label: 'Seguros del Club',
+    labelKey: 'dashboard.quick_access.insurance',
     icon: HugeIcons.strokeRoundedShield01,
     color: AppColors.secondaryDark,
     route: RouteNames.homeInsurance,
@@ -102,7 +104,7 @@ const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   ),
   // Administrative: inventory management
   _QuickAccessItemConfig(
-    label: 'Inventario',
+    labelKey: 'dashboard.quick_access.inventory',
     icon: HugeIcons.strokeRoundedPackage,
     color: AppColors.accent,
     route: RouteNames.homeInventory,
@@ -110,7 +112,7 @@ const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   ),
   // Club-wide shared resources — folders:read is granted to every club role.
   _QuickAccessItemConfig(
-    label: 'Recursos',
+    labelKey: 'dashboard.quick_access.resources',
     icon: HugeIcons.strokeRoundedFiles01,
     route: RouteNames.homeResources,
     requiredPermissions: {'folders:read'},
@@ -173,7 +175,7 @@ class QuickAccessGrid extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Acceso rápido',
+          tr('dashboard.quick_access.title'),
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -298,7 +300,7 @@ class _QuickAccessTile extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                item.label,
+                tr(item.labelKey),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,

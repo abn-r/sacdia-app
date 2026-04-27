@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -48,21 +49,23 @@ class _SortBottomSheetState extends State<SortBottomSheet> {
   String _descriptionFor(String sortBy) {
     if (_selectedSortBy != sortBy) {
       return switch (sortBy) {
-        'date' => 'Más reciente primero',
-        'amount' => 'Mayor monto primero',
-        'category' => 'A \u2192 Z',
+        'date' => 'finances.widgets.sort_date_desc'.tr(),
+        'amount' => 'finances.widgets.sort_amount_desc'.tr(),
+        'category' => 'finances.widgets.sort_category_asc'.tr(),
         _ => '',
       };
     }
     return switch (sortBy) {
       'date' => _sortOrder == 'desc'
-          ? 'Más reciente primero'
-          : 'Más antiguo primero',
+          ? 'finances.widgets.sort_date_desc'.tr()
+          : 'finances.widgets.sort_date_asc'.tr(),
       'amount' => _sortOrder == 'desc'
-          ? 'Mayor monto primero'
-          : 'Menor monto primero',
+          ? 'finances.widgets.sort_amount_desc'.tr()
+          : 'finances.widgets.sort_amount_asc'.tr(),
       'category' =>
-        _sortOrder == 'desc' ? 'Z \u2192 A' : 'A \u2192 Z',
+        _sortOrder == 'desc'
+            ? 'finances.widgets.sort_category_desc'.tr()
+            : 'finances.widgets.sort_category_asc'.tr(),
       _ => '',
     };
   }
@@ -84,7 +87,7 @@ class _SortBottomSheetState extends State<SortBottomSheet> {
           Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              'Ordenar por',
+              'finances.widgets.sort_title'.tr(),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -101,7 +104,7 @@ class _SortBottomSheetState extends State<SortBottomSheet> {
             child: Column(
               children: [
                 _SortOption(
-                  label: 'Por fecha',
+                  label: 'finances.widgets.sort_by_date'.tr(),
                   sortKey: 'date',
                   description: _descriptionFor('date'),
                   selectedSortBy: _selectedSortBy,
@@ -109,7 +112,7 @@ class _SortBottomSheetState extends State<SortBottomSheet> {
                   onToggleOrder: _toggleSortOrder,
                 ),
                 _SortOption(
-                  label: 'Por monto',
+                  label: 'finances.widgets.sort_by_amount'.tr(),
                   sortKey: 'amount',
                   description: _descriptionFor('amount'),
                   selectedSortBy: _selectedSortBy,
@@ -117,7 +120,7 @@ class _SortBottomSheetState extends State<SortBottomSheet> {
                   onToggleOrder: _toggleSortOrder,
                 ),
                 _SortOption(
-                  label: 'Por categoría',
+                  label: 'finances.widgets.sort_by_category'.tr(),
                   sortKey: 'category',
                   description: _descriptionFor('category'),
                   selectedSortBy: _selectedSortBy,
@@ -245,9 +248,9 @@ class _BottomSheetApplyButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
           ),
         ),
-        child: const Text(
-          'Aplicar',
-          style: TextStyle(
+        child: Text(
+          'finances.widgets.apply'.tr(),
+          style: const TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,
             color: Colors.white,

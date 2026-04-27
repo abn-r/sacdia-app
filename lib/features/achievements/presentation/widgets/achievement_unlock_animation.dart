@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -265,7 +266,7 @@ class _UnlockOverlayState extends State<_UnlockOverlay>
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Toca para cerrar',
+                      'achievements.views.unlock_tap_to_close'.tr(),
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.white.withValues(alpha: 0.5),

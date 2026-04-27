@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -47,7 +48,7 @@ class HomeView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Error al cargar datos',
+                    tr('home.load_error'),
                     style: Theme.of(context)
                         .textTheme
                         .titleMedium
@@ -64,7 +65,7 @@ class HomeView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
                   SacButton.primary(
-                    text: 'Reintentar',
+                    text: tr('common.retry'),
                     icon: HugeIcons.strokeRoundedRefresh,
                     onPressed: () =>
                         ref.read(dashboardNotifierProvider.notifier).refresh(),
@@ -90,7 +91,7 @@ class HomeView extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '¡Bienvenido de nuevo!',
+                              tr('home.welcome_back'),
                               style: Theme.of(context)
                                   .textTheme
                                   .headlineSmall
@@ -126,7 +127,7 @@ class HomeView extends ConsumerWidget {
                   const SizedBox(height: 24),
                   if (dashboard != null) ...[
                     DashboardCard(
-                      title: 'Especialidades completadas',
+                      title: tr('home.honors_completed_title'),
                       value: dashboard.honorsCompleted.toString(),
                       icon: HugeIcons.strokeRoundedTaskDone01,
                       color: AppColors.primary,
@@ -141,7 +142,7 @@ class HomeView extends ConsumerWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Actividades próximas',
+                          tr('home.upcoming_activities_title'),
                           style: Theme.of(context)
                               .textTheme
                               .titleMedium
@@ -162,7 +163,7 @@ class HomeView extends ConsumerWidget {
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             child: Text(
-                              'No hay actividades próximas',
+                              tr('home.no_upcoming_activities'),
                               style: TextStyle(
                                 fontSize: 14,
                                 color: c.textSecondary,
@@ -186,9 +187,9 @@ class HomeView extends ConsumerWidget {
   Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
     final confirmed = await SacDialog.show(
       context,
-      title: 'Cerrar sesión',
-      content: '¿Estás seguro que deseas cerrar sesión?',
-      confirmLabel: 'Cerrar sesión',
+      title: tr('profile.view.logout_title'),
+      content: tr('profile.view.logout_confirm'),
+      confirmLabel: tr('profile.view.logout_confirm_action'),
       confirmIsDestructive: true,
     );
 
@@ -196,9 +197,9 @@ class HomeView extends ConsumerWidget {
       final success = await ref.read(authNotifierProvider.notifier).signOut();
       if (success) clearUserStateOnLogout(ref);
       if (success && context.mounted) {
-        context.showSnackBar('Sesión cerrada correctamente');
+        context.showSnackBar(tr('home.logout_success'));
       } else if (!success && context.mounted) {
-        context.showSnackBar('Error al cerrar sesión');
+        context.showSnackBar(tr('home.logout_error'));
       }
     }
   }

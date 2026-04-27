@@ -1,7 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -28,7 +28,7 @@ class RoleAssignmentsView extends ConsumerWidget {
         backgroundColor: c.background,
         surfaceTintColor: Colors.transparent,
         title: Text(
-          'Mis roles asignados',
+          'role_assignments.view.title'.tr(),
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 18,
@@ -95,7 +95,7 @@ class RoleAssignmentsView extends ConsumerWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Las asignaciones son gestionadas por los administradores del club.',
+                          'role_assignments.view.admin_note'.tr(),
                           style: TextStyle(
                             fontSize: 12,
                             color: AppColors.accentDark,
@@ -177,7 +177,7 @@ class _AssignmentCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      assignment.roleName ?? 'Rol #${assignment.roleId}',
+                      assignment.roleName ?? 'role_assignments.view.fallback_role'.tr(namedArgs: {'id': '${assignment.roleId}'}),
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -198,7 +198,7 @@ class _AssignmentCard extends StatelessWidget {
                       )
                     else
                       Text(
-                        'Sección #${assignment.clubSectionId}',
+                        'role_assignments.view.fallback_section'.tr(namedArgs: {'id': '${assignment.clubSectionId}'}),
                         style: TextStyle(
                           fontSize: 12,
                           color: c.textSecondary,
@@ -237,7 +237,7 @@ class _AssignmentCard extends StatelessWidget {
           if (assignment.assignedAt != null)
             _MetaRow(
               icon: HugeIcons.strokeRoundedCalendarAdd01,
-              label: 'Asignado',
+              label: 'role_assignments.view.label_assigned'.tr(),
               value: dateFmt.format(assignment.assignedAt!.toLocal()),
             ),
 
@@ -245,7 +245,7 @@ class _AssignmentCard extends StatelessWidget {
             if (assignment.assignedAt != null) const SizedBox(height: 6),
             _MetaRow(
               icon: HugeIcons.strokeRoundedCalendarRemove01,
-              label: 'Revocado',
+              label: 'role_assignments.view.label_revoked'.tr(),
               value: dateFmt.format(assignment.revokedAt!.toLocal()),
             ),
           ],
@@ -366,7 +366,7 @@ class _EmptyBody extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Sin roles asignados',
+              'role_assignments.view.empty_title'.tr(),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -375,8 +375,7 @@ class _EmptyBody extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'No tienes roles asignados en ningún club. '
-              'Los administradores pueden asignarte roles desde el panel de administración.',
+              'role_assignments.view.empty_body'.tr(),
               style: TextStyle(fontSize: 14, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
@@ -414,7 +413,7 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             SacButton.primary(
-              text: 'Reintentar',
+              text: 'role_assignments.view.retry'.tr(),
               icon: HugeIcons.strokeRoundedRefresh,
               onPressed: onRetry,
             ),

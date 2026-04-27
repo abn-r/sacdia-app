@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 
 /// Estado de una solicitud de traslado.
@@ -7,11 +8,11 @@ extension TransferStatusX on TransferStatus {
   String get label {
     switch (this) {
       case TransferStatus.pending:
-        return 'Pendiente';
+        return tr('domain.statuses.pending');
       case TransferStatus.approved:
-        return 'Aprobado';
+        return tr('domain.statuses.approved');
       case TransferStatus.rejected:
-        return 'Rechazado';
+        return tr('domain.statuses.rejected');
     }
   }
 

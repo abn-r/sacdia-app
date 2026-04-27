@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -327,7 +328,7 @@ class InventoryFilterBar extends StatelessWidget {
               controller: searchController,
               onChanged: onSearchChanged,
               decoration: InputDecoration(
-                hintText: 'Buscar artículos...',
+                hintText: 'inventory.summary_header.search_hint'.tr(),
                 hintStyle:
                     TextStyle(color: context.sac.textTertiary, fontSize: 14),
                 prefixIcon: Padding(
@@ -463,7 +464,7 @@ class InventoryCategoryChips extends ConsumerWidget {
             if (index == 0) {
               final isSelected = filters.categoryId == null;
               return _CategoryChip(
-                label: 'Todas',
+                label: 'inventory.summary_header.category_all'.tr(),
                 isSelected: isSelected,
                 onTap: () {
                   ref.read(inventoryFiltersProvider.notifier).state =

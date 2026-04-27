@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 
 /// Estado del informe mensual
@@ -7,13 +8,13 @@ extension MonthlyReportStatusX on MonthlyReportStatus {
   String get label {
     switch (this) {
       case MonthlyReportStatus.draft:
-        return 'Borrador';
+        return tr('domain.statuses.draft');
       case MonthlyReportStatus.submitted:
-        return 'Enviado';
+        return tr('domain.statuses.submitted');
       case MonthlyReportStatus.approved:
-        return 'Aprobado';
+        return tr('domain.statuses.approved');
       case MonthlyReportStatus.rejected:
-        return 'Rechazado';
+        return tr('domain.statuses.rejected');
     }
   }
 }
@@ -71,12 +72,12 @@ class MonthlyReport extends Equatable {
   }
 
   String get monthName {
-    const months = [
-      '', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    const keys = [
+      '', 'january', 'february', 'march', 'april', 'may', 'june',
+      'july', 'august', 'september', 'october', 'november', 'december',
     ];
-    if (month >= 1 && month <= 12) return months[month];
-    return 'Mes $month';
+    if (month >= 1 && month <= 12) return tr('common.months.${keys[month]}');
+    return tr('common.months.unknown', namedArgs: {'month': '$month'});
   }
 
   @override

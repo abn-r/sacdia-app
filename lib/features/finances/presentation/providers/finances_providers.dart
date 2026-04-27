@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
@@ -561,7 +561,7 @@ class AllTransactionsFilterNotifier
       state = state.copyWith(
         isLoading: false,
         isLoadingMore: false,
-        errorMessage: 'Club no disponible',
+        errorMessage: 'finances.providers.club_unavailable'.tr(),
       );
       return;
     }
@@ -632,9 +632,9 @@ final allTransactionsRangeLabelProvider =
 String _rangeLabelFromFilter(TransactionFilter filter) {
   switch (filter.rangePreset) {
     case DateRangePreset.last3Months:
-      return 'Últimos 3 meses';
+      return 'finances.widgets.range_last_3_months'.tr();
     case DateRangePreset.lastYear:
-      return 'Último año';
+      return 'finances.widgets.range_last_year'.tr();
     case DateRangePreset.custom:
       if (filter.startDate != null && filter.endDate != null) {
         final fmt = DateFormat('d MMM', 'es');
@@ -642,7 +642,7 @@ String _rangeLabelFromFilter(TransactionFilter filter) {
         return '${fmt.format(filter.startDate!)} – '
             '${fmt.format(filter.endDate!)} ${yearFmt.format(filter.endDate!)}';
       }
-      return 'Personalizado';
+      return 'finances.widgets.range_custom_label'.tr();
     case DateRangePreset.thisMonth:
       if (filter.startDate != null) {
         final label =

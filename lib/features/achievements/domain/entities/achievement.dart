@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 
 /// Base URL for achievement badge images stored in Cloudflare R2 via backend.
@@ -69,15 +70,15 @@ enum AchievementTier {
   String get displayName {
     switch (this) {
       case AchievementTier.bronze:
-        return 'Bronce';
+        return tr('achievements.tiers.bronze');
       case AchievementTier.silver:
-        return 'Plata';
+        return tr('achievements.tiers.silver');
       case AchievementTier.gold:
-        return 'Oro';
+        return tr('achievements.tiers.gold');
       case AchievementTier.platinum:
-        return 'Platino';
+        return tr('achievements.tiers.platinum');
       case AchievementTier.diamond:
-        return 'Diamante';
+        return tr('achievements.tiers.diamond');
       case AchievementTier.unknown:
         return '';
     }

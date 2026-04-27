@@ -1,8 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -59,8 +59,10 @@ class _PendingBanner extends StatelessWidget {
     String? expiryLabel;
     if (expiresAt != null) {
       final localDate = expiresAt.toLocal();
-      expiryLabel =
-          'Expira el ${DateFormat('d MMM yyyy', 'es').format(localDate)}';
+      expiryLabel = tr(
+        'dashboard.banner.pending_expires',
+        namedArgs: {'date': DateFormat('d MMM yyyy', 'es').format(localDate)},
+      );
     }
 
     return _BannerContainer(
@@ -69,7 +71,7 @@ class _PendingBanner extends StatelessWidget {
       iconBackgroundColor: AppColors.accent.withValues(alpha: 0.2),
       icon: HugeIcons.strokeRoundedClock01,
       iconColor: AppColors.accentDark,
-      title: 'Tu solicitud de membresia esta pendiente de aprobacion',
+      title: tr('dashboard.banner.pending_title'),
       titleColor: AppColors.accentDark,
       subtitle: expiryLabel,
       subtitleColor: AppColors.accentDark.withValues(alpha: 0.8),
@@ -94,12 +96,12 @@ class _RejectedBanner extends StatelessWidget {
       iconBackgroundColor: AppColors.error.withValues(alpha: 0.2),
       icon: HugeIcons.strokeRoundedCancel01,
       iconColor: AppColors.errorDark,
-      title: 'Tu solicitud de membresia fue rechazada',
+      title: tr('dashboard.banner.rejected_title'),
       titleColor: AppColors.errorDark,
       subtitle: reason != null && reason.isNotEmpty ? reason : null,
       subtitleColor: AppColors.errorDark.withValues(alpha: 0.8),
       action: SacButton(
-        text: 'Volver a solicitar',
+        text: tr('dashboard.banner.reapply'),
         variant: SacButtonVariant.primary,
         size: SacButtonSize.small,
         backgroundColor: AppColors.error,
@@ -125,10 +127,10 @@ class _ExpiredBanner extends StatelessWidget {
       iconBackgroundColor: c.textTertiary.withValues(alpha: 0.15),
       icon: HugeIcons.strokeRoundedClock01,
       iconColor: c.textTertiary,
-      title: 'Tu solicitud de membresia expiro',
+      title: tr('dashboard.banner.expired_title'),
       titleColor: c.textSecondary,
       action: SacButton(
-        text: 'Volver a solicitar',
+        text: tr('dashboard.banner.reapply'),
         variant: SacButtonVariant.outline,
         size: SacButtonSize.small,
         onPressed: () => _navigateToReapply(context),

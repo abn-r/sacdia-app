@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -28,7 +29,7 @@ class ClosedPeriodBanner extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Este período está cerrado. No se pueden agregar o modificar registros.',
+              'finances.widgets.closed_period_banner'.tr(),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,

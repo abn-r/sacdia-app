@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 
 /// Estado de un pago de camporee
@@ -7,11 +8,11 @@ extension CamporeePaymentStatusX on CamporeePaymentStatus {
   String get label {
     switch (this) {
       case CamporeePaymentStatus.pending:
-        return 'Pendiente';
+        return tr('domain.statuses.pending');
       case CamporeePaymentStatus.verified:
-        return 'Verificado';
+        return tr('camporees.payment_status.verified');
       case CamporeePaymentStatus.rejected:
-        return 'Rechazado';
+        return tr('domain.statuses.rejected');
     }
   }
 

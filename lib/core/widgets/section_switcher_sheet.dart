@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -151,12 +152,12 @@ class _SectionSwitcherSheetState extends ConsumerState<_SectionSwitcherSheet> {
       ref.invalidate(dashboardNotifierProvider);
 
       messenger.showSnackBar(
-        const SnackBar(content: Text('Club cambiado correctamente')),
+        SnackBar(content: Text(tr('core.section_switcher.switch_success'))),
       );
     } else {
       messenger.showSnackBar(
         SnackBar(
-          content: const Text('No se pudo cambiar el club. Intentá de nuevo.'),
+          content: Text(tr('core.section_switcher.switch_error')),
           backgroundColor: AppColors.error,
         ),
       );
@@ -214,14 +215,14 @@ class _SectionSwitcherSheetState extends ConsumerState<_SectionSwitcherSheet> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  'Seleccionar sección',
+                  tr('core.section_switcher.title'),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Cambiá entre tus clubes asignados',
+                  tr('core.section_switcher.subtitle'),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: c.textSecondary,
                       ),
@@ -358,7 +359,7 @@ class _OptionCard extends StatelessWidget {
                             children: [
                               // Row 1: club type name
                               Text(
-                                grant.clubTypeName ?? 'Club',
+                                grant.clubTypeName ?? tr('core.section_switcher.default_club_name'),
                                 style: Theme.of(context)
                                     .textTheme
                                     .titleSmall
@@ -371,7 +372,7 @@ class _OptionCard extends StatelessWidget {
                               Row(
                                 children: [
                                   _SectionBadge(
-                                    label: grant.clubTypeName ?? 'Club',
+                                    label: grant.clubTypeName ?? tr('core.section_switcher.default_club_name'),
                                     bg: badgeBg,
                                     fg: badgeFg,
                                   ),
@@ -504,13 +505,13 @@ class _StatusLabel extends StatelessWidget {
     final Color color;
 
     if (grant.isPending) {
-      label = 'Pendiente';
+      label = tr('core.section_switcher.status_pending');
       color = AppColors.accentDark;
     } else if (grant.isRejected) {
-      label = 'Rechazado';
+      label = tr('core.section_switcher.status_rejected');
       color = AppColors.errorDark;
     } else if (grant.isExpired) {
-      label = 'Expirado';
+      label = tr('core.section_switcher.status_expired');
       color = context.sac.textTertiary;
     } else {
       return const SizedBox.shrink();

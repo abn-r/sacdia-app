@@ -263,7 +263,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       (failure) {
         final errorMessage = failure is AuthFailure
             ? failure.message
-            : 'Error al iniciar sesión';
+            : 'auth.errors.sign_in_failed'.tr();
         AppLogger.w('Login fallido: $errorMessage', tag: _tag);
         return AsyncValue.error(errorMessage, StackTrace.current);
       },
@@ -305,7 +305,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       (failure) {
         final errorMessage = failure is AuthFailure
             ? failure.message
-            : 'Error al registrar usuario';
+            : 'auth.errors.sign_up_failed'.tr();
         return AsyncValue.error(errorMessage, StackTrace.current);
       },
       (user) => AsyncValue.data(user),
@@ -397,7 +397,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
           return OAuthLaunchResult.launched;
         }
         final errorMessage =
-            failure is AuthFailure ? failure.message : 'Error al iniciar con Google';
+            failure is AuthFailure ? failure.message : 'auth.errors.sign_in_google_failed'.tr();
         AppLogger.w('OAuth Google error: $errorMessage', tag: _tag);
         state = AsyncValue.error(errorMessage, StackTrace.current);
         return OAuthLaunchResult.failed;
@@ -426,7 +426,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
           return OAuthLaunchResult.launched;
         }
         final errorMessage =
-            failure is AuthFailure ? failure.message : 'Error al iniciar con Apple';
+            failure is AuthFailure ? failure.message : 'auth.errors.sign_in_apple_failed'.tr();
         AppLogger.w('OAuth Apple error: $errorMessage', tag: _tag);
         state = AsyncValue.error(errorMessage, StackTrace.current);
         return OAuthLaunchResult.failed;
@@ -517,7 +517,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       (failure) {
         final msg = failure is AuthFailure
             ? failure.message
-            : 'Error al cambiar la contraseña';
+            : 'auth.errors.change_password_failed'.tr();
         AppLogger.w('Cambio de contraseña fallido: $msg', tag: _tag);
         return msg;
       },
@@ -549,7 +549,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     );
     if (!bioOk) {
       AppLogger.w('Delete account cancelado por biometría', tag: _tag);
-      return 'Operación cancelada';
+      return 'auth.errors.operation_cancelled'.tr();
     }
 
     // Desregistrar FCM antes de borrar la sesión (el interceptor aún puede
@@ -571,7 +571,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       (failure) {
         final msg = failure is AuthFailure
             ? failure.message
-            : 'Error al eliminar la cuenta';
+            : 'auth.errors.delete_account_failed'.tr();
         AppLogger.w('Delete account fallido: $msg', tag: _tag);
         return msg;
       },
@@ -645,7 +645,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     return result.fold(
       (failure) {
         final errorMessage =
-            failure is AuthFailure ? failure.message : 'Error al cerrar sesión';
+            failure is AuthFailure ? failure.message : 'auth.errors.sign_out_failed'.tr();
         state = AsyncValue.error(errorMessage, StackTrace.current);
         return false;
       },

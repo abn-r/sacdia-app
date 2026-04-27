@@ -533,7 +533,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Aún no solicitaste exportaciones',
+            'profile.data_export.ui.empty_title'.tr(),
             style: TextStyle(
               fontSize: 14,
               color: c.textSecondary,
@@ -720,7 +720,7 @@ class _ExportCard extends StatelessWidget {
                   if (export.expiresAt != null) ...[
                     const SizedBox(height: 1),
                     Text(
-                      'Expira el ${_formatExpiry(export.expiresAt!)}',
+                      'profile.data_export.ui.expires_on'.tr(namedArgs: {'date': _formatExpiry(export.expiresAt!)}),
                       style: TextStyle(fontSize: 11, color: c.textTertiary),
                     ),
                   ],
@@ -741,7 +741,7 @@ class _ExportCard extends StatelessWidget {
                 ] else if (export.status == DataExportStatus.failed) ...[
                   const SizedBox(height: 2),
                   Text(
-                    'Ocurrió un error al generar tu exportación.',
+                    'profile.data_export.ui.error_generating'.tr(),
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.error.withValues(alpha: 0.8),

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -41,7 +42,7 @@ class SacDialog extends StatelessWidget {
     required String title,
     String? content,
     required String confirmLabel,
-    String cancelLabel = 'Cancelar',
+    String? cancelLabel,
     bool confirmIsDestructive = false,
   }) {
     return showDialog<bool>(
@@ -53,7 +54,7 @@ class SacDialog extends StatelessWidget {
         content: content,
         actions: [
           SacDialogAction(
-            label: cancelLabel,
+            label: cancelLabel ?? tr('core.dialog.cancel'),
             onPressed: () => Navigator.of(context).pop(false),
             style: SacDialogActionStyle.cancel,
           ),

@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -77,7 +78,7 @@ class WelcomeHeader extends StatelessWidget {
                 size: 24,
                 color: AppColors.lightText,
               ),
-              tooltip: 'Notificaciones',
+              tooltip: tr('dashboard.notifications_tooltip'),
             ),
           ],
 

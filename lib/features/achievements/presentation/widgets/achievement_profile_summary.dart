@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -85,7 +86,7 @@ class _AchievementProfileData extends StatelessWidget {
               const SizedBox(width: 6),
               // Label
               Text(
-                'Logros',
+                'achievements.views.profile_summary_label'.tr(),
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w400,
@@ -118,7 +119,7 @@ class _AchievementProfileData extends StatelessWidget {
           // ── Horizontal badge row ──────────────────────────────────
           if (unlockedItems.isEmpty)
             Text(
-              'Aún no haz obtenido logros.',
+              'achievements.views.profile_summary_empty'.tr(),
               style: TextStyle(
                 fontSize: 13,
                 color: context.sac.textTertiary,

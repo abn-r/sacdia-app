@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -51,7 +52,7 @@ class InventoryItemCard extends StatelessWidget {
           color: AppColors.secondary.withValues(alpha: 0.15),
           icon: HugeIcons.strokeRoundedEdit01,
           iconColor: AppColors.secondary,
-          label: 'Editar',
+          label: 'inventory.item_card.edit_label'.tr(),
           labelColor: AppColors.secondary,
         ),
         secondaryBackground: _SwipeBackground(
@@ -59,7 +60,7 @@ class InventoryItemCard extends StatelessWidget {
           color: AppColors.error.withValues(alpha: 0.12),
           icon: HugeIcons.strokeRoundedDelete02,
           iconColor: AppColors.error,
-          label: 'Eliminar',
+          label: 'inventory.item_card.delete_label'.tr(),
           labelColor: AppColors.error,
         ),
         child: card,
@@ -168,7 +169,7 @@ class _CardContent extends StatelessWidget {
                       ),
                       const SizedBox(width: 3),
                       Text(
-                        'Cant: ${item.quantity}',
+                        'inventory.item_card.quantity'.tr(namedArgs: {'count': '${item.quantity}'}),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: c.textSecondary,
                               fontSize: 11,

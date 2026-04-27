@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/sac_colors.dart';
@@ -86,7 +86,10 @@ class StagedFileGrid extends StatelessWidget {
           const SizedBox(height: 4),
           Center(
             child: Text(
-              'Tienes $excess ${excess == 1 ? 'archivo' : 'archivos'} de más, eliminá algunos para continuar',
+              (excess == 1
+                      ? 'core.evidence_staging.excess_warning_one'
+                      : 'core.evidence_staging.excess_warning_other')
+                  .tr(namedArgs: {'count': '$excess'}),
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 12,
@@ -105,19 +108,19 @@ class StagedFileGrid extends StatelessWidget {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar archivo'),
+        title: Text(tr('core.evidence_staging.delete_dialog_title')),
         content: Text(
-          '¿Estás seguro de que deseas eliminar "${file.name}"? Esta acción no se puede deshacer.',
+          tr('core.evidence_staging.delete_dialog_body', namedArgs: {'name': file.name}),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text(tr('core.evidence_staging.cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Eliminar'),
+            child: Text(tr('core.evidence_staging.delete')),
           ),
         ],
       ),
@@ -273,7 +276,7 @@ class _StagedFileCell extends StatelessWidget {
                   ],
                 ),
                 child: Text(
-                  isExcess ? 'Extra' : 'Nuevo',
+                  isExcess ? tr('core.evidence_staging.badge_extra') : tr('core.evidence_staging.badge_new'),
                   style: const TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.w700,

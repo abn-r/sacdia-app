@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 
 /// Tipo de evidencia que puede ser revisada.
@@ -33,11 +34,11 @@ enum EvidenceReviewType {
   String get displayLabel {
     switch (this) {
       case EvidenceReviewType.folder:
-        return 'Carpeta';
+        return tr('coordinator.evidence_type.folder');
       case EvidenceReviewType.classType:
-        return 'Clase';
+        return tr('coordinator.evidence_type.class_type');
       case EvidenceReviewType.honor:
-        return 'Honor';
+        return tr('coordinator.evidence_type.honor');
     }
   }
 }
