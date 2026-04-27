@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../../../../core/errors/exceptions.dart';
@@ -36,7 +37,7 @@ class FaqLocalDataSourceImpl implements FaqLocalDataSource {
     } catch (e, st) {
       AppLogger.e('Error cargando FAQ', tag: _tag, error: e, stackTrace: st);
       throw CacheException(
-        message: 'No pudimos cargar las preguntas frecuentes',
+        message: tr('support.errors.faq_load_failed'),
       );
     }
   }

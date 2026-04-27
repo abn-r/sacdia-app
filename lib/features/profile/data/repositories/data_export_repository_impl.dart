@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -30,9 +31,9 @@ class DataExportRepositoryImpl implements DataExportRepository {
 
     if (!hasConnection) {
       AppLogger.w('Sin red — no se puede solicitar exportación', tag: _tag);
-      return const Left(
+      return Left(
         NetworkFailure(
-          message: 'Sin conexión. Verificá tu red e intentá de nuevo.',
+          message: tr('profile.data_export.errors.no_connection'),
         ),
       );
     }
@@ -49,12 +50,12 @@ class DataExportRepositoryImpl implements DataExportRepository {
     } on DioException catch (e) {
       AppLogger.w('DioException al solicitar exportación', tag: _tag, error: e);
       return Left(NetworkFailure(
-        message: 'Sin conexión. Verificá tu red e intentá de nuevo.',
+        message: tr('profile.data_export.errors.no_connection'),
         code: e.response?.statusCode,
       ));
     } catch (e) {
       AppLogger.e('Error inesperado al solicitar exportación', tag: _tag, error: e);
-      return Left(ServerFailure(message: 'Error inesperado: $e'));
+      return Left(ServerFailure(message: tr('profile.data_export.errors.unexpected', namedArgs: {'detail': '$e'})));
     }
   }
 
@@ -64,9 +65,9 @@ class DataExportRepositoryImpl implements DataExportRepository {
 
     if (!hasConnection) {
       AppLogger.w('Sin red — no se puede listar exportaciones', tag: _tag);
-      return const Left(
+      return Left(
         NetworkFailure(
-          message: 'Sin conexión. Verificá tu red e intentá de nuevo.',
+          message: tr('profile.data_export.errors.no_connection'),
         ),
       );
     }
@@ -83,12 +84,12 @@ class DataExportRepositoryImpl implements DataExportRepository {
     } on DioException catch (e) {
       AppLogger.w('DioException al listar exportaciones', tag: _tag, error: e);
       return Left(NetworkFailure(
-        message: 'Sin conexión. Verificá tu red e intentá de nuevo.',
+        message: tr('profile.data_export.errors.no_connection'),
         code: e.response?.statusCode,
       ));
     } catch (e) {
       AppLogger.e('Error inesperado al listar exportaciones', tag: _tag, error: e);
-      return Left(ServerFailure(message: 'Error inesperado: $e'));
+      return Left(ServerFailure(message: tr('profile.data_export.errors.unexpected', namedArgs: {'detail': '$e'})));
     }
   }
 
@@ -97,9 +98,9 @@ class DataExportRepositoryImpl implements DataExportRepository {
     final hasConnection = await networkInfo.isConnected;
 
     if (!hasConnection) {
-      return const Left(
+      return Left(
         NetworkFailure(
-          message: 'Sin conexión. Verificá tu red e intentá de nuevo.',
+          message: tr('profile.data_export.errors.no_connection'),
         ),
       );
     }
@@ -120,7 +121,7 @@ class DataExportRepositoryImpl implements DataExportRepository {
         error: e,
       );
       return Left(NetworkFailure(
-        message: 'Sin conexión. Verificá tu red e intentá de nuevo.',
+        message: tr('profile.data_export.errors.no_connection'),
         code: e.response?.statusCode,
       ));
     } catch (e) {
@@ -129,7 +130,7 @@ class DataExportRepositoryImpl implements DataExportRepository {
         tag: _tag,
         error: e,
       );
-      return Left(ServerFailure(message: 'Error inesperado: $e'));
+      return Left(ServerFailure(message: tr('profile.data_export.errors.unexpected', namedArgs: {'detail': '$e'})));
     }
   }
 }

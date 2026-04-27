@@ -212,7 +212,9 @@
     },
     "errors": {
       "session_expired": "Votre session a expiré. Veuillez vous reconnecter.",
-      "submit_report": "Impossible d’envoyer votre signalement"
+      "submit_report": "Impossible d’envoyer votre signalement",
+      "no_internet": "Vous avez besoin d'une connexion Internet pour envoyer le rapport",
+      "faq_load_failed": "Nous n'avons pas pu charger la foire aux questions"
     },
     "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})"
   },
@@ -250,7 +252,12 @@
     "get_oauth_url": "Erreur lors de l’obtention de l’URL de {provider}",
     "switch_context": "Erreur lors du changement de contexte",
     "delete_account": "Erreur lors de la suppression du compte",
-    "check_completion_status": "Erreur lors de la vérification du statut de complétion"
+    "check_completion_status": "Erreur lors de la vérification du statut de complétion",
+    "register_failed": "Erreur lors de l'inscription",
+    "password_reset_sent": "Si l'adresse e-mail existe, vous recevrez un lien de récupération",
+    "oauth_callback_failed": "Erreur lors du traitement du retour d'authentification {provider}",
+    "wrong_password": "Mot de passe incorrect",
+    "invalid_user_response": "La réponse du serveur ne contient pas d'identifiant utilisateur valide"
   },
   "honors": {
     "errors": {
@@ -2275,7 +2282,9 @@
         "update_status": "Erreur lors de la mise à jour des préférences de notification",
         "update_http": "Erreur lors de la mise à jour des préférences",
         "update_unexpected": "Erreur inattendue",
-        "unexpected_format": "Format de réponse inattendu"
+        "unexpected_format": "Format de réponse inattendu",
+        "fetch_failed": "Erreur lors de la récupération des préférences : {detail}",
+        "update_failed": "Erreur lors de la mise à jour des préférences : {detail}"
       }
     },
     "active_sessions": {
@@ -2288,7 +2297,16 @@
         "revoke_current_forbidden": "Vous ne pouvez pas révoquer la session actuelle ici. Utilisez « Déconnexion ».",
         "revoke_forbidden": "Vous n'avez pas la permission de révoquer cette session.",
         "revoke_not_found": "Cette session n'existe plus.",
-        "too_many_requests": "Trop de requêtes, veuillez patienter un moment."
+        "too_many_requests": "Trop de requêtes, veuillez patienter un moment.",
+        "no_connection_list": "Pas de connexion. Vérifiez votre réseau et réessayez.",
+        "no_connection_revoke": "Pas de connexion. Impossible de révoquer la session.",
+        "no_connection_revoke_all": "Pas de connexion. Impossible de révoquer les sessions.",
+        "network_list": "Erreur réseau lors de la récupération des sessions.",
+        "network_revoke": "Erreur réseau lors de la révocation de la session.",
+        "network_revoke_all": "Erreur réseau lors de la révocation des sessions.",
+        "fetch_failed": "Erreur inattendue lors de la récupération des sessions : {detail}",
+        "revoke_failed": "Erreur inattendue lors de la révocation de la session : {detail}",
+        "revoke_all_failed": "Erreur inattendue lors de la révocation des sessions : {detail}"
       },
       "ui": {
         "title": "Sessions actives",
@@ -2331,7 +2349,8 @@
         "download_gone": "Cette exportation a expiré. Veuillez en demander une nouvelle.",
         "download_invalid": "L’exportation a échoué. Veuillez réessayer.",
         "download_failed": "Erreur lors de la récupération de l’URL de téléchargement",
-        "unexpected": "Erreur inattendue : {detail}"
+        "unexpected": "Erreur inattendue : {detail}",
+        "no_connection": "Pas de connexion. Vérifiez votre réseau et réessayez."
       },
       "ui": {
         "title": "Télécharger mes données",

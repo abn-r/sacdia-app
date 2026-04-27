@@ -212,7 +212,9 @@
     },
     "errors": {
       "session_expired": "Your session expired. Please sign in again.",
-      "submit_report": "We could not send your report"
+      "submit_report": "We could not send your report",
+      "no_internet": "You need an internet connection to submit the report",
+      "faq_load_failed": "We could not load the frequently asked questions"
     },
     "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})"
   },
@@ -250,7 +252,12 @@
     "get_oauth_url": "Error getting {provider} URL",
     "switch_context": "Error switching context",
     "delete_account": "Error deleting account",
-    "check_completion_status": "Error checking completion status"
+    "check_completion_status": "Error checking completion status",
+    "register_failed": "Registration error",
+    "password_reset_sent": "If the email exists, you will receive a recovery link",
+    "oauth_callback_failed": "Error processing {provider} sign-in callback",
+    "wrong_password": "Incorrect password",
+    "invalid_user_response": "The server response does not contain a valid user ID"
   },
   "honors": {
     "errors": {
@@ -2275,7 +2282,9 @@
         "update_status": "Error updating notification preferences",
         "update_http": "Error updating preferences",
         "update_unexpected": "Unexpected error",
-        "unexpected_format": "Unexpected response format"
+        "unexpected_format": "Unexpected response format",
+        "fetch_failed": "Error fetching preferences: {detail}",
+        "update_failed": "Error updating preferences: {detail}"
       }
     },
     "active_sessions": {
@@ -2288,7 +2297,16 @@
         "revoke_current_forbidden": "You can't revoke the current session here. Use 'Sign out'.",
         "revoke_forbidden": "You do not have permission to revoke this session.",
         "revoke_not_found": "This session no longer exists.",
-        "too_many_requests": "Too many requests, please wait a moment."
+        "too_many_requests": "Too many requests, please wait a moment.",
+        "no_connection_list": "No connection. Check your network and try again.",
+        "no_connection_revoke": "No connection. Could not revoke the session.",
+        "no_connection_revoke_all": "No connection. Could not revoke sessions.",
+        "network_list": "Network error fetching sessions.",
+        "network_revoke": "Network error revoking session.",
+        "network_revoke_all": "Network error revoking sessions.",
+        "fetch_failed": "Unexpected error fetching sessions: {detail}",
+        "revoke_failed": "Unexpected error revoking session: {detail}",
+        "revoke_all_failed": "Unexpected error revoking sessions: {detail}"
       },
       "ui": {
         "title": "Active sessions",
@@ -2331,7 +2349,8 @@
         "download_gone": "This export has expired. Please request a new one.",
         "download_invalid": "The export failed. Please try again.",
         "download_failed": "Error fetching download URL",
-        "unexpected": "Unexpected error: {detail}"
+        "unexpected": "Unexpected error: {detail}",
+        "no_connection": "No connection. Check your network and try again."
       },
       "ui": {
         "title": "Download my data",

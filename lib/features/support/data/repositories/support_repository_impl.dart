@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -38,9 +39,9 @@ class SupportRepositoryImpl implements SupportRepository {
   ) async {
     final online = await networkInfo.isConnected;
     if (!online) {
-      return const Left(
+      return Left(
         ConnectionFailure(
-          message: 'Necesitás conexión a internet para enviar el reporte',
+          message: tr('support.errors.no_internet'),
         ),
       );
     }

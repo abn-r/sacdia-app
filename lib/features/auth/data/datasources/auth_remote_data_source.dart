@@ -470,7 +470,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw AuthException(
-          message: response.data['message'] ?? 'Error en el registro',
+          message: response.data['message'] ?? tr('errors.register_failed'),
         );
       }
 
@@ -578,7 +578,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (e is DioException) {
         throw AuthException(
           message: e.response?.data?['message'] ??
-              'Si el correo existe, recibirás un enlace de recuperación',
+              tr('errors.password_reset_sent'),
         );
       }
       throw AuthException(message: e.toString());
@@ -788,7 +788,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw AuthException(
-          message: response.data?['message'] ?? 'Error en OAuth callback',
+          message: response.data?['message'] ?? tr('errors.oauth_callback_failed'),
         );
       }
 
@@ -897,7 +897,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       if (status == 401 || status == 403) {
         throw AuthException(
-          message: serverMsg ?? 'Contraseña incorrecta',
+          message: serverMsg ?? tr('errors.wrong_password'),
           code: status,
         );
       }

@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -30,8 +31,10 @@ class ActiveSessionsRepositoryImpl implements ActiveSessionsRepository {
 
     if (!hasConnection) {
       AppLogger.w('Sin red — no se puede cargar sesiones activas', tag: _tag);
-      return const Left(
-        NetworkFailure(message: 'Sin conexión. Verificá tu red e intentá de nuevo.'),
+      return Left(
+        NetworkFailure(
+            message:
+                tr('profile.active_sessions.errors.no_connection_list')),
       );
     }
 
@@ -47,12 +50,14 @@ class ActiveSessionsRepositoryImpl implements ActiveSessionsRepository {
     } on DioException catch (e) {
       AppLogger.w('DioException al obtener sesiones', tag: _tag, error: e);
       return Left(NetworkFailure(
-        message: 'Error de red al obtener sesiones.',
+        message: tr('profile.active_sessions.errors.network_list'),
         code: e.response?.statusCode,
       ));
     } catch (e) {
       AppLogger.e('Error inesperado al obtener sesiones', tag: _tag, error: e);
-      return Left(ServerFailure(message: 'Error inesperado: $e'));
+      return Left(ServerFailure(
+          message: tr('profile.active_sessions.errors.fetch_failed',
+              namedArgs: {'detail': '$e'})));
     }
   }
 
@@ -61,8 +66,10 @@ class ActiveSessionsRepositoryImpl implements ActiveSessionsRepository {
     final hasConnection = await networkInfo.isConnected;
 
     if (!hasConnection) {
-      return const Left(
-        NetworkFailure(message: 'Sin conexión. No se pudo revocar la sesión.'),
+      return Left(
+        NetworkFailure(
+            message:
+                tr('profile.active_sessions.errors.no_connection_revoke')),
       );
     }
 
@@ -78,12 +85,14 @@ class ActiveSessionsRepositoryImpl implements ActiveSessionsRepository {
     } on DioException catch (e) {
       AppLogger.w('DioException al revocar sesión', tag: _tag, error: e);
       return Left(NetworkFailure(
-        message: 'Error de red al revocar sesión.',
+        message: tr('profile.active_sessions.errors.network_revoke'),
         code: e.response?.statusCode,
       ));
     } catch (e) {
       AppLogger.e('Error inesperado al revocar sesión', tag: _tag, error: e);
-      return Left(ServerFailure(message: 'Error inesperado: $e'));
+      return Left(ServerFailure(
+          message: tr('profile.active_sessions.errors.revoke_failed',
+              namedArgs: {'detail': '$e'})));
     }
   }
 
@@ -92,8 +101,10 @@ class ActiveSessionsRepositoryImpl implements ActiveSessionsRepository {
     final hasConnection = await networkInfo.isConnected;
 
     if (!hasConnection) {
-      return const Left(
-        NetworkFailure(message: 'Sin conexión. No se pudieron revocar las sesiones.'),
+      return Left(
+        NetworkFailure(
+            message:
+                tr('profile.active_sessions.errors.no_connection_revoke_all')),
       );
     }
 
@@ -109,12 +120,14 @@ class ActiveSessionsRepositoryImpl implements ActiveSessionsRepository {
     } on DioException catch (e) {
       AppLogger.w('DioException al revocar todas las sesiones', tag: _tag, error: e);
       return Left(NetworkFailure(
-        message: 'Error de red al revocar sesiones.',
+        message: tr('profile.active_sessions.errors.network_revoke_all'),
         code: e.response?.statusCode,
       ));
     } catch (e) {
       AppLogger.e('Error inesperado al revocar sesiones', tag: _tag, error: e);
-      return Left(ServerFailure(message: 'Error inesperado: $e'));
+      return Left(ServerFailure(
+          message: tr('profile.active_sessions.errors.revoke_all_failed',
+              namedArgs: {'detail': '$e'})));
     }
   }
 }

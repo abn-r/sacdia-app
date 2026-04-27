@@ -212,7 +212,9 @@
     },
     "errors": {
       "session_expired": "Tu sesión expiró. Iniciá sesión nuevamente.",
-      "submit_report": "No pudimos enviar tu reporte"
+      "submit_report": "No pudimos enviar tu reporte",
+      "no_internet": "Necesitás conexión a internet para enviar el reporte",
+      "faq_load_failed": "No pudimos cargar las preguntas frecuentes"
     },
     "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})"
   },
@@ -250,7 +252,12 @@
     "get_oauth_url": "Error al obtener URL de {provider}",
     "switch_context": "Error al cambiar contexto",
     "delete_account": "Error al eliminar la cuenta",
-    "check_completion_status": "Error al verificar estado de completitud"
+    "check_completion_status": "Error al verificar estado de completitud",
+    "register_failed": "Error en el registro",
+    "password_reset_sent": "Si el correo existe, recibirás un enlace de recuperación",
+    "oauth_callback_failed": "Error al procesar el inicio de sesión con {provider}",
+    "wrong_password": "Contraseña incorrecta",
+    "invalid_user_response": "La respuesta del servidor no contiene un ID de usuario válido"
   },
   "honors": {
     "errors": {
@@ -2275,7 +2282,9 @@
         "update_status": "Error al actualizar preferencias de notificación",
         "update_http": "Error al actualizar preferencias",
         "update_unexpected": "Error inesperado",
-        "unexpected_format": "Formato de respuesta inesperado"
+        "unexpected_format": "Formato de respuesta inesperado",
+        "fetch_failed": "Error al obtener preferencias: {detail}",
+        "update_failed": "Error al actualizar preferencias: {detail}"
       }
     },
     "active_sessions": {
@@ -2288,7 +2297,16 @@
         "revoke_current_forbidden": "No podés revocar la sesión actual desde acá. Usá 'Cerrar sesión'.",
         "revoke_forbidden": "No tenés permiso para revocar esta sesión.",
         "revoke_not_found": "Esta sesión ya no existe.",
-        "too_many_requests": "Demasiadas solicitudes, esperá un momento."
+        "too_many_requests": "Demasiadas solicitudes, esperá un momento.",
+        "no_connection_list": "Sin conexión. Verificá tu red e intentá de nuevo.",
+        "no_connection_revoke": "Sin conexión. No se pudo revocar la sesión.",
+        "no_connection_revoke_all": "Sin conexión. No se pudieron revocar las sesiones.",
+        "network_list": "Error de red al obtener sesiones.",
+        "network_revoke": "Error de red al revocar sesión.",
+        "network_revoke_all": "Error de red al revocar sesiones.",
+        "fetch_failed": "Error inesperado al obtener sesiones: {detail}",
+        "revoke_failed": "Error inesperado al revocar sesión: {detail}",
+        "revoke_all_failed": "Error inesperado al revocar sesiones: {detail}"
       },
       "ui": {
         "title": "Sesiones activas",
@@ -2331,7 +2349,8 @@
         "download_gone": "Esta exportación expiró. Solicitá una nueva.",
         "download_invalid": "La exportación falló. Intentalo de nuevo.",
         "download_failed": "Error al obtener URL de descarga",
-        "unexpected": "Error inesperado: {detail}"
+        "unexpected": "Error inesperado: {detail}",
+        "no_connection": "Sin conexión. Verificá tu red e intentá de nuevo."
       },
       "ui": {
         "title": "Descargar mis datos",

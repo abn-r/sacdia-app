@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 
 /// Estado de una solicitud de validación.
@@ -13,13 +14,13 @@ extension ValidationStatusX on ValidationStatus {
   String get label {
     switch (this) {
       case ValidationStatus.inProgress:
-        return 'En progreso';
+        return tr('validation.status.inProgress');
       case ValidationStatus.pendingReview:
-        return 'En revisión';
+        return tr('validation.status.pendingReview');
       case ValidationStatus.approved:
-        return 'Aprobado';
+        return tr('validation.status.approved');
       case ValidationStatus.rejected:
-        return 'Rechazado';
+        return tr('validation.status.rejected');
     }
   }
 
