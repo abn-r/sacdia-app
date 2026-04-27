@@ -184,7 +184,8 @@
     "idle_hint": "Rotates when you tap the button",
     "errors": {
       "empty_qr_response": "Empty response from QR server",
-      "empty_response": "Empty response from server"
+      "empty_response": "Empty response from server",
+      "scan_failed": "We could not process the QR scan."
     }
   },
   "support": {
@@ -3017,6 +3018,40 @@
       "filter_documents": "Documents",
       "filter_images": "Images",
       "filter_audio": "Audio"
+    }
+  },
+  "virtual_card": {
+    "title": "My virtual card",
+    "refresh": "Refresh card",
+    "show_fullscreen": "Show full screen",
+    "retry": "Retry",
+    "loading": "Loading credential",
+    "offline_banner": "Offline mode — cached data",
+    "inactive_message": "This credential is not active.",
+    "load_error": "Could not load the credential",
+    "photo_alt": "Profile photo of {name}",
+    "qr_alt": "Credential QR code",
+    "club_label": "Club",
+    "section_label": "Section",
+    "member_since_label": "Member since",
+    "id_prefix": "ID #",
+    "id_missing": "ID unavailable",
+    "qr_unavailable": "QR unavailable",
+    "qr_expired": "QR expired",
+    "expired_note": "Renew your credential when you are back online",
+    "tiers": {
+      "bronze": "Bronze",
+      "silver": "Silver",
+      "gold": "Gold",
+      "platinum": "Platinum",
+      "diamond": "Diamond",
+      "unknown": "Tier"
+    },
+    "errors": {
+      "not_authenticated": "You must be signed in to view the credential.",
+      "offline": "No connection available for the live credential.",
+      "empty_card": "Empty virtual card response from the server.",
+      "load_failed": "We could not load your credential right now."
     }
   }
 }

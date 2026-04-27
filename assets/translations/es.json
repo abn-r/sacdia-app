@@ -184,7 +184,8 @@
     "idle_hint": "Se rota al tocar el botón",
     "errors": {
       "empty_qr_response": "Respuesta vacía del servidor QR",
-      "empty_response": "Respuesta vacía del servidor"
+      "empty_response": "Respuesta vacía del servidor",
+      "scan_failed": "No pudimos procesar el escaneo del QR."
     }
   },
   "support": {
@@ -3017,6 +3018,40 @@
       "filter_documents": "Documentos",
       "filter_images": "Imágenes",
       "filter_audio": "Audio"
+    }
+  },
+  "virtual_card": {
+    "title": "Mi credencial",
+    "refresh": "Actualizar tarjeta",
+    "show_fullscreen": "Mostrar en grande",
+    "retry": "Reintentar",
+    "loading": "Cargando credencial",
+    "offline_banner": "Modo sin conexión — datos en caché",
+    "inactive_message": "Esta credencial no está activa. Comunicate con tu director.",
+    "load_error": "No se pudo cargar la credencial",
+    "photo_alt": "Foto de perfil de {name}",
+    "qr_alt": "Código QR de la credencial",
+    "club_label": "Club",
+    "section_label": "Sección",
+    "member_since_label": "Miembro desde",
+    "id_prefix": "ID #",
+    "id_missing": "ID no disponible",
+    "qr_unavailable": "QR no disponible",
+    "qr_expired": "QR vencido",
+    "expired_note": "Renová tu credencial cuando recuperes conexión",
+    "tiers": {
+      "bronze": "Bronce",
+      "silver": "Plata",
+      "gold": "Oro",
+      "platinum": "Platino",
+      "diamond": "Diamante",
+      "unknown": "Nivel"
+    },
+    "errors": {
+      "not_authenticated": "Tenés que iniciar sesión para ver la credencial.",
+      "offline": "No hay conexión disponible para la credencial en vivo.",
+      "empty_card": "Respuesta vacía de tarjeta virtual desde el servidor.",
+      "load_failed": "No pudimos cargar tu credencial por ahora."
     }
   }
 }

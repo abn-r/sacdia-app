@@ -18,7 +18,6 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../auth/presentation/providers/logout_cleanup.dart';
 import '../providers/notification_preferences_providers.dart';
 import '../widgets/setting_tile.dart';
-import '../../../qr/presentation/views/member_qr_view.dart';
 import '../../../qr/presentation/views/qr_scanner_view.dart';
 import '../../../accessibility/presentation/widgets/accessibility_settings_section.dart';
 import '../../../biometric/presentation/providers/biometric_provider.dart';
@@ -26,6 +25,7 @@ import '../../../biometric/presentation/widgets/biometric_settings_section.dart'
 import '../../../settings/presentation/widgets/language_picker_tile.dart';
 import '../../../settings/presentation/widgets/sync_cache_section.dart';
 import '../../../support/presentation/widgets/support_settings_section.dart';
+import '../../../virtual_card/presentation/views/virtual_card_view.dart';
 import 'active_sessions_view.dart';
 import 'data_export_view.dart';
 import 'edit_profile_view.dart';
@@ -683,7 +683,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const MemberQrView(),
+                    builder: (_) => const VirtualCardView(),
                   ),
                 ),
               ),

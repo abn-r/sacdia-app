@@ -184,7 +184,8 @@
     "idle_hint": "Il est renouvelé lorsque vous appuyez sur le bouton",
     "errors": {
       "empty_qr_response": "Réponse vide du serveur QR",
-      "empty_response": "Réponse vide du serveur"
+      "empty_response": "Réponse vide du serveur",
+      "scan_failed": "Impossible de traiter le scan du QR."
     }
   },
   "support": {
@@ -3017,6 +3018,40 @@
       "filter_documents": "Documents",
       "filter_images": "Images",
       "filter_audio": "Audio"
+    }
+  },
+  "virtual_card": {
+    "title": "Ma carte virtuelle",
+    "refresh": "Actualiser la carte",
+    "show_fullscreen": "Afficher en plein écran",
+    "retry": "Réessayer",
+    "loading": "Chargement de la carte",
+    "offline_banner": "Mode hors ligne — données en cache",
+    "inactive_message": "Cette carte n’est pas active. Contactez votre directeur.",
+    "load_error": "Impossible de charger la carte",
+    "photo_alt": "Photo de profil de {name}",
+    "qr_alt": "Code QR de la carte",
+    "club_label": "Club",
+    "section_label": "Section",
+    "member_since_label": "Membre depuis",
+    "id_prefix": "ID #",
+    "id_missing": "ID indisponible",
+    "qr_unavailable": "QR indisponible",
+    "qr_expired": "QR expiré",
+    "expired_note": "Renouvelez votre carte lorsque vous serez de nouveau en ligne",
+    "tiers": {
+      "bronze": "Bronze",
+      "silver": "Argent",
+      "gold": "Or",
+      "platinum": "Platine",
+      "diamond": "Diamant",
+      "unknown": "Niveau"
+    },
+    "errors": {
+      "not_authenticated": "Vous devez être connecté pour voir la carte.",
+      "offline": "Aucune connexion disponible pour la carte en direct.",
+      "empty_card": "Réponse vide de la carte virtuelle du serveur.",
+      "load_failed": "Impossible de charger votre carte pour le moment."
     }
   }
 }

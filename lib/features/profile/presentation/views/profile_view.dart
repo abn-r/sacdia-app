@@ -30,7 +30,7 @@ import '../widgets/class_status_circles.dart';
 import '../widgets/profile_classes_section.dart';
 import '../widgets/profile_honors_section.dart';
 import '../widgets/setting_tile.dart';
-import '../../../qr/presentation/views/member_qr_view.dart';
+import '../../../virtual_card/presentation/views/virtual_card_view.dart';
 import 'edit_profile_view.dart';
 import 'medical_info_view.dart';
 import 'settings_view.dart';
@@ -198,7 +198,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               ),
               onQr: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const MemberQrView()),
+                MaterialPageRoute(builder: (_) => const VirtualCardView()),
               ),
               onRefresh: () async {
                 await ref.read(profileNotifierProvider.notifier).refresh();
