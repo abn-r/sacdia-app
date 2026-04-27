@@ -2360,6 +2360,7 @@
       "load_error": "Error loading profile",
       "load_profile_error": "Could not load profile",
       "settings_tooltip": "Settings",
+      "qr_tooltip": "My QR credential",
       "section_progressive_classes": "Progressive Classes",
       "section_my_classes": "My Classes",
       "section_honors": "Honors",

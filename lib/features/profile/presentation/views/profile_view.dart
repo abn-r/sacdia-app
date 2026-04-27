@@ -15,7 +15,6 @@ import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
-import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/features/classes/presentation/providers/classes_providers.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/post_registration/presentation/providers/post_registration_providers.dart';
@@ -23,7 +22,6 @@ import 'package:sacdia_app/features/post_registration/presentation/providers/pos
 import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../auth/presentation/providers/logout_cleanup.dart';
 import '../../../validation/presentation/widgets/eligibility_banner.dart';
 import '../../domain/entities/user_detail.dart';
 import '../providers/profile_providers.dart';
@@ -32,169 +30,10 @@ import '../widgets/class_status_circles.dart';
 import '../widgets/profile_classes_section.dart';
 import '../widgets/profile_honors_section.dart';
 import '../widgets/setting_tile.dart';
+import '../../../qr/presentation/views/member_qr_view.dart';
 import 'edit_profile_view.dart';
 import 'medical_info_view.dart';
 import 'settings_view.dart';
-
-// ─── Settings sheet helpers ──────────────────────────────────────────────────
-
-void _showSettingsSheet(BuildContext context, WidgetRef ref) {
-  showModalBottomSheet(
-    context: context,
-    backgroundColor: Colors.transparent,
-    isScrollControlled: false,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-    builder: (ctx) => _SettingsSheet(ref: ref),
-  );
-}
-
-class _SettingsSheet extends StatelessWidget {
-  final WidgetRef ref;
-
-  const _SettingsSheet({required this.ref});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.sac;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: c.surfaceVariant,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // ── Drag handle ───────────────────────────────────────────
-          const SizedBox(height: 12),
-          Center(
-            child: Container(
-              width: 36,
-              height: 5,
-              decoration: BoxDecoration(
-                color: c.border,
-                borderRadius: BorderRadius.circular(3),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // ── Main actions group ────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Container(
-              decoration: BoxDecoration(
-                color: c.surface,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: c.border, width: 1),
-              ),
-              child: Column(
-                children: [
-                  SettingTile(
-                    icon: HugeIcons.strokeRoundedEdit02,
-                    title: 'profile.view.edit_profile_title'.tr(),
-                    subtitle: 'profile.view.edit_profile_subtitle'.tr(),
-                    iconColor: AppColors.primary,
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const EditProfileView(),
-                        ),
-                      );
-                    },
-                  ),
-                  Divider(
-                    height: 1,
-                    thickness: 1,
-                    indent: 60,
-                    color: c.borderLight,
-                  ),
-                  SettingTile(
-                    icon: HugeIcons.strokeRoundedFirstAidKit,
-                    title: 'profile.view.medical_info_title'.tr(),
-                    subtitle: 'profile.view.medical_info_subtitle'.tr(),
-                    iconColor: AppColors.error,
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const MedicalInfoView(),
-                        ),
-                      );
-                    },
-                  ),
-                  Divider(
-                    height: 1,
-                    thickness: 1,
-                    indent: 60,
-                    color: c.borderLight,
-                  ),
-                  SettingTile(
-                    icon: HugeIcons.strokeRoundedSettings01,
-                    title: 'profile.view.settings_tile_title'.tr(),
-                    subtitle: 'profile.view.settings_tile_subtitle'.tr(),
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SettingsView(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // ── Destructive action group ──────────────────────────────
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Container(
-              decoration: BoxDecoration(
-                color: c.surface,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: c.border, width: 1),
-              ),
-              child: SettingTile(
-                icon: HugeIcons.strokeRoundedLogout01,
-                title: 'profile.view.logout_title'.tr(),
-                iconColor: AppColors.error,
-                onTap: () async {
-                  Navigator.pop(context);
-                  final shouldLogout = await SacDialog.show(
-                    context,
-                    title: 'profile.view.logout_title'.tr(),
-                    content: 'profile.view.logout_confirm'.tr(),
-                    confirmLabel: 'profile.view.logout_confirm_action'.tr(),
-                    confirmIsDestructive: true,
-                  );
-
-                  if (shouldLogout == true) {
-                    final success =
-                        await ref.read(authNotifierProvider.notifier).signOut();
-                    if (success) clearUserStateOnLogout(ref);
-                  }
-                },
-              ),
-            ),
-          ),
-
-          // ── Safe area bottom padding ──────────────────────────────
-          SizedBox(height: 16 + MediaQuery.of(context).padding.bottom),
-        ],
-      ),
-    );
-  }
-}
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 
@@ -353,7 +192,14 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               isUploadingPhoto: _isUploadingPhoto,
               hPad: hPad,
               onChangePhoto: _isUploadingPhoto ? null : _changePhoto,
-              onSettings: () => _showSettingsSheet(context, ref),
+              onSettings: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsView()),
+              ),
+              onQr: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MemberQrView()),
+              ),
               onRefresh: () async {
                 await ref.read(profileNotifierProvider.notifier).refresh();
                 ref.invalidate(userClassesProvider);
@@ -443,6 +289,7 @@ class _ProfileScrollBody extends StatelessWidget {
   final VoidCallback onRefreshClasses;
   final VoidCallback onRefreshHonors;
   final VoidCallback onSettings;
+  final VoidCallback onQr;
 
   const _ProfileScrollBody({
     required this.profile,
@@ -454,6 +301,7 @@ class _ProfileScrollBody extends StatelessWidget {
     required this.onRefreshClasses,
     required this.onRefreshHonors,
     required this.onSettings,
+    required this.onQr,
     this.onChangePhoto,
   });
 
@@ -504,7 +352,16 @@ class _ProfileScrollBody extends StatelessWidget {
                   const Spacer(),
                   IconButton(
                     icon: HugeIcon(
-                      icon: HugeIcons.strokeRoundedMenu01,
+                      icon: HugeIcons.strokeRoundedQrCode,
+                      color: c.text,
+                      size: 24,
+                    ),
+                    onPressed: onQr,
+                    tooltip: 'profile.view.qr_tooltip'.tr(),
+                  ),
+                  IconButton(
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedSettings01,
                       color: c.text,
                       size: 24,
                     ),
@@ -539,6 +396,32 @@ class _ProfileScrollBody extends StatelessWidget {
                 },
               ),
             ),
+
+            // ── 2. Información médica (inline entry) ──────────────
+            Padding(
+              padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: c.surface,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: c.border, width: 1),
+                ),
+                child: SettingTile(
+                  icon: HugeIcons.strokeRoundedFirstAidKit,
+                  title: 'profile.view.medical_info_title'.tr(),
+                  subtitle: 'profile.view.medical_info_subtitle'.tr(),
+                  iconColor: AppColors.error,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const MedicalInfoView(),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
 
             Padding(
               padding: EdgeInsets.symmetric(horizontal: hPad),

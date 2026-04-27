@@ -367,7 +367,6 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     }
 
     return Scaffold(
-      backgroundColor: context.sac.surfaceVariant,
       appBar: AppBar(
         backgroundColor: context.sac.background,
         foregroundColor: context.sac.text,

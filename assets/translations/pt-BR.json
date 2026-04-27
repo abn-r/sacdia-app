@@ -2360,6 +2360,7 @@
       "load_error": "Erro ao carregar perfil",
       "load_profile_error": "Não foi possível carregar o perfil",
       "settings_tooltip": "Configurações",
+      "qr_tooltip": "Minha credencial QR",
       "section_progressive_classes": "Classes Progressivas",
       "section_my_classes": "Minhas Classes",
       "section_honors": "Especialidades",
