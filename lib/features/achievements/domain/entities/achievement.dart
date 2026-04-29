@@ -8,6 +8,13 @@ import 'package:equatable/equatable.dart';
 const String _achievementBadgeBase =
     'https://sacdia-files.r2.dev/achievements/';
 
+/// Default badge image shown for locked achievements or when the admin has not
+/// yet uploaded a custom badge for an achievement.
+///
+/// Hosted in the public R2 bucket under achievements/achievements_default.png.
+const String kDefaultLockedAchievementBadgeUrl =
+    'https://pub-c8aa231ae66c46ff96fc5e811994d9d2.r2.dev/achievements/achievements_default.png';
+
 String? _buildBadgeImageUrl(String? key) {
   if (key == null || key.isEmpty) return null;
   if (key.startsWith('http')) return key;
