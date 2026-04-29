@@ -32,8 +32,9 @@ class AchievementProfileSummary extends ConsumerWidget {
         loading: () => _AchievementProfileSkeleton(
           key: const ValueKey('achievement-profile-skeleton'),
         ),
-        error: (_, __) => const SizedBox.shrink(
-          key: ValueKey('achievement-profile-error'),
+        error: (_, __) => _AchievementProfileError(
+          key: const ValueKey('achievement-profile-error'),
+          onRetry: () => ref.invalidate(userAchievementsProvider),
         ),
         data: (response) => _AchievementProfileData(
           key: const ValueKey('achievement-profile-data'),
@@ -155,6 +156,54 @@ class _AchievementProfileData extends StatelessWidget {
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Error state ───────────────────────────────────────────────────────────────────
+
+class _AchievementProfileError extends StatelessWidget {
+  final VoidCallback onRetry;
+
+  const _AchievementProfileError({super.key, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedAward01,
+            size: 18,
+            color: context.sac.textTertiary,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'No pudimos cargar tus logros',
+            style: TextStyle(
+              fontSize: 13,
+              color: context.sac.textTertiary,
+            ),
+          ),
+          const SizedBox(width: 4),
+          TextButton(
+            onPressed: onRetry,
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Text(
+              'Reintentar',
+              style: TextStyle(
+                fontSize: 13,
+                color: context.sac.info,
+              ),
+            ),
+          ),
         ],
       ),
     );
