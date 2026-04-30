@@ -160,4 +160,11 @@ class RouteNames {
       '/camporee/$camporeeId/member/$memberId/payments';
   static String camporeeEnrollClubPath(int camporeeId) =>
       '/camporee/$camporeeId/enroll-club';
+
+  // Rankings
+  static const String homeMyRanking = '/home/my-ranking';
+  static const String sectionRanking = '/section-ranking/:sectionId';
+
+  static String sectionRankingPath(int sectionId) =>
+      '/section-ranking/$sectionId';
 }

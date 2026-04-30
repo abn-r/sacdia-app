@@ -2760,7 +2760,9 @@
       "grouped_class": "Clase Agrupada",
       "insurance": "Seguros del Club",
       "inventory": "Inventario",
-      "resources": "Recursos"
+      "resources": "Recursos",
+      "my_ranking": "Mi ranking",
+      "section_ranking": "Ranking de sección"
     },
     "stats": {
       "honors_completed": "Esp. completadas",

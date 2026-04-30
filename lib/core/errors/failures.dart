@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 
 /// Clase base para todos los fallos en la aplicación
-abstract class Failure extends Equatable {
+abstract class Failure extends Equatable implements Exception {
   final String message;
   final int? code;
   final StackTrace? stackTrace;

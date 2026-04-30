@@ -8,13 +8,23 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/features/members/presentation/providers/members_providers.dart';
 
 class _QuickAccessItemConfig {
   /// Translation key resolved at render time via tr(labelKey).
   final String labelKey;
   final List<List<dynamic>> icon;
   final Color? color;
+
+  /// Static route path. Use this for routes that do not depend on runtime
+  /// context. For dynamic routes, leave empty and provide [routeResolver].
   final String route;
+
+  /// Optional resolver for routes that need runtime data (e.g. sectionId from
+  /// clubContextProvider). Called at render time with a [WidgetRef]. Return
+  /// null to hide the card when context data is unavailable.
+  final String? Function(WidgetRef ref)? routeResolver;
+
   final Set<String> requiredPermissions;
 
   /// Canonical role names to gate against when the item is not permission-based.
@@ -27,13 +37,15 @@ class _QuickAccessItemConfig {
     required this.labelKey,
     required this.icon,
     this.color,
-    required this.route,
+    this.route = '',
+    this.routeResolver,
     this.requiredPermissions = const {},
     this.requiredRoles = const {},
   });
 }
 
-const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
+// ignore: prefer_const_declarations
+final List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
   // Coordination hub — gated by GLOBAL role only. The concept "is the user a
   // coordinator / admin" does not map to a single permission, because club
   // directors also hold operational permissions like `investiture:validate`;
@@ -117,6 +129,28 @@ const List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
     route: RouteNames.homeResources,
     requiredPermissions: {'folders:read'},
   ),
+  // Mi ranking — universal (no permission gate, visible to every member).
+  _QuickAccessItemConfig(
+    labelKey: 'dashboard.quick_access.my_ranking',
+    icon: HugeIcons.strokeRoundedRanking,
+    color: AppColors.accent,
+    route: RouteNames.homeMyRanking,
+  ),
+  // Ranking de sección — gated by units:update (counselor+). Route is
+  // resolved at render time because it requires the active sectionId from
+  // clubContextProvider. Card is hidden when context is unavailable.
+  _QuickAccessItemConfig(
+    labelKey: 'dashboard.quick_access.section_ranking',
+    icon: HugeIcons.strokeRoundedAward01,
+    color: AppColors.primary,
+    routeResolver: (ref) {
+      final ctxAsync = ref.watch(clubContextProvider);
+      final sectionId = ctxAsync.valueOrNull?.sectionId;
+      if (sectionId == null) return null;
+      return RouteNames.sectionRankingPath(sectionId);
+    },
+    requiredPermissions: {'units:update'},
+  ),
 ];
 
 /// Grid 2xN de acceso rápido a los módulos principales del sistema.
@@ -165,6 +199,13 @@ class QuickAccessGrid extends ConsumerWidget {
         return true;
       }
       return false;
+    }).where((item) {
+      // For items with a dynamic routeResolver, hide the card when the
+      // resolved route is null (context data not yet available or missing).
+      if (item.routeResolver != null) {
+        return item.routeResolver!(ref) != null;
+      }
+      return true;
     }).toList();
 
     if (filteredItems.isEmpty) {
@@ -196,7 +237,11 @@ class QuickAccessGrid extends ConsumerWidget {
           itemCount: filteredItems.length,
           itemBuilder: (context, index) {
             final item = filteredItems[index];
-            return _QuickAccessTile(item: item);
+            final resolvedRoute =
+                item.routeResolver != null ? item.routeResolver!(ref) : item.route;
+            // resolvedRoute is guaranteed non-null here: items with null
+            // resolution were already filtered out above.
+            return _QuickAccessTile(item: item, resolvedRoute: resolvedRoute!);
           },
         ),
       ],
@@ -257,10 +302,13 @@ class _QuickAccessSkeleton extends StatelessWidget {
 class _QuickAccessTile extends StatelessWidget {
   final _QuickAccessItemConfig item;
 
+  /// Pre-resolved navigation path (static route or resolved dynamic route).
+  final String resolvedRoute;
+
   // Shared BorderRadius to avoid repeated allocations on every build.
   static final _kTileRadius = BorderRadius.circular(16);
 
-  const _QuickAccessTile({required this.item});
+  const _QuickAccessTile({required this.item, required this.resolvedRoute});
 
   @override
   Widget build(BuildContext context) {
@@ -272,7 +320,7 @@ class _QuickAccessTile extends StatelessWidget {
       borderRadius: _kTileRadius,
       child: InkWell(
         borderRadius: _kTileRadius,
-        onTap: () => context.push(item.route),
+        onTap: () => context.push(resolvedRoute),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: _kTileRadius,
