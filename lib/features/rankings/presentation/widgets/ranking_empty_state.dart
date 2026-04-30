@@ -17,6 +17,9 @@ enum RankingEmptyReason {
 
   /// Sección sin miembros suficientes para calcular rankings.
   noSectionMembers,
+
+  /// Usuario sin permisos para ver el ranking de esta sección (RBAC).
+  unauthorized,
 }
 
 /// Estado vacío genérico para el ranking, dirigido por [RankingEmptyReason].
@@ -114,6 +117,13 @@ class RankingEmptyState extends StatelessWidget {
           title: 'Todavía no hay rankings',
           body:
               'Los rankings se calculan automáticamente cada 24 hs. Las clases y camporees del año ya deben estar registrados.',
+        );
+      case RankingEmptyReason.unauthorized:
+        return _EmptyConfig(
+          icon: HugeIcons.strokeRoundedShieldKey,
+          title: 'Acceso restringido',
+          body:
+              'No tenés permisos para ver el ranking de esta sección. Consultá con tu director.',
         );
     }
   }
