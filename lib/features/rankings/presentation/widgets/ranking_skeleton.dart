@@ -61,8 +61,15 @@ class _RankingSkeletonState extends State<RankingSkeleton>
     super.didChangeDependencies();
     final reduceMotion =
         MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-    if (!reduceMotion && !_controller.isAnimating) {
-      _controller.repeat(reverse: true);
+    if (reduceMotion) {
+      if (_controller.isAnimating) {
+        _controller.stop();
+        _controller.value = 0.9; // settle to high-opacity end state
+      }
+    } else {
+      if (!_controller.isAnimating) {
+        _controller.repeat(reverse: true);
+      }
     }
   }
 
