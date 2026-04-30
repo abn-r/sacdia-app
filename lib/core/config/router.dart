@@ -53,6 +53,8 @@ import 'package:sacdia_app/features/support/presentation/views/support_view.dart
 import 'package:sacdia_app/features/support/presentation/views/faq_view.dart';
 import 'package:sacdia_app/features/support/presentation/views/contact_view.dart';
 import 'package:sacdia_app/features/support/presentation/views/report_problem_view.dart';
+import 'package:sacdia_app/features/rankings/presentation/screens/my_ranking_screen.dart';
+import 'package:sacdia_app/features/rankings/presentation/screens/section_ranking_screen.dart';
 
 import '../../features/auth/domain/entities/authorization_snapshot.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
@@ -508,6 +510,20 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
+
+          // ── Branch 17: Mi Ranking (quick-access, no nav bar) ─────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeMyRanking,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const MyRankingScreen(),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
 
@@ -926,6 +942,30 @@ final routerProvider = Provider<GoRouter>((ref) {
           state,
           const AchievementsView(),
         ),
+      ),
+
+      // Ranking de sección — drill-down fuera del shell (push).
+      // Recibe el sectionId como path param para evitar dependencia de contexto.
+      GoRoute(
+        path: RouteNames.sectionRanking,
+        pageBuilder: (context, state) {
+          final sectionIdStr = state.pathParameters['sectionId'];
+          final sectionId = int.tryParse(sectionIdStr ?? '');
+          if (sectionId == null) {
+            return _sharedAxisBuild(
+              context,
+              state,
+              const Scaffold(
+                body: Center(child: Text('Sección inválida')),
+              ),
+            );
+          }
+          return _sharedAxisBuild(
+            context,
+            state,
+            SectionRankingScreen(sectionId: sectionId),
+          );
+        },
       ),
 
       // Soporte / Ayuda — hub principal

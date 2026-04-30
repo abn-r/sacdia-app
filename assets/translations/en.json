@@ -2760,7 +2760,9 @@
       "grouped_class": "Group Class",
       "insurance": "Club Insurance",
       "inventory": "Inventory",
-      "resources": "Resources"
+      "resources": "Resources",
+      "my_ranking": "My ranking",
+      "section_ranking": "Section ranking"
     },
     "stats": {
       "honors_completed": "Honors completed",
