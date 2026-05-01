@@ -3055,5 +3055,59 @@
       "empty_card": "Réponse vide de la carte virtuelle du serveur.",
       "load_failed": "Impossible de charger votre carte pour le moment."
     }
+  },
+  "rankings": {
+    "my_ranking": {
+      "title": "Mon classement",
+      "composite_score": "Score composite",
+      "pending": "Classement en attente",
+      "rank_of": "#{position} sur {total}",
+      "rank_position": "#{position}",
+      "section_label": "Section : {name}",
+      "nudge_class": "Terminez vos prochaines leçons de classe pour améliorer votre score.",
+      "nudge_investiture": "Travaillez sur les exigences de votre prochaine investiture.",
+      "nudge_camporee": "Participez aux prochains camporees pour gagner des points."
+    },
+    "section_ranking": {
+      "title": "Classement de section",
+      "subtitle": "Registre de progression",
+      "subtitle_with_year": "Registre de progression — {year}",
+      "invalid_section": "Section invalide"
+    },
+    "empty_state": {
+      "unavailable_title": "Classement indisponible",
+      "unavailable_subtitle": "Votre directeur peut activer la visibilité du classement lorsqu'il sera prêt.",
+      "no_data_title": "Pas encore de données",
+      "no_data_subtitle": "Votre classement est calculé automatiquement. Revenez plus tard.",
+      "network_error_title": "Sans connexion",
+      "network_error_subtitle": "Nous n'avons pas pu charger votre classement.",
+      "no_members_title": "Pas encore de classements",
+      "no_members_subtitle": "Les classements sont calculés automatiquement toutes les 24 h. Les cours et camporees de l'année doivent déjà être enregistrés.",
+      "unauthorized_title": "Accès restreint",
+      "unauthorized_subtitle": "Vous n'avez pas la permission de voir le classement de cette section. Consultez votre directeur.",
+      "retry": "Réessayer"
+    },
+    "signals": {
+      "class": "Classe",
+      "investiture": "Investiture",
+      "camporee": "Camporees"
+    },
+    "breakdown": {
+      "title": "Détail du score",
+      "composite_score": "Score composite",
+      "calculated_at": "Calculé le {date}",
+      "weights_title": "Pondérations appliquées",
+      "weights_source": "Source : {source}",
+      "class_section": "Classe",
+      "investiture_section": "Investiture",
+      "camporee_section": "Camporees",
+      "class_completed_sections": "{completed} sur {required} sections terminées",
+      "class_folder_status": "Dossier : {status}",
+      "investiture_status": "Statut : {status}",
+      "camporee_participated": "A participé au camporee",
+      "camporee_not_participated": "N'a pas participé au camporee",
+      "camporee_total": "{total} camporee(s) disponible(s)",
+      "weight_pct": "{pct}%"
+    }
   }
 }

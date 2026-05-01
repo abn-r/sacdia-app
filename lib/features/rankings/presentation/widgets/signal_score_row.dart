@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -32,7 +33,7 @@ class SignalScoreRow extends StatelessWidget {
             child: _SignalScoreCard(
               icon: HugeIcons.strokeRoundedBook01,
               score: classScore,
-              label: 'Clase',
+              label: tr('rankings.signals.class'),
             ),
           ),
           const SizedBox(width: 8),
@@ -40,7 +41,7 @@ class SignalScoreRow extends StatelessWidget {
             child: _SignalScoreCard(
               icon: HugeIcons.strokeRoundedMedal01,
               score: investitureScore,
-              label: 'Investidura',
+              label: tr('rankings.signals.investiture'),
             ),
           ),
           const SizedBox(width: 8),
@@ -48,7 +49,7 @@ class SignalScoreRow extends StatelessWidget {
             child: _SignalScoreCard(
               icon: HugeIcons.strokeRoundedCampfire,
               score: camporeeScore,
-              label: 'Camporees',
+              label: tr('rankings.signals.camporee'),
             ),
           ),
         ],
