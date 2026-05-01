@@ -116,7 +116,6 @@ class AchievementGridCard extends StatelessWidget {
       ),
     );
   }
-
 }
 
 // ── Secret badge placeholder ────────────────────────────────────────────────────
