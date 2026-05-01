@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/club_role_names.dart';
+import '../../../../core/config/route_names.dart';
 import '../../../../providers/catalogs_provider.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../providers/section_ranking_provider.dart';
@@ -141,6 +143,9 @@ class SectionRankingScreen extends ConsumerWidget {
                 compositeScore: m.compositeScorePct,
                 awardedCategoryName: m.awardedCategory?.name,
                 awardedCategoryTierId: m.awardedCategory?.id,
+                onTap: () => context.push(
+                  RouteNames.memberBreakdownPath(m.enrollmentId, yearId),
+                ),
               );
             },
           );

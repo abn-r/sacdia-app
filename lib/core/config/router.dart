@@ -53,6 +53,7 @@ import 'package:sacdia_app/features/support/presentation/views/support_view.dart
 import 'package:sacdia_app/features/support/presentation/views/faq_view.dart';
 import 'package:sacdia_app/features/support/presentation/views/contact_view.dart';
 import 'package:sacdia_app/features/support/presentation/views/report_problem_view.dart';
+import 'package:sacdia_app/features/rankings/presentation/screens/member_breakdown_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/my_ranking_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/section_ranking_screen.dart';
 
@@ -964,6 +965,37 @@ final routerProvider = Provider<GoRouter>((ref) {
             context,
             state,
             SectionRankingScreen(sectionId: sectionId),
+          );
+        },
+      ),
+
+      // Desglose de puntaje de un miembro — drill-down desde MyRankingScreen o
+      // SectionRankingScreen. Recibe enrollmentId como path param e yearId como
+      // query param para construir el request sin dependencia de contexto.
+      GoRoute(
+        path: RouteNames.memberBreakdown,
+        pageBuilder: (context, state) {
+          final enrollmentIdStr = state.pathParameters['enrollmentId'];
+          final yearIdStr = state.uri.queryParameters['year_id'];
+          final enrollmentId = int.tryParse(enrollmentIdStr ?? '');
+          final yearId = int.tryParse(yearIdStr ?? '');
+          if (enrollmentId == null || yearId == null) {
+            return _sharedAxisBuild(
+              context,
+              state,
+              const Scaffold(
+                body: Center(
+                    child: Text('Parámetros de desglose inválidos')),
+              ),
+            );
+          }
+          return _sharedAxisBuild(
+            context,
+            state,
+            MemberBreakdownScreen(
+              enrollmentId: enrollmentId,
+              yearId: yearId,
+            ),
           );
         },
       ),

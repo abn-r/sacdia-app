@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../providers/catalogs_provider.dart';
 import '../../domain/entities/award_tier.dart';
@@ -99,16 +101,23 @@ class _RankingBody extends ConsumerWidget {
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               // Hero card con puntaje compuesto.
+              // Tapping navigates to the full breakdown drill-down.
               SliverToBoxAdapter(
-                child: RankingHeroCard(
-                  compositeScore: ranking.compositeScorePct,
-                  rankPosition: ranking.rankPosition,
-                  totalInSection: _resolveTotalInSection(view),
-                  awardedCategoryName: ranking.awardedCategory?.name,
-                  awardedCategoryTier:
-                      ranking.awardedCategory?.tier ?? AwardTier.unknown,
-                  sectionName: ranking.sectionName,
-                  ecclesiasticalYearLabel: yearLabel,
+                child: GestureDetector(
+                  onTap: () => context.push(
+                    RouteNames.memberBreakdownPath(
+                        ranking.enrollmentId, yearId),
+                  ),
+                  child: RankingHeroCard(
+                    compositeScore: ranking.compositeScorePct,
+                    rankPosition: ranking.rankPosition,
+                    totalInSection: _resolveTotalInSection(view),
+                    awardedCategoryName: ranking.awardedCategory?.name,
+                    awardedCategoryTier:
+                        ranking.awardedCategory?.tier ?? AwardTier.unknown,
+                    sectionName: ranking.sectionName,
+                    ecclesiasticalYearLabel: yearLabel,
+                  ),
                 ),
               ),
 
