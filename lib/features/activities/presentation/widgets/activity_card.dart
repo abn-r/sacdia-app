@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+
+// La hora se muestra desde activityTime (String "HH:mm") — campo separado del backend.
+// activityDate es DATE-only (medianoche local); usarlo para la hora siempre da 00:00.
+// activityTime es la hora real que ingresó el usuario, no tiene problema de timezone.
 
 import '../../domain/entities/activity.dart';
 
@@ -31,13 +35,13 @@ class ActivityCard extends StatelessWidget {
 
     switch (type) {
       case 1:
-        return 'Regular';
+        return 'activities.detail.type_regular'.tr();
       case 2:
-        return 'Especial';
+        return 'activities.detail.type_special'.tr();
       case 3:
-        return 'Camporee';
+        return 'activities.detail.type_camporee'.tr();
       default:
-        return 'Actividad';
+        return 'activities.detail.type_activity'.tr();
     }
   }
 
@@ -81,8 +85,8 @@ class ActivityCard extends StatelessWidget {
                     variant: _getTypeBadgeVariant(activity.activityType),
                   ),
                   if (activity.isJoint)
-                    const SacBadge(
-                      label: 'Conjunta',
+                    SacBadge(
+                      label: 'activities.widgets.joint_badge_short'.tr(),
                       icon: Icons.people_rounded,
                       variant: SacBadgeVariant.neutral,
                     ),
@@ -127,11 +131,11 @@ class ActivityCard extends StatelessWidget {
               if (activity.activityDate != null)
                 _MetaItem(
                   icon: HugeIcons.strokeRoundedCalendar01,
-                  label: DateFormat('d MMM yyyy', 'es')
+                  label: DateFormat('d MMM yyyy', context.locale.toString())
                       .format(activity.activityDate!.toLocal()),
                   c: c,
                 ),
-              if (activity.activityTime != null)
+              if (activity.activityTime != null && activity.activityTime!.isNotEmpty)
                 _MetaItem(
                   icon: HugeIcons.strokeRoundedClock01,
                   label: activity.activityTime!,

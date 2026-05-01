@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -47,6 +48,14 @@ import 'package:sacdia_app/features/coordinator/presentation/views/evidence_revi
 import 'package:sacdia_app/features/coordinator/presentation/views/camporee_approvals_view.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/evidence_review_item.dart';
 import 'package:sacdia_app/features/notifications/presentation/views/notifications_inbox_view.dart';
+import 'package:sacdia_app/features/achievements/presentation/views/achievements_view.dart';
+import 'package:sacdia_app/features/support/presentation/views/support_view.dart';
+import 'package:sacdia_app/features/support/presentation/views/faq_view.dart';
+import 'package:sacdia_app/features/support/presentation/views/contact_view.dart';
+import 'package:sacdia_app/features/support/presentation/views/report_problem_view.dart';
+import 'package:sacdia_app/features/rankings/presentation/screens/member_breakdown_screen.dart';
+import 'package:sacdia_app/features/rankings/presentation/screens/my_ranking_screen.dart';
+import 'package:sacdia_app/features/rankings/presentation/screens/section_ranking_screen.dart';
 
 import '../../features/auth/domain/entities/authorization_snapshot.dart';
 import '../../features/auth/domain/entities/user_entity.dart';
@@ -61,8 +70,7 @@ import '../../features/auth/presentation/views/splash_view.dart';
 import '../../features/post_registration/presentation/views/post_registration_shell.dart';
 import '../../features/dashboard/presentation/views/dashboard_view.dart';
 import '../../features/classes/presentation/providers/classes_providers.dart';
-import '../../features/classes/presentation/views/classes_list_view.dart';
-import '../../features/classes/presentation/sheets/enroll_previous_class_sheet.dart';
+import '../../features/classes/presentation/views/classes_tabs_view.dart';
 import '../../features/classes/presentation/views/class_detail_with_progress_view.dart';
 import '../../features/members/presentation/views/members_view.dart';
 import '../../features/profile/presentation/views/profile_view.dart';
@@ -147,9 +155,25 @@ final routerProvider = Provider<GoRouter>((ref) {
         final isBootstrapLoading = bootstrapAsync.isLoading;
         final bootstrapValue = bootstrapAsync.valueOrNull;
 
-        // Still validating permissions → stay on splash
+        // Whether the user is already inside the authenticated shell (any
+        // /home/* route or post-registration). In this case, do NOT redirect
+        // to splash while bootstrap re-validates — doing so causes GoRouter to
+        // unmount and immediately remount the StatefulShellRoute in the same
+        // frame, which triggers a Duplicate GlobalKey crash.
+        // This scenario occurs during a context switch: switchContext() updates
+        // authNotifierProvider → AppBootstrapNotifier invalidates itself →
+        // bootstrap briefly enters AsyncLoading → router refreshes.
+        // Staying put (return null) is safe: the bootstrap will resolve quickly
+        // and fire another router.refresh() that re-evaluates correctly.
+        final isAlreadyInsideApp = !isPublicRoute &&
+            currentPath != RouteNames.splash;
+
+        // Still validating permissions → stay on splash (first boot only)
         if (isBootstrapLoading) {
           if (currentPath == RouteNames.splash) return null;
+          // User already inside the app (e.g., mid-session context switch) →
+          // stay on the current route while bootstrap re-validates silently.
+          if (isAlreadyInsideApp) return null;
           return RouteNames.splash;
         }
 
@@ -276,7 +300,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: RouteNames.homeClasses,
                 pageBuilder: (context, state) =>
-                    _fadeThroughBuild(context, state, const ClassesListView()),
+                    _fadeThroughBuild(context, state, const ClassesTabsView()),
               ),
             ],
           ),
@@ -473,6 +497,34 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
+
+          // ── Branch 16: Logros / Achievements (quick-access, no nav bar) ──
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeAchievements,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const AchievementsView(),
+                ),
+              ),
+            ],
+          ),
+
+          // ── Branch 17: Mi Ranking (quick-access, no nav bar) ─────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeMyRanking,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const MyRankingScreen(),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
 
@@ -565,7 +617,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           final userHonorId =
               int.tryParse(state.pathParameters['userHonorId']!) ?? 0;
           final honorName =
-              state.uri.queryParameters['name'] ?? 'Requisitos';
+              state.uri.queryParameters['name'] ?? tr('router.honor_requirements.default_title');
           return _sharedAxisBuild(
             context,
             state,
@@ -658,7 +710,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           final camporeeIdStr = state.pathParameters['camporeeId']!;
           final camporeeId = int.tryParse(camporeeIdStr) ?? 0;
           final camporeeName =
-              state.uri.queryParameters['name'] ?? 'Camporee';
+              state.uri.queryParameters['name'] ?? tr('router.camporee_members.default_name');
           return _sharedAxisBuild(
             context,
             state,
@@ -882,6 +934,100 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      // Detalle de logro (deep-link desde notificación push)
+      // Opens the achievements list; the UI can scroll to the specific item.
+      GoRoute(
+        path: RouteNames.achievementDetail,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          const AchievementsView(),
+        ),
+      ),
+
+      // Ranking de sección — drill-down fuera del shell (push).
+      // Recibe el sectionId como path param para evitar dependencia de contexto.
+      GoRoute(
+        path: RouteNames.sectionRanking,
+        pageBuilder: (context, state) {
+          final sectionIdStr = state.pathParameters['sectionId'];
+          final sectionId = int.tryParse(sectionIdStr ?? '');
+          if (sectionId == null) {
+            return _sharedAxisBuild(
+              context,
+              state,
+              const Scaffold(
+                body: Center(child: Text('Sección inválida')),
+              ),
+            );
+          }
+          return _sharedAxisBuild(
+            context,
+            state,
+            SectionRankingScreen(sectionId: sectionId),
+          );
+        },
+      ),
+
+      // Desglose de puntaje de un miembro — drill-down desde MyRankingScreen o
+      // SectionRankingScreen. Recibe enrollmentId como path param e yearId como
+      // query param para construir el request sin dependencia de contexto.
+      GoRoute(
+        path: RouteNames.memberBreakdown,
+        pageBuilder: (context, state) {
+          final enrollmentIdStr = state.pathParameters['enrollmentId'];
+          final yearIdStr = state.uri.queryParameters['year_id'];
+          final enrollmentId = int.tryParse(enrollmentIdStr ?? '');
+          final yearId = int.tryParse(yearIdStr ?? '');
+          if (enrollmentId == null || yearId == null) {
+            return _sharedAxisBuild(
+              context,
+              state,
+              const Scaffold(
+                body: Center(
+                    child: Text('Parámetros de desglose inválidos')),
+              ),
+            );
+          }
+          return _sharedAxisBuild(
+            context,
+            state,
+            MemberBreakdownScreen(
+              enrollmentId: enrollmentId,
+              yearId: yearId,
+            ),
+          );
+        },
+      ),
+
+      // Soporte / Ayuda — hub principal
+      GoRoute(
+        path: SupportView.routeName,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const SupportView()),
+      ),
+
+      // Soporte — FAQ
+      GoRoute(
+        path: FaqView.routeName,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const FaqView()),
+      ),
+
+      // Soporte — Contacto
+      GoRoute(
+        path: ContactView.routeName,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const ContactView()),
+      ),
+
+      // Soporte — Reportar problema
+      GoRoute(
+        path: ReportProblemView.routeName,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const ReportProblemView()),
+      ),
+
       // OAuth callback deep link — io.sacdia.app://auth/callback?session_token=...&provider=...
       //
       // GoRouter intercepts the deep link automatically because:
@@ -935,16 +1081,19 @@ class _NavItemConfig {
   final int branchIndex;
   final String route;
   final List<List<dynamic>> icon;
-  final String label;
+  /// i18n key resolved via tr() at build time.
+  final String labelKey;
   final Set<String> requiredPermissions;
 
   const _NavItemConfig({
     required this.branchIndex,
     required this.route,
     required this.icon,
-    required this.label,
+    required this.labelKey,
     this.requiredPermissions = const {},
   });
+
+  String get label => tr(labelKey);
 }
 
 const List<_NavItemConfig> _navItemsConfig = [
@@ -952,27 +1101,27 @@ const List<_NavItemConfig> _navItemsConfig = [
     branchIndex: 0,
     route: RouteNames.homeDashboard,
     icon: HugeIcons.strokeRoundedHome01,
-    label: 'Inicio',
+    labelKey: 'router.nav.home',
   ),
   _NavItemConfig(
     branchIndex: 1,
     route: RouteNames.homeClasses,
     icon: HugeIcons.strokeRoundedSchool,
-    label: 'Clases',
+    labelKey: 'router.nav.classes',
     requiredPermissions: {'classes:read'},
   ),
   _NavItemConfig(
     branchIndex: 2,
     route: RouteNames.homeActivities,
     icon: HugeIcons.strokeRoundedCalendar01,
-    label: 'Actividades',
+    labelKey: 'router.nav.activities',
     requiredPermissions: {'activities:read'},
   ),
   _NavItemConfig(
     branchIndex: 3,
     route: RouteNames.homeProfile,
     icon: HugeIcons.strokeRoundedUser,
-    label: 'Perfil',
+    labelKey: 'router.nav.profile',
   ),
 ];
 
@@ -1069,34 +1218,10 @@ class _MainShell extends ConsumerWidget {
     }
 
     // ── Phone: bottom NavigationBar ──────────────────────────────────────────
-    final hasActiveClub =
-        authorization?.activeGrant?.sectionId != null;
-    final isClassesBranch = currentBranchIndex == 1;
-
+    // El FAB de "Inscribir clase" fue movido a ClassesListView para evitar
+    // que se filtre al detalle de clase durante Navigator.push (branch 1 sigue
+    // activo y el Scaffold del shell lo heredaba).
     return Scaffold(
-      floatingActionButton: (isClassesBranch && hasActiveClub)
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(20)),
-                  ),
-                  builder: (_) => const EnrollPreviousClassSheet(),
-                );
-              },
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              icon: const Icon(Icons.add_rounded),
-              label: const Text(
-                'Inscribir clase',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-            )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
@@ -1137,12 +1262,14 @@ class _EvidenceFolderShell extends ConsumerWidget {
         ),
       ),
       error: (e, _) => Scaffold(
-        appBar: AppBar(title: const Text('Carpeta de Evidencias')),
+        appBar: AppBar(title: Text(tr('router.evidence_folder.title'))),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(32),
             child: Text(
-              'No se pudo cargar el contexto del club.\n${e.toString().replaceFirst("Exception: ", "")}',
+              tr('router.evidence_folder.context_error', namedArgs: {
+                'error': e.toString().replaceFirst('Exception: ', ''),
+              }),
               textAlign: TextAlign.center,
             ),
           ),
@@ -1151,12 +1278,12 @@ class _EvidenceFolderShell extends ConsumerWidget {
       data: (section) {
         if (section == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Carpeta de Evidencias')),
-            body: const Center(
+            appBar: AppBar(title: Text(tr('router.evidence_folder.title'))),
+            body: Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: const EdgeInsets.all(32),
                 child: Text(
-                  'No hay un club activo seleccionado. Por favor selecciona un club desde tu perfil.',
+                  tr('router.evidence_folder.no_active_club'),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -1194,12 +1321,14 @@ class _ActiveClassDetailShell extends ConsumerWidget {
         ),
       ),
       error: (e, _) => Scaffold(
-        appBar: AppBar(title: const Text('Mi Clase')),
+        appBar: AppBar(title: Text(tr('router.active_class.title'))),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(32),
             child: Text(
-              'No se pudo cargar la clase.\n${e.toString().replaceFirst("Exception: ", "")}',
+              tr('router.active_class.load_error', namedArgs: {
+                'error': e.toString().replaceFirst('Exception: ', ''),
+              }),
               textAlign: TextAlign.center,
             ),
           ),
@@ -1208,12 +1337,12 @@ class _ActiveClassDetailShell extends ConsumerWidget {
       data: (classes) {
         if (classes.isEmpty) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Mi Clase')),
-            body: const Center(
+            appBar: AppBar(title: Text(tr('router.active_class.title'))),
+            body: Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: const EdgeInsets.all(32),
                 child: Text(
-                  'No tienes ninguna clase asignada. Inscríbete en un club para comenzar.',
+                  tr('router.active_class.no_class_assigned'),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -1307,7 +1436,7 @@ class _OAuthCallbackScreenState extends ConsumerState<_OAuthCallbackScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'Completando inicio de sesión...',
+              tr('router.oauth_callback.completing_signin'),
               style: Theme.of(context).textTheme.bodyLarge,
             ),
           ],

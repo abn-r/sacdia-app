@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -30,7 +31,7 @@ class TransferRequestsView extends ConsumerWidget {
         backgroundColor: c.background,
         surfaceTintColor: Colors.transparent,
         title: Text(
-          'Solicitudes de traslado',
+          tr('transfers.list.title'),
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 18,
@@ -87,9 +88,9 @@ class TransferRequestsView extends ConsumerWidget {
           color: Colors.white,
           size: 20,
         ),
-        label: const Text(
-          'Nueva solicitud',
-          style: TextStyle(fontWeight: FontWeight.w600),
+        label: Text(
+          'transfers.list.new_request'.tr(),
+          style: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -182,7 +183,7 @@ class _TransferCard extends StatelessWidget {
                     )
                   else
                     Text(
-                      'Sección #${request.toSectionId}',
+                      tr('transfers.list.section_number', namedArgs: {'id': '${request.toSectionId}'}),
                       style: TextStyle(
                         fontSize: 12,
                         color: c.textSecondary,
@@ -302,7 +303,7 @@ class _EmptyBody extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Sin solicitudes de traslado',
+              tr('transfers.list.empty_title'),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -311,7 +312,7 @@ class _EmptyBody extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Podés solicitar un traslado a otra sección del club desde aquí.',
+              tr('transfers.list.empty_subtitle'),
               style: TextStyle(
                 fontSize: 14,
                 color: c.textSecondary,
@@ -320,7 +321,7 @@ class _EmptyBody extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             SacButton.primary(
-              text: 'Solicitar traslado',
+              text: tr('transfers.list.empty_action'),
               icon: HugeIcons.strokeRoundedAdd01,
               onPressed: onNewRequest,
             ),
@@ -360,7 +361,7 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             SacButton.primary(
-              text: 'Reintentar',
+              text: tr('common.retry'),
               icon: HugeIcons.strokeRoundedRefresh,
               onPressed: onRetry,
             ),
@@ -416,7 +417,7 @@ class _TransferRequestFormViewState
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Solicitud enviada correctamente'),
+          content: Text('transfers.form.success_message'.tr()),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -438,7 +439,7 @@ class _TransferRequestFormViewState
         backgroundColor: c.background,
         surfaceTintColor: Colors.transparent,
         title: Text(
-          'Nueva solicitud de traslado',
+          tr('transfers.form.title'),
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 18,
@@ -479,8 +480,8 @@ class _TransferRequestFormViewState
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
-                      'Ingresá el ID de la sección destino. Podés obtenerlo desde la información del club.',
+                    child:                     Text(
+                      tr('transfers.form.info_banner'),
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.statusInfoText,
@@ -495,7 +496,7 @@ class _TransferRequestFormViewState
 
             // ── Section ID field ──────────────────────────────────────
             Text(
-              'ID de sección destino',
+              tr('transfers.form.section_id_label'),
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -507,7 +508,7 @@ class _TransferRequestFormViewState
               controller: _sectionCtrl,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                hintText: 'Ej: 42',
+                hintText: tr('transfers.form.section_id_hint'),
                 prefixIcon: HugeIcon(
                   icon: HugeIcons.strokeRoundedUserGroup,
                   color: c.textTertiary,
@@ -533,11 +534,11 @@ class _TransferRequestFormViewState
               ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) {
-                  return 'Ingresá el ID de sección';
+                  return tr('transfers.form.section_id_required');
                 }
                 final parsed = int.tryParse(v.trim());
                 if (parsed == null || parsed <= 0) {
-                  return 'Ingresá un ID de sección válido';
+                  return tr('transfers.form.section_id_invalid');
                 }
                 _parsedSectionId = parsed;
                 return null;
@@ -549,7 +550,7 @@ class _TransferRequestFormViewState
 
             // ── Reason field ──────────────────────────────────────────
             Text(
-              'Motivo (opcional)',
+              '${tr('transfers.form.reason')} ${tr('common.optional')}',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -561,7 +562,7 @@ class _TransferRequestFormViewState
               controller: _reasonCtrl,
               maxLines: 3,
               decoration: InputDecoration(
-                hintText: 'Explicá brevemente por qué solicitás el traslado...',
+                hintText: tr('transfers.form.reason_hint'),
                 filled: true,
                 fillColor: c.surface,
                 border: OutlineInputBorder(
@@ -617,7 +618,7 @@ class _TransferRequestFormViewState
 
             // ── Submit ────────────────────────────────────────────────
             SacButton.primary(
-              text: 'Enviar solicitud',
+              text: tr('transfers.form.submit'),
               icon: HugeIcons.strokeRoundedSent,
               isLoading: formState.isLoading,
               onPressed: formState.isLoading ? null : _submit,

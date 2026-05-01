@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -37,9 +38,10 @@ class _AllergiesSelectionViewState
   ) async {
     final confirmed = await SacDialog.show(
       context,
-      title: 'Eliminar Alergia',
-      content: '¿Estás seguro de que deseas eliminar "$allergyName"?',
-      confirmLabel: 'Eliminar',
+      title: 'post_registration.health.allergies.delete_dialog_title'.tr(),
+      content: 'post_registration.health.allergies.delete_dialog_content'
+          .tr(namedArgs: {'name': allergyName}),
+      confirmLabel: 'common.delete'.tr(),
       confirmIsDestructive: true,
     );
 
@@ -51,7 +53,8 @@ class _AllergiesSelectionViewState
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Alergia eliminada correctamente'),
+              content: Text(
+                  'post_registration.health.allergies.delete_success'.tr()),
               backgroundColor: AppColors.secondary,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -64,7 +67,10 @@ class _AllergiesSelectionViewState
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error al eliminar: ${e.toString()}'),
+              content: Text(
+                'post_registration.health.allergies.delete_error'
+                    .tr(namedArgs: {'error': e.toString()}),
+              ),
               backgroundColor: AppColors.error,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -100,13 +106,14 @@ class _AllergiesSelectionViewState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Alergias'),
+        title: Text('post_registration.health.allergies.title'.tr()),
         actions: [
           IconButton(
             icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 24),
             onPressed: () =>
                 ref.read(userAllergiesProvider.notifier).refresh(),
-            tooltip: 'Actualizar',
+            tooltip:
+                'post_registration.health.allergies.refresh_tooltip'.tr(),
           ),
           TextButton.icon(
             onPressed: () async {
@@ -120,7 +127,7 @@ class _AllergiesSelectionViewState
               icon: HugeIcons.strokeRoundedTick02,
               size: 20,
             ),
-            label: const Text('Guardar'),
+            label: Text('common.save'.tr()),
           ),
         ],
       ),
@@ -135,11 +142,12 @@ class _AllergiesSelectionViewState
                   size: 48,
                   color: AppColors.error),
               const SizedBox(height: 16),
-              Text('Error: $error'),
+              Text('post_registration.health.allergies.load_error'
+                  .tr(namedArgs: {'error': error.toString()})),
               const SizedBox(height: 16),
               ElevatedButton.icon(
                 icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 20),
-                label: const Text('Reintentar'),
+                label: Text('common.retry'.tr()),
                 onPressed: () => ref.refresh(allergiesCatalogProvider),
               ),
             ],
@@ -172,7 +180,7 @@ class _AllergiesSelectionViewState
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Selecciona todas las alergias que tengas. Si no tienes ninguna, marca "Ninguna".',
+                        'post_registration.health.allergies.info_text'.tr(),
                         style: TextStyle(
                           fontSize: 14,
                           color: AppColors.primaryDark,
@@ -197,7 +205,8 @@ class _AllergiesSelectionViewState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Alergias registradas',
+                        'post_registration.health.allergies.registered_label'
+                            .tr(),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -247,9 +256,11 @@ class _AllergiesSelectionViewState
                   onSelectionChanged: (ids) {
                     ref.read(selectedAllergiesProvider.notifier).state = ids;
                   },
-                  searchHint: 'Buscar alergia...',
+                  searchHint:
+                      'post_registration.health.allergies.search_hint'.tr(),
                   hasNoneOption: true,
-                  noneOptionLabel: 'Ninguna',
+                  noneOptionLabel:
+                      'post_registration.health.allergies.none_option'.tr(),
                 ),
               ),
             ],

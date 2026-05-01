@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
@@ -244,15 +245,15 @@ enum InventorySortOrder {
   String get label {
     switch (this) {
       case InventorySortOrder.nameAsc:
-        return 'Nombre A-Z';
+        return 'inventory.filter.sort_name_asc'.tr();
       case InventorySortOrder.nameDesc:
-        return 'Nombre Z-A';
+        return 'inventory.filter.sort_name_desc'.tr();
       case InventorySortOrder.newest:
-        return 'Más recientes';
+        return 'inventory.filter.sort_newest'.tr();
       case InventorySortOrder.oldest:
-        return 'Más antiguos';
+        return 'inventory.filter.sort_oldest'.tr();
       case InventorySortOrder.valueDesc:
-        return 'Mayor valor';
+        return 'inventory.filter.sort_value_desc'.tr();
     }
   }
 }

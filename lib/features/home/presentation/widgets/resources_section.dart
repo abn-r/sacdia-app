@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -138,10 +139,10 @@ class _ResourcesSectionState extends State<ResourcesSection> {
             size: 22,
           ),
           onPressed: () => context.go(RouteNames.homeDashboard),
-          tooltip: 'Volver',
+          tooltip: tr('common.back'),
         ),
         title: Text(
-          'Recursos',
+          tr('home.resources.title'),
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 17,
@@ -180,7 +181,7 @@ class _ResourcesSectionState extends State<ResourcesSection> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Recursos',
+                      tr('home.resources.title'),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
@@ -198,7 +199,7 @@ class _ResourcesSectionState extends State<ResourcesSection> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Ver todo',
+                          tr('home.resources.view_all'),
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -227,7 +228,7 @@ class _ResourcesSectionState extends State<ResourcesSection> {
           
               // ── Archivos recientes ────────────────────────────────────
               Text(
-                'Archivos Recientes',
+                tr('home.resources.recent_files'),
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -240,7 +241,7 @@ class _ResourcesSectionState extends State<ResourcesSection> {
                 child: _filteredFiles.isEmpty
                     ? Center(
                         child: Text(
-                          'No hay archivos en esta categoría',
+                          tr('home.resources.no_files_in_category'),
                           style: TextStyle(fontSize: 13, color: c.textTertiary),
                         ),
                       )
@@ -257,7 +258,7 @@ class _ResourcesSectionState extends State<ResourcesSection> {
           
               // ── Categorías ───────────────────────────────────────────
               Text(
-                'Categorías',
+                tr('home.resources.categories'),
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -310,14 +311,14 @@ class _FilterChipsRow extends StatelessWidget {
       child: Row(
         children: [
           _Chip(
-            label: 'Todos',
+            label: tr('home.resources.filter_all'),
             icon: HugeIcons.strokeRoundedGridView,
             isActive: activeFilter == null,
             onTap: () => onFilterChanged(null),
           ),
           const SizedBox(width: 8),
           _Chip(
-            label: 'Documentos',
+            label: tr('home.resources.filter_documents'),
             icon: HugeIcons.strokeRoundedFile01,
             isActive: activeFilter == ResourceType.pdf ||
                 activeFilter == ResourceType.document,
@@ -325,14 +326,14 @@ class _FilterChipsRow extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           _Chip(
-            label: 'Imágenes',
+            label: tr('home.resources.filter_images'),
             icon: HugeIcons.strokeRoundedImage01,
             isActive: activeFilter == ResourceType.image,
             onTap: () => onFilterChanged(ResourceType.image),
           ),
           const SizedBox(width: 8),
           _Chip(
-            label: 'Audio',
+            label: tr('home.resources.filter_audio'),
             icon: HugeIcons.strokeRoundedHeadphones,
             isActive: activeFilter == ResourceType.audio,
             onTap: () => onFilterChanged(ResourceType.audio),

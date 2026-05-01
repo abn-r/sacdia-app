@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -10,7 +11,11 @@ abstract class EvidenceFolderRemoteDataSource {
   /// Obtiene la carpeta anual de una sección de club.
   ///
   /// Usa el endpoint de conveniencia que acepta [clubSectionId] como integer.
-  Future<EvidenceFolderModel> getEvidenceFolder(String clubSectionId, {CancelToken? cancelToken});
+  ///
+  /// Retorna `null` cuando el backend responde `200 OK` con `data: null`
+  /// (carpeta aún no creada — estado de negocio válido, no un error).
+  Future<EvidenceFolderModel?> getEvidenceFolder(String clubSectionId,
+      {CancelToken? cancelToken});
 
   /// Envía la carpeta completa a validación.
   ///
@@ -66,8 +71,8 @@ class EvidenceFolderRemoteDataSourceImpl
   // ── GET /club-sections/:sectionId/annual-folder ───────────────────────────
 
   @override
-  Future<EvidenceFolderModel> getEvidenceFolder(
-      String clubSectionId, {CancelToken? cancelToken}) async {
+  Future<EvidenceFolderModel?> getEvidenceFolder(String clubSectionId,
+      {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubSections}/$clubSectionId/annual-folder',
@@ -76,7 +81,15 @@ class EvidenceFolderRemoteDataSourceImpl
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final body = response.data as Map<String, dynamic>;
-        // El backend puede envolver en { data: {...} }
+
+        // El backend puede envolver en { data: {...} } o { data: null }.
+        // data == null significa carpeta aún no creada — estado válido de negocio.
+        if (body.containsKey('data') && body['data'] == null) {
+          AppLogger.d('getEvidenceFolder: data=null, carpeta no existe',
+              tag: _tag);
+          return null;
+        }
+
         final folderJson = body.containsKey('data')
             ? body['data'] as Map<String, dynamic>
             : body;
@@ -84,7 +97,7 @@ class EvidenceFolderRemoteDataSourceImpl
       }
 
       throw ServerException(
-        message: 'Error al obtener la carpeta de evidencias',
+        message: tr('evidence_folder.errors.get_folder'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -106,7 +119,7 @@ class EvidenceFolderRemoteDataSourceImpl
       if (response.statusCode == 200 || response.statusCode == 201) return;
 
       throw ServerException(
-        message: 'Error al enviar la carpeta a validación',
+        message: tr('evidence_folder.errors.submit_folder'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -130,7 +143,7 @@ class EvidenceFolderRemoteDataSourceImpl
       if (response.statusCode == 200 || response.statusCode == 201) return;
 
       throw ServerException(
-        message: 'Error al enviar la sección a validación',
+        message: tr('evidence_folder.errors.submit_section'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -197,7 +210,7 @@ class EvidenceFolderRemoteDataSourceImpl
       }
 
       throw ServerException(
-        message: 'Error al subir el archivo',
+        message: tr('evidence_folder.errors.upload_file'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -222,7 +235,7 @@ class EvidenceFolderRemoteDataSourceImpl
       }
 
       throw ServerException(
-        message: 'Error al eliminar el archivo',
+        message: tr('evidence_folder.errors.delete_file'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -235,10 +248,16 @@ class EvidenceFolderRemoteDataSourceImpl
 
   Never _rethrow(Object e) {
     if (e is DioException) {
+      final statusCode = e.response?.statusCode;
       final msg = _extractDioMessage(e);
-      throw ServerException(message: msg, code: e.response?.statusCode);
+      if (statusCode == 404) {
+        throw NotFoundException(message: msg, code: statusCode);
+      }
+      throw ServerException(message: msg, code: statusCode);
     }
-    if (e is ServerException || e is AuthException) throw e;
+    if (e is ServerException || e is AuthException || e is NotFoundException) {
+      throw e;
+    }
     throw ServerException(message: e.toString());
   }
 
@@ -246,11 +265,11 @@ class EvidenceFolderRemoteDataSourceImpl
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? 'Error de conexión').toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
       }
     } catch (e) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
     }
-    return e.message ?? 'Error de conexión';
+    return e.message ?? tr('common.error_network');
   }
 }

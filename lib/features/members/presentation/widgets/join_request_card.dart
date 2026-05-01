@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
@@ -104,7 +104,7 @@ class JoinRequestCard extends StatelessWidget {
                     if (onReject != null)
                       Expanded(
                         child: _ActionButton(
-                          label: 'Rechazar',
+                          label: 'members.join_request.reject'.tr(),
                           icon: HugeIcons.strokeRoundedCancel01,
                           color: AppColors.error,
                           onTap: onReject!,
@@ -116,7 +116,7 @@ class JoinRequestCard extends StatelessWidget {
                     if (onApprove != null)
                       Expanded(
                         child: _ActionButton(
-                          label: 'Aprobar',
+                          label: 'members.join_request.approve'.tr(),
                           icon: HugeIcons.strokeRoundedCheckmarkCircle01,
                           color: AppColors.secondary,
                           onTap: onApprove!,
@@ -178,11 +178,11 @@ class _StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (status) {
       case JoinRequestStatus.pending:
-        return const SacBadge.warning(label: 'Pendiente');
+        return SacBadge.warning(label: 'members.common.pending'.tr());
       case JoinRequestStatus.approved:
-        return const SacBadge.success(label: 'Aprobado');
+        return SacBadge.success(label: 'members.join_request.approved'.tr());
       case JoinRequestStatus.rejected:
-        return const SacBadge.error(label: 'Rechazado');
+        return SacBadge.error(label: 'members.join_request.rejected'.tr());
     }
   }
 }

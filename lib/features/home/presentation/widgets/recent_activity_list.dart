@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -62,7 +63,7 @@ class RecentActivityList extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Hace ${index + 1} ${index == 0 ? 'hora' : 'horas'}',
+                          plural('home.recent_activity.hours_ago', index + 1),
                           style: TextStyle(
                             fontSize: 12,
                             color: context.sac.textSecondary,

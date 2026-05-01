@@ -1,7 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
@@ -139,7 +139,7 @@ class _DetailBody extends ConsumerWidget {
                     camporee.description!.isNotEmpty) ...[
                   _SectionTitle(
                     icon: HugeIcons.strokeRoundedInformationCircle,
-                    label: 'Descripción',
+                    label: 'camporees.detail.description'.tr(),
                   ),
                   const SizedBox(height: 10),
                   Text(
@@ -165,28 +165,28 @@ class _DetailBody extends ConsumerWidget {
                     children: [
                       _DetailRow(
                         icon: HugeIcons.strokeRoundedCalendar01,
-                        label: 'Inicio',
+                        label: 'camporees.detail.start'.tr(),
                         value: dateFormat.format(camporee.startDate.toLocal()),
                       ),
                       Divider(color: c.border, height: 20),
                       _DetailRow(
                         icon: HugeIcons.strokeRoundedCalendar02,
-                        label: 'Fin',
+                        label: 'camporees.detail.end'.tr(),
                         value: dateFormat.format(camporee.endDate.toLocal()),
                       ),
                       Divider(color: c.border, height: 20),
                       _DetailRow(
                         icon: HugeIcons.strokeRoundedLocation01,
-                        label: 'Lugar',
+                        label: 'camporees.detail.place'.tr(),
                         value: camporee.place,
                       ),
                       if (camporee.registrationCost != null) ...[
                         Divider(color: c.border, height: 20),
                         _DetailRow(
                           icon: HugeIcons.strokeRoundedMoney01,
-                          label: 'Costo',
+                          label: 'camporees.detail.cost'.tr(),
                           value: camporee.registrationCost == 0
-                              ? 'Gratuito'
+                              ? 'camporees.common.free'.tr()
                               : NumberFormat.currency(
                                   locale: 'es',
                                   symbol: '\$',
@@ -198,7 +198,7 @@ class _DetailBody extends ConsumerWidget {
                         Divider(color: c.border, height: 20),
                         _DetailRow(
                           icon: HugeIcons.strokeRoundedBuilding01,
-                          label: 'Campo local',
+                          label: 'camporees.detail.local_field'.tr(),
                           value: camporee.localFieldName!,
                         ),
                       ],
@@ -211,7 +211,7 @@ class _DetailBody extends ConsumerWidget {
                 // Club type badges
                 _SectionTitle(
                   icon: HugeIcons.strokeRoundedUserGroup,
-                  label: 'Tipos de club',
+                  label: 'camporees.detail.club_types'.tr(),
                 ),
                 const SizedBox(height: 10),
                 Wrap(
@@ -220,15 +220,15 @@ class _DetailBody extends ConsumerWidget {
                   children: [
                     if (camporee.includesAdventurers)
                       _TypeChip(
-                          label: 'Aventureros',
+                          label: 'camporees.common.adventurers'.tr(),
                           color: AppColors.warning),
                     if (camporee.includesPathfinders)
                       _TypeChip(
-                          label: 'Conquistadores',
+                          label: 'camporees.common.pathfinders'.tr(),
                           color: AppColors.primary),
                     if (camporee.includesMasterGuides)
                       _TypeChip(
-                          label: 'Guías Mayores',
+                          label: 'camporees.common.master_guides'.tr(),
                           color: AppColors.secondary),
                   ],
                 ),
@@ -242,7 +242,7 @@ class _DetailBody extends ConsumerWidget {
                   children: [
                     _SectionTitle(
                       icon: HugeIcons.strokeRoundedUserGroup,
-                      label: 'Miembros inscritos',
+                      label: 'camporees.detail.members_enrolled'.tr(),
                     ),
                     const Spacer(),
                     // Botón para inscribir miembro
@@ -273,9 +273,9 @@ class _DetailBody extends ConsumerWidget {
                               color: Colors.white,
                             ),
                             const SizedBox(width: 4),
-                            const Text(
-                              'Inscribir',
-                              style: TextStyle(
+                            Text(
+                              'camporees.detail.enroll'.tr(),
+                              style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white,
@@ -301,7 +301,7 @@ class _DetailBody extends ConsumerWidget {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
                   child: Text(
-                    'Aún no hay miembros inscritos.',
+                    'camporees.detail.no_members_yet'.tr(),
                     style: TextStyle(
                       fontSize: 13,
                       color: context.sac.textSecondary,
@@ -340,7 +340,7 @@ class _DetailBody extends ConsumerWidget {
             child: membersAsync.maybeWhen(
               data: (members) => members.isNotEmpty
                   ? SacButton.outline(
-                      text: 'Ver todos los miembros (${members.length})',
+                      text: 'camporees.detail.view_all_members'.tr(namedArgs: {'count': '${members.length}'}),
                       icon: HugeIcons.strokeRoundedUserGroup,
                       onPressed: () {
                         Navigator.push(
@@ -507,7 +507,7 @@ class _InsuranceBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = verified ? AppColors.secondary : AppColors.error;
-    final label = verified ? 'Seguro OK' : 'Sin seguro';
+    final label = verified ? 'camporees.detail.insurance_ok'.tr() : 'camporees.detail.no_insurance'.tr();
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -590,7 +590,7 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error al cargar el camporee',
+              'camporees.detail.error_loading'.tr(),
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -606,7 +606,7 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             SacButton.primary(
-              text: 'Reintentar',
+              text: 'common.retry'.tr(),
               icon: HugeIcons.strokeRoundedRefresh,
               onPressed: onRetry,
             ),

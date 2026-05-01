@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
@@ -30,7 +31,7 @@ Future<ImageSource?> showImageSourceDialog(BuildContext context) {
           ),
           const SizedBox(height: 16),
           Text(
-            'Seleccionar imagen',
+            tr('core.evidence_staging.image_source_title'),
             style: Theme.of(context)
                 .textTheme
                 .titleSmall
@@ -53,8 +54,8 @@ Future<ImageSource?> showImageSourceDialog(BuildContext context) {
                 ),
               ),
             ),
-            title: const Text('Cámara'),
-            subtitle: const Text('Tomar una foto ahora'),
+            title: Text(tr('core.evidence_staging.image_source_camera')),
+            subtitle: Text(tr('core.evidence_staging.image_source_camera_sub')),
             onTap: () => Navigator.pop(ctx, ImageSource.camera),
           ),
           ListTile(
@@ -73,8 +74,8 @@ Future<ImageSource?> showImageSourceDialog(BuildContext context) {
                 ),
               ),
             ),
-            title: const Text('Galería'),
-            subtitle: const Text('Elegir de la galería de fotos'),
+            title: Text(tr('core.evidence_staging.image_source_gallery')),
+            subtitle: Text(tr('core.evidence_staging.image_source_gallery_sub')),
             onTap: () => Navigator.pop(ctx, ImageSource.gallery),
           ),
           const SizedBox(height: 16),

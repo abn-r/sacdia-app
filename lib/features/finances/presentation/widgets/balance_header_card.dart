@@ -1,7 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 import '../../../../core/theme/sac_colors.dart';
@@ -43,7 +43,7 @@ class BalanceHeaderCard extends ConsumerWidget {
         children: [
           // 1 — "SALDO TOTAL" label
           Text(
-            'SALDO TOTAL',
+            'finances.widgets.balance_total'.tr(),
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
@@ -201,7 +201,7 @@ class _ActivitySummary extends StatelessWidget {
       textAlign: TextAlign.center,
       text: TextSpan(
         children: [
-          TextSpan(text: 'Este mes: ', style: base),
+          TextSpan(text: 'finances.widgets.month_summary_prefix'.tr(), style: base),
           TextSpan(
             text: formatter.format(income),
             style: base.copyWith(
@@ -209,7 +209,7 @@ class _ActivitySummary extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          TextSpan(text: ' ingresos y ', style: base),
+          TextSpan(text: 'finances.widgets.month_summary_connector'.tr(), style: base),
           TextSpan(
             text: formatter.format(expense),
             style: base.copyWith(
@@ -217,7 +217,7 @@ class _ActivitySummary extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          TextSpan(text: ' egresos', style: base),
+          TextSpan(text: 'finances.widgets.month_summary_suffix'.tr(), style: base),
         ],
       ),
     );

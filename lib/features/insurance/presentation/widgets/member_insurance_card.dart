@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -151,12 +151,18 @@ class MemberInsuranceCard extends StatelessWidget {
       case InsuranceStatus.asegurado:
         final days = m.daysUntilExpiry;
         if (days != null && days <= 30) {
-          return 'Vence en $days días';
+          final key = days == 1
+              ? 'insurance.card.expires_in_one'
+              : 'insurance.card.expires_in_other';
+          return key.tr(namedArgs: {'days': '$days'});
         }
-        return 'Vigente hasta $formatted';
+        return 'insurance.card.valid_until'.tr(namedArgs: {'date': formatted});
       case InsuranceStatus.vencido:
         final overdue = DateTime.now().difference(m.endDate!).inDays;
-        return 'Venció hace $overdue días';
+        final key = overdue == 1
+            ? 'insurance.card.expired_since_one'
+            : 'insurance.card.expired_since_other';
+        return key.tr(namedArgs: {'days': '$overdue'});
       case InsuranceStatus.sinSeguro:
         return '';
     }
@@ -307,7 +313,7 @@ class _RightIndicator extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             Text(
-              'Registrar',
+              'insurance.card.register_button'.tr(),
               style: TextStyle(
                 color: AppColors.primary,
                 fontWeight: FontWeight.w700,

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 
 /// Estado de una solicitud de ingreso al club
@@ -7,16 +8,16 @@ enum JoinRequestStatus {
   rejected,
 }
 
-/// Extensión para obtener el label en español
+/// Extensión para obtener el label localizado
 extension JoinRequestStatusLabel on JoinRequestStatus {
   String get label {
     switch (this) {
       case JoinRequestStatus.pending:
-        return 'Pendiente';
+        return tr('domain.statuses.pending');
       case JoinRequestStatus.approved:
-        return 'Aprobado';
+        return tr('domain.statuses.approved');
       case JoinRequestStatus.rejected:
-        return 'Rechazado';
+        return tr('domain.statuses.rejected');
     }
   }
 }

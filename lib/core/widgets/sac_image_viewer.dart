@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_view/photo_view.dart';
@@ -58,15 +59,15 @@ class SacImageViewer extends StatelessWidget {
           loadingBuilder: (context, event) => const Center(
             child: CircularProgressIndicator(color: Colors.white),
           ),
-          errorBuilder: (context, error, stackTrace) => const Center(
+          errorBuilder: (context, error, stackTrace) => Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.broken_image_rounded,
+                const Icon(Icons.broken_image_rounded,
                     size: 48, color: Colors.white38),
-                SizedBox(height: 8),
-                Text('No se pudo cargar la imagen',
-                    style: TextStyle(color: Colors.white38)),
+                const SizedBox(height: 8),
+                Text(tr('core.image_viewer.error_load'),
+                    style: const TextStyle(color: Colors.white38)),
               ],
             ),
           ),

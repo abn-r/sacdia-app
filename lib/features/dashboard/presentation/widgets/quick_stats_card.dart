@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/animations/animated_counter.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
@@ -31,7 +32,7 @@ class QuickStatsCard extends StatelessWidget {
             color: AppColors.accent,
             bgColor: AppColors.accentLight,
             value: honorsCompleted,
-            label: 'Esp. completadas',
+            label: tr('dashboard.stats.honors_completed'),
           ),
         ),
         const SizedBox(width: 10),
@@ -41,7 +42,7 @@ class QuickStatsCard extends StatelessWidget {
             color: AppColors.primary,
             bgColor: AppColors.primaryLight,
             value: honorsInProgress,
-            label: 'Esp. en progreso',
+            label: tr('dashboard.stats.honors_in_progress'),
           ),
         ),
         const SizedBox(width: 10),
@@ -51,7 +52,7 @@ class QuickStatsCard extends StatelessWidget {
             color: AppColors.secondary,
             bgColor: AppColors.secondaryLight,
             value: null, // attendance not yet implemented
-            label: 'Asistencia',
+            label: tr('dashboard.stats.attendance'),
           ),
         ),
       ],

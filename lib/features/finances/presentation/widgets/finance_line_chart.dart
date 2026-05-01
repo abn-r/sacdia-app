@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,16 +49,16 @@ class FinanceLineChart extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Resumen del Mes',
+                'finances.widgets.chart_title'.tr(),
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
               ),
               Row(
                 children: [
-                  _LegendDot(color: _incomeColor, label: 'Ingresos'),
+                  _LegendDot(color: _incomeColor, label: 'finances.widgets.chart_income'.tr()),
                   const SizedBox(width: 12),
-                  _LegendDot(color: _expenseColor, label: 'Egresos'),
+                  _LegendDot(color: _expenseColor, label: 'finances.widgets.chart_expense'.tr()),
                 ],
               ),
             ],
@@ -538,7 +539,7 @@ class _EmptyState extends StatelessWidget {
       height: 180,
       child: Center(
         child: Text(
-          'Sin datos para el período',
+          'finances.widgets.chart_no_data'.tr(),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: context.sac.textTertiary,
               ),

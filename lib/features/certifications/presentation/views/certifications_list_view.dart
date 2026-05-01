@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -45,7 +46,7 @@ class CertificationsListView extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'No hay certificaciones disponibles',
+                      'certifications.list.no_certifications'.tr(),
                       style: TextStyle(
                         fontSize: 16,
                         color: c.textSecondary,
@@ -81,7 +82,7 @@ class CertificationsListView extends ConsumerWidget {
                               ),
                               const SizedBox(width: 10),
                               Text(
-                                'Certificaciones',
+                                'certifications.list.title'.tr(),
                                 style: Theme.of(context)
                                     .textTheme
                                     .headlineSmall
@@ -176,7 +177,7 @@ class CertificationsListView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Error al cargar certificaciones',
+                    'certifications.list.load_error'.tr(),
                     style: Theme.of(context)
                         .textTheme
                         .titleMedium
@@ -190,7 +191,7 @@ class CertificationsListView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
                   SacButton.primary(
-                    text: 'Reintentar',
+                    text: 'common.retry'.tr(),
                     icon: HugeIcons.strokeRoundedRefresh,
                     onPressed: () {
                       ref.invalidate(certificationsProvider);
@@ -213,18 +214,20 @@ class CertificationsListView extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Inscribirse'),
+        title: Text('certifications.list.enroll_dialog_title'.tr()),
         content: Text(
-          '¿Quieres inscribirte en "${certification.name}"?',
+          'certifications.list.enroll_dialog_content'.tr(namedArgs: {
+            'name': certification.name,
+          }),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Inscribirme'),
+            child: Text('certifications.list.enroll_button'.tr()),
           ),
         ],
       ),
@@ -241,7 +244,9 @@ class CertificationsListView extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Te inscribiste en "${certification.name}"'),
+            content: Text('certifications.list.enroll_success'.tr(namedArgs: {
+              'name': certification.name,
+            })),
             backgroundColor: AppColors.secondary,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -292,7 +297,7 @@ class _EligibilityBanner extends ConsumerWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Las certificaciones son exclusivas para Guías Mayores investidos.',
+              'certifications.list.eligibility_banner'.tr(),
               style: TextStyle(
                 fontSize: 12,
                 color: AppColors.accentDark,
@@ -406,7 +411,7 @@ class _CertificationCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      'inscrito',
+                      'certifications.list.enrolled_badge'.tr(),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -430,7 +435,9 @@ class _CertificationCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '${certification.modulesCount} módulo${certification.modulesCount != 1 ? 's' : ''}',
+                  'certifications.list.modules_count'.tr(namedArgs: {
+                    'count': '${certification.modulesCount}',
+                  }),
                   style: TextStyle(
                     fontSize: 12,
                     color: c.textSecondary,
@@ -451,9 +458,9 @@ class _CertificationCard extends StatelessWidget {
                         color: AppColors.primary,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Text(
-                        'Inscribirme',
-                        style: TextStyle(
+                      child: Text(
+                        'certifications.list.enroll_button'.tr(),
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
@@ -466,7 +473,7 @@ class _CertificationCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Ver progreso',
+                        'certifications.list.view_progress'.tr(),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,

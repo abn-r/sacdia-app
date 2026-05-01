@@ -1,6 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
@@ -33,7 +33,7 @@ class UpcomingActivitiesCard extends StatelessWidget {
               HugeIcon(icon: HugeIcons.strokeRoundedCalendar01, size: 20, color: AppColors.primary),
               const SizedBox(width: 8),
               Text(
-                'Próximas Actividades',
+                tr('dashboard.activities.title'),
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -43,7 +43,7 @@ class UpcomingActivitiesCard extends StatelessWidget {
                 GestureDetector(
                   onTap: onViewAll,
                   child: Text(
-                    'Ver todas',
+                    tr('dashboard.activities.view_all'),
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -68,7 +68,7 @@ class UpcomingActivitiesCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'No hay actividades programadas',
+                      tr('dashboard.activities.empty'),
                       style: TextStyle(
                         fontSize: 14,
                         color: context.sac.textSecondary,
@@ -101,18 +101,15 @@ class _ActivityRow extends StatelessWidget {
     this.showDivider = true,
   });
 
-  String _formatTime(DateTime date) {
-    return DateFormat('HH:mm').format(date.toLocal());
-  }
-
-  String _formatRelativeDate(DateTime date) {
-    final local = date.toLocal();
+  String _formatRelativeDate(DateTime activityDate) {
+    // activityDate ya es medianoche local — comparar solo por día.
     final now = DateTime.now();
-    final diff = local.difference(now);
-    if (diff.inDays == 0) return 'Hoy';
-    if (diff.inDays == 1) return 'Mañana';
-    if (diff.inDays < 7) return DateFormat('EEEE', 'es').format(local);
-    return DateFormat('dd MMM', 'es').format(local);
+    final today = DateTime(now.year, now.month, now.day);
+    final diff = activityDate.difference(today).inDays;
+    if (diff == 0) return tr('dashboard.activities.today');
+    if (diff == 1) return tr('dashboard.activities.tomorrow');
+    if (diff < 7) return DateFormat('EEEE', 'es').format(activityDate);
+    return DateFormat('dd MMM', 'es').format(activityDate);
   }
 
   @override
@@ -134,7 +131,7 @@ class _ActivityRow extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      DateFormat('dd').format(activity.date.toLocal()),
+                      DateFormat('dd').format(activity.activityDate),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -144,7 +141,7 @@ class _ActivityRow extends StatelessWidget {
                     ),
                     Text(
                       DateFormat('MMM', 'es')
-                          .format(activity.date.toLocal())
+                          .format(activity.activityDate)
                           .toUpperCase(),
                       style: TextStyle(
                         fontSize: 10,
@@ -173,7 +170,7 @@ class _ActivityRow extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          '${_formatRelativeDate(activity.date)} · ${_formatTime(activity.date)}',
+                          '${_formatRelativeDate(activity.activityDate)} · ${activity.activityTime ?? '—'}',
                           style: TextStyle(
                             fontSize: 12,
                             color: context.sac.textSecondary,

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -52,13 +53,13 @@ class RequirementStatusBadge extends StatelessWidget {
   String get _label {
     switch (status) {
       case RequirementStatus.pendiente:
-        return 'Pendiente';
+        return 'classes.status.pending'.tr();
       case RequirementStatus.enviado:
-        return 'Enviado';
+        return 'classes.status.sent'.tr();
       case RequirementStatus.validado:
-        return 'Validado';
+        return 'classes.status.validated'.tr();
       case RequirementStatus.rechazado:
-        return 'Rechazado';
+        return 'classes.status.rejected'.tr();
     }
   }
 

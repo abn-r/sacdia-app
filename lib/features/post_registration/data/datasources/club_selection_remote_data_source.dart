@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -54,12 +55,12 @@ class ClubSelectionRemoteDataSourceImpl
         return data.map((json) => CountryModel.fromJson(json)).toList();
       }
 
-      throw ServerException(message: 'Error al obtener países');
+      throw ServerException(message: tr('post_registration.club_selection.errors.fetch_countries'));
     } catch (e) {
       AppLogger.e('Error en getCountries', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? 'Error de conexión');
+        throw ServerException(message: e.message ?? tr('common.error_network'));
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -82,12 +83,12 @@ class ClubSelectionRemoteDataSourceImpl
         return data.map((json) => UnionModel.fromJson(json)).toList();
       }
 
-      throw ServerException(message: 'Error al obtener uniones');
+      throw ServerException(message: tr('post_registration.club_selection.errors.fetch_unions'));
     } catch (e) {
       AppLogger.e('Error en getUnionsByCountry', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? 'Error de conexión');
+        throw ServerException(message: e.message ?? tr('common.error_network'));
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -110,12 +111,12 @@ class ClubSelectionRemoteDataSourceImpl
         return data.map((json) => LocalFieldModel.fromJson(json)).toList();
       }
 
-      throw ServerException(message: 'Error al obtener campos locales');
+      throw ServerException(message: tr('post_registration.club_selection.errors.fetch_local_fields'));
     } catch (e) {
       AppLogger.e('Error en getLocalFieldsByUnion', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? 'Error de conexión');
+        throw ServerException(message: e.message ?? tr('common.error_network'));
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -140,12 +141,12 @@ class ClubSelectionRemoteDataSourceImpl
         return data.map((json) => ClubModel.fromJson(json)).toList();
       }
 
-      throw ServerException(message: 'Error al obtener clubes');
+      throw ServerException(message: tr('post_registration.club_selection.errors.fetch_clubs'));
     } catch (e) {
       AppLogger.e('Error en getClubsByLocalField', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? 'Error de conexión');
+        throw ServerException(message: e.message ?? tr('common.error_network'));
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -182,12 +183,12 @@ class ClubSelectionRemoteDataSourceImpl
             .toList();
       }
 
-      throw ServerException(message: 'Error al obtener secciones de club');
+      throw ServerException(message: tr('post_registration.club_selection.errors.fetch_club_sections'));
     } catch (e) {
       AppLogger.e('Error en getClubSections', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? 'Error de conexión');
+        throw ServerException(message: e.message ?? tr('common.error_network'));
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -212,12 +213,12 @@ class ClubSelectionRemoteDataSourceImpl
         return data.map((json) => ClassModel.fromJson(json)).toList();
       }
 
-      throw ServerException(message: 'Error al obtener clases');
+      throw ServerException(message: tr('post_registration.club_selection.errors.fetch_classes'));
     } catch (e) {
       AppLogger.e('Error en getClassesByClubType', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? 'Error de conexión');
+        throw ServerException(message: e.message ?? tr('common.error_network'));
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -247,12 +248,12 @@ class ClubSelectionRemoteDataSourceImpl
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw ServerException(
-            message: 'Error al completar el paso 3 del post-registro');
+            message: tr('post_registration.club_selection.errors.complete_step_3'));
       }
     } catch (e) {
       AppLogger.e('Error en completeStep3', tag: _tag, error: e);
       if (e is DioException) {
-        throw ServerException(message: e.message ?? 'Error de conexión');
+        throw ServerException(message: e.message ?? tr('common.error_network'));
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());

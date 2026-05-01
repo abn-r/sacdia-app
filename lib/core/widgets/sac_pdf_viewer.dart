@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
@@ -82,7 +83,7 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
       });
     } else {
       setState(() {
-        _error = 'El archivo PDF no se encontró en el dispositivo';
+        _error = tr('core.pdf_viewer.error_not_found');
         _loading = false;
       });
     }
@@ -111,7 +112,7 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'No se pudo descargar el PDF';
+          _error = tr('core.pdf_viewer.error_download');
           _loading = false;
         });
       }
@@ -148,7 +149,13 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
               ),
             if (_totalPages > 0)
               Text(
-                'Pagina ${_currentPage + 1} de $_totalPages',
+                tr(
+                  'core.pdf_viewer.page_indicator',
+                  namedArgs: {
+                    'current': '${_currentPage + 1}',
+                    'total': '$_totalPages',
+                  },
+                ),
                 style: TextStyle(
                   fontSize: 11,
                   color: Theme.of(context)
@@ -170,13 +177,13 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 12),
-            Text('Descargando PDF...'),
+            const CircularProgressIndicator(),
+            const SizedBox(height: 12),
+            Text('core.pdf_viewer.downloading'.tr()),
           ],
         ),
       );
@@ -203,7 +210,7 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
                   _downloadPdf();
                 }
               },
-              child: const Text('Reintentar'),
+              child: Text(tr('core.pdf_viewer.retry')),
             ),
           ],
         ),
@@ -223,7 +230,7 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
         if (mounted) setState(() => _currentPage = page ?? 0);
       },
       onError: (error) {
-        if (mounted) setState(() => _error = 'Error al abrir el PDF');
+        if (mounted) setState(() => _error = tr('core.pdf_viewer.error_open'));
       },
     );
   }

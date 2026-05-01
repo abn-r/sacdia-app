@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -187,7 +188,13 @@ class _UploadProgressSheetContentState
   Widget _buildHeader(SacColors c) {
     if (_isInProgress) {
       return Text(
-        'Subiendo ${_completedCount + 1} de ${_files.length} archivos...',
+        tr(
+          'core.evidence_staging.uploading_progress',
+          namedArgs: {
+            'current': '${_completedCount + 1}',
+            'total': '${_files.length}',
+          },
+        ),
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w700,
@@ -196,8 +203,8 @@ class _UploadProgressSheetContentState
       );
     }
     if (_allSuccess) {
-      return const Text(
-        'Todos los archivos subidos',
+      return Text(
+        tr('core.evidence_staging.upload_all_success'),
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w700,
@@ -206,8 +213,8 @@ class _UploadProgressSheetContentState
       );
     }
     if (_allFailed) {
-      return const Text(
-        'Todos los archivos fallaron',
+      return Text(
+        tr('core.evidence_staging.upload_all_failed'),
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w700,
@@ -217,7 +224,14 @@ class _UploadProgressSheetContentState
     }
     // Partial failure
     return Text(
-      '$_completedCount de ${_files.length} subidos, $_errorCount fallaron',
+      tr(
+        'core.evidence_staging.upload_partial',
+        namedArgs: {
+          'completed': '$_completedCount',
+          'total': '${_files.length}',
+          'failed': '$_errorCount',
+        },
+      ),
       style: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w700,
@@ -240,9 +254,9 @@ class _UploadProgressSheetContentState
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-          child: const Text(
-            'Continuar',
-            style: TextStyle(
+          child: Text(
+            tr('core.evidence_staging.btn_continue'),
+            style: const TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 16,
             ),
@@ -269,7 +283,7 @@ class _UploadProgressSheetContentState
               ),
             ),
             child: Text(
-              'Reintentar fallidos ($_errorCount)',
+              tr('core.evidence_staging.btn_retry_failed', namedArgs: {'count': '$_errorCount'}),
               style: const TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
@@ -293,7 +307,7 @@ class _UploadProgressSheetContentState
                 side: const BorderSide(color: AppColors.secondary, width: 1.5),
               ),
               child: Text(
-                'Continuar con los subidos ($_completedCount)',
+                tr('core.evidence_staging.btn_continue_partial', namedArgs: {'count': '$_completedCount'}),
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
@@ -315,7 +329,7 @@ class _UploadProgressSheetContentState
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
             child: Text(
-              'Cancelar',
+              tr('core.evidence_staging.cancel'),
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
@@ -332,21 +346,24 @@ class _UploadProgressSheetContentState
     final confirm = await showDialog<bool>(
       context: ctx,
       builder: (dialogCtx) => AlertDialog(
-        title: const Text('Continuar sin todos los archivos'),
+        title: Text(tr('core.evidence_staging.partial_dialog_title')),
         content: Text(
-          'Los $_errorCount archivos que fallaron no se incluirán en la validación.',
+          tr(
+            'core.evidence_staging.partial_dialog_body',
+            namedArgs: {'count': '$_errorCount'},
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, false),
-            child: const Text('Cancelar'),
+            child: Text(tr('core.evidence_staging.cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogCtx, true),
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.secondary,
             ),
-            child: const Text('Continuar'),
+            child: Text(tr('core.evidence_staging.btn_continue')),
           ),
         ],
       ),

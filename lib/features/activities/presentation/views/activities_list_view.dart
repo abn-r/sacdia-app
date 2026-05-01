@@ -1,7 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -241,10 +241,13 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
 
   String _dayLabel(DateTime date) {
     final today = DateTime.now();
-    if (_isSameDay(date, today)) return 'Hoy';
-    if (_isSameDay(date, today.subtract(const Duration(days: 1))))
-      return 'Ayer';
-    if (_isSameDay(date, today.add(const Duration(days: 1)))) return 'Mañana';
+    if (_isSameDay(date, today)) return 'activities.list.today_label'.tr();
+    if (_isSameDay(date, today.subtract(const Duration(days: 1)))) {
+      return 'activities.list.yesterday'.tr();
+    }
+    if (_isSameDay(date, today.add(const Duration(days: 1)))) {
+      return 'activities.list.tomorrow'.tr();
+    }
     return _capitalizeFirst(DateFormat('EEEE, d MMM', 'es').format(date));
   }
 
@@ -294,7 +297,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Actividades',
+                          'activities.list.title'.tr(),
                           style: Theme.of(context)
                               .textTheme
                               .headlineSmall
@@ -348,7 +351,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                               color: c.textSecondary,
                             ),
                             const SizedBox(width: 5),
-                            Text('Agregar')
+                            Text('activities.list.add'.tr())
                           ],
                         ),
                       ),
@@ -551,10 +554,10 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                             color: AppColors.primary,
                                             borderRadius: BorderRadius.circular(12),
                                           ),
-                                          child: const Center(
+                                          child: Center(
                                             child: Text(
-                                              'Hoy',
-                                              style: TextStyle(
+                                              'activities.list.today_label'.tr(),
+                                              style: const TextStyle(
                                                 color: Colors.white,
                                                 fontSize: 11,
                                                 fontWeight: FontWeight.w600,
@@ -591,7 +594,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   children: [
                     _ActivityFilterChip(
-                      label: 'Todas',
+                      label: 'activities.list.all_filter'.tr(),
                       isSelected: _selectedFilter == null,
                       c: c,
                       onTap: () => setState(() => _selectedFilter = null),
@@ -601,7 +604,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                 data: (types) {
                   final chips = <Widget>[
                     _ActivityFilterChip(
-                      label: 'Todas',
+                      label: 'activities.list.all_filter'.tr(),
                       isSelected: _selectedFilter == null,
                       c: c,
                       onTap: () => setState(() => _selectedFilter = null),
@@ -670,10 +673,10 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                           const SizedBox(height: 12),
                           Text(
                             !_isChronologicalView && _selectedDate != null
-                                ? 'No hay actividades este día'
+                                ? 'activities.list.empty_this_day'.tr()
                                 : _selectedFilter != null
-                                    ? 'No hay actividades de este tipo'
-                                    : 'No hay actividades disponibles',
+                                    ? 'activities.list.empty_this_type'.tr()
+                                    : 'activities.list.empty_general'.tr(),
                             style: TextStyle(
                               fontSize: 16,
                               color: c.textSecondary,
@@ -722,8 +725,8 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                             );
                           }
                           if (item == null) {
-                            return const _DayHeaderItem(
-                              label: 'Sin fecha',
+                            return _DayHeaderItem(
+                              label: 'activities.list.no_date'.tr(),
                               isToday: false,
                             );
                           }
@@ -812,7 +815,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Error al cargar actividades',
+                          'activities.list.error_load'.tr(),
                           style: Theme.of(context)
                               .textTheme
                               .titleMedium
@@ -820,7 +823,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                         ),
                         const SizedBox(height: 24),
                         SacButton.primary(
-                          text: 'Reintentar',
+                          text: 'common.retry'.tr(),
                           icon: HugeIcons.strokeRoundedRefresh,
                           onPressed: () {
                             ref.invalidate(clubActivitiesProvider);

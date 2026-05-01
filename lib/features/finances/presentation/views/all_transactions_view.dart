@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -243,7 +244,7 @@ class _AllTransactionsAppBar extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Transacciones',
+                  'finances.all_transactions.title'.tr(),
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
@@ -428,7 +429,7 @@ class _LoadMoreIndicator extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Text(
-            'Cargando más\u2026',
+            'finances.all_transactions.loading_more'.tr(),
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w400,
@@ -463,7 +464,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'No se encontraron transacciones',
+              'finances.all_transactions.empty_title'.tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
@@ -474,8 +475,8 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               hasActiveSearch
-                  ? 'Probá con otros términos o cambiá el rango de fechas.'
-                  : 'No hay transacciones para el rango seleccionado.',
+                  ? 'finances.all_transactions.empty_search_subtitle'.tr()
+                  : 'finances.all_transactions.empty_range_subtitle'.tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
@@ -513,7 +514,7 @@ class _ErrorState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error al cargar transacciones',
+              'finances.all_transactions.error_title'.tr(),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: context.sac.text,
                   ),
@@ -530,7 +531,7 @@ class _ErrorState extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Deslizá hacia abajo para reintentar.',
+              'finances.all_transactions.error_retry_hint'.tr(),
               style: TextStyle(
                 fontSize: 12,
                 color: context.sac.textTertiary,

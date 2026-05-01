@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -98,12 +99,12 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
 
           // Title
           Text(
-            'Encuentra tu club',
+            'post_registration.club_selection.title'.tr(),
             style: titleStyle,
           ),
           const SizedBox(height: 8),
           Text(
-            'Selecciona tu ubicación y club para unirte a la aventura',
+            'post_registration.club_selection.subtitle'.tr(),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: context.sac.textSecondary,
                 ),
@@ -119,7 +120,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                   color: AppColors.primary),
               const SizedBox(width: 8),
               Text(
-                'Ubicación',
+                'post_registration.club_selection.location'.tr(),
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -134,18 +135,18 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
               final items = _toPickerItems<CountryModel>(
                   countries, (c) => c.id, (c) => c.name);
               return PickerField(
-                label: 'País',
-                hint: 'Seleccionar país',
+                label: 'post_registration.club_selection.country'.tr(),
+                hint: 'post_registration.club_selection.select_country'.tr(),
                 icon: Icons.public_rounded,
                 selectedName: selectedCountryName,
                 enabled: !isSaving,
                 onTap: () async {
                   final picked = await showPickerSheet(
                     context: context,
-                    title: 'Seleccionar país',
+                    title: 'post_registration.club_selection.select_country'.tr(),
                     items: items,
                     selectedId: selectedCountryId,
-                    searchHint: 'Buscar país...',
+                    searchHint: 'post_registration.club_selection.search_country'.tr(),
                     icon: Icons.public_rounded,
                   );
                   if (picked != null && picked != selectedCountryId) {
@@ -160,13 +161,14 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
               );
             },
             loading: () => PickerField(
-              label: 'País',
-              hint: 'Cargando países...',
+              label: 'post_registration.club_selection.country'.tr(),
+              hint: 'post_registration.club_selection.loading_countries'.tr(),
               icon: Icons.public_rounded,
               isLoading: true,
             ),
-            error: (error, _) =>
-                _buildErrorText('Error al cargar países: $error'),
+            error: (error, _) => _buildErrorText(
+                'post_registration.club_selection.error_loading_countries'
+                    .tr(namedArgs: {'error': error.toString()})),
           ),
 
           // ── Unión ────────────────────────────────────────────────────────
@@ -175,23 +177,24 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
             unionsAsync.when(
               data: (unions) {
                 if (unions.isEmpty) {
-                  return _buildEmptyText('No hay uniones disponibles');
+                  return _buildEmptyText(
+                      'post_registration.club_selection.no_unions'.tr());
                 }
                 final items = _toPickerItems<UnionModel>(
                     unions, (u) => u.id, (u) => u.name);
                 return PickerField(
-                  label: 'Unión',
-                  hint: 'Seleccionar unión',
+                  label: 'post_registration.club_selection.union'.tr(),
+                  hint: 'post_registration.club_selection.select_union'.tr(),
                   icon: Icons.account_tree_rounded,
                   selectedName: selectedUnionName,
                   enabled: !isSaving,
                   onTap: () async {
                     final picked = await showPickerSheet(
                       context: context,
-                      title: 'Seleccionar unión',
+                      title: 'post_registration.club_selection.select_union'.tr(),
                       items: items,
                       selectedId: selectedUnionId,
-                      searchHint: 'Buscar unión...',
+                      searchHint: 'post_registration.club_selection.search_union'.tr(),
                       icon: Icons.account_tree_rounded,
                     );
                     if (picked != null && picked != selectedUnionId) {
@@ -207,13 +210,14 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                 );
               },
               loading: () => PickerField(
-                label: 'Unión',
-                hint: 'Cargando uniones...',
+                label: 'post_registration.club_selection.union'.tr(),
+                hint: 'post_registration.club_selection.loading_unions'.tr(),
                 icon: Icons.account_tree_rounded,
                 isLoading: true,
               ),
-              error: (error, _) =>
-                  _buildErrorText('Error al cargar uniones: $error'),
+              error: (error, _) => _buildErrorText(
+                  'post_registration.club_selection.error_loading_unions'
+                      .tr(namedArgs: {'error': error.toString()})),
             ),
           ],
 
@@ -223,23 +227,25 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
             localFieldsAsync.when(
               data: (localFields) {
                 if (localFields.isEmpty) {
-                  return _buildEmptyText('No hay campos locales disponibles');
+                  return _buildEmptyText(
+                      'post_registration.club_selection.no_local_fields'.tr());
                 }
                 final items = _toPickerItems<LocalFieldModel>(
                     localFields, (lf) => lf.id, (lf) => lf.name);
                 return PickerField(
-                  label: 'Campo Local',
-                  hint: 'Seleccionar campo local',
+                  label: 'post_registration.club_selection.local_field'.tr(),
+                  hint: 'post_registration.club_selection.select_local_field'.tr(),
                   icon: Icons.place_rounded,
                   selectedName: selectedLocalFieldName,
                   enabled: !isSaving,
                   onTap: () async {
                     final picked = await showPickerSheet(
                       context: context,
-                      title: 'Seleccionar campo local',
+                      title: 'post_registration.club_selection.select_local_field'.tr(),
                       items: items,
                       selectedId: selectedLocalFieldId,
-                      searchHint: 'Buscar campo local...',
+                      searchHint:
+                          'post_registration.club_selection.search_local_field'.tr(),
                       icon: Icons.place_rounded,
                     );
                     if (picked != null && picked != selectedLocalFieldId) {
@@ -254,13 +260,14 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                 );
               },
               loading: () => PickerField(
-                label: 'Campo Local',
-                hint: 'Cargando campos locales...',
+                label: 'post_registration.club_selection.local_field'.tr(),
+                hint: 'post_registration.club_selection.loading_local_fields'.tr(),
                 icon: Icons.place_rounded,
                 isLoading: true,
               ),
-              error: (error, _) =>
-                  _buildErrorText('Error al cargar campos locales: $error'),
+              error: (error, _) => _buildErrorText(
+                  'post_registration.club_selection.error_loading_local_fields'
+                      .tr(namedArgs: {'error': error.toString()})),
             ),
           ],
 
@@ -275,7 +282,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                     color: AppColors.primary),
                 const SizedBox(width: 8),
                 Text(
-                  'Tu club',
+                  'post_registration.club_selection.your_club'.tr(),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -286,23 +293,24 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
             clubsAsync.when(
               data: (clubs) {
                 if (clubs.isEmpty) {
-                  return _buildEmptyText('No hay clubes disponibles');
+                  return _buildEmptyText(
+                      'post_registration.club_selection.no_clubs'.tr());
                 }
                 final items = _toPickerItems<ClubModel>(
                     clubs, (c) => c.id, (c) => c.name);
                 return PickerField(
-                  label: 'Club',
-                  hint: 'Seleccionar club',
+                  label: 'post_registration.club_selection.club'.tr(),
+                  hint: 'post_registration.club_selection.select_club'.tr(),
                   icon: Icons.groups_rounded,
                   selectedName: selectedClubName,
                   enabled: !isSaving,
                   onTap: () async {
                     final picked = await showPickerSheet(
                       context: context,
-                      title: 'Seleccionar club',
+                      title: 'post_registration.club_selection.select_club'.tr(),
                       items: items,
                       selectedId: selectedClubId,
-                      searchHint: 'Buscar club...',
+                      searchHint: 'post_registration.club_selection.search_club'.tr(),
                       icon: Icons.groups_rounded,
                     );
                     if (picked != null && picked != selectedClubId) {
@@ -315,13 +323,14 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                 );
               },
               loading: () => PickerField(
-                label: 'Club',
-                hint: 'Cargando clubes...',
+                label: 'post_registration.club_selection.club'.tr(),
+                hint: 'post_registration.club_selection.loading_clubs'.tr(),
                 icon: Icons.groups_rounded,
                 isLoading: true,
               ),
-              error: (error, _) =>
-                  _buildErrorText('Error al cargar clubes: $error'),
+              error: (error, _) => _buildErrorText(
+                  'post_registration.club_selection.error_loading_clubs'
+                      .tr(namedArgs: {'error': error.toString()})),
             ),
           ],
 
@@ -336,7 +345,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                     color: AppColors.primary),
                 const SizedBox(width: 8),
                 Text(
-                  'Tipo de club',
+                  'post_registration.club_selection.club_type_section'.tr(),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -358,7 +367,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                     color: AppColors.primary),
                 const SizedBox(width: 8),
                 Text(
-                  'Tu clase',
+                  'post_registration.club_selection.your_class'.tr(),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -371,23 +380,25 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
             classesAsync.when(
               data: (classes) {
                 if (classes.isEmpty) {
-                  return _buildEmptyText('No hay clases disponibles');
+                  return _buildEmptyText(
+                      'post_registration.club_selection.no_classes'.tr());
                 }
                 final items = _toPickerItems<ClassModel>(
                     classes, (c) => c.id, (c) => c.name);
                 return PickerField(
-                  label: 'Clase Progresiva',
-                  hint: 'Seleccionar clase',
+                  label: 'post_registration.club_selection.progressive_class'.tr(),
+                  hint: 'post_registration.club_selection.select_class'.tr(),
                   icon: Icons.school_rounded,
                   selectedName: selectedClassName,
                   enabled: !isSaving,
                   onTap: () async {
                     final picked = await showPickerSheet(
                       context: context,
-                      title: 'Seleccionar clase progresiva',
+                      title: 'post_registration.club_selection.select_progressive_class'
+                          .tr(),
                       items: items,
                       selectedId: selectedClassId,
-                      searchHint: 'Buscar clase...',
+                      searchHint: 'post_registration.club_selection.search_class'.tr(),
                       icon: Icons.school_rounded,
                     );
                     if (picked != null && picked != selectedClassId) {
@@ -397,13 +408,14 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                 );
               },
               loading: () => PickerField(
-                label: 'Clase Progresiva',
-                hint: 'Cargando clases...',
+                label: 'post_registration.club_selection.progressive_class'.tr(),
+                hint: 'post_registration.club_selection.loading_classes'.tr(),
                 icon: Icons.school_rounded,
                 isLoading: true,
               ),
-              error: (error, _) =>
-                  _buildErrorText('Error al cargar clases: $error'),
+              error: (error, _) => _buildErrorText(
+                  'post_registration.club_selection.error_loading_classes'
+                      .tr(namedArgs: {'error': error.toString()})),
             ),
           ],
 

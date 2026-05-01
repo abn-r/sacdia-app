@@ -39,6 +39,9 @@ class ApiEndpoints {
   // ── Honors ────────────────────────────────────────────────────────────────
   static const String honors = '/honors';
 
+  // ── Achievements ──────────────────────────────────────────────────────────
+  static const String achievements = '/achievements';
+
   // ── Activities ────────────────────────────────────────────────────────────
   static const String activities = '/activities';
 
@@ -82,6 +85,10 @@ class ApiEndpoints {
   // ── Transfers / Requests ──────────────────────────────────────────────────
   static const String requests = '/requests';
 
+  // ── Data Export (GDPR) ────────────────────────────────────────────────────
+  static const String dataExport = '/users/me/data-export';
+  static const String dataExports = '/users/me/data-exports';
+
   // ── Notifications ─────────────────────────────────────────────────────────
   static const String notifications = '/notifications';
 
@@ -90,4 +97,11 @@ class ApiEndpoints {
 
   // ── Admin Analytics ───────────────────────────────────────────────────────
   static const String adminAnalytics = '/admin/analytics';
+
+  // ── QR ────────────────────────────────────────────────────────────────────
+  static const String qr = '/qr';
+
+  // ── Rankings ─────────────────────────────────────────────────────────────
+  static const String memberRankings = '/member-rankings';
+  static const String sectionRankings = '/section-rankings';
 }

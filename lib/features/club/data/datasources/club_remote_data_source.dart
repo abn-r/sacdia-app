@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -68,14 +69,14 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener club',
+        message: tr('club.errors.get_club'),
         code: response.statusCode,
       );
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('DioException en getClub', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? e.message ?? 'Error de red',
+        message: e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -111,14 +112,14 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener sección del club',
+        message: tr('club.errors.get_club_section'),
         code: response.statusCode,
       );
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('DioException en getClubSection', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? e.message ?? 'Error de red',
+        message: e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -150,14 +151,14 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al actualizar sección del club',
+        message: tr('club.errors.update_club_section'),
         code: response.statusCode,
       );
     } on DioException catch (e) {
       AppLogger.e('DioException en updateClubSection', tag: _tag, error: e);
       final msg = e.response?.data is Map
-          ? (e.response!.data['message'] ?? e.message ?? 'Error de red')
-          : (e.message ?? 'Error de red');
+          ? (e.response!.data['message'] ?? e.message ?? tr('common.error_network'))
+          : (e.message ?? tr('common.error_network'));
       throw ServerException(
         message: msg.toString(),
         code: e.response?.statusCode,

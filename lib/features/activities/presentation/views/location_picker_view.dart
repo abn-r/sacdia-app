@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
@@ -86,7 +87,7 @@ class _LocationPickerViewState extends State<LocationPickerView> {
 
   // ── Estado ────────────────────────────────────────────────────────────────
   late LatLng _currentCenter;
-  String _resolvedAddress = 'Cargando dirección...';
+  late String _resolvedAddress;
   bool _isResolvingAddress = false;
 
   Timer? _geocodeDebounce;
@@ -96,6 +97,7 @@ class _LocationPickerViewState extends State<LocationPickerView> {
   @override
   void initState() {
     super.initState();
+    _resolvedAddress = '';
     _currentCenter = widget.initialLocation ??
         const LatLng(MapsConstants.defaultLat, MapsConstants.defaultLong);
 
@@ -152,7 +154,7 @@ class _LocationPickerViewState extends State<LocationPickerView> {
   Future<void> _resolveAddressForLatLng(LatLng latLng) async {
     setState(() {
       _isResolvingAddress = true;
-      _resolvedAddress = 'Obteniendo dirección...';
+      _resolvedAddress = 'activities.location_picker.resolving_address'.tr();
     });
 
     try {
@@ -353,7 +355,7 @@ class _FloatingAppBar extends StatelessWidget {
           _MapIconButton(
             icon: HugeIcons.strokeRoundedArrowLeft01,
             onPressed: onBack,
-            tooltip: 'Volver',
+            tooltip: 'common.back'.tr(),
           ),
           const SizedBox(width: 10),
 
@@ -384,7 +386,7 @@ class _FloatingAppBar extends StatelessWidget {
                     ),
                     const SizedBox(width: 10),
                     Text(
-                      'Buscar dirección o lugar...',
+                      'activities.location_picker.search_hint'.tr(),
                       style: TextStyle(
                         fontSize: 14,
                         color: c.textTertiary,
@@ -498,7 +500,7 @@ class _LocationBottomCard extends StatelessWidget {
 
           // Etiqueta
           Text(
-            'Ubicación seleccionada',
+            'activities.location_picker.selected_location'.tr(),
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -568,9 +570,9 @@ class _LocationBottomCard extends StatelessWidget {
                 size: 20,
                 color: Colors.white,
               ),
-              label: const Text(
-                'Confirmar ubicación',
-                style: TextStyle(
+              label: Text(
+                'activities.location_picker.confirm_button'.tr(),
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -698,7 +700,8 @@ class _ShimmerLineState extends State<_ShimmerLine>
 class _LocationSearchDelegate extends SearchDelegate<_NominatimPlace?> {
   _LocationSearchDelegate()
       : super(
-          searchFieldLabel: 'Buscar dirección o lugar...',
+          searchFieldLabel:
+              'activities.location_picker.search_hint'.tr(),
           keyboardType: TextInputType.streetAddress,
           textInputAction: TextInputAction.search,
         );
@@ -879,8 +882,9 @@ class _LocationSearchDelegate extends SearchDelegate<_NominatimPlace?> {
         if (_hasError) {
           return _SearchStatusMessage(
             icon: HugeIcons.strokeRoundedWifiError01,
-            title: 'Error de conexión',
-            subtitle: 'Verifica tu internet e intenta de nuevo.',
+            title: 'activities.location_picker.search_error_title'.tr(),
+            subtitle:
+                'activities.location_picker.search_error_subtitle'.tr(),
             c: c,
           );
         }
@@ -888,8 +892,10 @@ class _LocationSearchDelegate extends SearchDelegate<_NominatimPlace?> {
         if (_results.isEmpty) {
           return _SearchStatusMessage(
             icon: HugeIcons.strokeRoundedLocation01,
-            title: 'No se encontraron resultados',
-            subtitle: 'Intenta con otro nombre o dirección.',
+            title:
+                'activities.location_picker.search_no_results_title'.tr(),
+            subtitle:
+                'activities.location_picker.search_no_results_subtitle'.tr(),
             c: c,
           );
         }
@@ -985,7 +991,7 @@ class _SearchEmptyHint extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            'Busca una dirección',
+            'activities.location_picker.search_empty_title'.tr(),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -994,7 +1000,7 @@ class _SearchEmptyHint extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Escribe el nombre de un lugar, calle o colonia para localizarlo en el mapa.',
+            'activities.location_picker.search_empty_body'.tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
@@ -1004,7 +1010,7 @@ class _SearchEmptyHint extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'También puedes arrastrar el mapa directamente al lugar deseado.',
+            'activities.location_picker.search_empty_tip'.tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,

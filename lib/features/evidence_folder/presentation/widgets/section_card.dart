@@ -1,6 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -111,10 +111,11 @@ class SectionCard extends StatelessWidget {
                 children: [
                   _StatItem(
                     icon: HugeIcons.strokeRoundedStar,
-                    label:
-                        '${section.earnedPoints} / ${section.pointValue} pts',
-                    color: section.status == EvidenceSectionStatus.validado ||
-                            section.status == EvidenceSectionStatus.evaluated
+                    label: 'evidence_folder.points_ratio'.tr(namedArgs: {
+                      'earned': '${section.earnedPoints}',
+                      'max': '${section.pointValue}',
+                    }),
+                    color: section.status == EvidenceSectionStatus.validated
                         ? AppColors.secondary
                         : c.textSecondary,
                     context: context,
@@ -129,8 +130,10 @@ class SectionCard extends StatelessWidget {
                   const SizedBox(width: 16),
                   _StatItem(
                     icon: HugeIcons.strokeRoundedFiles01,
-                    label:
-                        '${section.files.length} / ${section.maxFiles} archivos',
+                    label: 'evidence_folder.files_ratio'.tr(namedArgs: {
+                      'current': '${section.files.length}',
+                      'max': '${section.maxFiles}',
+                    }),
                     color: c.textSecondary,
                     context: context,
                   ),
@@ -146,8 +149,8 @@ class SectionCard extends StatelessWidget {
 
             // Trazabilidad (si aplica)
             if (section.submittedByName != null ||
-                section.validatedByName != null ||
-                section.evaluatedByName != null) ...[
+                section.lfApproverName != null ||
+                section.unionApproverName != null) ...[
               Divider(height: 1, color: c.divider),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
@@ -160,30 +163,42 @@ class SectionCard extends StatelessWidget {
                         color: Theme.of(context).brightness == Brightness.dark
                             ? AppColors.statusInfoTextDark
                             : AppColors.statusInfoText,
-                        text:
-                            'Enviado por ${section.submittedByName}${section.submittedAt != null ? " · ${dateFormat.format(section.submittedAt!.toLocal())}" : ""}',
+                        text: 'evidence_folder.trace.sent_by'.tr(namedArgs: {
+                          'name': section.submittedByName!,
+                          'date': section.submittedAt != null
+                              ? ' · ${dateFormat.format(section.submittedAt!.toLocal())}'
+                              : '',
+                        }),
                         context: context,
                       ),
-                    if (section.validatedByName != null) ...[
+                    if (section.lfApproverName != null) ...[
                       if (section.submittedByName != null)
                         const SizedBox(height: 4),
                       _TraceRow(
-                        icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                        color: AppColors.secondary,
-                        text:
-                            'Validado por ${section.validatedByName}${section.validatedAt != null ? " · ${dateFormat.format(section.validatedAt!.toLocal())}" : ""}',
+                        icon: HugeIcons.strokeRoundedAnalytics01,
+                        color: AppColors.accentDark,
+                        text: 'evidence_folder.trace.preapproved_by'.tr(namedArgs: {
+                          'name': section.lfApproverName!,
+                          'date': section.lfApprovedAt != null
+                              ? ' · ${dateFormat.format(section.lfApprovedAt!.toLocal())}'
+                              : '',
+                        }),
                         context: context,
                       ),
                     ],
-                    if (section.evaluatedByName != null) ...[
+                    if (section.unionApproverName != null) ...[
                       if (section.submittedByName != null ||
-                          section.validatedByName != null)
+                          section.lfApproverName != null)
                         const SizedBox(height: 4),
                       _TraceRow(
-                        icon: HugeIcons.strokeRoundedStar,
+                        icon: HugeIcons.strokeRoundedCheckmarkCircle01,
                         color: AppColors.secondaryDark,
-                        text:
-                            'Evaluado por ${section.evaluatedByName}${section.evaluatedAt != null ? " · ${dateFormat.format(section.evaluatedAt!.toLocal())}" : ""}',
+                        text: 'evidence_folder.trace.validated_by'.tr(namedArgs: {
+                          'name': section.unionApproverName!,
+                          'date': section.unionApprovedAt != null
+                              ? ' · ${dateFormat.format(section.unionApprovedAt!.toLocal())}'
+                              : '',
+                        }),
                         context: context,
                       ),
                     ],
@@ -280,7 +295,7 @@ class _SubmitSectionButton extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Enviando...',
+                      'evidence_folder.sending'.tr(),
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -295,7 +310,7 @@ class _SubmitSectionButton extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'Enviar a validación',
+                      'evidence_folder.send_to_validation'.tr(),
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,

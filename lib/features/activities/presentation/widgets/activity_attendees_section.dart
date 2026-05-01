@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
@@ -58,7 +59,7 @@ class ActivityAttendeesSection extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              'Participantes',
+              'activities.widgets.attendees_title'.tr(),
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -87,7 +88,7 @@ class ActivityAttendeesSection extends StatelessWidget {
 
         if (count == 0)
           Text(
-            'Todos los miembros participan',
+            'activities.widgets.attendees_all'.tr(),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: sac.textSecondary,
                 ),

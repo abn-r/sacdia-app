@@ -1,6 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/evidence_folder.dart';
@@ -72,7 +72,7 @@ class _EvaluatedBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Carpeta evaluada$dateStr',
+                  'evidence_folder.evaluated_banner.title'.tr(namedArgs: {'date': dateStr}),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: AppColors.secondaryDark,
@@ -80,7 +80,10 @@ class _EvaluatedBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Puntos obtenidos: ${folder.earnedPoints} / ${folder.maxPoints}',
+                  'evidence_folder.evaluated_banner.points'.tr(namedArgs: {
+                    'earned': '${folder.earnedPoints}',
+                    'max': '${folder.maxPoints}',
+                  }),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.secondaryDark,
                         fontWeight: FontWeight.w600,
@@ -137,7 +140,7 @@ class _ClosedBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Carpeta cerrada',
+                  'evidence_folder.closed_banner.title'.tr(),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: AppColors.accentDark,
@@ -145,7 +148,7 @@ class _ClosedBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'La carpeta de evidencias ha sido cerrada. Para modificar sus evidencias, contacte a la administración del campo local.',
+                  'evidence_folder.closed_banner.description'.tr(),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.accentDark,
                         height: 1.45,

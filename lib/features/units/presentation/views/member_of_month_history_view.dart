@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -72,7 +73,7 @@ class _MemberOfMonthHistoryViewState
     return Scaffold(
       backgroundColor: c.background,
       appBar: AppBar(
-        title: const Text('Miembro del Mes — Historial'),
+        title: Text('units.member_of_month.history_title'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
           onPressed: () => Navigator.of(context).pop(),
@@ -132,7 +133,7 @@ class _MemberOfMonthHistoryViewState
             ),
             const SizedBox(height: 16),
             Text(
-              'No hay datos de miembro del mes aun.',
+              'units.member_of_month.empty'.tr(),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: c.textSecondary,
                   ),
@@ -161,7 +162,7 @@ class _MemberOfMonthHistoryViewState
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Center(
                 child: Text(
-                  'No hay mas registros',
+                  'units.member_of_month.no_more_records'.tr(),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: c.textTertiary,
                       ),
@@ -228,7 +229,7 @@ class _MonthEntry extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'Empate',
+                    'units.member_of_month.tie_badge'.tr(),
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: const Color(0xFFB8860B),
                           fontWeight: FontWeight.w600,
@@ -292,7 +293,8 @@ class _WinnerCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '${member.totalPoints} puntos',
+                      'units.member_of_month.points'
+                          .tr(namedArgs: {'points': '${member.totalPoints}'}),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: c.textSecondary,
                             fontWeight: FontWeight.w500,
@@ -323,23 +325,21 @@ class _WinnerAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (member.photoUrl != null && member.photoUrl!.isNotEmpty) {
-      return CircleAvatar(
-        radius: 24,
-        backgroundImage: CachedNetworkImageProvider(member.photoUrl!),
-      );
-    }
     final initials = _initials(member.name);
-    return CircleAvatar(
-      radius: 24,
-      backgroundColor: const Color(0xFFD4A017).withValues(alpha: 0.2),
-      child: Text(
-        initials,
-        style: const TextStyle(
-          color: Color(0xFFB8860B),
-          fontWeight: FontWeight.w700,
-          fontSize: 14,
-        ),
+    return ClipOval(
+      child: SizedBox(
+        width: 48,
+        height: 48,
+        child: (member.photoUrl != null && member.photoUrl!.isNotEmpty)
+            ? CachedNetworkImage(
+                imageUrl: member.photoUrl!,
+                fit: BoxFit.cover,
+                memCacheWidth: 96,
+                memCacheHeight: 96,
+                placeholder: (_, __) => _MomInitials(initials: initials),
+                errorWidget: (_, __, ___) => _MomInitials(initials: initials),
+              )
+            : _MomInitials(initials: initials),
       ),
     );
   }
@@ -350,5 +350,28 @@ class _WinnerAvatar extends StatelessWidget {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     }
     return name.isNotEmpty ? name[0].toUpperCase() : '?';
+  }
+}
+
+/// Fallback de iniciales con colores de "Miembro del Mes".
+class _MomInitials extends StatelessWidget {
+  final String initials;
+
+  const _MomInitials({required this.initials});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFFD4A017).withValues(alpha: 0.2),
+      alignment: Alignment.center,
+      child: Text(
+        initials,
+        style: const TextStyle(
+          color: Color(0xFFB8860B),
+          fontWeight: FontWeight.w700,
+          fontSize: 14,
+        ),
+      ),
+    );
   }
 }

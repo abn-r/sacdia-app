@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -90,13 +91,13 @@ extension InsuranceStatusFilterLabel on InsuranceStatusFilter {
   String get label {
     switch (this) {
       case InsuranceStatusFilter.todos:
-        return 'Todos';
+        return 'insurance.filter.status_all'.tr();
       case InsuranceStatusFilter.asegurado:
-        return 'Asegurado';
+        return 'insurance.filter.status_insured'.tr();
       case InsuranceStatusFilter.vencido:
-        return 'Vencido';
+        return 'insurance.filter.status_expired'.tr();
       case InsuranceStatusFilter.sinSeguro:
-        return 'Sin seguro';
+        return 'insurance.filter.status_uninsured'.tr();
     }
   }
 }
@@ -107,13 +108,13 @@ extension InsuranceSortOrderLabel on InsuranceSortOrder {
   String get label {
     switch (this) {
       case InsuranceSortOrder.nameAsc:
-        return 'Nombre A-Z';
+        return 'insurance.filter.sort_name_asc'.tr();
       case InsuranceSortOrder.nameDesc:
-        return 'Nombre Z-A';
+        return 'insurance.filter.sort_name_desc'.tr();
       case InsuranceSortOrder.expiryAsc:
-        return 'Vencimiento pronto';
+        return 'insurance.filter.sort_expiry_asc'.tr();
       case InsuranceSortOrder.expiryDesc:
-        return 'Vencimiento lejano';
+        return 'insurance.filter.sort_expiry_desc'.tr();
     }
   }
 }

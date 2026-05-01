@@ -1,7 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -36,7 +36,7 @@ class TransactionDetailView extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: context.sac.background,
         surfaceTintColor: Colors.transparent,
-        title: const Text('Detalle del Movimiento'),
+        title: Text('finances.transaction_detail.title'.tr()),
         actions: [
           if (canEdit) ...[
             IconButton(
@@ -73,19 +73,19 @@ class TransactionDetailView extends ConsumerWidget {
               children: [
                 _DetailRow(
                   icon: HugeIcons.strokeRoundedNote01,
-                  label: 'Concepto',
+                  label: 'finances.transaction_detail.concept'.tr(),
                   value: transaction.description,
                 ),
                 _divider(),
                 _DetailRow(
                   icon: HugeIcons.strokeRoundedTag01,
-                  label: 'Categoría',
+                  label: 'finances.transaction_detail.category'.tr(),
                   value: transaction.category.name,
                 ),
                 _divider(),
                 _DetailRow(
                   icon: HugeIcons.strokeRoundedCalendar01,
-                  label: 'Fecha',
+                  label: 'finances.transaction_detail.date'.tr(),
                   value: DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es')
                       .format(transaction.date.toLocal()),
                 ),
@@ -94,7 +94,7 @@ class TransactionDetailView extends ConsumerWidget {
                   _divider(),
                   _DetailRow(
                     icon: HugeIcons.strokeRoundedInformationCircle,
-                    label: 'Notas',
+                    label: 'finances.transaction_detail.notes'.tr(),
                     value: transaction.notes!,
                     multiline: true,
                   ),
@@ -109,27 +109,27 @@ class TransactionDetailView extends ConsumerWidget {
               children: [
                 _DetailRow(
                   icon: HugeIcons.strokeRoundedUser,
-                  label: 'Registrado por',
+                  label: 'finances.transaction_detail.registered_by'.tr(),
                   value: transaction.registeredByName,
                 ),
                 _divider(),
                 _DetailRow(
                   icon: HugeIcons.strokeRoundedClock01,
-                  label: 'Fecha de registro',
+                  label: 'finances.transaction_detail.registration_date'.tr(),
                   value: DateFormat('dd/MM/yyyy HH:mm').format(transaction.registeredAt.toLocal()),
                 ),
                 if (transaction.modifiedByName != null) ...[
                   _divider(),
                   _DetailRow(
                     icon: HugeIcons.strokeRoundedPencilEdit01,
-                    label: 'Modificado por',
+                    label: 'finances.transaction_detail.modified_by'.tr(),
                     value: transaction.modifiedByName!,
                   ),
                   if (transaction.modifiedAt != null) ...[
                     _divider(),
                     _DetailRow(
                       icon: HugeIcons.strokeRoundedClock01,
-                      label: 'Fecha de modificación',
+                      label: 'finances.transaction_detail.modification_date'.tr(),
                       value: DateFormat('dd/MM/yyyy HH:mm')
                           .format(transaction.modifiedAt!.toLocal()),
                     ),
@@ -159,21 +159,19 @@ class TransactionDetailView extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar movimiento'),
-        content: const Text(
-          '¿Estás seguro de que quieres eliminar este movimiento? Esta acción no se puede deshacer.',
-        ),
+        title: Text('finances.transaction_detail.delete_dialog_title'.tr()),
+        content: Text('finances.transaction_detail.delete_dialog_content'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancelar'),
+            child: Text('common.cancel'.tr()),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.error,
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Eliminar'),
+            child: Text('common.delete'.tr()),
           ),
         ],
       ),
@@ -189,13 +187,13 @@ class TransactionDetailView extends ConsumerWidget {
     if (success) {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Movimiento eliminado')),
+        SnackBar(content: Text('finances.transaction_detail.delete_success'.tr())),
       );
     } else {
       final error = ref.read(transactionFormNotifierProvider).errorMessage;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(error ?? 'No se pudo eliminar el movimiento'),
+          content: Text(error ?? 'finances.transaction_detail.delete_error'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -258,7 +256,9 @@ class _AmountHero extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            isIncome ? 'Ingreso' : 'Egreso',
+            isIncome
+                ? 'finances.transaction_detail.income'.tr()
+                : 'finances.transaction_detail.expense'.tr(),
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,

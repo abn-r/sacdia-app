@@ -77,20 +77,55 @@ class _ActivityDetailSkeletonState extends State<ActivityDetailSkeleton>
                         shimmerValue: _shimmer.value,
                       ),
                       const SizedBox(height: 8),
-                      // Type chip
+                      // Type chip + platform badge — grouped left
+                      Row(
+                        children: [
+                          _SkeletonBox(
+                            width: 68,
+                            height: 22,
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(8)),
+                            shimmerValue: _shimmer.value,
+                          ),
+                          const SizedBox(width: 6),
+                          _SkeletonBox(
+                            width: 80,
+                            height: 22,
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(8)),
+                            shimmerValue: _shimmer.value,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+
+                      // Meta line (countdown · section)
                       _SkeletonBox(
-                        width: 80,
-                        height: 24,
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(20)),
+                        width: 180,
+                        height: 14,
                         shimmerValue: _shimmer.value,
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
 
-                      // Metadata grid — 6 cells (3 rows × 2)
-                      _buildGridSkeleton(),
+                      // Info strip (single card, fecha + hora)
+                      _SkeletonBox(
+                        width: double.infinity,
+                        height: 68,
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(14)),
+                        shimmerValue: _shimmer.value,
+                      ),
+                      const SizedBox(height: 10),
 
-                      const SizedBox(height: 20),
+                      // Location row
+                      _SkeletonBox(
+                        width: double.infinity,
+                        height: 56,
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(14)),
+                        shimmerValue: _shimmer.value,
+                      ),
+                      const SizedBox(height: 24),
 
                       // Description header
                       _SkeletonBox(
@@ -178,36 +213,6 @@ class _ActivityDetailSkeletonState extends State<ActivityDetailSkeleton>
     );
   }
 
-  Widget _buildGridSkeleton() {
-    return Column(
-      children: List.generate(3, (row) {
-        return Padding(
-          padding: EdgeInsets.only(bottom: row < 2 ? 8.0 : 0),
-          child: Row(
-            children: [
-              Expanded(
-                child: _SkeletonBox(
-                  width: double.infinity,
-                  height: 52,
-                  borderRadius: const BorderRadius.all(Radius.circular(12)),
-                  shimmerValue: _shimmer.value,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _SkeletonBox(
-                  width: double.infinity,
-                  height: 52,
-                  borderRadius: const BorderRadius.all(Radius.circular(12)),
-                  shimmerValue: _shimmer.value,
-                ),
-              ),
-            ],
-          ),
-        );
-      }),
-    );
-  }
 }
 
 // ── _SkeletonBox ──────────────────────────────────────────────────────────────

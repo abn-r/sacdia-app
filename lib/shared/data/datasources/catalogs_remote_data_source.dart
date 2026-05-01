@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/errors/exceptions.dart';
@@ -43,14 +44,14 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
             .toList();
       }
 
-      throw ServerException(message: 'Error al obtener tipos de club');
+      throw ServerException(message: tr('catalogs.errors.get_club_types'));
     } catch (e) {
       AppLogger.e('Error en getClubTypes', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
           message:
-              e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
+              e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
         );
       }
       if (e is AppException) rethrow;
@@ -77,14 +78,14 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
             .toList();
       }
 
-      throw ServerException(message: 'Error al obtener tipos de actividad');
+      throw ServerException(message: tr('catalogs.errors.get_activity_types'));
     } catch (e) {
       AppLogger.e('Error en getActivityTypes', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
           message:
-              e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
+              e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
         );
       }
       if (e is AppException) rethrow;
@@ -111,14 +112,14 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
             .toList();
       }
 
-      throw ServerException(message: 'Error al obtener distritos');
+      throw ServerException(message: tr('catalogs.errors.get_districts'));
     } catch (e) {
       AppLogger.e('Error en getDistricts', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
           message:
-              e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
+              e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
         );
       }
       if (e is AppException) rethrow;
@@ -145,14 +146,14 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
             .toList();
       }
 
-      throw ServerException(message: 'Error al obtener iglesias');
+      throw ServerException(message: tr('catalogs.errors.get_churches'));
     } catch (e) {
       AppLogger.e('Error en getChurches', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
           message:
-              e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
+              e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
         );
       }
       if (e is AppException) rethrow;
@@ -181,14 +182,14 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
             .toList();
       }
 
-      throw ServerException(message: 'Error al obtener años eclesiásticos');
+      throw ServerException(message: tr('catalogs.errors.get_ecclesiastical_years'));
     } catch (e) {
       AppLogger.e('Error en getEcclesiasticalYears', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
           message:
-              e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
+              e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
         );
       }
       if (e is AppException) rethrow;

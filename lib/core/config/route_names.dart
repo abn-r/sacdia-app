@@ -35,6 +35,7 @@ class RouteNames {
   static const String homeResources = '/home/resources';
   static const String homeHonors = '/home/honors';
   static const String homeCertifications = '/home/certifications';
+  static const String homeAchievements = '/home/achievements';
 
   // Información médica del usuario (detalle fuera del shell)
   static const String homeMedicalInfo = '/home/medical-info';
@@ -142,6 +143,13 @@ class RouteNames {
   static String memberOfMonthHistoryPath(int clubId, int sectionId) =>
       '/units/member-of-month/$clubId/$sectionId';
 
+  // Logros (achievements)
+  static const String achievementDetail = '/achievement/:achievementId';
+
+  // Helper
+  static String achievementDetailPath(int achievementId) =>
+      '/achievement/$achievementId';
+
   // Pagos de camporee (miembro)
   static const String camporeePayments =
       '/camporee/:camporeeId/member/:memberId/payments';
@@ -152,4 +160,16 @@ class RouteNames {
       '/camporee/$camporeeId/member/$memberId/payments';
   static String camporeeEnrollClubPath(int camporeeId) =>
       '/camporee/$camporeeId/enroll-club';
+
+  // Rankings
+  static const String homeMyRanking = '/home/my-ranking';
+  static const String sectionRanking = '/section-ranking/:sectionId';
+  static const String memberBreakdown =
+      '/rankings/breakdown/:enrollmentId';
+
+  static String sectionRankingPath(int sectionId) =>
+      '/section-ranking/$sectionId';
+
+  static String memberBreakdownPath(int enrollmentId, int yearId) =>
+      '/rankings/breakdown/$enrollmentId?year_id=$yearId';
 }

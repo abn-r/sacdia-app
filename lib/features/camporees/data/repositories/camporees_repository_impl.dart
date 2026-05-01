@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/models/paginated_result.dart';
 import '../../../../core/network/network_info.dart';
 import '../../domain/entities/camporee.dart';
 import '../../domain/entities/camporee_member.dart';
@@ -87,11 +88,26 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
   }
 
   @override
-  Future<Either<Failure, List<CamporeeMember>>> getCamporeeMembers(
-      int camporeeId, {CancelToken? cancelToken}) async {
+  Future<Either<Failure, PaginatedResult<CamporeeMember>>> getCamporeeMembers(
+    int camporeeId, {
+    int page = 1,
+    int limit = 50,
+    String? status,
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final models = await remoteDataSource.getCamporeeMembers(camporeeId, cancelToken: cancelToken);
-      return Right(models.map((m) => m.toEntity()).toList());
+      final paginated = await remoteDataSource.getCamporeeMembers(
+        camporeeId,
+        page: page,
+        limit: limit,
+        status: status,
+        cancelToken: cancelToken,
+      );
+      final entities = PaginatedResult<CamporeeMember>(
+        data: paginated.data.map((m) => m.toEntity()).toList(),
+        meta: paginated.meta,
+      );
+      return Right(entities);
     } on ServerException catch (e) {
       return _serverFailure(e);
     } on AuthException catch (e) {

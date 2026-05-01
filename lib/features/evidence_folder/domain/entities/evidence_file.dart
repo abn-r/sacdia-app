@@ -26,6 +26,12 @@ class EvidenceFile extends Equatable {
   final String uploadedByName;
   final DateTime uploadedAt;
 
+  /// Nota del revisor (assistant-lf / director-lf) sobre este archivo.
+  ///
+  /// Escrita exclusivamente desde el panel admin (sacdia-admin).
+  /// La app solo muestra este campo en modo lectura — nunca lo escribe.
+  final String? reviewerNote;
+
   const EvidenceFile({
     required this.id,
     required this.url,
@@ -33,6 +39,7 @@ class EvidenceFile extends Equatable {
     required this.type,
     required this.uploadedByName,
     required this.uploadedAt,
+    this.reviewerNote,
   });
 
   bool get isImage => type == EvidenceFileType.image;
@@ -40,5 +47,5 @@ class EvidenceFile extends Equatable {
 
   @override
   List<Object?> get props =>
-      [id, url, fileName, type, uploadedByName, uploadedAt];
+      [id, url, fileName, type, uploadedByName, uploadedAt, reviewerNote];
 }

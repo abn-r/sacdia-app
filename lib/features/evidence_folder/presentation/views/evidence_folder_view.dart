@@ -1,9 +1,11 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
+import '../../../../core/errors/exceptions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
@@ -32,8 +34,7 @@ class EvidenceFolderView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final folderAsync =
-        ref.watch(evidenceFolderProvider(clubSectionId));
+    final folderAsync = ref.watch(evidenceFolderProvider(clubSectionId));
     final c = context.sac;
 
     return Scaffold(
@@ -41,15 +42,31 @@ class EvidenceFolderView extends ConsumerWidget {
       body: SafeArea(
         child: folderAsync.when(
           loading: () => const EvidenceFolderLoadingSkeleton(),
-          error: (error, _) => _ErrorBody(
-            message: error.toString().replaceFirst('Exception: ', ''),
-            onRetry: () =>
-                ref.invalidate(evidenceFolderProvider(clubSectionId)),
-          ),
-          data: (folder) => _FolderBody(
-            folder: folder,
-            clubSectionId: clubSectionId,
-          ),
+          // Path happy: backend nuevo (200 + data: null) → folder == null.
+          // Path legacy: backend viejo (404 → NotFoundException) → error branch.
+          // Ambos convergen en _NoFolderBody.
+          data: (folder) => folder == null
+              ? _NoFolderBody(
+                  onBack: () => Navigator.of(context).maybePop(),
+                )
+              : _FolderBody(
+                  folder: folder,
+                  clubSectionId: clubSectionId,
+                ),
+          error: (error, _) {
+            // Fallback defensivo: backend viejo que todavía devuelve 404.
+            if (error is NotFoundException) {
+              return _NoFolderBody(
+                onBack: () => Navigator.of(context).maybePop(),
+              );
+            }
+            return _ErrorBody(
+              message: error.toString().replaceFirst('Exception: ', ''),
+              onRetry: () =>
+                  ref.invalidate(evidenceFolderProvider(clubSectionId)),
+              onBack: () => Navigator.of(context).maybePop(),
+            );
+          },
         ),
       ),
     );
@@ -79,22 +96,23 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Enviar sección a validación'),
+        title: Text('evidence_folder.submit_section_dialog.title'.tr()),
         content: Text(
-          '¿Confirmás que querés enviar la sección "${section.name}" a validación?\n\n'
-          'No podrás modificar los archivos hasta que el campo local la revise.',
+          'evidence_folder.submit_section_dialog.message'.tr(namedArgs: {
+            'sectionName': section.name,
+          }),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(
               foregroundColor: AppColors.sacBlue,
             ),
-            child: const Text('Enviar'),
+            child: Text('evidence_folder.send'.tr()),
           ),
         ],
       ),
@@ -122,7 +140,10 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                    'Sección "${section.name}" enviada a validación exitosamente'),
+                  'evidence_folder.submit_success'.tr(namedArgs: {
+                    'sectionName': section.name,
+                  }),
+                ),
               ),
             ],
           ),
@@ -149,8 +170,8 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
             ),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
       }
@@ -192,7 +213,7 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
             backgroundColor: c.background,
             surfaceTintColor: Colors.transparent,
             title: Text(
-              'Carpeta de Evidencias',
+              'evidence_folder.title'.tr(),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: c.text,
@@ -225,12 +246,11 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                   child: Text(
-                    'Secciones',
-                    style:
-                        Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: c.text,
-                            ),
+                    'evidence_folder.sections_title'.tr(),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: c.text,
+                        ),
                   ),
                 ),
               ],
@@ -284,9 +304,8 @@ class _FolderHeaderCard extends StatelessWidget {
 
     // Status badge colors
     final statusColor = folder.isOpen ? AppColors.secondary : AppColors.accent;
-    final statusBg = folder.isOpen
-        ? AppColors.secondaryLight
-        : AppColors.accentLight;
+    final statusBg =
+        folder.isOpen ? AppColors.secondaryLight : AppColors.accentLight;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -316,8 +335,7 @@ class _FolderHeaderCard extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
                   color: statusBg,
                   borderRadius: BorderRadius.circular(20),
@@ -337,7 +355,9 @@ class _FolderHeaderCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      folder.isOpen ? 'Abierta' : 'Cerrada',
+                      folder.isOpen
+                          ? 'evidence_folder.status.open'.tr()
+                          : 'evidence_folder.status.closed'.tr(),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -350,8 +370,7 @@ class _FolderHeaderCard extends StatelessWidget {
             ],
           ),
 
-          if (folder.description != null &&
-              folder.description!.isNotEmpty) ...[
+          if (folder.description != null && folder.description!.isNotEmpty) ...[
             const SizedBox(height: 6),
             Text(
               folder.description!,
@@ -407,7 +426,10 @@ class _FolderHeaderCard extends StatelessWidget {
               ),
               const SizedBox(width: 5),
               Text(
-                '${folder.earnedPoints} / ${folder.maxPoints} pts',
+                'evidence_folder.points_ratio'.tr(namedArgs: {
+                  'earned': '${folder.earnedPoints}',
+                  'max': '${folder.maxPoints}',
+                }),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -431,7 +453,6 @@ class _ProgressSummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
     final total = folder.sections.length;
     final validated = folder.validatedCount;
     final submitted = folder.submittedCount;
@@ -443,19 +464,19 @@ class _ProgressSummaryRow extends StatelessWidget {
         children: [
           _StatPill(
             count: pending,
-            label: 'Pendientes',
+            label: 'evidence_folder.stats.pending'.tr(),
             color: AppColors.accent,
           ),
           const SizedBox(width: 8),
           _StatPill(
             count: submitted,
-            label: 'Enviadas',
+            label: 'evidence_folder.stats.submitted'.tr(),
             color: AppColors.sacBlue,
           ),
           const SizedBox(width: 8),
           _StatPill(
             count: validated,
-            label: 'Validadas',
+            label: 'evidence_folder.stats.validated'.tr(),
             color: AppColors.secondary,
           ),
         ],
@@ -556,7 +577,7 @@ class _UnderEvaluationBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'En proceso de evaluación',
+                  'evidence_folder.evaluation_banner.title'.tr(),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: const Color(0xFF92400E),
@@ -564,7 +585,7 @@ class _UnderEvaluationBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'El evaluador del campo está revisando las evidencias de este club.',
+                  'evidence_folder.evaluation_banner.description'.tr(),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: const Color(0xFF92400E),
                         height: 1.45,
@@ -595,7 +616,7 @@ class _EmptySections extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'No hay secciones disponibles',
+            'evidence_folder.empty_sections'.tr(),
             style: Theme.of(context)
                 .textTheme
                 .titleSmall
@@ -607,53 +628,185 @@ class _EmptySections extends StatelessWidget {
   }
 }
 
+// ── Empty state: carpeta no disponible (404 de negocio) ──────────────────────
+
+class _NoFolderBody extends StatelessWidget {
+  final VoidCallback onBack;
+
+  const _NoFolderBody({required this.onBack});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Column(
+      children: [
+        AppBar(
+          backgroundColor: c.background,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowLeft01,
+              size: 22,
+              color: c.text,
+            ),
+            onPressed: onBack,
+          ),
+          title: Text(
+            'evidence_folder.title'.tr(),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: c.text,
+                ),
+          ),
+          centerTitle: false,
+        ),
+        Expanded(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: c.surfaceVariant,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedFolder01,
+                        size: 36,
+                        color: c.textTertiary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'evidence_folder.no_folder.title'.tr(),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: c.text,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'evidence_folder.no_folder.description1'.tr(),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: c.textSecondary,
+                          height: 1.55,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'evidence_folder.no_folder.description2'.tr(),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: c.textSecondary,
+                          height: 1.55,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 32),
+                  SacButton.ghost(
+                    text: 'common.back'.tr(),
+                    icon: HugeIcons.strokeRoundedArrowLeft01,
+                    onPressed: onBack,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 // ── Error state ───────────────────────────────────────────────────────────────
 
 class _ErrorBody extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
+  final VoidCallback onBack;
 
-  const _ErrorBody({required this.message, required this.onRetry});
+  const _ErrorBody({
+    required this.message,
+    required this.onRetry,
+    required this.onBack,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: HugeIcons.strokeRoundedAlert02,
-              size: 56,
-              color: AppColors.error,
+    final c = context.sac;
+    return Column(
+      children: [
+        AppBar(
+          backgroundColor: c.background,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowLeft01,
+              size: 22,
+              color: c.text,
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Error al cargar la carpeta',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: context.sac.textSecondary,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SacButton.primary(
-              text: 'Reintentar',
-              icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: onRetry,
-            ),
-          ],
+            onPressed: onBack,
+          ),
+          title: Text(
+            'evidence_folder.title'.tr(),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: c.text,
+                ),
+          ),
+          centerTitle: false,
         ),
-      ),
+        Expanded(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedAlert02,
+                    size: 56,
+                    color: AppColors.error,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'evidence_folder.error_load_title'.tr(),
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    message,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: c.textSecondary,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  SacButton.primary(
+                    text: 'common.retry'.tr(),
+                    icon: HugeIcons.strokeRoundedRefresh,
+                    onPressed: onRetry,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

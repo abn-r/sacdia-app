@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -31,7 +32,7 @@ class MonthlyReportDetailView extends ConsumerWidget {
         backgroundColor: c.background,
         surfaceTintColor: Colors.transparent,
         title: Text(
-          'Detalle del informe',
+          'monthly_reports.detail.title'.tr(),
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 18,
@@ -89,7 +90,7 @@ class _PdfButton extends ConsumerWidget {
         color: AppColors.primary,
         size: 22,
       ),
-      tooltip: 'Descargar PDF',
+      tooltip: 'monthly_reports.detail.download_pdf_tooltip'.tr(),
       onPressed: () => _openPdf(context, ref),
     );
   }
@@ -99,9 +100,9 @@ class _PdfButton extends ConsumerWidget {
       // Show a loading indicator while downloading.
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Descargando PDF…'),
-            duration: Duration(seconds: 30),
+          SnackBar(
+            content: Text('monthly_reports.detail.downloading_pdf'.tr()),
+            duration: const Duration(seconds: 30),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -115,7 +116,7 @@ class _PdfButton extends ConsumerWidget {
         SacPdfViewer.show(
           context,
           pdfSource: localPath,
-          title: 'Informe mensual',
+                  title: 'monthly_reports.detail.pdf_viewer_title'.tr(),
         );
       }
     } catch (e) {
@@ -124,7 +125,9 @@ class _PdfButton extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Error al obtener el PDF: ${e.toString().replaceFirst("Exception: ", "")}',
+              'monthly_reports.detail.pdf_error'.tr(namedArgs: {
+                'error': e.toString().replaceFirst('Exception: ', ''),
+              }),
             ),
             behavior: SnackBarBehavior.floating,
           ),
@@ -144,8 +147,6 @@ class _ReportDetail extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.sac;
-
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
@@ -154,7 +155,7 @@ class _ReportDetail extends ConsumerWidget {
         const SizedBox(height: 20),
 
         // ── Datos automáticos ───────────────────────────────────────────
-        _SectionTitle(title: 'Datos calculados automáticamente'),
+        _SectionTitle(title: 'monthly_reports.detail.section_auto_data'.tr()),
         const SizedBox(height: 12),
         _AutoDataGrid(report: report),
         const SizedBox(height: 20),
@@ -163,7 +164,7 @@ class _ReportDetail extends ConsumerWidget {
         if (report.newMembers != null ||
             report.droppedMembers != null ||
             report.notes != null) ...[
-          _SectionTitle(title: 'Datos adicionales'),
+          _SectionTitle(title: 'monthly_reports.detail.section_manual_data'.tr()),
           const SizedBox(height: 12),
           _ManualDataCard(report: report),
           const SizedBox(height: 20),
@@ -171,15 +172,15 @@ class _ReportDetail extends ConsumerWidget {
 
         // ── PDF button at bottom ────────────────────────────────────────
         SacButton.outline(
-          text: 'Ver PDF',
+          text: 'monthly_reports.detail.view_pdf_button'.tr(),
           icon: HugeIcons.strokeRoundedPdf01,
           onPressed: () async {
             try {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Descargando PDF…'),
-                    duration: Duration(seconds: 30),
+                  SnackBar(
+                    content: Text('monthly_reports.detail.downloading_pdf'.tr()),
+                    duration: const Duration(seconds: 30),
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
@@ -193,7 +194,7 @@ class _ReportDetail extends ConsumerWidget {
                 SacPdfViewer.show(
                   context,
                   pdfSource: localPath,
-                  title: 'Informe mensual',
+          title: 'monthly_reports.detail.pdf_viewer_title'.tr(),
                 );
               }
             } catch (e) {
@@ -204,7 +205,9 @@ class _ReportDetail extends ConsumerWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      'Error al obtener el PDF: ${e.toString().replaceFirst("Exception: ", "")}',
+                      'monthly_reports.detail.pdf_error'.tr(namedArgs: {
+                        'error': e.toString().replaceFirst('Exception: ', ''),
+                      }),
                     ),
                     behavior: SnackBarBehavior.floating,
                   ),
@@ -341,17 +344,17 @@ class _AutoDataGrid extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: _StatCard(
+                child:                 _StatCard(
                   icon: HugeIcons.strokeRoundedCalendar01,
-                  label: 'Actividades',
+                  label: 'monthly_reports.detail.stat_activities'.tr(),
                   value: report.totalActivities?.toString() ?? '—',
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _StatCard(
+                child:                 _StatCard(
                   icon: HugeIcons.strokeRoundedUserMultiple,
-                  label: 'Asistencia total',
+                  label: 'monthly_reports.detail.stat_total_attendance'.tr(),
                   value: report.totalAttendance?.toString() ?? '—',
                 ),
               ),
@@ -364,17 +367,17 @@ class _AutoDataGrid extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: _StatCard(
+                child:                 _StatCard(
                   icon: HugeIcons.strokeRoundedUser,
-                  label: 'Miembros',
+                  label: 'monthly_reports.detail.stat_members'.tr(),
                   value: report.totalMembers?.toString() ?? '—',
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _StatCard(
+                child:                 _StatCard(
                   icon: HugeIcons.strokeRoundedAnalytics01,
-                  label: 'Tasa asistencia',
+                  label: 'monthly_reports.detail.stat_attendance_rate'.tr(),
                   value: report.attendanceRate != null
                       ? '${report.attendanceRate!.toStringAsFixed(1)}%'
                       : '—',
@@ -464,7 +467,7 @@ class _ManualDataCard extends StatelessWidget {
           if (report.newMembers != null)
             _InfoRow(
               icon: HugeIcons.strokeRoundedUserAdd01,
-              label: 'Nuevos miembros',
+              label: 'monthly_reports.detail.label_new_members'.tr(),
               value: report.newMembers.toString(),
               valueColor: AppColors.secondary,
             ),
@@ -474,7 +477,7 @@ class _ManualDataCard extends StatelessWidget {
           if (report.droppedMembers != null)
             _InfoRow(
               icon: HugeIcons.strokeRoundedCancel01,
-              label: 'Bajas',
+              label: 'monthly_reports.detail.label_dropped_members'.tr(),
               value: report.droppedMembers.toString(),
               valueColor: AppColors.error,
             ),
@@ -494,7 +497,7 @@ class _ManualDataCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Notas',
+                        'monthly_reports.detail.label_notes'.tr(),
                         style: TextStyle(
                           fontSize: 12,
                           color: c.textTertiary,
@@ -609,7 +612,7 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             SacButton.primary(
-              text: 'Reintentar',
+              text: 'common.retry'.tr(),
               icon: HugeIcons.strokeRoundedRefresh,
               onPressed: onRetry,
             ),

@@ -1,3 +1,5 @@
+import 'package:easy_localization/easy_localization.dart';
+
 /// Estado de investidura de un enrollment.
 ///
 /// Máquina de estados:
@@ -13,25 +15,25 @@ enum InvestitureStatus {
   rejected,
   investido;
 
-  /// Etiqueta en español para mostrar al usuario.
+  /// Etiqueta localizada para mostrar al usuario.
   String get label {
     switch (this) {
       case InvestitureStatus.inProgress:
-        return 'En progreso';
+        return tr('investiture.status.in_progress');
       case InvestitureStatus.submittedForValidation:
-        return 'Enviado';
+        return tr('investiture.status.submitted');
       case InvestitureStatus.clubApproved:
-        return 'Aprobado por el club';
+        return tr('investiture.status.club_approved');
       case InvestitureStatus.coordinatorApproved:
-        return 'Aprobado por coordinador';
+        return tr('investiture.status.coordinator_approved');
       case InvestitureStatus.fieldApproved:
-        return 'Aprobado por campo';
+        return tr('investiture.status.field_approved');
       case InvestitureStatus.approved:
-        return 'Aprobado';
+        return tr('investiture.status.approved');
       case InvestitureStatus.rejected:
-        return 'Rechazado';
+        return tr('investiture.status.rejected');
       case InvestitureStatus.investido:
-        return 'Investido';
+        return tr('investiture.status.investido');
     }
   }
 

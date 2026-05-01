@@ -5,11 +5,17 @@ import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/route_names.dart';
+import '../realtime/feature_flags.dart';
+import '../realtime/realtime_invalidation_handler.dart';
+import '../realtime/realtime_ref.dart';
 import '../utils/app_logger.dart';
+import '../../features/notifications/presentation/providers/notifications_providers.dart';
+import '../../features/notifications/presentation/providers/unread_notifications_count_provider.dart';
 
 /// Top-level background message handler.
 ///
@@ -17,6 +23,17 @@ import '../utils/app_logger.dart';
 /// Firebase Messaging calls it in an isolate separate from the main app.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // INVALIDATE data messages must be staged BEFORE the notification-null guard
+  // below because they carry no notification object by design. Riverpod is NOT
+  // accessible from this isolate — we write to SharedPreferences and drain on
+  // the next app resume (see RealtimeInvalidationHandler.drainPending).
+  if (message.data['type'] == 'cache_invalidate') {
+    if (RealtimeFeatureFlags.realtimeInvalidationEnabled) {
+      await RealtimeInvalidationHandler.stagePending(message);
+    }
+    return;
+  }
+
   // Firebase is already initialized by the time this is called.
   // Just log in debug — the OS notification tray handles display.
   if (kDebugMode) {
@@ -37,11 +54,17 @@ class PushNotificationService {
   static const _tag = 'PushNotificationService';
   static const _tokenPrefKey = 'fcm_registered_token';
 
+  /// ID del registro devuelto por el backend al registrar el token.
+  /// Necesario para el DELETE /users/me/fcm-tokens/:tokenId.
+  static const _tokenIdPrefKey = 'fcm_registered_token_id';
+
   final Dio _dio;
-  final SharedPreferences _prefs;
   final _secureStorage = const FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
+
+  /// Riverpod Ref — used to read/mutate notification providers from FCM events.
+  final Ref _ref;
 
   /// Optional navigator key used to show snackbars and navigate on
   /// notification tap. Set this from your MaterialApp's navigatorKey or
@@ -51,10 +74,12 @@ class PushNotificationService {
 
   PushNotificationService({
     required Dio dio,
-    required SharedPreferences prefs,
+    required Ref ref,
     this.navigatorKey,
+    // ignore: avoid_unused_constructor_parameters
+    SharedPreferences? prefs,
   })  : _dio = dio,
-        _prefs = prefs;
+        _ref = ref;
 
   // ── StreamSubscription references ─────────────────────────────────────────
 
@@ -105,15 +130,15 @@ class PushNotificationService {
     await _getFcmTokenSafely();
 
     // 4. Handle messages arriving while app is in the foreground.
-    _onMessageSub = FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+    _onMessageSub =
+        FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
 
     // 5. Handle taps on notifications when app is in background (not terminated).
     _onMessageOpenedAppSub =
         FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
 
     // 6. Handle tap on notification that launched the app from terminated state.
-    final initialMessage =
-        await FirebaseMessaging.instance.getInitialMessage();
+    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
     if (initialMessage != null) {
       // Defer navigation until the widget tree is fully built.
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -127,7 +152,9 @@ class PushNotificationService {
   /// Unregister the FCM token from the backend. Call this on logout.
   Future<void> unregisterToken() async {
     final token = await _secureStorage.read(key: _tokenPrefKey);
-    if (token == null || token.isEmpty) {
+    final tokenId = await _secureStorage.read(key: _tokenIdPrefKey);
+
+    if ((token == null || token.isEmpty) && (tokenId == null || tokenId.isEmpty)) {
       AppLogger.i(
         'No hay token FCM registrado, saltando unregister',
         tag: _tag,
@@ -137,11 +164,21 @@ class PushNotificationService {
 
     try {
       AppLogger.i('Desregistrando token FCM del backend', tag: _tag);
-      await _dio.delete(
-        '/fcm-tokens/by-token',
-        data: {'token': token},
-      );
+
+      if (tokenId != null && tokenId.isNotEmpty) {
+        // Ruta preferida: DELETE /users/me/fcm-tokens/:tokenId
+        await _dio.delete('/users/me/fcm-tokens/$tokenId');
+      } else if (token != null && token.isNotEmpty) {
+        // Fallback para tokens registrados antes de persistir el ID:
+        // DELETE /users/me/fcm-tokens/by-token con el token en el body.
+        await _dio.delete(
+          '/users/me/fcm-tokens/by-token',
+          data: {'token': token},
+        );
+      }
+
       await _secureStorage.delete(key: _tokenPrefKey);
+      await _secureStorage.delete(key: _tokenIdPrefKey);
       AppLogger.i('Token FCM desregistrado', tag: _tag);
     } on DioException catch (e) {
       // Non-critical: a stale token in the backend won't cause harm.
@@ -152,9 +189,12 @@ class PushNotificationService {
       );
       // Still remove locally so we don't keep retrying a bad token.
       await _secureStorage.delete(key: _tokenPrefKey);
+      await _secureStorage.delete(key: _tokenIdPrefKey);
     } catch (e) {
-      AppLogger.w('Error inesperado al desregistrar token', tag: _tag, error: e);
+      AppLogger.w('Error inesperado al desregistrar token',
+          tag: _tag, error: e);
       await _secureStorage.delete(key: _tokenPrefKey);
+      await _secureStorage.delete(key: _tokenIdPrefKey);
     }
   }
 
@@ -175,7 +215,6 @@ class PushNotificationService {
     await _onMessageOpenedAppSub?.cancel();
     _onMessageOpenedAppSub = null;
   }
-
 
   /// Obtains the FCM token in a crash-safe way.
   ///
@@ -299,12 +338,32 @@ class PushNotificationService {
 
     try {
       AppLogger.i('Registrando token FCM en backend', tag: _tag);
-      await _dio.post(
-        '/fcm-tokens',
+      final response = await _dio.post(
+        '/users/me/fcm-tokens',
         data: {'token': token},
       );
+
+      // Persistir el token localmente.
       await _secureStorage.write(key: _tokenPrefKey, value: token);
-      AppLogger.i('Token FCM registrado exitosamente', tag: _tag);
+
+      // El backend devuelve el ID del registro — persiste para poder hacer DELETE
+      // por ID al desregistrar (más confiable que buscar por valor del token).
+      final responseData = response.data;
+      final tokenId = responseData is Map<String, dynamic>
+          ? (responseData['fcm_token_id'] as dynamic)?.toString() ??
+              (responseData['id'] as dynamic)?.toString() ??
+              (responseData['data'] is Map<String, dynamic>
+                  ? ((responseData['data']['fcm_token_id'] as dynamic)?.toString() ??
+                      (responseData['data']['id'] as dynamic)?.toString())
+                  : null)
+          : null;
+
+      if (tokenId != null && tokenId.isNotEmpty) {
+        await _secureStorage.write(key: _tokenIdPrefKey, value: tokenId);
+        AppLogger.i('Token FCM registrado exitosamente (id=$tokenId)', tag: _tag);
+      } else {
+        AppLogger.i('Token FCM registrado exitosamente (sin id en respuesta)', tag: _tag);
+      }
     } on DioException catch (e) {
       AppLogger.w(
         'Error al registrar token FCM (${e.response?.statusCode})',
@@ -322,8 +381,25 @@ class PushNotificationService {
       tag: _tag,
     );
 
+    // cache_invalidate data messages are intercepted BEFORE the notification-null
+    // guard because they intentionally carry no notification payload.
+    // They are handled silently — no inbox entry, no badge, no snackbar.
+    if (message.data['type'] == 'cache_invalidate') {
+      if (RealtimeFeatureFlags.realtimeInvalidationEnabled) {
+        RealtimeInvalidationHandler.handleForeground(
+          message,
+          RealtimeRef.fromRef(_ref),
+        );
+      }
+      return;
+    }
+
     final notification = message.notification;
     if (notification == null) return;
+
+    // Increment unread count optimistically and refresh inbox if it is alive.
+    _ref.read(unreadNotificationsCountProvider.notifier).increment();
+    _ref.invalidate(notificationsInboxProvider);
 
     final context = navigatorKey?.currentContext;
     if (context == null) return;
@@ -380,6 +456,7 @@ class PushNotificationService {
     RouteNames.homeHonors,
     RouteNames.homeCertifications,
     RouteNames.homeCamporees,
+    RouteNames.homeAchievements,
     // Other top-level destinations
     RouteNames.transferRequests,
     RouteNames.investiturePendingList,
@@ -398,6 +475,7 @@ class PushNotificationService {
   static const Set<String> _handledNotificationTypes = {
     'member_of_month',
     'member_of_month_director',
+    'achievement_unlocked',
   };
 
   /// RegExp patterns for routes that carry path parameters.
@@ -414,6 +492,8 @@ class PushNotificationService {
     RegExp(r'^/class/\d+$'),
     // /honor/<integer>
     RegExp(r'^/honor/\d+$'),
+    // /achievement/<integer>
+    RegExp(r'^/achievement/\d+$'),
     // /certification/<integer>
     RegExp(r'^/certification/\d+$'),
     // /club/<alphanumeric slug or UUID>
@@ -507,6 +587,20 @@ class PushNotificationService {
         // Navigate to the units list for the section
         navigator.pushNamed(RouteNames.homeUnits);
 
+      case 'achievement_unlocked':
+        // Navigate to the achievements screen, optionally deep-linking to
+        // the specific achievement detail.
+        // Payload: { type, achievement_id, achievement_name }
+        final achievementId = _parseInt(data['achievement_id']);
+        if (achievementId != null) {
+          navigator.pushNamed(
+            RouteNames.achievementDetailPath(achievementId),
+          );
+        } else {
+          // Fallback: open the achievements list
+          navigator.pushNamed(RouteNames.homeAchievements);
+        }
+
       default:
         AppLogger.w('Tipo de notificación no manejado: $type', tag: _tag);
     }
@@ -526,6 +620,6 @@ class PushNotificationService {
   Future<String?> getToken() => FirebaseMessaging.instance.getToken();
 
   /// Returns the token that was last successfully registered with the backend.
-  Future<String?> get registeredToken => _secureStorage.read(key: _tokenPrefKey);
+  Future<String?> get registeredToken =>
+      _secureStorage.read(key: _tokenPrefKey);
 }
-

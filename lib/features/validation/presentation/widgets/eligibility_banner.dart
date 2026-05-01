@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -80,7 +81,7 @@ class EligibilityBanner extends ConsumerWidget {
                     Row(
                       children: [
                         Text(
-                          'Apto para investidura:',
+                          'validation.eligibility.title'.tr(),
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -89,7 +90,7 @@ class EligibilityBanner extends ConsumerWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          isEligible ? 'Sí' : 'No',
+                          isEligible ? 'common.yes'.tr() : 'common.no'.tr(),
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
@@ -117,7 +118,7 @@ class EligibilityBanner extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${percent.toStringAsFixed(0)}% completado',
+                      'validation.eligibility.progress'.tr(namedArgs: {'percent': percent.toStringAsFixed(0)}),
                       style: TextStyle(
                         fontSize: 11,
                         color: c.textTertiary,

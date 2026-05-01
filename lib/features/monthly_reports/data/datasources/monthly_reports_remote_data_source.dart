@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -54,12 +55,12 @@ class MonthlyReportsRemoteDataSourceImpl
       if (data is Map) {
         final msg = data['message'];
         if (msg is List) return msg.join(', ');
-        return (msg ?? e.message ?? 'Error de conexion').toString();
+        return (msg ?? e.message ?? tr('common.error_network')).toString();
       }
     } catch (e) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
     }
-    return e.message ?? 'Error de conexion';
+    return e.message ?? tr('common.error_network');
   }
 
   Map<String, dynamic> _unwrapData(dynamic raw) {
@@ -103,7 +104,7 @@ class MonthlyReportsRemoteDataSourceImpl
       }
 
       throw ServerException(
-          message: 'Error al obtener preview del informe',
+          message: tr('monthly_reports.errors.fetch_preview'),
           code: response.statusCode);
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
@@ -129,7 +130,7 @@ class MonthlyReportsRemoteDataSourceImpl
       }
 
       throw ServerException(
-          message: 'Error al obtener informes mensuales',
+          message: tr('monthly_reports.errors.fetch_list'),
           code: response.statusCode);
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
@@ -153,7 +154,7 @@ class MonthlyReportsRemoteDataSourceImpl
       }
 
       throw ServerException(
-          message: 'Error al obtener detalle del informe',
+          message: tr('monthly_reports.errors.fetch_detail'),
           code: response.statusCode);
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) rethrow;

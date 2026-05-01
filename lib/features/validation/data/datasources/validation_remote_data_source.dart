@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -77,14 +78,14 @@ class ValidationRemoteDataSourceImpl implements ValidationRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al enviar a revisión',
+        message: tr('validation.errors.submit_for_review'),
         code: response.statusCode,
       );
     } on DioException catch (e) {
       AppLogger.e('DioException en submitForReview', tag: _tag, error: e);
       final msg = e.response?.data is Map
-          ? (e.response!.data['message'] ?? e.message ?? 'Error de red')
-          : (e.message ?? 'Error de red');
+          ? (e.response!.data['message'] ?? e.message ?? tr('common.error_network'))
+          : (e.message ?? tr('common.error_network'));
       throw ServerException(message: msg.toString(), code: e.response?.statusCode);
     } catch (e) {
       if (e is AuthException || e is ServerException) rethrow;
@@ -114,14 +115,14 @@ class ValidationRemoteDataSourceImpl implements ValidationRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener historial',
+        message: tr('validation.errors.get_history'),
         code: response.statusCode,
       );
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('DioException en getValidationHistory', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? e.message ?? 'Error de red',
+        message: e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -149,14 +150,14 @@ class ValidationRemoteDataSourceImpl implements ValidationRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al verificar elegibilidad',
+        message: tr('validation.errors.check_eligibility'),
         code: response.statusCode,
       );
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('DioException en checkEligibility', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? e.message ?? 'Error de red',
+        message: e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
         code: e.response?.statusCode,
       );
     } catch (e) {

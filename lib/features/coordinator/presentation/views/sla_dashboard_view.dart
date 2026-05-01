@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -51,7 +52,7 @@ class _SLADashboardViewState extends ConsumerState<SLADashboardView> {
     return Scaffold(
       backgroundColor: c.background,
       appBar: AppBar(
-        title: const Text('Dashboard Operativo'),
+        title: Text('coordinator.sla.dashboard.title'.tr()),
         actions: [
           IconButton(
             onPressed: () => ref.invalidate(slaDashboardProvider),
@@ -59,7 +60,7 @@ class _SLADashboardViewState extends ConsumerState<SLADashboardView> {
               icon: HugeIcons.strokeRoundedRefresh,
               size: 22,
             ),
-            tooltip: 'Actualizar',
+            tooltip: 'coordinator.sla.dashboard.refresh_tooltip'.tr(),
           ),
         ],
       ),
@@ -76,7 +77,7 @@ class _SLADashboardViewState extends ConsumerState<SLADashboardView> {
                 children: [
                   // ── Section label ──────────────────────────────────────
                   Text(
-                    'Estado actual',
+                    'coordinator.sla.dashboard.current_status'.tr(),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: c.text,
@@ -86,21 +87,21 @@ class _SLADashboardViewState extends ConsumerState<SLADashboardView> {
 
                   // ── KPI cards ──────────────────────────────────────────
                   SlaStatCard(
-                    title: 'Investiduras',
+                    title: 'coordinator.summary.investitures'.tr(),
                     stat: sla.investiture,
                     accentColor: AppColors.primary,
                     icon: HugeIcons.strokeRoundedAward01,
                   ),
                   const SizedBox(height: 10),
                   SlaStatCard(
-                    title: 'Evidencias',
+                    title: 'coordinator.summary.evidence'.tr(),
                     stat: sla.evidence,
                     accentColor: AppColors.accent,
                     icon: HugeIcons.strokeRoundedFolder01,
                   ),
                   const SizedBox(height: 10),
                   SlaStatCard(
-                    title: 'Camporees',
+                    title: 'coordinator.summary.camporees'.tr(),
                     stat: sla.camporee,
                     accentColor: AppColors.secondary,
                     icon: HugeIcons.strokeRoundedCalendar04,
@@ -148,7 +149,7 @@ class _SLADashboardViewState extends ConsumerState<SLADashboardView> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Se actualiza automáticamente cada 60 seg.',
+                          'coordinator.sla.dashboard.auto_refresh_note'.tr(),
                           style: TextStyle(
                             fontSize: 11,
                             color: c.textTertiary,
@@ -189,8 +190,8 @@ class _SLADashboardViewState extends ConsumerState<SLADashboardView> {
             const SizedBox(height: 16),
             Text(
               is403
-                  ? 'Acceso restringido'
-                  : 'Error al cargar el dashboard',
+                  ? 'coordinator.sla.dashboard.access_restricted'.tr()
+                  : 'coordinator.sla.dashboard.error_load'.tr(),
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -200,7 +201,7 @@ class _SLADashboardViewState extends ConsumerState<SLADashboardView> {
             const SizedBox(height: 8),
             Text(
               is403
-                  ? 'Solo coordinadores y administradores pueden acceder a esta sección.'
+                  ? 'coordinator.sla.dashboard.access_restricted_msg'.tr()
                   : msg,
               style: TextStyle(fontSize: 14, color: c.textSecondary),
               textAlign: TextAlign.center,
@@ -208,7 +209,7 @@ class _SLADashboardViewState extends ConsumerState<SLADashboardView> {
             if (!is403) ...[
               const SizedBox(height: 24),
               SacButton.primary(
-                text: 'Reintentar',
+                text: 'coordinator.sla.dashboard.retry'.tr(),
                 icon: HugeIcons.strokeRoundedRefresh,
                 onPressed: () => ref.invalidate(slaDashboardProvider),
               ),

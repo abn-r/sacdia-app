@@ -7,10 +7,12 @@ import '../../domain/entities/notification_item.dart';
 /// Badge visual que identifica el tipo/target de una notificación.
 ///
 /// Muestra un icono con fondo de color diferenciado según el tipo:
-/// - [NotificationTargetType.broadcast] — megáfono naranja/acento
-/// - [NotificationTargetType.direct] — sobre azul
-/// - [NotificationTargetType.section] — grupo verde
-/// - [NotificationTargetType.unknown] — campana gris
+/// - [NotificationTargetType.direct]      — azul + icono de usuario
+/// - [NotificationTargetType.broadcast]   — púrpura + megáfono
+/// - [NotificationTargetType.club]        — verde azulado + grupo de usuarios
+/// - [NotificationTargetType.sectionRole] — ámbar + escudo-usuario
+/// - [NotificationTargetType.globalRole]  — rojo + corona
+/// - [NotificationTargetType.unknown]     — gris + campana
 class NotificationTypeBadge extends StatelessWidget {
   final NotificationTargetType type;
   final double size;
@@ -45,23 +47,40 @@ class NotificationTypeBadge extends StatelessWidget {
 
   _BadgeConfig _configFor(NotificationTargetType type) {
     switch (type) {
-      case NotificationTargetType.broadcast:
-        return _BadgeConfig(
-          icon: HugeIcons.strokeRoundedMegaphone01,
-          iconColor: AppColors.accentDark,
-          backgroundColor: AppColors.accentLight,
-        );
       case NotificationTargetType.direct:
+        // Blue — direct message to a single user.
         return _BadgeConfig(
-          icon: HugeIcons.strokeRoundedMail01,
+          icon: HugeIcons.strokeRoundedUser,
           iconColor: AppColors.info,
           backgroundColor: AppColors.info.withValues(alpha: 0.12),
         );
-      case NotificationTargetType.section:
+      case NotificationTargetType.broadcast:
+        // Purple — broadcast to all users.
+        return _BadgeConfig(
+          icon: HugeIcons.strokeRoundedMegaphone01,
+          iconColor: const Color(0xFF7C3AED),
+          backgroundColor: const Color(0xFF7C3AED).withValues(alpha: 0.12),
+        );
+      case NotificationTargetType.club:
+        // Teal — sent to all members of a club section.
         return _BadgeConfig(
           icon: HugeIcons.strokeRoundedUserGroup,
-          iconColor: AppColors.secondaryDark,
-          backgroundColor: AppColors.secondaryLight,
+          iconColor: const Color(0xFF0D9488),
+          backgroundColor: const Color(0xFF0D9488).withValues(alpha: 0.12),
+        );
+      case NotificationTargetType.sectionRole:
+        // Amber — sent to users with a specific role in a section.
+        return _BadgeConfig(
+          icon: HugeIcons.strokeRoundedShieldUser,
+          iconColor: const Color(0xFFD97706),
+          backgroundColor: const Color(0xFFD97706).withValues(alpha: 0.12),
+        );
+      case NotificationTargetType.globalRole:
+        // Red — sent to users with a global role.
+        return _BadgeConfig(
+          icon: HugeIcons.strokeRoundedCrown,
+          iconColor: AppColors.error,
+          backgroundColor: AppColors.error.withValues(alpha: 0.12),
         );
       case NotificationTargetType.unknown:
         return _BadgeConfig(

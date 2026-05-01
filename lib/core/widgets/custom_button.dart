@@ -4,6 +4,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 /// Botón reutilizable y configurable para toda la aplicación
+@Deprecated('Use SacButton from sac_widgets.dart. Will be removed in a future release.')
 class CustomButton extends StatelessWidget {
   /// Texto que se mostrará en el botón
   final String text;

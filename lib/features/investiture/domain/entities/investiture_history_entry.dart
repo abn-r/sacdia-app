@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 import 'investiture_status.dart';
 
@@ -11,13 +12,13 @@ enum InvestitureAction {
   String get label {
     switch (this) {
       case InvestitureAction.submitted:
-        return 'Enviado para validación';
+        return tr('investiture.history.action_submitted');
       case InvestitureAction.approved:
-        return 'Aprobado';
+        return tr('investiture.history.action_approved');
       case InvestitureAction.rejected:
-        return 'Rechazado';
+        return tr('investiture.history.action_rejected');
       case InvestitureAction.invested:
-        return 'Investido';
+        return tr('investiture.history.action_invested');
     }
   }
 

@@ -1,3 +1,5 @@
+import 'package:easy_localization/easy_localization.dart';
+
 /// Clase base para todas las excepciones de la aplicación
 class AppException implements Exception {
   final String message;
@@ -59,6 +61,15 @@ class ValidationException extends AppException {
   });
 }
 
+// Excepción de recurso no encontrado (HTTP 404)
+class NotFoundException extends AppException {
+  NotFoundException({
+    required super.message,
+    super.code,
+    super.stackTrace,
+  });
+}
+
 /// Señal (no un error real) que indica que el flujo OAuth fue iniciado
 /// correctamente. El resultado de la autenticación llegará de forma
 /// asíncrona a través del deep link y [authStateChanges].
@@ -68,8 +79,9 @@ class OAuthFlowInitiatedException extends AppException {
 
   OAuthFlowInitiatedException({required this.provider})
       : super(
-          message:
-              'Redirigiendo a $provider para autenticación. '
-              'Regresa a la app tras completar el proceso.',
+          message: tr(
+            'errors.oauth_redirecting',
+            namedArgs: {'provider': provider},
+          ),
         );
 }

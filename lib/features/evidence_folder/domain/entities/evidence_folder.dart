@@ -42,6 +42,21 @@ class EvidenceFolder extends Equatable {
   /// Complementa [isOpen] con estados más granulares del proceso de evaluación.
   final String? status;
 
+  // ── Camporee linkage ────────────────────────────────────────────────────────
+
+  /// ID del campamento local (local_camporee) al que pertenece esta carpeta.
+  /// Null si la carpeta no está vinculada a un campamento local.
+  final int? localCamporeeId;
+
+  /// ID del campamento de unión (union_camporee) al que pertenece esta carpeta.
+  /// Null si la carpeta no requiere revisión de unión.
+  final int? unionCamporeeId;
+
+  /// Si true, la aprobación de la unión es obligatoria antes de que la carpeta
+  /// pueda considerarse evaluada. Proveniente del campo requires_union_confirmation
+  /// del backend.
+  final bool requiresUnionConfirmation;
+
   const EvidenceFolder({
     required this.folderId,
     required this.id,
@@ -56,6 +71,9 @@ class EvidenceFolder extends Equatable {
     this.progressPercentage,
     this.evaluatedAt,
     this.status,
+    this.localCamporeeId,
+    this.unionCamporeeId,
+    this.requiresUnionConfirmation = false,
   });
 
   // ── Computed helpers ────────────────────────────────────────────────────────
@@ -63,8 +81,7 @@ class EvidenceFolder extends Equatable {
   /// Puntos ganados: prioriza el valor server-authoritative del backend;
   /// cae al cómputo local sumando secciones validadas si el backend no lo envía.
   int get earnedPoints =>
-      totalEarnedPoints ??
-      sections.fold(0, (sum, s) => sum + s.earnedPoints);
+      totalEarnedPoints ?? sections.fold(0, (sum, s) => sum + s.earnedPoints);
 
   /// Puntos máximos: prioriza el valor del backend; cae a [totalPoints].
   int get maxPoints => totalMaxPoints ?? totalPoints;
@@ -78,24 +95,21 @@ class EvidenceFolder extends Equatable {
   }
 
   /// True si la carpeta fue evaluada (tiene fecha de evaluación o status evaluated).
-  bool get isEvaluated =>
-      evaluatedAt != null || status == 'evaluated';
+  bool get isEvaluated => evaluatedAt != null || status == 'evaluated';
 
   /// True si la carpeta está bajo evaluación activa.
   bool get isUnderEvaluation => status == 'under_evaluation';
 
-  /// Número de secciones en estado [EvidenceSectionStatus.validado] o [EvidenceSectionStatus.evaluated].
-  int get validatedCount => sections
-      .where((s) =>
-          s.status == EvidenceSectionStatus.validado ||
-          s.status == EvidenceSectionStatus.evaluated)
-      .length;
+  /// Número de secciones en estado [EvidenceSectionStatus.validated].
+  int get validatedCount =>
+      sections.where((s) => s.status == EvidenceSectionStatus.validated).length;
 
-  /// Número de secciones en estado [EvidenceSectionStatus.enviado] o [EvidenceSectionStatus.underEvaluation].
+  /// Número de secciones en estado [EvidenceSectionStatus.submitted] o
+  /// [EvidenceSectionStatus.preapprovedLf].
   int get submittedCount => sections
       .where((s) =>
-          s.status == EvidenceSectionStatus.enviado ||
-          s.status == EvidenceSectionStatus.underEvaluation)
+          s.status == EvidenceSectionStatus.submitted ||
+          s.status == EvidenceSectionStatus.preapprovedLf)
       .length;
 
   @override
@@ -113,5 +127,8 @@ class EvidenceFolder extends Equatable {
         progressPercentage,
         evaluatedAt,
         status,
+        localCamporeeId,
+        unionCamporeeId,
+        requiresUnionConfirmation,
       ];
 }

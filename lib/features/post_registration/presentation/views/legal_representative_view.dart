@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -90,7 +91,8 @@ class _LegalRepresentativeViewState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Representante legal guardado correctamente'),
+            content: Text(
+                'post_registration.legal_representative.save_success'.tr()),
             backgroundColor: AppColors.secondary,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -104,7 +106,10 @@ class _LegalRepresentativeViewState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: Text(
+              'post_registration.legal_representative.error_saving'
+                  .tr(namedArgs: {'error': e.toString()}),
+            ),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -124,7 +129,7 @@ class _LegalRepresentativeViewState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Representante Legal'),
+        title: Text('post_registration.legal_representative.title'.tr()),
         actions: [
           if (_isLoading)
             const Center(
@@ -141,7 +146,8 @@ class _LegalRepresentativeViewState
             IconButton(
               icon: HugeIcon(icon: HugeIcons.strokeRoundedTick02, size: 24),
               onPressed: _handleSave,
-              tooltip: 'Guardar',
+              tooltip:
+                  'post_registration.legal_representative.save_tooltip'.tr(),
             ),
         ],
       ),
@@ -169,8 +175,8 @@ class _LegalRepresentativeViewState
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Los menores de 18 años requieren un representante legal.',
-                      style: TextStyle(
+                      'post_registration.legal_representative.info_notice'.tr(),
+                      style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.accentDark,
                       ),
@@ -193,7 +199,8 @@ class _LegalRepresentativeViewState
                     ),
                   ),
                   error: (error, _) => Text(
-                    'Error al cargar tipos: $error',
+                    'post_registration.legal_representative.error_loading_types'
+                        .tr(namedArgs: {'error': error.toString()}),
                     style: const TextStyle(color: AppColors.error),
                   ),
                   data: (types) {
@@ -209,11 +216,13 @@ class _LegalRepresentativeViewState
                       initialValue: types.any((t) => t.id == _selectedTypeId)
                           ? _selectedTypeId
                           : null,
-                      decoration: const InputDecoration(
-                        labelText: 'Tipo de representante *',
-                        prefixIcon: HugeIcon(
+                      decoration: InputDecoration(
+                        labelText:
+                            'post_registration.legal_representative.type_label'
+                                .tr(),
+                        prefixIcon: const HugeIcon(
                             icon: HugeIcons.strokeRoundedUserGroup, size: 22),
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
                       ),
                       items: types.map((type) {
                         return DropdownMenuItem(
@@ -230,7 +239,8 @@ class _LegalRepresentativeViewState
                             },
                       validator: (value) {
                         if (value == null) {
-                          return 'Selecciona un tipo de representante';
+                          return 'post_registration.legal_representative.type_required'
+                              .tr();
                         }
                         return null;
                       },
@@ -244,20 +254,26 @@ class _LegalRepresentativeViewState
             // Nombre
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Nombre(s) *',
-                hintText: 'Ej: Juan Carlos',
+              decoration: InputDecoration(
+                labelText:
+                    'post_registration.legal_representative.first_name_label'
+                        .tr(),
+                hintText:
+                    'post_registration.legal_representative.first_name_hint'
+                        .tr(),
                 prefixIcon:
-                    HugeIcon(icon: HugeIcons.strokeRoundedUser, size: 22),
-                border: OutlineInputBorder(),
+                    const HugeIcon(icon: HugeIcons.strokeRoundedUser, size: 22),
+                border: const OutlineInputBorder(),
               ),
               textCapitalization: TextCapitalization.words,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'El nombre es requerido';
+                  return 'post_registration.legal_representative.first_name_required'
+                      .tr();
                 }
                 if (value.trim().length < 2) {
-                  return 'El nombre debe tener al menos 2 caracteres';
+                  return 'post_registration.legal_representative.first_name_min_length'
+                      .tr();
                 }
                 return null;
               },
@@ -268,20 +284,26 @@ class _LegalRepresentativeViewState
             // Apellido Paterno
             TextFormField(
               controller: _paternalSurnameController,
-              decoration: const InputDecoration(
-                labelText: 'Apellido Paterno *',
-                hintText: 'Ej: Pérez',
+              decoration: InputDecoration(
+                labelText:
+                    'post_registration.legal_representative.paternal_surname_label'
+                        .tr(),
+                hintText:
+                    'post_registration.legal_representative.paternal_surname_hint'
+                        .tr(),
                 prefixIcon:
-                    HugeIcon(icon: HugeIcons.strokeRoundedUser, size: 22),
-                border: OutlineInputBorder(),
+                    const HugeIcon(icon: HugeIcons.strokeRoundedUser, size: 22),
+                border: const OutlineInputBorder(),
               ),
               textCapitalization: TextCapitalization.words,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'El apellido paterno es requerido';
+                  return 'post_registration.legal_representative.paternal_surname_required'
+                      .tr();
                 }
                 if (value.trim().length < 2) {
-                  return 'El apellido debe tener al menos 2 caracteres';
+                  return 'post_registration.legal_representative.surname_min_length'
+                      .tr();
                 }
                 return null;
               },
@@ -292,20 +314,26 @@ class _LegalRepresentativeViewState
             // Apellido Materno
             TextFormField(
               controller: _maternalSurnameController,
-              decoration: const InputDecoration(
-                labelText: 'Apellido Materno *',
-                hintText: 'Ej: González',
+              decoration: InputDecoration(
+                labelText:
+                    'post_registration.legal_representative.maternal_surname_label'
+                        .tr(),
+                hintText:
+                    'post_registration.legal_representative.maternal_surname_hint'
+                        .tr(),
                 prefixIcon:
-                    HugeIcon(icon: HugeIcons.strokeRoundedUser, size: 22),
-                border: OutlineInputBorder(),
+                    const HugeIcon(icon: HugeIcons.strokeRoundedUser, size: 22),
+                border: const OutlineInputBorder(),
               ),
               textCapitalization: TextCapitalization.words,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'El apellido materno es requerido';
+                  return 'post_registration.legal_representative.maternal_surname_required'
+                      .tr();
                 }
                 if (value.trim().length < 2) {
-                  return 'El apellido debe tener al menos 2 caracteres';
+                  return 'post_registration.legal_representative.surname_min_length'
+                      .tr();
                 }
                 return null;
               },
@@ -316,22 +344,26 @@ class _LegalRepresentativeViewState
             // Teléfono
             TextFormField(
               controller: _phoneController,
-              decoration: const InputDecoration(
-                labelText: 'Teléfono *',
-                hintText: 'Ej: 5512345678',
+              decoration: InputDecoration(
+                labelText:
+                    'post_registration.legal_representative.phone_label'.tr(),
+                hintText:
+                    'post_registration.legal_representative.phone_hint'.tr(),
                 prefixIcon:
-                    HugeIcon(icon: HugeIcons.strokeRoundedCall, size: 22),
-                border: OutlineInputBorder(),
+                    const HugeIcon(icon: HugeIcons.strokeRoundedCall, size: 22),
+                border: const OutlineInputBorder(),
               ),
               keyboardType: TextInputType.phone,
               maxLength: 10,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'El teléfono es requerido';
+                  return 'post_registration.legal_representative.phone_required'
+                      .tr();
                 }
                 final phoneRegex = RegExp(r'^\d{10}$');
                 if (!phoneRegex.hasMatch(value.trim())) {
-                  return 'Ingresa un teléfono válido de 10 dígitos';
+                  return 'post_registration.legal_representative.phone_invalid'
+                      .tr();
                 }
                 return null;
               },
@@ -349,9 +381,10 @@ class _LegalRepresentativeViewState
                         height: 20,
                         child: SacLoadingSmall(),
                       )
-                    : HugeIcon(
+                    : const HugeIcon(
                         icon: HugeIcons.strokeRoundedFloppyDisk, size: 22),
-                label: const Text('Guardar Representante Legal'),
+                label: Text(
+                    'post_registration.legal_representative.save_button'.tr()),
                 onPressed: _isLoading ? null : _handleSave,
               ),
             ),

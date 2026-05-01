@@ -1,7 +1,10 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/errors/exceptions.dart';
+import '../../../../core/errors/failures.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/datasources/evidence_folder_remote_data_source.dart';
@@ -47,13 +50,11 @@ final submitSectionUseCaseProvider = Provider<SubmitSection>((ref) {
   return SubmitSection(ref.read(evidenceFolderRepositoryProvider));
 });
 
-final uploadEvidenceFileUseCaseProvider =
-    Provider<UploadEvidenceFile>((ref) {
+final uploadEvidenceFileUseCaseProvider = Provider<UploadEvidenceFile>((ref) {
   return UploadEvidenceFile(ref.read(evidenceFolderRepositoryProvider));
 });
 
-final deleteEvidenceFileUseCaseProvider =
-    Provider<DeleteEvidenceFile>((ref) {
+final deleteEvidenceFileUseCaseProvider = Provider<DeleteEvidenceFile>((ref) {
   return DeleteEvidenceFile(ref.read(evidenceFolderRepositoryProvider));
 });
 
@@ -62,8 +63,17 @@ final deleteEvidenceFileUseCaseProvider =
 /// Provider que carga la carpeta de evidencias para una sección de club.
 ///
 /// autoDispose para liberar memoria al salir de la pantalla.
+///
+/// Retorna `null` cuando la carpeta aún no fue creada (estado de negocio
+/// válido — backend responde `200 + data: null`). La vista discrimina en
+/// el branch `data:` en lugar de `error:`.
+///
+/// Fallback defensivo: si el backend todavía devuelve 404 (durante la
+/// transición), el repositorio lo mapea a [NotFoundFailure] y el provider
+/// lo re-lanza como [NotFoundException] para que la view lo trate igual
+/// que `null` en el branch `error:`.
 final evidenceFolderProvider = FutureProvider.autoDispose
-    .family<EvidenceFolder, String>((ref, clubSectionId) async {
+    .family<EvidenceFolder?, String>((ref, clubSectionId) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final useCase = ref.read(getEvidenceFolderUseCaseProvider);
@@ -73,7 +83,14 @@ final evidenceFolderProvider = FutureProvider.autoDispose
   );
 
   return result.fold(
-    (failure) => throw Exception(failure.message),
+    (failure) {
+      // Fallback defensivo: backend viejo que todavía devuelve 404.
+      if (failure is NotFoundFailure) {
+        throw NotFoundException(message: failure.message, code: failure.code);
+      }
+      throw Exception(failure.message);
+    },
+    // folder puede ser null (carpeta no existe) — es un Right válido.
     (folder) => folder,
   );
 });
@@ -123,14 +140,21 @@ class EvidenceSectionNotifier
 
   /// Resuelve el folderId UUID desde la carpeta cargada en el provider.
   ///
-  /// Lanza [StateError] si la carpeta no está disponible todavía.
+  /// Lanza [StateError] si la carpeta no está disponible todavía o si es null
+  /// (carpeta no creada — no se pueden realizar mutaciones sin folderId).
   String _resolveFolderId() {
     final folderAsync = ref.read(evidenceFolderProvider(_clubSectionId));
     return folderAsync.maybeWhen(
-      data: (folder) => folder.folderId,
+      data: (folder) {
+        if (folder == null) {
+          throw StateError(
+            'evidence_folder.errors.folder_not_exists'.tr(),
+          );
+        }
+        return folder.folderId;
+      },
       orElse: () => throw StateError(
-        'La carpeta no está cargada. Asegúrese de que evidenceFolderProvider '
-        'haya completado antes de invocar operaciones de mutación.',
+        'evidence_folder.errors.folder_not_loaded'.tr(),
       ),
     );
   }

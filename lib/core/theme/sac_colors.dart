@@ -62,6 +62,24 @@ class SacColors {
   // ── On-surface ────────────────────────────────────────────────
   Color get onPrimary => Colors.white;
 
+  // ── Semantic state colors ─────────────────────────────────────
+  // Use these getters for all status/feedback paint code.
+  // NEVER use AppColors.success / AppColors.error / etc. directly
+  // in widget paint code — those are light-mode only and do not
+  // adapt to dark mode. These getters do.
+
+  Color get success => AppColors.secondary; // #4FBF9F — same value both modes
+  Color get onSuccess => Colors.white;
+
+  Color get warning => AppColors.accent; // #FBBD5E — same value both modes
+  Color get onWarning => AppColors.accentDark; // dark text on yellow bg
+
+  Color get info => AppColors.sacBlue; // #2EA0DA — same value both modes
+  Color get onInfo => Colors.white;
+
+  Color get error => AppColors.error; // #DC2626 — same value both modes
+  Color get onError => Colors.white;
+
   // ── Overlays ──────────────────────────────────────────────────
   Color get barrierColor => _isDark
       ? Colors.black.withValues(alpha: 0.7)

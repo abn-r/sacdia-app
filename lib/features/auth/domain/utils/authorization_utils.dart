@@ -25,18 +25,18 @@ const Map<SensitiveUserFamily, Set<String>> _sensitiveFamilyReadPermissions = {
 
 const Map<SensitiveUserFamily, Set<String>> _sensitiveFamilyUpdatePermissions =
     {
-  SensitiveUserFamily.health: {'health:update', 'users:update'},
+  SensitiveUserFamily.health: {'health:update', 'users:update_profile'},
   SensitiveUserFamily.emergencyContacts: {
     'emergency_contacts:update',
-    'users:update',
+    'users:update_profile',
   },
   SensitiveUserFamily.legalRepresentative: {
     'legal_representative:update',
-    'users:update',
+    'users:update_profile',
   },
   SensitiveUserFamily.postRegistration: {
     'post_registration:update',
-    'users:update',
+    'users:update_profile',
   },
 };
 

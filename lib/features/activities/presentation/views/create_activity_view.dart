@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -184,19 +185,19 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
     if (formState == null || !formState.validate()) return;
 
     if (_selectedLocation == null) {
-      _showError('Selecciona el lugar de la actividad en el mapa');
+      _showError('activities.form.error_no_location'.tr());
       return;
     }
 
     // Para actividades virtuales se requiere imagen
     if (_selectedPlatform == 1 && _pickedImageFile == null) {
-      _showError('Selecciona una imagen para la actividad virtual');
+      _showError('activities.form.error_virtual_no_image'.tr());
       return;
     }
 
     // Validar secciones para actividades conjuntas
     if (_isJoint && _selectedSectionIds.length < 2) {
-      _showError('Selecciona al menos 2 secciones para una actividad conjunta');
+      _showError('activities.form.error_joint_min_sections'.tr());
       return;
     }
 
@@ -256,7 +257,8 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Actividad creada, pero hubo un error al subir la imagen: ${failure.message}',
+                'activities.create.success_image_error'
+                    .tr(namedArgs: {'error': failure.message}),
               ),
               backgroundColor: AppColors.error,
               behavior: SnackBarBehavior.floating,
@@ -277,7 +279,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Actividad creada correctamente'),
+        content: Text('activities.create.success'.tr()),
         backgroundColor: AppColors.secondary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -346,7 +348,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
             size: 22,
           ),
           onPressed: isLoading ? null : () => Navigator.pop(context),
-          tooltip: 'Volver',
+          tooltip: 'common.back'.tr(),
         ),
         title: Row(
           children: [
@@ -361,7 +363,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'NUEVA ACTIVIDAD',
+                  'activities.create.title'.tr(),
                   style: TextStyle(
                     color: c.text,
                     fontSize: 18,
@@ -370,7 +372,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
                   ),
                 ),
                 Text(
-                  'Completa los datos de la actividad',
+                  'activities.create.subtitle'.tr(),
                   style: TextStyle(
                     color: c.textSecondary,
                     fontSize: 12,
@@ -394,24 +396,24 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
             // ── Sección: Información general ──────────────────────────
             ActivitySectionHeader(
               icon: HugeIcons.strokeRoundedInformationCircle,
-              label: 'Información general',
+              label: 'activities.form.section_general'.tr(),
             ),
             const SizedBox(height: 12),
 
             // Nombre *
             SacTextField(
               controller: _nameController,
-              label: 'Nombre de la actividad *',
-              hint: 'Ej: Campamento Distrital',
+              label: 'activities.form.name_label'.tr(),
+              hint: 'activities.form.name_hint'.tr(),
               prefixIcon: HugeIcons.strokeRoundedCalendar01,
               textCapitalization: TextCapitalization.sentences,
               enabled: !isLoading,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'El nombre es requerido';
+                  return 'activities.form.name_required'.tr();
                 }
                 if (value.trim().length < 3) {
-                  return 'El nombre debe tener al menos 3 caracteres';
+                  return 'activities.form.name_min_length'.tr();
                 }
                 return null;
               },
@@ -421,8 +423,8 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
             // Descripción (opcional)
             SacTextField(
               controller: _descriptionController,
-              label: 'Descripción',
-              hint: 'Describe brevemente la actividad...',
+              label: 'activities.form.description_label'.tr(),
+              hint: 'activities.form.description_hint'.tr(),
               prefixIcon: HugeIcons.strokeRoundedNote,
               maxLines: 3,
               enabled: !isLoading,
@@ -432,10 +434,10 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
 
             // Tipo de actividad
             ActivityPickerField(
-              label: 'Tipo de actividad',
+              label: 'activities.form.type_label'.tr(),
               hint: activityTypesAsync.isLoading
-                  ? 'Cargando tipos...'
-                  : 'Seleccionar tipo de actividad',
+                  ? 'activities.form.type_loading'.tr()
+                  : 'activities.form.type_hint'.tr(),
               icon: HugeIcons.strokeRoundedLabel,
               selectedName: _selectedActivityTypeName,
               enabled: !isLoading &&
@@ -446,7 +448,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
                 if (activityTypeItems.isEmpty) return;
                 final selected = await showPickerSheet(
                   context: context,
-                  title: 'Tipo de actividad',
+                  title: 'activities.form.type_picker_title'.tr(),
                   items: activityTypeItems,
                   selectedId: _selectedActivityType,
                   icon: Icons.label_rounded,
@@ -467,7 +469,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
             if (isDirector) ...[
               ActivitySectionHeader(
                 icon: HugeIcons.strokeRoundedUserGroup,
-                label: 'Actividad conjunta',
+                label: 'activities.form.section_joint'.tr(),
               ),
               const SizedBox(height: 8),
               _JointActivityToggle(
@@ -513,7 +515,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
             // ── Sección: Lugar y tiempo ───────────────────────────────
             ActivitySectionHeader(
               icon: HugeIcons.strokeRoundedLocation01,
-              label: 'Lugar y tiempo',
+              label: 'activities.form.section_place_time'.tr(),
             ),
             const SizedBox(height: 12),
 
@@ -528,7 +530,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
 
             // Fecha de inicio
             ActivityDatePickerField(
-              label: 'Fecha',
+              label: 'activities.form.date_label'.tr(),
               value: _activityDate,
               enabled: !isLoading,
               onTap: isLoading ? null : _pickActivityDate,
@@ -544,7 +546,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
             // Hora
             SacTextField(
               controller: _timeController,
-              label: 'Hora',
+              label: 'activities.form.time_label'.tr(),
               hint: '09:00',
               prefixIcon: HugeIcons.strokeRoundedClock01,
               readOnly: true,
@@ -563,7 +565,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
 
             // Fecha de fin (opcional)
             ActivityDatePickerField(
-              label: 'Fecha de fin (opcional)',
+              label: 'activities.form.end_date_label'.tr(),
               value: _activityEndDate,
               enabled: !isLoading && _activityDate != null,
               onTap:
@@ -577,17 +579,21 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
             // ── Sección: Modalidad ────────────────────────────────────
             ActivitySectionHeader(
               icon: HugeIcons.strokeRoundedComputerVideoCall,
-              label: 'Modalidad',
+              label: 'activities.form.section_modality'.tr(),
             ),
             const SizedBox(height: 12),
 
             // Plataforma (presencial / virtual) — always visible
             ActivitySegmentedSelector<int>(
-              label: 'Tipo de actividad',
+              label: 'activities.form.modality_label'.tr(),
               value: _selectedPlatform,
-              options: const [
-                ActivitySegmentOption(value: 0, label: 'Presencial'),
-                ActivitySegmentOption(value: 1, label: 'Virtual'),
+              options: [
+                ActivitySegmentOption(
+                    value: 0,
+                    label: 'activities.form.modality_in_person'.tr()),
+                ActivitySegmentOption(
+                    value: 1,
+                    label: 'activities.form.modality_virtual'.tr()),
               ],
               onChanged: isLoading
                   ? null
@@ -612,8 +618,8 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
                         // Link videoconferencia
                         SacTextField(
                           controller: _linkMeetController,
-                          label: 'Link de videoconferencia',
-                          hint: 'https://meet.google.com/...',
+                          label: 'activities.form.link_meet_label'.tr(),
+                          hint: 'activities.form.link_meet_hint'.tr(),
                           prefixIcon: HugeIcons.strokeRoundedComputerVideoCall,
                           keyboardType: TextInputType.url,
                           enabled: !isLoading,
@@ -638,7 +644,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
 
             // ── Botón de guardar ──────────────────────────────────────
             SacButton.primary(
-              text: 'Crear Actividad',
+              text: 'activities.create.save_button'.tr(),
               icon: HugeIcons.strokeRoundedCalendarAdd01,
               isLoading: isLoading,
               isEnabled: !isLoading,
@@ -693,7 +699,7 @@ class _JointActivityToggle extends StatelessWidget {
         onChanged: enabled ? onChanged : null,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         title: Text(
-          'Actividad conjunta',
+          'activities.form.joint_toggle_title'.tr(),
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -701,7 +707,7 @@ class _JointActivityToggle extends StatelessWidget {
           ),
         ),
         subtitle: Text(
-          'Incluye otras secciones del club',
+          'activities.form.joint_toggle_subtitle'.tr(),
           style: TextStyle(
             fontSize: 12,
             color: c.textSecondary,
@@ -752,14 +758,14 @@ class _SectionMultiPicker extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Secciones participantes',
+          'activities.form.sections_title'.tr(),
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
         ),
         const SizedBox(height: 6),
         Text(
-          'Selecciona al menos 2 secciones. Tu sección siempre participa.',
+          'activities.form.sections_hint'.tr(),
           style: TextStyle(
             fontSize: 12,
             color: c.textSecondary,
@@ -776,7 +782,7 @@ class _SectionMultiPicker extends ConsumerWidget {
             ),
           ),
           error: (_, __) => Text(
-            'No se pudieron cargar las secciones',
+            'activities.form.sections_error_load'.tr(),
             style: TextStyle(
               fontSize: 12,
               color: c.textSecondary,
@@ -785,7 +791,7 @@ class _SectionMultiPicker extends ConsumerWidget {
           data: (sections) {
             if (sections.isEmpty) {
               return Text(
-                'No hay secciones disponibles',
+                'activities.form.sections_empty'.tr(),
                 style: TextStyle(fontSize: 12, color: c.textSecondary),
               );
             }
@@ -845,7 +851,7 @@ class _SectionMultiPicker extends ConsumerWidget {
         if (selectedIds.length < 2) ...[
           const SizedBox(height: 6),
           Text(
-            'Selecciona al menos 1 sección adicional',
+            'activities.form.sections_min_hint'.tr(),
             style: TextStyle(
               fontSize: 11,
               color: AppColors.error,

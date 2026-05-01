@@ -1,8 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -108,7 +108,9 @@ class _AddInventoryItemSheetState
               children: [
                 Expanded(
                   child: Text(
-                    _isEditing ? 'Editar Artículo' : 'Nuevo Artículo',
+                    _isEditing
+                        ? 'inventory.form.title_edit'.tr()
+                        : 'inventory.form.title_new'.tr(),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: c.text,
@@ -143,30 +145,30 @@ class _AddInventoryItemSheetState
                     // ── Section: Información básica ────────────────────────
                     _SectionHeader(
                       icon: HugeIcons.strokeRoundedPackage,
-                      title: 'Información básica',
+                      title: 'inventory.form.section_basic_info'.tr(),
                     ),
                     const SizedBox(height: 12),
 
                     // Name
-                    _SectionLabel('Nombre del artículo *'),
+                    _SectionLabel('inventory.form.name_label'.tr()),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _nameController,
                       textCapitalization: TextCapitalization.sentences,
                       decoration: _inputDecoration(
-                        hint: 'Ej: Tienda de campaña, Uniforme, etc.',
+                        hint: 'inventory.form.name_hint'.tr(),
                         context: context,
                       ),
                       maxLength: 120,
                       validator: (v) => (v == null || v.trim().isEmpty)
-                          ? 'El nombre es requerido'
+                          ? 'inventory.form.name_required'.tr()
                           : null,
                     ),
 
                     const SizedBox(height: 12),
 
                     // Category
-                    _SectionLabel('Categoría *'),
+                    _SectionLabel('inventory.form.category_label'.tr()),
                     const SizedBox(height: 6),
                     categoriesAsync.when(
                       loading: () => const _CategorySkeleton(),
@@ -189,7 +191,7 @@ class _AddInventoryItemSheetState
                           // ignore: deprecated_member_use
                           value: dropdownValue,
                           decoration: _inputDecoration(
-                            hint: 'Selecciona una categoría',
+                            hint: 'inventory.form.category_hint'.tr(),
                             context: context,
                           ),
                           items: cats
@@ -201,7 +203,7 @@ class _AddInventoryItemSheetState
                           onChanged: (cat) =>
                               setState(() => _selectedCategory = cat),
                           validator: (v) =>
-                              v == null ? 'Selecciona una categoría' : null,
+                              v == null ? 'inventory.form.category_required'.tr() : null,
                         );
                       },
                     ),
@@ -209,7 +211,7 @@ class _AddInventoryItemSheetState
                     const SizedBox(height: 12),
 
                     // Quantity
-                    _SectionLabel('Cantidad *'),
+                    _SectionLabel('inventory.form.quantity_label'.tr()),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _quantityController,
@@ -217,14 +219,17 @@ class _AddInventoryItemSheetState
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
                       ],
-                      decoration: _inputDecoration(hint: '1', context: context),
+                      decoration: _inputDecoration(
+                        hint: 'inventory.form.quantity_hint'.tr(),
+                        context: context,
+                      ),
                       validator: (v) {
                         if (v == null || v.isEmpty) {
-                          return 'Ingresa la cantidad';
+                          return 'inventory.form.quantity_required'.tr();
                         }
                         final parsed = int.tryParse(v);
                         if (parsed == null || parsed < 1) {
-                          return 'Cantidad inválida';
+                          return 'inventory.form.quantity_invalid'.tr();
                         }
                         return null;
                       },
@@ -235,7 +240,7 @@ class _AddInventoryItemSheetState
                     // ── Section: Estado ────────────────────────────────────
                     _SectionHeader(
                       icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                      title: 'Estado de conservación',
+                      title: 'inventory.form.section_condition'.tr(),
                     ),
                     const SizedBox(height: 12),
 
@@ -249,30 +254,30 @@ class _AddInventoryItemSheetState
                     // ── Section: Descripción y referencia ──────────────────
                     _SectionHeader(
                       icon: HugeIcons.strokeRoundedNote01,
-                      title: 'Descripción y referencia',
+                      title: 'inventory.form.section_description'.tr(),
                     ),
                     const SizedBox(height: 12),
 
-                    _SectionLabel('Descripción (opcional)'),
+                    _SectionLabel('inventory.form.description_label'.tr()),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _descController,
                       maxLines: 3,
                       textCapitalization: TextCapitalization.sentences,
                       decoration: _inputDecoration(
-                        hint: 'Describe el artículo...',
+                        hint: 'inventory.form.description_hint'.tr(),
                         context: context,
                       ),
                     ),
 
                     const SizedBox(height: 12),
 
-                    _SectionLabel('Número de serie / código (opcional)'),
+                    _SectionLabel('inventory.form.serial_label'.tr()),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _serialController,
                       decoration: _inputDecoration(
-                        hint: 'SN-000123',
+                        hint: 'inventory.form.serial_hint'.tr(),
                         context: context,
                       ),
                     ),
@@ -282,11 +287,11 @@ class _AddInventoryItemSheetState
                     // ── Section: Valor y fecha ─────────────────────────────
                     _SectionHeader(
                       icon: HugeIcons.strokeRoundedMoney01,
-                      title: 'Valor y adquisición',
+                      title: 'inventory.form.section_value'.tr(),
                     ),
                     const SizedBox(height: 12),
 
-                    _SectionLabel('Fecha de adquisición (opcional)'),
+                    _SectionLabel('inventory.form.purchase_date_label'.tr()),
                     const SizedBox(height: 6),
                     _DatePickerField(
                       selectedDate: _purchaseDate,
@@ -297,7 +302,7 @@ class _AddInventoryItemSheetState
 
                     const SizedBox(height: 12),
 
-                    _SectionLabel('Valor estimado (opcional)'),
+                    _SectionLabel('inventory.form.estimated_value_label'.tr()),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _valueController,
@@ -308,7 +313,7 @@ class _AddInventoryItemSheetState
                             RegExp(r'^\d+\.?\d{0,2}')),
                       ],
                       decoration: _inputDecoration(
-                        hint: '0.00',
+                        hint: 'inventory.form.value_hint'.tr(),
                         prefix: '\$',
                         context: context,
                       ),
@@ -319,44 +324,44 @@ class _AddInventoryItemSheetState
                     // ── Section: Ubicación y asignación ───────────────────
                     _SectionHeader(
                       icon: HugeIcons.strokeRoundedLocation01,
-                      title: 'Ubicación y asignación',
+                      title: 'inventory.form.section_location'.tr(),
                     ),
                     const SizedBox(height: 12),
 
-                    _SectionLabel('Ubicación / almacén (opcional)'),
+                    _SectionLabel('inventory.form.location_label'.tr()),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _locationController,
                       textCapitalization: TextCapitalization.sentences,
                       decoration: _inputDecoration(
-                        hint: 'Ej: Bodega principal, Oficina...',
+                        hint: 'inventory.form.location_hint'.tr(),
                         context: context,
                       ),
                     ),
 
                     const SizedBox(height: 12),
 
-                    _SectionLabel('Asignado a (opcional)'),
+                    _SectionLabel('inventory.form.assigned_to_label'.tr()),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _assignedToController,
                       textCapitalization: TextCapitalization.words,
                       decoration: _inputDecoration(
-                        hint: 'Nombre del responsable...',
+                        hint: 'inventory.form.assigned_to_hint'.tr(),
                         context: context,
                       ),
                     ),
 
                     const SizedBox(height: 12),
 
-                    _SectionLabel('Notas (opcional)'),
+                    _SectionLabel('inventory.form.notes_label'.tr()),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _notesController,
                       maxLines: 3,
                       textCapitalization: TextCapitalization.sentences,
                       decoration: _inputDecoration(
-                        hint: 'Observaciones adicionales...',
+                        hint: 'inventory.form.notes_hint'.tr(),
                         context: context,
                       ),
                     ),
@@ -410,8 +415,8 @@ class _AddInventoryItemSheetState
                               )
                             : Text(
                                 _isEditing
-                                    ? 'Guardar cambios'
-                                    : 'Registrar artículo',
+                                    ? 'common.save'.tr()
+                                    : 'inventory.form.register_button'.tr(),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 16,
@@ -474,8 +479,8 @@ class _AddInventoryItemSheetState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(_isEditing
-              ? 'Artículo actualizado correctamente'
-              : 'Artículo registrado correctamente'),
+              ? 'inventory.form.updated_success'.tr()
+              : 'inventory.form.registered_success'.tr()),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
         ),
@@ -683,7 +688,7 @@ class _DatePickerField extends StatelessWidget {
   Widget build(BuildContext context) {
     final formatted = selectedDate != null
         ? DateFormat("dd 'de' MMMM 'de' yyyy", 'es').format(selectedDate!)
-        : 'Seleccionar fecha';
+        : 'inventory.form.select_date'.tr();
 
     return InkWell(
       onTap: () => _pickDate(context),
@@ -780,13 +785,13 @@ class _CategoryError extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            'No se pudieron cargar las categorías',
+            'inventory.form.categories_error'.tr(),
             style: const TextStyle(color: AppColors.error, fontSize: 13),
           ),
         ),
         TextButton(
           onPressed: onRetry,
-          child: const Text('Reintentar'),
+          child: Text('common.retry'.tr()),
         ),
       ],
     );

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -10,8 +11,8 @@ import '../../../../core/widgets/sac_loading.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/class_requirement.dart';
 import '../providers/classes_providers.dart';
+import '../sheets/requirement_status_history_sheet.dart';
 import '../widgets/requirement_status_badge.dart';
-import '../widgets/requirement_status_timeline.dart';
 
 /// Vista de detalle de un requerimiento de clase progresiva.
 ///
@@ -40,21 +41,21 @@ class RequirementDetailView extends ConsumerStatefulWidget {
       _RequirementDetailViewState();
 }
 
-class _RequirementDetailViewState
-    extends ConsumerState<RequirementDetailView> {
+class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
   bool _hasUnsavedFiles = false;
 
   /// Devuelve el requerimiento vivo desde [classWithProgressProvider] si ya
   /// cargó, o el snapshot inicial del constructor como fallback.
   ClassRequirement _liveRequirement(AsyncValue<dynamic> classAsync) {
     return classAsync.whenData((classWithProgress) {
-      for (final module in classWithProgress.modules) {
-        for (final req in module.requirements) {
-          if (req.id == widget.requirement.id) return req;
-        }
-      }
-      return widget.requirement;
-    }).valueOrNull ?? widget.requirement;
+          for (final module in classWithProgress.modules) {
+            for (final req in module.requirements) {
+              if (req.id == widget.requirement.id) return req;
+            }
+          }
+          return widget.requirement;
+        }).valueOrNull ??
+        widget.requirement;
   }
 
   @override
@@ -89,19 +90,19 @@ class _RequirementDetailViewState
         final confirm = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Archivos sin enviar'),
-            content: const Text(
-              'Tienes archivos sin enviar. ¿Seguro que quieres salir?',
+            title: Text('classes.requirement_detail.unsaved_files_title'.tr()),
+            content: Text(
+              'classes.requirement_detail.unsaved_files_body'.tr(),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Quedarme'),
+                child: Text('classes.requirement_detail.stay_button'.tr()),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
                 style: TextButton.styleFrom(foregroundColor: AppColors.error),
-                child: const Text('Salir'),
+                child: Text('classes.requirement_detail.leave_button'.tr()),
               ),
             ],
           ),
@@ -114,11 +115,21 @@ class _RequirementDetailViewState
         backgroundColor: c.background,
         appBar: AppBar(
           title: Text(
-            requirement.name,
+            'classes.requirement_detail.requirement_title'
+                .tr(namedArgs: {'name': requirement.name}),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
             overflow: TextOverflow.ellipsis,
+          ),
+          leading: IconButton(
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowLeft01,
+              color: c.text,
+              size: 22,
+            ),
+            onPressed: isLoading ? null : () => Navigator.pop(context),
+            tooltip: 'common.back'.tr(),
           ),
           backgroundColor: c.background,
           surfaceTintColor: Colors.transparent,
@@ -144,27 +155,39 @@ class _RequirementDetailViewState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Detalle del requisito",
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: c.textSecondary,
-                                letterSpacing: 0.8,
-                              ),
+                          'classes.requirement_detail.detail_header'.tr(),
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: c.textSecondary,
+                                    letterSpacing: 0.8,
+                                  ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           requirement.name,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: c.text,
-                                height: 1.25,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: c.text,
+                                    height: 1.25,
+                                  ),
                         ),
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 16),
                   // Meta card con descripcion y metricas
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    child: Text(
+                      'classes.requirement_detail.detail_header'.tr(),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: c.textSecondary,
+                            letterSpacing: 0.8,
+                          ),
+                    ),
+                  ),
                   _RequirementMetaCard(requirement: requirement),
 
                   const SizedBox(height: 16),
@@ -173,31 +196,29 @@ class _RequirementDetailViewState
                   if (requirement.type == RequirementType.honor &&
                       requirement.linkedHonorName != null)
                     _LinkedHonorSection(requirement: requirement),
+                  
 
-                  // Timeline de estado
+                  // Estado actual tappable — abre historial como bottom sheet
+                  const SizedBox(height: 16),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                     child: Text(
-                      'Flujo de estado',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleSmall
-                          ?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: c.text,
+                      'classes.requirement_detail.status_header'.tr(),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: c.textSecondary,
+                            letterSpacing: 0.8,
                           ),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16),
-                    child: RequirementStatusTimeline(
-                      currentStatus: requirement.status,
-                      submittedByName: requirement.submittedByName,
-                      submittedAt: requirement.submittedAt,
-                      validatedByName: requirement.validatedByName,
-                      validatedAt: requirement.validatedAt,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _StatusChip(
+                      requirement: requirement,
+                      onTap: () => showRequirementStatusHistorySheet(
+                        context,
+                        requirement: requirement,
+                      ),
                     ),
                   ),
 
@@ -207,11 +228,8 @@ class _RequirementDetailViewState
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                     child: Text(
-                      'Archivos de evidencia',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleSmall
-                          ?.copyWith(
+                      'classes.requirement_detail.evidence_files_header'.tr(),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w700,
                             color: c.text,
                           ),
@@ -246,7 +264,7 @@ class _RequirementDetailViewState
                             onProgress: onProgress,
                             skipInvalidation: true,
                           );
-                      if (!success) throw Exception('Upload failed');
+                      if (!success) throw Exception(tr('classes.errors.upload_failed'));
                     },
                     onDeleteRemote: (fileId) async {
                       await ref
@@ -266,14 +284,15 @@ class _RequirementDetailViewState
                         // ignore: use_build_context_synchronously
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: const Row(
+                            content: Row(
                               children: [
-                                Icon(Icons.check_circle_rounded,
+                                const Icon(Icons.check_circle_rounded,
                                     color: Colors.white, size: 18),
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                      'Requerimiento enviado a validación exitosamente'),
+                                      'classes.requirement_detail.submit_success'
+                                          .tr()),
                                 ),
                               ],
                             ),
@@ -317,7 +336,8 @@ class _RequirementDetailViewState
   /// Construye un nombre de archivo descriptivo para el backend/storage.
   ///
   /// Genera nombre con índice explícito (para batch uploads).
-  String _buildFileNameWithIndex(ClassRequirement requirement, String originalName, int index) {
+  String _buildFileNameWithIndex(
+      ClassRequirement requirement, String originalName, int index) {
     final ext = originalName.contains('.')
         ? originalName.split('.').last.toLowerCase()
         : 'bin';
@@ -341,11 +361,12 @@ class _RequirementDetailViewState
   String _resolveModuleName(int moduleId) {
     final classAsync = ref.read(classWithProgressProvider(widget.classId));
     return classAsync.whenData((cp) {
-      for (final m in cp.modules) {
-        if (m.id == moduleId) return m.name;
-      }
-      return 'modulo';
-    }).valueOrNull ?? 'modulo';
+          for (final m in cp.modules) {
+            if (m.id == moduleId) return m.name;
+          }
+          return 'modulo';
+        }).valueOrNull ??
+        'modulo';
   }
 
   /// Extrae las iniciales del usuario autenticado.
@@ -356,7 +377,9 @@ class _RequirementDetailViewState
     if (parts.length >= 2) {
       return '${parts.first[0]}${parts[1][0]}'.toUpperCase();
     }
-    return parts.first.substring(0, parts.first.length.clamp(0, 2)).toUpperCase();
+    return parts.first
+        .substring(0, parts.first.length.clamp(0, 2))
+        .toUpperCase();
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -375,8 +398,7 @@ class _RequirementDetailViewState
         ),
         backgroundColor: AppColors.error,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -430,7 +452,7 @@ class _RequirementMetaCard extends StatelessWidget {
               // const SizedBox(width: 24),
               _MetaItem(
                 icon: HugeIcons.strokeRoundedFiles01,
-                label: 'Limite archivos',
+                label: 'classes.requirement_detail.file_limit_label'.tr(),
                 value: '${requirement.maxFiles}',
                 color: c.textSecondary,
                 context: context,
@@ -438,7 +460,7 @@ class _RequirementMetaCard extends StatelessWidget {
               const SizedBox(width: 40),
               _MetaItem(
                 icon: HugeIcons.strokeRoundedTag01,
-                label: 'Tipo',
+                label: 'classes.requirement_detail.type_label'.tr(),
                 value: _typeLabel(requirement.type),
                 color: AppColors.primary,
                 context: context,
@@ -453,11 +475,11 @@ class _RequirementMetaCard extends StatelessWidget {
   String _typeLabel(RequirementType type) {
     switch (type) {
       case RequirementType.honor:
-        return 'Especialidad';
+        return 'classes.requirement_detail.type_honor'.tr();
       case RequirementType.service:
-        return 'Servicio';
+        return 'classes.requirement_detail.type_service'.tr();
       case RequirementType.general:
-        return 'General';
+        return 'classes.requirement_detail.type_general'.tr();
     }
   }
 }
@@ -560,7 +582,7 @@ class _LinkedHonorSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Especialidad requerida',
+                  'classes.requirement_detail.linked_honor_title'.tr(),
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
@@ -580,14 +602,15 @@ class _LinkedHonorSection extends StatelessWidget {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 10, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              isCompleted ? 'Completada' : 'Pendiente',
+              isCompleted
+                  ? 'classes.status.completed'.tr()
+                  : 'classes.status.pending'.tr(),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
@@ -598,5 +621,138 @@ class _LinkedHonorSection extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+// ── Chip tappable del estado actual ──────────────────────────────────────────
+
+/// Chip compacto que muestra el estado actual del requerimiento.
+///
+/// Al tocarlo abre el [RequirementStatusHistorySheet] con el historial
+/// de transiciones disponibles en la entidad.
+class _StatusChip extends StatelessWidget {
+  final ClassRequirement requirement;
+  final VoidCallback onTap;
+
+  const _StatusChip({
+    required this.requirement,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final bgColor = _bgColor(isDark);
+    final borderColor = _borderColor(isDark);
+    final textColor = _textColor(isDark);
+
+    return Semantics(
+      button: true,
+      label: 'classes.requirement_detail.semantics_status'
+          .tr(namedArgs: {'status': _label}),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor, width: 1),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              HugeIcon(icon: _icon, size: 15, color: textColor),
+              const SizedBox(width: 8),
+              Text(
+                _label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+              ),
+              const Spacer(),
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedInformationCircle,
+                size: 15,
+                color: c.textTertiary,
+              ),
+              const SizedBox(width: 2),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String get _label {
+    switch (requirement.status) {
+      case RequirementStatus.pendiente:
+        return 'classes.status.pending'.tr();
+      case RequirementStatus.enviado:
+        return 'classes.status.sent'.tr();
+      case RequirementStatus.validado:
+        return 'classes.status.validated'.tr();
+      case RequirementStatus.rechazado:
+        return 'classes.status.rejected'.tr();
+    }
+  }
+
+  Color _bgColor(bool isDark) {
+    switch (requirement.status) {
+      case RequirementStatus.pendiente:
+        return AppColors.accentLight;
+      case RequirementStatus.enviado:
+        return isDark
+            ? AppColors.statusInfoBgDark
+            : AppColors.statusInfoBgLight;
+      case RequirementStatus.validado:
+        return AppColors.secondaryLight;
+      case RequirementStatus.rechazado:
+        return AppColors.errorLight;
+    }
+  }
+
+  Color _borderColor(bool isDark) {
+    switch (requirement.status) {
+      case RequirementStatus.pendiente:
+        return AppColors.accent.withValues(alpha: 0.4);
+      case RequirementStatus.enviado:
+        return AppColors.sacBlue.withValues(alpha: 0.4);
+      case RequirementStatus.validado:
+        return AppColors.secondary.withValues(alpha: 0.4);
+      case RequirementStatus.rechazado:
+        return AppColors.error.withValues(alpha: 0.4);
+    }
+  }
+
+  Color _textColor(bool isDark) {
+    switch (requirement.status) {
+      case RequirementStatus.pendiente:
+        return AppColors.accentDark;
+      case RequirementStatus.enviado:
+        return isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
+      case RequirementStatus.validado:
+        return AppColors.secondaryDark;
+      case RequirementStatus.rechazado:
+        return AppColors.errorDark;
+    }
+  }
+
+  List<List<dynamic>> get _icon {
+    switch (requirement.status) {
+      case RequirementStatus.pendiente:
+        return HugeIcons.strokeRoundedClock01;
+      case RequirementStatus.enviado:
+        return HugeIcons.strokeRoundedSent;
+      case RequirementStatus.validado:
+        return HugeIcons.strokeRoundedCheckmarkCircle01;
+      case RequirementStatus.rechazado:
+        return HugeIcons.strokeRoundedCancel01;
+    }
   }
 }

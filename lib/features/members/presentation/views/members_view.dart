@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -83,7 +84,7 @@ class _MembersViewState extends ConsumerState<MembersView>
                       size: 24,
                     ),
                     onPressed: () => Navigator.pop(context),
-                    tooltip: 'Volver',
+                    tooltip: 'common.back'.tr(),
                   ),
                   const SizedBox(width: 10),
                   Container(
@@ -100,7 +101,7 @@ class _MembersViewState extends ConsumerState<MembersView>
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    'Miembros',
+                    'members.view.title'.tr(),
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
@@ -183,13 +184,13 @@ class _MembersViewState extends ConsumerState<MembersView>
                   ),
                   padding: const EdgeInsets.all(4),
                   tabs: [
-                    const Tab(text: 'Miembros'),
+                    Tab(text: 'members.view.members_tab'.tr()),
                     Tab(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text('Solicitudes'),
+                          Text('members.view.requests_tab'.tr()),
                           if (pendingCount > 0) ...[
                             const SizedBox(width: 6),
                             _PendingBadge(count: pendingCount),
@@ -228,7 +229,7 @@ class _MembersViewState extends ConsumerState<MembersView>
                 loading: () => const Center(child: SacLoading()),
                 error: (error, _) => Center(
                   child: Text(
-                    'Error al cargar el contexto del club',
+                    'members.view.club_context_error'.tr(),
                     style: TextStyle(color: context.sac.textSecondary),
                   ),
                 ),
@@ -279,9 +280,9 @@ class _MembersTab extends ConsumerWidget {
             data: (_) => membersByClass.isEmpty
                 ? _EmptyState(
                     icon: HugeIcons.strokeRoundedUserGroup,
-                    title: 'Sin miembros',
+                    title: 'members.view.no_members_title'.tr(),
                     subtitle:
-                        'No se encontraron miembros con los filtros actuales.',
+                        'members.view.no_members_subtitle'.tr(),
                   )
                 : RefreshIndicator(
                     color: AppColors.primary,
@@ -450,8 +451,8 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
             data: (_) => filteredRequests.isEmpty
                 ? _EmptyState(
                     icon: HugeIcons.strokeRoundedUserAdd01,
-                    title: 'Sin solicitudes',
-                    subtitle: 'No hay solicitudes de ingreso pendientes.',
+                    title: 'members.view.no_requests_title'.tr(),
+                    subtitle: 'members.view.no_requests_subtitle'.tr(),
                   )
                 : RefreshIndicator(
                     color: AppColors.primary,
@@ -509,7 +510,7 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
       MaterialPageRoute(
         builder: (_) => MemberProfileView(
           member: member,
-          title: 'Perfil del solicitante',
+          title: 'members.view.request_profile_title'.tr(),
         ),
       ),
     );
@@ -530,8 +531,8 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
           SnackBar(
             content: Text(
               success
-                  ? 'Solicitud de ${request.fullName} aprobada'
-                  : 'Error al aprobar la solicitud',
+                  ? tr('members.view.request_approved', namedArgs: {'name': request.fullName})
+                  : 'members.view.approve_error'.tr(),
             ),
             backgroundColor:
                 success ? AppColors.secondary : AppColors.error,
@@ -559,8 +560,8 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
           SnackBar(
             content: Text(
               success
-                  ? 'Solicitud de ${request.fullName} rechazada'
-                  : 'Error al rechazar la solicitud',
+                  ? tr('members.view.request_rejected', namedArgs: {'name': request.fullName})
+                  : 'members.view.reject_error'.tr(),
             ),
             backgroundColor:
                 success ? AppColors.secondary : AppColors.error,
@@ -718,7 +719,7 @@ class _ErrorState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error al cargar',
+              'members.view.load_error'.tr(),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -734,7 +735,7 @@ class _ErrorState extends StatelessWidget {
             if (onRetry != null) ...[
               const SizedBox(height: 20),
               SacButton.primary(
-                text: 'Reintentar',
+                text: 'common.retry'.tr(),
                 icon: HugeIcons.strokeRoundedRefresh,
                 onPressed: onRetry,
               ),
@@ -764,7 +765,7 @@ class _NoClubState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Sin club asignado',
+              'members.view.no_club_title'.tr(),
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
@@ -773,7 +774,7 @@ class _NoClubState extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Debes pertenecer a un club para ver los miembros.',
+              'members.view.no_club_subtitle'.tr(),
               style: TextStyle(
                 fontSize: 14,
                 color: c.textSecondary,
@@ -837,7 +838,7 @@ class _JoinRequestSearchBarState extends State<_JoinRequestSearchBar> {
             },
             style: TextStyle(fontSize: 14, color: c.text),
             decoration: InputDecoration(
-              hintText: 'Buscar solicitante...',
+              hintText: 'members.view.search_requests_hint'.tr(),
               hintStyle: TextStyle(color: c.textTertiary, fontSize: 14),
               prefixIcon: HugeIcon(
                 icon: HugeIcons.strokeRoundedSearch01,
@@ -859,28 +860,28 @@ class _JoinRequestSearchBarState extends State<_JoinRequestSearchBar> {
           child: Row(
             children: [
               _StatusFilterChip(
-                label: 'Todos',
+                label: 'members.view.all_status'.tr(),
                 isActive: filters.statusFilter == null,
                 onTap: () => widget
                     .onFiltersChanged(filters.copyWith(clearStatus: true)),
               ),
               const SizedBox(width: 6),
               _StatusFilterChip(
-                label: 'Pendientes',
+                label: 'members.view.pending_status'.tr(),
                 isActive: filters.statusFilter == JoinRequestStatus.pending,
                 onTap: () => widget.onFiltersChanged(
                     filters.copyWith(statusFilter: JoinRequestStatus.pending)),
               ),
               const SizedBox(width: 6),
               _StatusFilterChip(
-                label: 'Aprobadas',
+                label: 'members.view.approved_status'.tr(),
                 isActive: filters.statusFilter == JoinRequestStatus.approved,
                 onTap: () => widget.onFiltersChanged(
                     filters.copyWith(statusFilter: JoinRequestStatus.approved)),
               ),
               const SizedBox(width: 6),
               _StatusFilterChip(
-                label: 'Rechazadas',
+                label: 'members.view.rejected_status'.tr(),
                 isActive: filters.statusFilter == JoinRequestStatus.rejected,
                 onTap: () => widget.onFiltersChanged(
                     filters.copyWith(statusFilter: JoinRequestStatus.rejected)),

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 
 /// Estado de la carpeta anual
@@ -7,11 +8,11 @@ extension AnnualFolderStatusX on AnnualFolderStatus {
   String get label {
     switch (this) {
       case AnnualFolderStatus.open:
-        return 'Abierta';
+        return tr('annual_folders.status.open');
       case AnnualFolderStatus.submitted:
-        return 'Enviada';
+        return tr('annual_folders.status.submitted');
       case AnnualFolderStatus.closed:
-        return 'Cerrada';
+        return tr('annual_folders.status.closed');
     }
   }
 

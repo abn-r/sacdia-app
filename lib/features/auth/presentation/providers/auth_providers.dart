@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failures.dart';
@@ -21,6 +22,8 @@ import '../../../../core/usecases/usecase.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/notifications/push_notification_provider.dart';
 import '../../../../providers/dio_provider.dart';
+import '../../../biometric/presentation/providers/biometric_provider.dart';
+import '../../../notifications/presentation/providers/unread_notifications_count_provider.dart';
 
 /// Provider para la URL base de la API
 final apiBaseUrlProvider = Provider((ref) {
@@ -141,6 +144,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
             // Session restored from cache — initialize FCM so token is
             // registered even when the backend was temporarily unreachable.
             ref.read(pushNotificationServiceProvider).initialize();
+            ref.read(unreadNotificationsCountProvider.notifier).refresh();
 
             // Reconstruct active grant from cached flat strings so widgets
             // render with the correct role immediately (no "Usuario" flash).
@@ -180,6 +184,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
           _cacheUser(user);
           // User already authenticated on startup — register FCM token.
           ref.read(pushNotificationServiceProvider).initialize();
+          ref.read(unreadNotificationsCountProvider.notifier).refresh();
           return user;
         }
         // Server responded but returned no user — session is invalid.
@@ -258,7 +263,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       (failure) {
         final errorMessage = failure is AuthFailure
             ? failure.message
-            : 'Error al iniciar sesión';
+            : 'auth.errors.sign_in_failed'.tr();
         AppLogger.w('Login fallido: $errorMessage', tag: _tag);
         return AsyncValue.error(errorMessage, StackTrace.current);
       },
@@ -268,6 +273,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         _cacheUser(user);
         // Register FCM token after successful login (fire-and-forget).
         ref.read(pushNotificationServiceProvider).initialize();
+        ref.read(unreadNotificationsCountProvider.notifier).refresh();
         return AsyncValue.data(user);
       },
     );
@@ -299,7 +305,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       (failure) {
         final errorMessage = failure is AuthFailure
             ? failure.message
-            : 'Error al registrar usuario';
+            : 'auth.errors.sign_up_failed'.tr();
         return AsyncValue.error(errorMessage, StackTrace.current);
       },
       (user) => AsyncValue.data(user),
@@ -367,6 +373,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         state = AsyncValue.data(user);
         // Register FCM token after OAuth login (fire-and-forget).
         ref.read(pushNotificationServiceProvider).initialize();
+        ref.read(unreadNotificationsCountProvider.notifier).refresh();
       },
     );
   }
@@ -390,7 +397,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
           return OAuthLaunchResult.launched;
         }
         final errorMessage =
-            failure is AuthFailure ? failure.message : 'Error al iniciar con Google';
+            failure is AuthFailure ? failure.message : 'auth.errors.sign_in_google_failed'.tr();
         AppLogger.w('OAuth Google error: $errorMessage', tag: _tag);
         state = AsyncValue.error(errorMessage, StackTrace.current);
         return OAuthLaunchResult.failed;
@@ -419,7 +426,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
           return OAuthLaunchResult.launched;
         }
         final errorMessage =
-            failure is AuthFailure ? failure.message : 'Error al iniciar con Apple';
+            failure is AuthFailure ? failure.message : 'auth.errors.sign_in_apple_failed'.tr();
         AppLogger.w('OAuth Apple error: $errorMessage', tag: _tag);
         state = AsyncValue.error(errorMessage, StackTrace.current);
         return OAuthLaunchResult.failed;
@@ -460,6 +467,11 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     // Switch succeeded — refresh the full user so downstream providers
     // (clubContextProvider, dashboardNotifierProvider, etc.) re-evaluate.
     AppLogger.i('Contexto cambiado. Refrescando usuario...', tag: _tag);
+
+    // Capture old activeAssignmentId for diagnostics.
+    final oldActiveId =
+        state.valueOrNull?.authorization?.activeAssignmentId;
+
     final refreshResult = await ref.read(getCurrentUserProvider)(NoParams());
     refreshResult.fold(
       (failure) => AppLogger.w(
@@ -468,6 +480,13 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       ),
       (user) {
         if (user != null) {
+          final newActiveId = user.authorization?.activeAssignmentId;
+          AppLogger.i(
+            'switchContext refresh: requested=$assignmentId, '
+            'old=$oldActiveId, new=$newActiveId, '
+            'match=${newActiveId == assignmentId}',
+            tag: _tag,
+          );
           _cacheUser(user);
           state = AsyncValue.data(user);
         }
@@ -498,7 +517,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       (failure) {
         final msg = failure is AuthFailure
             ? failure.message
-            : 'Error al cambiar la contraseña';
+            : 'auth.errors.change_password_failed'.tr();
         AppLogger.w('Cambio de contraseña fallido: $msg', tag: _tag);
         return msg;
       },
@@ -506,6 +525,77 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
         AppLogger.i('Contraseña actualizada correctamente', tag: _tag);
         _cacheUser(user);
         state = AsyncValue.data(user);
+        return null;
+      },
+    );
+  }
+
+  /// Elimina permanentemente la cuenta del usuario autenticado.
+  ///
+  /// Flujo:
+  ///  1. Desregistra el token FCM del backend (best-effort).
+  ///  2. Llama DELETE /auth/me con la contraseña.
+  ///  3. En éxito limpia todo el storage local y pone state = null.
+  ///
+  /// Retorna null en éxito o un mensaje de error localizado.
+  Future<String?> deleteAccount(String password) async {
+    AppLogger.i('Iniciando eliminación de cuenta', tag: _tag);
+
+    // Confirmación biométrica antes de cualquier efecto destructivo
+    // (no-op si el usuario no tiene biometría habilitada).
+    final bioOk = await requireBiometricConfirmationRef(
+      ref,
+      reason: 'biometric.confirm_delete_account'.tr(),
+    );
+    if (!bioOk) {
+      AppLogger.w('Delete account cancelado por biometría', tag: _tag);
+      return 'auth.errors.operation_cancelled'.tr();
+    }
+
+    // Desregistrar FCM antes de borrar la sesión (el interceptor aún puede
+    // adjuntar el Bearer header porque los tokens aún existen).
+    try {
+      final pushService = ref.read(pushNotificationServiceProvider);
+      await pushService.unregisterToken();
+      await pushService.dispose();
+    } catch (e) {
+      // Non-critical: el backend también cascada los FCM tokens al borrar cuenta.
+      AppLogger.w('Error al desregistrar FCM antes de delete account',
+          tag: _tag, error: e);
+    }
+
+    final result =
+        await ref.read(authRepositoryProvider).deleteAccount(password);
+
+    return result.fold(
+      (failure) {
+        final msg = failure is AuthFailure
+            ? failure.message
+            : 'auth.errors.delete_account_failed'.tr();
+        AppLogger.w('Delete account fallido: $msg', tag: _tag);
+        return msg;
+      },
+      (_) {
+        AppLogger.i('Cuenta eliminada correctamente', tag: _tag);
+
+        // Limpiar estado local (el datasource ya limpió tokens en deleteAccount).
+        final prefs = ref.read(sharedPreferencesProvider);
+        prefs.remove('cached_post_register_complete');
+        prefs.remove('user_manually_logged_out');
+        // Limpiar claves de notif prefs para que no queden datos huérfanos.
+        for (final key in const [
+          'notif_push_master',
+          'notif_push_activities',
+          'notif_push_achievements',
+          'notif_push_approvals',
+          'notif_push_invitations',
+          'notif_push_reminders',
+        ]) {
+          prefs.remove(key);
+        }
+
+        ref.read(unreadNotificationsCountProvider.notifier).setZero();
+        state = const AsyncValue.data(null);
         return null;
       },
     );
@@ -547,13 +637,15 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     final pushService = ref.read(pushNotificationServiceProvider);
     await pushService.unregisterToken();
     await pushService.dispose();
+    // Clear unread counter immediately so any badge shows 0 after logout.
+    ref.read(unreadNotificationsCountProvider.notifier).setZero();
 
     final result = await ref.read(signOutProvider)(NoParams());
 
     return result.fold(
       (failure) {
         final errorMessage =
-            failure is AuthFailure ? failure.message : 'Error al cerrar sesión';
+            failure is AuthFailure ? failure.message : 'auth.errors.sign_out_failed'.tr();
         state = AsyncValue.error(errorMessage, StackTrace.current);
         return false;
       },

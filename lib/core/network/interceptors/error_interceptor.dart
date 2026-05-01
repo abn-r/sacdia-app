@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../errors/exceptions.dart';
 
 /// Interceptor para transformar errores de Dio en excepciones de la aplicación
@@ -15,7 +16,7 @@ class ErrorInterceptor extends Interceptor {
           DioException(
             requestOptions: err.requestOptions,
             error: ConnectionException(
-              message: 'Tiempo de espera agotado. Compruebe su conexión.',
+              message: tr('errors.connection_timeout'),
               stackTrace: err.stackTrace,
             ),
             type: err.type,
@@ -25,7 +26,7 @@ class ErrorInterceptor extends Interceptor {
       case DioExceptionType.badResponse:
         final statusCode = err.response?.statusCode;
         final responseData = err.response?.data;
-        String message = 'Error del servidor';
+        String message = tr('errors.server_error');
 
         if (responseData is Map<String, dynamic>) {
           message = responseData['message'] ?? message;
@@ -87,7 +88,7 @@ class ErrorInterceptor extends Interceptor {
           DioException(
             requestOptions: err.requestOptions,
             error: ServerException(
-              message: 'Solicitud cancelada',
+              message: tr('errors.request_cancelled'),
               stackTrace: err.stackTrace,
             ),
             type: err.type,
@@ -99,7 +100,7 @@ class ErrorInterceptor extends Interceptor {
           DioException(
             requestOptions: err.requestOptions,
             error: ConnectionException(
-              message: 'Error de conexión. Compruebe su red.',
+              message: tr('errors.connection_error'),
               stackTrace: err.stackTrace,
             ),
             type: err.type,
@@ -112,7 +113,7 @@ class ErrorInterceptor extends Interceptor {
             DioException(
               requestOptions: err.requestOptions,
               error: ConnectionException(
-                message: 'No hay conexión a Internet',
+                message: tr('errors.no_internet'),
                 stackTrace: err.stackTrace,
               ),
               type: err.type,
@@ -123,7 +124,7 @@ class ErrorInterceptor extends Interceptor {
           DioException(
             requestOptions: err.requestOptions,
             error: ServerException(
-              message: 'Error inesperado: ${err.message}',
+              message: tr('errors.unexpected', namedArgs: {'details': err.message ?? ''}),
               stackTrace: err.stackTrace,
             ),
             type: err.type,
@@ -135,7 +136,7 @@ class ErrorInterceptor extends Interceptor {
           DioException(
             requestOptions: err.requestOptions,
             error: ServerException(
-              message: 'Certificado SSL no válido',
+              message: tr('errors.ssl_invalid'),
               stackTrace: err.stackTrace,
             ),
             type: err.type,

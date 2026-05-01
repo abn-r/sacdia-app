@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,7 +31,7 @@ class ClassModulesView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: context.sac.background,
       appBar: AppBar(
-        title: const Text('Módulos'),
+        title: Text('classes.modules.title'.tr()),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -46,7 +47,7 @@ class ClassModulesView extends ConsumerWidget {
                       size: 56, color: context.sac.textTertiary),
                   const SizedBox(height: 12),
                   Text(
-                    'No hay módulos disponibles',
+                    'classes.modules.empty'.tr(),
                     style: TextStyle(
                       fontSize: 16,
                       color: context.sac.textSecondary,
@@ -92,8 +93,8 @@ class ClassModulesView extends ConsumerWidget {
                         SnackBar(
                           content: Text(
                             isCompleted
-                                ? 'Sección completada'
-                                : 'Sección marcada como pendiente',
+                                ? 'classes.modules.section_completed_snack'.tr()
+                                : 'classes.modules.section_pending_snack'.tr(),
                           ),
                           backgroundColor: isCompleted
                               ? AppColors.secondary
@@ -122,7 +123,7 @@ class ClassModulesView extends ConsumerWidget {
                     size: 56, color: AppColors.error),
                 const SizedBox(height: 16),
                 Text(
-                  'Error al cargar módulos',
+                  'classes.modules.error_loading'.tr(),
                   style: Theme.of(context)
                       .textTheme
                       .titleMedium
@@ -137,7 +138,7 @@ class ClassModulesView extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
                 SacButton.primary(
-                  text: 'Reintentar',
+                  text: 'common.retry'.tr(),
                   icon: HugeIcons.strokeRoundedRefresh,
                   onPressed: () {
                     ref.invalidate(classModulesProvider(classId));

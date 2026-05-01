@@ -17,6 +17,10 @@ class ClassModel extends Equatable {
   /// Progreso general de 0 a 100, proveniente del enrollment.
   final int? overallProgress;
 
+  /// Código de asset local para el roadmap (e.g. "AV-01", "CQ-03").
+  /// Mapeado desde el campo snake_case `asset_code` del backend.
+  final String? assetCode;
+
   const ClassModel({
     required this.id,
     required this.name,
@@ -25,6 +29,7 @@ class ClassModel extends Equatable {
     this.imageUrl,
     this.investitureStatus,
     this.overallProgress,
+    this.assetCode,
   });
 
   /// Crea una instancia desde JSON.
@@ -42,6 +47,7 @@ class ClassModel extends Equatable {
       imageUrl: safeStringOrNull(json['image_url']),
       investitureStatus: safeStringOrNull(json['investiture_status']),
       overallProgress: safeIntOrNull(json['overall_progress']),
+      assetCode: safeStringOrNull(json['asset_code']),
     );
   }
 
@@ -55,6 +61,7 @@ class ClassModel extends Equatable {
       'image_url': imageUrl,
       'investiture_status': investitureStatus,
       'overall_progress': overallProgress,
+      'asset_code': assetCode,
     };
   }
 
@@ -68,6 +75,7 @@ class ClassModel extends Equatable {
       imageUrl: imageUrl,
       investitureStatus: investitureStatus,
       overallProgress: overallProgress,
+      assetCode: assetCode,
     );
   }
 
@@ -80,6 +88,7 @@ class ClassModel extends Equatable {
     String? imageUrl,
     String? investitureStatus,
     int? overallProgress,
+    String? assetCode,
   }) {
     return ClassModel(
       id: id ?? this.id,
@@ -89,6 +98,7 @@ class ClassModel extends Equatable {
       imageUrl: imageUrl ?? this.imageUrl,
       investitureStatus: investitureStatus ?? this.investitureStatus,
       overallProgress: overallProgress ?? this.overallProgress,
+      assetCode: assetCode ?? this.assetCode,
     );
   }
 
@@ -101,5 +111,6 @@ class ClassModel extends Equatable {
         imageUrl,
         investitureStatus,
         overallProgress,
+        assetCode,
       ];
 }

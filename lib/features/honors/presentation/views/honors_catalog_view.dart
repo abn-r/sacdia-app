@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -187,7 +188,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                   ),
                   Expanded(
                     child: Text(
-                      'Especialidades',
+                      'honors.catalog.title'.tr(),
                       style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
@@ -238,7 +239,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                 onChanged: _onSearchChanged,
                 style: const TextStyle(color: Colors.white, fontSize: 14),
                 decoration: InputDecoration(
-                  hintText: 'Buscar especialidad...',
+                  hintText: 'honors.catalog.search_hint'.tr(),
                   hintStyle: TextStyle(
                     color: Colors.white.withAlpha(120),
                     fontSize: 14,
@@ -295,7 +296,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
             return Padding(
               padding: const EdgeInsets.only(right: 8),
               child: HonorCategoryChip(
-                label: 'Todas',
+                label: 'honors.catalog.all_category'.tr(),
                 isSelected: selectedCategory == null,
                 activeColor: AppColors.sacRed,
                 onTap: () {
@@ -342,7 +343,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
             ),
             const SizedBox(height: 12),
             Text(
-              'No hay especialidades en esta categoria',
+              'honors.catalog.empty'.tr(),
               style: TextStyle(
                 fontSize: 16,
                 color: context.sac.textSecondary,
@@ -386,7 +387,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Error al cargar especialidades',
+            'honors.catalog.error_load'.tr(),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -401,7 +402,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
               ref.invalidate(userHonorsProvider);
             },
             icon: const Icon(Icons.refresh, size: 18),
-            label: const Text('Reintentar'),
+            label: Text('honors.catalog.retry'.tr()),
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.sacBlue,
               foregroundColor: Colors.white,

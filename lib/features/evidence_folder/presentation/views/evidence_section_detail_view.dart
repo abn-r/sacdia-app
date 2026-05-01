@@ -1,17 +1,20 @@
+import 'dart:ui' as ui;
+
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
 import '../../../../core/widgets/evidence_staging/staged_file.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../domain/entities/evidence_file.dart';
 import '../../domain/entities/evidence_section.dart';
 import '../providers/evidence_folder_providers.dart';
+import '../sheets/evidence_status_history_sheet.dart';
 import '../widgets/section_status_badge.dart';
-import '../widgets/status_timeline.dart';
 
 /// Vista de detalle de una sección de evidencias.
 ///
@@ -47,12 +50,11 @@ class _EvidenceSectionDetailViewState
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final notifierState = ref.watch(
-        evidenceSectionNotifierProvider(widget.clubSectionId));
+    final notifierState =
+        ref.watch(evidenceSectionNotifierProvider(widget.clubSectionId));
 
-    final canModify =
-        (widget.section.status == EvidenceSectionStatus.pendiente ||
-            widget.section.status == EvidenceSectionStatus.rechazado) &&
+    final canModify = (widget.section.status == EvidenceSectionStatus.pending ||
+            widget.section.status == EvidenceSectionStatus.rejected) &&
         widget.folderIsOpen;
 
     // Mostrar snackbar cuando hay error
@@ -74,19 +76,19 @@ class _EvidenceSectionDetailViewState
         final confirm = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Archivos sin enviar'),
-            content: const Text(
-              'Tienes archivos sin enviar. ¿Seguro que quieres salir?',
+            title: Text('evidence_folder.unsaved_files_dialog.title'.tr()),
+            content: Text(
+              'evidence_folder.unsaved_files_dialog.message'.tr(),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Quedarme'),
+                child: Text('evidence_folder.stay'.tr()),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
                 style: TextButton.styleFrom(foregroundColor: AppColors.error),
-                child: const Text('Salir'),
+                child: Text('evidence_folder.exit'.tr()),
               ),
             ],
           ),
@@ -99,11 +101,9 @@ class _EvidenceSectionDetailViewState
         backgroundColor: c.background,
         appBar: AppBar(
           title: Text(
-            'Sección',
+            'evidence_folder.section_title'.tr(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.sacRed
-                ),
+                fontWeight: FontWeight.w700, color: AppColors.sacRed),
             overflow: TextOverflow.ellipsis,
           ),
           backgroundColor: c.background,
@@ -127,7 +127,7 @@ class _EvidenceSectionDetailViewState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Detalle de la sección',
+                          'evidence_folder.section_detail_label'.tr(),
                           style:
                               Theme.of(context).textTheme.labelSmall?.copyWith(
                                     color: c.textSecondary,
@@ -153,48 +153,45 @@ class _EvidenceSectionDetailViewState
                   // Descripción + métricas
                   _SectionMetaCard(section: widget.section),
 
-                  const SizedBox(height: 26),
+                  const SizedBox(height: 16),
 
-                  // Timeline de estado
+                  // Estado actual del sección (chip visual, solo lectura)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                    child: Text(
-                      'Flujo de estado',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: c.text,
-                          ),
-                    ),
+                  child: Text(
+                    'evidence_folder.section_status_label'.tr(),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: c.textSecondary,
+                          letterSpacing: 0.8,
+                        ),
                   ),
-                  const SizedBox(height: 12),
+                  ),
+                  const SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: StatusTimeline(
-                      currentStatus: widget.section.status,
-                      submittedByName: widget.section.submittedByName,
-                      submittedAt: widget.section.submittedAt,
-                      validatedByName: widget.section.validatedByName,
-                      validatedAt: widget.section.validatedAt,
-                      evaluatedByName: widget.section.evaluatedByName,
-                      evaluatedAt: widget.section.evaluatedAt,
-                      evaluationNotes: widget.section.evaluationNotes,
+                    child: _EvidenceStatusChip(
+                      status: widget.section.status,
+                      onTap: () => showEvidenceStatusHistorySheet(
+                        context,
+                        section: widget.section,
+                      ),
                     ),
                   ),
 
                   // Resultado de evaluación (solo lectura, si existe)
                   if (widget.section.status ==
-                          EvidenceSectionStatus.evaluated ||
-                      widget.section.evaluatedByName != null) ...[
+                          EvidenceSectionStatus.validated ||
+                      widget.section.lfApproverName != null ||
+                      widget.section.unionApproverName != null) ...[
                     const SizedBox(height: 24),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                       child: Text(
-                        'Resultado de evaluación',
-                        style:
-                            Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: c.text,
-                                ),
+                        'evidence_folder.evaluation_result_title'.tr(),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: c.text,
+                            ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -209,14 +206,17 @@ class _EvidenceSectionDetailViewState
                   // Archivos de evidencia header
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                    child: Text(
-                      'Archivos de evidencia',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: c.text,
-                          ),
-                    ),
+                  child: Text(
+                    'evidence_folder.evidence_files_title'.tr(),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: c.text,
+                        ),
                   ),
+                  ),
+
+                  // Notas del revisor por archivo — solo si existen
+                  _ReviewerNotesBlock(files: widget.section.files),
 
                   // EvidenceStagingManager en modo embebido — crece con su
                   // contenido sin reclamar su propia área de scroll.
@@ -249,7 +249,7 @@ class _EvidenceSectionDetailViewState
                             onProgress: onProgress,
                             skipInvalidation: true,
                           );
-                      if (!success) throw Exception('Upload failed');
+                      if (!success) throw Exception(tr('evidence_folder.errors.upload_failed'));
                     },
                     onDeleteRemote: (fileId) async {
                       await ref
@@ -268,14 +268,17 @@ class _EvidenceSectionDetailViewState
                         // ignore: use_build_context_synchronously
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: const Row(
+                            content: Row(
                               children: [
-                                Icon(Icons.check_circle_rounded,
+                                const Icon(Icons.check_circle_rounded,
                                     color: Colors.white, size: 18),
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                      'Sección enviada a validación exitosamente'),
+                                    'evidence_folder.submit_success'.tr(namedArgs: {
+                                      'sectionName': widget.section.name,
+                                    }),
+                                  ),
                                 ),
                               ],
                             ),
@@ -339,8 +342,7 @@ class _EvidenceSectionDetailViewState
         ),
         backgroundColor: AppColors.error,
         behavior: SnackBarBehavior.floating,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -386,15 +388,17 @@ class _SectionMetaCard extends StatelessWidget {
             children: [
               _MetaItem(
                 icon: HugeIcons.strokeRoundedStar,
-                label: 'Puntos',
-                value: '${section.pointValue} pts',
+                label: 'evidence_folder.points_label'.tr(),
+                value: 'evidence_folder.points_value'.tr(namedArgs: {
+                  'points': '${section.pointValue}',
+                }),
                 color: AppColors.accent,
                 context: context,
               ),
               const SizedBox(width: 24),
               _MetaItem(
                 icon: HugeIcons.strokeRoundedPercent,
-                label: 'Peso',
+                label: 'evidence_folder.weight_label'.tr(),
                 value: '${section.percentage.toStringAsFixed(1)}%',
                 color: AppColors.primary,
                 context: context,
@@ -402,8 +406,10 @@ class _SectionMetaCard extends StatelessWidget {
               const SizedBox(width: 24),
               _MetaItem(
                 icon: HugeIcons.strokeRoundedFiles01,
-                label: 'Límite',
-                value: '${section.maxFiles} archivos',
+                label: 'evidence_folder.limit_label'.tr(),
+                value: 'evidence_folder.files_count'.tr(namedArgs: {
+                  'count': '${section.maxFiles}',
+                }),
                 color: c.textSecondary,
                 context: context,
               ),
@@ -463,6 +469,149 @@ class _MetaItem extends StatelessWidget {
   }
 }
 
+// ── Chip de estado actual (tappable) ─────────────────────────────────────────
+
+/// Chip compacto que muestra el estado actual de la sección de evidencias.
+///
+/// Al tocarlo abre el [EvidenceStatusHistorySheet] con el historial de
+/// transiciones de estado disponibles en la entidad.
+class _EvidenceStatusChip extends StatelessWidget {
+  final EvidenceSectionStatus status;
+  final VoidCallback onTap;
+
+  const _EvidenceStatusChip({
+    required this.status,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final bgColor = _bgColor(isDark);
+    final borderColor = _borderColor(isDark);
+    final textColor = _textColor(isDark);
+
+    return Semantics(
+      button: true,
+      label: 'evidence_folder.status_semantics'.tr(namedArgs: {'label': _label}),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor, width: 1),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              HugeIcon(icon: _icon, size: 15, color: textColor),
+              const SizedBox(width: 8),
+              Text(
+                _label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+              ),
+              const Spacer(),
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedInformationCircle,
+                size: 15,
+                color: c.textTertiary,
+              ),
+              const SizedBox(width: 2),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String get _label {
+    switch (status) {
+      case EvidenceSectionStatus.pending:
+        return 'evidence_folder.status.pending'.tr();
+      case EvidenceSectionStatus.submitted:
+        return 'evidence_folder.status.submitted'.tr();
+      case EvidenceSectionStatus.preapprovedLf:
+        return 'evidence_folder.status.preapproved'.tr();
+      case EvidenceSectionStatus.validated:
+        return 'evidence_folder.status.validated'.tr();
+      case EvidenceSectionStatus.rejected:
+        return 'evidence_folder.status.rejected'.tr();
+    }
+  }
+
+  Color _bgColor(bool isDark) {
+    switch (status) {
+      case EvidenceSectionStatus.pending:
+        return AppColors.accentLight;
+      case EvidenceSectionStatus.submitted:
+        return isDark
+            ? AppColors.statusInfoBgDark
+            : AppColors.statusInfoBgLight;
+      case EvidenceSectionStatus.preapprovedLf:
+        return isDark ? AppColors.darkSurfaceVariant : AppColors.accentLight;
+      case EvidenceSectionStatus.validated:
+        return AppColors.secondaryLight;
+      case EvidenceSectionStatus.rejected:
+        return AppColors.errorLight;
+    }
+  }
+
+  Color _borderColor(bool isDark) {
+    switch (status) {
+      case EvidenceSectionStatus.pending:
+        return AppColors.accent.withValues(alpha: 0.4);
+      case EvidenceSectionStatus.submitted:
+        return AppColors.sacBlue.withValues(alpha: 0.4);
+      case EvidenceSectionStatus.preapprovedLf:
+        return AppColors.accent.withValues(alpha: 0.5);
+      case EvidenceSectionStatus.validated:
+        return AppColors.secondary.withValues(alpha: 0.4);
+      case EvidenceSectionStatus.rejected:
+        return AppColors.error.withValues(alpha: 0.4);
+    }
+  }
+
+  Color _textColor(bool isDark) {
+    switch (status) {
+      case EvidenceSectionStatus.pending:
+        return AppColors.accentDark;
+      case EvidenceSectionStatus.submitted:
+        return isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
+      case EvidenceSectionStatus.preapprovedLf:
+        return AppColors.accentDark;
+      case EvidenceSectionStatus.validated:
+        return AppColors.secondaryDark;
+      case EvidenceSectionStatus.rejected:
+        return AppColors.errorDark;
+    }
+  }
+
+  List<List<dynamic>> get _icon {
+    switch (status) {
+      case EvidenceSectionStatus.pending:
+        return HugeIcons.strokeRoundedClock01;
+      case EvidenceSectionStatus.submitted:
+        return HugeIcons.strokeRoundedSent;
+      case EvidenceSectionStatus.preapprovedLf:
+        return HugeIcons.strokeRoundedAnalytics01;
+      case EvidenceSectionStatus.validated:
+        return HugeIcons.strokeRoundedCheckmarkCircle01;
+      case EvidenceSectionStatus.rejected:
+        return HugeIcons.strokeRoundedCancel01;
+    }
+  }
+}
+
 // ── Tarjeta de resultado de evaluación (solo lectura) ─────────────────────────
 
 class _EvaluationResultCard extends StatelessWidget {
@@ -504,11 +653,11 @@ class _EvaluationResultCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Column(
+                  Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Puntos obtenidos',
+                    'evidence_folder.earned_points'.tr(),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
@@ -528,35 +677,72 @@ class _EvaluationResultCard extends StatelessWidget {
             ],
           ),
 
-          // Evaluador y fecha
-          if (section.evaluatedByName != null) ...[
+          // Actores de aprobación dual-level
+          if (section.lfApproverName != null ||
+              section.unionApproverName != null) ...[
             const SizedBox(height: 12),
             Divider(
               color: AppColors.secondary.withValues(alpha: 0.25),
               height: 1,
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedUserCheck01,
-                  size: 13,
-                  color: AppColors.secondaryDark,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    'Evaluado por ${section.evaluatedByName}'
-                    '${section.evaluatedAt != null ? " · ${dateFormat.format(section.evaluatedAt!.toLocal())}" : ""}',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.secondaryDark,
-                          fontWeight: FontWeight.w600,
-                          height: 1.3,
-                        ),
+            // LF actor — siempre presente cuando existe
+            if (section.lfApproverName != null) ...[
+              Row(
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedAnalytics01,
+                    size: 13,
+                    color: AppColors.accentDark,
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'evidence_folder.trace.preapproved_by'.tr(namedArgs: {
+                        'name': section.lfApproverName!,
+                        'date': section.lfApprovedAt != null
+                            ? ' · ${dateFormat.format(section.lfApprovedAt!.toLocal())}'
+                            : '',
+                      }),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: AppColors.accentDark,
+                            fontWeight: FontWeight.w600,
+                            height: 1.3,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            // Union actor — presente solo cuando actuó la unión
+            if (section.unionApproverName != null) ...[
+              if (section.lfApproverName != null) const SizedBox(height: 8),
+              Row(
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedUserCheck01,
+                    size: 13,
+                    color: AppColors.secondaryDark,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'evidence_folder.trace.validated_by'.tr(namedArgs: {
+                        'name': section.unionApproverName!,
+                        'date': section.unionApprovedAt != null
+                            ? ' · ${dateFormat.format(section.unionApprovedAt!.toLocal())}'
+                            : '',
+                      }),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: AppColors.secondaryDark,
+                            fontWeight: FontWeight.w600,
+                            height: 1.3,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
 
           // Notas del evaluador
@@ -564,7 +750,7 @@ class _EvaluationResultCard extends StatelessWidget {
               section.evaluationNotes!.isNotEmpty) ...[
             const SizedBox(height: 12),
             Text(
-              'Notas del evaluador',
+              'evidence_folder.evaluator_notes'.tr(),
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
@@ -582,6 +768,208 @@ class _EvaluationResultCard extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+// ── Bloque de notas del revisor por archivo ────────────────────────────────────
+
+/// Renderiza un callout por cada archivo que tenga [EvidenceFile.reviewerNote].
+///
+/// Si ningún archivo tiene nota, el widget no ocupa espacio (SizedBox.shrink).
+/// Posicionado entre el header "Archivos de evidencia" y el [EvidenceStagingManager].
+class _ReviewerNotesBlock extends StatelessWidget {
+  final List<EvidenceFile> files;
+
+  const _ReviewerNotesBlock({required this.files});
+
+  @override
+  Widget build(BuildContext context) {
+    final filesWithNotes = files
+        .where((f) => f.reviewerNote != null && f.reviewerNote!.isNotEmpty)
+        .toList();
+
+    if (filesWithNotes.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'evidence_folder.reviewer_comments'.tr(),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: context.sac.textSecondary,
+                  letterSpacing: 0.8,
+                ),
+          ),
+          const SizedBox(height: 8),
+          ...filesWithNotes.map(
+            (f) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _ReviewerNoteCallout(file: f),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Callout compacto que muestra la nota del revisor para un archivo individual.
+///
+/// Usa fondo info (azul suave) para diferenciarse visualmente del card principal
+/// sin resultar alarmante — el note es feedback constructivo, no un error.
+/// Trunca el texto a 3 líneas con opción de expandir inline.
+class _ReviewerNoteCallout extends StatefulWidget {
+  final EvidenceFile file;
+
+  const _ReviewerNoteCallout({required this.file});
+
+  @override
+  State<_ReviewerNoteCallout> createState() => _ReviewerNoteCalloutState();
+}
+
+class _ReviewerNoteCalloutState extends State<_ReviewerNoteCallout> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Colores info (azul suave) — dark-mode aware, reutiliza los tokens de
+    // AppColors.statusInfoBg* que ya existen para el estado "enviado".
+    final bgColor =
+        isDark ? AppColors.statusInfoBgDark : AppColors.statusInfoBgLight;
+    final borderColor =
+        AppColors.sacBlue.withValues(alpha: isDark ? 0.3 : 0.35);
+    final noteColor =
+        isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
+    final labelColor = isDark
+        ? AppColors.statusInfoTextDark.withValues(alpha: 0.7)
+        : AppColors.statusInfoText.withValues(alpha: 0.75);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Cabecera: ícono + nombre de archivo
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedComment01,
+                size: 14,
+                color: noteColor,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  widget.file.fileName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: labelColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          // Texto del note con truncado expandible
+          Text(
+            widget.file.reviewerNote!,
+            maxLines: _expanded ? null : 3,
+            overflow: _expanded ? null : TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+              color: noteColor,
+              height: 1.45,
+            ),
+          ),
+          // "Ver más / Ver menos" solo si el note supera 3 líneas visualmente.
+          // Usamos LayoutBuilder para detectar overflow real.
+          _ExpandToggle(
+            text: widget.file.reviewerNote!,
+            expanded: _expanded,
+            textStyle: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+              color: noteColor,
+              height: 1.45,
+            ),
+            toggleColor: noteColor,
+            onToggle: () => setState(() => _expanded = !_expanded),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Muestra "Ver más" / "Ver menos" solo cuando el texto supera [maxLines].
+///
+/// Usa [LayoutBuilder] + [TextPainter] para detectar si el texto realmente
+/// se trunca — evita mostrar el toggle cuando el note es corto.
+class _ExpandToggle extends StatelessWidget {
+  final String text;
+  final bool expanded;
+  final TextStyle textStyle;
+  final Color toggleColor;
+  final VoidCallback onToggle;
+
+  static const int _maxLines = 3;
+
+  const _ExpandToggle({
+    required this.text,
+    required this.expanded,
+    required this.textStyle,
+    required this.toggleColor,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final tp = TextPainter(
+          text: TextSpan(text: text, style: textStyle),
+          maxLines: _maxLines,
+          textDirection: ui.TextDirection.ltr,
+        )..layout(maxWidth: constraints.maxWidth);
+
+        final isOverflowing = tp.didExceedMaxLines;
+        if (!isOverflowing) return const SizedBox.shrink();
+
+        return GestureDetector(
+          onTap: onToggle,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              expanded
+                  ? 'evidence_folder.show_less'.tr()
+                  : 'evidence_folder.show_more'.tr(),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: toggleColor,
+                decoration: TextDecoration.underline,
+                decorationColor: toggleColor,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

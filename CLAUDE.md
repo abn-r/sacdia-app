@@ -63,6 +63,15 @@ lib/
 - **Vistas afectadas**: `LocationPickerView` (selector de ubicacion), `ActivityHeroSection` (hero en detalle de actividad)
 - **Geolocator**: Centra el mapa en la ubicacion del usuario al abrir el picker
 
+### Realtime cache invalidation (FCM)
+- **Módulo**: `lib/core/realtime/` — contiene `RealtimeResourceRegistry`, `RealtimeInvalidationHandler`, `RealtimeRef` adapter y `feature_flags.dart`.
+- **Feature flag**: `RealtimeFeatureFlags.realtimeInvalidationEnabled` (compile-time const, default `false`) — bloquea ambos paths si está desactivado.
+- **Path foreground**: `PushNotificationService._handleForegroundMessage` intercepta `data['type'] == 'cache_invalidate'` ANTES del guard que descarta mensajes sin notificación visible.
+- **Path background**: `firebaseMessagingBackgroundHandler` guarda el payload en `SharedPreferences` (`pending_realtime_invalidations`); se drena al volver al frente via observer `AppLifecycleState.resumed` en el root `MyApp`.
+- **Section guard**: el registry ignora el payload si el `sectionId` no coincide con el `clubContextProvider.sectionId` activo.
+- **Registry inicial**: recurso `'activities'` mapea `sectionId → ClubContext.clubId → clubActivitiesProvider(ClubActivitiesParams(clubId, null))`.
+- **Contrato backend**: ver `sacdia-backend/src/notifications/notifications.processor.ts:sendSilentMulticast`.
+
 ### Actividades conjuntas
 - **`CreateActivityView`**: Toggle "Actividad conjunta" (`SwitchListTile`) visible para directores con 2+ secciones. Al activar, muestra `FilterChip` picker para seleccionar secciones.
 - **`EditActivityView`**: Soporta edicion de actividades conjuntas — carga secciones existentes y permite modificar.

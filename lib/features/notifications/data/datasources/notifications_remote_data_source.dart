@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/notification_model.dart';
@@ -12,12 +13,26 @@ typedef NotificationHistoryResult = ({
 
 /// Interfaz del data source remoto de notificaciones.
 abstract class NotificationsRemoteDataSource {
-  /// GET /notifications/history
+  /// GET /notifications/history?page=N&limit=N
   Future<NotificationHistoryResult> getHistory({
     int page = 1,
     int limit = 20,
     CancelToken? cancelToken,
   });
+
+  /// GET /notifications/unread-count
+  /// Returns the number of unread deliveries for the current user.
+  Future<int> getUnreadCount();
+
+  /// PATCH /notifications/:deliveryId/read
+  /// Marks a single delivery as read. Throws [NotFoundException] if not found
+  /// or not owned by the caller.
+  Future<void> markAsRead(String deliveryId);
+
+  /// PATCH /notifications/read-all
+  /// Bulk marks all unread deliveries as read.
+  /// Returns the number of rows updated.
+  Future<int> markAllAsRead();
 }
 
 /// Implementación del data source remoto de notificaciones.
@@ -41,13 +56,18 @@ class NotificationsRemoteDataSourceImpl
       final code = e.response?.statusCode;
       if (code == 403 || code == 401) {
         throw AuthException(
-          message: 'No tienes permiso para ver las notificaciones',
+          message: tr('notifications.errors.no_permission'),
           code: code,
         );
       }
+      if (code == 404) {
+        throw NotFoundException(message: msg, code: code);
+      }
       throw ServerException(message: msg, code: code);
     }
-    if (e is ServerException || e is AuthException) throw e;
+    if (e is ServerException || e is AuthException || e is NotFoundException) {
+      throw e;
+    }
     throw ServerException(message: e.toString());
   }
 
@@ -55,12 +75,12 @@ class NotificationsRemoteDataSourceImpl
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? 'Error de conexion').toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
       }
     } catch (_) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag);
     }
-    return e.message ?? 'Error de conexion';
+    return e.message ?? tr('common.error_network');
   }
 
   @override
@@ -107,11 +127,78 @@ class NotificationsRemoteDataSourceImpl
       }
 
       throw ServerException(
-        message: 'Error al obtener historial de notificaciones',
+        message: tr('notifications.errors.get_history'),
         code: response.statusCode,
       );
     } catch (e) {
       AppLogger.e('Error en getHistory', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  @override
+  Future<int> getUnreadCount() async {
+    try {
+      final response = await _dio.get('$_baseUrl/notifications/unread-count');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final raw = response.data;
+        if (raw is Map) {
+          return (raw['count'] as num?)?.toInt() ?? 0;
+        }
+        return 0;
+      }
+
+      throw ServerException(
+        message: tr('notifications.errors.get_unread_count'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getUnreadCount', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  @override
+  Future<void> markAsRead(String deliveryId) async {
+    try {
+      final response = await _dio.patch(
+        '$_baseUrl/notifications/$deliveryId/read',
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return;
+      }
+
+      throw ServerException(
+        message: tr('notifications.errors.mark_as_read'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en markAsRead', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  @override
+  Future<int> markAllAsRead() async {
+    try {
+      final response = await _dio.patch('$_baseUrl/notifications/read-all');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final raw = response.data;
+        if (raw is Map) {
+          return (raw['updated'] as num?)?.toInt() ?? 0;
+        }
+        return 0;
+      }
+
+      throw ServerException(
+        message: tr('notifications.errors.mark_all_as_read'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en markAllAsRead', tag: _tag, error: e);
       _rethrow(e);
     }
   }

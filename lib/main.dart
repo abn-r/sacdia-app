@@ -1,66 +1,152 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/config/cache_config.dart';
 import 'core/config/router.dart';
+import 'core/realtime/feature_flags.dart';
+import 'core/realtime/realtime_invalidation_handler.dart';
+import 'core/realtime/realtime_ref.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/utils/app_logger.dart';
+import 'features/accessibility/presentation/providers/accessibility_provider.dart';
+import 'features/biometric/presentation/widgets/biometric_gate.dart';
 import 'firebase_options.dart';
 import 'providers/storage_provider.dart';
 
+const _sentryDsn =
+    'https://48ff634d9f5d4213de75a751c2838383@o4510840511528960.ingest.us.sentry.io/4511270132645888';
+
+const _sensitiveFields = <String>{
+  'password',
+  'refresh_token',
+  'refreshToken',
+  'access_token',
+  'accessToken',
+  'blood',
+  'birthday',
+  'allergies',
+  'diseases',
+  'medicines',
+};
+
+const _sensitiveHeaders = <String>{
+  'authorization',
+  'cookie',
+  'x-session-token',
+  'x-refresh-token',
+};
+
+void _scrubMap(Map<dynamic, dynamic>? data, Set<String> keys) {
+  if (data == null) return;
+  for (final entry in data.entries.toList()) {
+    if (entry.key is String && keys.contains(entry.key)) {
+      data[entry.key] = '[REDACTED]';
+    }
+  }
+}
+
+SentryEvent? _scrubEvent(SentryEvent event, Hint hint) {
+  final request = event.request;
+  if (request != null) {
+    _scrubMap(request.headers, _sensitiveHeaders);
+    final data = request.data;
+    if (data is Map) _scrubMap(data, _sensitiveFields);
+  }
+  final breadcrumbs = event.breadcrumbs;
+  if (breadcrumbs != null) {
+    for (final crumb in breadcrumbs) {
+      _scrubMap(crumb.data, _sensitiveHeaders);
+      _scrubMap(crumb.data, _sensitiveFields);
+    }
+  }
+  return event;
+}
+
 /// Punto de entrada principal de la aplicación
 Future<void> main() async {
-  // Aseguramos que las dependencias de Flutter estén inicializadas
-  WidgetsFlutterBinding.ensureInitialized();
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = _sentryDsn;
+      options.environment = kReleaseMode ? 'production' : 'development';
+      options.tracesSampleRate = kReleaseMode ? 0.1 : 1.0;
+      // ignore: experimental_member_use
+      options.profilesSampleRate = kReleaseMode ? 0.1 : 1.0;
+      options.sendDefaultPii = false;
+      options.debug = kDebugMode;
+      options.beforeSend = _scrubEvent;
+    },
+    appRunner: () async {
+      // Aseguramos que las dependencias de Flutter estén inicializadas
+      WidgetsFlutterBinding.ensureInitialized();
+      // EasyLocalization lee los catálogos en assets/translations/* y expone
+      // `context.tr` una vez que el widget se monta. ensureInitialized debe
+      // ejecutarse antes del primer runApp para tener el locale resuelto.
+      await EasyLocalization.ensureInitialized();
 
-  // Paralelizamos operaciones independientes: orientación, SharedPreferences y
-  // Firebase.initializeApp() — este último DEBE ocurrir antes de runApp().
-  final results = await Future.wait([
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]),
-    SharedPreferences.getInstance(),
-    Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    ),
-  ]);
+      // Paralelizamos operaciones independientes: orientación, SharedPreferences y
+      // Firebase.initializeApp() — este último DEBE ocurrir antes de runApp().
+      final results = await Future.wait([
+        SystemChrome.setPreferredOrientations([
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+        ]),
+        SharedPreferences.getInstance(),
+        Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        ),
+      ]);
 
-  final sharedPreferences = results[1] as SharedPreferences;
+      final sharedPreferences = results[1] as SharedPreferences;
 
-  // Diferimos la activación de AppCheck al post-frame: no bloquea el primer
-  // frame y el handshake con el servidor de AppCheck puede tomar ~1-2 s.
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    _initializeFirebaseExtras();
-    // Eagerly initialize the app-wide image cache manager so the first
-    // honors/profile screen doesn't pay the singleton creation cost.
-    // SacCacheManager: 500 objects / 30-day stalePeriod (see cache_config.dart).
-    SacCacheManager.instance;
-  });
+      // Diferimos la activación de AppCheck al post-frame: no bloquea el primer
+      // frame y el handshake con el servidor de AppCheck puede tomar ~1-2 s.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _initializeFirebaseExtras();
+        // Eagerly initialize the app-wide image cache manager so the first
+        // honors/profile screen doesn't pay the singleton creation cost.
+        // SacCacheManager: 500 objects / 30-day stalePeriod (see cache_config.dart).
+        SacCacheManager.instance;
+      });
 
-  // Ejecutamos la aplicación con la configuración inicial
-  runApp(
-    ProviderScope(
-      overrides: [
-        // Proporcionamos la instancia de SharedPreferences a la aplicación
-        sharedPreferencesProvider.overrideWithValue(sharedPreferences),
-      ],
-      child: const MyApp(),
-    ),
+      // Ejecutamos la aplicación con la configuración inicial
+      runApp(
+        EasyLocalization(
+          supportedLocales: const [
+            Locale('es'),
+            Locale('pt', 'BR'),
+            Locale('en'),
+            Locale('fr'),
+          ],
+          path: 'assets/translations',
+          fallbackLocale: const Locale('es'),
+          useOnlyLangCode: false,
+          child: SentryWidget(
+            child: ProviderScope(
+              overrides: [
+                // Proporcionamos la instancia de SharedPreferences a la aplicación
+                sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+              ],
+              child: const MyApp(),
+            ),
+          ),
+        ),
+      );
+
+      // La verificación de sesión no necesita bloquear el primer frame.
+      // Reutilizamos la instancia ya cargada para evitar un segundo getInstance().
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkAndCleanSessionAtStartup(sharedPreferences);
+      });
+    },
   );
-
-  // La verificación de sesión no necesita bloquear el primer frame.
-  // Reutilizamos la instancia ya cargada para evitar un segundo getInstance().
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    _checkAndCleanSessionAtStartup(sharedPreferences);
-  });
 }
 
 /// Activación de FirebaseAppCheck diferida al post-frame.
@@ -133,13 +219,45 @@ class _AppScrollBehavior extends ScrollBehavior {
 }
 
 /// Widget principal de la aplicación
-class MyApp extends ConsumerWidget {
+///
+/// Converted to [ConsumerStatefulWidget] to attach a [WidgetsBindingObserver]
+/// that drains pending realtime invalidations when the app resumes from
+/// background. All other logic is identical to the previous [ConsumerWidget].
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// When the app returns to the foreground, drain any INVALIDATE messages that
+  /// arrived while the app was backgrounded and were staged to SharedPreferences.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed &&
+        RealtimeFeatureFlags.realtimeInvalidationEnabled) {
+      RealtimeInvalidationHandler.drainPending(RealtimeRef.fromWidgetRef(ref));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(themeNotifierProvider);
     final router = ref.watch(routerProvider);
+    final accessibility = ref.watch(accessibilityProvider);
 
     // Adaptar iconos del status bar al tema actual.
     // AnnotatedRegion is the declarative alternative to SystemChrome.setSystemUIOverlayStyle()
@@ -156,27 +274,51 @@ class MyApp extends ConsumerWidget {
             statusBarColor: Colors.transparent,
           );
 
+    // Accessibility MediaQuery override — fusiona preferencias del usuario
+    // con el MediaQuery provisto por el sistema. Se propaga a TODA la app
+    // porque envuelve a MaterialApp.router.
+    //
+    // IMPORTANTE: este widget DEBE vivir INSIDE EasyLocalization (provisto
+    // en main()) y AROUND MaterialApp.router. Orden exigido:
+    //   EasyLocalization > ProviderScope > MediaQuery(override) > MyApp(MaterialApp.router)
+    final baseMediaQuery = MediaQuery.of(context);
+    final effectiveMediaQueryData = mergedAccessibilityMediaQueryData(
+      baseMediaQuery,
+      accessibility,
+    );
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: overlayStyle,
-      child: ScrollConfiguration(
-        behavior: _AppScrollBehavior(),
-        child: MaterialApp.router(
-          title: 'Sacdia App',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: themeMode,
-          routerConfig: router,
-          locale: const Locale('es'),
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [
-            Locale('es'),
-            Locale('en'),
-          ],
+      child: MediaQuery(
+        data: effectiveMediaQueryData,
+        child: ScrollConfiguration(
+          behavior: _AppScrollBehavior(),
+          child: MaterialApp.router(
+            title: 'Sacdia App',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.themeFor(
+              brightness: Brightness.light,
+              highContrast: accessibility.highContrast,
+              reduceMotion: accessibility.reduceMotion,
+            ),
+            darkTheme: AppTheme.themeFor(
+              brightness: Brightness.dark,
+              highContrast: accessibility.highContrast,
+              reduceMotion: accessibility.reduceMotion,
+            ),
+            themeMode: themeMode,
+            routerConfig: router,
+            locale: context.locale,
+            localizationsDelegates: context.localizationDelegates,
+            supportedLocales: context.supportedLocales,
+            // BiometricGate envuelve el árbol del router para que la pantalla
+            // de AppLock se renderee por encima de TODAS las rutas cuando
+            // biometría está habilitada y la sesión no ha sido desbloqueada
+            // en este cold start. Si está deshabilitada, es un passthrough.
+            builder: (context, child) => BiometricGate(
+              child: child ?? const SizedBox.shrink(),
+            ),
+          ),
         ),
       ),
     );

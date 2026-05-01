@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -94,19 +95,19 @@ class _ClubViewState extends ConsumerState<ClubView> {
     final result = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Cambios sin guardar'),
-        content: const Text(
-          '¿Deseas descartar los cambios realizados?',
+        title: Text('club.unsaved_changes_title'.tr()),
+        content: Text(
+          'club.discard_changes_body'.tr(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text(
-              'Descartar',
+              'club.discard'.tr(),
               style: TextStyle(color: AppColors.error),
             ),
           ),
@@ -186,7 +187,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Información del club actualizada'),
+          content: Text('club.update_success'.tr()),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
           shape:
@@ -314,7 +315,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
                   nav.maybePop();
                 }
               },
-        tooltip: 'Volver',
+        tooltip: 'common.back'.tr(),
       ),
       title: Row(
         children: [
@@ -329,7 +330,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'MI CLUB',
+                'club.my_club_title'.tr(),
                 style: TextStyle(
                   color: c.text,
                   fontSize: 18,
@@ -359,7 +360,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
             ),
             onPressed:
                 isUpdating ? null : () => setState(() => _isEditing = true),
-            tooltip: 'Editar',
+            tooltip: 'common.edit'.tr(),
           ),
         if (_isEditing)
           IconButton(
@@ -369,7 +370,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
               size: 22,
             ),
             onPressed: isUpdating ? null : _cancelEdit,
-            tooltip: 'Cancelar',
+            tooltip: 'common.cancel'.tr(),
           ),
       ],
       bottom: PreferredSize(
@@ -393,7 +394,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
           // ── Sección: Información general ─────────────────────────────
           _SectionHeader(
             icon: HugeIcons.strokeRoundedInformationCircle,
-            label: 'Información general',
+            label: 'club.section.general_info'.tr(),
           ),
           const SizedBox(height: 12),
 
@@ -401,8 +402,8 @@ class _ClubViewState extends ConsumerState<ClubView> {
           _isEditing
               ? SacTextField(
                   controller: _nameController,
-                  label: 'Nombre del club',
-                  hint: 'Ej: Club Halcones',
+                  label: 'club.name_label'.tr(),
+                  hint: 'club.name_hint'.tr(),
                   prefixIcon: HugeIcons.strokeRoundedBuilding01,
                   enabled: !isUpdating,
                   textCapitalization: TextCapitalization.sentences,
@@ -410,7 +411,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
                 )
               : _InfoRow(
                   icon: HugeIcons.strokeRoundedBuilding01,
-                  label: 'Nombre',
+                  label: 'club.name'.tr(),
                   value: section.name ?? '—',
                 ),
 
@@ -419,7 +420,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
           // Tipo de sección (solo lectura)
           _InfoRow(
             icon: HugeIcons.strokeRoundedUserGroup,
-            label: 'Tipo de club',
+            label: 'club.type_label'.tr(),
             value: section.clubTypeName,
           ),
 
@@ -428,7 +429,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
           // ── Sección: Dirección ────────────────────────────────────────
           _SectionHeader(
             icon: HugeIcons.strokeRoundedLocation01,
-            label: 'Dirección',
+            label: 'club.address'.tr(),
           ),
           const SizedBox(height: 12),
 
@@ -440,7 +441,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
                 )
               : _InfoRow(
                   icon: HugeIcons.strokeRoundedLocation01,
-                  label: 'Dirección',
+                  label: 'club.address'.tr(),
                   value: section.address ?? '—',
                   subValue: (section.lat != null && section.long != null)
                       ? '${section.lat!.toStringAsFixed(5)}, '
@@ -453,7 +454,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
           // ── Sección: Contacto ─────────────────────────────────────────
           _SectionHeader(
             icon: HugeIcons.strokeRoundedCall,
-            label: 'Contacto',
+            label: 'club.section.contact'.tr(),
           ),
           const SizedBox(height: 12),
 
@@ -461,8 +462,8 @@ class _ClubViewState extends ConsumerState<ClubView> {
           _isEditing
               ? SacTextField(
                   controller: _phoneController,
-                  label: 'Teléfono',
-                  hint: '+52 55 0000 0000',
+                  label: 'club.phone'.tr(),
+                  hint: 'club.phone_hint'.tr(),
                   prefixIcon: HugeIcons.strokeRoundedCall,
                   keyboardType: TextInputType.phone,
                   enabled: !isUpdating,
@@ -470,7 +471,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
                 )
               : _InfoRow(
                   icon: HugeIcons.strokeRoundedCall,
-                  label: 'Teléfono',
+                  label: 'club.phone'.tr(),
                   value: section.phone ?? '—',
                 ),
 
@@ -480,8 +481,8 @@ class _ClubViewState extends ConsumerState<ClubView> {
           _isEditing
               ? SacTextField(
                   controller: _emailController,
-                  label: 'Correo electrónico',
-                  hint: 'club@ejemplo.com',
+                  label: 'club.email'.tr(),
+                  hint: 'club.email_hint'.tr(),
                   prefixIcon: HugeIcons.strokeRoundedMail01,
                   keyboardType: TextInputType.emailAddress,
                   enabled: !isUpdating,
@@ -491,14 +492,14 @@ class _ClubViewState extends ConsumerState<ClubView> {
                     final emailRegex = RegExp(
                         r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$');
                     if (!emailRegex.hasMatch(value.trim())) {
-                      return 'Ingresa un correo válido';
+                      return 'club.validation.invalid_email'.tr();
                     }
                     return null;
                   },
                 )
               : _InfoRow(
                   icon: HugeIcons.strokeRoundedMail01,
-                  label: 'Correo electrónico',
+                  label: 'club.email'.tr(),
                   value: section.email ?? '—',
                 ),
 
@@ -508,8 +509,8 @@ class _ClubViewState extends ConsumerState<ClubView> {
           _isEditing
               ? SacTextField(
                   controller: _websiteController,
-                  label: 'Sitio web',
-                  hint: 'https://miclub.com',
+                  label: 'club.website'.tr(),
+                  hint: 'club.website_hint'.tr(),
                   prefixIcon: HugeIcons.strokeRoundedGlobe02,
                   keyboardType: TextInputType.url,
                   enabled: !isUpdating,
@@ -518,14 +519,14 @@ class _ClubViewState extends ConsumerState<ClubView> {
                     if (value == null || value.trim().isEmpty) return null;
                     final uri = Uri.tryParse(value.trim());
                     if (uri == null || !uri.hasScheme) {
-                      return 'Ingresa una URL válida (ej: https://...)';
+                      return 'club.validation.invalid_url'.tr();
                     }
                     return null;
                   },
                 )
               : _InfoRow(
                   icon: HugeIcons.strokeRoundedGlobe02,
-                  label: 'Sitio web',
+                  label: 'club.website'.tr(),
                   value: section.website ?? '—',
                 ),
 
@@ -535,13 +536,13 @@ class _ClubViewState extends ConsumerState<ClubView> {
           if (_isEditing) ...[
             _SectionHeader(
               icon: HugeIcons.strokeRoundedImage01,
-              label: 'Logo del club',
+              label: 'club.logo'.tr(),
             ),
             const SizedBox(height: 12),
             SacTextField(
               controller: _logoUrlController,
-              label: 'URL del logo',
-              hint: 'https://cdn.ejemplo.com/logo.png',
+              label: 'club.logo_url'.tr(),
+              hint: 'club.logo_url_hint'.tr(),
               prefixIcon: HugeIcons.strokeRoundedLink01,
               keyboardType: TextInputType.url,
               enabled: !isUpdating,
@@ -550,7 +551,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
                 if (value == null || value.trim().isEmpty) return null;
                 final uri = Uri.tryParse(value.trim());
                 if (uri == null || !uri.hasScheme) {
-                  return 'Ingresa una URL válida';
+                  return 'club.validation.invalid_url_short'.tr();
                 }
                 return null;
               },
@@ -559,7 +560,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
           ] else if (section.logoUrl != null) ...[
             _SectionHeader(
               icon: HugeIcons.strokeRoundedImage01,
-              label: 'Logo del club',
+              label: 'club.logo'.tr(),
             ),
             const SizedBox(height: 12),
             _LogoPreview(logoUrl: section.logoUrl!),
@@ -569,7 +570,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
           // ── Botón de guardar (solo en modo edición) ───────────────────
           if (_isEditing) ...[
             SacButton.primary(
-              text: 'Guardar cambios',
+              text: 'club.save_changes'.tr(),
               icon: HugeIcons.strokeRoundedTick02,
               isLoading: isUpdating,
               isEnabled: !isUpdating,
@@ -577,7 +578,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
             ),
             const SizedBox(height: 12),
             SacButton.outline(
-              text: 'Cancelar',
+              text: 'common.cancel'.tr(),
               isEnabled: !isUpdating,
               onPressed: isUpdating ? null : _cancelEdit,
             ),
@@ -733,7 +734,7 @@ class _LocationPickerField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Dirección del club',
+          'club.address_label'.tr(),
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -804,7 +805,7 @@ class _LocationPickerField extends StatelessWidget {
                           ],
                         )
                       : Text(
-                          'Seleccionar dirección en el mapa',
+                          'club.select_address_map'.tr(),
                           style: TextStyle(fontSize: 14, color: c.textTertiary),
                         ),
                 ),
@@ -886,7 +887,7 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error al cargar el club',
+              'club.load_error'.tr(),
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -901,7 +902,7 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             SacButton.primary(
-              text: 'Reintentar',
+              text: 'common.retry'.tr(),
               icon: HugeIcons.strokeRoundedRefresh,
               onPressed: onRetry,
             ),
@@ -943,7 +944,7 @@ class _EmptyBody extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              'Sin club asignado',
+              'club.no_club_assigned'.tr(),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -952,8 +953,7 @@ class _EmptyBody extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'No tienes un club asignado en tu perfil. '
-              'Completa tu registro de selección de club para acceder a esta sección.',
+              'club.no_club_description'.tr(),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: c.textSecondary, height: 1.4),
             ),

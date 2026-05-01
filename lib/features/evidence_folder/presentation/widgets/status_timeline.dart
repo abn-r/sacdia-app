@@ -1,13 +1,13 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/evidence_section.dart';
 
 /// Timeline horizontal del flujo de estados de una sección:
-/// Pendiente → Enviado → Validado → En evaluación → Evaluado.
+/// Pendiente → Enviado → Preaprobado (LF) → Validado.
 ///
 /// Muestra los pasos como círculos conectados por líneas horizontales,
 /// con etiquetas debajo de cada dot. Solo el paso activo muestra el sublabel.
@@ -15,10 +15,10 @@ class StatusTimeline extends StatelessWidget {
   final EvidenceSectionStatus currentStatus;
   final String? submittedByName;
   final DateTime? submittedAt;
-  final String? validatedByName;
-  final DateTime? validatedAt;
-  final String? evaluatedByName;
-  final DateTime? evaluatedAt;
+  final String? lfApproverName;
+  final DateTime? lfApprovedAt;
+  final String? unionApproverName;
+  final DateTime? unionApprovedAt;
   final String? evaluationNotes;
 
   const StatusTimeline({
@@ -26,97 +26,114 @@ class StatusTimeline extends StatelessWidget {
     required this.currentStatus,
     this.submittedByName,
     this.submittedAt,
-    this.validatedByName,
-    this.validatedAt,
-    this.evaluatedByName,
-    this.evaluatedAt,
+    this.lfApproverName,
+    this.lfApprovedAt,
+    this.unionApproverName,
+    this.unionApprovedAt,
     this.evaluationNotes,
   });
 
-  bool get _hasEvaluationStep =>
-      currentStatus == EvidenceSectionStatus.underEvaluation ||
-      currentStatus == EvidenceSectionStatus.evaluated ||
-      evaluatedByName != null ||
-      evaluatedAt != null;
+  bool get _hasPreapprovedStep =>
+      currentStatus == EvidenceSectionStatus.preapprovedLf ||
+      currentStatus == EvidenceSectionStatus.validated ||
+      lfApproverName != null;
 
-  bool get _isRejected => currentStatus == EvidenceSectionStatus.rechazado;
+  bool get _isRejected => currentStatus == EvidenceSectionStatus.rejected;
 
   @override
   Widget build(BuildContext context) {
-    final c = context.sac;
     final dateFormat = DateFormat('d MMM yyyy, HH:mm', 'es');
 
-    final showEvaluation = _hasEvaluationStep;
+    final showPreapproved = _hasPreapprovedStep;
 
     final steps = [
       _TimelineStep(
-        label: 'Pendiente',
-        sublabel: 'En espera de evidencias',
+        label: 'evidence_folder.status.pending'.tr(),
+        sublabel: 'evidence_folder.timeline.waiting_evidence'.tr(),
         icon: HugeIcons.strokeRoundedClock01,
         isCompleted: true,
-        isActive: currentStatus == EvidenceSectionStatus.pendiente,
+        isActive: currentStatus == EvidenceSectionStatus.pending,
         activeColor: AppColors.accent,
       ),
       _TimelineStep(
-        label: 'Enviado',
+        label: 'evidence_folder.status.submitted'.tr(),
         sublabel: submittedByName != null && submittedAt != null
-            ? 'Por $submittedByName · ${dateFormat.format(submittedAt!.toLocal())}'
+            ? 'evidence_folder.trace.sent_by'.tr(namedArgs: {
+                'name': submittedByName!,
+                'date': ' · ${dateFormat.format(submittedAt!.toLocal())}',
+              })
             : submittedByName != null
-                ? 'Por $submittedByName'
-                : 'Esperando envío',
+                ? 'evidence_folder.trace.sent_by'.tr(namedArgs: {
+                    'name': submittedByName!,
+                    'date': '',
+                  })
+                : 'evidence_folder.timeline.waiting_send'.tr(),
         icon: HugeIcons.strokeRoundedSent,
-        isCompleted: currentStatus == EvidenceSectionStatus.enviado ||
-            currentStatus == EvidenceSectionStatus.validado ||
-            currentStatus == EvidenceSectionStatus.rechazado ||
-            currentStatus == EvidenceSectionStatus.underEvaluation ||
-            currentStatus == EvidenceSectionStatus.evaluated,
-        isActive: currentStatus == EvidenceSectionStatus.enviado,
+        isCompleted: currentStatus == EvidenceSectionStatus.submitted ||
+            currentStatus == EvidenceSectionStatus.validated ||
+            currentStatus == EvidenceSectionStatus.rejected ||
+            currentStatus == EvidenceSectionStatus.preapprovedLf,
+        isActive: currentStatus == EvidenceSectionStatus.submitted,
         activeColor: AppColors.sacBlue,
       ),
       if (_isRejected)
         _TimelineStep(
-          label: 'Rechazado',
-          sublabel: validatedByName != null
-              ? 'Por $validatedByName'
-              : 'Sección rechazada',
+          label: 'evidence_folder.status.rejected'.tr(),
+          sublabel: lfApproverName != null
+              ? 'evidence_folder.trace.sent_by'.tr(namedArgs: {
+                  'name': lfApproverName!,
+                  'date': '',
+                })
+              : 'evidence_folder.timeline.rejected'.tr(),
           icon: HugeIcons.strokeRoundedCancel01,
           isCompleted: true,
           isActive: true,
           activeColor: AppColors.error,
         )
       else ...[
+        if (!_isRejected && showPreapproved) ...[
+          _TimelineStep(
+            label: 'evidence_folder.status.preapproved'.tr(),
+            sublabel: lfApproverName != null && lfApprovedAt != null
+                ? 'evidence_folder.trace.preapproved_by'.tr(namedArgs: {
+                    'name': lfApproverName!,
+                    'date': ' · ${dateFormat.format(lfApprovedAt!.toLocal())}',
+                  })
+                : lfApproverName != null
+                    ? 'evidence_folder.trace.preapproved_by'.tr(namedArgs: {
+                        'name': lfApproverName!,
+                        'date': '',
+                      })
+                    : 'evidence_folder.timeline.local_review'.tr(),
+            icon: HugeIcons.strokeRoundedAnalytics01,
+            isCompleted: currentStatus == EvidenceSectionStatus.preapprovedLf ||
+                currentStatus == EvidenceSectionStatus.validated,
+            isActive: currentStatus == EvidenceSectionStatus.preapprovedLf,
+            activeColor: AppColors.accentDark,
+          ),
+        ],
         _TimelineStep(
-          label: 'Validado',
-          sublabel: validatedByName != null && validatedAt != null
-              ? 'Por $validatedByName · ${dateFormat.format(validatedAt!.toLocal())}'
-              : validatedByName != null
-                  ? 'Por $validatedByName'
-                  : 'Esperando validación',
+          label: 'evidence_folder.status.validated'.tr(),
+          sublabel: unionApproverName != null && unionApprovedAt != null
+              ? 'evidence_folder.trace.validated_by'.tr(namedArgs: {
+                  'name': unionApproverName!,
+                  'date': ' · ${dateFormat.format(unionApprovedAt!.toLocal())}',
+                })
+              : unionApproverName != null
+                  ? 'evidence_folder.trace.validated_by'.tr(namedArgs: {
+                      'name': unionApproverName!,
+                      'date': '',
+                    })
+                  : lfApproverName != null && !showPreapproved
+                      ? 'evidence_folder.trace.validated_by'.tr(namedArgs: {
+                          'name': lfApproverName!,
+                          'date': '',
+                        })
+                      : 'evidence_folder.timeline.waiting_validation'.tr(),
           icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-          isCompleted: currentStatus == EvidenceSectionStatus.validado ||
-              currentStatus == EvidenceSectionStatus.underEvaluation ||
-              currentStatus == EvidenceSectionStatus.evaluated,
-          isActive: currentStatus == EvidenceSectionStatus.validado,
+          isCompleted: currentStatus == EvidenceSectionStatus.validated,
+          isActive: currentStatus == EvidenceSectionStatus.validated,
           activeColor: AppColors.secondary,
-        ),
-      ],
-      if (!_isRejected && showEvaluation) ...[
-        _TimelineStep(
-          label: 'En evaluación',
-          sublabel: 'Revisión de puntuación por el evaluador',
-          icon: HugeIcons.strokeRoundedAnalytics01,
-          isCompleted: currentStatus == EvidenceSectionStatus.underEvaluation ||
-              currentStatus == EvidenceSectionStatus.evaluated,
-          isActive: currentStatus == EvidenceSectionStatus.underEvaluation,
-          activeColor: const Color(0xFFF59E0B),
-        ),
-        _TimelineStep(
-          label: 'Evaluado',
-          sublabel: _buildEvaluatedSublabel(dateFormat),
-          icon: HugeIcons.strokeRoundedStar,
-          isCompleted: currentStatus == EvidenceSectionStatus.evaluated,
-          isActive: currentStatus == EvidenceSectionStatus.evaluated,
-          activeColor: AppColors.secondaryDark,
         ),
       ],
     ];
@@ -228,17 +245,6 @@ class StatusTimeline extends StatelessWidget {
         }),
       ),
     );
-  }
-
-  String _buildEvaluatedSublabel(DateFormat dateFormat) {
-    if (evaluatedByName != null && evaluatedAt != null) {
-      return 'Por $evaluatedByName · ${dateFormat.format(evaluatedAt!.toLocal())}';
-    }
-    if (evaluatedByName != null) return 'Por $evaluatedByName';
-    if (evaluatedAt != null) {
-      return 'El ${dateFormat.format(evaluatedAt!.toLocal())}';
-    }
-    return 'Evaluación completada';
   }
 }
 

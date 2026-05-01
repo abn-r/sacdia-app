@@ -1,3 +1,5 @@
+import 'package:easy_localization/easy_localization.dart';
+
 import '../../domain/entities/authorization_snapshot.dart';
 import '../../domain/entities/user_entity.dart';
 
@@ -23,7 +25,7 @@ class UserModel extends UserEntity {
     final userId = (data['user_id'] ?? data['id'])?.toString();
     if (userId == null || userId.isEmpty) {
       throw FormatException(
-          'La respuesta de la API no contiene un ID de usuario válido: $data');
+          tr('errors.invalid_user_response', namedArgs: {'data': '$data'}));
     }
 
     return UserModel(

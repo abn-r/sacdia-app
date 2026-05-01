@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -111,9 +112,19 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
     super.didUpdateWidget(oldWidget);
     // When parent rebuilds with new existing files (e.g. after provider
     // invalidation), merge them with any remaining local files.
+    //
+    // Use the same predicate as _queueFiles (status != uploaded) so that
+    // files in any in-flight state (local, uploading, completed, error) are
+    // preserved during a mid-upload parent rebuild. The previous filter
+    // (f.isLocal) only kept status == local, which caused files that had
+    // already transitioned to uploading/completed to be dropped from
+    // _allFiles the moment the notifier emitted isLoading:true and the
+    // parent rebuilt — making _queueFiles return [] and the sheet show the
+    // premature "all done" state (Bug B).
     if (oldWidget.existingFiles != widget.existingFiles) {
-      final localFiles = _allFiles.where((f) => f.isLocal).toList();
-      _allFiles = [...widget.existingFiles, ...localFiles];
+      final queueFiles =
+          _allFiles.where((f) => f.status != StagedFileStatus.uploaded).toList();
+      _allFiles = [...widget.existingFiles, ...queueFiles];
     }
   }
 
@@ -121,6 +132,14 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
 
   List<StagedFile> get _localFiles =>
       _allFiles.where((f) => f.isLocal).toList();
+
+  /// All files that are part of the current upload queue (local, uploading,
+  /// completed, or errored). Excludes already-remote (`uploaded`) files.
+  /// Used to feed the upload progress sheet so it always sees the full queue
+  /// regardless of the individual file status transitions.
+  List<StagedFile> get _queueFiles => _allFiles
+      .where((f) => f.status != StagedFileStatus.uploaded)
+      .toList();
 
   bool get _hasLocalFiles => _localFiles.isNotEmpty;
 
@@ -179,7 +198,10 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
       if (skippedCount > 0 && mounted) {
         _showErrorSnackbar(
           context, // ignore: use_build_context_synchronously
-          '$skippedCount ${skippedCount == 1 ? 'imagen excede' : 'imágenes exceden'} el límite de 10 MB y no se agregó.',
+          (skippedCount == 1
+                  ? 'core.evidence_staging.image_size_exceeded_one'
+                  : 'core.evidence_staging.image_size_exceeded_other')
+              .tr(namedArgs: {'count': '$skippedCount'}),
         );
       }
 
@@ -204,7 +226,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
       AppLogger.e('Error al seleccionar imagen', error: e);
       if (mounted) {
         // ignore: use_build_context_synchronously
-        _showErrorSnackbar(context, 'No se pudo seleccionar la imagen.');
+        _showErrorSnackbar(context, tr('core.evidence_staging.error_select_image'));
       }
     }
   }
@@ -229,7 +251,10 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
         final count = oversized.length;
         _showErrorSnackbar(
           context, // ignore: use_build_context_synchronously
-          '$count ${count == 1 ? 'PDF excede' : 'PDFs exceden'} el límite de 10 MB y no se agregó.',
+          (count == 1
+                  ? 'core.evidence_staging.pdf_size_exceeded_one'
+                  : 'core.evidence_staging.pdf_size_exceeded_other')
+              .tr(namedArgs: {'count': '$count'}),
         );
       }
 
@@ -251,7 +276,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
       AppLogger.e('Error al seleccionar PDF', error: e);
       if (mounted) {
         // ignore: use_build_context_synchronously
-        _showErrorSnackbar(context, 'No se pudo seleccionar el PDF.');
+        _showErrorSnackbar(context, tr('core.evidence_staging.error_select_pdf'));
       }
     }
   }
@@ -280,7 +305,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
     } catch (e) {
       AppLogger.e('Error al eliminar archivo', error: e);
       if (mounted) {
-        _showErrorSnackbar(context, 'No se pudo eliminar el archivo.');
+        _showErrorSnackbar(context, tr('core.evidence_staging.error_delete_file'));
       }
     }
   }
@@ -298,7 +323,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
     if (_isOverLimit) {
       _showErrorSnackbar(
         context,
-        'Tienes archivos de más. Eliminá algunos para continuar.',
+        tr('core.evidence_staging.error_over_limit'),
       );
       return;
     }
@@ -324,9 +349,14 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
     final localFiles = _localFiles;
 
     // Show the progress sheet
+    // Pass _queueFiles (not _localFiles) as initialFiles so the sheet sees all
+    // files in the queue from the start. _localFiles filters by status == local
+    // which causes files to disappear from the list as soon as they transition
+    // to uploading/completed/error — the sheet would see an empty list and
+    // prematurely show the "all done" state before uploads finish (Bug A).
     final sheetResultFuture = showUploadProgressSheet(
       context: context,
-      initialFiles: localFiles,
+      initialFiles: _queueFiles,
       uploadStream: streamController.stream,
     );
 
@@ -342,7 +372,9 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
         StagedFileStatus.uploading,
         uploadProgress: 0.0,
       );
-      streamController.add(_localFiles);
+      // Emit _queueFiles (includes uploading/completed/error) so the sheet
+      // always sees every file in the queue regardless of status transition.
+      streamController.add(_queueFiles);
 
       try {
         final xFile = XFile(
@@ -360,13 +392,13 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
               StagedFileStatus.uploading,
               uploadProgress: progress,
             );
-            streamController.add(_localFiles);
+            streamController.add(_queueFiles);
           },
         );
 
         // Success
         _updateFileStatus(file.id, StagedFileStatus.completed);
-        streamController.add(_localFiles);
+        streamController.add(_queueFiles);
       } catch (e) {
         AppLogger.e('Error uploading file: ${file.name}', error: e);
         _updateFileStatus(
@@ -374,7 +406,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
           StagedFileStatus.error,
           errorMessage: e.toString(),
         );
-        streamController.add(_localFiles);
+        streamController.add(_queueFiles);
       }
     }
 
@@ -401,7 +433,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
             // ignore: use_build_context_synchronously
             _showErrorSnackbar(
               context,
-              'No se pudo subir ningún archivo. Reintentá antes de enviar.',
+              tr('core.evidence_staging.error_upload_none'),
             );
           }
           break;
@@ -512,19 +544,29 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Enviar a validación'),
+        title: Text(tr('core.evidence_staging.submit_dialog_title')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Una vez enviado, no podrás modificar los archivos hasta recibir retroalimentación.',
+              tr('core.evidence_staging.submit_dialog_body'),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
             Text(
-              'Archivos totales: $totalFiles'
-              '${newFiles > 0 ? ' ($newFiles nuevos por subir)' : ''}',
+              newFiles > 0
+                  ? tr(
+                      'core.evidence_staging.submit_dialog_file_count_with_new',
+                      namedArgs: {
+                        'total': '$totalFiles',
+                        'new_files': '$newFiles',
+                      },
+                    )
+                  : tr(
+                      'core.evidence_staging.submit_dialog_file_count',
+                      namedArgs: {'total': '$totalFiles'},
+                    ),
               style: const TextStyle(
                 fontWeight: FontWeight.w600,
                 color: AppColors.primary,
@@ -535,14 +577,14 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text(tr('core.evidence_staging.cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.secondary,
             ),
-            child: const Text('Enviar'),
+            child: Text(tr('core.evidence_staging.submit')),
           ),
         ],
       ),
@@ -672,8 +714,8 @@ class _EmptyFiles extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             canModify
-                ? 'Aún no hay archivos. Usá los botones de abajo para agregar evidencias.'
-                : 'No hay archivos de evidencia.',
+                ? tr('core.evidence_staging.empty_can_modify')
+                : tr('core.evidence_staging.empty_read_only'),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
@@ -735,7 +777,7 @@ class _EvidenceStagingActionBar extends StatelessWidget {
             children: [
               Expanded(
                 child: SacButton.outline(
-                  text: 'Imagen',
+                  text: tr('core.evidence_staging.btn_image'),
                   icon: HugeIcons.strokeRoundedCamera01,
                   isEnabled: !isLoading,
                   onPressed: !isLoading ? onPickImages : null,
@@ -756,7 +798,7 @@ class _EvidenceStagingActionBar extends StatelessWidget {
 
           // Submit button
           SacButton.primary(
-            text: 'Enviar a validación',
+            text: tr('core.evidence_staging.btn_submit'),
             icon: HugeIcons.strokeRoundedSent,
             isEnabled: canSubmit && !isLoading,
             isLoading: isLoading,

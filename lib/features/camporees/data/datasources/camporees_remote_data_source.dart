@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/models/paginated_result.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/camporee_model.dart';
 import '../models/camporee_member_model.dart';
@@ -26,9 +28,15 @@ abstract class CamporeesRemoteDataSource {
     int? insuranceId,
   });
 
-  /// Obtiene los miembros inscritos en un camporee.
-  /// GET /api/v1/camporees/:camporeeId/members
-  Future<List<CamporeeMemberModel>> getCamporeeMembers(int camporeeId, {CancelToken? cancelToken});
+  /// Obtiene los miembros inscritos en un camporee (respuesta paginada).
+  /// GET /api/v1/camporees/:camporeeId/members?page=&limit=&status=
+  Future<PaginatedResult<CamporeeMemberModel>> getCamporeeMembers(
+    int camporeeId, {
+    int page = 1,
+    int limit = 50,
+    String? status,
+    CancelToken? cancelToken,
+  });
 
   /// Remueve un miembro de un camporee.
   /// DELETE /api/v1/camporees/:camporeeId/members/:userId
@@ -103,12 +111,12 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       if (data is Map) {
         final msg = data['message'];
         if (msg is List) return msg.join(', ');
-        return (msg ?? e.message ?? 'Error de conexion').toString();
+        return (msg ?? e.message ?? tr('common.error_network')).toString();
       }
     } catch (e) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
     }
-    return e.message ?? 'Error de conexion';
+    return e.message ?? tr('common.error_network');
   }
 
   // ── GET /api/v1/camporees ────────────────────────────────────────────────────
@@ -145,7 +153,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al obtener camporees',
+          message: tr('camporees.errors.fetch_list'),
           code: response.statusCode);
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
@@ -169,7 +177,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al obtener detalle del camporee',
+          message: tr('camporees.errors.fetch_detail'),
           code: response.statusCode);
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
@@ -207,7 +215,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al registrar miembro en el camporee',
+          message: tr('camporees.errors.register_member'),
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en registerMember', tag: _tag, error: e);
@@ -218,33 +226,74 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
   // ── GET /api/v1/camporees/:camporeeId/members ────────────────────────────────
 
   @override
-  Future<List<CamporeeMemberModel>> getCamporeeMembers(int camporeeId, {CancelToken? cancelToken}) async {
+  Future<PaginatedResult<CamporeeMemberModel>> getCamporeeMembers(
+    int camporeeId, {
+    int page = 1,
+    int limit = 50,
+    String? status,
+    CancelToken? cancelToken,
+  }) async {
     try {
+      final queryParams = <String, dynamic>{
+        'page': page,
+        'limit': limit,
+      };
+      if (status != null) queryParams['status'] = status;
+
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/members',
+        queryParameters: queryParams,
         cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = response.data;
-        List<dynamic> data;
 
-        if (responseData is Map && responseData.containsKey('data')) {
-          data = responseData['data'] as List<dynamic>;
-        } else if (responseData is List) {
-          data = responseData;
-        } else {
-          data = [];
+        // Backend now always returns { data: [...], meta: {...} }.
+        // Guard against legacy raw-array responses during transition.
+        if (responseData is Map<String, dynamic> &&
+            responseData.containsKey('data') &&
+            responseData.containsKey('meta')) {
+          return PaginatedResult.fromJson(
+            responseData,
+            CamporeeMemberModel.fromJson,
+          );
         }
 
-        return data
-            .map((json) =>
-                CamporeeMemberModel.fromJson(json as Map<String, dynamic>))
-            .toList();
+        // Fallback: raw array (should not happen post-migration).
+        if (responseData is List) {
+          AppLogger.w(
+            'getCamporeeMembers: backend returned raw array instead of '
+            'paginated object — post-migration this should not happen',
+            tag: _tag,
+          );
+          final members = responseData
+              .map((e) => CamporeeMemberModel.fromJson(e as Map<String, dynamic>))
+              .toList();
+          return PaginatedResult<CamporeeMemberModel>(
+            data: members,
+            meta: PaginationMeta(
+              page: page,
+              limit: limit,
+              total: members.length,
+              totalPages: 1,
+              hasNextPage: false,
+              hasPreviousPage: false,
+            ),
+          );
+        }
+
+        // Malformed: neither Map-with-data nor List — fail visibly.
+        throw ServerException(
+          message:
+              'getCamporeeMembers: unexpected response type '
+              '${responseData.runtimeType} — cannot parse members',
+          code: response.statusCode,
+        );
       }
 
       throw ServerException(
-          message: 'Error al obtener miembros del camporee',
+          message: tr('camporees.errors.fetch_members'),
           code: response.statusCode);
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
@@ -269,7 +318,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al remover miembro del camporee',
+          message: tr('camporees.errors.remove_member'),
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en removeMember', tag: _tag, error: e);
@@ -296,7 +345,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al inscribir club en el camporee',
+          message: tr('camporees.errors.enroll_club'),
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en enrollClub', tag: _tag, error: e);
@@ -334,7 +383,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al obtener clubes inscritos',
+          message: tr('camporees.errors.fetch_enrolled_clubs'),
           code: response.statusCode);
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
@@ -377,7 +426,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al registrar pago',
+          message: tr('camporees.errors.create_payment'),
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en createPayment', tag: _tag, error: e);
@@ -418,7 +467,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al obtener pagos del miembro',
+          message: tr('camporees.errors.fetch_member_payments'),
           code: response.statusCode);
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
@@ -457,7 +506,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al obtener pagos del camporee',
+          message: tr('camporees.errors.fetch_camporee_payments'),
           code: response.statusCode);
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
