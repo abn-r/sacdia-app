@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -47,25 +48,26 @@ class SectionRankingScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Ranking de sección',
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+            Text(
+              tr('rankings.section_ranking.title'),
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
             ),
             // Subtítulo: se sobreescribe con el yearLabel cuando está disponible.
             // Mientras carga, muestra el texto base.
             yearAsync.maybeWhen(
               data: (year) => Text(
                 year != null
-                    ? 'Registro de progreso — ${year.name}'
-                    : 'Registro de progreso',
+                    ? tr('rankings.section_ranking.subtitle_with_year',
+                        namedArgs: {'year': year.name})
+                    : tr('rankings.section_ranking.subtitle'),
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w400,
                 ),
               ),
-              orElse: () => const Text(
-                'Registro de progreso',
-                style: TextStyle(
+              orElse: () => Text(
+                tr('rankings.section_ranking.subtitle'),
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w400,
                 ),

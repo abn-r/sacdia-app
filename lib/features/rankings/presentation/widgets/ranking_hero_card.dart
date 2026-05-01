@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -31,15 +32,10 @@ class RankingHeroCard extends StatelessWidget {
   });
 
   /// Resuelve el color del tier a partir del ID de categoría.
-  /// Usa la misma función [achievementTierColor] que el resto de la app.
   Color _tierColor() {
     if (awardedCategoryTierId == null) {
-      // TODO(rankings): replace with domain tier field when AwardCategory exposes it via Task 24 entity update
       return AppColors.darkBorder;
     }
-    // Mapeamos el UUID a un tier heurístico por nombre convencional.
-    // Los UUIDs reales los maneja el backend; esta función es un fallback
-    // hasta que la capa de dominio exponga un campo `tier` en AwardCategory.
     return AppColors.accent;
   }
 
@@ -66,7 +62,7 @@ class RankingHeroCard extends StatelessWidget {
     final semanticLabel = [
       hasComposite
           ? 'Tu puntaje compuesto es ${_formatScore(compositeScore!)}'
-          : 'Ranking pendiente',
+          : tr('rankings.my_ranking.pending'),
       if (rankLine != null) 'posición $rankLine',
       if (awardedCategoryName != null) 'categoría $awardedCategoryName',
     ].join(', ');
@@ -138,7 +134,7 @@ class RankingHeroCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Puntaje compuesto',
+                            tr('rankings.my_ranking.composite_score'),
                             style: Theme.of(context)
                                 .textTheme
                                 .bodySmall
@@ -149,7 +145,7 @@ class RankingHeroCard extends StatelessWidget {
                           ),
                         ] else ...[
                           Text(
-                            'Ranking pendiente',
+                            tr('rankings.my_ranking.pending'),
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -164,7 +160,7 @@ class RankingHeroCard extends StatelessWidget {
                           const SizedBox(height: 8),
                           Text(
                             '$rankLine'
-                            '${sectionName != null ? ' · Sección: $sectionName' : ''}',
+                            '${sectionName != null ? ' · ${tr('rankings.my_ranking.section_label', namedArgs: {'name': sectionName!})}' : ''}',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
