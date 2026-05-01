@@ -209,8 +209,8 @@ class _UnlockOverlayState extends State<_UnlockOverlay>
                       decoration: BoxDecoration(
                         color: tierColor.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                            color: tierColor.withValues(alpha: 0.5)),
+                        border:
+                            Border.all(color: tierColor.withValues(alpha: 0.5)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -252,7 +252,8 @@ class _UnlockOverlayState extends State<_UnlockOverlay>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.bolt, size: 14, color: AppColors.accent),
+                        const Icon(Icons.bolt,
+                            size: 14, color: AppColors.accent),
                         const SizedBox(width: 4),
                         Text(
                           '${widget.achievement.points} puntos',
@@ -320,7 +321,8 @@ class _ParticlePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     for (int i = 0; i < _particleCount; i++) {
-      final angle = (i / _particleCount) * 2 * math.pi + math.pi / _particleCount;
+      final angle =
+          (i / _particleCount) * 2 * math.pi + math.pi / _particleCount;
       final radius = maxRadius * progress * 0.7;
       final particleSize = 4.0 * (1.0 - progress);
 

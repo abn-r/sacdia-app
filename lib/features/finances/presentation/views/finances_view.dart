@@ -39,9 +39,8 @@ class FinancesView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: context.sac.background,
-      floatingActionButton: showFab
-          ? _AddFab(onTap: () => _openAddSheet(context, ref))
-          : null,
+      floatingActionButton:
+          showFab ? _AddFab(onTap: () => _openAddSheet(context, ref)) : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: SafeArea(
         child: RefreshIndicator(
@@ -204,8 +203,7 @@ class _FinanceBody extends ConsumerWidget {
       grouped.putIfAbsent(dateKey, () => []).add(tx);
     }
 
-    final sortedDates = grouped.keys.toList()
-      ..sort((a, b) => b.compareTo(a));
+    final sortedDates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
     final widgets = <Widget>[];
     var globalIndex = 0;
 
@@ -214,8 +212,7 @@ class _FinanceBody extends ConsumerWidget {
       final dailyTotal = dayTransactions.fold<double>(
         0,
         (sum, tx) =>
-            sum +
-            (tx.type == TransactionType.income ? tx.amount : -tx.amount),
+            sum + (tx.type == TransactionType.income ? tx.amount : -tx.amount),
       );
 
       widgets.add(DateGroupHeader(date: date, dailyTotal: dailyTotal));
@@ -250,8 +247,8 @@ class _FinanceBody extends ConsumerWidget {
   void _openFullTransactionList(BuildContext context) {
     // Pass the currently selected month so AllTransactionsView seeds its
     // date range filter to that month on first open.
-    final selected = ProviderScope.containerOf(context)
-        .read(selectedMonthProvider);
+    final selected =
+        ProviderScope.containerOf(context).read(selectedMonthProvider);
     Navigator.of(context).push(
       SacSharedAxisRoute(
         builder: (_) => AllTransactionsView(initialMonth: selected),
@@ -267,35 +264,35 @@ class _EmptyTransactions extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-      padding: const EdgeInsets.all(40),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedMoneyReceive01,
-            size: 56,
-            color: context.sac.textTertiary,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'finances.view.empty_title'.tr(),
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: context.sac.textSecondary,
-                ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'finances.view.empty_subtitle'.tr(),
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: context.sac.textTertiary,
-                ),
-          ),
-        ],
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedMoneyReceive01,
+              size: 56,
+              color: context.sac.textTertiary,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'finances.view.empty_title'.tr(),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: context.sac.textSecondary,
+                  ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'finances.view.empty_subtitle'.tr(),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: context.sac.textTertiary,
+                  ),
+            ),
+          ],
+        ),
       ),
-    ),
     );
   }
 }

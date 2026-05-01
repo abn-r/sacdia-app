@@ -20,8 +20,7 @@ final cacheRepositoryProvider = Provider<CacheRepository>((ref) {
 /// Invalidate this provider (via `ref.invalidate(cacheInfoProvider)`) to
 /// force a re-scan — used after clearing the cache or after a successful
 /// force-sync so the UI picks up the new "hace X min" value.
-final cacheInfoProvider =
-    FutureProvider.autoDispose<CacheInfo>((ref) async {
+final cacheInfoProvider = FutureProvider.autoDispose<CacheInfo>((ref) async {
   final repo = ref.watch(cacheRepositoryProvider);
   return repo.getCacheInfo();
 });
@@ -34,7 +33,8 @@ class SyncControllerState {
   final bool inProgress;
   final SyncResult? lastResult;
 
-  const SyncControllerState({required this.inProgress, required this.lastResult});
+  const SyncControllerState(
+      {required this.inProgress, required this.lastResult});
 
   const SyncControllerState.idle()
       : inProgress = false,

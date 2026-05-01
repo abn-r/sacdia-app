@@ -52,8 +52,7 @@ class CreateInsurance {
 
   const CreateInsurance(this._repository);
 
-  Future<Either<Failure, MemberInsurance>> call(
-      CreateInsuranceParams params) {
+  Future<Either<Failure, MemberInsurance>> call(CreateInsuranceParams params) {
     return _repository.createInsurance(
       memberId: params.memberId,
       insuranceType: params.insuranceType,

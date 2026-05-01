@@ -51,5 +51,6 @@ class AchievementCategoryModel extends Equatable {
   }
 
   @override
-  List<Object?> get props => [categoryId, name, description, icon, displayOrder];
+  List<Object?> get props =>
+      [categoryId, name, description, icon, displayOrder];
 }

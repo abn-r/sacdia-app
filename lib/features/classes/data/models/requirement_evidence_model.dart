@@ -24,16 +24,16 @@ class RequirementEvidenceModel extends RequirementEvidence {
       type: evidenceFileTypeFromString(
         json['file_type'] ?? json['type'] ?? '',
       ),
-      uploadedByName: (json['uploaded_by_name'] ??
-              json['uploadedByName'] ??
-              'Desconocido')
-          .toString(),
+      uploadedByName:
+          (json['uploaded_by_name'] ?? json['uploadedByName'] ?? 'Desconocido')
+              .toString(),
       uploadedAt: () {
         final raw = json['uploaded_at'] ?? json['uploadedAt'];
         if (raw != null) {
           final parsed = DateTime.tryParse(raw.toString());
           if (parsed == null) {
-            AppLogger.w('Failed to parse date: $raw, using DateTime.now()', tag: _tag);
+            AppLogger.w('Failed to parse date: $raw, using DateTime.now()',
+                tag: _tag);
           }
           return parsed ?? DateTime.now();
         }

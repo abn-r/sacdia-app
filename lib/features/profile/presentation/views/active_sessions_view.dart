@@ -75,11 +75,9 @@ class _ActiveSessionsViewState extends ConsumerState<ActiveSessionsView> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor:
-            isError ? AppColors.error : AppColors.secondary,
+        backgroundColor: isError ? AppColors.error : AppColors.secondary,
         behavior: SnackBarBehavior.floating,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -112,7 +110,8 @@ class _ActiveSessionsViewState extends ConsumerState<ActiveSessionsView> {
       barrierColor: context.sac.barrierColor,
       barrierDismissible: true,
       builder: (ctx) => AlertDialog(
-        title: Text('profile.active_sessions.ui.dialog_close_others_title'.tr()),
+        title:
+            Text('profile.active_sessions.ui.dialog_close_others_title'.tr()),
         content: Text(
           otherCount == 1
               ? 'profile.active_sessions.ui.dialog_close_others_body_one'
@@ -130,7 +129,8 @@ class _ActiveSessionsViewState extends ConsumerState<ActiveSessionsView> {
               backgroundColor: AppColors.error,
             ),
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('profile.active_sessions.ui.action_close_sessions'.tr()),
+            child:
+                Text('profile.active_sessions.ui.action_close_sessions'.tr()),
           ),
         ],
       ),
@@ -147,16 +147,16 @@ class _ActiveSessionsViewState extends ConsumerState<ActiveSessionsView> {
     );
     if (!mounted) return;
     if (!bioOk) {
-      _showSnackBar('profile.active_sessions.ui.operation_cancelled'.tr(), isError: true);
+      _showSnackBar('profile.active_sessions.ui.operation_cancelled'.tr(),
+          isError: true);
       return;
     }
 
     HapticFeedback.mediumImpact();
     setState(() => _revokingAll = true);
 
-    final result = await ref
-        .read(activeSessionsProvider.notifier)
-        .revokeAllOthers();
+    final result =
+        await ref.read(activeSessionsProvider.notifier).revokeAllOthers();
 
     if (!mounted) return;
     setState(() => _revokingAll = false);
@@ -168,7 +168,8 @@ class _ActiveSessionsViewState extends ConsumerState<ActiveSessionsView> {
       _showSnackBar(
         n == 1
             ? 'profile.active_sessions.ui.revoked_all_one'.tr()
-            : 'profile.active_sessions.ui.revoked_all_other'.tr(namedArgs: {'count': '$n'}),
+            : 'profile.active_sessions.ui.revoked_all_other'
+                .tr(namedArgs: {'count': '$n'}),
       );
     }
   }
@@ -191,8 +192,7 @@ class _ActiveSessionsViewState extends ConsumerState<ActiveSessionsView> {
         loading: () => const _LoadingState(),
         error: (error, _) => _ErrorState(
           message: error.toString().replaceFirst('Exception: ', ''),
-          onRetry: () =>
-              ref.read(activeSessionsProvider.notifier).refresh(),
+          onRetry: () => ref.read(activeSessionsProvider.notifier).refresh(),
         ),
         data: (sessions) => sessions.isEmpty
             ? const _EmptyState()
@@ -364,7 +364,8 @@ class _SessionList extends StatelessWidget {
                 onPressed: isRevokingAll ? null : onRevokeAll,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.error,
-                  side: BorderSide(color: AppColors.error.withValues(alpha: 0.6)),
+                  side:
+                      BorderSide(color: AppColors.error.withValues(alpha: 0.6)),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -427,8 +428,7 @@ class _SessionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final icon = _iconForDeviceType(session.deviceType);
-    final iconColor =
-        session.isCurrent ? AppColors.secondary : c.textSecondary;
+    final iconColor = session.isCurrent ? AppColors.secondary : c.textSecondary;
     final iconBg = iconColor.withValues(alpha: 0.12);
 
     return Padding(
@@ -480,7 +480,8 @@ class _SessionCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 1),
                 Text(
-                  'profile.active_sessions.ui.last_used'.tr(namedArgs: {'time': _relativeTime(session.lastActiveAt)}),
+                  'profile.active_sessions.ui.last_used'.tr(
+                      namedArgs: {'time': _relativeTime(session.lastActiveAt)}),
                   style: TextStyle(fontSize: 11, color: c.textTertiary),
                 ),
               ],
@@ -491,8 +492,7 @@ class _SessionCard extends StatelessWidget {
           // Trailing: badge "Activa" o botón de revocar
           if (session.isCurrent)
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: AppColors.secondary.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(6),

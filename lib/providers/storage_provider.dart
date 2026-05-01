@@ -5,7 +5,8 @@ import '../core/storage/secure_storage.dart';
 
 /// Provider para la instancia de SharedPreferences
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
-  throw UnimplementedError('sharedPreferencesProvider debe ser anulado durante la inicialización');
+  throw UnimplementedError(
+      'sharedPreferencesProvider debe ser anulado durante la inicialización');
 });
 
 /// Provider para el almacenamiento local

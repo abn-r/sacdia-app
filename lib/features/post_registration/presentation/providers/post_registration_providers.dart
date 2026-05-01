@@ -25,13 +25,14 @@ final postRegistrationRepositoryProvider =
 });
 
 /// Provider para el estado de completitud del post-registro
-final completionStatusProvider =
-    AsyncNotifierProvider.autoDispose<CompletionStatusNotifier, CompletionStatus?>(() {
+final completionStatusProvider = AsyncNotifierProvider.autoDispose<
+    CompletionStatusNotifier, CompletionStatus?>(() {
   return CompletionStatusNotifier();
 });
 
 /// Notifier para el estado de completitud del post-registro
-class CompletionStatusNotifier extends AutoDisposeAsyncNotifier<CompletionStatus?> {
+class CompletionStatusNotifier
+    extends AutoDisposeAsyncNotifier<CompletionStatus?> {
   @override
   Future<CompletionStatus?> build() async {
     final cancelToken = CancelToken();
@@ -48,8 +49,9 @@ class CompletionStatusNotifier extends AutoDisposeAsyncNotifier<CompletionStatus
   /// Recargar el estado de completitud
   Future<void> refresh() async {
     state = const AsyncValue.loading();
-    final result =
-        await ref.read(postRegistrationRepositoryProvider).getCompletionStatus();
+    final result = await ref
+        .read(postRegistrationRepositoryProvider)
+        .getCompletionStatus();
     state = result.fold(
       (failure) => AsyncValue.error(failure.message, StackTrace.current),
       (status) => AsyncValue.data(status),
@@ -61,7 +63,9 @@ class CompletionStatusNotifier extends AutoDisposeAsyncNotifier<CompletionStatus
 final currentStepProvider = StateProvider.autoDispose<int>((ref) => 1);
 
 /// Provider para la foto de perfil temporal (path local)
-final selectedPhotoPathProvider = StateProvider.autoDispose<String?>((ref) => null);
+final selectedPhotoPathProvider =
+    StateProvider.autoDispose<String?>((ref) => null);
 
 /// Provider para indicar si se está subiendo la foto
-final isUploadingPhotoProvider = StateProvider.autoDispose<bool>((ref) => false);
+final isUploadingPhotoProvider =
+    StateProvider.autoDispose<bool>((ref) => false);

@@ -30,7 +30,10 @@ class UpcomingActivitiesCard extends StatelessWidget {
           // Header
           Row(
             children: [
-              HugeIcon(icon: HugeIcons.strokeRoundedCalendar01, size: 20, color: AppColors.primary),
+              HugeIcon(
+                  icon: HugeIcons.strokeRoundedCalendar01,
+                  size: 20,
+                  color: AppColors.primary),
               const SizedBox(width: 8),
               Text(
                 tr('dashboard.activities.title'),

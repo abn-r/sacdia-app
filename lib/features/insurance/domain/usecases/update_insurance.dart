@@ -52,8 +52,7 @@ class UpdateInsurance {
 
   const UpdateInsurance(this._repository);
 
-  Future<Either<Failure, MemberInsurance>> call(
-      UpdateInsuranceParams params) {
+  Future<Either<Failure, MemberInsurance>> call(UpdateInsuranceParams params) {
     return _repository.updateInsurance(
       insuranceId: params.insuranceId,
       insuranceType: params.insuranceType,

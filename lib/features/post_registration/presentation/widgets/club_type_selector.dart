@@ -92,9 +92,8 @@ class ClubTypeSelector extends ConsumerWidget {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: isSelected
-                            ? AppColors.primary
-                            : context.sac.border,
+                        color:
+                            isSelected ? AppColors.primary : context.sac.border,
                         width: isSelected ? 2 : 1,
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -220,8 +219,7 @@ class ClubTypeSelector extends ConsumerWidget {
     if (age == null) return false;
 
     if (section.clubTypeSlug == 'adventurers' ||
-        (section.clubTypeName?.toLowerCase().contains('aventurero') ??
-            false)) {
+        (section.clubTypeName?.toLowerCase().contains('aventurero') ?? false)) {
       return age >= 4 && age <= 9;
     } else if (section.clubTypeSlug == 'pathfinders' ||
         (section.clubTypeName?.toLowerCase().contains('conquistador') ??

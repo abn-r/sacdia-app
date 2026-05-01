@@ -22,9 +22,11 @@ class ClubRepositoryImpl implements ClubRepository {
   // ── getClub ───────────────────────────────────────────────────────────────
 
   @override
-  Future<Either<Failure, ClubInfo>> getClub(String clubId, {CancelToken? cancelToken}) async {
+  Future<Either<Failure, ClubInfo>> getClub(String clubId,
+      {CancelToken? cancelToken}) async {
     try {
-      final model = await _remoteDataSource.getClub(clubId, cancelToken: cancelToken);
+      final model =
+          await _remoteDataSource.getClub(clubId, cancelToken: cancelToken);
       return Right(model);
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;

@@ -110,7 +110,8 @@ class StagedFileGrid extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         title: Text(tr('core.evidence_staging.delete_dialog_title')),
         content: Text(
-          tr('core.evidence_staging.delete_dialog_body', namedArgs: {'name': file.name}),
+          tr('core.evidence_staging.delete_dialog_body',
+              namedArgs: {'name': file.name}),
         ),
         actions: [
           TextButton(
@@ -262,8 +263,7 @@ class _StagedFileCell extends StatelessWidget {
               top: 4,
               right: 4,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: isExcess ? AppColors.error : AppColors.secondary,
                   borderRadius: BorderRadius.circular(8),
@@ -276,7 +276,9 @@ class _StagedFileCell extends StatelessWidget {
                   ],
                 ),
                 child: Text(
-                  isExcess ? tr('core.evidence_staging.badge_extra') : tr('core.evidence_staging.badge_new'),
+                  isExcess
+                      ? tr('core.evidence_staging.badge_extra')
+                      : tr('core.evidence_staging.badge_new'),
                   style: const TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.w700,
@@ -427,9 +429,11 @@ class _StagedFileCell extends StatelessWidget {
   void _openViewer(BuildContext context) {
     if (file.isRemote && file.remoteUrl != null) {
       if (file.isImage) {
-        SacImageViewer.show(context, imageUrl: file.remoteUrl!, title: file.name);
+        SacImageViewer.show(context,
+            imageUrl: file.remoteUrl!, title: file.name);
       } else if (file.isPdf) {
-        SacPdfViewer.show(context, pdfSource: file.remoteUrl!, title: file.name);
+        SacPdfViewer.show(context,
+            pdfSource: file.remoteUrl!, title: file.name);
       }
     } else if (file.isLocal && file.localPath != null && file.isImage) {
       // Local images: full-screen preview with InteractiveViewer
@@ -440,7 +444,8 @@ class _StagedFileCell extends StatelessWidget {
             appBar: AppBar(
               backgroundColor: Colors.transparent,
               iconTheme: const IconThemeData(color: Colors.white),
-              title: Text(file.name, style: const TextStyle(color: Colors.white)),
+              title:
+                  Text(file.name, style: const TextStyle(color: Colors.white)),
             ),
             body: Center(
               child: InteractiveViewer(

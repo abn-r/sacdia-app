@@ -43,24 +43,28 @@ class InvestiturePendingModel extends Equatable {
     // El backend anida los datos del usuario dentro de un objeto 'user'
     // y los datos de la clase dentro de 'progressive_class' o 'class'.
     final user = json['user'] as Map<String, dynamic>?;
-    final classData = (json['progressive_class'] ?? json['class']) as Map<String, dynamic>?;
+    final classData =
+        (json['progressive_class'] ?? json['class']) as Map<String, dynamic>?;
     final club = json['club'] as Map<String, dynamic>?;
 
     return InvestiturePendingModel(
       enrollmentId: (json['enrollment_id'] ?? json['id']) as int,
       status: InvestitureStatus.fromString(
-        (json['investiture_status'] ?? json['status'] ?? 'IN_PROGRESS') as String,
+        (json['investiture_status'] ?? json['status'] ?? 'IN_PROGRESS')
+            as String,
       ),
       submittedAt: json['submitted_at'] != null
           ? DateTime.tryParse(json['submitted_at'] as String)
           : null,
       comments: json['comments'] as String?,
-      userId: (user?['user_id'] ?? user?['id'] ?? json['user_id'] ?? '') as String,
+      userId:
+          (user?['user_id'] ?? user?['id'] ?? json['user_id'] ?? '') as String,
       userName: (user?['name'] ?? json['user_name'] ?? '') as String,
       userLastName: (user?['last_name'] ?? json['user_last_name']) as String?,
       userEmail: (user?['email'] ?? json['user_email']) as String?,
       userPhotoUrl: (user?['photo_url'] ?? json['user_photo_url']) as String?,
-      classId: (classData?['class_id'] ?? classData?['id'] ?? json['class_id']) as int?,
+      classId: (classData?['class_id'] ?? classData?['id'] ?? json['class_id'])
+          as int?,
       className: (classData?['name'] ?? json['class_name']) as String?,
       clubId: (club?['club_id'] ?? club?['id'] ?? json['club_id']) as int?,
       clubName: (club?['name'] ?? json['club_name']) as String?,

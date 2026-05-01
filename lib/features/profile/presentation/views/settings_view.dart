@@ -60,9 +60,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
   /// Llama PATCH /users/me/notification-preferences con el delta.
   /// Revierte automáticamente si el backend falla y muestra snackbar de error.
   Future<void> _saveNotifPref(Map<String, bool> delta) async {
-    final error = await ref
-        .read(notificationPreferencesProvider.notifier)
-        .patch(delta);
+    final error =
+        await ref.read(notificationPreferencesProvider.notifier).patch(delta);
 
     if (error != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -70,7 +69,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           content: Text(error),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
     }
@@ -138,8 +138,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                         ),
                         onPressed: isLoading
                             ? null
-                            : () => setDialogState(
-                                () => newObscure = !newObscure),
+                            : () =>
+                                setDialogState(() => newObscure = !newObscure),
                       ),
                     ),
                   ),
@@ -170,16 +170,15 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     const SizedBox(height: 10),
                     Text(
                       errorText!,
-                      style: const TextStyle(
-                          color: AppColors.error, fontSize: 13),
+                      style:
+                          const TextStyle(color: AppColors.error, fontSize: 13),
                     ),
                   ],
                 ],
               ),
               actions: [
                 TextButton(
-                  onPressed:
-                      isLoading ? null : () => Navigator.pop(ctx, false),
+                  onPressed: isLoading ? null : () => Navigator.pop(ctx, false),
                   child: Text('common.cancel'.tr()),
                 ),
                 FilledButton(
@@ -193,18 +192,20 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                           if (current.isEmpty ||
                               next.isEmpty ||
                               confirm.isEmpty) {
-                            setDialogState(() =>
-                                errorText = 'profile.settings.error_fill_all'.tr());
+                            setDialogState(() => errorText =
+                                'profile.settings.error_fill_all'.tr());
                             return;
                           }
                           if (next != confirm) {
                             setDialogState(() => errorText =
-                                'profile.settings.error_passwords_mismatch'.tr());
+                                'profile.settings.error_passwords_mismatch'
+                                    .tr());
                             return;
                           }
                           if (next.length < 8) {
                             setDialogState(() => errorText =
-                                'profile.settings.error_password_too_short'.tr());
+                                'profile.settings.error_password_too_short'
+                                    .tr());
                             return;
                           }
                           setDialogState(() {
@@ -255,16 +256,14 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           content: Text('profile.settings.operation_cancelled'.tr()),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
       return;
     }
 
-    final error = await ref
-        .read(authNotifierProvider.notifier)
-        .updatePassword(
+    final error = await ref.read(authNotifierProvider.notifier).updatePassword(
           currentPassword: currentCtrl.text.trim(),
           newPassword: newCtrl.text.trim(),
         );
@@ -279,8 +278,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
         content: Text(error ?? 'profile.settings.password_updated'.tr()),
         backgroundColor: error != null ? AppColors.error : AppColors.success,
         behavior: SnackBarBehavior.floating,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -427,16 +425,14 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 const SizedBox(height: 8),
                 Text(
                   fieldError!,
-                  style:
-                      const TextStyle(color: AppColors.error, fontSize: 13),
+                  style: const TextStyle(color: AppColors.error, fontSize: 13),
                 ),
               ],
             ],
           ),
           actions: [
             TextButton(
-              onPressed:
-                  isLoading ? null : () => Navigator.pop(ctx, false),
+              onPressed: isLoading ? null : () => Navigator.pop(ctx, false),
               child: Text('common.cancel'.tr()),
             ),
             FilledButton(
@@ -447,13 +443,15 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   ? null
                   : () {
                       if (confirmCtrl.text.trim() != 'ELIMINAR') {
-                        setDialogState(() =>
-                            fieldError = 'profile.settings.delete_account_error_type_wrong'.tr());
+                        setDialogState(() => fieldError =
+                            'profile.settings.delete_account_error_type_wrong'
+                                .tr());
                         return;
                       }
                       if (passwordCtrl.text.trim().isEmpty) {
-                        setDialogState(
-                            () => fieldError = 'profile.settings.delete_account_error_no_password'.tr());
+                        setDialogState(() => fieldError =
+                            'profile.settings.delete_account_error_no_password'
+                                .tr());
                         return;
                       }
                       setDialogState(() {
@@ -508,9 +506,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
       );
     }
 
-    final error = await ref
-        .read(authNotifierProvider.notifier)
-        .deleteAccount(password);
+    final error =
+        await ref.read(authNotifierProvider.notifier).deleteAccount(password);
 
     if (!mounted) return;
 
@@ -934,6 +931,7 @@ class _SwitchTile extends StatelessWidget {
   final Color? iconColor;
   final bool value;
   final bool indent;
+
   /// null = toggle deshabilitado (usado cuando master=false).
   final ValueChanged<bool>? onChanged;
 
@@ -1061,9 +1059,21 @@ class _ThemePickerDialog extends StatelessWidget {
     final c = context.sac;
 
     final options = [
-      (ThemeMode.light, 'profile.settings.theme_light'.tr(), HugeIcons.strokeRoundedSun01),
-      (ThemeMode.dark, 'profile.settings.theme_dark'.tr(), HugeIcons.strokeRoundedMoon01),
-      (ThemeMode.system, 'profile.settings.theme_system'.tr(), HugeIcons.strokeRoundedSmartPhone01),
+      (
+        ThemeMode.light,
+        'profile.settings.theme_light'.tr(),
+        HugeIcons.strokeRoundedSun01
+      ),
+      (
+        ThemeMode.dark,
+        'profile.settings.theme_dark'.tr(),
+        HugeIcons.strokeRoundedMoon01
+      ),
+      (
+        ThemeMode.system,
+        'profile.settings.theme_system'.tr(),
+        HugeIcons.strokeRoundedSmartPhone01
+      ),
     ];
 
     return Dialog(

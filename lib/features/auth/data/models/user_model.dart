@@ -108,8 +108,10 @@ class UserModel extends UserEntity {
 
     // club_type_name may sit at the top level of the grant object or nested
     // inside the section object, depending on the backend serializer version.
-    final rawClubTypeName = value['club_type_name']
-        ?? (sectionData is Map<String, dynamic> ? sectionData['club_type_name'] : null);
+    final rawClubTypeName = value['club_type_name'] ??
+        (sectionData is Map<String, dynamic>
+            ? sectionData['club_type_name']
+            : null);
 
     return AuthorizationGrant(
       assignmentId: value['assignment_id']?.toString(),

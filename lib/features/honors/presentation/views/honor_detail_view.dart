@@ -84,7 +84,8 @@ class HonorDetailView extends ConsumerWidget {
           final honor = honors.firstWhere((h) => h.id == honorId);
           return _HonorDetailContent(honor: honor, honorId: honorId);
         } catch (_) {
-          return _ErrorScaffold(onRetry: () => ref.invalidate(allHonorsProvider));
+          return _ErrorScaffold(
+              onRetry: () => ref.invalidate(allHonorsProvider));
         }
       },
       loading: () => const _LoadingScaffold(),
@@ -195,7 +196,9 @@ class _HonorDetailContent extends ConsumerWidget {
     final isEnrolled = userHonor != null;
 
     // After enrollment, refresh providers so UI switches to enrolled state
-    if (!userHonorsLoading && enrollAsync.hasValue && enrollAsync.value != null) {
+    if (!userHonorsLoading &&
+        enrollAsync.hasValue &&
+        enrollAsync.value != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) {
           ref.invalidate(userHonorsProvider);
@@ -440,7 +443,8 @@ class _HeroSectionState extends State<_HeroSection>
                           child: LinearProgressIndicator(
                             value: _progressValue.value * progressPercent,
                             minHeight: 4,
-                            backgroundColor: Colors.white.withValues(alpha: 0.25),
+                            backgroundColor:
+                                Colors.white.withValues(alpha: 0.25),
                             valueColor: const AlwaysStoppedAnimation<Color>(
                               Colors.white,
                             ),
@@ -458,7 +462,8 @@ class _HeroSectionState extends State<_HeroSection>
                         if (widget.honor.skillLevel != null)
                           _FrostedPill(
                               label: _skillLevelLabel(widget.honor.skillLevel)),
-                        _FrostedPill(label: _approvalLabel(widget.honor.approval)),
+                        _FrostedPill(
+                            label: _approvalLabel(widget.honor.approval)),
                       ],
                     ),
                   ],
@@ -787,7 +792,6 @@ class _StaggeredCardsState extends State<_StaggeredCards>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: _kSectionGap),
-
         _animated(
           0,
           _JourneyPreviewCard(
@@ -796,7 +800,6 @@ class _StaggeredCardsState extends State<_StaggeredCards>
             categoryColor: widget.categoryColor,
           ),
         ),
-
         if (widget.honor.description != null &&
             widget.honor.description!.isNotEmpty) ...[
           const SizedBox(height: 16),
@@ -805,13 +808,11 @@ class _StaggeredCardsState extends State<_StaggeredCards>
             _DescriptionSection(description: widget.honor.description),
           ),
         ],
-
         const SizedBox(height: 16),
         _animated(
           2,
           _JourneyStepperPath(categoryColor: widget.categoryColor),
         ),
-
         const SizedBox(height: 120),
       ],
     );
@@ -855,8 +856,8 @@ class _JourneyPreviewCard extends ConsumerWidget {
             icon: HugeIcons.strokeRoundedStar,
             iconColor: categoryColor,
             label: honor.skillLevel != null
-                ? 'honors.detail.skill_level_with'
-                    .tr(namedArgs: {'level': _skillLevelLabel(honor.skillLevel)})
+                ? 'honors.detail.skill_level_with'.tr(
+                    namedArgs: {'level': _skillLevelLabel(honor.skillLevel)})
                 : 'honors.detail.skill_level_general'.tr(),
           ),
           if (honor.materialUrl != null && honor.materialUrl!.isNotEmpty) ...[
@@ -1129,7 +1130,8 @@ class _StepItem extends StatelessWidget {
                       width: 2,
                       margin: const EdgeInsets.symmetric(vertical: 4),
                       child: CustomPaint(
-                        painter: _DottedLinePainter(color: categoryColor.withValues(alpha: 0.35)),
+                        painter: _DottedLinePainter(
+                            color: categoryColor.withValues(alpha: 0.35)),
                       ),
                     ),
                   ),
@@ -1188,7 +1190,8 @@ class _DottedLinePainter extends CustomPainter {
     const gapHeight = 4.0;
     double y = 0;
     while (y < size.height) {
-      canvas.drawLine(Offset(0, y), Offset(0, math.min(y + dotHeight, size.height)), paint);
+      canvas.drawLine(
+          Offset(0, y), Offset(0, math.min(y + dotHeight, size.height)), paint);
       y += dotHeight + gapHeight;
     }
   }
@@ -1318,7 +1321,8 @@ class _RequirementsPreviewCard extends ConsumerWidget {
       data: (progressList) {
         // Show first 4 requirements
         final preview = progressList.take(4).toList();
-        final remaining = (progressList.length - preview.length).clamp(0, progressList.length);
+        final remaining = (progressList.length - preview.length)
+            .clamp(0, progressList.length);
 
         return _ShadowCard(
           child: Column(
@@ -1726,7 +1730,7 @@ class _MaterialDownloadCardState extends State<_MaterialDownloadCard> {
                   Icons.download_rounded,
                   color: widget.categoryColor,
                   size: 20,
-                ),              
+                ),
             ],
           ),
         ),
@@ -1970,7 +1974,8 @@ class _EnrolledCtaButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.hourglass_top_rounded, size: 16, color: AppColors.sacYellow),
+            const Icon(Icons.hourglass_top_rounded,
+                size: 16, color: AppColors.sacYellow),
             const SizedBox(width: 8),
             Text(
               'honors.detail.under_review_cta'.tr(),
@@ -1999,7 +2004,8 @@ class _EnrolledCtaButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.check_circle_rounded, size: 18, color: AppColors.sacGreen),
+            const Icon(Icons.check_circle_rounded,
+                size: 18, color: AppColors.sacGreen),
             const SizedBox(width: 8),
             Text(
               'honors.detail.completed_cta'.tr(),
@@ -2034,7 +2040,9 @@ class _EnrolledCtaButton extends StatelessWidget {
         width: double.infinity,
         height: 48,
         decoration: BoxDecoration(
-          color: hasEvidence ? categoryColor : categoryColor.withValues(alpha: 0.55),
+          color: hasEvidence
+              ? categoryColor
+              : categoryColor.withValues(alpha: 0.55),
           borderRadius: BorderRadius.circular(14),
           boxShadow: hasEvidence
               ? [

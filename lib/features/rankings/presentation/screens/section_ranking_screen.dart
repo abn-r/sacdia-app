@@ -17,7 +17,8 @@ import '../widgets/ranking_skeleton.dart';
 
 bool _canViewSectionRanking(String? role) {
   if (role == null) return false;
-  return ClubRoleNames.sectionRankingViewers.contains(role.trim().toLowerCase());
+  return ClubRoleNames.sectionRankingViewers
+      .contains(role.trim().toLowerCase());
 }
 
 // ── Screen ────────────────────────────────────────────────────────────────────

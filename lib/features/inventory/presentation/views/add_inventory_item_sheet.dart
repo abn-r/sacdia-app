@@ -26,8 +26,7 @@ class AddInventoryItemSheet extends ConsumerStatefulWidget {
       _AddInventoryItemSheetState();
 }
 
-class _AddInventoryItemSheetState
-    extends ConsumerState<AddInventoryItemSheet> {
+class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
@@ -202,8 +201,9 @@ class _AddInventoryItemSheetState
                               .toList(),
                           onChanged: (cat) =>
                               setState(() => _selectedCategory = cat),
-                          validator: (v) =>
-                              v == null ? 'inventory.form.category_required'.tr() : null,
+                          validator: (v) => v == null
+                              ? 'inventory.form.category_required'.tr()
+                              : null,
                         );
                       },
                     ),
@@ -295,8 +295,7 @@ class _AddInventoryItemSheetState
                     const SizedBox(height: 6),
                     _DatePickerField(
                       selectedDate: _purchaseDate,
-                      onDateSelected: (d) =>
-                          setState(() => _purchaseDate = d),
+                      onDateSelected: (d) => setState(() => _purchaseDate = d),
                       onClear: () => setState(() => _purchaseDate = null),
                     ),
 
@@ -306,8 +305,8 @@ class _AddInventoryItemSheetState
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _valueController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
                             RegExp(r'^\d+\.?\d{0,2}')),
@@ -446,33 +445,32 @@ class _AddInventoryItemSheetState
         ? double.tryParse(_valueController.text)
         : null;
 
-    final success = await ref
-        .read(inventoryItemFormNotifierProvider.notifier)
-        .save(
-          clubId: clubId,
-          name: _nameController.text.trim(),
-          categoryId: _selectedCategory!.id,
-          quantity: quantity,
-          condition: _condition,
-          description: _descController.text.trim().isEmpty
-              ? null
-              : _descController.text.trim(),
-          serialNumber: _serialController.text.trim().isEmpty
-              ? null
-              : _serialController.text.trim(),
-          purchaseDate: _purchaseDate,
-          estimatedValue: value,
-          location: _locationController.text.trim().isEmpty
-              ? null
-              : _locationController.text.trim(),
-          assignedTo: _assignedToController.text.trim().isEmpty
-              ? null
-              : _assignedToController.text.trim(),
-          notes: _notesController.text.trim().isEmpty
-              ? null
-              : _notesController.text.trim(),
-          existingId: _isEditing ? widget.existing!.id : null,
-        );
+    final success =
+        await ref.read(inventoryItemFormNotifierProvider.notifier).save(
+              clubId: clubId,
+              name: _nameController.text.trim(),
+              categoryId: _selectedCategory!.id,
+              quantity: quantity,
+              condition: _condition,
+              description: _descController.text.trim().isEmpty
+                  ? null
+                  : _descController.text.trim(),
+              serialNumber: _serialController.text.trim().isEmpty
+                  ? null
+                  : _serialController.text.trim(),
+              purchaseDate: _purchaseDate,
+              estimatedValue: value,
+              location: _locationController.text.trim().isEmpty
+                  ? null
+                  : _locationController.text.trim(),
+              assignedTo: _assignedToController.text.trim().isEmpty
+                  ? null
+                  : _assignedToController.text.trim(),
+              notes: _notesController.text.trim().isEmpty
+                  ? null
+                  : _notesController.text.trim(),
+              existingId: _isEditing ? widget.existing!.id : null,
+            );
 
     if (success && mounted) {
       ref.read(inventoryItemFormNotifierProvider.notifier).reset();
@@ -519,8 +517,7 @@ class _AddInventoryItemSheetState
         borderRadius: BorderRadius.circular(AppTheme.radiusSM),
         borderSide: const BorderSide(color: AppColors.error, width: 2),
       ),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
     );
   }
 }
@@ -617,8 +614,7 @@ class _ConditionSelector extends StatelessWidget {
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   border: Border.all(
-                    color:
-                        isSelected ? color : Theme.of(context).dividerColor,
+                    color: isSelected ? color : Theme.of(context).dividerColor,
                     width: isSelected ? 2 : 1,
                   ),
                 ),
@@ -643,9 +639,7 @@ class _ConditionSelector extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: isSelected
-                              ? color
-                              : context.sac.textSecondary,
+                          color: isSelected ? color : context.sac.textSecondary,
                         ),
                       ),
                     ],

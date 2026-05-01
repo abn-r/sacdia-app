@@ -374,8 +374,9 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
     final soulsText = _soulsCtrl.text.trim();
     final soulsTarget = soulsText.isNotEmpty ? int.tryParse(soulsText) : null;
     final feeAmountText = _feeAmountCtrl.text.trim();
-    final feeAmount =
-        _fee && feeAmountText.isNotEmpty ? double.tryParse(feeAmountText) : null;
+    final feeAmount = _fee && feeAmountText.isNotEmpty
+        ? double.tryParse(feeAmountText)
+        : null;
 
     bool success;
 
@@ -395,9 +396,8 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
         deputyDirectorIds: _deputyDirectorIds,
         secretaryId: _useSecretaryTreasurer ? null : _secretaryId,
         treasurerId: _useSecretaryTreasurer ? null : _treasurerId,
-        secretaryTreasurerId: widget.hasSecretaryTreasurerRole
-            ? _secretaryTreasurerId
-            : null,
+        secretaryTreasurerId:
+            widget.hasSecretaryTreasurerRole ? _secretaryTreasurerId : null,
       );
     } else {
       success = await notifier.create(
@@ -414,9 +414,8 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
         deputyDirectorIds: _deputyDirectorIds,
         secretaryId: _useSecretaryTreasurer ? null : _secretaryId,
         treasurerId: _useSecretaryTreasurer ? null : _treasurerId,
-        secretaryTreasurerId: widget.hasSecretaryTreasurerRole
-            ? _secretaryTreasurerId
-            : null,
+        secretaryTreasurerId:
+            widget.hasSecretaryTreasurerRole ? _secretaryTreasurerId : null,
       );
     }
 
@@ -430,7 +429,8 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
               : 'enrollment.form.success_created'.tr()),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
       Navigator.of(context).pop(true);
@@ -462,11 +462,13 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
 
     // El director es el usuario actual con rol director (display-only)
     final directorMember = currentUserCtx?.isDirector == true
-        ? members.where((m) =>
-            m.clubRole?.toLowerCase().contains('director') == true &&
-            !m.clubRole!.toLowerCase().contains('sub') &&
-            !m.clubRole!.toLowerCase().contains('vice') &&
-            !m.clubRole!.toLowerCase().contains('deputy')).firstOrNull
+        ? members
+            .where((m) =>
+                m.clubRole?.toLowerCase().contains('director') == true &&
+                !m.clubRole!.toLowerCase().contains('sub') &&
+                !m.clubRole!.toLowerCase().contains('vice') &&
+                !m.clubRole!.toLowerCase().contains('deputy'))
+            .firstOrNull
         : null;
 
     return Scaffold(
@@ -475,7 +477,9 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
         backgroundColor: c.background,
         surfaceTintColor: Colors.transparent,
         title: Text(
-          _isEdit ? 'enrollment.form.title_edit'.tr() : 'enrollment.form.title_create'.tr(),
+          _isEdit
+              ? 'enrollment.form.title_edit'.tr()
+              : 'enrollment.form.title_create'.tr(),
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 18,
@@ -489,7 +493,8 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
             color: c.text,
             size: 22,
           ),
-          onPressed: formState.isLoading ? null : () => Navigator.of(context).pop(),
+          onPressed:
+              formState.isLoading ? null : () => Navigator.of(context).pop(),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
@@ -545,9 +550,7 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
                   time: time,
                   enabled: !formState.isLoading,
                   onTapDay: () => _toggleDay(day),
-                  onTapTime: isSelected
-                      ? () => _pickTimeForDay(day)
-                      : null,
+                  onTapTime: isSelected ? () => _pickTimeForDay(day) : null,
                 );
               }).toList(),
             ),
@@ -713,9 +716,7 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
                 onChanged: (id) => setState(() => _secretaryId = id),
                 onClear: () => setState(() => _secretaryId = null),
               ),
-
               const SizedBox(height: 20),
-
               _FieldLabel(label: 'enrollment.form.label_treasurer'.tr()),
               const SizedBox(height: 8),
               _SingleMemberSelector(
@@ -727,27 +728,26 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
                 onChanged: (id) => setState(() => _treasurerId = id),
                 onClear: () => setState(() => _treasurerId = null),
               ),
-
               const SizedBox(height: 20),
             ],
 
             // Selector de Secretario-Tesorero (visible solo cuando está activo el toggle)
             if (widget.hasSecretaryTreasurerRole &&
                 _secretaryTreasurerId != null) ...[
-              _FieldLabel(label: 'enrollment.form.label_secretary_treasurer'.tr()),
+              _FieldLabel(
+                  label: 'enrollment.form.label_secretary_treasurer'.tr()),
               const SizedBox(height: 8),
               _SingleMemberSelector(
                 selectedId: _secretaryTreasurerId!.isEmpty
                     ? null
                     : _secretaryTreasurerId,
                 members: members,
-                placeholder: 'enrollment.form.placeholder_secretary_treasurer'.tr(),
+                placeholder:
+                    'enrollment.form.placeholder_secretary_treasurer'.tr(),
                 emptyMessage: 'enrollment.form.empty_members'.tr(),
                 enabled: !formState.isLoading && members.isNotEmpty,
-                onChanged: (id) =>
-                    setState(() => _secretaryTreasurerId = id),
-                onClear: () =>
-                    setState(() => _secretaryTreasurerId = ''),
+                onChanged: (id) => setState(() => _secretaryTreasurerId = id),
+                onClear: () => setState(() => _secretaryTreasurerId = ''),
               ),
               const SizedBox(height: 20),
             ],
@@ -785,7 +785,9 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
 
             // ── Submit ───────────────────────────────────────────────────
             SacButton.primary(
-              text: _isEdit ? 'enrollment.form.button_save_changes'.tr() : 'enrollment.form.button_enroll'.tr(),
+              text: _isEdit
+                  ? 'enrollment.form.button_save_changes'.tr()
+                  : 'enrollment.form.button_enroll'.tr(),
               icon: _isEdit
                   ? HugeIcons.strokeRoundedCheckmarkCircle02
                   : HugeIcons.strokeRoundedUserAdd01,
@@ -825,8 +827,7 @@ class _EnrollmentFormViewState extends ConsumerState<EnrollmentFormView> {
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
       ),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 }
@@ -887,8 +888,7 @@ class _FieldLabel extends StatelessWidget {
         if (badge != null) ...[
           const SizedBox(width: 6),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
@@ -1066,8 +1066,7 @@ class _DayScheduleChip extends StatelessWidget {
           GestureDetector(
             onTap: enabled ? onTapDay : null,
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1099,8 +1098,7 @@ class _DayScheduleChip extends StatelessWidget {
           GestureDetector(
             onTap: enabled ? onTapTime : null,
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1240,7 +1238,8 @@ class _ReadOnlyMemberField extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        member!.clubRole ?? 'enrollment.form.role_director'.tr(),
+                        member!.clubRole ??
+                            'enrollment.form.role_director'.tr(),
                         style: TextStyle(
                           fontSize: 12,
                           color: c.textSecondary,
@@ -1295,10 +1294,9 @@ class _SingleMemberSelector extends StatelessWidget {
     this.onClear,
   });
 
-  ClubMember? get _selected =>
-      selectedId != null
-          ? members.where((m) => m.userId == selectedId).firstOrNull
-          : null;
+  ClubMember? get _selected => selectedId != null
+      ? members.where((m) => m.userId == selectedId).firstOrNull
+      : null;
 
   @override
   Widget build(BuildContext context) {
@@ -1614,8 +1612,7 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
 
           // Header
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1688,8 +1685,8 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                   borderSide:
                       const BorderSide(color: AppColors.primary, width: 1.5),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 10),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               ),
             ),
           ),

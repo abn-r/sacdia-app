@@ -158,9 +158,8 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
       }
       if (code == 409) {
         throw ServerException(
-          message: msg.isNotEmpty
-              ? msg
-              : 'El recurso no está en el estado correcto',
+          message:
+              msg.isNotEmpty ? msg : 'El recurso no está en el estado correcto',
           code: code,
         );
       }
@@ -174,7 +173,8 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network'))
+            .toString();
       }
     } catch (_) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag);
@@ -200,8 +200,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
         .toList();
   }
 
-  bool _isOk(int? code) =>
-      code == 200 || code == 201 || code == 204;
+  bool _isOk(int? code) => code == 200 || code == 201 || code == 204;
 
   // ── GET /admin/analytics/sla-dashboard ──────────────────────────────────────
 

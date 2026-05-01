@@ -159,12 +159,9 @@ Future<void> _initializeFirebaseExtras() async {
   const tag = 'FirebaseExtras';
   try {
     await FirebaseAppCheck.instance.activate(
-      androidProvider: kDebugMode
-          ? AndroidProvider.debug
-          : AndroidProvider.playIntegrity,
-      appleProvider: kDebugMode
-          ? AppleProvider.debug
-          : AppleProvider.appAttest,
+      androidProvider:
+          kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
+      appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.appAttest,
     );
     if (kDebugMode) AppLogger.i('FirebaseAppCheck activado', tag: tag);
   } catch (e) {
@@ -211,9 +208,11 @@ class _AppScrollBehavior extends ScrollBehavior {
     switch (defaultTargetPlatform) {
       case TargetPlatform.iOS:
       case TargetPlatform.macOS:
-        return const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
+        return const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics());
       default:
-        return const ClampingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
+        return const ClampingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics());
     }
   }
 }

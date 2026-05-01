@@ -15,7 +15,8 @@ class SlaStatModel extends Equatable {
   factory SlaStatModel.fromJson(Map<String, dynamic> json) {
     return SlaStatModel(
       pending: (json['pending'] as num?)?.toInt() ?? 0,
-      avgDays: ((json['avgDays'] ?? json['avg_days']) as num?)?.toDouble() ?? 0.0,
+      avgDays:
+          ((json['avgDays'] ?? json['avg_days']) as num?)?.toDouble() ?? 0.0,
       overdue: (json['overdue'] as num?)?.toInt() ?? 0,
     );
   }
@@ -108,16 +109,15 @@ class SlaDashboardModel extends Equatable {
     final throughputRaw = json['throughput'];
     final throughput = throughputRaw is List
         ? throughputRaw
-            .map((e) =>
-                ThroughputPointModel.fromJson(e as Map<String, dynamic>))
+            .map(
+                (e) => ThroughputPointModel.fromJson(e as Map<String, dynamic>))
             .toList()
         : <ThroughputPointModel>[];
 
     final pipelineRaw = json['pipeline'];
     final pipeline = pipelineRaw is List
         ? pipelineRaw
-            .map(
-                (e) => PipelineStageModel.fromJson(e as Map<String, dynamic>))
+            .map((e) => PipelineStageModel.fromJson(e as Map<String, dynamic>))
             .toList()
         : <PipelineStageModel>[];
 

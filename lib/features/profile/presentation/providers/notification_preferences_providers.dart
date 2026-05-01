@@ -25,8 +25,7 @@ final notificationPreferencesDataSourceProvider =
 final notificationPreferencesRepositoryProvider =
     Provider<NotificationPreferencesRepository>((ref) {
   final networkInfo = ref.read(networkInfoProvider);
-  final remoteDataSource =
-      ref.read(notificationPreferencesDataSourceProvider);
+  final remoteDataSource = ref.read(notificationPreferencesDataSourceProvider);
 
   return NotificationPreferencesRepositoryImpl(
     remoteDataSource: remoteDataSource,
@@ -80,7 +79,8 @@ class NotificationPreferencesNotifier
   /// Retorna null en éxito o un mensaje de error localizado.
   Future<String?> patch(Map<String, bool> delta) async {
     final previous = state.valueOrNull;
-    if (previous == null) return 'profile.notification_preferences.errors.no_prefs_loaded'.tr();
+    if (previous == null)
+      return 'profile.notification_preferences.errors.no_prefs_loaded'.tr();
 
     // Optimistic update — aplicar delta localmente de forma inmediata.
     final optimistic = _applyDelta(previous, delta);

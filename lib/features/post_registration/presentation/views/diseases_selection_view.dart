@@ -46,14 +46,12 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
 
     if (confirmed == true && context.mounted) {
       try {
-        await ref
-            .read(userDiseasesProvider.notifier)
-            .deleteDisease(diseaseId);
+        await ref.read(userDiseasesProvider.notifier).deleteDisease(diseaseId);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                  'post_registration.health.diseases.delete_success'.tr()),
+              content:
+                  Text('post_registration.health.diseases.delete_success'.tr()),
               backgroundColor: AppColors.secondary,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -109,17 +107,13 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
         actions: [
           IconButton(
             icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 24),
-            onPressed: () =>
-                ref.read(userDiseasesProvider.notifier).refresh(),
-            tooltip:
-                'post_registration.health.diseases.refresh_tooltip'.tr(),
+            onPressed: () => ref.read(userDiseasesProvider.notifier).refresh(),
+            tooltip: 'post_registration.health.diseases.refresh_tooltip'.tr(),
           ),
           TextButton.icon(
             onPressed: () async {
               final ids = ref.read(selectedDiseasesProvider);
-              await ref
-                  .read(userDiseasesProvider.notifier)
-                  .saveAll(ids);
+              await ref.read(userDiseasesProvider.notifier).saveAll(ids);
               if (context.mounted) Navigator.of(context).pop();
             },
             icon: const HugeIcon(

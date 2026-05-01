@@ -73,11 +73,10 @@ class InventoryItemDetailView extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     item.name,
-                    style:
-                        Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: context.sac.text,
-                            ),
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: context.sac.text,
+                        ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -103,8 +102,7 @@ class InventoryItemDetailView extends ConsumerWidget {
               ),
             ),
 
-            if (item.description != null &&
-                item.description!.isNotEmpty) ...[
+            if (item.description != null && item.description!.isNotEmpty) ...[
               const SizedBox(height: 16),
               Text(
                 item.description!,
@@ -125,8 +123,7 @@ class InventoryItemDetailView extends ConsumerWidget {
                   label: 'inventory.detail.quantity'.tr(),
                   value: item.quantity.toString(),
                 ),
-                if (item.serialNumber != null &&
-                    item.serialNumber!.isNotEmpty)
+                if (item.serialNumber != null && item.serialNumber!.isNotEmpty)
                   _InfoRow(
                     icon: HugeIcons.strokeRoundedTag01,
                     label: 'inventory.detail.serial_number'.tr(),
@@ -159,8 +156,7 @@ class InventoryItemDetailView extends ConsumerWidget {
                       label: 'inventory.detail.location'.tr(),
                       value: item.location!,
                     ),
-                  if (item.assignedTo != null &&
-                      item.assignedTo!.isNotEmpty)
+                  if (item.assignedTo != null && item.assignedTo!.isNotEmpty)
                     _InfoRow(
                       icon: HugeIcons.strokeRoundedUser,
                       label: 'inventory.detail.assigned_to'.tr(),
@@ -225,8 +221,8 @@ class InventoryItemDetailView extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('inventory.detail.delete_title'.tr()),
-        content: Text('inventory.detail.delete_confirm'.tr(
-            namedArgs: {'name': item.name})),
+        content: Text('inventory.detail.delete_confirm'
+            .tr(namedArgs: {'name': item.name})),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),

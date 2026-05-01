@@ -319,8 +319,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     }
   }
 
-  Future<void> _deleteEvidenceFile(
-      UserHonor userHonor, String imageUrl) async {
+  Future<void> _deleteEvidenceFile(UserHonor userHonor, String imageUrl) async {
     final userId = ref.read(authNotifierProvider).value?.id;
     if (userId == null) return;
 
@@ -575,7 +574,9 @@ class _HeroSection extends StatelessWidget {
 
               // Honor name
               Text(
-                honor?.name ?? userHonor.honorName ?? 'honors.evidence.honor_fallback'.tr(),
+                honor?.name ??
+                    userHonor.honorName ??
+                    'honors.evidence.honor_fallback'.tr(),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -959,7 +960,8 @@ class _EmptyEvidenceState extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.add_rounded, color: Colors.white, size: 18),
+                    const Icon(Icons.add_rounded,
+                        color: Colors.white, size: 18),
                     const SizedBox(width: 6),
                     Text(
                       'honors.evidence.add_button'.tr(),

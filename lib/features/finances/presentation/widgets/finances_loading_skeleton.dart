@@ -200,8 +200,7 @@ class _FinancesLoadingSkeletonState extends State<FinancesLoadingSkeleton>
                     child: _SkeletonBox(
                       width: 42,
                       height: 30,
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(20)),
+                      borderRadius: const BorderRadius.all(Radius.circular(20)),
                       shimmerValue: sv,
                     ),
                   ),

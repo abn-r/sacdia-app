@@ -49,12 +49,10 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
 
     return Padding(
       padding: EdgeInsets.only(
-        left: isLeft
-            ? RoadmapTokens.nodePadInside
-            : RoadmapTokens.nodePadOutside,
-        right: isLeft
-            ? RoadmapTokens.nodePadOutside
-            : RoadmapTokens.nodePadInside,
+        left:
+            isLeft ? RoadmapTokens.nodePadInside : RoadmapTokens.nodePadOutside,
+        right:
+            isLeft ? RoadmapTokens.nodePadOutside : RoadmapTokens.nodePadInside,
         bottom: RoadmapTokens.nodeRowGap,
       ),
       child: Align(
@@ -105,8 +103,7 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
                                 borderRadius: BorderRadius.circular(50),
                                 boxShadow: [
                                   BoxShadow(
-                                    color:
-                                        Colors.black.withValues(alpha: 0.22),
+                                    color: Colors.black.withValues(alpha: 0.22),
                                     blurRadius: 10,
                                     spreadRadius: 0,
                                   ),
@@ -118,10 +115,26 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
                           ColorFiltered(
                             colorFilter: isLocked
                                 ? const ColorFilter.matrix(<double>[
-                                    0.33, 0.33, 0.33, 0, 0,
-                                    0.33, 0.33, 0.33, 0, 0,
-                                    0.33, 0.33, 0.33, 0, 0,
-                                    0, 0, 0, .55, 0,
+                                    0.33,
+                                    0.33,
+                                    0.33,
+                                    0,
+                                    0,
+                                    0.33,
+                                    0.33,
+                                    0.33,
+                                    0,
+                                    0,
+                                    0.33,
+                                    0.33,
+                                    0.33,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    .55,
+                                    0,
                                   ])
                                 : const ColorFilter.mode(
                                     Colors.transparent, BlendMode.dst),
@@ -165,8 +178,8 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
                                 decoration: BoxDecoration(
                                   color: RoadmapTokens.statusDone,
                                   shape: BoxShape.circle,
-                                  border: Border.all(
-                                      color: Colors.white, width: 3),
+                                  border:
+                                      Border.all(color: Colors.white, width: 3),
                                   boxShadow: [
                                     BoxShadow(
                                       color:

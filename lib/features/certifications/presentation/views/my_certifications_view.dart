@@ -67,11 +67,11 @@ class MyCertificationsView extends ConsumerWidget {
             // Dividir en activas y completadas
             final active = userCertifications
                 .where((uc) =>
-                    uc.completionStatus.toLowerCase() != 'completed' && uc.active)
+                    uc.completionStatus.toLowerCase() != 'completed' &&
+                    uc.active)
                 .toList();
             final completed = userCertifications
-                .where((uc) =>
-                    uc.completionStatus.toLowerCase() == 'completed')
+                .where((uc) => uc.completionStatus.toLowerCase() == 'completed')
                 .toList();
 
             return RefreshIndicator(
@@ -108,8 +108,7 @@ class MyCertificationsView extends ConsumerWidget {
                   // Stats
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: hPad),
+                      padding: EdgeInsets.symmetric(horizontal: hPad),
                       child: Row(
                         children: [
                           _StatMini(
@@ -142,13 +141,11 @@ class MyCertificationsView extends ConsumerWidget {
                         padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 10),
                         child: Text(
                           'certifications.my.section_active'.tr(),
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: c.textSecondary,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: c.textSecondary,
+                                  ),
                         ),
                       ),
                     ),
@@ -164,7 +161,8 @@ class MyCertificationsView extends ConsumerWidget {
                               userCertification: uc,
                               hPad: hPad,
                               onTap: () => _navigateToProgress(context, uc),
-                              onUnenroll: () => _confirmUnenroll(context, ref, uc),
+                              onUnenroll: () =>
+                                  _confirmUnenroll(context, ref, uc),
                             ),
                           );
                         },
@@ -180,13 +178,11 @@ class MyCertificationsView extends ConsumerWidget {
                         padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 10),
                         child: Text(
                           'certifications.my.section_completed'.tr(),
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: c.textSecondary,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: c.textSecondary,
+                                  ),
                         ),
                       ),
                     ),
@@ -202,7 +198,8 @@ class MyCertificationsView extends ConsumerWidget {
                               userCertification: uc,
                               hPad: hPad,
                               onTap: () => _navigateToProgress(context, uc),
-                              onUnenroll: null, // no se desinscribe de completadas
+                              onUnenroll:
+                                  null, // no se desinscribe de completadas
                             ),
                           );
                         },
@@ -303,7 +300,8 @@ class MyCertificationsView extends ConsumerWidget {
 
     try {
       await ref
-          .read(certificationEnrollmentNotifierProvider(uc.certificationId).notifier)
+          .read(certificationEnrollmentNotifierProvider(uc.certificationId)
+              .notifier)
           .unenroll();
       ref.invalidate(userCertificationsProvider);
 
@@ -402,7 +400,8 @@ class _UserCertificationCard extends StatelessWidget {
                           ? HugeIcons.strokeRoundedCheckmarkCircle01
                           : HugeIcons.strokeRoundedCertificate01,
                       size: 22,
-                      color: isComplete ? AppColors.secondary : AppColors.primary,
+                      color:
+                          isComplete ? AppColors.secondary : AppColors.primary,
                     ),
                   ),
                 ),
@@ -413,10 +412,7 @@ class _UserCertificationCard extends StatelessWidget {
                     children: [
                       Text(
                         uc.certificationName,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleSmall
-                            ?.copyWith(
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w700,
                               color: c.text,
                             ),

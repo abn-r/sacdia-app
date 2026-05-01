@@ -65,7 +65,9 @@ class BottomNavigationButtons extends StatelessWidget {
                 Expanded(
                   flex: showBack ? 3 : 1,
                   child: SacButton.primary(
-                    text: isLastStep ? tr('post_registration.navigation.finish') : tr('post_registration.navigation.next'),
+                    text: isLastStep
+                        ? tr('post_registration.navigation.finish')
+                        : tr('post_registration.navigation.next'),
                     isLoading: isLoading,
                     isEnabled: canContinue,
                     onPressed: canContinue ? onContinue : null,

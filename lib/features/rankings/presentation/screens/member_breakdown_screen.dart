@@ -48,8 +48,7 @@ class MemberBreakdownScreen extends ConsumerWidget {
         loading: () => RankingSkeleton.myRanking(),
         error: (_, __) => RankingEmptyState(
           reason: RankingEmptyReason.networkError,
-          onRetry: () =>
-              ref.invalidate(memberBreakdownProvider(params)),
+          onRetry: () => ref.invalidate(memberBreakdownProvider(params)),
         ),
       ),
     );
@@ -256,17 +255,19 @@ class _BreakdownHero extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           tr('rankings.breakdown.composite_score'),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.white.withValues(alpha: 0.6),
-                                fontSize: 12,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.6),
+                                    fontSize: 12,
+                                  ),
                         ),
                       ] else
                         Text(
                           tr('rankings.my_ranking.pending'),
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.white.withValues(alpha: 0.6),
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.6),
+                                  ),
                         ),
                     ],
                   ),
@@ -365,14 +366,12 @@ class _SignalDetailCard extends StatelessWidget {
                   children: [
                     Text(
                       scoreLabel,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
-                          ?.copyWith(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: hasScore ? c.text : c.textTertiary,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: hasScore ? c.text : c.textTertiary,
+                              ),
                     ),
                     Text(
                       tr('rankings.breakdown.weight_pct',

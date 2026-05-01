@@ -23,8 +23,7 @@ final coordinatorRemoteDataSourceProvider =
 });
 
 /// Provider para el repositorio del coordinador.
-final coordinatorRepositoryProvider =
-    Provider<CoordinatorRepository>((ref) {
+final coordinatorRepositoryProvider = Provider<CoordinatorRepository>((ref) {
   return CoordinatorRepositoryImpl(
     remoteDataSource: ref.read(coordinatorRemoteDataSourceProvider),
     networkInfo: ref.read(networkInfoProvider),
@@ -56,8 +55,7 @@ final evidenceTypeFilterProvider =
 ///
 /// Family por [EvidenceReviewType?] — null significa todos los tipos.
 final pendingEvidenceProvider = FutureProvider.autoDispose
-    .family<List<EvidenceReviewItem>, EvidenceReviewType?>(
-        (ref, type) async {
+    .family<List<EvidenceReviewItem>, EvidenceReviewType?>((ref, type) async {
   final repository = ref.read(coordinatorRepositoryProvider);
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
@@ -152,9 +150,7 @@ class EvidenceReviewNotifier
   Future<bool> reject({required String rejectionReason}) async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result = await ref
-        .read(coordinatorRepositoryProvider)
-        .rejectEvidence(
+    final result = await ref.read(coordinatorRepositoryProvider).rejectEvidence(
           type: arg.type,
           id: arg.id,
           rejectionReason: rejectionReason,
@@ -233,8 +229,7 @@ typedef CamporeePendingKey = ({int camporeeId, CamporeeScope scope});
 /// Family por [CamporeePendingKey] — incluye el id y el scope (local/union).
 /// Devuelve el envelope completo { clubs, members, payments }.
 final camporeePendingProvider = FutureProvider.autoDispose
-    .family<CamporeePendingApprovals, CamporeePendingKey>(
-        (ref, key) async {
+    .family<CamporeePendingApprovals, CamporeePendingKey>((ref, key) async {
   final repository = ref.read(coordinatorRepositoryProvider);
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
@@ -303,13 +298,12 @@ class CamporeeClubApprovalNotifier extends AutoDisposeFamilyNotifier<
   Future<bool> approve() async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result = await ref
-        .read(coordinatorRepositoryProvider)
-        .approveCamporeeClub(
-          camporeeId: arg.camporeeId,
-          camporeeClubId: arg.camporeeClubId,
-          scope: arg.scope,
-        );
+    final result =
+        await ref.read(coordinatorRepositoryProvider).approveCamporeeClub(
+              camporeeId: arg.camporeeId,
+              camporeeClubId: arg.camporeeClubId,
+              scope: arg.scope,
+            );
 
     return result.fold(
       (failure) {
@@ -327,14 +321,13 @@ class CamporeeClubApprovalNotifier extends AutoDisposeFamilyNotifier<
   Future<bool> reject({String? rejectionReason}) async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result = await ref
-        .read(coordinatorRepositoryProvider)
-        .rejectCamporeeClub(
-          camporeeId: arg.camporeeId,
-          camporeeClubId: arg.camporeeClubId,
-          scope: arg.scope,
-          rejectionReason: rejectionReason,
-        );
+    final result =
+        await ref.read(coordinatorRepositoryProvider).rejectCamporeeClub(
+              camporeeId: arg.camporeeId,
+              camporeeClubId: arg.camporeeClubId,
+              scope: arg.scope,
+              rejectionReason: rejectionReason,
+            );
 
     return result.fold(
       (failure) {
@@ -384,13 +377,12 @@ class CamporeeMemberApprovalNotifier extends AutoDisposeFamilyNotifier<
   Future<bool> approve() async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result = await ref
-        .read(coordinatorRepositoryProvider)
-        .approveCamporeeMember(
-          camporeeId: arg.camporeeId,
-          camporeeMemberId: arg.camporeeMemberId,
-          scope: arg.scope,
-        );
+    final result =
+        await ref.read(coordinatorRepositoryProvider).approveCamporeeMember(
+              camporeeId: arg.camporeeId,
+              camporeeMemberId: arg.camporeeMemberId,
+              scope: arg.scope,
+            );
 
     return result.fold(
       (failure) {
@@ -408,14 +400,13 @@ class CamporeeMemberApprovalNotifier extends AutoDisposeFamilyNotifier<
   Future<bool> reject({String? rejectionReason}) async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result = await ref
-        .read(coordinatorRepositoryProvider)
-        .rejectCamporeeMember(
-          camporeeId: arg.camporeeId,
-          camporeeMemberId: arg.camporeeMemberId,
-          scope: arg.scope,
-          rejectionReason: rejectionReason,
-        );
+    final result =
+        await ref.read(coordinatorRepositoryProvider).rejectCamporeeMember(
+              camporeeId: arg.camporeeId,
+              camporeeMemberId: arg.camporeeMemberId,
+              scope: arg.scope,
+              rejectionReason: rejectionReason,
+            );
 
     return result.fold(
       (failure) {
@@ -466,11 +457,10 @@ class CamporeePaymentApprovalNotifier extends AutoDisposeFamilyNotifier<
   Future<bool> approve() async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result = await ref
-        .read(coordinatorRepositoryProvider)
-        .approveCamporeePayment(
-          camporeePaymentId: arg.camporeePaymentId,
-        );
+    final result =
+        await ref.read(coordinatorRepositoryProvider).approveCamporeePayment(
+              camporeePaymentId: arg.camporeePaymentId,
+            );
 
     return result.fold(
       (failure) {
@@ -488,12 +478,11 @@ class CamporeePaymentApprovalNotifier extends AutoDisposeFamilyNotifier<
   Future<bool> reject({String? rejectionReason}) async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result = await ref
-        .read(coordinatorRepositoryProvider)
-        .rejectCamporeePayment(
-          camporeePaymentId: arg.camporeePaymentId,
-          rejectionReason: rejectionReason,
-        );
+    final result =
+        await ref.read(coordinatorRepositoryProvider).rejectCamporeePayment(
+              camporeePaymentId: arg.camporeePaymentId,
+              rejectionReason: rejectionReason,
+            );
 
     return result.fold(
       (failure) {

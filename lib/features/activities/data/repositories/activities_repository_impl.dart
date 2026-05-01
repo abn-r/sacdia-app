@@ -33,7 +33,8 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
         clubTypeId: clubTypeId,
         cancelToken: cancelToken,
       );
-      final activities = activityModels.map((model) => model.toEntity()).toList();
+      final activities =
+          activityModels.map((model) => model.toEntity()).toList();
       return Right(activities);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
@@ -74,7 +75,8 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
         activityId,
         cancelToken: cancelToken,
       );
-      final attendances = attendanceModels.map((model) => model.toEntity()).toList();
+      final attendances =
+          attendanceModels.map((model) => model.toEntity()).toList();
       return Right(attendances);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
@@ -191,7 +193,8 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
     File imageFile,
   ) async {
     try {
-      final url = await remoteDataSource.uploadActivityImage(activityId, imageFile);
+      final url =
+          await remoteDataSource.uploadActivityImage(activityId, imageFile);
       return Right(url);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));

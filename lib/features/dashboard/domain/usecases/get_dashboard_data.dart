@@ -13,7 +13,8 @@ class GetDashboardSummary implements UseCase<DashboardSummary, NoParams> {
   GetDashboardSummary(this.repository);
 
   @override
-  Future<Either<Failure, DashboardSummary>> call(NoParams params, {CancelToken? cancelToken}) async {
+  Future<Either<Failure, DashboardSummary>> call(NoParams params,
+      {CancelToken? cancelToken}) async {
     return await repository.getDashboardSummary(cancelToken: cancelToken);
   }
 }

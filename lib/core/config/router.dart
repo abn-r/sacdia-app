@@ -165,8 +165,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         // bootstrap briefly enters AsyncLoading → router refreshes.
         // Staying put (return null) is safe: the bootstrap will resolve quickly
         // and fire another router.refresh() that re-evaluates correctly.
-        final isAlreadyInsideApp = !isPublicRoute &&
-            currentPath != RouteNames.splash;
+        final isAlreadyInsideApp =
+            !isPublicRoute && currentPath != RouteNames.splash;
 
         // Still validating permissions → stay on splash (first boot only)
         if (isBootstrapLoading) {
@@ -567,7 +567,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) {
           final honorIdStr = state.pathParameters['honorId']!;
           final honorId = int.tryParse(honorIdStr) ?? 0;
-          final initialHonor = state.extra is Honor ? state.extra as Honor : null;
+          final initialHonor =
+              state.extra is Honor ? state.extra as Honor : null;
           return _sharedAxisBuild(
             context,
             state,
@@ -580,8 +581,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.honorEvidence,
         pageBuilder: (context, state) {
-          final honorId =
-              int.tryParse(state.pathParameters['honorId']!) ?? 0;
+          final honorId = int.tryParse(state.pathParameters['honorId']!) ?? 0;
           final userHonorId =
               int.tryParse(state.pathParameters['userHonorId']!) ?? 0;
           return _sharedAxisBuild(
@@ -596,8 +596,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.honorCompletion,
         pageBuilder: (context, state) {
-          final honorId =
-              int.tryParse(state.pathParameters['honorId']!) ?? 0;
+          final honorId = int.tryParse(state.pathParameters['honorId']!) ?? 0;
           final userHonorId =
               int.tryParse(state.pathParameters['userHonorId']!) ?? 0;
           return _sharedAxisBuild(
@@ -612,12 +611,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.honorRequirements,
         pageBuilder: (context, state) {
-          final honorId =
-              int.tryParse(state.pathParameters['honorId']!) ?? 0;
+          final honorId = int.tryParse(state.pathParameters['honorId']!) ?? 0;
           final userHonorId =
               int.tryParse(state.pathParameters['userHonorId']!) ?? 0;
-          final honorName =
-              state.uri.queryParameters['name'] ?? tr('router.honor_requirements.default_title');
+          final honorName = state.uri.queryParameters['name'] ??
+              tr('router.honor_requirements.default_title');
           return _sharedAxisBuild(
             context,
             state,
@@ -634,8 +632,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.certificationDetail,
         pageBuilder: (context, state) {
-          final certificationIdStr =
-              state.pathParameters['certificationId']!;
+          final certificationIdStr = state.pathParameters['certificationId']!;
           final certificationId = int.tryParse(certificationIdStr) ?? 0;
           return _sharedAxisBuild(
             context,
@@ -649,8 +646,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.certificationProgress,
         pageBuilder: (context, state) {
-          final certificationIdStr =
-              state.pathParameters['certificationId']!;
+          final certificationIdStr = state.pathParameters['certificationId']!;
           final enrollmentIdStr = state.pathParameters['enrollmentId']!;
           final certificationId = int.tryParse(certificationIdStr) ?? 0;
           final enrollmentId = int.tryParse(enrollmentIdStr) ?? 0;
@@ -709,8 +705,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) {
           final camporeeIdStr = state.pathParameters['camporeeId']!;
           final camporeeId = int.tryParse(camporeeIdStr) ?? 0;
-          final camporeeName =
-              state.uri.queryParameters['name'] ?? tr('router.camporee_members.default_name');
+          final camporeeName = state.uri.queryParameters['name'] ??
+              tr('router.camporee_members.default_name');
           return _sharedAxisBuild(
             context,
             state,
@@ -830,8 +826,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.monthlyReportDetail,
         pageBuilder: (context, state) {
-          final reportId =
-              int.tryParse(state.pathParameters['reportId']!) ?? 0;
+          final reportId = int.tryParse(state.pathParameters['reportId']!) ?? 0;
           return _sharedAxisBuild(
             context,
             state,
@@ -984,8 +979,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               context,
               state,
               const Scaffold(
-                body: Center(
-                    child: Text('Parámetros de desglose inválidos')),
+                body: Center(child: Text('Parámetros de desglose inválidos')),
               ),
             );
           }
@@ -1041,10 +1035,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.authCallback,
         pageBuilder: (context, state) {
-          final sessionToken =
-              state.uri.queryParameters['session_token'] ?? '';
-          final provider =
-              state.uri.queryParameters['provider'] ?? '';
+          final sessionToken = state.uri.queryParameters['session_token'] ?? '';
+          final provider = state.uri.queryParameters['provider'] ?? '';
           return _sharedAxisBuild(
             context,
             state,
@@ -1081,6 +1073,7 @@ class _NavItemConfig {
   final int branchIndex;
   final String route;
   final List<List<dynamic>> icon;
+
   /// i18n key resolved via tr() at build time.
   final String labelKey;
   final Set<String> requiredPermissions;

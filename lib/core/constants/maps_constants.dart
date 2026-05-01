@@ -17,7 +17,8 @@ class MapsConstants {
   ///   - android/app/src/main/AndroidManifest.xml  (com.google.android.geo.API_KEY)
   ///
   /// TODO: Move to --dart-define=GOOGLE_MAPS_API_KEY to avoid committing the key.
-  static const String googleMapsApiKey = 'AIzaSyAQoO0HmAfSdbRs-T0cqtCXEGNn7TtMGZk';
+  static const String googleMapsApiKey =
+      'AIzaSyAQoO0HmAfSdbRs-T0cqtCXEGNn7TtMGZk';
 
   /// Ubicación por defecto cuando no hay ubicación del dispositivo disponible.
   /// Centro de México (Ciudad de México).

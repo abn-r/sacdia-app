@@ -113,10 +113,9 @@ class ActivityHeroSection extends StatelessWidget {
             label: Text('activities.widgets.open_in_maps'.tr()),
             style: TextButton.styleFrom(
               foregroundColor: AppColors.secondaryDark,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              textStyle: const TextStyle(
-                  fontSize: 13, fontWeight: FontWeight.w600),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              textStyle:
+                  const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
           ),
         ],

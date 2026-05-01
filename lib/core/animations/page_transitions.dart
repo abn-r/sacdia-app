@@ -112,8 +112,7 @@ CustomTransitionPage<T> slideUpPage<T>({
       final slideIn = Tween<Offset>(
         begin: const Offset(0, 1),
         end: Offset.zero,
-      ).animate(
-          CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
+      ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
 
       final fadeIn = CurvedAnimation(parent: animation, curve: Curves.easeOut);
 
@@ -142,15 +141,14 @@ class SacSharedAxisRoute<T> extends PageRouteBuilder<T> {
           reverseTransitionDuration: const Duration(milliseconds: 280),
           pageBuilder: (context, animation, secondaryAnimation) =>
               builder(context),
-          transitionsBuilder:
-              (context, animation, secondaryAnimation, child) {
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
             if (MediaQuery.of(context).disableAnimations) return child;
 
             final slideIn = Tween<Offset>(
               begin: const Offset(0.06, 0),
               end: Offset.zero,
-            ).animate(CurvedAnimation(
-                parent: animation, curve: Curves.easeOutCubic));
+            ).animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
 
             final fadeIn =
                 CurvedAnimation(parent: animation, curve: Curves.easeOut);
@@ -162,8 +160,7 @@ class SacSharedAxisRoute<T> extends PageRouteBuilder<T> {
                 parent: secondaryAnimation, curve: Curves.easeInCubic));
 
             final fadeOut = Tween<double>(begin: 1.0, end: 0.0).animate(
-              CurvedAnimation(
-                  parent: secondaryAnimation, curve: Curves.easeIn),
+              CurvedAnimation(parent: secondaryAnimation, curve: Curves.easeIn),
             );
 
             return SlideTransition(
@@ -192,15 +189,14 @@ class SacSlideUpRoute<T> extends PageRouteBuilder<T> {
           reverseTransitionDuration: const Duration(milliseconds: 300),
           pageBuilder: (context, animation, secondaryAnimation) =>
               builder(context),
-          transitionsBuilder:
-              (context, animation, secondaryAnimation, child) {
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
             if (MediaQuery.of(context).disableAnimations) return child;
 
             final slideIn = Tween<Offset>(
               begin: const Offset(0, 1),
               end: Offset.zero,
-            ).animate(CurvedAnimation(
-                parent: animation, curve: Curves.easeOutCubic));
+            ).animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
 
             final fadeIn =
                 CurvedAnimation(parent: animation, curve: Curves.easeOut);

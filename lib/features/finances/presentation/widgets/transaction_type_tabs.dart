@@ -20,10 +20,10 @@ class TransactionTypeTabs extends StatelessWidget {
   });
 
   static List<(String, TransactionType?)> get _tabs => [
-    ('finances.widgets.tab_all'.tr(), null),
-    ('finances.widgets.tab_income'.tr(), TransactionType.income),
-    ('finances.widgets.tab_expense'.tr(), TransactionType.expense),
-  ];
+        ('finances.widgets.tab_all'.tr(), null),
+        ('finances.widgets.tab_income'.tr(), TransactionType.income),
+        ('finances.widgets.tab_expense'.tr(), TransactionType.expense),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -48,12 +48,9 @@ class TransactionTypeTabs extends StatelessWidget {
                 onTap: () => onChanged(type),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 9),
+                  padding: const EdgeInsets.symmetric(vertical: 9),
                   decoration: BoxDecoration(
-                    color: selected == type
-                        ? activeColor
-                        : Colors.transparent,
+                    color: selected == type ? activeColor : Colors.transparent,
                     borderRadius: BorderRadius.circular(11),
                   ),
                   child: Text(
@@ -61,9 +58,8 @@ class TransactionTypeTabs extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
-                      fontWeight: selected == type
-                          ? FontWeight.w600
-                          : FontWeight.w400,
+                      fontWeight:
+                          selected == type ? FontWeight.w600 : FontWeight.w400,
                       color: selected == type
                           ? context.sac.text
                           : context.sac.textSecondary,

@@ -21,8 +21,7 @@ class UpdateTransactionParams extends Equatable {
   });
 
   @override
-  List<Object?> get props =>
-      [financeId, categoryId, amount, description, date];
+  List<Object?> get props => [financeId, categoryId, amount, description, date];
 }
 
 class UpdateTransaction {

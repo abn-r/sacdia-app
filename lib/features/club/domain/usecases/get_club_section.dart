@@ -24,7 +24,8 @@ class GetClubSection implements UseCase<ClubSection, GetClubSectionParams> {
   const GetClubSection(this._repository);
 
   @override
-  Future<Either<Failure, ClubSection>> call(GetClubSectionParams params, {CancelToken? cancelToken}) {
+  Future<Either<Failure, ClubSection>> call(GetClubSectionParams params,
+      {CancelToken? cancelToken}) {
     return _repository.getClubSection(
       clubId: params.clubId,
       sectionId: params.sectionId,

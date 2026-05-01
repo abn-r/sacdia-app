@@ -110,10 +110,7 @@ class _DetailBody extends ConsumerWidget {
                       const SizedBox(height: 12),
                       Text(
                         detail.name,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.copyWith(
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.w800,
                               color: Colors.white,
                             ),
@@ -451,7 +448,8 @@ class _NotEnrolledCTA extends ConsumerWidget {
 
     try {
       await ref
-          .read(certificationEnrollmentNotifierProvider(certificationId).notifier)
+          .read(
+              certificationEnrollmentNotifierProvider(certificationId).notifier)
           .enroll();
       ref.invalidate(userCertificationsProvider);
 

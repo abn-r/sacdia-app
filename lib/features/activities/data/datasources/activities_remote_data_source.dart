@@ -101,11 +101,15 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
             .toList();
       }
 
-      throw ServerException(message: tr('activities.errors.fetch_list'), code: response.statusCode);
+      throw ServerException(
+          message: tr('activities.errors.fetch_list'),
+          code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getClubActivities', tag: _tag, error: e);
       if (e is DioException) {
-        throw ServerException(message: e.message ?? tr('common.error_network'), code: e.response?.statusCode);
+        throw ServerException(
+            message: e.message ?? tr('common.error_network'),
+            code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
@@ -127,11 +131,15 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
         return ActivityModel.fromJson(response.data as Map<String, dynamic>);
       }
 
-      throw ServerException(message: tr('activities.errors.fetch_one'), code: response.statusCode);
+      throw ServerException(
+          message: tr('activities.errors.fetch_one'),
+          code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getActivityById', tag: _tag, error: e);
       if (e is DioException) {
-        throw ServerException(message: e.message ?? tr('common.error_network'), code: e.response?.statusCode);
+        throw ServerException(
+            message: e.message ?? tr('common.error_network'),
+            code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
@@ -152,15 +160,20 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final List<dynamic> data = response.data as List<dynamic>;
         return data
-            .map((json) => AttendanceModel.fromJson(json as Map<String, dynamic>))
+            .map((json) =>
+                AttendanceModel.fromJson(json as Map<String, dynamic>))
             .toList();
       }
 
-      throw ServerException(message: tr('activities.errors.fetch_attendance'), code: response.statusCode);
+      throw ServerException(
+          message: tr('activities.errors.fetch_attendance'),
+          code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getActivityAttendance', tag: _tag, error: e);
       if (e is DioException) {
-        throw ServerException(message: e.message ?? tr('common.error_network'), code: e.response?.statusCode);
+        throw ServerException(
+            message: e.message ?? tr('common.error_network'),
+            code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
@@ -190,12 +203,15 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
         return ActivityModel.fromJson(activityData);
       }
 
-      throw ServerException(message: tr('activities.errors.create'), code: response.statusCode);
+      throw ServerException(
+          message: tr('activities.errors.create'), code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en createActivity', tag: _tag, error: e);
       if (e is DioException) {
         final message = e.response?.data is Map
-            ? (e.response!.data['message'] ?? e.message ?? tr('common.error_network'))
+            ? (e.response!.data['message'] ??
+                e.message ??
+                tr('common.error_network'))
             : (e.message ?? tr('common.error_network'));
         throw ServerException(
           message: message.toString(),
@@ -263,12 +279,15 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
         return ActivityModel.fromJson(activityData as Map<String, dynamic>);
       }
 
-      throw ServerException(message: tr('activities.errors.update'), code: response.statusCode);
+      throw ServerException(
+          message: tr('activities.errors.update'), code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en updateActivity', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
-          message: e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
+          message: e.response?.data?['message'] ??
+              e.message ??
+              tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }
@@ -288,12 +307,15 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
 
       if (response.statusCode == 200 || response.statusCode == 201) return;
 
-      throw ServerException(message: tr('activities.errors.delete'), code: response.statusCode);
+      throw ServerException(
+          message: tr('activities.errors.delete'), code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en deleteActivity', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
-          message: e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
+          message: e.response?.data?['message'] ??
+              e.message ??
+              tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }
@@ -305,7 +327,8 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
   @override
   Future<int> registerAttendance(int activityId, List<String> userIds) async {
     try {
-      AppLogger.i('Registrando asistencia: ${userIds.length} usuarios', tag: _tag);
+      AppLogger.i('Registrando asistencia: ${userIds.length} usuarios',
+          tag: _tag);
 
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.activities}/$activityId/attendance',
@@ -313,17 +336,23 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final recordedCount = response.data['recorded_count'] as int? ?? userIds.length;
-        AppLogger.i('Asistencia registrada: $recordedCount usuarios', tag: _tag);
+        final recordedCount =
+            response.data['recorded_count'] as int? ?? userIds.length;
+        AppLogger.i('Asistencia registrada: $recordedCount usuarios',
+            tag: _tag);
         return recordedCount;
       }
 
-      throw ServerException(message: tr('activities.errors.register_attendance'), code: response.statusCode);
+      throw ServerException(
+          message: tr('activities.errors.register_attendance'),
+          code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en registerAttendance', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
-          message: e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
+          message: e.response?.data?['message'] ??
+              e.message ??
+              tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }
@@ -354,7 +383,8 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
         final responseData = response.data as Map<String, dynamic>;
         final data = responseData['data'] as Map<String, dynamic>;
         final url = data['url'] as String;
-        AppLogger.i('Imagen subida exitosamente para actividad: $activityId', tag: _tag);
+        AppLogger.i('Imagen subida exitosamente para actividad: $activityId',
+            tag: _tag);
         return url;
       }
 
@@ -366,7 +396,9 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
       AppLogger.e('Error en uploadActivityImage', tag: _tag, error: e);
       if (e is DioException) {
         final message = e.response?.data is Map
-            ? (e.response!.data['message'] ?? e.message ?? tr('common.error_network'))
+            ? (e.response!.data['message'] ??
+                e.message ??
+                tr('common.error_network'))
             : (e.message ?? tr('common.error_network'));
         throw ServerException(
           message: message.toString(),
@@ -405,7 +437,9 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
       AppLogger.e('Error en getClubSections', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
-          message: e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
+          message: e.response?.data?['message'] ??
+              e.message ??
+              tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }

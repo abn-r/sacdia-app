@@ -36,9 +36,7 @@ class VirtualCardRemoteDataSourceImpl implements VirtualCardRemoteDataSource {
       }
 
       final payload = data['data'];
-      final json = payload is Map
-          ? Map<String, dynamic>.from(payload)
-          : data;
+      final json = payload is Map ? Map<String, dynamic>.from(payload) : data;
       return VirtualCardModel.fromJson(Map<String, dynamic>.from(json));
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;

@@ -12,11 +12,13 @@ import '../models/camporee_payment_model.dart';
 abstract class CamporeesRemoteDataSource {
   /// Obtiene la lista de camporees, opcionalmente filtrando por activos.
   /// GET /api/v1/camporees
-  Future<List<CamporeeModel>> getCamporees({bool? active, CancelToken? cancelToken});
+  Future<List<CamporeeModel>> getCamporees(
+      {bool? active, CancelToken? cancelToken});
 
   /// Obtiene el detalle de un camporee.
   /// GET /api/v1/camporees/:camporeeId
-  Future<CamporeeModel> getCamporeeDetail(int camporeeId, {CancelToken? cancelToken});
+  Future<CamporeeModel> getCamporeeDetail(int camporeeId,
+      {CancelToken? cancelToken});
 
   /// Registra un miembro en un camporee.
   /// POST /api/v1/camporees/:camporeeId/register
@@ -53,7 +55,8 @@ abstract class CamporeesRemoteDataSource {
 
   /// Obtiene los clubes inscritos en un camporee.
   /// GET /api/v1/camporees/:camporeeId/clubs
-  Future<List<CamporeeEnrolledClubModel>> getEnrolledClubs(int camporeeId, {CancelToken? cancelToken});
+  Future<List<CamporeeEnrolledClubModel>> getEnrolledClubs(int camporeeId,
+      {CancelToken? cancelToken});
 
   /// Crea un pago para un miembro en un camporee.
   /// POST /api/v1/camporees/:camporeeId/members/:memberId/payments
@@ -77,7 +80,8 @@ abstract class CamporeesRemoteDataSource {
 
   /// Obtiene todos los pagos de un camporee.
   /// GET /api/v1/camporees/:camporeeId/payments
-  Future<List<CamporeePaymentModel>> getCamporeePayments(int camporeeId, {CancelToken? cancelToken});
+  Future<List<CamporeePaymentModel>> getCamporeePayments(int camporeeId,
+      {CancelToken? cancelToken});
 }
 
 /// Implementación de la fuente de datos remota de camporees.
@@ -122,7 +126,8 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
   // ── GET /api/v1/camporees ────────────────────────────────────────────────────
 
   @override
-  Future<List<CamporeeModel>> getCamporees({bool? active, CancelToken? cancelToken}) async {
+  Future<List<CamporeeModel>> getCamporees(
+      {bool? active, CancelToken? cancelToken}) async {
     try {
       final queryParams = <String, dynamic>{};
       if (active != null) queryParams['active'] = active;
@@ -147,8 +152,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
         }
 
         return data
-            .map((json) =>
-                CamporeeModel.fromJson(json as Map<String, dynamic>))
+            .map((json) => CamporeeModel.fromJson(json as Map<String, dynamic>))
             .toList();
       }
 
@@ -165,7 +169,8 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
   // ── GET /api/v1/camporees/:camporeeId ────────────────────────────────────────
 
   @override
-  Future<CamporeeModel> getCamporeeDetail(int camporeeId, {CancelToken? cancelToken}) async {
+  Future<CamporeeModel> getCamporeeDetail(int camporeeId,
+      {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId',
@@ -268,7 +273,8 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
             tag: _tag,
           );
           final members = responseData
-              .map((e) => CamporeeMemberModel.fromJson(e as Map<String, dynamic>))
+              .map((e) =>
+                  CamporeeMemberModel.fromJson(e as Map<String, dynamic>))
               .toList();
           return PaginatedResult<CamporeeMemberModel>(
             data: members,
@@ -285,8 +291,7 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
 
         // Malformed: neither Map-with-data nor List — fail visibly.
         throw ServerException(
-          message:
-              'getCamporeeMembers: unexpected response type '
+          message: 'getCamporeeMembers: unexpected response type '
               '${responseData.runtimeType} — cannot parse members',
           code: response.statusCode,
         );
@@ -356,8 +361,8 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
   // ── GET /api/v1/camporees/:camporeeId/clubs ───────────────────────────────
 
   @override
-  Future<List<CamporeeEnrolledClubModel>> getEnrolledClubs(
-      int camporeeId, {CancelToken? cancelToken}) async {
+  Future<List<CamporeeEnrolledClubModel>> getEnrolledClubs(int camporeeId,
+      {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/clubs',
@@ -479,8 +484,8 @@ class CamporeesRemoteDataSourceImpl implements CamporeesRemoteDataSource {
   // ── GET /api/v1/camporees/:camporeeId/payments ────────────────────────────
 
   @override
-  Future<List<CamporeePaymentModel>> getCamporeePayments(
-      int camporeeId, {CancelToken? cancelToken}) async {
+  Future<List<CamporeePaymentModel>> getCamporeePayments(int camporeeId,
+      {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.camporees}/$camporeeId/payments',

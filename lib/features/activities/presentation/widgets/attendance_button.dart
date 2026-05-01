@@ -29,8 +29,10 @@ class AttendanceButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkCircle02,
-                size: 20, color: AppColors.secondaryDark),
+            HugeIcon(
+                icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                size: 20,
+                color: AppColors.secondaryDark),
             const SizedBox(width: 8),
             Text(
               'activities.widgets.attendance_confirmed'.tr(),

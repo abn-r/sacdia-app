@@ -108,10 +108,7 @@ class _DetailBody extends ConsumerWidget {
                       const SizedBox(height: 12),
                       Text(
                         camporee.name,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.copyWith(
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.w800,
                               color: Colors.white,
                             ),
@@ -340,7 +337,8 @@ class _DetailBody extends ConsumerWidget {
             child: membersAsync.maybeWhen(
               data: (members) => members.isNotEmpty
                   ? SacButton.outline(
-                      text: 'camporees.detail.view_all_members'.tr(namedArgs: {'count': '${members.length}'}),
+                      text: 'camporees.detail.view_all_members'
+                          .tr(namedArgs: {'count': '${members.length}'}),
                       icon: HugeIcons.strokeRoundedUserGroup,
                       onPressed: () {
                         Navigator.push(
@@ -507,7 +505,9 @@ class _InsuranceBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = verified ? AppColors.secondary : AppColors.error;
-    final label = verified ? 'camporees.detail.insurance_ok'.tr() : 'camporees.detail.no_insurance'.tr();
+    final label = verified
+        ? 'camporees.detail.insurance_ok'.tr()
+        : 'camporees.detail.no_insurance'.tr();
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -600,8 +600,7 @@ class _ErrorBody extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               message,
-              style: TextStyle(
-                  fontSize: 14, color: context.sac.textSecondary),
+              style: TextStyle(fontSize: 14, color: context.sac.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),

@@ -161,8 +161,8 @@ class MemberBreakdownDtoModel {
 
   factory MemberBreakdownDtoModel.fromJson(Map<String, dynamic> json) {
     // Accept both `weights` and `weights_applied` for forward compatibility.
-    final rawWeights = (json['weights'] ?? json['weights_applied'])
-        as Map<String, dynamic>?;
+    final rawWeights =
+        (json['weights'] ?? json['weights_applied']) as Map<String, dynamic>?;
 
     return MemberBreakdownDtoModel(
       enrollmentId: safeInt(json['enrollment_id']),
@@ -171,8 +171,7 @@ class MemberBreakdownDtoModel {
       clubSectionId: safeIntOrNull(json['club_section_id']),
       sectionName: safeStringOrNull(json['section_name']),
       classScorePct: (json['class_score_pct'] as num?)?.toDouble(),
-      investitureScorePct:
-          (json['investiture_score_pct'] as num?)?.toDouble(),
+      investitureScorePct: (json['investiture_score_pct'] as num?)?.toDouble(),
       camporeeScorePct: (json['camporee_score_pct'] as num?)?.toDouble(),
       compositeScorePct: (json['composite_score_pct'] as num?)?.toDouble(),
       rankPosition: safeIntOrNull(json['rank_position']),

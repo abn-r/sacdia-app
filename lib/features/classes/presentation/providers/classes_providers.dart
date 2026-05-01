@@ -78,8 +78,7 @@ final deleteRequirementFileUseCaseProvider =
   return DeleteRequirementFile(ref.read(classesRepositoryProvider));
 });
 
-final enrollPreviousClassUseCaseProvider =
-    Provider<EnrollPreviousClass>((ref) {
+final enrollPreviousClassUseCaseProvider = Provider<EnrollPreviousClass>((ref) {
   return EnrollPreviousClass(ref.read(classesRepositoryProvider));
 });
 
@@ -101,7 +100,8 @@ final userClassesProvider =
   }
 
   final getUserClasses = ref.read(getUserClassesProvider);
-  final result = await getUserClasses(GetUserClassesParams(userId: userId), cancelToken: cancelToken);
+  final result = await getUserClasses(GetUserClassesParams(userId: userId),
+      cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -112,13 +112,13 @@ final userClassesProvider =
 /// Provider para listar clases del catálogo filtradas por tipo de club.
 ///
 /// Usado cuando se necesita listar clases de un tipo específico.
-final classesByClubTypeProvider =
-    FutureProvider.autoDispose.family<List<ProgressiveClass>, int>(
-        (ref, clubTypeId) async {
+final classesByClubTypeProvider = FutureProvider.autoDispose
+    .family<List<ProgressiveClass>, int>((ref, clubTypeId) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.read(classesRemoteDataSourceProvider);
-  final models = await dataSource.getClasses(clubTypeId: clubTypeId, cancelToken: cancelToken);
+  final models = await dataSource.getClasses(
+      clubTypeId: clubTypeId, cancelToken: cancelToken);
   return models.map((m) => m.toEntity()).toList();
 });
 
@@ -137,13 +137,13 @@ final allClassesProvider =
 });
 
 /// Provider para el detalle de una clase especifica.
-final classDetailProvider =
-    FutureProvider.autoDispose.family<ProgressiveClass, int>(
-        (ref, classId) async {
+final classDetailProvider = FutureProvider.autoDispose
+    .family<ProgressiveClass, int>((ref, classId) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final getClassDetail = ref.read(getClassDetailProvider);
-  final result = await getClassDetail(GetClassDetailParams(classId: classId), cancelToken: cancelToken);
+  final result = await getClassDetail(GetClassDetailParams(classId: classId),
+      cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -152,14 +152,13 @@ final classDetailProvider =
 });
 
 /// Provider para los modulos de una clase especifica.
-final classModulesProvider =
-    FutureProvider.autoDispose.family<List<ClassModule>, int>(
-        (ref, classId) async {
+final classModulesProvider = FutureProvider.autoDispose
+    .family<List<ClassModule>, int>((ref, classId) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final getClassModules = ref.read(getClassModulesProvider);
-  final result =
-      await getClassModules(GetClassModulesParams(classId: classId), cancelToken: cancelToken);
+  final result = await getClassModules(GetClassModulesParams(classId: classId),
+      cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -400,6 +399,7 @@ class ClassProgressNotifier extends AutoDisposeAsyncNotifier<ClassProgress?> {
 
 /// Provider para el notifier de progreso de clase
 final classProgressNotifierProvider =
-    AsyncNotifierProvider.autoDispose<ClassProgressNotifier, ClassProgress?>(() {
+    AsyncNotifierProvider.autoDispose<ClassProgressNotifier, ClassProgress?>(
+        () {
   return ClassProgressNotifier();
 });

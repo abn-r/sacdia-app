@@ -30,8 +30,7 @@ class DeleteRequirementFile
   DeleteRequirementFile(this._repository);
 
   @override
-  Future<Either<Failure, void>> call(
-      DeleteRequirementFileParams params) async {
+  Future<Either<Failure, void>> call(DeleteRequirementFileParams params) async {
     return _repository.deleteRequirementFile(
       userId: params.userId,
       classId: params.classId,

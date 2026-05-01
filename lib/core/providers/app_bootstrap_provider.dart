@@ -85,7 +85,8 @@ class AppBootstrapNotifier extends AsyncNotifier<AppBootstrapState> {
       user = await ref.read(authNotifierProvider.future);
     } catch (e, st) {
       AppLogger.e('Auth future threw: $e', tag: _tag, error: e, stackTrace: st);
-      return AppBootstrapError(tr('core.bootstrap.unexpected_session_error'), 0);
+      return AppBootstrapError(
+          tr('core.bootstrap.unexpected_session_error'), 0);
     }
 
     if (user == null) {
@@ -113,7 +114,8 @@ class AppBootstrapNotifier extends AsyncNotifier<AppBootstrapState> {
         try {
           freshUser = await ref.read(authNotifierProvider.future);
         } catch (e, st) {
-          AppLogger.e('Retry auth future threw: $e', tag: _tag, error: e, stackTrace: st);
+          AppLogger.e('Retry auth future threw: $e',
+              tag: _tag, error: e, stackTrace: st);
           continue; // Skip to next retry attempt
         }
 
@@ -193,8 +195,8 @@ class AppBootstrapNotifier extends AsyncNotifier<AppBootstrapState> {
 
     await Future.wait(
       keysToDelete.map((key) => secureStorage.delete(key).catchError((e) {
-        AppLogger.e('Failed to delete $key: $e', tag: _tag);
-      })),
+            AppLogger.e('Failed to delete $key: $e', tag: _tag);
+          })),
     );
 
     // SharedPreferences — await to ensure flush before state transition.

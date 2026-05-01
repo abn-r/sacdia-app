@@ -84,9 +84,7 @@ class BiometricSettingsSection extends ConsumerWidget {
       iconColor: AppColors.primary,
       trailing: Switch.adaptive(
         value: state.enabled,
-        onChanged: switchEnabled
-            ? (v) => _onToggle(context, ref, v)
-            : null,
+        onChanged: switchEnabled ? (v) => _onToggle(context, ref, v) : null,
       ),
     );
   }

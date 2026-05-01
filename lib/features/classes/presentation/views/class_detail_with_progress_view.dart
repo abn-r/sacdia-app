@@ -45,8 +45,7 @@ class ClassDetailWithProgressView extends ConsumerWidget {
           loading: () => const Center(child: SacLoading()),
           error: (error, _) => _ErrorBody(
             message: error.toString().replaceFirst('Exception: ', ''),
-            onRetry: () =>
-                ref.invalidate(classWithProgressProvider(classId)),
+            onRetry: () => ref.invalidate(classWithProgressProvider(classId)),
           ),
           data: (classWithProgress) => _ClassBody(
             classWithProgress: classWithProgress,
@@ -161,10 +160,7 @@ class _ClassBodyState extends State<_ClassBody> {
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                   child: Text(
                     'classes.detail_with_progress.modules_header'.tr(),
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: c.text,
                         ),
@@ -466,8 +462,9 @@ class _ModuleSectionState extends State<_ModuleSection> {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final isComplete = widget.module.completedCount == widget.module.requirements.length &&
-        widget.module.requirements.isNotEmpty;
+    final isComplete =
+        widget.module.completedCount == widget.module.requirements.length &&
+            widget.module.requirements.isNotEmpty;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
@@ -485,9 +482,7 @@ class _ModuleSectionState extends State<_ModuleSection> {
             child: Container(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
               decoration: BoxDecoration(
-                color: isComplete
-                    ? AppColors.secondaryLight
-                    : c.surfaceVariant,
+                color: isComplete ? AppColors.secondaryLight : c.surfaceVariant,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
@@ -497,9 +492,8 @@ class _ModuleSectionState extends State<_ModuleSection> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: isComplete
-                          ? AppColors.secondary
-                          : widget.classColor,
+                      color:
+                          isComplete ? AppColors.secondary : widget.classColor,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: isComplete
@@ -528,15 +522,13 @@ class _ModuleSectionState extends State<_ModuleSection> {
                       children: [
                         Text(
                           widget.module.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: isComplete
-                                    ? AppColors.secondaryDark
-                                    : c.text,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: isComplete
+                                        ? AppColors.secondaryDark
+                                        : c.text,
+                                  ),
                         ),
                         const SizedBox(height: 4),
                         Row(
@@ -610,8 +602,7 @@ class _ModuleSectionState extends State<_ModuleSection> {
                   children: widget.module.requirements.map((requirement) {
                     return RequirementCard(
                       requirement: requirement,
-                      onTap: () =>
-                          _openRequirementDetail(context, requirement),
+                      onTap: () => _openRequirementDetail(context, requirement),
                     );
                   }).toList(),
                 ),

@@ -59,9 +59,7 @@ class _MemberOfMonthHistoryViewState
     final currentScroll = _scrollController.position.pixels;
     // Cargar más cuando queden 150px para el final
     if (currentScroll >= maxScroll - 150) {
-      ref
-          .read(memberOfMonthHistoryProvider(_params).notifier)
-          .fetchNextPage();
+      ref.read(memberOfMonthHistoryProvider(_params).notifier).fetchNextPage();
     }
   }
 

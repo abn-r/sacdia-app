@@ -81,7 +81,18 @@ class ClubSection extends Equatable {
 
   @override
   List<Object?> get props => [
-        id, mainClubId, clubTypeId, clubTypeName,
-        name, phone, email, website, logoUrl, address, lat, long, active,
+        id,
+        mainClubId,
+        clubTypeId,
+        clubTypeName,
+        name,
+        phone,
+        email,
+        website,
+        logoUrl,
+        address,
+        lat,
+        long,
+        active,
       ];
 }

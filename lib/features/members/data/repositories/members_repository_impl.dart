@@ -45,9 +45,11 @@ class MembersRepositoryImpl implements MembersRepository {
   }
 
   @override
-  Future<Either<Failure, ClubMember>> getMemberDetail(String userId, {CancelToken? cancelToken}) async {
+  Future<Either<Failure, ClubMember>> getMemberDetail(String userId,
+      {CancelToken? cancelToken}) async {
     try {
-      final member = await remoteDataSource.getMemberDetail(userId, cancelToken: cancelToken);
+      final member = await remoteDataSource.getMemberDetail(userId,
+          cancelToken: cancelToken);
       return Right(member);
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;

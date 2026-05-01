@@ -90,8 +90,7 @@ class ActivityInfoStrip extends StatelessWidget {
       final text = m > 0
           ? 'activities.widgets.countdown_hours_minutes'
               .tr(namedArgs: {'hours': '$h', 'minutes': '$m'})
-          : 'activities.widgets.countdown_hours'
-              .tr(namedArgs: {'hours': '$h'});
+          : 'activities.widgets.countdown_hours'.tr(namedArgs: {'hours': '$h'});
       return (text: text, isPast: false, isUrgent: false);
     }
     if (diff.inDays == 1) {
@@ -175,9 +174,7 @@ class ActivityInfoStrip extends StatelessWidget {
             : Icons.schedule_rounded,
         text: countdown.text,
         // Urgent: primary color to keep attention. Otherwise muted.
-        color: countdown.isUrgent
-            ? AppColors.primaryDark
-            : sac.textSecondary,
+        color: countdown.isUrgent ? AppColors.primaryDark : sac.textSecondary,
         weight: countdown.isUrgent ? FontWeight.w700 : FontWeight.w600,
       ));
     }

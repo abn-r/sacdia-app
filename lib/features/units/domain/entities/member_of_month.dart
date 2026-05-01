@@ -58,9 +58,7 @@ class MemberOfMonth {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is MemberOfMonth &&
-          other.month == month &&
-          other.year == year;
+      other is MemberOfMonth && other.month == month && other.year == year;
 
   @override
   int get hashCode => Object.hash(month, year);

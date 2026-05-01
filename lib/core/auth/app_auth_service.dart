@@ -24,10 +24,13 @@ class AppAuthService {
   final StreamController<bool> _authStateController;
 
   AppAuthService({FlutterSecureStorage? secureStorage})
-      : _secureStorage = secureStorage ?? const FlutterSecureStorage(
-          aOptions: AndroidOptions(encryptedSharedPreferences: true),
-          iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device),
-        ),
+      : _secureStorage = secureStorage ??
+            const FlutterSecureStorage(
+              aOptions: AndroidOptions(encryptedSharedPreferences: true),
+              iOptions: IOSOptions(
+                  accessibility:
+                      KeychainAccessibility.first_unlock_this_device),
+            ),
         _authStateController = StreamController<bool>.broadcast();
 
   // ── Singleton ligero ────────────────────────────────────────────────────────
@@ -120,7 +123,8 @@ class AppAuthService {
       final expiresAt = int.tryParse(expiresAtStr) ?? 0;
       return DateTime.now().millisecondsSinceEpoch ~/ 1000 >= expiresAt;
     } catch (e) {
-      AppLogger.e('Error al verificar expiración del token', tag: _tag, error: e);
+      AppLogger.e('Error al verificar expiración del token',
+          tag: _tag, error: e);
       return true;
     }
   }

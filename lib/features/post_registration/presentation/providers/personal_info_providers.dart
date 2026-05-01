@@ -168,8 +168,8 @@ class UserAllergiesNotifier
 }
 
 /// Provider de alergias del usuario (con pre-carga)
-final userAllergiesProvider =
-    AsyncNotifierProvider.autoDispose<UserAllergiesNotifier, List<AllergyModel>>(
+final userAllergiesProvider = AsyncNotifierProvider.autoDispose<
+    UserAllergiesNotifier, List<AllergyModel>>(
   () => UserAllergiesNotifier(),
 );
 
@@ -341,8 +341,8 @@ class UserMedicinesNotifier
 }
 
 /// Provider de medicamentos del usuario (con pre-cargados)
-final userMedicinesProvider =
-    AsyncNotifierProvider.autoDispose<UserMedicinesNotifier, List<MedicineModel>>(
+final userMedicinesProvider = AsyncNotifierProvider.autoDispose<
+    UserMedicinesNotifier, List<MedicineModel>>(
   () => UserMedicinesNotifier(),
 );
 
@@ -376,7 +376,8 @@ class EmergencyContactsNotifier
     final cancelToken = CancelToken();
     ref.onDispose(() => cancelToken.cancel());
     final dataSource = ref.watch(personalInfoDataSourceProvider);
-    return await dataSource.getEmergencyContacts(userId, cancelToken: cancelToken);
+    return await dataSource.getEmergencyContacts(userId,
+        cancelToken: cancelToken);
   }
 
   /// Agrega un nuevo contacto de emergencia
@@ -472,7 +473,8 @@ class LegalRepresentativeNotifier
     final cancelToken = CancelToken();
     ref.onDispose(() => cancelToken.cancel());
     final dataSource = ref.watch(personalInfoDataSourceProvider);
-    return await dataSource.getLegalRepresentative(userId, cancelToken: cancelToken);
+    return await dataSource.getLegalRepresentative(userId,
+        cancelToken: cancelToken);
   }
 
   /// Crea o actualiza el representante legal

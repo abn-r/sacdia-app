@@ -19,7 +19,8 @@ void main() {
 
     group('IPv6', () {
       test('masks last group — full address', () {
-        expect(maskIpAddress('2001:db8:0:0:1:2:3:4'), '2001:db8:0:0:1:2:3:xxxx');
+        expect(
+            maskIpAddress('2001:db8:0:0:1:2:3:4'), '2001:db8:0:0:1:2:3:xxxx');
       });
 
       test('masks last group — compressed address', () {

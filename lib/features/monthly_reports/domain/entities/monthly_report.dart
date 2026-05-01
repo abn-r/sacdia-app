@@ -73,8 +73,19 @@ class MonthlyReport extends Equatable {
 
   String get monthName {
     const keys = [
-      '', 'january', 'february', 'march', 'april', 'may', 'june',
-      'july', 'august', 'september', 'october', 'november', 'december',
+      '',
+      'january',
+      'february',
+      'march',
+      'april',
+      'may',
+      'june',
+      'july',
+      'august',
+      'september',
+      'october',
+      'november',
+      'december',
     ];
     if (month >= 1 && month <= 12) return tr('common.months.${keys[month]}');
     return tr('common.months.unknown', namedArgs: {'month': '$month'});

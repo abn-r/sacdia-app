@@ -89,9 +89,7 @@ class _InsuranceLoadingSkeletonState extends State<InsuranceLoadingSkeleton>
         color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFFAFBFC),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark
-              ? const Color(0xFF2A2A2A)
-              : const Color(0xFFE8EDF2),
+          color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE8EDF2),
         ),
       ),
       child: Column(
@@ -243,9 +241,7 @@ class _InsuranceLoadingSkeletonState extends State<InsuranceLoadingSkeleton>
           color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isDark
-                ? const Color(0xFF2A2A2A)
-                : const Color(0xFFE8EDF2),
+            color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE8EDF2),
           ),
         ),
         child: Row(
@@ -283,7 +279,8 @@ class _InsuranceLoadingSkeletonState extends State<InsuranceLoadingSkeleton>
                       _SkeletonBox(
                         width: 72,
                         height: 20,
-                        borderRadius: const BorderRadius.all(Radius.circular(6)),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(6)),
                         shimmerValue: sv,
                       ),
                       const SizedBox(width: 8),

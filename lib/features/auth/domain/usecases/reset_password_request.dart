@@ -5,7 +5,8 @@ import '../../../../core/usecases/usecase.dart';
 import '../repositories/auth_repository.dart';
 
 /// Caso de uso para solicitar recuperación de contraseña
-class ResetPasswordRequest implements UseCase<void, ResetPasswordRequestParams> {
+class ResetPasswordRequest
+    implements UseCase<void, ResetPasswordRequestParams> {
   final AuthRepository repository;
 
   ResetPasswordRequest(this.repository);

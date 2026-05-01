@@ -99,20 +99,32 @@ class Responsive {
   /// - Tablets (>= 600dp)     : 32px
   static EdgeInsets screenPadding(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final h = width < 360 ? 16.0 : width < 600 ? 20.0 : 32.0;
+    final h = width < 360
+        ? 16.0
+        : width < 600
+            ? 20.0
+            : 32.0;
     return EdgeInsets.symmetric(horizontal: h);
   }
 
   /// Symmetric horizontal value (double) for use in existing symmetric calls.
   static double horizontalPadding(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    return width < 360 ? 16.0 : width < 600 ? 20.0 : 32.0;
+    return width < 360
+        ? 16.0
+        : width < 600
+            ? 20.0
+            : 32.0;
   }
 
   /// Padding for auth-style forms (login / register), slightly larger.
   static EdgeInsets formPadding(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final h = width < 360 ? 16.0 : width < 600 ? 24.0 : 40.0;
+    final h = width < 360
+        ? 16.0
+        : width < 600
+            ? 24.0
+            : 40.0;
     return EdgeInsets.symmetric(horizontal: h);
   }
 

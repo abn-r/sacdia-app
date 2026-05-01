@@ -67,7 +67,8 @@ class NotificationPreferencesRemoteDataSourceImpl
         code: e.response?.statusCode,
       );
     } catch (e) {
-      AppLogger.e('Error inesperado al obtener preferencias', tag: _tag, error: e);
+      AppLogger.e('Error inesperado al obtener preferencias',
+          tag: _tag, error: e);
       throw ServerException(
         message:
             '${tr('profile.notification_preferences.errors.get_unexpected')}: $e',
@@ -112,7 +113,8 @@ class NotificationPreferencesRemoteDataSourceImpl
         code: e.response?.statusCode,
       );
     } catch (e) {
-      AppLogger.e('Error inesperado al actualizar preferencias', tag: _tag, error: e);
+      AppLogger.e('Error inesperado al actualizar preferencias',
+          tag: _tag, error: e);
       throw ServerException(
         message:
             '${tr('profile.notification_preferences.errors.update_unexpected')}: $e',

@@ -5,7 +5,8 @@ import '../../../../core/usecases/usecase.dart';
 import '../repositories/post_registration_repository.dart';
 
 /// Caso de uso para eliminar la foto de perfil
-class DeleteProfilePicture implements UseCase<void, DeleteProfilePictureParams> {
+class DeleteProfilePicture
+    implements UseCase<void, DeleteProfilePictureParams> {
   final PostRegistrationRepository repository;
 
   DeleteProfilePicture(this.repository);

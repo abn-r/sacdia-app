@@ -7,7 +7,8 @@ import '../../domain/entities/accessibility_settings.dart';
 import '../../domain/repositories/accessibility_repository.dart';
 
 /// Provider del repositorio (inyecta SharedPreferences desde storage_provider).
-final accessibilityRepositoryProvider = Provider<AccessibilityRepository>((ref) {
+final accessibilityRepositoryProvider =
+    Provider<AccessibilityRepository>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
   return AccessibilityRepositoryImpl(prefs);
 });

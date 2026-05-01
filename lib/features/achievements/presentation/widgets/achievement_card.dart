@@ -29,7 +29,8 @@ class AchievementCard extends StatelessWidget {
     final achievement = achievementWithProgress.achievement;
     final userAchievement = achievementWithProgress.userAchievement;
 
-    final visualState = userAchievement?.visualState ?? AchievementVisualState.locked;
+    final visualState =
+        userAchievement?.visualState ?? AchievementVisualState.locked;
     final isCompleted = userAchievement?.isCompleted ?? false;
     final isSecret = achievement.secret && !isCompleted;
 

@@ -101,13 +101,15 @@ class MyHonorsView extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  loading: () =>
-                      const SizedBox(height: 60, child: Center(child: SacLoading())),
+                  loading: () => const SizedBox(
+                      height: 60, child: Center(child: SacLoading())),
                   error: (_, __) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: Text(
                       'honors.my_honors.stats_error'.tr(),
-                      style: const TextStyle(color: AppColors.error, fontSize: 12),
+                      style:
+                          const TextStyle(color: AppColors.error, fontSize: 12),
                     ),
                   ),
                 ),
@@ -210,8 +212,7 @@ class MyHonorsView extends ConsumerWidget {
                           context,
                           ref,
                           completed,
-                          emptyMessage:
-                              'honors.my_honors.empty_completed'.tr(),
+                          emptyMessage: 'honors.my_honors.empty_completed'.tr(),
                           hPad: hPad,
                         ),
                       ],

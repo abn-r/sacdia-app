@@ -116,5 +116,4 @@ class WeeklyRecordModel extends WeeklyRecord {
         userImage: userImage,
         scores: scores,
       );
-
 }

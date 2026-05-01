@@ -35,9 +35,10 @@ class UserCertificationModel extends Equatable {
           '') as String,
       enrollmentDate: DateTime.parse(json['enrollment_date'] as String),
       completionStatus: json['completion_status'] as String? ?? 'in_progress',
-      progressPercentage:
-          ((json['progress_percentage'] ?? json['progressPercentage'] ?? 0) as num)
-              .toDouble(),
+      progressPercentage: ((json['progress_percentage'] ??
+              json['progressPercentage'] ??
+              0) as num)
+          .toDouble(),
       modulesCompleted:
           (json['modules_completed'] ?? json['modulesCompleted'] ?? 0) as int,
       modulesTotal: (json['modules_total'] ?? json['modulesTotal'] ?? 0) as int,

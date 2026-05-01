@@ -239,7 +239,8 @@ class TransactionFormState {
   }
 }
 
-class TransactionFormNotifier extends AutoDisposeNotifier<TransactionFormState> {
+class TransactionFormNotifier
+    extends AutoDisposeNotifier<TransactionFormState> {
   @override
   TransactionFormState build() => const TransactionFormState();
 
@@ -356,8 +357,8 @@ class TransactionFormNotifier extends AutoDisposeNotifier<TransactionFormState> 
   void reset() => state = const TransactionFormState();
 }
 
-final transactionFormNotifierProvider = NotifierProvider.autoDispose<
-    TransactionFormNotifier, TransactionFormState>(
+final transactionFormNotifierProvider =
+    NotifierProvider.autoDispose<TransactionFormNotifier, TransactionFormState>(
   TransactionFormNotifier.new,
 );
 
@@ -482,8 +483,7 @@ class AllTransactionsFilterNotifier
   }
 
   void updateSort({required String sortBy, required String sortOrder}) {
-    _resetAndFetch(
-        state.filter.copyWith(sortBy: sortBy, sortOrder: sortOrder));
+    _resetAndFetch(state.filter.copyWith(sortBy: sortBy, sortOrder: sortOrder));
   }
 
   void updateRange({
@@ -590,9 +590,8 @@ class AllTransactionsFilterNotifier
         );
       },
       (response) {
-        final newList = replace
-            ? response.data
-            : [...state.transactions, ...response.data];
+        final newList =
+            replace ? response.data : [...state.transactions, ...response.data];
         state = state.copyWith(
           transactions: newList,
           currentPage: response.meta.page,
@@ -622,8 +621,7 @@ final allTransactionsFilterNotifierProvider = NotifierProvider.autoDispose<
 );
 
 /// Computed label for the AppBar subtitle based on the active range.
-final allTransactionsRangeLabelProvider =
-    Provider.autoDispose<String>((ref) {
+final allTransactionsRangeLabelProvider = Provider.autoDispose<String>((ref) {
   final filter =
       ref.watch(allTransactionsFilterNotifierProvider.select((s) => s.filter));
   return _rangeLabelFromFilter(filter);
@@ -645,8 +643,7 @@ String _rangeLabelFromFilter(TransactionFilter filter) {
       return 'finances.widgets.range_custom_label'.tr();
     case DateRangePreset.thisMonth:
       if (filter.startDate != null) {
-        final label =
-            DateFormat('MMMM yyyy', 'es').format(filter.startDate!);
+        final label = DateFormat('MMMM yyyy', 'es').format(filter.startDate!);
         return label[0].toUpperCase() + label.substring(1);
       }
       final now = DateTime.now();

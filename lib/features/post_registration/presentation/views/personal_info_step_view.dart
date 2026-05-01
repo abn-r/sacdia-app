@@ -140,7 +140,8 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
             // === Section 1: Basic Data ===
             _SectionHeader(
               icon: HugeIcons.strokeRoundedUser,
-              title: tr('post_registration.personal_info.basic_data.section_title'),
+              title: tr(
+                  'post_registration.personal_info.basic_data.section_title'),
               isCompleted:
                   formState.gender != null && formState.birthdate != null,
             ),
@@ -222,7 +223,8 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
             // === Section 2: Emergency Contacts ===
             _SectionHeader(
               icon: HugeIcons.strokeRoundedCall02,
-              title: tr('post_registration.personal_info.emergency_contacts.section_title'),
+              title: tr(
+                  'post_registration.personal_info.emergency_contacts.section_title'),
               isCompleted: contactsAsync.hasValue &&
                   (contactsAsync.value?.isNotEmpty ?? false),
             ),
@@ -272,7 +274,8 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                         children: [
                           Text(
                             contacts.isEmpty
-                                ? tr('post_registration.personal_info.emergency_contacts.empty')
+                                ? tr(
+                                    'post_registration.personal_info.emergency_contacts.empty')
                                 : '${contacts.length} contacto(s)',
                             style: const TextStyle(
                               fontSize: 15,
@@ -313,7 +316,8 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                   children: [
                     _SectionHeader(
                       icon: HugeIcons.strokeRoundedUserGroup,
-                      title: tr('post_registration.personal_info.legal_representative.section_title'),
+                      title: tr(
+                          'post_registration.personal_info.legal_representative.section_title'),
                       isCompleted:
                           legalRepAsync.hasValue && legalRepAsync.value != null,
                     ),
@@ -379,7 +383,8 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                               child: Text(
                                 rep != null
                                     ? rep.fullName
-                                    : tr('post_registration.personal_info.legal_representative.empty'),
+                                    : tr(
+                                        'post_registration.personal_info.legal_representative.empty'),
                                 style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w500,
@@ -406,8 +411,9 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
               icon: HugeIcons.strokeRoundedFirstAidKit,
               title: tr('post_registration.personal_info.health.section_title'),
               subtitle: tr('post_registration.personal_info.health.optional'),
-              isCompleted:
-                  selectedAllergies.isNotEmpty || selectedDiseases.isNotEmpty || selectedMedicines.isNotEmpty,
+              isCompleted: selectedAllergies.isNotEmpty ||
+                  selectedDiseases.isNotEmpty ||
+                  selectedMedicines.isNotEmpty,
             ),
             const SizedBox(height: 12),
             SacCard(
@@ -437,7 +443,8 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                   Expanded(
                     child: Text(
                       selectedAllergies.isEmpty
-                          ? tr('post_registration.personal_info.health.allergies_empty')
+                          ? tr(
+                              'post_registration.personal_info.health.allergies_empty')
                           : '${selectedAllergies.length} alergia(s)',
                       style: const TextStyle(
                         fontSize: 15,
@@ -480,7 +487,8 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                   Expanded(
                     child: Text(
                       selectedDiseases.isEmpty
-                          ? tr('post_registration.personal_info.health.diseases_empty')
+                          ? tr(
+                              'post_registration.personal_info.health.diseases_empty')
                           : '${selectedDiseases.length} enfermedad(es)',
                       style: const TextStyle(
                         fontSize: 15,
@@ -523,7 +531,8 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                   Expanded(
                     child: Text(
                       selectedMedicines.isEmpty
-                          ? tr('post_registration.personal_info.health.medicines_empty')
+                          ? tr(
+                              'post_registration.personal_info.health.medicines_empty')
                           : '${selectedMedicines.length} medicamento(s)',
                       style: const TextStyle(
                         fontSize: 15,

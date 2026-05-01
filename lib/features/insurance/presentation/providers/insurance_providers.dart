@@ -49,7 +49,8 @@ final updateInsuranceUseCaseProvider = Provider<UpdateInsurance>((ref) {
 // ── Permission helper ───────────────────────────────────────────────────────────
 
 /// Devuelve true si el usuario puede crear/editar seguros.
-final canManageInsuranceProvider = FutureProvider.autoDispose<bool>((ref) async {
+final canManageInsuranceProvider =
+    FutureProvider.autoDispose<bool>((ref) async {
   final authState = await ref.watch(authNotifierProvider.future);
   if (authState == null) return false;
 
@@ -194,8 +195,8 @@ class InsuranceFilters {
   }
 }
 
-final insuranceFiltersProvider =
-    StateProvider.autoDispose<InsuranceFilters>((ref) => const InsuranceFilters());
+final insuranceFiltersProvider = StateProvider.autoDispose<InsuranceFilters>(
+    (ref) => const InsuranceFilters());
 
 final filteredMembersInsuranceProvider =
     Provider.autoDispose<AsyncValue<List<MemberInsurance>>>((ref) {
@@ -365,8 +366,8 @@ class InsuranceFormNotifier extends AutoDisposeNotifier<InsuranceFormState> {
   void reset() => state = const InsuranceFormState();
 }
 
-final insuranceFormNotifierProvider = NotifierProvider.autoDispose<
-    InsuranceFormNotifier, InsuranceFormState>(
+final insuranceFormNotifierProvider =
+    NotifierProvider.autoDispose<InsuranceFormNotifier, InsuranceFormState>(
   InsuranceFormNotifier.new,
 );
 

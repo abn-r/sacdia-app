@@ -6,14 +6,17 @@ import '../entities/progressive_class.dart';
 import '../repositories/classes_repository.dart';
 
 /// Caso de uso para obtener el detalle de una clase
-class GetClassDetail implements UseCase<ProgressiveClass, GetClassDetailParams> {
+class GetClassDetail
+    implements UseCase<ProgressiveClass, GetClassDetailParams> {
   final ClassesRepository repository;
 
   GetClassDetail(this.repository);
 
   @override
-  Future<Either<Failure, ProgressiveClass>> call(GetClassDetailParams params, {CancelToken? cancelToken}) async {
-    return await repository.getClassById(params.classId, cancelToken: cancelToken);
+  Future<Either<Failure, ProgressiveClass>> call(GetClassDetailParams params,
+      {CancelToken? cancelToken}) async {
+    return await repository.getClassById(params.classId,
+        cancelToken: cancelToken);
   }
 }
 

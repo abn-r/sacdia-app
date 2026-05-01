@@ -142,8 +142,7 @@ void main() {
       result.fold(
         (_) => fail('Expected Right'),
         (view) {
-          expect(view!.visibilityMode,
-              MyRankingVisibilityMode.selfAndTopN);
+          expect(view!.visibilityMode, MyRankingVisibilityMode.selfAndTopN);
           expect(view.topN, isNotNull);
           expect(view.topN!, hasLength(1));
           expect(view.topN!.first.memberName, 'Miembro #1');

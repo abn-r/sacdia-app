@@ -14,8 +14,10 @@ class GetHonorRequirements
 
   @override
   Future<Either<Failure, List<HonorRequirement>>> call(
-      GetHonorRequirementsParams params, {CancelToken? cancelToken}) async {
-    return await repository.getHonorRequirements(params.honorId, cancelToken: cancelToken);
+      GetHonorRequirementsParams params,
+      {CancelToken? cancelToken}) async {
+    return await repository.getHonorRequirements(params.honorId,
+        cancelToken: cancelToken);
   }
 }
 

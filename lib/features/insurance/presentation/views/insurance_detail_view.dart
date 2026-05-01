@@ -117,7 +117,8 @@ class InsuranceDetailView extends ConsumerWidget {
                     _InfoRow(
                       icon: HugeIcons.strokeRoundedMoney01,
                       label: 'insurance.detail.label_amount'.tr(),
-                      value: '\$${insurance.coverageAmount!.toStringAsFixed(2)}',
+                      value:
+                          '\$${insurance.coverageAmount!.toStringAsFixed(2)}',
                       valueColor: AppColors.secondary,
                     ),
                 ],
@@ -205,8 +206,8 @@ class _MemberHeaderCard extends StatelessWidget {
                 height: 60,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border:
-                      Border.all(color: statusColor.withValues(alpha: 0.4), width: 2),
+                  border: Border.all(
+                      color: statusColor.withValues(alpha: 0.4), width: 2),
                 ),
                 child: ClipOval(
                   child: insurance.memberPhotoUrl != null &&
@@ -216,9 +217,10 @@ class _MemberHeaderCard extends StatelessWidget {
                           fit: BoxFit.cover,
                           memCacheWidth: 180,
                           memCacheHeight: 180,
-                          placeholder: (context, url) => const Center(child: CircularProgressIndicator.adaptive()),
-                          errorWidget: (context, url, error) =>
-                              _AvatarFallback(initials: initials, color: statusColor),
+                          placeholder: (context, url) => const Center(
+                              child: CircularProgressIndicator.adaptive()),
+                          errorWidget: (context, url, error) => _AvatarFallback(
+                              initials: initials, color: statusColor),
                         )
                       : _AvatarFallback(initials: initials, color: statusColor),
                 ),
@@ -240,8 +242,8 @@ class _MemberHeaderCard extends StatelessWidget {
                 if (insurance.memberClass != null) ...[
                   const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: AppColors.primarySurface,
                       borderRadius: BorderRadius.circular(6),
@@ -458,7 +460,8 @@ class _EvidencePreview extends StatelessWidget {
   Widget build(BuildContext context) {
     if (_isPdf) {
       return _PdfTile(
-        fileName: insurance.evidenceFileName ?? 'insurance.detail.receipt_fallback'.tr(),
+        fileName: insurance.evidenceFileName ??
+            'insurance.detail.receipt_fallback'.tr(),
         fileUrl: insurance.evidenceFileUrl!,
       );
     }
@@ -474,7 +477,8 @@ class _EvidencePreview extends StatelessWidget {
             width: double.infinity,
             height: 200,
             fit: BoxFit.cover,
-            placeholder: (context, url) => const Center(child: CircularProgressIndicator.adaptive()),
+            placeholder: (context, url) =>
+                const Center(child: CircularProgressIndicator.adaptive()),
             errorWidget: (context, url, error) => Container(
               height: 100,
               color: AppColors.primarySurface,
@@ -579,7 +583,10 @@ class _NoEvidence extends StatelessWidget {
         HugeIcon(
           icon: HugeIcons.strokeRoundedFile01,
           size: 32,
-          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+          color: Theme.of(context)
+              .colorScheme
+              .onSurfaceVariant
+              .withValues(alpha: 0.4),
         ),
         const SizedBox(width: 12),
         Text(
@@ -629,8 +636,7 @@ class _InfoCard extends StatelessWidget {
                 HugeIcon(
                   icon: icon,
                   size: 18,
-                  color:
-                      Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: 10),
                 Text(
@@ -643,8 +649,7 @@ class _InfoCard extends StatelessWidget {
               ],
             ),
           ),
-          Divider(
-              height: 1, thickness: 0.5, indent: 16, endIndent: 16),
+          Divider(height: 1, thickness: 0.5, indent: 16, endIndent: 16),
           // Rows with dividers between them
           ...List.generate(children.length * 2 - 1, (i) {
             if (i.isOdd) {
@@ -653,9 +658,7 @@ class _InfoCard extends StatelessWidget {
                 thickness: 0.5,
                 indent: 16,
                 endIndent: 16,
-                color: Theme.of(context)
-                    .dividerColor
-                    .withValues(alpha: 0.5),
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
               );
             }
             return children[i ~/ 2];
@@ -699,9 +702,7 @@ class _InfoRow extends StatelessWidget {
                 Text(
                   label,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurfaceVariant,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontSize: 11,
                       ),
                 ),

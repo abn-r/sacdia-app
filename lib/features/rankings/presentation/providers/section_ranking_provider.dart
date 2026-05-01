@@ -30,8 +30,7 @@ final sectionRankingsRepositoryProvider =
 ///
 /// Director sees real names (RBAC enforced server-side).
 final sectionMembersProvider = FutureProvider.autoDispose
-    .family<List<SectionMember>, SectionMembersParams>(
-        (ref, params) async {
+    .family<List<SectionMember>, SectionMembersParams>((ref, params) async {
   ref.keepAlive();
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());

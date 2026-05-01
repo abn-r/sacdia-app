@@ -11,7 +11,8 @@ import '../../domain/repositories/dashboard_repository.dart';
 import '../../domain/usecases/get_dashboard_data.dart';
 
 /// Provider para la fuente de datos remota del dashboard
-final dashboardRemoteDataSourceProvider = Provider<DashboardRemoteDataSource>((ref) {
+final dashboardRemoteDataSourceProvider =
+    Provider<DashboardRemoteDataSource>((ref) {
   return DashboardRemoteDataSourceImpl(
     dio: ref.read(dioProvider),
     baseUrl: ref.read(apiBaseUrlProvider),
@@ -91,6 +92,7 @@ class DashboardNotifier extends AsyncNotifier<DashboardSummary?> {
 }
 
 /// Provider para el notifier del dashboard
-final dashboardNotifierProvider = AsyncNotifierProvider<DashboardNotifier, DashboardSummary?>(() {
+final dashboardNotifierProvider =
+    AsyncNotifierProvider<DashboardNotifier, DashboardSummary?>(() {
   return DashboardNotifier();
 });

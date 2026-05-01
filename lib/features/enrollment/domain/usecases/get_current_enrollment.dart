@@ -27,8 +27,8 @@ class GetCurrentEnrollment
   GetCurrentEnrollment(this.repository);
 
   @override
-  Future<Either<Failure, Enrollment?>> call(
-      GetCurrentEnrollmentParams params, {CancelToken? cancelToken}) async {
+  Future<Either<Failure, Enrollment?>> call(GetCurrentEnrollmentParams params,
+      {CancelToken? cancelToken}) async {
     return repository.getCurrentEnrollment(
       clubId: params.clubId,
       sectionId: params.sectionId,

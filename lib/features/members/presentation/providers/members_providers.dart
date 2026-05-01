@@ -79,8 +79,7 @@ class ClubContext {
   });
 
   /// Whether the active user is a director in this club context.
-  bool get isDirector =>
-      roleName?.trim().toLowerCase() == 'director';
+  bool get isDirector => roleName?.trim().toLowerCase() == 'director';
 }
 
 /// Provider del contexto del club activo.
@@ -214,7 +213,8 @@ class JoinRequestFilters {
 }
 
 final joinRequestFiltersProvider =
-    StateProvider.autoDispose<JoinRequestFilters>((ref) => const JoinRequestFilters());
+    StateProvider.autoDispose<JoinRequestFilters>(
+        (ref) => const JoinRequestFilters());
 
 // ── Members data ──────────────────────────────────────────────────────────────
 
@@ -345,7 +345,8 @@ final filteredMembersProvider = Provider.autoDispose<List<ClubMember>>((ref) {
 });
 
 /// Solicitudes filtradas según los filtros activos
-final filteredJoinRequestsProvider = Provider.autoDispose<List<JoinRequest>>((ref) {
+final filteredJoinRequestsProvider =
+    Provider.autoDispose<List<JoinRequest>>((ref) {
   final data = ref.watch(membersNotifierProvider).valueOrNull;
   final requests = data?.joinRequests ?? [];
   final filters = ref.watch(joinRequestFiltersProvider);
@@ -360,8 +361,7 @@ final pendingRequestsCountProvider = Provider.autoDispose<int>((ref) {
 
 /// Clases únicas presentes en la lista de miembros (para el filtro)
 final availableClassesProvider = Provider.autoDispose<List<String>>((ref) {
-  final members =
-      ref.watch(membersNotifierProvider).valueOrNull?.members ?? [];
+  final members = ref.watch(membersNotifierProvider).valueOrNull?.members ?? [];
   final classes = members
       .map((m) => m.currentClass)
       .whereType<String>()
@@ -374,8 +374,7 @@ final availableClassesProvider = Provider.autoDispose<List<String>>((ref) {
 
 /// Roles únicos presentes en la lista de miembros (para el filtro)
 final availableRolesProvider = Provider.autoDispose<List<String>>((ref) {
-  final members =
-      ref.watch(membersNotifierProvider).valueOrNull?.members ?? [];
+  final members = ref.watch(membersNotifierProvider).valueOrNull?.members ?? [];
   final roles = members
       .map((m) => m.clubRole)
       .whereType<String>()
@@ -387,7 +386,8 @@ final availableRolesProvider = Provider.autoDispose<List<String>>((ref) {
 });
 
 /// Miembros agrupados por clase progresiva
-final membersByClassProvider = Provider.autoDispose<Map<String, List<ClubMember>>>((ref) {
+final membersByClassProvider =
+    Provider.autoDispose<Map<String, List<ClubMember>>>((ref) {
   final members = ref.watch(filteredMembersProvider);
   final grouped = <String, List<ClubMember>>{};
 
@@ -453,33 +453,29 @@ final _personalInfoDsProvider = Provider<PersonalInfoRemoteDataSource>((ref) {
 });
 
 /// Alergias de un usuario específico (solo lectura, para vista de perfil de miembro).
-final memberAllergiesProvider =
-    FutureProvider.autoDispose.family<List<AllergyModel>, String>(
-        (ref, userId) async {
+final memberAllergiesProvider = FutureProvider.autoDispose
+    .family<List<AllergyModel>, String>((ref, userId) async {
   final ds = ref.read(_personalInfoDsProvider);
   return ds.getUserAllergies(userId);
 });
 
 /// Enfermedades de un usuario específico (solo lectura, para vista de perfil de miembro).
-final memberDiseasesProvider =
-    FutureProvider.autoDispose.family<List<DiseaseModel>, String>(
-        (ref, userId) async {
+final memberDiseasesProvider = FutureProvider.autoDispose
+    .family<List<DiseaseModel>, String>((ref, userId) async {
   final ds = ref.read(_personalInfoDsProvider);
   return ds.getUserDiseases(userId);
 });
 
 /// Medicamentos de un usuario específico (solo lectura, para vista de perfil de miembro).
-final memberMedicinesProvider =
-    FutureProvider.autoDispose.family<List<MedicineModel>, String>(
-        (ref, userId) async {
+final memberMedicinesProvider = FutureProvider.autoDispose
+    .family<List<MedicineModel>, String>((ref, userId) async {
   final ds = ref.read(_personalInfoDsProvider);
   return ds.getUserMedicines(userId);
 });
 
 /// Contactos de emergencia de un usuario específico (solo lectura, para vista de perfil de miembro).
-final memberEmergencyContactsProvider =
-    FutureProvider.autoDispose.family<List<EmergencyContactModel>, String>(
-        (ref, userId) async {
+final memberEmergencyContactsProvider = FutureProvider.autoDispose
+    .family<List<EmergencyContactModel>, String>((ref, userId) async {
   final ds = ref.read(_personalInfoDsProvider);
   return ds.getEmergencyContacts(userId);
 });
@@ -503,9 +499,8 @@ final _honorsDsForMembersProvider = Provider<HonorsRemoteDataSource>((ref) {
 });
 
 /// Clases progresivas de un usuario específico (solo lectura, para vista de perfil de miembro).
-final memberClassesProvider =
-    FutureProvider.autoDispose.family<List<ProgressiveClass>, String>(
-        (ref, userId) async {
+final memberClassesProvider = FutureProvider.autoDispose
+    .family<List<ProgressiveClass>, String>((ref, userId) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final ds = ref.read(_classesDsForMembersProvider);
@@ -514,9 +509,8 @@ final memberClassesProvider =
 });
 
 /// Especialidades de un usuario específico (solo lectura, para vista de perfil de miembro).
-final memberHonorsProvider =
-    FutureProvider.autoDispose.family<List<UserHonor>, String>(
-        (ref, userId) async {
+final memberHonorsProvider = FutureProvider.autoDispose
+    .family<List<UserHonor>, String>((ref, userId) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final ds = ref.read(_honorsDsForMembersProvider);

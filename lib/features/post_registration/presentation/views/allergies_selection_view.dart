@@ -47,9 +47,7 @@ class _AllergiesSelectionViewState
 
     if (confirmed == true && context.mounted) {
       try {
-        await ref
-            .read(userAllergiesProvider.notifier)
-            .deleteAllergy(allergyId);
+        await ref.read(userAllergiesProvider.notifier).deleteAllergy(allergyId);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -110,17 +108,13 @@ class _AllergiesSelectionViewState
         actions: [
           IconButton(
             icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 24),
-            onPressed: () =>
-                ref.read(userAllergiesProvider.notifier).refresh(),
-            tooltip:
-                'post_registration.health.allergies.refresh_tooltip'.tr(),
+            onPressed: () => ref.read(userAllergiesProvider.notifier).refresh(),
+            tooltip: 'post_registration.health.allergies.refresh_tooltip'.tr(),
           ),
           TextButton.icon(
             onPressed: () async {
               final ids = ref.read(selectedAllergiesProvider);
-              await ref
-                  .read(userAllergiesProvider.notifier)
-                  .saveAll(ids);
+              await ref.read(userAllergiesProvider.notifier).saveAll(ids);
               if (context.mounted) Navigator.of(context).pop();
             },
             icon: const HugeIcon(

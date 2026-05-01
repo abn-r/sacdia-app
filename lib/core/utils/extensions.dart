@@ -9,21 +9,21 @@ extension StringExtensions on String {
     if (isEmpty) return this;
     return '${this[0].toUpperCase()}${substring(1)}';
   }
-  
+
   /// Convierte snake_case a camelCase
   String get toCamelCase {
     if (isEmpty) return this;
-    
+
     List<String> parts = split('_');
     String result = parts[0].toLowerCase();
-    
+
     for (int i = 1; i < parts.length; i++) {
       result += parts[i].capitalize;
     }
-    
+
     return result;
   }
-  
+
   /// Convierte un String a una fecha
   DateTime? toDateTime({String format = 'yyyy-MM-dd'}) {
     try {
@@ -32,12 +32,13 @@ extension StringExtensions on String {
       return null;
     }
   }
-  
+
   /// Verifica si un String es un email
   bool get isEmail {
-    return RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(this);
+    return RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+        .hasMatch(this);
   }
-  
+
   /// Verifica si un String es una URL
   bool get isUrl {
     return RegExp(
@@ -52,23 +53,27 @@ extension DateTimeExtensions on DateTime {
   String format({String format = 'dd/MM/yyyy'}) {
     return DateFormat(format).format(this);
   }
-  
+
   /// Verifica si la fecha es hoy
   bool get isToday {
     final now = DateTime.now();
     return year == now.year && month == now.month && day == now.day;
   }
-  
+
   /// Verifica si la fecha es ayer
   bool get isYesterday {
     final yesterday = DateTime.now().subtract(const Duration(days: 1));
-    return year == yesterday.year && month == yesterday.month && day == yesterday.day;
+    return year == yesterday.year &&
+        month == yesterday.month &&
+        day == yesterday.day;
   }
-  
+
   /// Verifica si la fecha es mañana
   bool get isTomorrow {
     final tomorrow = DateTime.now().add(const Duration(days: 1));
-    return year == tomorrow.year && month == tomorrow.month && day == tomorrow.day;
+    return year == tomorrow.year &&
+        month == tomorrow.month &&
+        day == tomorrow.day;
   }
 }
 
@@ -76,50 +81,51 @@ extension DateTimeExtensions on DateTime {
 extension ContextExtensions on BuildContext {
   /// Obtener el tamaño de la pantalla
   Size get screenSize => MediaQuery.of(this).size;
-  
+
   /// Obtener la altura de la pantalla
   double get screenHeight => screenSize.height;
-  
+
   /// Obtener el ancho de la pantalla
   double get screenWidth => screenSize.width;
-  
+
   /// Obtener el tema actual
   ThemeData get theme => Theme.of(this);
-  
+
   /// Obtener los colores del tema
   ColorScheme get colors => theme.colorScheme;
-  
+
   /// Obtener los estilos de texto del tema
   TextTheme get textTheme => theme.textTheme;
-  
+
   /// Navegar a una nueva pantalla
   Future<T?> pushNamed<T>(String route, {Object? arguments}) {
     return Navigator.of(this).pushNamed<T>(route, arguments: arguments);
   }
-  
+
   /// Reemplazar la pantalla actual con una nueva
-  Future<T?> pushReplacementNamed<T, TO>(String route, {TO? result, Object? arguments}) {
+  Future<T?> pushReplacementNamed<T, TO>(String route,
+      {TO? result, Object? arguments}) {
     return Navigator.of(this).pushReplacementNamed<T, TO>(
-      route, 
+      route,
       result: result,
       arguments: arguments,
     );
   }
-  
+
   /// Eliminar todas las pantallas anteriores y navegar a una nueva
   Future<T?> pushNamedAndRemoveUntil<T>(String route, {Object? arguments}) {
     return Navigator.of(this).pushNamedAndRemoveUntil<T>(
-      route, 
+      route,
       (route) => false,
       arguments: arguments,
     );
   }
-  
+
   /// Regresar a la pantalla anterior
   void pop<T>([T? result]) {
     Navigator.of(this).pop<T>(result);
   }
-  
+
   /// Mostrar un SnackBar
   void showSnackBar(String message, {Color? backgroundColor}) {
     ScaffoldMessenger.of(this).showSnackBar(
@@ -135,7 +141,7 @@ extension ContextExtensions on BuildContext {
 extension AsyncValueExtensions<T> on AsyncValue<T> {
   // Eliminamos el método valueOrNull ya que ya existe en AsyncValueX de Riverpod
   // y usaremos ese directamente
-  
+
   /// Verifica si el AsyncValue es exitoso (tiene datos, no está en error ni cargando)
   bool get isSuccess => !isLoading && !hasError && hasValue;
 }

@@ -7,8 +7,8 @@ import '../entities/annual_folder.dart';
 abstract class AnnualFoldersRepository {
   /// Obtiene la carpeta anual de un enrollment.
   /// GET /api/v1/annual-folders/enrollment/:enrollmentId
-  Future<Either<Failure, AnnualFolder>> getFolderByEnrollment(
-      int enrollmentId, {CancelToken? cancelToken});
+  Future<Either<Failure, AnnualFolder>> getFolderByEnrollment(int enrollmentId,
+      {CancelToken? cancelToken});
 
   /// Sube una evidencia a una sección de la carpeta.
   /// POST /api/v1/annual-folders/:folderId/evidences

@@ -29,12 +29,13 @@ class ClassRequirementModel extends ClassRequirement {
         [];
 
     final files = rawFiles
-        .map((f) =>
-            RequirementEvidenceModel.fromJson(f as Map<String, dynamic>))
+        .map(
+            (f) => RequirementEvidenceModel.fromJson(f as Map<String, dynamic>))
         .toList();
 
     return ClassRequirementModel(
-      id: _parseInt(json['id'] ?? json['section_id'] ?? json['requirement_id'] ?? 0),
+      id: _parseInt(
+          json['id'] ?? json['section_id'] ?? json['requirement_id'] ?? 0),
       name: (json['name'] ?? json['section_name'] ?? '').toString(),
       description: json['description']?.toString(),
       moduleId: _parseInt(json['module_id'] ?? json['moduleId'] ?? 0),

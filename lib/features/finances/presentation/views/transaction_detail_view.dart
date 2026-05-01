@@ -116,7 +116,8 @@ class TransactionDetailView extends ConsumerWidget {
                 _DetailRow(
                   icon: HugeIcons.strokeRoundedClock01,
                   label: 'finances.transaction_detail.registration_date'.tr(),
-                  value: DateFormat('dd/MM/yyyy HH:mm').format(transaction.registeredAt.toLocal()),
+                  value: DateFormat('dd/MM/yyyy HH:mm')
+                      .format(transaction.registeredAt.toLocal()),
                 ),
                 if (transaction.modifiedByName != null) ...[
                   _divider(),
@@ -129,7 +130,8 @@ class TransactionDetailView extends ConsumerWidget {
                     _divider(),
                     _DetailRow(
                       icon: HugeIcons.strokeRoundedClock01,
-                      label: 'finances.transaction_detail.modification_date'.tr(),
+                      label:
+                          'finances.transaction_detail.modification_date'.tr(),
                       value: DateFormat('dd/MM/yyyy HH:mm')
                           .format(transaction.modifiedAt!.toLocal()),
                     ),
@@ -187,13 +189,15 @@ class TransactionDetailView extends ConsumerWidget {
     if (success) {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('finances.transaction_detail.delete_success'.tr())),
+        SnackBar(
+            content: Text('finances.transaction_detail.delete_success'.tr())),
       );
     } else {
       final error = ref.read(transactionFormNotifierProvider).errorMessage;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(error ?? 'finances.transaction_detail.delete_error'.tr()),
+          content:
+              Text(error ?? 'finances.transaction_detail.delete_error'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -346,9 +350,7 @@ class _DetailRow extends StatelessWidget {
                 Text(
                   label,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurfaceVariant,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                 ),
                 const SizedBox(height: 2),

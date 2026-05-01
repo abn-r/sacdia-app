@@ -44,7 +44,8 @@ class _AppLockViewState extends ConsumerState<AppLockView> {
     if (_authenticating) return;
     setState(() => _authenticating = true);
     final notifier = ref.read(biometricProvider.notifier);
-    final ok = await notifier.authenticate(reason: 'biometric.unlock_reason'.tr());
+    final ok =
+        await notifier.authenticate(reason: 'biometric.unlock_reason'.tr());
     if (!mounted) return;
     if (ok) {
       // El notifier ya marcó `unlocked=true`; BiometricGate reacciona.

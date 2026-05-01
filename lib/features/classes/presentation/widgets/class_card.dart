@@ -56,7 +56,7 @@ class ClassCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                         child: CachedNetworkImage(
                           imageUrl: progressiveClass.imageUrl!,
-                          memCacheWidth: 132,  // 44 * 3 (max device pixel ratio)
+                          memCacheWidth: 132, // 44 * 3 (max device pixel ratio)
                           memCacheHeight: 132, // 44 * 3
                           fit: BoxFit.cover,
                           errorWidget: (_, __, ___) => logoAsset != null
@@ -111,8 +111,7 @@ class ClassCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (isCurrent)
-                          const SacBadge(label: 'Clase actual'),
+                        if (isCurrent) const SacBadge(label: 'Clase actual'),
                       ],
                     ),
                     if (progressiveClass.description != null) ...[
