@@ -20,6 +20,12 @@ class VirtualCardModel extends VirtualCard {
   });
 
   factory VirtualCardModel.fromJson(Map<String, dynamic> json) {
+    final member = json['member'] is Map
+        ? Map<String, dynamic>.from(json['member'] as Map)
+        : null;
+    final visual = json['visual'] is Map
+        ? Map<String, dynamic>.from(json['visual'] as Map)
+        : null;
     final club = json['club'] is Map<String, dynamic>
         ? json['club'] as Map<String, dynamic>
         : null;
@@ -29,42 +35,71 @@ class VirtualCardModel extends VirtualCard {
     final rawExpiresAt = json['qr_expires_at'] as String? ??
         json['expires_at'] as String? ??
         json['expiresAt'] as String?;
+    final userId = _pickString([
+      json['user_id'],
+      member?['user_id'],
+      json['id'],
+    ]);
+    final cardIdShort = _pickString([
+      json['card_id_short'],
+      json['card_id'],
+      json['short_id'],
+      userId == null ? null : _shortId(userId),
+    ]);
 
     return VirtualCardModel(
-      userId: (json['user_id'] as String? ?? json['id'] as String? ?? '').trim(),
-      fullName: (json['name_full'] as String? ??
-              json['full_name'] as String? ??
-              json['name'] as String? ??
-              '')
-          .trim(),
-      photoUrl: json['photo_url'] as String? ??
-          json['avatar'] as String? ??
-          json['user_image'] as String?,
-      roleLabel: json['role_label'] as String? ??
-          json['role'] as String? ??
-          json['role_name'] as String?,
-      roleCode: json['role_code'] as String? ??
-          json['role_name'] as String? ??
-          json['role'] as String?,
-      clubName: json['club_name'] as String? ??
-          club?['club_name'] as String? ??
-          club?['name'] as String?,
+      userId: userId ?? '',
+      fullName: _pickString([
+            json['name_full'],
+            json['full_name'],
+            member?['full_name'],
+            visual?['primary_line'],
+            json['name'],
+          ]) ??
+          '',
+      photoUrl: _pickString([
+        json['photo_url'],
+        json['avatar'],
+        member?['avatar'],
+        json['user_image'],
+      ]),
+      roleLabel: _pickString([
+        json['role_label'],
+        json['role'],
+        json['role_name'],
+      ]),
+      roleCode: _pickString([
+        json['role_code'],
+        json['role_name'],
+        json['role'],
+      ]),
+      clubName: _pickString([
+        json['club_name'],
+        member?['club_name'],
+        visual?['club_name'],
+        club?['club_name'],
+        club?['name'],
+      ]),
       clubLogoUrl: json['club_logo_url'] as String? ??
           json['club_logo'] as String? ??
           club?['logo_url'] as String?,
-      sectionName: json['section_name'] as String? ??
-          json['section'] as String? ??
-          json['current_class'] as String?,
-      memberSince: rawMemberSince != null ? DateTime.tryParse(rawMemberSince) : null,
+      sectionName: _pickString([
+        json['section_name'],
+        member?['section_name'],
+        visual?['section_name'],
+        json['section'],
+        json['current_class'],
+      ]),
+      memberSince:
+          rawMemberSince != null ? DateTime.tryParse(rawMemberSince) : null,
       achievementTier: VirtualCardTier.fromString(
         (json['achievement_tier'] as String? ?? json['tier'] as String?),
       ),
-      cardIdShort: json['card_id_short'] as String? ??
-          json['card_id'] as String? ??
-          json['short_id'] as String?,
+      cardIdShort: cardIdShort,
       qrToken: json['qr_token'] as String? ?? json['token'] as String?,
-      qrExpiresAt:
-          rawExpiresAt != null ? DateTime.tryParse(rawExpiresAt)?.toUtc() : null,
+      qrExpiresAt: rawExpiresAt != null
+          ? DateTime.tryParse(rawExpiresAt)?.toUtc()
+          : null,
       isActive: json['is_active'] as bool? ?? true,
       isOffline: json['is_offline'] as bool? ?? false,
     );
@@ -88,5 +123,21 @@ class VirtualCardModel extends VirtualCard {
       'is_active': isActive,
       'is_offline': isOffline,
     };
+  }
+
+  static String? _pickString(Iterable<Object?> values) {
+    for (final value in values) {
+      final normalized = value?.toString().trim();
+      if (normalized != null && normalized.isNotEmpty) {
+        return normalized;
+      }
+    }
+    return null;
+  }
+
+  static String _shortId(String value) {
+    final normalized = value.trim();
+    if (normalized.length <= 8) return normalized;
+    return normalized.substring(normalized.length - 8);
   }
 }

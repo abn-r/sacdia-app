@@ -53,7 +53,8 @@ VirtualCard _sampleCard({
     achievementTier: tier == null ? null : VirtualCardTier.fromString(tier),
     cardIdShort: 'SACDIA-202410-0421',
     qrToken: 'eyJ1aWQiOiJ1c3JfMTIzIn0.sig',
-    qrExpiresAt: expiresAt ?? DateTime.utc(2099, 1, 1),
+    qrExpiresAt:
+        expiresAt ?? DateTime.now().toUtc().add(const Duration(days: 365)),
     isActive: isActive,
     isOffline: isOffline,
   );
@@ -68,6 +69,8 @@ void main() {
   });
 
   testWidgets('renders the active card layout', (tester) async {
+    expect(_sampleCard(tier: 'gold').canShowQr, isTrue);
+
     await tester.pumpWidget(
       _wrapApp(
         VirtualCardFace(

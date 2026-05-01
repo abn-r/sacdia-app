@@ -76,13 +76,15 @@ class AchievementDetailSheet extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      const SizedBox(height: 16),
+
                       // Badge large
                       AchievementBadge(
                         badgeImageUrl: achievement.badgeImageUrl,
                         tier: achievement.tier,
                         visualState: visualState,
                         isSecret: achievement.secret,
-                        size: 96,
+                        size: 146,
                         progress: userAchievement?.progressPercentage ?? 0.0,
                       ),
                       const SizedBox(height: 16),
@@ -92,11 +94,11 @@ class AchievementDetailSheet extends StatelessWidget {
                         isSecret ? '???' : achievement.name,
                         style: Theme.of(context)
                             .textTheme
-                            .headlineSmall
+                            .headlineMedium
                             ?.copyWith(fontWeight: FontWeight.w700),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 15),
 
                       // Tier + Points badges
                       Row(
@@ -206,7 +208,7 @@ class AchievementDetailSheet extends StatelessWidget {
                           label: 'achievements.views.detail_completed_on'.tr(),
                           value: _formatDate(userAchievement!.completedAt!),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                       ],
 
                       const SizedBox(height: 32),

@@ -2,9 +2,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../domain/entities/virtual_card.dart';
+import 'virtual_card_qr_tile.dart';
 
 class VirtualCardFace extends StatelessWidget {
   const VirtualCardFace({
@@ -26,9 +26,12 @@ class VirtualCardFace extends StatelessWidget {
     final isDark = brightness == Brightness.dark;
     final background = isDark ? const Color(0xFF1A2235) : Colors.white;
     final header = isDark ? const Color(0xFF0B1A36) : const Color(0xFF0F2645);
-    final textPrimary = isDark ? const Color(0xFFF4F7FB) : const Color(0xFF0F1B2D);
-    final textSecondary = isDark ? const Color(0xFFA0AABF) : const Color(0xFF5A6378);
-    final textTertiary = isDark ? const Color(0xFF5A6378) : const Color(0xFF9099AB);
+    final textPrimary =
+        isDark ? const Color(0xFFF4F7FB) : const Color(0xFF0F1B2D);
+    final textSecondary =
+        isDark ? const Color(0xFFA0AABF) : const Color(0xFF5A6378);
+    final textTertiary =
+        isDark ? const Color(0xFF5A6378) : const Color(0xFF9099AB);
     final divider = isDark ? const Color(0xFF2A344C) : const Color(0xFFE5E8EE);
 
     final tier = card.achievementTier ?? VirtualCardTier.unknown;
@@ -73,94 +76,30 @@ class VirtualCardFace extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Center(
-                        child: GestureDetector(
-                          onTap: card.photoUrl?.trim().isNotEmpty == true
-                              ? onPhotoTap
-                              : null,
-                          child: Semantics(
-                            label: 'virtual_card.photo_alt'.tr(
-                              namedArgs: {'name': card.fullName},
-                            ),
-                            child: _Avatar(
-                              photoUrl: card.photoUrl,
-                              fullName: card.fullName,
-                              tierColor: tierPalette.border,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      Text(
-                        card.fullName,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                          color: textPrimary,
-                          letterSpacing: -0.4,
-                        ),
-                      ),
-                      if ((card.roleLabel ?? '').trim().isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          card.roleLabel!,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: textSecondary,
-                            letterSpacing: 0.6,
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 18),
-                      Divider(color: divider, height: 1),
-                      const SizedBox(height: 16),
-                      _MetaRow(
-                        label: 'virtual_card.club_label'.tr(),
-                        value: card.clubName,
+                      _IdentitySummary(
+                        card: card,
+                        tierColor: tierPalette.border,
                         textPrimary: textPrimary,
                         textSecondary: textSecondary,
+                        onPhotoTap: onPhotoTap,
                       ),
-                      if ((card.sectionName ?? '').trim().isNotEmpty) ...[
-                        const SizedBox(height: 14),
-                        _MetaRow(
-                          label: 'virtual_card.section_label'.tr(),
-                          value: card.sectionName,
-                          textPrimary: textPrimary,
-                          textSecondary: textSecondary,
-                        ),
-                      ],
-                      if (card.memberSince != null) ...[
-                        const SizedBox(height: 14),
-                        _MetaRow(
-                          label: 'virtual_card.member_since_label'.tr(),
-                          value: DateFormat.yMMMM(context.locale.toString())
-                              .format(card.memberSince!.toLocal()),
-                          textPrimary: textPrimary,
-                          textSecondary: textSecondary,
-                        ),
-                      ],
-                      const SizedBox(height: 18),
-                      Divider(color: divider, height: 1),
                       const SizedBox(height: 16),
+                      Divider(color: divider, height: 1),
+                      const SizedBox(height: 14),
                       Expanded(
-                        child: Center(
-                          child: card.canShowQr
-                              ? GestureDetector(
-                                  onTap: onShowQr,
-                                  child: Hero(
-                                    tag: 'virtual-card-qr-${card.userId}',
-                                    child: _QrPreview(card: card),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Center(
+                            child: card.canShowQr
+                                ? _QrHero(
+                                    card: card,
+                                    onTap: onShowQr,
+                                  )
+                                : _QrUnavailableState(
+                                    card: card,
+                                    onRefresh: onRefresh,
                                   ),
-                                )
-                              : _QrUnavailableState(
-                                  card: card,
-                                  onRefresh: onRefresh,
-                                ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -168,7 +107,8 @@ class VirtualCardFace extends StatelessWidget {
                         child: TextButton.icon(
                           key: const Key('virtual-card-fullscreen-action'),
                           onPressed: card.canShowQr ? onShowQr : onRefresh,
-                          icon: const Icon(Icons.open_in_full_outlined, size: 18),
+                          icon:
+                              const Icon(Icons.open_in_full_outlined, size: 18),
                           label: Text(
                             card.canShowQr
                                 ? 'virtual_card.show_fullscreen'.tr()
@@ -183,7 +123,8 @@ class VirtualCardFace extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              card.cardIdShort == null || card.cardIdShort!.isEmpty
+                              card.cardIdShort == null ||
+                                      card.cardIdShort!.isEmpty
                                   ? 'virtual_card.id_missing'.tr()
                                   : '${'virtual_card.id_prefix'.tr()} ${card.cardIdShort}',
                               maxLines: 1,
@@ -322,16 +263,124 @@ class _ClubHeaderLogo extends StatelessWidget {
   }
 }
 
+class _IdentitySummary extends StatelessWidget {
+  const _IdentitySummary({
+    required this.card,
+    required this.tierColor,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.onPhotoTap,
+  });
+
+  final VirtualCard card;
+  final Color tierColor;
+  final Color textPrimary;
+  final Color textSecondary;
+  final VoidCallback onPhotoTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasPhoto = card.photoUrl?.trim().isNotEmpty == true;
+    final club = card.clubName?.trim();
+    final section = card.sectionName?.trim();
+    final memberSince = card.memberSince == null
+        ? null
+        : DateFormat.yMMMM(context.locale.toString())
+            .format(card.memberSince!.toLocal());
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        GestureDetector(
+          onTap: hasPhoto ? onPhotoTap : null,
+          child: Semantics(
+            label: 'virtual_card.photo_alt'.tr(
+              namedArgs: {'name': card.fullName},
+            ),
+            child: _Avatar(
+              photoUrl: card.photoUrl,
+              fullName: card.fullName,
+              tierColor: tierColor,
+              size: 86,
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                card.fullName,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: textPrimary,
+                  height: 1.08,
+                  letterSpacing: -0.35,
+                ),
+              ),
+              if ((card.roleLabel ?? '').trim().isNotEmpty) ...[
+                const SizedBox(height: 5),
+                Text(
+                  card.roleLabel!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: textSecondary,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ],
+              if (club != null && club.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                _InlineInfo(
+                  label: 'virtual_card.club_label'.tr(),
+                  value: club,
+                  color: textSecondary,
+                ),
+              ],
+              if (section != null && section.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                _InlineInfo(
+                  label: 'virtual_card.section_label'.tr(),
+                  value: section,
+                  color: textSecondary,
+                ),
+              ],
+              if (memberSince != null) ...[
+                const SizedBox(height: 4),
+                _InlineInfo(
+                  label: 'virtual_card.member_since_label'.tr(),
+                  value: memberSince,
+                  color: textSecondary,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _Avatar extends StatelessWidget {
   const _Avatar({
     required this.photoUrl,
     required this.fullName,
     required this.tierColor,
+    this.size = 124,
   });
 
   final String? photoUrl;
   final String fullName;
   final Color tierColor;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -345,8 +394,8 @@ class _Avatar extends StatelessWidget {
 
     final hasPhoto = photoUrl?.trim().isNotEmpty == true;
     return Container(
-      width: 124,
-      height: 124,
+      width: size,
+      height: size,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
@@ -357,19 +406,22 @@ class _Avatar extends StatelessWidget {
             ? CachedNetworkImage(
                 imageUrl: photoUrl!,
                 fit: BoxFit.cover,
-                placeholder: (_, __) => _Placeholder(initials: initials),
-                errorWidget: (_, __, ___) => _Placeholder(initials: initials),
+                placeholder: (_, __) =>
+                    _Placeholder(initials: initials, size: size),
+                errorWidget: (_, __, ___) =>
+                    _Placeholder(initials: initials, size: size),
               )
-            : _Placeholder(initials: initials),
+            : _Placeholder(initials: initials, size: size),
       ),
     );
   }
 }
 
 class _Placeholder extends StatelessWidget {
-  const _Placeholder({required this.initials});
+  const _Placeholder({required this.initials, required this.size});
 
   final String initials;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -378,86 +430,97 @@ class _Placeholder extends StatelessWidget {
       alignment: Alignment.center,
       child: Text(
         initials.isEmpty ? '·' : initials,
-        style: const TextStyle(
-          fontSize: 34,
+        style: TextStyle(
+          fontSize: size * 0.27,
           fontWeight: FontWeight.w800,
-          color: Color(0xFF0F1B2D),
+          color: const Color(0xFF0F1B2D),
         ),
       ),
     );
   }
 }
 
-class _MetaRow extends StatelessWidget {
-  const _MetaRow({
+class _InlineInfo extends StatelessWidget {
+  const _InlineInfo({
     required this.label,
     required this.value,
-    required this.textPrimary,
-    required this.textSecondary,
+    required this.color,
   });
 
   final String label;
-  final String? value;
-  final Color textPrimary;
-  final Color textSecondary;
+  final String value;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    if (value == null || value!.trim().isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label.toUpperCase(),
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 1.2,
-            color: textSecondary,
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: '${label.toUpperCase()}: ',
+            style: const TextStyle(fontWeight: FontWeight.w700),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value!,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-            color: textPrimary,
-          ),
-        ),
-      ],
+          TextSpan(text: value),
+        ],
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        fontSize: 11,
+        height: 1.1,
+        color: color,
+        letterSpacing: 0.35,
+      ),
     );
   }
 }
 
-class _QrPreview extends StatelessWidget {
-  const _QrPreview({required this.card});
+class _QrHero extends StatelessWidget {
+  const _QrHero({
+    required this.card,
+    required this.onTap,
+  });
 
   final VirtualCard card;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 160,
-      height: 160,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE5E8EE)),
-      ),
-      child: Semantics(
-        label: 'virtual_card.qr_alt'.tr(),
-        child: QrImageView(
+    return GestureDetector(
+      key: const Key('virtual-card-qr-preview'),
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Hero(
+        tag: 'virtual-card-qr-${card.userId}',
+        transitionOnUserGestures: true,
+        flightShuttleBuilder: (
+          context,
+          animation,
+          direction,
+          fromContext,
+          toContext,
+        ) {
+          final curved = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+            reverseCurve: Curves.easeInCubic,
+          );
+
+          return FadeTransition(
+            opacity: curved,
+            child: ScaleTransition(
+              scale: Tween<double>(begin: 0.96, end: 1).animate(curved),
+              child: direction == HeroFlightDirection.push
+                  ? toContext.widget
+                  : fromContext.widget,
+            ),
+          );
+        },
+        child: VirtualCardQrTile(
           data: card.qrToken!,
-          version: QrVersions.auto,
-          backgroundColor: Colors.white,
-          errorCorrectionLevel: QrErrorCorrectLevel.M,
+          maxSize: 148,
+          padding: 10,
+          borderRadius: 18,
         ),
       ),
     );
