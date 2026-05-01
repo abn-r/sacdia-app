@@ -19,8 +19,27 @@ import 'class_detail_with_progress_view.dart';
 /// Sin AppBar (tab del bottom nav), titulo inline,
 /// ClassCards con SacProgressBar y badge "Clase actual".
 /// Items animan con stagger slide-up al cargar.
+///
+/// Internamente delega el cuerpo a [ClassesListViewBody] para que también
+/// pueda ser embebido en [ClassesTabsView] sin doble Scaffold.
 class ClassesListView extends ConsumerWidget {
   const ClassesListView({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.sac;
+    return Scaffold(
+      backgroundColor: c.background,
+      body: SafeArea(child: const ClassesListViewBody()),
+    );
+  }
+}
+
+/// Body de la lista de clases, sin Scaffold ni SafeArea propios.
+/// Usar este widget cuando se embebe dentro de otro Scaffold
+/// (p.ej. [ClassesTabsView]).
+class ClassesListViewBody extends ConsumerWidget {
+  const ClassesListViewBody({super.key});
 
   void _openEnrollSheet(BuildContext context) {
     showModalBottomSheet(
@@ -44,10 +63,7 @@ class ClassesListView extends ConsumerWidget {
     );
     final hasActiveClub = user?.authorization?.activeGrant?.sectionId != null;
 
-    return Scaffold(
-      backgroundColor: c.background,
-      body: SafeArea(
-        child: classesAsync.when(
+    return classesAsync.when(
           data: (classes) {
             if (classes.isEmpty) {
               return Center(
@@ -210,8 +226,6 @@ class ClassesListView extends ConsumerWidget {
               ),
             ),
           ),
-        ),
-      ),
     );
   }
 }

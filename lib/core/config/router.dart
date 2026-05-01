@@ -69,7 +69,7 @@ import '../../features/auth/presentation/views/splash_view.dart';
 import '../../features/post_registration/presentation/views/post_registration_shell.dart';
 import '../../features/dashboard/presentation/views/dashboard_view.dart';
 import '../../features/classes/presentation/providers/classes_providers.dart';
-import '../../features/classes/presentation/views/classes_list_view.dart';
+import '../../features/classes/presentation/views/classes_tabs_view.dart';
 import '../../features/classes/presentation/views/class_detail_with_progress_view.dart';
 import '../../features/members/presentation/views/members_view.dart';
 import '../../features/profile/presentation/views/profile_view.dart';
@@ -299,7 +299,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: RouteNames.homeClasses,
                 pageBuilder: (context, state) =>
-                    _fadeThroughBuild(context, state, const ClassesListView()),
+                    _fadeThroughBuild(context, state, const ClassesTabsView()),
               ),
             ],
           ),
