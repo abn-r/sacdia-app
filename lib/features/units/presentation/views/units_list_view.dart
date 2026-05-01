@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
+import '../../../../core/auth/club_role_names.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/member_of_month.dart';
@@ -19,16 +20,9 @@ import 'unit_form_sheet.dart';
 
 // ── Role helpers ──────────────────────────────────────────────────────────────
 
-const _kManagementRoles = [
-  'director',
-  'sub_director',
-  'secretario',
-  'secretario_tesorero',
-];
-
 bool _canManageRole(String? role) {
   if (role == null) return false;
-  return _kManagementRoles.contains(role.trim().toLowerCase());
+  return ClubRoleNames.management.contains(role.trim().toLowerCase());
 }
 
 bool _canDeleteRole(String? role) {
