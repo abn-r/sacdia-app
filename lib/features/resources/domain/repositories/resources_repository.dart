@@ -18,11 +18,14 @@ abstract class ResourcesRepository {
   });
 
   /// Obtiene el detalle de un recurso por ID
-  Future<Either<Failure, Resource>> getResource(String id, {CancelToken? cancelToken});
+  Future<Either<Failure, Resource>> getResource(String id,
+      {CancelToken? cancelToken});
 
   /// Obtiene la URL firmada de descarga de un recurso
-  Future<Either<Failure, String>> getSignedUrl(String id, {CancelToken? cancelToken});
+  Future<Either<Failure, String>> getSignedUrl(String id,
+      {CancelToken? cancelToken});
 
   /// Obtiene todas las categorías de recursos
-  Future<Either<Failure, List<ResourceCategory>>> getCategories({CancelToken? cancelToken});
+  Future<Either<Failure, List<ResourceCategory>>> getCategories(
+      {CancelToken? cancelToken});
 }

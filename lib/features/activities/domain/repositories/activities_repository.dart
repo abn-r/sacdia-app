@@ -16,7 +16,6 @@ abstract class ActivitiesRepository {
     CancelToken? cancelToken,
   });
 
-
   /// Obtiene el detalle de una actividad
   Future<Either<Failure, Activity>> getActivityById(
     int activityId, {

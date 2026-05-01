@@ -57,5 +57,4 @@ class ScoringCategoryModel extends ScoringCategory {
         active: active,
         readonly: readonly,
       );
-
 }

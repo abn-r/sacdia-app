@@ -279,6 +279,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 class _ProfileScrollBody extends StatelessWidget {
   final UserDetail profile;
   final UserEntity? authUser;
+
   /// Raw club role name from the active grant (e.g. "director", "instructor").
   /// Null when the user has no active club assignment.
   final String? activeRoleName;
@@ -434,13 +435,15 @@ class _ProfileScrollBody extends StatelessWidget {
                   // Regular members lack this permission and would receive a
                   // 403 from GET /api/v1/validation/eligibility/{userId}.
                   if (authUser != null &&
-                      hasAnyPermission(authUser, const {'users:read_detail'})) ...[
+                      hasAnyPermission(
+                          authUser, const {'users:read_detail'})) ...[
                     EligibilityBanner(userId: authUser!.id),
                     const SizedBox(height: 20),
                   ],
 
                   // ── 5. Clases Progresivas ─────────────────────────
-                  _SectionLabel(label: 'profile.view.section_progressive_classes'.tr()),
+                  _SectionLabel(
+                      label: 'profile.view.section_progressive_classes'.tr()),
                   const SizedBox(height: 8),
                   Container(
                     decoration: BoxDecoration(
@@ -571,7 +574,8 @@ class _ProfileScrollBody extends StatelessWidget {
             // ── 7. Logros ─────────────────────────────────────────
             Padding(
               padding: EdgeInsets.symmetric(horizontal: hPad),
-              child: _SectionLabel(label: 'profile.view.section_achievements'.tr()),
+              child: _SectionLabel(
+                  label: 'profile.view.section_achievements'.tr()),
             ),
             const SizedBox(height: 8),
             Padding(
@@ -735,6 +739,7 @@ class _ProfileFirstLoadSkeleton extends StatelessWidget {
 class _ProfileHeaderCard extends StatelessWidget {
   final String name;
   final String? avatar;
+
   /// Raw club role name from the active grant (e.g. "director", "instructor").
   /// Null when the user has no active club assignment — row is hidden in that case.
   final String? clubRole;
@@ -812,7 +817,8 @@ class _ProfileHeaderCard extends StatelessWidget {
                           if (clubName != null) ...[
                             _MetaRow(
                               icon: HugeIcons.strokeRoundedUserGroup,
-                              text: 'profile.view.club_label'.tr(namedArgs: {'name': clubName!}),
+                              text: 'profile.view.club_label'
+                                  .tr(namedArgs: {'name': clubName!}),
                             ),
                             const SizedBox(height: 6),
                           ],
@@ -821,7 +827,8 @@ class _ProfileHeaderCard extends StatelessWidget {
                           if (clubType != null) ...[
                             _MetaRow(
                               icon: HugeIcons.strokeRoundedGridView,
-                              text: 'profile.view.type_label'.tr(namedArgs: {'type': clubType!}),
+                              text: 'profile.view.type_label'
+                                  .tr(namedArgs: {'type': clubType!}),
                             ),
                             const SizedBox(height: 6),
                           ],
@@ -830,7 +837,8 @@ class _ProfileHeaderCard extends StatelessWidget {
                           if (roleLabel != null) ...[
                             _MetaRow(
                               icon: HugeIcons.strokeRoundedLabel,
-                              text: 'profile.view.role_label'.tr(namedArgs: {'role': roleLabel}),
+                              text: 'profile.view.role_label'
+                                  .tr(namedArgs: {'role': roleLabel}),
                             ),
                             const SizedBox(height: 6),
                           ],
@@ -839,7 +847,8 @@ class _ProfileHeaderCard extends StatelessWidget {
                           if (currentClass != null) ...[
                             _MetaRow(
                               icon: HugeIcons.strokeRoundedSchool,
-                              text: 'profile.view.class_label'.tr(namedArgs: {'name': currentClass!}),
+                              text: 'profile.view.class_label'
+                                  .tr(namedArgs: {'name': currentClass!}),
                             ),
                             const SizedBox(height: 6),
                           ],

@@ -71,8 +71,8 @@ class RoleAssignmentsRemoteDataSourceImpl
         }
 
         return data
-            .map((json) => RoleAssignmentModel.fromJson(
-                json as Map<String, dynamic>))
+            .map((json) =>
+                RoleAssignmentModel.fromJson(json as Map<String, dynamic>))
             .toList();
       }
 

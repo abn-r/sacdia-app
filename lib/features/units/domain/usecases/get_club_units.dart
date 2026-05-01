@@ -21,7 +21,9 @@ class GetClubUnits {
 
   const GetClubUnits(this._repository);
 
-  Future<Either<Failure, List<Unit>>> call(GetClubUnitsParams params, {CancelToken? cancelToken}) {
-    return _repository.getClubUnits(clubId: params.clubId, cancelToken: cancelToken);
+  Future<Either<Failure, List<Unit>>> call(GetClubUnitsParams params,
+      {CancelToken? cancelToken}) {
+    return _repository.getClubUnits(
+        clubId: params.clubId, cancelToken: cancelToken);
   }
 }

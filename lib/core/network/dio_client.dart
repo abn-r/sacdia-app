@@ -61,35 +61,35 @@ class RetryInterceptor extends Interceptor {
   final Dio dio;
   final int retries;
   final List<Duration> retryDelays;
-  
+
   RetryInterceptor({
     required this.dio,
     this.retries = 3,
     required this.retryDelays,
   });
-  
+
   @override
   Future onError(DioException err, ErrorInterceptorHandler handler) async {
     var extra = err.requestOptions.extra;
     var retryCount = extra['retryCount'] ?? 0;
-    
+
     // Reintentar solo para errores de conexión y con códigos de error específicos
     if (_shouldRetry(err) && retryCount < retries) {
       // Incrementar contador de reintentos
       extra['retryCount'] = retryCount + 1;
-      
+
       // Esperar antes de reintentar
       if (retryCount < retryDelays.length) {
         await Future.delayed(retryDelays[retryCount]);
       }
-      
+
       // Crear nueva solicitud
       final options = Options(
         method: err.requestOptions.method,
         headers: err.requestOptions.headers,
         extra: extra,
       );
-      
+
       try {
         final response = await dio.request(
           err.requestOptions.path,
@@ -102,10 +102,10 @@ class RetryInterceptor extends Interceptor {
         return handler.next(err);
       }
     }
-    
+
     return handler.next(err);
   }
-  
+
   bool _shouldRetry(DioException err) {
     // Only retry idempotent HTTP methods. Retrying POST or PATCH risks
     // duplicate writes (e.g. double-creating a record on a transient error).
@@ -114,10 +114,10 @@ class RetryInterceptor extends Interceptor {
     if (!isIdempotent) return false;
 
     return err.type == DioExceptionType.connectionTimeout ||
-           err.type == DioExceptionType.receiveTimeout ||
-           err.type == DioExceptionType.sendTimeout ||
-           err.type == DioExceptionType.connectionError ||
-           (err.response?.statusCode != null &&
+        err.type == DioExceptionType.receiveTimeout ||
+        err.type == DioExceptionType.sendTimeout ||
+        err.type == DioExceptionType.connectionError ||
+        (err.response?.statusCode != null &&
             err.response!.statusCode! >= 500 &&
             err.response!.statusCode! < 600);
   }

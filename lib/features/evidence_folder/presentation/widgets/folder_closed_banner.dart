@@ -72,7 +72,8 @@ class _EvaluatedBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'evidence_folder.evaluated_banner.title'.tr(namedArgs: {'date': dateStr}),
+                  'evidence_folder.evaluated_banner.title'
+                      .tr(namedArgs: {'date': dateStr}),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: AppColors.secondaryDark,

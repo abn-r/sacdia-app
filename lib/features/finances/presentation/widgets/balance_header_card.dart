@@ -201,7 +201,8 @@ class _ActivitySummary extends StatelessWidget {
       textAlign: TextAlign.center,
       text: TextSpan(
         children: [
-          TextSpan(text: 'finances.widgets.month_summary_prefix'.tr(), style: base),
+          TextSpan(
+              text: 'finances.widgets.month_summary_prefix'.tr(), style: base),
           TextSpan(
             text: formatter.format(income),
             style: base.copyWith(
@@ -209,7 +210,9 @@ class _ActivitySummary extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          TextSpan(text: 'finances.widgets.month_summary_connector'.tr(), style: base),
+          TextSpan(
+              text: 'finances.widgets.month_summary_connector'.tr(),
+              style: base),
           TextSpan(
             text: formatter.format(expense),
             style: base.copyWith(
@@ -217,7 +220,8 @@ class _ActivitySummary extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          TextSpan(text: 'finances.widgets.month_summary_suffix'.tr(), style: base),
+          TextSpan(
+              text: 'finances.widgets.month_summary_suffix'.tr(), style: base),
         ],
       ),
     );

@@ -67,8 +67,7 @@ class ActivityAttendeesSection extends StatelessWidget {
             const SizedBox(width: 8),
             // Count badge
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
                 color: AppColors.primaryLight,
                 borderRadius: BorderRadius.circular(20),
@@ -179,7 +178,8 @@ class _AvatarCircle extends StatelessWidget {
     required this.warmPaletteDark,
   });
 
-  Color _bgColor() => warmPalette[index % warmPalette.length].withValues(alpha: 0.18);
+  Color _bgColor() =>
+      warmPalette[index % warmPalette.length].withValues(alpha: 0.18);
   Color _textColor() => warmPaletteDark[index % warmPaletteDark.length];
 
   @override

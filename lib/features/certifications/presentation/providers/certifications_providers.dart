@@ -59,9 +59,8 @@ final certificationsProvider =
 /// List<CertificationModule> with nested sections. The detail view renders
 /// that module/section tree and computes totalSections from it, so the network
 /// call to GET /certifications/{id} is always required.
-final certificationDetailProvider =
-    FutureProvider.autoDispose.family<CertificationDetail, int>(
-        (ref, certificationId) async {
+final certificationDetailProvider = FutureProvider.autoDispose
+    .family<CertificationDetail, int>((ref, certificationId) async {
   final repository = ref.read(certificationsRepositoryProvider);
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
@@ -104,9 +103,8 @@ final userCertificationsProvider =
 /// Provider para el progreso detallado del usuario en una certificación específica.
 ///
 /// Family por [certificationId]. Resuelve el userId internamente desde el authNotifier.
-final certificationProgressProvider =
-    FutureProvider.autoDispose.family<CertificationProgress, int>(
-        (ref, certificationId) async {
+final certificationProgressProvider = FutureProvider.autoDispose
+    .family<CertificationProgress, int>((ref, certificationId) async {
   final userId = await ref.watch(
     authNotifierProvider.selectAsync((user) => user?.id),
   );
@@ -160,8 +158,8 @@ class CertificationEnrollmentState {
 /// Notifier para manejar inscripción y desinscripción en certificaciones.
 ///
 /// Es un family por [certificationId] para que cada certificación tenga su propio estado.
-class CertificationEnrollmentNotifier extends AutoDisposeFamilyNotifier<
-    CertificationEnrollmentState, int> {
+class CertificationEnrollmentNotifier
+    extends AutoDisposeFamilyNotifier<CertificationEnrollmentState, int> {
   @override
   CertificationEnrollmentState build(int certificationId) =>
       const CertificationEnrollmentState();
@@ -259,15 +257,14 @@ class SectionProgressNotifier
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result = await ref
-        .read(certificationsRepositoryProvider)
-        .updateSectionProgress(
-          _userId,
-          _certificationId,
-          moduleId,
-          sectionId,
-          completed,
-        );
+    final result =
+        await ref.read(certificationsRepositoryProvider).updateSectionProgress(
+              _userId,
+              _certificationId,
+              moduleId,
+              sectionId,
+              completed,
+            );
 
     return result.fold(
       (failure) {

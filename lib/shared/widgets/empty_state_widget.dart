@@ -53,7 +53,10 @@ class EmptyStateWidget extends StatelessWidget {
               const SizedBox(height: 32),
               ElevatedButton.icon(
                 onPressed: onAction,
-                icon: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, color: Colors.white, size: 20),
+                icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedAdd01,
+                    color: Colors.white,
+                    size: 20),
                 label: Text(actionLabel!),
               ),
             ],

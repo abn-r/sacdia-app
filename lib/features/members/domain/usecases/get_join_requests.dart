@@ -29,8 +29,8 @@ class GetJoinRequests
   GetJoinRequests(this.repository);
 
   @override
-  Future<Either<Failure, List<JoinRequest>>> call(
-      GetJoinRequestsParams params, {CancelToken? cancelToken}) async {
+  Future<Either<Failure, List<JoinRequest>>> call(GetJoinRequestsParams params,
+      {CancelToken? cancelToken}) async {
     return await repository.getJoinRequests(
       clubId: params.clubId,
       sectionId: params.sectionId,

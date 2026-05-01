@@ -56,9 +56,10 @@ class RecentActivityList extends StatelessWidget {
                       children: [
                         Text(
                           activities[index],
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w500,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                  ),
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),

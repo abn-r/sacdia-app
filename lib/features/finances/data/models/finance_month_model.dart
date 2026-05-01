@@ -33,7 +33,8 @@ class FinanceMonthModel extends FinanceMonth {
     // Estadísticas calculadas desde el servidor o computadas localmente.
     final income = _parseDouble(json['total_income'] ?? json['totalIncome']);
     final expense = _parseDouble(json['total_expense'] ?? json['totalExpense']);
-    final balance = _parseDouble(json['total_balance'] ?? json['totalBalance'] ?? json['balance']);
+    final balance = _parseDouble(
+        json['total_balance'] ?? json['totalBalance'] ?? json['balance']);
     final isOpen = json['is_open'] as bool? ?? json['isOpen'] as bool? ?? true;
 
     // Si el servidor no proporciona totales, calcularlos.

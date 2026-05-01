@@ -158,13 +158,13 @@ class _EvidenceSectionDetailViewState
                   // Estado actual del sección (chip visual, solo lectura)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                  child: Text(
-                    'evidence_folder.section_status_label'.tr(),
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: c.textSecondary,
-                          letterSpacing: 0.8,
-                        ),
-                  ),
+                    child: Text(
+                      'evidence_folder.section_status_label'.tr(),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: c.textSecondary,
+                            letterSpacing: 0.8,
+                          ),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Padding(
@@ -206,13 +206,13 @@ class _EvidenceSectionDetailViewState
                   // Archivos de evidencia header
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: Text(
-                    'evidence_folder.evidence_files_title'.tr(),
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: c.text,
-                        ),
-                  ),
+                    child: Text(
+                      'evidence_folder.evidence_files_title'.tr(),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: c.text,
+                          ),
+                    ),
                   ),
 
                   // Notas del revisor por archivo — solo si existen
@@ -249,7 +249,9 @@ class _EvidenceSectionDetailViewState
                             onProgress: onProgress,
                             skipInvalidation: true,
                           );
-                      if (!success) throw Exception(tr('evidence_folder.errors.upload_failed'));
+                      if (!success)
+                        throw Exception(
+                            tr('evidence_folder.errors.upload_failed'));
                     },
                     onDeleteRemote: (fileId) async {
                       await ref
@@ -275,7 +277,8 @@ class _EvidenceSectionDetailViewState
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'evidence_folder.submit_success'.tr(namedArgs: {
+                                    'evidence_folder.submit_success'
+                                        .tr(namedArgs: {
                                       'sectionName': widget.section.name,
                                     }),
                                   ),
@@ -495,7 +498,8 @@ class _EvidenceStatusChip extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: 'evidence_folder.status_semantics'.tr(namedArgs: {'label': _label}),
+      label:
+          'evidence_folder.status_semantics'.tr(namedArgs: {'label': _label}),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -653,7 +657,7 @@ class _EvaluationResultCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-                  Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(

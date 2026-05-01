@@ -36,7 +36,8 @@ class AchievementGridCard extends StatelessWidget {
         userAchievement?.visualState ?? AchievementVisualState.locked;
 
     final progressValue = userAchievement?.progressValue ?? 0;
-    final progressTarget = userAchievement?.progressTarget ?? _extractTarget(achievement);
+    final progressTarget =
+        userAchievement?.progressTarget ?? _extractTarget(achievement);
     final progressPercentage = userAchievement?.progressPercentage ?? 0.0;
     final timesCompleted = userAchievement?.timesCompleted ?? 0;
 
@@ -173,9 +174,8 @@ class _CounterPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = isCompleted
-        ? tierColor.withValues(alpha: 0.22)
-        : context.sac.border;
+    final bgColor =
+        isCompleted ? tierColor.withValues(alpha: 0.22) : context.sac.border;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

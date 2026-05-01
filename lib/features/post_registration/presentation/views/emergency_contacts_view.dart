@@ -86,8 +86,7 @@ class EmergencyContactsView extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text('post_registration.emergency_contacts.title'.tr()),
+        title: Text('post_registration.emergency_contacts.title'.tr()),
         actions: [
           IconButton(
             icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 24),

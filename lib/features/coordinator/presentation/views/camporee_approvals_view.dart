@@ -34,8 +34,7 @@ class _CamporeeApprovalsViewState extends ConsumerState<CamporeeApprovalsView>
   @override
   void initState() {
     super.initState();
-    _scopeTabController =
-        TabController(length: _scopeTabs.length, vsync: this);
+    _scopeTabController = TabController(length: _scopeTabs.length, vsync: this);
   }
 
   @override
@@ -65,9 +64,7 @@ class _CamporeeApprovalsViewState extends ConsumerState<CamporeeApprovalsView>
         bottom: selected == null
             ? TabBar(
                 controller: _scopeTabController,
-                tabs: _scopeTabs
-                    .map((s) => Tab(text: s.displayLabel))
-                    .toList(),
+                tabs: _scopeTabs.map((s) => Tab(text: s.displayLabel)).toList(),
                 indicatorColor: AppColors.primary,
                 labelColor: AppColors.primary,
                 unselectedLabelColor: c.textSecondary,
@@ -302,8 +299,7 @@ class _CamporeePickerCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       dateRange,
-                      style:
-                          TextStyle(fontSize: 12, color: c.textSecondary),
+                      style: TextStyle(fontSize: 12, color: c.textSecondary),
                     ),
                   ],
                 ),
@@ -409,8 +405,7 @@ class _CamporeeApprovalDetailState
               ],
             ),
             loading: () => const Center(child: SacLoading()),
-            error: (error, _) =>
-                _buildPendingError(context, ref, error, c),
+            error: (error, _) => _buildPendingError(context, ref, error, c),
           ),
         ),
       ],
@@ -455,7 +450,8 @@ class _CamporeeApprovalDetailState
             SacButton.primary(
               text: 'coordinator.camporee_approvals.retry'.tr(),
               icon: HugeIcons.strokeRoundedRefresh,
-              onPressed: () => ref.invalidate(camporeePendingProvider(_pendingKey)),
+              onPressed: () =>
+                  ref.invalidate(camporeePendingProvider(_pendingKey)),
             ),
           ],
         ),
@@ -921,7 +917,8 @@ class _PaymentEnrollmentCard extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('coordinator.camporee_approvals.approve_payment_title'.tr()),
+        title:
+            Text('coordinator.camporee_approvals.approve_payment_title'.tr()),
         content: Text(
           'coordinator.camporee_approvals.approve_payment_msg'.tr(
             namedArgs: {
@@ -1074,8 +1071,7 @@ class _ApprovalCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         subtitle!,
-                        style:
-                            TextStyle(fontSize: 12, color: c.textSecondary),
+                        style: TextStyle(fontSize: 12, color: c.textSecondary),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),

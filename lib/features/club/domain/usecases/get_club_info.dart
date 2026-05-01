@@ -20,7 +20,8 @@ class GetClubInfo implements UseCase<ClubInfo, GetClubInfoParams> {
   const GetClubInfo(this._repository);
 
   @override
-  Future<Either<Failure, ClubInfo>> call(GetClubInfoParams params, {CancelToken? cancelToken}) {
+  Future<Either<Failure, ClubInfo>> call(GetClubInfoParams params,
+      {CancelToken? cancelToken}) {
     return _repository.getClub(params.clubId, cancelToken: cancelToken);
   }
 }

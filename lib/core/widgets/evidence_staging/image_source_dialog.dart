@@ -75,7 +75,8 @@ Future<ImageSource?> showImageSourceDialog(BuildContext context) {
               ),
             ),
             title: Text(tr('core.evidence_staging.image_source_gallery')),
-            subtitle: Text(tr('core.evidence_staging.image_source_gallery_sub')),
+            subtitle:
+                Text(tr('core.evidence_staging.image_source_gallery_sub')),
             onTap: () => Navigator.pop(ctx, ImageSource.gallery),
           ),
           const SizedBox(height: 16),

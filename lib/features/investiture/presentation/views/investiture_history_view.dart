@@ -228,7 +228,8 @@ class _TimelineEntry extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        DateFormat('dd/MM/yyyy HH:mm').format(entry.performedAt.toLocal()),
+                        DateFormat('dd/MM/yyyy HH:mm')
+                            .format(entry.performedAt.toLocal()),
                         style: TextStyle(
                           fontSize: 11,
                           color: c.textTertiary,
@@ -237,8 +238,7 @@ class _TimelineEntry extends StatelessWidget {
                     ],
                   ),
                   // Comentarios
-                  if (entry.comments != null &&
-                      entry.comments!.isNotEmpty) ...[
+                  if (entry.comments != null && entry.comments!.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Container(
                       width: double.infinity,

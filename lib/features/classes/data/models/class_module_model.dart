@@ -24,7 +24,8 @@ class ClassModuleModel extends Equatable {
       name: safeString(json['name']),
       classId: safeInt(json['class_id']),
       sections: (json['sections'] as List<dynamic>?)
-              ?.map((section) => ClassSectionModel.fromJson(section as Map<String, dynamic>))
+              ?.map((section) =>
+                  ClassSectionModel.fromJson(section as Map<String, dynamic>))
               .toList() ??
           [],
     );

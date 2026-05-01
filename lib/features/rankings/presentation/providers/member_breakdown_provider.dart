@@ -17,8 +17,7 @@ typedef MemberBreakdownParams = ({int enrollmentId, int yearId});
 /// Keyed by [MemberBreakdownParams] so the provider family deduplicates
 /// simultaneous requests for the same (enrollmentId, yearId) pair.
 final memberBreakdownProvider = FutureProvider.autoDispose
-    .family<MemberBreakdown, MemberBreakdownParams>(
-        (ref, params) async {
+    .family<MemberBreakdown, MemberBreakdownParams>((ref, params) async {
   ref.keepAlive();
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());

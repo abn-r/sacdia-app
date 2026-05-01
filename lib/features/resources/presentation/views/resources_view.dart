@@ -235,8 +235,7 @@ class _ResourcesViewState extends ConsumerState<ResourcesView> {
               style: TextStyle(fontSize: 14, color: c.text),
               decoration: InputDecoration(
                 hintText: 'resources.search_hint'.tr(),
-                hintStyle:
-                    TextStyle(fontSize: 14, color: c.textTertiary),
+                hintStyle: TextStyle(fontSize: 14, color: c.textTertiary),
                 border: InputBorder.none,
                 isDense: true,
                 contentPadding: EdgeInsets.zero,

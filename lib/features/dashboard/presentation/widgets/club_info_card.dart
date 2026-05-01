@@ -48,7 +48,8 @@ class ClubInfoCard extends ConsumerWidget {
     final lower = type.toLowerCase();
     if (lower.contains('conquistador')) return AppColors.primary;
     if (lower.contains('aventurer')) return AppColors.sacBlue;
-    if (lower.contains('guía') || lower.contains('guia')) return AppColors.secondary;
+    if (lower.contains('guía') || lower.contains('guia'))
+      return AppColors.secondary;
     return AppColors.primary;
   }
 

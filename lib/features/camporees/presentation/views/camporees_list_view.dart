@@ -216,11 +216,10 @@ class _CamporeeCard extends StatelessWidget {
                     children: [
                       Text(
                         camporee.name,
-                        style:
-                            Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: c.text,
-                                ),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: c.text,
+                            ),
                       ),
                       if (camporee.localFieldName != null) ...[
                         const SizedBox(height: 2),
@@ -327,13 +326,19 @@ class _ClubTypeBadges extends StatelessWidget {
     final badges = <Widget>[];
 
     if (camporee.includesAdventurers) {
-      badges.add(_Badge(label: 'camporees.common.adventurers'.tr(), color: AppColors.warning));
+      badges.add(_Badge(
+          label: 'camporees.common.adventurers'.tr(),
+          color: AppColors.warning));
     }
     if (camporee.includesPathfinders) {
-      badges.add(_Badge(label: 'camporees.common.pathfinders'.tr(), color: AppColors.primary));
+      badges.add(_Badge(
+          label: 'camporees.common.pathfinders'.tr(),
+          color: AppColors.primary));
     }
     if (camporee.includesMasterGuides) {
-      badges.add(_Badge(label: 'camporees.common.master_guides'.tr(), color: AppColors.secondary));
+      badges.add(_Badge(
+          label: 'camporees.common.master_guides'.tr(),
+          color: AppColors.secondary));
     }
 
     if (badges.isEmpty) return const SizedBox.shrink();

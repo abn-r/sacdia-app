@@ -245,8 +245,7 @@ class RankingsRemoteDataSourceImpl implements RankingsRemoteDataSource {
             ? (body['data'] as List<dynamic>? ?? [])
             : (body as List<dynamic>? ?? []);
         return rawList
-            .map((e) =>
-                SectionRankingDto.fromJson(e as Map<String, dynamic>))
+            .map((e) => SectionRankingDto.fromJson(e as Map<String, dynamic>))
             .toList();
       }
 
@@ -281,8 +280,7 @@ class RankingsRemoteDataSourceImpl implements RankingsRemoteDataSource {
         // Backend returns a plain array (MemberRankingResponseDto[])
         final rawList = body as List<dynamic>? ?? <dynamic>[];
         return rawList
-            .map((e) =>
-                SectionMemberDto.fromJson(e as Map<String, dynamic>))
+            .map((e) => SectionMemberDto.fromJson(e as Map<String, dynamic>))
             .toList();
       }
 

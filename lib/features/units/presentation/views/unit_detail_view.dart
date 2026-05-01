@@ -46,8 +46,8 @@ class UnitDetailView extends ConsumerWidget {
         if (ctx == null) return false;
         final role = ctx.roleName?.toLowerCase() ?? '';
         // Club directors
-        if (['director', 'sub_director', 'secretario',
-            'secretario_tesorero'].contains(role)) {
+        if (['director', 'sub_director', 'secretario', 'secretario_tesorero']
+            .contains(role)) {
           return true;
         }
         // Consejeros o capitán de esta unidad
@@ -103,8 +103,7 @@ class UnitDetailView extends ConsumerWidget {
 
                 // Lista de miembros con puntajes por categoría
                 ...state.members.map((member) {
-                  final memberScores =
-                      state.pendingScores[member.id] ?? {};
+                  final memberScores = state.pendingScores[member.id] ?? {};
                   final total = state.totalPendingForMember(member.id);
 
                   return Padding(
@@ -368,8 +367,7 @@ class _MemberCategoryScoreCard extends StatelessWidget {
                   isReadOnly: isReadOnly,
                   onAdjust: (delta) =>
                       onAdjust(category.scoringCategoryId, delta),
-                  onSetValue: (v) =>
-                      onSetValue(category.scoringCategoryId, v),
+                  onSetValue: (v) => onSetValue(category.scoringCategoryId, v),
                 ),
               );
             }),
@@ -447,8 +445,7 @@ class _CategoryRow extends StatelessWidget {
               Container(
                 constraints: const BoxConstraints(minWidth: 52),
                 alignment: Alignment.center,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: isDisabled
                       ? AppColors.primarySurface.withValues(alpha: 0.4)
@@ -456,8 +453,7 @@ class _CategoryRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'units.detail.category_points'
-                      .tr(namedArgs: {
+                  'units.detail.category_points'.tr(namedArgs: {
                     'points': '$points',
                     'max': '${category.maxPoints}',
                   }),
@@ -558,9 +554,8 @@ class _SmallAdjustButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           child: Ink(
             decoration: BoxDecoration(
-              color: isDisabled
-                  ? resolvedBg.withValues(alpha: 0.5)
-                  : resolvedBg,
+              color:
+                  isDisabled ? resolvedBg.withValues(alpha: 0.5) : resolvedBg,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Center(
@@ -606,17 +601,17 @@ class _SaveFooter extends StatelessWidget {
           top: BorderSide(color: c.border, width: 1),
         ),
       ),
-          child: isSavedToday
-              ? SacButton.outline(
-                  text: 'units.detail.reset_button'.tr(),
-                  icon: HugeIcons.strokeRoundedRefresh,
-                  onPressed: onReset,
-                )
-              : SacButton.primary(
-                  text: 'units.detail.save_button'.tr(),
-                  icon: HugeIcons.strokeRoundedFloppyDisk,
-                  onPressed: onSave,
-                ),
+      child: isSavedToday
+          ? SacButton.outline(
+              text: 'units.detail.reset_button'.tr(),
+              icon: HugeIcons.strokeRoundedRefresh,
+              onPressed: onReset,
+            )
+          : SacButton.primary(
+              text: 'units.detail.save_button'.tr(),
+              icon: HugeIcons.strokeRoundedFloppyDisk,
+              onPressed: onSave,
+            ),
     );
   }
 }

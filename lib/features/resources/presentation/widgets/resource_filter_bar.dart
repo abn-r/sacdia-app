@@ -19,37 +19,37 @@ class ResourceTypeFilter {
 }
 
 List<ResourceTypeFilter> get _filters => <ResourceTypeFilter>[
-  ResourceTypeFilter(
-    value: null,
-    label: 'resources.filter.all'.tr(),
-    icon: HugeIcons.strokeRoundedGridView,
-  ),
-  ResourceTypeFilter(
-    value: 'document',
-    label: 'resources.filter.document'.tr(),
-    icon: HugeIcons.strokeRoundedFile01,
-  ),
-  ResourceTypeFilter(
-    value: 'audio',
-    label: 'resources.filter.audio'.tr(),
-    icon: HugeIcons.strokeRoundedHeadphones,
-  ),
-  ResourceTypeFilter(
-    value: 'image',
-    label: 'resources.filter.image'.tr(),
-    icon: HugeIcons.strokeRoundedImage01,
-  ),
-  ResourceTypeFilter(
-    value: 'video_link',
-    label: 'resources.filter.video'.tr(),
-    icon: HugeIcons.strokeRoundedPlayCircle,
-  ),
-  ResourceTypeFilter(
-    value: 'text',
-    label: 'resources.filter.text'.tr(),
-    icon: HugeIcons.strokeRoundedTextWrap,
-  ),
-];
+      ResourceTypeFilter(
+        value: null,
+        label: 'resources.filter.all'.tr(),
+        icon: HugeIcons.strokeRoundedGridView,
+      ),
+      ResourceTypeFilter(
+        value: 'document',
+        label: 'resources.filter.document'.tr(),
+        icon: HugeIcons.strokeRoundedFile01,
+      ),
+      ResourceTypeFilter(
+        value: 'audio',
+        label: 'resources.filter.audio'.tr(),
+        icon: HugeIcons.strokeRoundedHeadphones,
+      ),
+      ResourceTypeFilter(
+        value: 'image',
+        label: 'resources.filter.image'.tr(),
+        icon: HugeIcons.strokeRoundedImage01,
+      ),
+      ResourceTypeFilter(
+        value: 'video_link',
+        label: 'resources.filter.video'.tr(),
+        icon: HugeIcons.strokeRoundedPlayCircle,
+      ),
+      ResourceTypeFilter(
+        value: 'text',
+        label: 'resources.filter.text'.tr(),
+        icon: HugeIcons.strokeRoundedTextWrap,
+      ),
+    ];
 
 /// Barra horizontal de chips para filtrar recursos por tipo
 class ResourceFilterBar extends StatelessWidget {
@@ -105,12 +105,10 @@ class _FilterChip extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
-        padding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: isActive ? AppColors.primary : c.surface,
-          borderRadius:
-              BorderRadius.circular(AppTheme.radiusFull),
+          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
           border: Border.all(
             color: isActive ? AppColors.primary : c.border,
             width: 1.2,

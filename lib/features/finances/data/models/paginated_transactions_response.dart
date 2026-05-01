@@ -23,7 +23,8 @@ class PaginationMeta {
     final page = _parseInt(json['page'] ?? 1);
     final limit = _parseInt(json['limit'] ?? 20);
     final total = _parseInt(json['total'] ?? 0);
-    final totalPages = _parseInt(json['totalPages'] ?? json['total_pages'] ?? 1);
+    final totalPages =
+        _parseInt(json['totalPages'] ?? json['total_pages'] ?? 1);
     return PaginationMeta(
       page: page,
       limit: limit,

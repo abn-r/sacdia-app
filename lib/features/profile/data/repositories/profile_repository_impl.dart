@@ -19,9 +19,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
   });
 
   @override
-  Future<Either<Failure, UserDetail>> getUserProfile(String userId, {CancelToken? cancelToken}) async {
+  Future<Either<Failure, UserDetail>> getUserProfile(String userId,
+      {CancelToken? cancelToken}) async {
     try {
-      final userDetail = await remoteDataSource.getUserProfile(userId, cancelToken: cancelToken);
+      final userDetail = await remoteDataSource.getUserProfile(userId,
+          cancelToken: cancelToken);
       return Right(userDetail);
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));
@@ -55,7 +57,8 @@ class ProfileRepositoryImpl implements ProfileRepository {
     String filePath,
   ) async {
     try {
-      final imageUrl = await remoteDataSource.updateProfilePicture(userId, filePath);
+      final imageUrl =
+          await remoteDataSource.updateProfilePicture(userId, filePath);
       return Right(imageUrl);
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));

@@ -18,8 +18,8 @@ class ClassModuleDetailModel extends ClassModuleDetail {
         [];
 
     final requirements = rawRequirements
-        .map((r) =>
-            ClassRequirementModel.fromJson(r as Map<String, dynamic>).toEntity())
+        .map((r) => ClassRequirementModel.fromJson(r as Map<String, dynamic>)
+            .toEntity())
         .toList();
 
     return ClassModuleDetailModel(

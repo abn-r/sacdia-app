@@ -18,19 +18,25 @@ class ThemeNotifier extends Notifier<ThemeMode> {
   /// Cambia al tema claro
   Future<void> setLightTheme() async {
     state = ThemeMode.light;
-    await ref.read(sharedPreferencesProvider).setString(AppConstants.themeKey, 'light');
+    await ref
+        .read(sharedPreferencesProvider)
+        .setString(AppConstants.themeKey, 'light');
   }
 
   /// Cambia al tema oscuro
   Future<void> setDarkTheme() async {
     state = ThemeMode.dark;
-    await ref.read(sharedPreferencesProvider).setString(AppConstants.themeKey, 'dark');
+    await ref
+        .read(sharedPreferencesProvider)
+        .setString(AppConstants.themeKey, 'dark');
   }
 
   /// Cambia al tema del sistema
   Future<void> setSystemTheme() async {
     state = ThemeMode.system;
-    await ref.read(sharedPreferencesProvider).setString(AppConstants.themeKey, 'system');
+    await ref
+        .read(sharedPreferencesProvider)
+        .setString(AppConstants.themeKey, 'system');
   }
 
   /// Alterna entre tema claro y oscuro

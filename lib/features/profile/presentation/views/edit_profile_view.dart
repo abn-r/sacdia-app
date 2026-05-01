@@ -201,7 +201,8 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
         newBaptismDateError = tr('profile.edit.baptism_date_error_null');
         valid = false;
       } else if (_birthdate != null && _baptismDate!.isBefore(_birthdate!)) {
-        newBaptismDateError = tr('profile.edit.baptism_date_error_before_birth');
+        newBaptismDateError =
+            tr('profile.edit.baptism_date_error_before_birth');
         valid = false;
       }
     }
@@ -559,8 +560,9 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
                       text: tr('profile.edit.save_changes'),
                       icon: HugeIcons.strokeRoundedFloppyDisk,
                       isLoading: _isLoading,
-                      onPressed:
-                          (_isLoading || _isUploadingPhoto) ? null : _saveProfile,
+                      onPressed: (_isLoading || _isUploadingPhoto)
+                          ? null
+                          : _saveProfile,
                     ),
 
                     const SizedBox(height: 32),
@@ -690,9 +692,7 @@ class _AvatarHeader extends StatelessWidget {
               ],
             ),
           ),
-
           const SizedBox(height: 12),
-
           if (name.isNotEmpty)
             Text(
               name,
@@ -704,19 +704,18 @@ class _AvatarHeader extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-
           const SizedBox(height: 4),
-
           GestureDetector(
             onTap: onChangeTap,
             child: Text(
-              isUploading ? tr('profile.edit.photo_uploading') : tr('profile.edit.change_photo'),
+              isUploading
+                  ? tr('profile.edit.photo_uploading')
+                  : tr('profile.edit.change_photo'),
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: isUploading
-                    ? context.sac.textTertiary
-                    : AppColors.primary,
+                color:
+                    isUploading ? context.sac.textTertiary : AppColors.primary,
               ),
             ),
           ),
@@ -805,17 +804,15 @@ class _GenderChip extends StatelessWidget {
               HugeIcon(
                 icon: HugeIcons.strokeRoundedUser,
                 size: 20,
-                color: isSelected
-                    ? AppColors.primary
-                    : context.sac.textSecondary,
+                color:
+                    isSelected ? AppColors.primary : context.sac.textSecondary,
               ),
               const SizedBox(width: 8),
               Text(
                 label,
                 style: TextStyle(
                   fontSize: 14,
-                  fontWeight:
-                      isSelected ? FontWeight.w600 : FontWeight.w400,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   color: isSelected
                       ? AppColors.primary
                       : context.sac.textSecondary,

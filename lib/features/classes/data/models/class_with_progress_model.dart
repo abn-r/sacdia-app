@@ -17,8 +17,8 @@ class ClassWithProgressModel extends ClassWithProgress {
     final rawModules = json['modules'] as List<dynamic>? ?? [];
 
     final modules = rawModules
-        .map((m) =>
-            ClassModuleDetailModel.fromJson(m as Map<String, dynamic>).toEntity())
+        .map((m) => ClassModuleDetailModel.fromJson(m as Map<String, dynamic>)
+            .toEntity())
         .toList();
 
     return ClassWithProgressModel(

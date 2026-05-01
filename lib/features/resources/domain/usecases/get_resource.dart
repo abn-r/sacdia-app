@@ -12,7 +12,8 @@ class GetResource implements UseCase<Resource, String> {
   GetResource(this.repository);
 
   @override
-  Future<Either<Failure, Resource>> call(String id, {CancelToken? cancelToken}) async {
+  Future<Either<Failure, Resource>> call(String id,
+      {CancelToken? cancelToken}) async {
     return await repository.getResource(id, cancelToken: cancelToken);
   }
 }

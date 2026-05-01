@@ -42,8 +42,7 @@ class SacCard extends StatefulWidget {
   State<SacCard> createState() => _SacCardState();
 }
 
-class _SacCardState extends State<SacCard>
-    with SingleTickerProviderStateMixin {
+class _SacCardState extends State<SacCard> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _fade;
   late final Animation<double> _scale;
@@ -92,7 +91,8 @@ class _SacCardState extends State<SacCard>
       decoration: BoxDecoration(
         color: defaultBg,
         borderRadius: radius,
-        border: Border.all(color: widget.borderColor ?? defaultBorder, width: 1),
+        border:
+            Border.all(color: widget.borderColor ?? defaultBorder, width: 1),
         boxShadow: [
           BoxShadow(
             color: c.shadow,

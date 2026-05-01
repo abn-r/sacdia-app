@@ -90,7 +90,8 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
               // Clase filter
               if (availableClasses.isNotEmpty)
                 _FilterChip(
-                  label: filters.classFilter ?? 'members.filter_bar.class_filter'.tr(),
+                  label: filters.classFilter ??
+                      'members.filter_bar.class_filter'.tr(),
                   isActive: filters.classFilter != null,
                   onTap: () => _showClassPicker(
                     context,
@@ -159,8 +160,8 @@ class _MembersFilterBarState extends ConsumerState<MembersFilterBar> {
                         const MemberFilters();
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
                       color: AppColors.error.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(20),
@@ -270,9 +271,8 @@ class _FilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final bgColor = isActive
-        ? AppColors.primary.withValues(alpha: 0.12)
-        : c.surfaceVariant;
+    final bgColor =
+        isActive ? AppColors.primary.withValues(alpha: 0.12) : c.surfaceVariant;
     final fgColor = isActive ? AppColors.primary : c.textSecondary;
     final borderColor = isActive ? AppColors.primaryLight : c.border;
 
@@ -463,8 +463,7 @@ class _EnrollmentPickerSheet extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 color: current == true ? AppColors.primary : c.text,
-                fontWeight:
-                    current == true ? FontWeight.w600 : FontWeight.w400,
+                fontWeight: current == true ? FontWeight.w600 : FontWeight.w400,
               ),
             ),
             trailing: current == true

@@ -58,8 +58,9 @@ class StepIndicator extends StatelessWidget {
           final stepNumber = (index ~/ 2) + 1;
           final isActive = stepNumber == currentStep;
           final isCompleted = stepNumber < currentStep;
-          final label =
-              stepNumber <= resolvedLabels.length ? resolvedLabels[stepNumber - 1] : '';
+          final label = stepNumber <= resolvedLabels.length
+              ? resolvedLabels[stepNumber - 1]
+              : '';
 
           return Column(
             mainAxisSize: MainAxisSize.min,

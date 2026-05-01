@@ -69,15 +69,14 @@ class RoleAssignmentsView extends ConsumerWidget {
 
           return RefreshIndicator(
             color: AppColors.primary,
-            onRefresh: () async =>
-                ref.invalidate(roleAssignmentsProvider),
+            onRefresh: () async => ref.invalidate(roleAssignmentsProvider),
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: [
                 // Info banner
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
                     color: AppColors.accentLight,
                     borderRadius: BorderRadius.circular(12),
@@ -177,7 +176,9 @@ class _AssignmentCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      assignment.roleName ?? 'role_assignments.view.fallback_role'.tr(namedArgs: {'id': '${assignment.roleId}'}),
+                      assignment.roleName ??
+                          'role_assignments.view.fallback_role'
+                              .tr(namedArgs: {'id': '${assignment.roleId}'}),
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -198,7 +199,8 @@ class _AssignmentCard extends StatelessWidget {
                       )
                     else
                       Text(
-                        'role_assignments.view.fallback_section'.tr(namedArgs: {'id': '${assignment.clubSectionId}'}),
+                        'role_assignments.view.fallback_section'.tr(
+                            namedArgs: {'id': '${assignment.clubSectionId}'}),
                         style: TextStyle(
                           fontSize: 12,
                           color: c.textSecondary,
@@ -208,8 +210,8 @@ class _AssignmentCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: statusCfg.bg,
                   borderRadius: BorderRadius.circular(20),
@@ -225,7 +227,6 @@ class _AssignmentCard extends StatelessWidget {
               ),
             ],
           ),
-
           if (assignment.assignedAt != null ||
               assignment.revokedAt != null ||
               assignment.notes != null) ...[
@@ -233,14 +234,12 @@ class _AssignmentCard extends StatelessWidget {
             Divider(height: 1, color: c.divider),
             const SizedBox(height: 10),
           ],
-
           if (assignment.assignedAt != null)
             _MetaRow(
               icon: HugeIcons.strokeRoundedCalendarAdd01,
               label: 'role_assignments.view.label_assigned'.tr(),
               value: dateFmt.format(assignment.assignedAt!.toLocal()),
             ),
-
           if (assignment.revokedAt != null) ...[
             if (assignment.assignedAt != null) const SizedBox(height: 6),
             _MetaRow(
@@ -249,7 +248,6 @@ class _AssignmentCard extends StatelessWidget {
               value: dateFmt.format(assignment.revokedAt!.toLocal()),
             ),
           ],
-
           if (assignment.notes != null) ...[
             const SizedBox(height: 8),
             Row(

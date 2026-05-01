@@ -46,8 +46,10 @@ class SectionCheckbox extends StatelessWidget {
                 ),
               ),
               child: section.isCompleted
-                  ? HugeIcon(icon: HugeIcons.strokeRoundedTick02,
-                      size: 14, color: Colors.white)
+                  ? HugeIcon(
+                      icon: HugeIcons.strokeRoundedTick02,
+                      size: 14,
+                      color: Colors.white)
                   : null,
             ),
             const SizedBox(width: 12),

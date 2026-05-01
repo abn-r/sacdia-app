@@ -16,7 +16,8 @@ abstract class MembersRemoteDataSource {
   });
 
   /// Obtiene el perfil de un miembro específico
-  Future<ClubMemberModel> getMemberDetail(String userId, {CancelToken? cancelToken});
+  Future<ClubMemberModel> getMemberDetail(String userId,
+      {CancelToken? cancelToken});
 
   /// Obtiene solicitudes de ingreso al club
   Future<List<JoinRequestModel>> getJoinRequests({
@@ -177,7 +178,8 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error al obtener miembros', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? tr('members.errors.fetch_members'),
+        message:
+            e.response?.data?['message'] ?? tr('members.errors.fetch_members'),
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -188,7 +190,8 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
   }
 
   @override
-  Future<ClubMemberModel> getMemberDetail(String userId, {CancelToken? cancelToken}) async {
+  Future<ClubMemberModel> getMemberDetail(String userId,
+      {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$userId',
@@ -249,7 +252,8 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
       }
       AppLogger.e('Error al obtener solicitudes', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? tr('members.errors.fetch_requests'),
+        message:
+            e.response?.data?['message'] ?? tr('members.errors.fetch_requests'),
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -278,7 +282,8 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
     } on DioException catch (e) {
       AppLogger.e('Error al aprobar solicitud', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? tr('members.errors.approve_request'),
+        message: e.response?.data?['message'] ??
+            tr('members.errors.approve_request'),
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -306,7 +311,8 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
     } on DioException catch (e) {
       AppLogger.e('Error al rechazar solicitud', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? tr('members.errors.reject_request'),
+        message:
+            e.response?.data?['message'] ?? tr('members.errors.reject_request'),
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -347,7 +353,8 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
     } on DioException catch (e) {
       AppLogger.e('Error al asignar rol', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? tr('members.errors.assign_role'),
+        message:
+            e.response?.data?['message'] ?? tr('members.errors.assign_role'),
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -369,7 +376,8 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
     } on DioException catch (e) {
       AppLogger.e('Error al remover rol', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? tr('members.errors.remove_role'),
+        message:
+            e.response?.data?['message'] ?? tr('members.errors.remove_role'),
         code: e.response?.statusCode,
       );
     } catch (e) {

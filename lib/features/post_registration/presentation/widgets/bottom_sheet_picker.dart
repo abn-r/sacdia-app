@@ -127,9 +127,8 @@ class PickerField extends StatelessWidget {
                 Icon(
                   icon,
                   size: 20,
-                  color: hasValue
-                      ? AppColors.primary
-                      : context.sac.textSecondary,
+                  color:
+                      hasValue ? AppColors.primary : context.sac.textSecondary,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -199,8 +198,7 @@ class BottomSheetPickerSheet extends StatefulWidget {
   });
 
   @override
-  State<BottomSheetPickerSheet> createState() =>
-      _BottomSheetPickerSheetState();
+  State<BottomSheetPickerSheet> createState() => _BottomSheetPickerSheetState();
 }
 
 class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
@@ -257,8 +255,7 @@ class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
                 height: 4,
                 decoration: BoxDecoration(
                   color: context.sac.border,
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusFull),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                 ),
               ),
             ),
@@ -266,8 +263,7 @@ class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
 
           // Title
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -303,18 +299,15 @@ class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
                   vertical: 12,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusSM),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   borderSide: BorderSide(color: context.sac.border),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusSM),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   borderSide: BorderSide(color: context.sac.border),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusSM),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   borderSide:
                       const BorderSide(color: AppColors.primary, width: 2),
                 ),
@@ -371,9 +364,8 @@ class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
                             color: isSelected
                                 ? AppColors.primary
                                 : context.sac.text,
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.w400,
+                            fontWeight:
+                                isSelected ? FontWeight.w600 : FontWeight.w400,
                           ),
                         ),
                         trailing: isSelected
@@ -390,8 +382,7 @@ class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
           ),
 
           // Bottom safe-area padding
-          SizedBox(
-              height: MediaQuery.of(context).padding.bottom + 8),
+          SizedBox(height: MediaQuery.of(context).padding.bottom + 8),
         ],
       ),
     );

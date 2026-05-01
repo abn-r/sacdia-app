@@ -306,7 +306,8 @@ class _SacButtonState extends State<SacButton>
 
     // ── Resolve disabled colors using theme tokens ──────────────────────
     final effectiveBg = _effectivelyDisabled ? c.surface : _backgroundColor;
-    final effectiveFg = _effectivelyDisabled ? c.textTertiary : _foregroundColor;
+    final effectiveFg =
+        _effectivelyDisabled ? c.textTertiary : _foregroundColor;
     final effectiveBorder = _effectivelyDisabled
         ? BorderSide(color: c.border, width: 1.5)
         : (_borderSide ?? BorderSide.none);
@@ -348,8 +349,7 @@ class _SacButtonState extends State<SacButton>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (widget.icon != null) ...[
-                buildIcon(widget.icon,
-                    size: _iconSize, color: effectiveFg),
+                buildIcon(widget.icon, size: _iconSize, color: effectiveFg),
                 SizedBox(width: widget.spaceBetween),
               ],
               Flexible(

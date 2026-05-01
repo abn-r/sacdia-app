@@ -49,9 +49,8 @@ class AchievementCategorySection extends StatelessWidget {
         ...group.achievements.map((item) {
           return AchievementCard(
             achievementWithProgress: item,
-            onTap: onAchievementTap != null
-                ? () => onAchievementTap!(item)
-                : null,
+            onTap:
+                onAchievementTap != null ? () => onAchievementTap!(item) : null,
           );
         }),
 

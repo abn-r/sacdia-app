@@ -22,14 +22,15 @@ class GetClubMembersParams extends Equatable {
 }
 
 /// Caso de uso para obtener la lista de miembros del club
-class GetClubMembers implements UseCase<List<ClubMember>, GetClubMembersParams> {
+class GetClubMembers
+    implements UseCase<List<ClubMember>, GetClubMembersParams> {
   final MembersRepository repository;
 
   GetClubMembers(this.repository);
 
   @override
-  Future<Either<Failure, List<ClubMember>>> call(
-      GetClubMembersParams params, {CancelToken? cancelToken}) async {
+  Future<Either<Failure, List<ClubMember>>> call(GetClubMembersParams params,
+      {CancelToken? cancelToken}) async {
     return await repository.getClubMembers(
       clubId: params.clubId,
       sectionId: params.sectionId,

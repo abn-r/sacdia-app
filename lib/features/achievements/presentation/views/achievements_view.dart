@@ -42,7 +42,8 @@ class AchievementsView extends ConsumerWidget {
           ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: context.sac.text, size: 20),
+          icon:
+              Icon(Icons.arrow_back_ios_new, color: context.sac.text, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),

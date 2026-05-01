@@ -56,23 +56,25 @@ class AuthInterceptor extends QueuedInterceptor {
 
   AuthInterceptor({
     FlutterSecureStorage? secureStorage,
+
     /// La instancia principal de Dio (con interceptores). Se mantiene para
     /// reintentar la petición original después del refresh.
     Dio? dio,
     this.onAuthExpired,
-  })  : _secureStorage = secureStorage ?? const FlutterSecureStorage(
-          aOptions: AndroidOptions(encryptedSharedPreferences: true),
-          iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device),
-        ),
+  })  : _secureStorage = secureStorage ??
+            const FlutterSecureStorage(
+              aOptions: AndroidOptions(encryptedSharedPreferences: true),
+              iOptions: IOSOptions(
+                  accessibility:
+                      KeychainAccessibility.first_unlock_this_device),
+            ),
         _refreshDio = _buildRefreshDio();
 
   static Dio _buildRefreshDio() {
     return Dio(BaseOptions(
       baseUrl: AppConstants.baseUrl,
-      connectTimeout:
-          Duration(seconds: AppConstants.connectTimeout),
-      receiveTimeout:
-          Duration(seconds: AppConstants.receiveTimeout),
+      connectTimeout: Duration(seconds: AppConstants.connectTimeout),
+      receiveTimeout: Duration(seconds: AppConstants.receiveTimeout),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -89,8 +91,7 @@ class AuthInterceptor extends QueuedInterceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    final token =
-        await _secureStorage.read(key: AppConstants.tokenKey);
+    final token = await _secureStorage.read(key: AppConstants.tokenKey);
 
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
@@ -127,8 +128,7 @@ class AuthInterceptor extends QueuedInterceptor {
     }
 
     // Si esta petición ya fue reintentada, no entrar en bucle.
-    final isRetry =
-        err.requestOptions.extra[_retryAfterRefreshKey] == true;
+    final isRetry = err.requestOptions.extra[_retryAfterRefreshKey] == true;
     if (isRetry) {
       AppLogger.w(
           'Refresh/retry fallido en segundo intento, descartando sesión',
@@ -151,8 +151,7 @@ class AuthInterceptor extends QueuedInterceptor {
 
     // Refresh exitoso: reintentar la petición original UNA vez.
     try {
-      final newToken =
-          await _secureStorage.read(key: AppConstants.tokenKey);
+      final newToken = await _secureStorage.read(key: AppConstants.tokenKey);
 
       final retryOptions = Options(
         method: err.requestOptions.method,
@@ -192,7 +191,8 @@ class AuthInterceptor extends QueuedInterceptor {
 
       return handler.resolve(response);
     } catch (e) {
-      AppLogger.e('Error al reintentar después de refresh', tag: _tag, error: e);
+      AppLogger.e('Error al reintentar después de refresh',
+          tag: _tag, error: e);
       return handler.next(err);
     }
   }
@@ -253,8 +253,7 @@ class AuthInterceptor extends QueuedInterceptor {
           }
           if (newExpiresAt != null) {
             await _secureStorage.write(
-                key: AppConstants.expiresAtKey,
-                value: newExpiresAt.toString());
+                key: AppConstants.expiresAtKey, value: newExpiresAt.toString());
           }
           if (newTokenType != null) {
             await _secureStorage.write(

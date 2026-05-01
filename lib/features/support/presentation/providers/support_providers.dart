@@ -82,7 +82,8 @@ final deviceReportInfoProvider =
     } else if (Platform.isAndroid) {
       platform = 'android';
       final info = await plugin.androidInfo;
-      osVersion = 'Android ${info.version.release} (SDK ${info.version.sdkInt})';
+      osVersion =
+          'Android ${info.version.release} (SDK ${info.version.sdkInt})';
       model = '${info.manufacturer} ${info.model}';
     } else if (Platform.isMacOS) {
       platform = 'macos';
@@ -133,8 +134,7 @@ class SupportReportSubmitState {
   }
 }
 
-class SupportReportSubmitNotifier
-    extends Notifier<SupportReportSubmitState> {
+class SupportReportSubmitNotifier extends Notifier<SupportReportSubmitState> {
   @override
   SupportReportSubmitState build() => const SupportReportSubmitState();
 
@@ -166,7 +166,7 @@ class SupportReportSubmitNotifier
   }
 }
 
-final supportReportSubmitProvider = NotifierProvider<
-    SupportReportSubmitNotifier, SupportReportSubmitState>(
+final supportReportSubmitProvider =
+    NotifierProvider<SupportReportSubmitNotifier, SupportReportSubmitState>(
   SupportReportSubmitNotifier.new,
 );

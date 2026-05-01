@@ -68,7 +68,9 @@ class RequirementStatusBadge extends StatelessWidget {
       case RequirementStatus.pendiente:
         return AppColors.accentLight;
       case RequirementStatus.enviado:
-        return isDark ? AppColors.statusInfoBgDark : AppColors.statusInfoBgLight;
+        return isDark
+            ? AppColors.statusInfoBgDark
+            : AppColors.statusInfoBgLight;
       case RequirementStatus.validado:
         return AppColors.secondaryLight;
       case RequirementStatus.rechazado:

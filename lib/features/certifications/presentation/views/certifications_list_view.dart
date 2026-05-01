@@ -104,7 +104,8 @@ class CertificationsListView extends ConsumerWidget {
                   return userCertificationsAsync.when(
                     data: (userCertifications) {
                       final isEnrolled = userCertifications.any(
-                        (uc) => uc.certificationId == certification.certificationId,
+                        (uc) =>
+                            uc.certificationId == certification.certificationId,
                       );
                       return StaggeredListItem(
                         index: certIndex,
@@ -154,8 +155,7 @@ class CertificationsListView extends ConsumerWidget {
                             ),
                           );
                         },
-                        onEnroll: () =>
-                            _enroll(context, ref, certification),
+                        onEnroll: () => _enroll(context, ref, certification),
                       ),
                     ),
                   );
@@ -237,7 +237,9 @@ class CertificationsListView extends ConsumerWidget {
 
     try {
       await ref
-          .read(certificationEnrollmentNotifierProvider(certification.certificationId).notifier)
+          .read(certificationEnrollmentNotifierProvider(
+                  certification.certificationId)
+              .notifier)
           .enroll();
       ref.invalidate(userCertificationsProvider);
 

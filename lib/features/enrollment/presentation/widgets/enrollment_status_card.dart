@@ -28,8 +28,7 @@ class EnrollmentStatusCard extends ConsumerWidget {
     final enrollmentAsync = ref.watch(currentEnrollmentProvider);
     final clubContextAsync = ref.watch(clubContextProvider);
     final user = ref.watch(authNotifierProvider).valueOrNull;
-    final canEnroll =
-        hasAnyPermission(user, const {'enrollments:create'});
+    final canEnroll = hasAnyPermission(user, const {'enrollments:create'});
 
     return enrollmentAsync.when(
       loading: () => const Padding(
@@ -49,25 +48,25 @@ class EnrollmentStatusCard extends ConsumerWidget {
           return Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: _PendingCard(
-            showButton: canEnroll,
-            subtitle: canEnroll
-                ? 'enrollment.status.subtitle_pending_action'.tr()
-                : 'enrollment.status.subtitle_pending_viewer'.tr(),
-            onTap: canEnroll
-                ? () => clubContextAsync.whenData(
-                      (ctx) {
-                        if (ctx == null) return;
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => EnrollmentFormView(
-                              clubId: ctx.clubId.toString(),
-                              sectionId: ctx.sectionId,
+              showButton: canEnroll,
+              subtitle: canEnroll
+                  ? 'enrollment.status.subtitle_pending_action'.tr()
+                  : 'enrollment.status.subtitle_pending_viewer'.tr(),
+              onTap: canEnroll
+                  ? () => clubContextAsync.whenData(
+                        (ctx) {
+                          if (ctx == null) return;
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => EnrollmentFormView(
+                                clubId: ctx.clubId.toString(),
+                                sectionId: ctx.sectionId,
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    )
-                : null,
+                          );
+                        },
+                      )
+                  : null,
             ),
           );
         }
@@ -111,7 +110,8 @@ class _PendingCard extends StatelessWidget {
 
   const _PendingCard({
     this.showButton = false,
-    this.subtitle = 'El club aún no ha completado la inscripción para este año.',
+    this.subtitle =
+        'El club aún no ha completado la inscripción para este año.',
     this.onTap,
   });
 

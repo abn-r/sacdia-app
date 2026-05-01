@@ -17,9 +17,11 @@ abstract class MonthlyReportsRemoteDataSource {
     CancelToken? cancelToken,
   });
 
-  Future<List<MonthlyReportModel>> getReportsByEnrollment(int enrollmentId, {CancelToken? cancelToken});
+  Future<List<MonthlyReportModel>> getReportsByEnrollment(int enrollmentId,
+      {CancelToken? cancelToken});
 
-  Future<MonthlyReportModel> getReportDetail(int reportId, {CancelToken? cancelToken});
+  Future<MonthlyReportModel> getReportDetail(int reportId,
+      {CancelToken? cancelToken});
 
   /// Descarga el PDF del informe usando el cliente autenticado y devuelve
   /// la ruta local del archivo temporal.
@@ -99,8 +101,7 @@ class MonthlyReportsRemoteDataSourceImpl
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return MonthlyReportPreviewModel.fromJson(
-            _unwrapData(response.data));
+        return MonthlyReportPreviewModel.fromJson(_unwrapData(response.data));
       }
 
       throw ServerException(
@@ -116,8 +117,8 @@ class MonthlyReportsRemoteDataSourceImpl
   // ── GET /api/v1/monthly-reports/enrollment/:enrollmentId ────────────────
 
   @override
-  Future<List<MonthlyReportModel>> getReportsByEnrollment(
-      int enrollmentId, {CancelToken? cancelToken}) async {
+  Future<List<MonthlyReportModel>> getReportsByEnrollment(int enrollmentId,
+      {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.monthlyReports}/enrollment/$enrollmentId',
@@ -142,7 +143,8 @@ class MonthlyReportsRemoteDataSourceImpl
   // ── GET /api/v1/monthly-reports/:reportId ────────────────────────────────
 
   @override
-  Future<MonthlyReportModel> getReportDetail(int reportId, {CancelToken? cancelToken}) async {
+  Future<MonthlyReportModel> getReportDetail(int reportId,
+      {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.monthlyReports}/$reportId',
@@ -166,7 +168,8 @@ class MonthlyReportsRemoteDataSourceImpl
   // ── GET /api/v1/monthly-reports/:reportId/pdf ────────────────────────────
 
   @override
-  Future<String> downloadReportPdf(int reportId, {CancelToken? cancelToken}) async {
+  Future<String> downloadReportPdf(int reportId,
+      {CancelToken? cancelToken}) async {
     try {
       final dir = await getTemporaryDirectory();
       final filename =

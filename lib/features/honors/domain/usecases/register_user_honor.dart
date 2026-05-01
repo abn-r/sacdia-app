@@ -14,7 +14,8 @@ class RegisterUserHonor implements UseCase<UserHonor, RegisterUserHonorParams> {
   RegisterUserHonor(this.repository);
 
   @override
-  Future<Either<Failure, UserHonor>> call(RegisterUserHonorParams params) async {
+  Future<Either<Failure, UserHonor>> call(
+      RegisterUserHonorParams params) async {
     return await repository.registerUserHonor(params);
   }
 }

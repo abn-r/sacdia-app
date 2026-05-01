@@ -7,7 +7,8 @@ import '../models/annual_folder_model.dart';
 
 /// Interfaz para el data source remoto de carpetas anuales
 abstract class AnnualFoldersRemoteDataSource {
-  Future<AnnualFolderModel> getFolderByEnrollment(int enrollmentId, {CancelToken? cancelToken});
+  Future<AnnualFolderModel> getFolderByEnrollment(int enrollmentId,
+      {CancelToken? cancelToken});
 
   Future<FolderEvidenceModel> uploadEvidence(
     int folderId, {
@@ -62,7 +63,8 @@ class AnnualFoldersRemoteDataSourceImpl
   // ── GET /api/v1/annual-folders/enrollment/:enrollmentId ──────────────────
 
   @override
-  Future<AnnualFolderModel> getFolderByEnrollment(int enrollmentId, {CancelToken? cancelToken}) async {
+  Future<AnnualFolderModel> getFolderByEnrollment(int enrollmentId,
+      {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.annualFolders}/enrollment/$enrollmentId',

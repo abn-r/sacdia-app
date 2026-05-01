@@ -135,7 +135,8 @@ class ActivityCard extends StatelessWidget {
                       .format(activity.activityDate!.toLocal()),
                   c: c,
                 ),
-              if (activity.activityTime != null && activity.activityTime!.isNotEmpty)
+              if (activity.activityTime != null &&
+                  activity.activityTime!.isNotEmpty)
                 _MetaItem(
                   icon: HugeIcons.strokeRoundedClock01,
                   label: activity.activityTime!,

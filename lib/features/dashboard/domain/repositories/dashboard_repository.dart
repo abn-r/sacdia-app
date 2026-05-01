@@ -7,5 +7,6 @@ import '../entities/dashboard_summary.dart';
 /// Interfaz del repositorio de dashboard
 abstract class DashboardRepository {
   /// Obtiene el resumen del dashboard del usuario autenticado
-  Future<Either<Failure, DashboardSummary>> getDashboardSummary({CancelToken? cancelToken});
+  Future<Either<Failure, DashboardSummary>> getDashboardSummary(
+      {CancelToken? cancelToken});
 }

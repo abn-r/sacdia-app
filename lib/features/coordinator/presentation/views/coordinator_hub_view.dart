@@ -115,7 +115,8 @@ class CoordinatorHubView extends ConsumerWidget {
                     color: AppColors.primary,
                     title: 'coordinator.nav.investitures_title'.tr(),
                     subtitle: 'coordinator.nav.investitures_subtitle'.tr(),
-                    onTap: () => context.push(RouteNames.investiturePendingList),
+                    onTap: () =>
+                        context.push(RouteNames.investiturePendingList),
                   ),
                   const SizedBox(height: 10),
 
@@ -124,7 +125,8 @@ class CoordinatorHubView extends ConsumerWidget {
                     color: AppColors.accent,
                     title: 'coordinator.nav.evidence_title'.tr(),
                     subtitle: 'coordinator.nav.evidence_subtitle'.tr(),
-                    onTap: () => context.push(RouteNames.coordinatorEvidenceReview),
+                    onTap: () =>
+                        context.push(RouteNames.coordinatorEvidenceReview),
                   ),
                   const SizedBox(height: 10),
 

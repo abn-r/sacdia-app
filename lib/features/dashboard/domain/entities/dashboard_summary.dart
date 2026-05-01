@@ -33,6 +33,7 @@ class DashboardSummary extends Equatable {
   final String? clubType;
   final String? userRole;
   final String? currentClassName;
+
   /// ID de la clase actual del usuario, usado para obtener el progreso
   /// detallado desde [classWithProgressProvider].
   final int? currentClassId;

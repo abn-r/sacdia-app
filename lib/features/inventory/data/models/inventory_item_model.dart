@@ -35,8 +35,8 @@ class InventoryItemModel extends InventoryItem {
 
     // Datos del creador
     final createdByUser = json['users'] as Map<String, dynamic>? ?? {};
-    final registeredByName =
-        _extractName(createdByUser, json['created_by']?.toString() ?? 'Sistema');
+    final registeredByName = _extractName(
+        createdByUser, json['created_by']?.toString() ?? 'Sistema');
 
     return InventoryItemModel(
       id: _parseInt(json['inventory_id'] ?? json['id'] ?? 0),
@@ -59,9 +59,8 @@ class InventoryItemModel extends InventoryItem {
       registeredByName: registeredByName,
       registeredAt: _parseDate(json['created_at']),
       modifiedByName: json['modified_by_name']?.toString(),
-      modifiedAt: json['updated_at'] != null
-          ? _parseDate(json['updated_at'])
-          : null,
+      modifiedAt:
+          json['updated_at'] != null ? _parseDate(json['updated_at']) : null,
     );
   }
 
@@ -84,9 +83,8 @@ class InventoryItemModel extends InventoryItem {
 
   static String _extractName(Map<String, dynamic> user, String fallback) {
     if (user.isEmpty) return fallback;
-    final first = user['name']?.toString() ??
-        user['first_name']?.toString() ??
-        '';
+    final first =
+        user['name']?.toString() ?? user['first_name']?.toString() ?? '';
     final last = user['paternal_last_name']?.toString() ??
         user['last_name']?.toString() ??
         '';

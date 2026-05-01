@@ -152,8 +152,9 @@ class _RequestAvatar extends StatelessWidget {
       child: CircleAvatar(
         radius: 22,
         backgroundColor: AppColors.accentLight,
-        backgroundImage:
-            request.avatar != null ? CachedNetworkImageProvider(request.avatar!) : null,
+        backgroundImage: request.avatar != null
+            ? CachedNetworkImageProvider(request.avatar!)
+            : null,
         child: request.avatar == null
             ? Text(
                 request.initials,
@@ -212,8 +213,7 @@ class _ActionButton extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           foregroundColor: color,
           side: BorderSide(color: color, width: 1.5),
-          padding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
@@ -227,8 +227,7 @@ class _ActionButton extends StatelessWidget {
         backgroundColor: color,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }

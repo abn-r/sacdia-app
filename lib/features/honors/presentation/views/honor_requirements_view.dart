@@ -70,8 +70,7 @@ class HonorRequirementsView extends ConsumerStatefulWidget {
       _HonorRequirementsViewState();
 }
 
-class _HonorRequirementsViewState
-    extends ConsumerState<HonorRequirementsView> {
+class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
   /// Map from requirementId → local mutable state.
   final Map<int, _RequirementState> _localState = {};
 
@@ -129,8 +128,7 @@ class _HonorRequirementsViewState
         childrenExpanded: true,
       );
       _notesControllers[req.id] = TextEditingController(text: notes);
-      _responseControllers[req.id] =
-          TextEditingController(text: textResponse);
+      _responseControllers[req.id] = TextEditingController(text: textResponse);
       _savedSnapshot[req.id] = (
         completed: completed,
         notes: notes,
@@ -283,8 +281,7 @@ class _HonorRequirementsViewState
   Widget build(BuildContext context) {
     final requirementsAsync =
         ref.watch(honorRequirementsProvider(widget.honorId));
-    final progressAsync =
-        ref.watch(userHonorProgressProvider(widget.honorId));
+    final progressAsync = ref.watch(userHonorProgressProvider(widget.honorId));
 
     final honorsAsync = ref.watch(allHonorsProvider);
     final honor = honorsAsync.valueOrNull
@@ -328,7 +325,6 @@ class _HonorRequirementsViewState
               honorName: widget.honorName,
               categoryColor: categoryColor,
             ),
-
             Expanded(
               child: requirementsAsync.when(
                 loading: () => const _LoadingBody(),
@@ -343,8 +339,7 @@ class _HonorRequirementsViewState
                   return progressAsync.when(
                     loading: () => const _LoadingBody(),
                     error: (err, _) => _ErrorBody(
-                      message:
-                          err.toString().replaceAll('Exception: ', ''),
+                      message: err.toString().replaceAll('Exception: ', ''),
                       onRetry: () {
                         ref.invalidate(
                             userHonorProgressProvider(widget.honorId));
@@ -372,8 +367,8 @@ class _HonorRequirementsViewState
                           // Hierarchical requirements list
                           Expanded(
                             child: ListView.separated(
-                              padding: const EdgeInsets.fromLTRB(
-                                  16, 8, 16, 120),
+                              padding:
+                                  const EdgeInsets.fromLTRB(16, 8, 16, 120),
                               itemCount: requirements.length,
                               separatorBuilder: (_, __) => Divider(
                                 height: 1,

@@ -105,15 +105,12 @@ class AnnualFolder extends Equatable {
     }
   }
 
-  int get totalEvidences =>
-      sections.fold(0, (sum, s) => sum + s.evidenceCount);
+  int get totalEvidences => sections.fold(0, (sum, s) => sum + s.evidenceCount);
 
-  int get sectionsWithEvidence =>
-      sections.where((s) => s.hasEvidence).length;
+  int get sectionsWithEvidence => sections.where((s) => s.hasEvidence).length;
 
-  double get progress => sections.isEmpty
-      ? 0
-      : sectionsWithEvidence / sections.length;
+  double get progress =>
+      sections.isEmpty ? 0 : sectionsWithEvidence / sections.length;
 
   @override
   List<Object?> get props => [

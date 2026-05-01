@@ -116,8 +116,7 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
         content: Text(message),
         backgroundColor: isError ? AppColors.error : AppColors.secondary,
         behavior: SnackBarBehavior.floating,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -136,15 +135,14 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
     );
     if (!mounted) return;
     if (!bioOk) {
-      _showSnackBar('profile.data_export.ui.operation_cancelled'.tr(), isError: true);
+      _showSnackBar('profile.data_export.ui.operation_cancelled'.tr(),
+          isError: true);
       return;
     }
 
     setState(() => _isRequesting = true);
 
-    final error = await ref
-        .read(dataExportProvider.notifier)
-        .requestExport();
+    final error = await ref.read(dataExportProvider.notifier).requestExport();
 
     if (!mounted) return;
     setState(() => _isRequesting = false);
@@ -165,9 +163,8 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
 
     _showSnackBar('profile.data_export.ui.opening_download'.tr());
 
-    final result = await ref
-        .read(dataExportProvider.notifier)
-        .download(exportId);
+    final result =
+        await ref.read(dataExportProvider.notifier).download(exportId);
 
     if (!mounted) return;
     setState(() => _downloadingIds.remove(exportId));
@@ -182,7 +179,8 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
 
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!launched && mounted) {
-      _showSnackBar('profile.data_export.ui.download_link_error'.tr(), isError: true);
+      _showSnackBar('profile.data_export.ui.download_link_error'.tr(),
+          isError: true);
     }
   }
 
@@ -215,8 +213,7 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
         ),
         error: (error, _) => _ErrorState(
           message: error.toString().replaceFirst('Exception: ', ''),
-          onRetry: () =>
-              ref.read(dataExportProvider.notifier).refresh(),
+          onRetry: () => ref.read(dataExportProvider.notifier).refresh(),
         ),
         data: (exports) => _buildBody(
           context: context,
@@ -235,8 +232,7 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
     final c = context.sac;
 
     // ¿Hay alguna export activa (pending/processing) que bloquee el botón?
-    final hasActiveExport =
-        exports?.any((e) => e.isInProgress) ?? false;
+    final hasActiveExport = exports?.any((e) => e.isInProgress) ?? false;
     final isButtonDisabled = _isRequesting || hasActiveExport;
 
     return RefreshIndicator(
@@ -388,7 +384,8 @@ class _InfoCard extends StatelessWidget {
     );
   }
 
-  Widget _infoRow(BuildContext context, {
+  Widget _infoRow(
+    BuildContext context, {
     required HugeIconData icon,
     required String text,
   }) {
@@ -720,7 +717,9 @@ class _ExportCard extends StatelessWidget {
                   if (export.expiresAt != null) ...[
                     const SizedBox(height: 1),
                     Text(
-                      'profile.data_export.ui.expires_on'.tr(namedArgs: {'date': _formatExpiry(export.expiresAt!)}),
+                      'profile.data_export.ui.expires_on'.tr(namedArgs: {
+                        'date': _formatExpiry(export.expiresAt!)
+                      }),
                       style: TextStyle(fontSize: 11, color: c.textTertiary),
                     ),
                   ],

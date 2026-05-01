@@ -29,7 +29,9 @@ class GetClassWithProgress
 
   @override
   Future<Either<Failure, ClassWithProgress>> call(
-      GetClassWithProgressParams params, {CancelToken? cancelToken}) async {
-    return _repository.getClassWithProgress(params.userId, params.classId, cancelToken: cancelToken);
+      GetClassWithProgressParams params,
+      {CancelToken? cancelToken}) async {
+    return _repository.getClassWithProgress(params.userId, params.classId,
+        cancelToken: cancelToken);
   }
 }

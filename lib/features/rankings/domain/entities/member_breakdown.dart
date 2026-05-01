@@ -16,7 +16,8 @@ class ClassBreakdown extends Equatable {
   });
 
   @override
-  List<Object?> get props => [completedSections, requiredSections, folderStatus];
+  List<Object?> get props =>
+      [completedSections, requiredSections, folderStatus];
 }
 
 /// Breakdown detail for the investiture signal component.

@@ -83,9 +83,10 @@ class UnitModel extends Unit {
       type: typeName,
       memberCount: members.length,
       leaderName: captainName,
-      clubTypeId: _parseInt(json['club_type_id'] ?? clubTypeData?['club_type_id']),
-      clubSectionId: _parseInt(
-          json['club_section_id'] ?? sectionData?['club_section_id']),
+      clubTypeId:
+          _parseInt(json['club_type_id'] ?? clubTypeData?['club_type_id']),
+      clubSectionId:
+          _parseInt(json['club_section_id'] ?? sectionData?['club_section_id']),
       captainId: json['captain_id']?.toString(),
       secretaryId: json['secretary_id']?.toString(),
       advisorId: json['advisor_id']?.toString(),

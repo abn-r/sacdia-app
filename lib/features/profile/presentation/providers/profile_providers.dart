@@ -12,7 +12,8 @@ import '../../domain/usecases/get_user_profile.dart';
 import '../../domain/usecases/update_user_profile.dart';
 
 /// Provider para la fuente de datos remota del perfil
-final profileRemoteDataSourceProvider = Provider<ProfileRemoteDataSource>((ref) {
+final profileRemoteDataSourceProvider =
+    Provider<ProfileRemoteDataSource>((ref) {
   final dio = ref.read(dioProvider);
   final baseUrl = ref.read(apiBaseUrlProvider);
 

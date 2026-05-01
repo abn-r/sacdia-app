@@ -40,5 +40,6 @@ class SignUpParams extends Equatable {
   });
 
   @override
-  List<Object> get props => [email, password, name, paternalSurname, maternalSurname];
+  List<Object> get props =>
+      [email, password, name, paternalSurname, maternalSurname];
 }

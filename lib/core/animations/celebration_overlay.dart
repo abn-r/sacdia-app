@@ -129,7 +129,8 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
 
   @override
   Widget build(BuildContext context) {
-    if (MediaQuery.of(context).disableAnimations) return const SizedBox.shrink();
+    if (MediaQuery.of(context).disableAnimations)
+      return const SizedBox.shrink();
 
     return IgnorePointer(
       child: AnimatedBuilder(
@@ -207,9 +208,8 @@ class _ParticlePainter extends CustomPainter {
       final y = p.yStart + p.yVelocity * localT * localT;
 
       // Fade out in the last 35% of the particle's lifetime.
-      final alpha = localT > 0.65
-          ? (1.0 - (localT - 0.65) / 0.35).clamp(0.0, 1.0)
-          : 1.0;
+      final alpha =
+          localT > 0.65 ? (1.0 - (localT - 0.65) / 0.35).clamp(0.0, 1.0) : 1.0;
 
       paint.color = p.color.withValues(alpha: alpha);
 

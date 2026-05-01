@@ -119,8 +119,7 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
       setState(() {
         _activityDate = picked;
         // Clear end date if it's before the new start date
-        if (_activityEndDate != null &&
-            _activityEndDate!.isBefore(picked)) {
+        if (_activityEndDate != null && _activityEndDate!.isBefore(picked)) {
           _activityEndDate = null;
         }
       });
@@ -235,7 +234,8 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
     if (!mounted) return;
     if (!success) return; // error shown via notifier state
 
-    final createdActivity = ref.read(createActivityNotifierProvider).createdActivity;
+    final createdActivity =
+        ref.read(createActivityNotifierProvider).createdActivity;
 
     // Upload image if one was picked
     if (_pickedImageFile != null && createdActivity != null) {
@@ -568,8 +568,9 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
               label: 'activities.form.end_date_label'.tr(),
               value: _activityEndDate,
               enabled: !isLoading && _activityDate != null,
-              onTap:
-                  (isLoading || _activityDate == null) ? null : _pickActivityEndDate,
+              onTap: (isLoading || _activityDate == null)
+                  ? null
+                  : _pickActivityEndDate,
               onClear: _activityEndDate == null
                   ? null
                   : () => setState(() => _activityEndDate = null),
@@ -589,11 +590,9 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
               value: _selectedPlatform,
               options: [
                 ActivitySegmentOption(
-                    value: 0,
-                    label: 'activities.form.modality_in_person'.tr()),
+                    value: 0, label: 'activities.form.modality_in_person'.tr()),
                 ActivitySegmentOption(
-                    value: 1,
-                    label: 'activities.form.modality_virtual'.tr()),
+                    value: 1, label: 'activities.form.modality_virtual'.tr()),
               ],
               onChanged: isLoading
                   ? null
@@ -681,9 +680,7 @@ class _JointActivityToggle extends StatelessWidget {
         color: c.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: value
-              ? AppColors.primary.withValues(alpha: 0.4)
-              : c.border,
+          color: value ? AppColors.primary.withValues(alpha: 0.4) : c.border,
           width: value ? 1.5 : 1.0,
         ),
         boxShadow: [
@@ -826,9 +823,7 @@ class _SectionMultiPicker extends ConsumerWidget {
                   labelStyle: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
-                    color: isSelected
-                        ? AppColors.primaryDark
-                        : c.textSecondary,
+                    color: isSelected ? AppColors.primaryDark : c.textSecondary,
                   ),
                   backgroundColor: c.surface,
                   side: BorderSide(

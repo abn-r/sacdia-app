@@ -108,8 +108,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
     // Pre-populate joint activity state from the existing activity
     _isJoint = a.isJoint;
     if (a.isJoint && a.instances != null) {
-      _selectedSectionIds =
-          a.instances!.map((i) => i.clubSectionId).toSet();
+      _selectedSectionIds = a.instances!.map((i) => i.clubSectionId).toSet();
     }
   }
 
@@ -277,8 +276,10 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
       activityTime: _timeController.text.trim().isEmpty
           ? '09:00'
           : _timeController.text.trim(),
-      activityDate: _activityDate != null ? _formatDateOnly(_activityDate!) : null,
-      activityEndDate: _activityEndDate != null ? _formatDateOnly(_activityEndDate!) : null,
+      activityDate:
+          _activityDate != null ? _formatDateOnly(_activityDate!) : null,
+      activityEndDate:
+          _activityEndDate != null ? _formatDateOnly(_activityEndDate!) : null,
       platform: _selectedPlatform,
       activityTypeId: _selectedActivityType,
       linkMeet: newLinkMeet,
@@ -645,11 +646,9 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
               value: _selectedPlatform,
               options: [
                 ActivitySegmentOption(
-                    value: 0,
-                    label: 'activities.form.modality_in_person'.tr()),
+                    value: 0, label: 'activities.form.modality_in_person'.tr()),
                 ActivitySegmentOption(
-                    value: 1,
-                    label: 'activities.form.modality_virtual'.tr()),
+                    value: 1, label: 'activities.form.modality_virtual'.tr()),
               ],
               onChanged: isLoading
                   ? null
@@ -732,9 +731,7 @@ class _JointActivityToggle extends StatelessWidget {
         color: c.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: value
-              ? AppColors.primary.withValues(alpha: 0.4)
-              : c.border,
+          color: value ? AppColors.primary.withValues(alpha: 0.4) : c.border,
           width: value ? 1.5 : 1.0,
         ),
         boxShadow: [
@@ -875,9 +872,7 @@ class _SectionMultiPicker extends ConsumerWidget {
                   labelStyle: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
-                    color: isSelected
-                        ? AppColors.primaryDark
-                        : c.textSecondary,
+                    color: isSelected ? AppColors.primaryDark : c.textSecondary,
                   ),
                   backgroundColor: c.surface,
                   side: BorderSide(
@@ -986,8 +981,7 @@ class _JointActivityReadOnlyBadge extends StatelessWidget {
                               color: c.surface,
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color:
-                                    AppColors.primary.withValues(alpha: 0.4),
+                                color: AppColors.primary.withValues(alpha: 0.4),
                               ),
                             ),
                             child: Text(
@@ -1020,4 +1014,3 @@ class _JointActivityReadOnlyBadge extends StatelessWidget {
     );
   }
 }
-

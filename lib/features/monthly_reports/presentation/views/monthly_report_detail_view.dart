@@ -57,8 +57,7 @@ class MonthlyReportDetailView extends ConsumerWidget {
         loading: () => const Center(child: SacLoading()),
         error: (e, _) => _ErrorBody(
           message: e.toString().replaceFirst('Exception: ', ''),
-          onRetry: () =>
-              ref.invalidate(monthlyReportDetailProvider(reportId)),
+          onRetry: () => ref.invalidate(monthlyReportDetailProvider(reportId)),
         ),
         data: (report) => _ReportDetail(report: report, reportId: reportId),
       ),
@@ -116,7 +115,7 @@ class _PdfButton extends ConsumerWidget {
         SacPdfViewer.show(
           context,
           pdfSource: localPath,
-                  title: 'monthly_reports.detail.pdf_viewer_title'.tr(),
+          title: 'monthly_reports.detail.pdf_viewer_title'.tr(),
         );
       }
     } catch (e) {
@@ -164,7 +163,8 @@ class _ReportDetail extends ConsumerWidget {
         if (report.newMembers != null ||
             report.droppedMembers != null ||
             report.notes != null) ...[
-          _SectionTitle(title: 'monthly_reports.detail.section_manual_data'.tr()),
+          _SectionTitle(
+              title: 'monthly_reports.detail.section_manual_data'.tr()),
           const SizedBox(height: 12),
           _ManualDataCard(report: report),
           const SizedBox(height: 20),
@@ -179,22 +179,23 @@ class _ReportDetail extends ConsumerWidget {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('monthly_reports.detail.downloading_pdf'.tr()),
+                    content:
+                        Text('monthly_reports.detail.downloading_pdf'.tr()),
                     duration: const Duration(seconds: 30),
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
               }
 
-              final localPath = await ref
-                  .read(monthlyReportPdfProvider(reportId).future);
+              final localPath =
+                  await ref.read(monthlyReportPdfProvider(reportId).future);
 
               if (context.mounted) {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 SacPdfViewer.show(
                   context,
                   pdfSource: localPath,
-          title: 'monthly_reports.detail.pdf_viewer_title'.tr(),
+                  title: 'monthly_reports.detail.pdf_viewer_title'.tr(),
                 );
               }
             } catch (e) {
@@ -276,8 +277,8 @@ class _ReportHeaderCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
                     color: statusCfg.bg,
                     borderRadius: BorderRadius.circular(20),
@@ -305,8 +306,7 @@ class _ReportHeaderCard extends StatelessWidget {
         return _StatusConfig(
             bg: AppColors.secondaryLight, fg: AppColors.secondaryDark);
       case MonthlyReportStatus.rejected:
-        return _StatusConfig(
-            bg: AppColors.errorLight, fg: AppColors.errorDark);
+        return _StatusConfig(bg: AppColors.errorLight, fg: AppColors.errorDark);
       case MonthlyReportStatus.submitted:
         return _StatusConfig(
             bg: AppColors.primaryLight, fg: AppColors.primaryDark);
@@ -344,7 +344,7 @@ class _AutoDataGrid extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child:                 _StatCard(
+                child: _StatCard(
                   icon: HugeIcons.strokeRoundedCalendar01,
                   label: 'monthly_reports.detail.stat_activities'.tr(),
                   value: report.totalActivities?.toString() ?? '—',
@@ -352,7 +352,7 @@ class _AutoDataGrid extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child:                 _StatCard(
+                child: _StatCard(
                   icon: HugeIcons.strokeRoundedUserMultiple,
                   label: 'monthly_reports.detail.stat_total_attendance'.tr(),
                   value: report.totalAttendance?.toString() ?? '—',
@@ -367,7 +367,7 @@ class _AutoDataGrid extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child:                 _StatCard(
+                child: _StatCard(
                   icon: HugeIcons.strokeRoundedUser,
                   label: 'monthly_reports.detail.stat_members'.tr(),
                   value: report.totalMembers?.toString() ?? '—',
@@ -375,7 +375,7 @@ class _AutoDataGrid extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child:                 _StatCard(
+                child: _StatCard(
                   icon: HugeIcons.strokeRoundedAnalytics01,
                   label: 'monthly_reports.detail.stat_attendance_rate'.tr(),
                   value: report.attendanceRate != null
@@ -471,8 +471,7 @@ class _ManualDataCard extends StatelessWidget {
               value: report.newMembers.toString(),
               valueColor: AppColors.secondary,
             ),
-          if (report.newMembers != null &&
-              report.droppedMembers != null)
+          if (report.newMembers != null && report.droppedMembers != null)
             Divider(height: 20, color: c.divider),
           if (report.droppedMembers != null)
             _InfoRow(

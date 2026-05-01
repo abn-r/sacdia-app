@@ -5,7 +5,8 @@ import '../../../../core/usecases/usecase.dart';
 import '../repositories/post_registration_repository.dart';
 
 /// Caso de uso para subir la foto de perfil
-class UploadProfilePicture implements UseCase<String, UploadProfilePictureParams> {
+class UploadProfilePicture
+    implements UseCase<String, UploadProfilePictureParams> {
   final PostRegistrationRepository repository;
 
   UploadProfilePicture(this.repository);

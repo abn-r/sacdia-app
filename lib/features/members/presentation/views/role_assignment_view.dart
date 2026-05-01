@@ -24,8 +24,7 @@ class RoleAssignmentView extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<RoleAssignmentView> createState() =>
-      _RoleAssignmentViewState();
+  ConsumerState<RoleAssignmentView> createState() => _RoleAssignmentViewState();
 }
 
 class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
@@ -72,7 +71,10 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            tr('members.role_assignment.assigned_role', namedArgs: {'role': RoleUtils.translate(_selectedRole, gender: widget.member.gender)}),
+            tr('members.role_assignment.assigned_role', namedArgs: {
+              'role': RoleUtils.translate(_selectedRole,
+                  gender: widget.member.gender)
+            }),
           ),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
@@ -159,7 +161,12 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
                         ),
                         if (widget.member.clubRole != null)
                           Text(
-                            tr('members.role_assignment.current_role', namedArgs: {'role': RoleUtils.translate(widget.member.clubRole, gender: widget.member.gender)}),
+                            tr('members.role_assignment.current_role',
+                                namedArgs: {
+                                  'role': RoleUtils.translate(
+                                      widget.member.clubRole,
+                                      gender: widget.member.gender)
+                                }),
                             style: TextStyle(
                               fontSize: 13,
                               color: c.textSecondary,
@@ -197,9 +204,7 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isSelected
-                                ? AppColors.primary
-                                : c.border,
+                            color: isSelected ? AppColors.primary : c.border,
                             width: isSelected ? 1.5 : 1,
                           ),
                         ),
@@ -211,22 +216,21 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
                           children: [
                             Expanded(
                               child: Text(
-                                RoleUtils.translate(role, gender: widget.member.gender),
+                                RoleUtils.translate(role,
+                                    gender: widget.member.gender),
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: isSelected
                                       ? FontWeight.w600
                                       : FontWeight.w400,
-                                  color: isSelected
-                                      ? AppColors.primary
-                                      : c.text,
+                                  color:
+                                      isSelected ? AppColors.primary : c.text,
                                 ),
                               ),
                             ),
                             if (isSelected)
                               const HugeIcon(
-                                icon:
-                                    HugeIcons.strokeRoundedCheckmarkCircle01,
+                                icon: HugeIcons.strokeRoundedCheckmarkCircle01,
                                 color: AppColors.primary,
                                 size: 20,
                               ),

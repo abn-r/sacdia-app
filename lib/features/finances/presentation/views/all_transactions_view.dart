@@ -66,9 +66,7 @@ class _AllTransactionsViewState extends ConsumerState<AllTransactionsView> {
     if (pos.pixels >= pos.maxScrollExtent - 200 &&
         state.hasNextPage &&
         !state.isLoadingMore) {
-      ref
-          .read(allTransactionsFilterNotifierProvider.notifier)
-          .loadNextPage();
+      ref.read(allTransactionsFilterNotifierProvider.notifier).loadNextPage();
     }
   }
 
@@ -92,15 +90,12 @@ class _AllTransactionsViewState extends ConsumerState<AllTransactionsView> {
       builder: (_) => const AddTransactionSheet(),
     ).then((_) {
       // Refresh the list after adding a transaction.
-      ref
-          .read(allTransactionsFilterNotifierProvider.notifier)
-          .reset();
+      ref.read(allTransactionsFilterNotifierProvider.notifier).reset();
     });
   }
 
   void _openSortSheet() {
-    final filter =
-        ref.read(allTransactionsFilterNotifierProvider).filter;
+    final filter = ref.read(allTransactionsFilterNotifierProvider).filter;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -119,8 +114,7 @@ class _AllTransactionsViewState extends ConsumerState<AllTransactionsView> {
   }
 
   void _openRangeSheet() {
-    final filter =
-        ref.read(allTransactionsFilterNotifierProvider).filter;
+    final filter = ref.read(allTransactionsFilterNotifierProvider).filter;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -131,9 +125,7 @@ class _AllTransactionsViewState extends ConsumerState<AllTransactionsView> {
         currentStart: filter.startDate,
         currentEnd: filter.endDate,
         onApply: (preset, start, end) {
-          ref
-              .read(allTransactionsFilterNotifierProvider.notifier)
-              .updateRange(
+          ref.read(allTransactionsFilterNotifierProvider.notifier).updateRange(
                 preset: preset,
                 startDate: start,
                 endDate: end,
@@ -156,8 +148,7 @@ class _AllTransactionsViewState extends ConsumerState<AllTransactionsView> {
 
     return Scaffold(
       backgroundColor: context.sac.background,
-      floatingActionButton:
-          showFab ? _AddFab(onTap: _openAddSheet) : null,
+      floatingActionButton: showFab ? _AddFab(onTap: _openAddSheet) : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: SafeArea(
         child: Column(
@@ -191,8 +182,7 @@ class _AllTransactionsViewState extends ConsumerState<AllTransactionsView> {
                 color: AppColors.primary,
                 onRefresh: () async {
                   ref
-                      .read(allTransactionsFilterNotifierProvider
-                          .notifier)
+                      .read(allTransactionsFilterNotifierProvider.notifier)
                       .reset();
                 },
                 child: _TransactionListBody(
@@ -317,15 +307,14 @@ class _TransactionListBody extends StatelessWidget {
     // Empty state
     if (txState.transactions.isEmpty) {
       return _EmptyState(
-        hasActiveSearch: txState.filter.search != null &&
-            txState.filter.search!.isNotEmpty,
+        hasActiveSearch:
+            txState.filter.search != null && txState.filter.search!.isNotEmpty,
       );
     }
 
     // Build grouped list
     final grouped = _groupByDate(txState.transactions);
-    final sortedDates = grouped.keys.toList()
-      ..sort((a, b) => b.compareTo(a));
+    final sortedDates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
 
     final items = <_ListItem>[];
     for (final date in sortedDates) {
@@ -345,7 +334,8 @@ class _TransactionListBody extends StatelessWidget {
       physics: const BouncingScrollPhysics(
         parent: AlwaysScrollableScrollPhysics(),
       ),
-      itemCount: items.length + (txState.isLoadingMore ? 1 : 1), // +1 for bottom clearance
+      itemCount: items.length +
+          (txState.isLoadingMore ? 1 : 1), // +1 for bottom clearance
       itemBuilder: (context, index) {
         // Bottom clearance / load-more indicator
         if (index == items.length) {
@@ -579,4 +569,3 @@ class _AddFab extends StatelessWidget {
     );
   }
 }
-

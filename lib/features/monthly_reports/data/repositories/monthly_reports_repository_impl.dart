@@ -52,10 +52,11 @@ class MonthlyReportsRepositoryImpl implements MonthlyReportsRepository {
 
   @override
   Future<Either<Failure, List<MonthlyReport>>> getReportsByEnrollment(
-      int enrollmentId, {CancelToken? cancelToken}) async {
+      int enrollmentId,
+      {CancelToken? cancelToken}) async {
     try {
-      final models =
-          await remoteDataSource.getReportsByEnrollment(enrollmentId, cancelToken: cancelToken);
+      final models = await remoteDataSource.getReportsByEnrollment(enrollmentId,
+          cancelToken: cancelToken);
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return _serverFailure(e);
@@ -67,10 +68,11 @@ class MonthlyReportsRepositoryImpl implements MonthlyReportsRepository {
   }
 
   @override
-  Future<Either<Failure, MonthlyReport>> getReportDetail(
-      int reportId, {CancelToken? cancelToken}) async {
+  Future<Either<Failure, MonthlyReport>> getReportDetail(int reportId,
+      {CancelToken? cancelToken}) async {
     try {
-      final model = await remoteDataSource.getReportDetail(reportId, cancelToken: cancelToken);
+      final model = await remoteDataSource.getReportDetail(reportId,
+          cancelToken: cancelToken);
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return _serverFailure(e);
@@ -82,9 +84,11 @@ class MonthlyReportsRepositoryImpl implements MonthlyReportsRepository {
   }
 
   @override
-  Future<Either<Failure, String>> downloadReportPdf(int reportId, {CancelToken? cancelToken}) async {
+  Future<Either<Failure, String>> downloadReportPdf(int reportId,
+      {CancelToken? cancelToken}) async {
     try {
-      final localPath = await remoteDataSource.downloadReportPdf(reportId, cancelToken: cancelToken);
+      final localPath = await remoteDataSource.downloadReportPdf(reportId,
+          cancelToken: cancelToken);
       return Right(localPath);
     } on ServerException catch (e) {
       return _serverFailure(e);

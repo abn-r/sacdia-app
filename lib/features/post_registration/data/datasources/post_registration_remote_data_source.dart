@@ -10,9 +10,11 @@ import '../models/completion_status_model.dart';
 /// Interfaz para la fuente de datos remota de post-registro
 abstract class PostRegistrationRemoteDataSource {
   Future<CompletionStatusModel> getCompletionStatus({CancelToken? cancelToken});
-  Future<String> uploadProfilePicture({required String userId, required String filePath});
+  Future<String> uploadProfilePicture(
+      {required String userId, required String filePath});
   Future<void> deleteProfilePicture({required String userId});
-  Future<bool> getPhotoStatus({required String userId, CancelToken? cancelToken});
+  Future<bool> getPhotoStatus(
+      {required String userId, CancelToken? cancelToken});
   Future<void> completeStep1(String userId);
 }
 
@@ -44,7 +46,8 @@ class PostRegistrationRemoteDataSourceImpl
         return CompletionStatusModel.fromJson(response.data);
       }
 
-      throw ServerException(message: tr('post_registration.errors.fetch_completion_status'));
+      throw ServerException(
+          message: tr('post_registration.errors.fetch_completion_status'));
     } catch (e) {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
@@ -89,7 +92,8 @@ class PostRegistrationRemoteDataSourceImpl
         return response.data['url'] as String? ?? '';
       }
 
-      throw ServerException(message: tr('post_registration.errors.upload_profile_photo'));
+      throw ServerException(
+          message: tr('post_registration.errors.upload_profile_photo'));
     } catch (e) {
       AppLogger.e('Error al subir foto de perfil', tag: _tag, error: e);
       if (e is DioException) {
@@ -108,7 +112,8 @@ class PostRegistrationRemoteDataSourceImpl
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {
-        throw ServerException(message: tr('post_registration.errors.delete_profile_photo'));
+        throw ServerException(
+            message: tr('post_registration.errors.delete_profile_photo'));
       }
     } catch (e) {
       if (e is DioException) {

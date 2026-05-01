@@ -128,8 +128,7 @@ class _EnrollPreviousClassSkeletonState
   // Mirrors one InkWell item in the ListView:
   //   radio circle (20×20) + logo square (36×36) + name text (varies)
 
-  Widget _buildClassItemSkeleton(
-      BuildContext context, double sv, int index) {
+  Widget _buildClassItemSkeleton(BuildContext context, double sv, int index) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

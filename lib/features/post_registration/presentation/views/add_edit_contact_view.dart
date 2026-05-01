@@ -77,8 +77,7 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
       if (_isEditing) {
         final contactId = widget.contact!.id;
         if (contactId == null) {
-          throw Exception(
-              'post_registration.contact_form.error_no_id'.tr());
+          throw Exception('post_registration.contact_form.error_no_id'.tr());
         }
         await notifier.updateContact(contactId, contact);
       } else {
@@ -222,7 +221,8 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
               // Contacto primario
               Container(
                 decoration: BoxDecoration(
-                  color: _isPrimary ? AppColors.primaryLight : context.sac.surface,
+                  color:
+                      _isPrimary ? AppColors.primaryLight : context.sac.surface,
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
@@ -561,8 +561,7 @@ class _RelationshipTypePickerSheetState
 
           // Title
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: Text(
               'post_registration.contact_form.relationship_sheet_title'.tr(),
               style: theme.textTheme.headlineSmall,
@@ -588,22 +587,17 @@ class _RelationshipTypePickerSheetState
                   vertical: 12,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusSM),
-                  borderSide:
-                      BorderSide(color: context.sac.border),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                  borderSide: BorderSide(color: context.sac.border),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusSM),
-                  borderSide:
-                      BorderSide(color: context.sac.border),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                  borderSide: BorderSide(color: context.sac.border),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusSM),
-                  borderSide: const BorderSide(
-                      color: AppColors.primary, width: 2),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                  borderSide:
+                      const BorderSide(color: AppColors.primary, width: 2),
                 ),
                 filled: true,
                 fillColor: context.sac.surfaceVariant,
@@ -636,15 +630,13 @@ class _RelationshipTypePickerSheetState
                     ),
                   )
                 : ListView.builder(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 4),
+                    padding: const EdgeInsets.symmetric(vertical: 4),
                     // shrinkWrap removed: parent Flexible provides a bounded
                     // height constraint — ListView can scroll normally.
                     itemCount: _filtered.length,
                     itemBuilder: (_, index) {
                       final type = _filtered[index];
-                      final isSelected =
-                          type.id == widget.selectedId;
+                      final isSelected = type.id == widget.selectedId;
 
                       return ListTile(
                         minTileHeight: 48,
@@ -661,9 +653,8 @@ class _RelationshipTypePickerSheetState
                             color: isSelected
                                 ? AppColors.primary
                                 : context.sac.text,
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.w400,
+                            fontWeight:
+                                isSelected ? FontWeight.w600 : FontWeight.w400,
                           ),
                         ),
                         trailing: isSelected

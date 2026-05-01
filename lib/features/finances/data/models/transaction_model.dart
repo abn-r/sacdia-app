@@ -25,18 +25,24 @@ class FinanceTransactionModel extends FinanceTransaction {
     // El backend puede devolver la categoría embebida o solo el ID.
     final categoryJson = json['finances_categories'] as Map<String, dynamic>? ??
         json['category'] as Map<String, dynamic>? ??
-        {'finance_category_id': json['finance_category_id'] ?? 0, 'name': 'General', 'type': 0};
+        {
+          'finance_category_id': json['finance_category_id'] ?? 0,
+          'name': 'General',
+          'type': 0
+        };
 
     final category = FinanceCategoryModel.fromJson(categoryJson).toEntity();
 
     // Determinar tipo por el typeCode de la categoría (1=ingreso, 2=egreso).
     // Si no se puede determinar, usar el campo 'type' si existe.
-    final rawType = json['type']?.toString() ?? json['transaction_type']?.toString() ?? '';
+    final rawType =
+        json['type']?.toString() ?? json['transaction_type']?.toString() ?? '';
     final type = _parseType(rawType, category);
 
     // Datos del creador
     final createdByUser = json['users'] as Map<String, dynamic>? ?? {};
-    final registeredByName = _extractName(createdByUser, json['created_by']?.toString() ?? 'Sistema');
+    final registeredByName = _extractName(
+        createdByUser, json['created_by']?.toString() ?? 'Sistema');
     final registeredByPhoto = createdByUser['user_image']?.toString();
 
     return FinanceTransactionModel(

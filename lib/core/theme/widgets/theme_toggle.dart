@@ -11,12 +11,12 @@ import '../theme_provider.dart';
 class ThemeToggle extends ConsumerWidget {
   /// Determina si se debe mostrar el texto junto al icono
   final bool showText;
-  
+
   /// Color del icono y texto (opcional)
   final Color? color;
-  
+
   const ThemeToggle({
-    super.key, 
+    super.key,
     this.showText = false,
     this.color,
   });
@@ -36,14 +36,18 @@ class ThemeToggle extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             HugeIcon(
-              icon: isDarkMode ? HugeIcons.strokeRoundedSun01 : HugeIcons.strokeRoundedMoon,
+              icon: isDarkMode
+                  ? HugeIcons.strokeRoundedSun01
+                  : HugeIcons.strokeRoundedMoon,
               color: color ?? context.sac.text,
               size: 24,
             ),
             if (showText) ...[
               const SizedBox(width: AppConstants.paddingS),
               Text(
-                isDarkMode ? tr('core.theme.light_mode') : tr('core.theme.dark_mode'),
+                isDarkMode
+                    ? tr('core.theme.light_mode')
+                    : tr('core.theme.dark_mode'),
                 style: TextStyle(color: color),
               ),
             ],

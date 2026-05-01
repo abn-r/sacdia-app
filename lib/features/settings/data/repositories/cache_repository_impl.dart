@@ -165,7 +165,8 @@ class CacheRepositoryImpl implements CacheRepository {
         await prefs.remove(key);
       }
     } catch (e, st) {
-      debugPrint('[CacheRepo] SharedPreferences selective clear failed: $e\n$st');
+      debugPrint(
+          '[CacheRepo] SharedPreferences selective clear failed: $e\n$st');
     }
   }
 

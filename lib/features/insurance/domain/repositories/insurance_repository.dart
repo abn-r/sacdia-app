@@ -55,5 +55,4 @@ abstract class InsuranceRepository {
     required int days,
     CancelToken? cancelToken,
   });
-
 }

@@ -120,8 +120,10 @@ class ClassDetailView extends ConsumerWidget {
                       if (progressiveClass.description != null) ...[
                         Row(
                           children: [
-                            HugeIcon(icon: HugeIcons.strokeRoundedInformationCircle,
-                                size: 20, color: AppColors.primary),
+                            HugeIcon(
+                                icon: HugeIcons.strokeRoundedInformationCircle,
+                                size: 20,
+                                color: AppColors.primary),
                             const SizedBox(width: 8),
                             Text(
                               'classes.detail.description_header'.tr(),
@@ -173,8 +175,10 @@ class ClassDetailView extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                HugeIcon(icon: HugeIcons.strokeRoundedAlert02,
-                    size: 56, color: AppColors.error),
+                HugeIcon(
+                    icon: HugeIcons.strokeRoundedAlert02,
+                    size: 56,
+                    color: AppColors.error),
                 const SizedBox(height: 16),
                 Text(
                   'classes.detail.error_loading'.tr(),
@@ -186,8 +190,8 @@ class ClassDetailView extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Text(
                   error.toString(),
-                  style: TextStyle(
-                      fontSize: 14, color: context.sac.textSecondary),
+                  style:
+                      TextStyle(fontSize: 14, color: context.sac.textSecondary),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),

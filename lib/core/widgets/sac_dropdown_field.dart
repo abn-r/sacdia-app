@@ -71,8 +71,9 @@ class _SacDropdownFieldState<T> extends State<SacDropdownField<T>> {
           // Contenedor con sombra y borde de error condicional
           Container(
             decoration: BoxDecoration(
-              color:
-                  widget.enabled ? context.sac.surface : context.sac.surfaceVariant,
+              color: widget.enabled
+                  ? context.sac.surface
+                  : context.sac.surfaceVariant,
               boxShadow: [
                 BoxShadow(
                   color: context.sac.shadow,
@@ -178,8 +179,7 @@ class _SacDropdownFieldState<T> extends State<SacDropdownField<T>> {
     return Padding(
       padding: const EdgeInsets.only(left: 15, right: 8),
       child: widget.prefixIcon is IconData
-          ? Icon(widget.prefixIcon,
-              size: 20, color: context.sac.textSecondary)
+          ? Icon(widget.prefixIcon, size: 20, color: context.sac.textSecondary)
           : HugeIcon(
               icon: widget.prefixIcon,
               size: 20,

@@ -108,7 +108,8 @@ class _UploadProgressSheetContentState
     final total = _files.length.toDouble();
     final completed = _completedCount.toDouble();
     // Add partial progress from the currently uploading file
-    final uploading = _files.where((f) => f.status == StagedFileStatus.uploading);
+    final uploading =
+        _files.where((f) => f.status == StagedFileStatus.uploading);
     final partialProgress =
         uploading.fold<double>(0, (sum, f) => sum + f.uploadProgress);
     return (completed + partialProgress) / total;
@@ -273,8 +274,7 @@ class _UploadProgressSheetContentState
         SizedBox(
           width: double.infinity,
           child: FilledButton(
-            onPressed: () =>
-                Navigator.pop(context, UploadSheetResult.retry),
+            onPressed: () => Navigator.pop(context, UploadSheetResult.retry),
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.primary,
               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -283,7 +283,8 @@ class _UploadProgressSheetContentState
               ),
             ),
             child: Text(
-              tr('core.evidence_staging.btn_retry_failed', namedArgs: {'count': '$_errorCount'}),
+              tr('core.evidence_staging.btn_retry_failed',
+                  namedArgs: {'count': '$_errorCount'}),
               style: const TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
@@ -307,7 +308,8 @@ class _UploadProgressSheetContentState
                 side: const BorderSide(color: AppColors.secondary, width: 1.5),
               ),
               child: Text(
-                tr('core.evidence_staging.btn_continue_partial', namedArgs: {'count': '$_completedCount'}),
+                tr('core.evidence_staging.btn_continue_partial',
+                    namedArgs: {'count': '$_completedCount'}),
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,

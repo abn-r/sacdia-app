@@ -191,7 +191,8 @@ class _ResourcesSectionState extends State<ResourcesSection> {
                     onPressed: () {},
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
@@ -218,14 +219,14 @@ class _ResourcesSectionState extends State<ResourcesSection> {
                 ],
               ),
               const SizedBox(height: 14),
-          
+
               // ── Filter chips ─────────────────────────────────────────
               _FilterChipsRow(
                 activeFilter: _activeFilter,
                 onFilterChanged: (type) => setState(() => _activeFilter = type),
               ),
               const SizedBox(height: 18),
-          
+
               // ── Archivos recientes ────────────────────────────────────
               Text(
                 tr('home.resources.recent_files'),
@@ -255,7 +256,7 @@ class _ResourcesSectionState extends State<ResourcesSection> {
                       ),
               ),
               const SizedBox(height: 22),
-          
+
               // ── Categorías ───────────────────────────────────────────
               Text(
                 tr('home.resources.categories'),

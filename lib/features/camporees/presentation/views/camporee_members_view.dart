@@ -51,7 +51,8 @@ class CamporeeMembersView extends ConsumerWidget {
                     camporeeId: camporeeId,
                   ),
                 ),
-              ).then((_) => ref.invalidate(camporeeMembersProvider(camporeeId)));
+              ).then(
+                  (_) => ref.invalidate(camporeeMembersProvider(camporeeId)));
             },
             icon: HugeIcon(
               icon: HugeIcons.strokeRoundedUserAdd01,
@@ -104,8 +105,8 @@ class CamporeeMembersView extends ConsumerWidget {
                               camporeeId: camporeeId,
                             ),
                           ),
-                        ).then((_) =>
-                            ref.invalidate(camporeeMembersProvider(camporeeId)));
+                        ).then((_) => ref
+                            .invalidate(camporeeMembersProvider(camporeeId)));
                       },
                     ),
                   ],
@@ -174,8 +175,7 @@ class CamporeeMembersView extends ConsumerWidget {
                   const SizedBox(height: 16),
                   Text(
                     error.toString().replaceFirst('Exception: ', ''),
-                    style: TextStyle(
-                        fontSize: 14, color: c.textSecondary),
+                    style: TextStyle(fontSize: 14, color: c.textSecondary),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
@@ -204,7 +204,8 @@ class CamporeeMembersView extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         title: Text('camporees.members.remove_title'.tr()),
         content: Text(
-          'camporees.members.remove_confirm'.tr(namedArgs: {'name': member.userName ?? member.userId}),
+          'camporees.members.remove_confirm'
+              .tr(namedArgs: {'name': member.userName ?? member.userId}),
         ),
         actions: [
           TextButton(
@@ -233,7 +234,8 @@ class CamporeeMembersView extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'camporees.members.member_removed'.tr(namedArgs: {'name': member.userName ?? member.userId}),
+              'camporees.members.member_removed'
+                  .tr(namedArgs: {'name': member.userName ?? member.userId}),
             ),
             backgroundColor: AppColors.secondary,
             behavior: SnackBarBehavior.floating,
@@ -288,25 +290,31 @@ class _StatsSummary extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child:             _StatChip(
+            child: _StatChip(
               label: 'camporees.members.total'.tr(),
               value: '$total',
               color: AppColors.primary,
             ),
           ),
-          Container(width: 1, height: 32, color: c.border,
+          Container(
+              width: 1,
+              height: 32,
+              color: c.border,
               margin: const EdgeInsets.symmetric(horizontal: 12)),
           Expanded(
-            child:             _StatChip(
+            child: _StatChip(
               label: 'camporees.members.with_insurance'.tr(),
               value: '$verified',
               color: AppColors.secondary,
             ),
           ),
-          Container(width: 1, height: 32, color: c.border,
+          Container(
+              width: 1,
+              height: 32,
+              color: c.border,
               margin: const EdgeInsets.symmetric(horizontal: 12)),
           Expanded(
-            child:             _StatChip(
+            child: _StatChip(
               label: 'camporees.members.without_insurance'.tr(),
               value: '$unverified',
               color: unverified > 0 ? AppColors.warning : AppColors.secondary,
@@ -471,7 +479,9 @@ class _InsuranceStatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = verified ? AppColors.secondary : AppColors.warning;
-    final label = verified ? 'camporees.members.insurance_verified'.tr() : 'camporees.members.without_insurance'.tr();
+    final label = verified
+        ? 'camporees.members.insurance_verified'.tr()
+        : 'camporees.members.without_insurance'.tr();
     final icon = verified
         ? HugeIcons.strokeRoundedCheckmarkCircle01
         : HugeIcons.strokeRoundedAlert02;
@@ -511,7 +521,9 @@ class _TypeLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = type == 'union' ? 'camporees.members.union'.tr() : 'camporees.members.local'.tr();
+    final label = type == 'union'
+        ? 'camporees.members.union'.tr()
+        : 'camporees.members.local'.tr();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(

@@ -48,9 +48,8 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
 
     return Scaffold(
       backgroundColor: context.sac.background,
-      floatingActionButton: canManage
-          ? _AddFab(onTap: () => _openAddSheet(context))
-          : null,
+      floatingActionButton:
+          canManage ? _AddFab(onTap: () => _openAddSheet(context)) : null,
       body: SafeArea(
         child: RefreshIndicator(
           color: AppColors.primary,
@@ -133,9 +132,8 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
                     return SliverToBoxAdapter(
                       child: _EmptyState(
                         canAdd: canManage && !filters.hasActiveFilters,
-                        onAddTap: canManage
-                            ? () => _openAddSheet(context)
-                            : null,
+                        onAddTap:
+                            canManage ? () => _openAddSheet(context) : null,
                       ),
                     );
                   }
@@ -147,15 +145,12 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
                           child: Text(
-                            'inventory.view.item_count'
-                                .plural(items.length),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                  color: context.sac.textSecondary,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                            'inventory.view.item_count'.plural(items.length),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: context.sac.textSecondary,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                           ),
                         ),
                       ),
@@ -240,8 +235,8 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('inventory.detail.delete_title'.tr()),
-        content: Text('inventory.detail.delete_confirm'.tr(
-            namedArgs: {'name': item.name})),
+        content: Text('inventory.detail.delete_confirm'
+            .tr(namedArgs: {'name': item.name})),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -249,8 +244,7 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
           ),
           Consumer(
             builder: (consumerContext, ref, _) {
-              final deleteState =
-                  ref.watch(inventoryDeleteNotifierProvider);
+              final deleteState = ref.watch(inventoryDeleteNotifierProvider);
               return FilledButton(
                 onPressed: deleteState.isLoading
                     ? null
@@ -275,8 +269,7 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
                           );
                         }
                       },
-                style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.error),
+                style: FilledButton.styleFrom(backgroundColor: AppColors.error),
                 child: Text('common.delete'.tr()),
               );
             },
@@ -527,8 +520,7 @@ class _ErrorBody extends StatelessWidget {
               color: Colors.white,
             ),
             label: Text('common.retry'.tr()),
-            style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
           ),
         ],
       ),

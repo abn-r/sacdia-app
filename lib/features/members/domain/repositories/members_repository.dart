@@ -15,7 +15,8 @@ abstract class MembersRepository {
   });
 
   /// Obtiene el detalle de un miembro específico del club
-  Future<Either<Failure, ClubMember>> getMemberDetail(String userId, {CancelToken? cancelToken});
+  Future<Either<Failure, ClubMember>> getMemberDetail(String userId,
+      {CancelToken? cancelToken});
 
   /// Obtiene la lista de solicitudes de ingreso al club
   Future<Either<Failure, List<JoinRequest>>> getJoinRequests({

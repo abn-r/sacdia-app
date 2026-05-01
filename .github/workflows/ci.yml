@@ -11,10 +11,10 @@ on:
 
 jobs:
   # ──────────────────────────────────────────────────────────────────────────
-  # JOB 1: Analyze
+  # JOB 1: Analyze & Format
   # ──────────────────────────────────────────────────────────────────────────
   analyze:
-    name: Analyze
+    name: Analyze & Format
     runs-on: ubuntu-latest
 
     steps:
@@ -31,9 +31,8 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # Dart format check intentionally omitted — codebase has 414 pre-existing
-      # unformatted files (run `dart format .` locally to clean up). Enforce
-      # in a follow-up PR after a one-shot repo-wide format pass.
+      - name: Dart format check
+        run: dart format --set-exit-if-changed --output=none .
 
       - name: Flutter analyze
         # --no-fatal-warnings / --no-fatal-infos: only exit non-zero on errors.

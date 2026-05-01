@@ -141,7 +141,8 @@ void main() {
   group('CamporeesRemoteDataSourceImpl.getCamporeeMembers', () {
     // ── Happy path ───────────────────────────────────────────────────────────
 
-    test('returns PaginatedResult with 1 member on happy-path response', () async {
+    test('returns PaginatedResult with 1 member on happy-path response',
+        () async {
       final (:dio, :adapter) = _dioWith(_paginatedResponse());
       final ds = CamporeesRemoteDataSourceImpl(dio: dio, baseUrl: baseUrl);
 
@@ -180,7 +181,8 @@ void main() {
 
       await ds.getCamporeeMembers(1);
 
-      expect(adapter.lastOptions!.queryParameters.containsKey('status'), isFalse);
+      expect(
+          adapter.lastOptions!.queryParameters.containsKey('status'), isFalse);
     });
 
     // ── Empty data ───────────────────────────────────────────────────────────
@@ -200,7 +202,8 @@ void main() {
 
     // ── Malformed response (T2 fix) ──────────────────────────────────────────
 
-    test('throws ServerException when response body is a plain String', () async {
+    test('throws ServerException when response body is a plain String',
+        () async {
       // Use a raw-string body — Dio will decode it as a String, not a Map/List.
       final body = ResponseBody.fromString(
         '"unexpected string"',
@@ -222,7 +225,8 @@ void main() {
 
     // ── 404 DioException ─────────────────────────────────────────────────────
 
-    test('throws ServerException (not NotFoundException) when Dio throws 404', () async {
+    test('throws ServerException (not NotFoundException) when Dio throws 404',
+        () async {
       final dio = _dioThatThrows((opts) => DioException(
             requestOptions: opts,
             response: Response(
