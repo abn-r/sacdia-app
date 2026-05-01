@@ -7,6 +7,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../providers/catalogs_provider.dart';
+import '../../domain/entities/award_tier.dart';
 import '../../domain/entities/member_ranking.dart';
 import '../providers/my_ranking_provider.dart';
 import '../widgets/ranking_empty_state.dart';
@@ -112,7 +113,8 @@ class _RankingBody extends ConsumerWidget {
                     rankPosition: ranking.rankPosition,
                     totalInSection: _resolveTotalInSection(view),
                     awardedCategoryName: ranking.awardedCategory?.name,
-                    awardedCategoryTierId: ranking.awardedCategory?.id,
+                    awardedCategoryTier:
+                        ranking.awardedCategory?.tier ?? AwardTier.unknown,
                     sectionName: ranking.sectionName,
                     ecclesiasticalYearLabel: yearLabel,
                   ),

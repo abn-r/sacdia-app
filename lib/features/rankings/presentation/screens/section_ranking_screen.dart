@@ -7,6 +7,7 @@ import '../../../../core/auth/club_role_names.dart';
 import '../../../../core/config/route_names.dart';
 import '../../../../providers/catalogs_provider.dart';
 import '../../../members/presentation/providers/members_providers.dart';
+import '../../domain/entities/award_tier.dart';
 import '../providers/section_ranking_provider.dart';
 import '../widgets/member_ranking_list_tile.dart';
 import '../widgets/ranking_empty_state.dart';
@@ -144,7 +145,8 @@ class SectionRankingScreen extends ConsumerWidget {
                 sectionName: m.sectionName,
                 compositeScore: m.compositeScorePct,
                 awardedCategoryName: m.awardedCategory?.name,
-                awardedCategoryTierId: m.awardedCategory?.id,
+                awardedCategoryTier:
+                    m.awardedCategory?.tier ?? AwardTier.unknown,
                 onTap: () => context.push(
                   RouteNames.memberBreakdownPath(m.enrollmentId, yearId),
                 ),
