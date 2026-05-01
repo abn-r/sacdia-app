@@ -56,7 +56,7 @@ final certificationsProvider =
 /// NOT applied here. [certificationsProvider] returns [Certification] objects
 /// (name, description, active, modulesCount — no module tree), whereas this
 /// provider returns [CertificationDetail] which includes the full
-/// List<CertificationModule> with nested sections. The detail view renders
+/// `List<CertificationModule>` with nested sections. The detail view renders
 /// that module/section tree and computes totalSections from it, so the network
 /// call to GET /certifications/{id} is always required.
 final certificationDetailProvider = FutureProvider.autoDispose

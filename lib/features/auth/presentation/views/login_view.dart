@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -92,16 +91,6 @@ class _LoginViewState extends ConsumerState<LoginView> {
       // Successful login — reset counter.
       _failedAttempts = 0;
     }
-  }
-
-  Future<void> _signInWithGoogle() async {
-    await ref.read(authNotifierProvider.notifier).signInWithGoogle();
-    // OAuthLaunchResult.launched → browser opened, wait for deep link.
-    // OAuthLaunchResult.failed   → error shown via authState.hasError.
-  }
-
-  Future<void> _signInWithApple() async {
-    await ref.read(authNotifierProvider.notifier).signInWithApple();
   }
 
   @override
@@ -365,50 +354,3 @@ class _LoginViewState extends ConsumerState<LoginView> {
   }
 }
 
-// ── OAuth button ───────────────────────────────────────────────────────────────
-
-class _OAuthButton extends StatelessWidget {
-  final VoidCallback? onPressed;
-  final String iconPath;
-  final String label;
-
-  const _OAuthButton({
-    required this.onPressed,
-    required this.iconPath,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        side: BorderSide(color: context.sac.border),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        backgroundColor: context.sac.surface,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SvgPicture.asset(
-            iconPath,
-            width: 20,
-            height: 20,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: context.sac.text,
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

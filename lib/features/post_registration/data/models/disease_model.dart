@@ -6,7 +6,7 @@ class DiseaseModel extends Equatable {
   final String name;
   final bool isSelected;
 
-  DiseaseModel({
+  const DiseaseModel({
     required this.id,
     required this.name,
     this.isSelected = false,

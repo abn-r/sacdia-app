@@ -263,8 +263,9 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                             onProgress: onProgress,
                             skipInvalidation: true,
                           );
-                      if (!success)
+                      if (!success) {
                         throw Exception(tr('classes.errors.upload_failed'));
+                      }
                     },
                     onDeleteRemote: (fileId) async {
                       await ref

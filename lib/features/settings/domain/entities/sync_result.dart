@@ -25,9 +25,8 @@ class SyncResult {
     required this.errorMessage,
   });
 
-  const SyncResult.ok(DateTime syncedAt)
+  const SyncResult.ok(this.syncedAt)
       : success = true,
-        syncedAt = syncedAt,
         errorMessage = null;
 
   const SyncResult.error(String message)

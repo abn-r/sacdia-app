@@ -23,7 +23,6 @@ final validationRemoteDataSourceProvider =
 final validationRepositoryProvider = Provider<ValidationRepository>((ref) {
   return ValidationRepositoryImpl(
     remoteDataSource: ref.read(validationRemoteDataSourceProvider),
-    networkInfo: ref.read(networkInfoProvider),
   );
 });
 

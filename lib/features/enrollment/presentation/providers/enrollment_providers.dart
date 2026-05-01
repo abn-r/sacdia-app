@@ -25,7 +25,6 @@ final enrollmentRemoteDataSourceProvider =
 final enrollmentRepositoryProvider = Provider<EnrollmentRepository>((ref) {
   return EnrollmentRepositoryImpl(
     remoteDataSource: ref.read(enrollmentRemoteDataSourceProvider),
-    networkInfo: ref.read(networkInfoProvider),
   );
 });
 
