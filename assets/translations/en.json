@@ -3055,5 +3055,59 @@
       "empty_card": "Empty virtual card response from the server.",
       "load_failed": "We could not load your credential right now."
     }
+  },
+  "rankings": {
+    "my_ranking": {
+      "title": "My ranking",
+      "composite_score": "Composite score",
+      "pending": "Ranking pending",
+      "rank_of": "#{position} of {total}",
+      "rank_position": "#{position}",
+      "section_label": "Section: {name}",
+      "nudge_class": "Complete your next class lessons to improve your score.",
+      "nudge_investiture": "Work on the requirements for your next investiture.",
+      "nudge_camporee": "Participate in upcoming camporees to earn points."
+    },
+    "section_ranking": {
+      "title": "Section ranking",
+      "subtitle": "Progress record",
+      "subtitle_with_year": "Progress record — {year}",
+      "invalid_section": "Invalid section"
+    },
+    "empty_state": {
+      "unavailable_title": "Ranking unavailable",
+      "unavailable_subtitle": "Your director can enable ranking visibility when ready.",
+      "no_data_title": "No data yet",
+      "no_data_subtitle": "Your ranking is calculated automatically. Check back later.",
+      "network_error_title": "No connection",
+      "network_error_subtitle": "We could not load your ranking.",
+      "no_members_title": "No rankings yet",
+      "no_members_subtitle": "Rankings are calculated automatically every 24 h. Classes and camporees for the year must already be recorded.",
+      "unauthorized_title": "Access restricted",
+      "unauthorized_subtitle": "You do not have permission to view this section's ranking. Ask your director.",
+      "retry": "Retry"
+    },
+    "signals": {
+      "class": "Class",
+      "investiture": "Investiture",
+      "camporee": "Camporees"
+    },
+    "breakdown": {
+      "title": "Score breakdown",
+      "composite_score": "Composite score",
+      "calculated_at": "Calculated on {date}",
+      "weights_title": "Weights applied",
+      "weights_source": "Source: {source}",
+      "class_section": "Class",
+      "investiture_section": "Investiture",
+      "camporee_section": "Camporees",
+      "class_completed_sections": "{completed} of {required} sections completed",
+      "class_folder_status": "Folder: {status}",
+      "investiture_status": "Status: {status}",
+      "camporee_participated": "Participated in camporee",
+      "camporee_not_participated": "Did not participate in camporee",
+      "camporee_total": "{total} camporee(s) available",
+      "weight_pct": "{pct}%"
+    }
   }
 }

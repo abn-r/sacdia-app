@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../models/member_breakdown_dto.dart';
 import '../models/member_ranking_dto.dart';
 import '../models/section_ranking_dto.dart';
 
@@ -25,6 +26,17 @@ abstract class RankingsRemoteDataSource {
   /// Throws [AuthException] on other 403s.
   /// Throws [ServerException] on other errors.
   Future<MyRankingResponseDto> getMyRanking(
+    int yearId, {
+    CancelToken? cancelToken,
+  });
+
+  /// `GET /member-rankings/:enrollmentId/breakdown?year_id=[yearId]`
+  ///
+  /// Returns the per-component score breakdown for a specific enrollment.
+  /// Throws [AuthException] on 403.
+  /// Throws [ServerException] on other errors.
+  Future<MemberBreakdownDtoModel> getBreakdown(
+    int enrollmentId,
     int yearId, {
     CancelToken? cancelToken,
   });
@@ -161,6 +173,40 @@ class RankingsRemoteDataSourceImpl implements RankingsRemoteDataSource {
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getMyRanking', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /member-rankings/:enrollmentId/breakdown ─────────────────────────────
+
+  @override
+  Future<MemberBreakdownDtoModel> getBreakdown(
+    int enrollmentId,
+    int yearId, {
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.memberRankings}/$enrollmentId/breakdown',
+        queryParameters: {'year_id': yearId},
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final json = data is Map && data.containsKey('data')
+            ? data['data'] as Map<String, dynamic>
+            : data as Map<String, dynamic>;
+        return MemberBreakdownDtoModel.fromJson(json);
+      }
+
+      throw ServerException(
+        message: tr('member_rankings.errors.get_breakdown'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
+      AppLogger.e('Error en getBreakdown', tag: _tag, error: e);
       _rethrow(e);
     }
   }

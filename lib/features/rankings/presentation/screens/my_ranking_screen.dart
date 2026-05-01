@@ -1,7 +1,10 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../providers/catalogs_provider.dart';
 import '../../domain/entities/award_tier.dart';
@@ -32,7 +35,7 @@ class MyRankingScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mi ranking'),
+        title: Text(tr('rankings.my_ranking.title')),
       ),
       body: yearAsync.when(
         data: (year) {
@@ -98,16 +101,23 @@ class _RankingBody extends ConsumerWidget {
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               // Hero card con puntaje compuesto.
+              // Tapping navigates to the full breakdown drill-down.
               SliverToBoxAdapter(
-                child: RankingHeroCard(
-                  compositeScore: ranking.compositeScorePct,
-                  rankPosition: ranking.rankPosition,
-                  totalInSection: _resolveTotalInSection(view),
-                  awardedCategoryName: ranking.awardedCategory?.name,
-                  awardedCategoryTier:
-                      ranking.awardedCategory?.tier ?? AwardTier.unknown,
-                  sectionName: ranking.sectionName,
-                  ecclesiasticalYearLabel: yearLabel,
+                child: GestureDetector(
+                  onTap: () => context.push(
+                    RouteNames.memberBreakdownPath(
+                        ranking.enrollmentId, yearId),
+                  ),
+                  child: RankingHeroCard(
+                    compositeScore: ranking.compositeScorePct,
+                    rankPosition: ranking.rankPosition,
+                    totalInSection: _resolveTotalInSection(view),
+                    awardedCategoryName: ranking.awardedCategory?.name,
+                    awardedCategoryTier:
+                        ranking.awardedCategory?.tier ?? AwardTier.unknown,
+                    sectionName: ranking.sectionName,
+                    ecclesiasticalYearLabel: yearLabel,
+                  ),
                 ),
               ),
 
@@ -171,7 +181,6 @@ class _RankingBody extends ConsumerWidget {
     }
     return null;
   }
-
 }
 
 // ── Nudge contextual ────────────────────────────────────────────────────────
@@ -184,8 +193,8 @@ class _ContextualNudge extends StatelessWidget {
 
   const _ContextualNudge({required this.ranking});
 
-  /// Devuelve el mensaje correspondiente a la señal con menor puntaje no-null.
-  String? _nudgeMessage() {
+  /// Devuelve la clave i18n correspondiente a la señal con menor puntaje no-null.
+  String? _nudgeKey() {
     final scores = <String, double?>{
       'class': ranking.classScorePct,
       'investiture': ranking.investitureScorePct,
@@ -202,11 +211,11 @@ class _ContextualNudge extends StatelessWidget {
 
     switch (available.first.key) {
       case 'class':
-        return 'Completá tus próximas lecciones de clase para mejorar tu puntaje.';
+        return 'rankings.my_ranking.nudge_class';
       case 'investiture':
-        return 'Trabajá en los requisitos de tu próxima investidura.';
+        return 'rankings.my_ranking.nudge_investiture';
       case 'camporee':
-        return 'Participá en los próximos camporees para sumar puntos.';
+        return 'rankings.my_ranking.nudge_camporee';
       default:
         return null;
     }
@@ -214,8 +223,8 @@ class _ContextualNudge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final message = _nudgeMessage();
-    if (message == null) return const SizedBox.shrink();
+    final key = _nudgeKey();
+    if (key == null) return const SizedBox.shrink();
 
     final c = context.sac;
 
@@ -232,7 +241,7 @@ class _ContextualNudge extends StatelessWidget {
           const SizedBox(width: 4),
           Expanded(
             child: Text(
-              message,
+              tr(key),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: c.textSecondary,
                   ),

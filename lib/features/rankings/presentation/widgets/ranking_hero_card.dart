@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -63,7 +64,7 @@ class RankingHeroCard extends StatelessWidget {
     final semanticLabel = [
       hasComposite
           ? 'Tu puntaje compuesto es ${_formatScore(compositeScore!)}'
-          : 'Ranking pendiente',
+          : tr('rankings.my_ranking.pending'),
       if (rankLine != null) 'posición $rankLine',
       if (awardedCategoryName != null) 'categoría $awardedCategoryName',
     ].join(', ');
@@ -135,7 +136,7 @@ class RankingHeroCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Puntaje compuesto',
+                            tr('rankings.my_ranking.composite_score'),
                             style: Theme.of(context)
                                 .textTheme
                                 .bodySmall
@@ -146,7 +147,7 @@ class RankingHeroCard extends StatelessWidget {
                           ),
                         ] else ...[
                           Text(
-                            'Ranking pendiente',
+                            tr('rankings.my_ranking.pending'),
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -161,7 +162,7 @@ class RankingHeroCard extends StatelessWidget {
                           const SizedBox(height: 8),
                           Text(
                             '$rankLine'
-                            '${sectionName != null ? ' · Sección: $sectionName' : ''}',
+                            '${sectionName != null ? ' · ${tr('rankings.my_ranking.section_label', namedArgs: {'name': sectionName!})}' : ''}',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium

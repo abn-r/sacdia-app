@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -80,7 +81,7 @@ class RankingEmptyState extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(88, 44),
                 ),
-                child: const Text('Reintentar'),
+                child: Text(tr('rankings.empty_state.retry')),
               ),
             ],
           ],
@@ -94,36 +95,32 @@ class RankingEmptyState extends StatelessWidget {
       case RankingEmptyReason.hidden:
         return _EmptyConfig(
           icon: HugeIcons.strokeRoundedViewOff,
-          title: 'Ranking no disponible',
-          body:
-              'Tu director puede activar la visibilidad del ranking cuando esté listo.',
+          title: tr('rankings.empty_state.unavailable_title'),
+          body: tr('rankings.empty_state.unavailable_subtitle'),
         );
       case RankingEmptyReason.noData:
         return _EmptyConfig(
           icon: HugeIcons.strokeRoundedClock01,
-          title: 'Aún no hay datos',
-          body:
-              'Tu ranking se calcula automáticamente. Volvé a revisar más tarde.',
+          title: tr('rankings.empty_state.no_data_title'),
+          body: tr('rankings.empty_state.no_data_subtitle'),
         );
       case RankingEmptyReason.networkError:
         return _EmptyConfig(
           icon: HugeIcons.strokeRoundedWifiDisconnected01,
-          title: 'Sin conexión',
-          body: 'No pudimos cargar tu ranking.',
+          title: tr('rankings.empty_state.network_error_title'),
+          body: tr('rankings.empty_state.network_error_subtitle'),
         );
       case RankingEmptyReason.noSectionMembers:
         return _EmptyConfig(
           icon: HugeIcons.strokeRoundedUserSearch01,
-          title: 'Todavía no hay rankings',
-          body:
-              'Los rankings se calculan automáticamente cada 24 hs. Las clases y camporees del año ya deben estar registrados.',
+          title: tr('rankings.empty_state.no_members_title'),
+          body: tr('rankings.empty_state.no_members_subtitle'),
         );
       case RankingEmptyReason.unauthorized:
         return _EmptyConfig(
           icon: HugeIcons.strokeRoundedShieldKey,
-          title: 'Acceso restringido',
-          body:
-              'No tenés permisos para ver el ranking de esta sección. Consultá con tu director.',
+          title: tr('rankings.empty_state.unauthorized_title'),
+          body: tr('rankings.empty_state.unauthorized_subtitle'),
         );
     }
   }

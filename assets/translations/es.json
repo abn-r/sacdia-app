@@ -3055,5 +3055,59 @@
       "empty_card": "Respuesta vacía de tarjeta virtual desde el servidor.",
       "load_failed": "No pudimos cargar tu credencial por ahora."
     }
+  },
+  "rankings": {
+    "my_ranking": {
+      "title": "Mi ranking",
+      "composite_score": "Puntaje compuesto",
+      "pending": "Ranking pendiente",
+      "rank_of": "#{position} de {total}",
+      "rank_position": "#{position}",
+      "section_label": "Sección: {name}",
+      "nudge_class": "Completá tus próximas lecciones de clase para mejorar tu puntaje.",
+      "nudge_investiture": "Trabajá en los requisitos de tu próxima investidura.",
+      "nudge_camporee": "Participá en los próximos camporees para sumar puntos."
+    },
+    "section_ranking": {
+      "title": "Ranking de sección",
+      "subtitle": "Registro de progreso",
+      "subtitle_with_year": "Registro de progreso — {year}",
+      "invalid_section": "Sección inválida"
+    },
+    "empty_state": {
+      "unavailable_title": "Ranking no disponible",
+      "unavailable_subtitle": "Tu director puede activar la visibilidad del ranking cuando esté listo.",
+      "no_data_title": "Aún no hay datos",
+      "no_data_subtitle": "Tu ranking se calcula automáticamente. Volvé a revisar más tarde.",
+      "network_error_title": "Sin conexión",
+      "network_error_subtitle": "No pudimos cargar tu ranking.",
+      "no_members_title": "Todavía no hay rankings",
+      "no_members_subtitle": "Los rankings se calculan automáticamente cada 24 hs. Las clases y camporees del año ya deben estar registrados.",
+      "unauthorized_title": "Acceso restringido",
+      "unauthorized_subtitle": "No tenés permisos para ver el ranking de esta sección. Consultá con tu director.",
+      "retry": "Reintentar"
+    },
+    "signals": {
+      "class": "Clase",
+      "investiture": "Investidura",
+      "camporee": "Camporees"
+    },
+    "breakdown": {
+      "title": "Desglose de puntaje",
+      "composite_score": "Puntaje compuesto",
+      "calculated_at": "Calculado el {date}",
+      "weights_title": "Pesos aplicados",
+      "weights_source": "Fuente: {source}",
+      "class_section": "Clase",
+      "investiture_section": "Investidura",
+      "camporee_section": "Camporees",
+      "class_completed_sections": "{completed} de {required} secciones completadas",
+      "class_folder_status": "Carpeta: {status}",
+      "investiture_status": "Estado: {status}",
+      "camporee_participated": "Participó en camporee",
+      "camporee_not_participated": "No participó en camporee",
+      "camporee_total": "{total} camporee(s) disponibles",
+      "weight_pct": "{pct}%"
+    }
   }
 }

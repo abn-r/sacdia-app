@@ -38,6 +38,10 @@ class MemberRankingListTile extends StatelessWidget {
   /// [AwardTier.unknown] cuando no hay categoría asignada (color neutro).
   final AwardTier awardedCategoryTier;
 
+  /// Optional tap callback — wired by [SectionRankingScreen] to push the
+  /// breakdown drill-down for this member.
+  final VoidCallback? onTap;
+
   const MemberRankingListTile({
     super.key,
     required this.rankPosition,
@@ -46,6 +50,7 @@ class MemberRankingListTile extends StatelessWidget {
     this.compositeScore,
     this.awardedCategoryName,
     this.awardedCategoryTier = AwardTier.unknown,
+    this.onTap,
   });
 
   /// Resuelve el color del tier para el score badge desde el campo tipado.
@@ -77,7 +82,7 @@ class MemberRankingListTile extends StatelessWidget {
       if (awardedCategoryName != null) 'categoría $awardedCategoryName',
     ].join(', ');
 
-    return Semantics(
+    final tile = Semantics(
       label: semanticsLabel,
       child: Container(
         constraints: const BoxConstraints(minHeight: 56),
@@ -152,6 +157,13 @@ class MemberRankingListTile extends StatelessWidget {
           ],
         ),
       ),
+    );
+
+    if (onTap == null) return tile;
+
+    return InkWell(
+      onTap: onTap,
+      child: tile,
     );
   }
 }
