@@ -28,8 +28,7 @@ import '../../domain/usecases/update_weekly_record.dart';
 
 // ── Infrastructure ─────────────────────────────────────────────────────────────
 
-final unitsRemoteDataSourceProvider =
-    Provider<UnitsRemoteDataSource>((ref) {
+final unitsRemoteDataSourceProvider = Provider<UnitsRemoteDataSource>((ref) {
   return UnitsRemoteDataSourceImpl(
     dio: ref.read(dioProvider),
     baseUrl: ref.read(apiBaseUrlProvider),
@@ -85,7 +84,8 @@ final updateWeeklyRecordUseCaseProvider = Provider<UpdateWeeklyRecord>((ref) {
   return UpdateWeeklyRecord(ref.read(unitsRepositoryProvider));
 });
 
-final getScoringCategoriesUseCaseProvider = Provider<GetScoringCategories>((ref) {
+final getScoringCategoriesUseCaseProvider =
+    Provider<GetScoringCategories>((ref) {
   return GetScoringCategories(ref.read(unitsRepositoryProvider));
 });
 
@@ -195,9 +195,8 @@ class UnitsState {
       pendingScores: pendingScores ?? this.pendingScores,
       isSavedToday: isSavedToday ?? this.isSavedToday,
       categories: categories ?? this.categories,
-      memberOfMonth: clearMemberOfMonth
-          ? null
-          : (memberOfMonth ?? this.memberOfMonth),
+      memberOfMonth:
+          clearMemberOfMonth ? null : (memberOfMonth ?? this.memberOfMonth),
       isLoading: isLoading ?? this.isLoading,
       isLoadingCategories: isLoadingCategories ?? this.isLoadingCategories,
       isLoadingMemberOfMonth:
@@ -235,12 +234,12 @@ class UnitsNotifier extends Notifier<UnitsState> {
         .read(getClubUnitsUseCaseProvider)
         .call(GetClubUnitsParams(clubId: ctx.clubId), cancelToken: cancelToken);
 
-    final memberOfMonthFuture = ref
-        .read(getMemberOfMonthUseCaseProvider)
-        .call(GetMemberOfMonthParams(
+    final memberOfMonthFuture = ref.read(getMemberOfMonthUseCaseProvider).call(
+        GetMemberOfMonthParams(
           clubId: ctx.clubId,
           sectionId: ctx.sectionId,
-        ), cancelToken: cancelToken);
+        ),
+        cancelToken: cancelToken);
 
     final results = await Future.wait([unitsFuture, memberOfMonthFuture]);
     final unitsResult = results[0] as dynamic;
@@ -278,7 +277,8 @@ class UnitsNotifier extends Notifier<UnitsState> {
   ///
   /// El resultado se cachea en el estado. Pasá [forceRefresh] en true para
   /// ignorar el cache y volver a consultar la API.
-  Future<void> loadCategories(int localFieldId, {bool forceRefresh = false}) async {
+  Future<void> loadCategories(int localFieldId,
+      {bool forceRefresh = false}) async {
     if (state.categories.isNotEmpty && !forceRefresh) return; // ya cargadas
 
     state = state.copyWith(isLoadingCategories: true);
@@ -363,8 +363,7 @@ class UnitsNotifier extends Notifier<UnitsState> {
           isLoading: false,
           selectedUnit: detail,
           members: detail.members,
-          pendingScores:
-              _buildInitialScores(detail.members, state.categories),
+          pendingScores: _buildInitialScores(detail.members, state.categories),
           isSavedToday: false,
         );
       },
@@ -483,8 +482,7 @@ class UnitsNotifier extends Notifier<UnitsState> {
           .toList();
 
       // attendance = 1 si tiene algún punto, 0 si todo es 0
-      final totalPoints =
-          memberCategoryScores.values.fold(0, (a, b) => a + b);
+      final totalPoints = memberCategoryScores.values.fold(0, (a, b) => a + b);
       final attendance = totalPoints > 0 ? 1 : 0;
       // punctuality se usa el mismo valor que attendance por defecto
       final punctuality = attendance;
@@ -513,10 +511,10 @@ class UnitsNotifier extends Notifier<UnitsState> {
     if (failures.isNotEmpty) {
       state = state.copyWith(
         isSaving: false,
-        errorMessage:
-            failures.length == 1
-                ? 'units.errors.save_failed_one'.tr()
-                : 'units.errors.save_failed_other'.tr(namedArgs: {'count': '${failures.length}'}),
+        errorMessage: failures.length == 1
+            ? 'units.errors.save_failed_one'.tr()
+            : 'units.errors.save_failed_other'
+                .tr(namedArgs: {'count': '${failures.length}'}),
       );
       return false;
     }
@@ -528,8 +526,7 @@ class UnitsNotifier extends Notifier<UnitsState> {
   /// Reinicia los puntos pendientes a 0 para todos los miembros y categorías.
   /// También resetea el flag de guardado.
   void resetSession() {
-    final resetScores =
-        _buildInitialScores(state.members, state.categories);
+    final resetScores = _buildInitialScores(state.members, state.categories);
     state = state.copyWith(
       pendingScores: resetScores,
       isSavedToday: false,
@@ -558,18 +555,17 @@ class UnitsNotifier extends Notifier<UnitsState> {
 
     state = state.copyWith(isLoading: true, clearError: true);
 
-    final result = await ref
-        .read(createUnitUseCaseProvider)
-        .call(CreateUnitParams(
-          clubId: ctx.clubId,
-          name: name,
-          captainId: captainId,
-          secretaryId: secretaryId,
-          advisorId: advisorId,
-          substituteAdvisorId: substituteAdvisorId,
-          clubTypeId: clubTypeId,
-          clubSectionId: clubSectionId,
-        ));
+    final result =
+        await ref.read(createUnitUseCaseProvider).call(CreateUnitParams(
+              clubId: ctx.clubId,
+              name: name,
+              captainId: captainId,
+              secretaryId: secretaryId,
+              advisorId: advisorId,
+              substituteAdvisorId: substituteAdvisorId,
+              clubTypeId: clubTypeId,
+              clubSectionId: clubSectionId,
+            ));
 
     bool success = false;
 
@@ -623,19 +619,18 @@ class UnitsNotifier extends Notifier<UnitsState> {
 
     state = state.copyWith(isLoading: true, clearError: true);
 
-    final result = await ref
-        .read(updateUnitUseCaseProvider)
-        .call(UpdateUnitParams(
-          clubId: ctx.clubId,
-          unitId: unitId,
-          name: name,
-          captainId: captainId,
-          secretaryId: secretaryId,
-          advisorId: advisorId,
-          substituteAdvisorId: substituteAdvisorId,
-          clubTypeId: clubTypeId,
-          clubSectionId: clubSectionId,
-        ));
+    final result =
+        await ref.read(updateUnitUseCaseProvider).call(UpdateUnitParams(
+              clubId: ctx.clubId,
+              unitId: unitId,
+              name: name,
+              captainId: captainId,
+              secretaryId: secretaryId,
+              advisorId: advisorId,
+              substituteAdvisorId: substituteAdvisorId,
+              clubTypeId: clubTypeId,
+              clubSectionId: clubSectionId,
+            ));
 
     bool success = false;
 
@@ -698,13 +693,12 @@ class UnitsNotifier extends Notifier<UnitsState> {
 
     state = state.copyWith(isLoading: true, clearError: true);
 
-    final result = await ref
-        .read(addUnitMemberUseCaseProvider)
-        .call(AddUnitMemberParams(
-          clubId: ctx.clubId,
-          unitId: unitId,
-          userId: userId,
-        ));
+    final result =
+        await ref.read(addUnitMemberUseCaseProvider).call(AddUnitMemberParams(
+              clubId: ctx.clubId,
+              unitId: unitId,
+              userId: userId,
+            ));
 
     bool success = false;
 
@@ -770,7 +764,9 @@ class UnitsNotifier extends Notifier<UnitsState> {
     List<ScoringCategory> categories,
   ) {
     if (categories.isEmpty) {
-      return {for (final m in members) m.id: {0: 0}};
+      return {
+        for (final m in members) m.id: {0: 0}
+      };
     }
     return {
       for (final m in members)
@@ -805,8 +801,7 @@ class UnitsNotifier extends Notifier<UnitsState> {
 // ── Provider ───────────────────────────────────────────────────────────────────
 
 /// Provider principal para el feature de unidades.
-final unitsNotifierProvider =
-    NotifierProvider<UnitsNotifier, UnitsState>(
+final unitsNotifierProvider = NotifierProvider<UnitsNotifier, UnitsState>(
   UnitsNotifier.new,
 );
 
@@ -862,8 +857,8 @@ class MemberOfMonthHistoryParams {
 }
 
 /// Notifier para el historial paginado del Miembro del Mes.
-class MemberOfMonthHistoryNotifier
-    extends FamilyNotifier<MemberOfMonthHistoryState, MemberOfMonthHistoryParams> {
+class MemberOfMonthHistoryNotifier extends FamilyNotifier<
+    MemberOfMonthHistoryState, MemberOfMonthHistoryParams> {
   static const _pageSize = 12;
 
   @override
@@ -883,14 +878,14 @@ class MemberOfMonthHistoryNotifier
 
     final nextPage = state.currentPage + 1;
 
-    final result = await ref
-        .read(getMemberOfMonthHistoryUseCaseProvider)
-        .call(GetMemberOfMonthHistoryParams(
+    final result = await ref.read(getMemberOfMonthHistoryUseCaseProvider).call(
+        GetMemberOfMonthHistoryParams(
           clubId: arg.clubId,
           sectionId: arg.sectionId,
           page: nextPage,
           limit: _pageSize,
-        ), cancelToken: cancelToken);
+        ),
+        cancelToken: cancelToken);
 
     result.fold(
       (failure) => state = state.copyWith(
@@ -910,7 +905,6 @@ class MemberOfMonthHistoryNotifier
       },
     );
   }
-
 }
 
 /// Provider para el historial del Miembro del Mes.

@@ -171,9 +171,12 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
     } on DioException catch (e) {
       AppLogger.e('DioException en createEnrollment', tag: _tag, error: e);
       final msg = e.response?.data is Map
-          ? (e.response!.data['message'] ?? e.message ?? tr('common.error_network'))
+          ? (e.response!.data['message'] ??
+              e.message ??
+              tr('common.error_network'))
           : (e.message ?? tr('common.error_network'));
-      throw ServerException(message: msg.toString(), code: e.response?.statusCode);
+      throw ServerException(
+          message: msg.toString(), code: e.response?.statusCode);
     } catch (e) {
       if (e is AuthException || e is ServerException) rethrow;
       AppLogger.e('Error inesperado en createEnrollment', tag: _tag, error: e);
@@ -188,7 +191,8 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
     CancelToken? cancelToken,
   }) async {
     try {
-      AppLogger.i('Obteniendo inscripción activa en sección $sectionId', tag: _tag);
+      AppLogger.i('Obteniendo inscripción activa en sección $sectionId',
+          tag: _tag);
 
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/enrollments/current',
@@ -224,12 +228,15 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
       }
       AppLogger.e('DioException en getCurrentEnrollment', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
+        message: e.response?.data?['message'] ??
+            e.message ??
+            tr('common.error_network'),
         code: statusCode,
       );
     } catch (e) {
       if (e is AuthException || e is ServerException) rethrow;
-      AppLogger.e('Error inesperado en getCurrentEnrollment', tag: _tag, error: e);
+      AppLogger.e('Error inesperado en getCurrentEnrollment',
+          tag: _tag, error: e);
       throw ServerException(message: e.toString());
     }
   }
@@ -262,8 +269,7 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
         if (long != null) data['long'] = long;
       }
       if (meetingSchedule != null) {
-        data['meeting_days'] =
-            meetingSchedule.map((s) => s.day).join(', ');
+        data['meeting_days'] = meetingSchedule.map((s) => s.day).join(', ');
         data['meeting_schedule'] =
             jsonEncode(meetingSchedule.map((s) => s.toJson()).toList());
       }
@@ -271,7 +277,8 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
       if (fee != null) data['fee'] = fee;
       if (feeAmount != null) data['fee_amount'] = feeAmount;
       if (directorId != null) data['director_id'] = directorId;
-      if (deputyDirectorIds != null) data['deputy_director_ids'] = deputyDirectorIds;
+      if (deputyDirectorIds != null)
+        data['deputy_director_ids'] = deputyDirectorIds;
       if (secretaryId != null) data['secretary_id'] = secretaryId;
       if (treasurerId != null) data['treasurer_id'] = treasurerId;
       if (secretaryTreasurerId != null) {
@@ -294,9 +301,12 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
     } on DioException catch (e) {
       AppLogger.e('DioException en updateEnrollment', tag: _tag, error: e);
       final msg = e.response?.data is Map
-          ? (e.response!.data['message'] ?? e.message ?? tr('common.error_network'))
+          ? (e.response!.data['message'] ??
+              e.message ??
+              tr('common.error_network'))
           : (e.message ?? tr('common.error_network'));
-      throw ServerException(message: msg.toString(), code: e.response?.statusCode);
+      throw ServerException(
+          message: msg.toString(), code: e.response?.statusCode);
     } catch (e) {
       if (e is AuthException || e is ServerException) rethrow;
       AppLogger.e('Error inesperado en updateEnrollment', tag: _tag, error: e);

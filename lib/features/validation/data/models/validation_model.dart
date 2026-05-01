@@ -37,7 +37,8 @@ class ValidationHistoryEntryModel extends ValidationHistoryEntry {
     if (rawDate is String) {
       final parsed = DateTime.tryParse(rawDate);
       if (parsed == null) {
-        AppLogger.w('Failed to parse date: $rawDate, using DateTime.now()', tag: _tag);
+        AppLogger.w('Failed to parse date: $rawDate, using DateTime.now()',
+            tag: _tag);
       }
       createdAt = parsed ?? DateTime.now();
     }

@@ -71,8 +71,11 @@ class DataExportRemoteDataSourceImpl implements DataExportRemoteDataSource {
       );
       _throwMappedRequestError(e);
     } catch (e) {
-      AppLogger.e('Error inesperado al solicitar exportación', tag: _tag, error: e);
-      throw ServerException(message: tr('profile.data_export.errors.unexpected', namedArgs: {'detail': '$e'}));
+      AppLogger.e('Error inesperado al solicitar exportación',
+          tag: _tag, error: e);
+      throw ServerException(
+          message: tr('profile.data_export.errors.unexpected',
+              namedArgs: {'detail': '$e'}));
     }
   }
 
@@ -94,7 +97,8 @@ class DataExportRemoteDataSourceImpl implements DataExportRemoteDataSource {
       if (data is Map<String, dynamic>) {
         exports = data['exports'] as List<dynamic>? ?? [];
       } else {
-        throw ServerException(message: tr('profile.data_export.errors.unexpected_format'));
+        throw ServerException(
+            message: tr('profile.data_export.errors.unexpected_format'));
       }
 
       return exports
@@ -111,8 +115,11 @@ class DataExportRemoteDataSourceImpl implements DataExportRemoteDataSource {
       );
       _throwMappedListError(e);
     } catch (e) {
-      AppLogger.e('Error inesperado al obtener exportaciones', tag: _tag, error: e);
-      throw ServerException(message: tr('profile.data_export.errors.unexpected', namedArgs: {'detail': '$e'}));
+      AppLogger.e('Error inesperado al obtener exportaciones',
+          tag: _tag, error: e);
+      throw ServerException(
+          message: tr('profile.data_export.errors.unexpected',
+              namedArgs: {'detail': '$e'}));
     }
   }
 
@@ -132,7 +139,8 @@ class DataExportRemoteDataSourceImpl implements DataExportRemoteDataSource {
       final url = data['url'] as String?;
 
       if (url == null || url.isEmpty) {
-        throw ServerException(message: tr('profile.data_export.errors.download_not_found'));
+        throw ServerException(
+            message: tr('profile.data_export.errors.download_not_found'));
       }
 
       return url;
@@ -151,7 +159,9 @@ class DataExportRemoteDataSourceImpl implements DataExportRemoteDataSource {
         tag: _tag,
         error: e,
       );
-      throw ServerException(message: tr('profile.data_export.errors.unexpected', namedArgs: {'detail': '$e'}));
+      throw ServerException(
+          message: tr('profile.data_export.errors.unexpected',
+              namedArgs: {'detail': '$e'}));
     }
   }
 
@@ -161,8 +171,7 @@ class DataExportRemoteDataSourceImpl implements DataExportRemoteDataSource {
   Never _throwMappedRequestError(DioException e) {
     final statusCode = e.response?.statusCode;
     final body = e.response?.data;
-    final serverMessage =
-        body is Map ? (body['message'] as String?) : null;
+    final serverMessage = body is Map ? (body['message'] as String?) : null;
 
     if (statusCode == 429) {
       final retryAfter =
@@ -180,7 +189,8 @@ class DataExportRemoteDataSourceImpl implements DataExportRemoteDataSource {
           waitMsg = '${minutes}min';
         }
         throw ServerException(
-          message: tr('profile.data_export.errors.rate_limit_wait', namedArgs: {'wait': waitMsg}),
+          message: tr('profile.data_export.errors.rate_limit_wait',
+              namedArgs: {'wait': waitMsg}),
           code: 429,
         );
       }

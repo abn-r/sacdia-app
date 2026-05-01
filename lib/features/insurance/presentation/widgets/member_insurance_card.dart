@@ -67,11 +67,10 @@ class MemberInsuranceCard extends StatelessWidget {
                     // Name
                     Text(
                       insurance.memberName,
-                      style:
-                          Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: context.sac.text,
-                              ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: context.sac.text,
+                          ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -80,11 +79,10 @@ class MemberInsuranceCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         insurance.memberClass!,
-                        style:
-                            Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: context.sac.textSecondary,
-                                  fontSize: 11,
-                                ),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: context.sac.textSecondary,
+                              fontSize: 11,
+                            ),
                       ),
                     ],
 
@@ -208,17 +206,18 @@ class _MemberAvatar extends StatelessWidget {
           height: 48,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: statusColor.withValues(alpha: 0.5), width: 2),
+            border:
+                Border.all(color: statusColor.withValues(alpha: 0.5), width: 2),
           ),
           child: ClipOval(
             child: photoUrl != null && photoUrl!.isNotEmpty
                 ? CachedNetworkImage(
                     imageUrl: photoUrl!,
-                    memCacheWidth: 144,  // 48 * 3 (max device pixel ratio)
+                    memCacheWidth: 144, // 48 * 3 (max device pixel ratio)
                     memCacheHeight: 144, // 48 * 3
                     fit: BoxFit.cover,
-                    errorWidget: (_, __, ___) => _InitialsAvatar(
-                        initials: initials, color: statusColor),
+                    errorWidget: (_, __, ___) =>
+                        _InitialsAvatar(initials: initials, color: statusColor),
                   )
                 : _InitialsAvatar(initials: initials, color: statusColor),
           ),
@@ -329,7 +328,8 @@ class _RightIndicator extends StatelessWidget {
     return HugeIcon(
       icon: HugeIcons.strokeRoundedArrowRight01,
       size: 18,
-      color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+      color:
+          Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
     );
   }
 }

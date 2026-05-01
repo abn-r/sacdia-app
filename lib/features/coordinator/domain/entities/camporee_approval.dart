@@ -151,10 +151,14 @@ class CamporeeClubEnrollment extends Equatable {
     this.rejectionReason,
   });
 
-  String get displayName => clubName ?? sectionName ?? tr('coordinator.camporee_approvals.unknown_club');
+  String get displayName =>
+      clubName ??
+      sectionName ??
+      tr('coordinator.camporee_approvals.unknown_club');
 
   @override
-  List<Object?> get props => [camporeeClubId, camporeeId, clubSectionId, status];
+  List<Object?> get props =>
+      [camporeeClubId, camporeeId, clubSectionId, status];
 }
 
 // ── Member enrollment ─────────────────────────────────────────────────────────
@@ -190,8 +194,7 @@ class CamporeeMemberEnrollment extends Equatable {
   String get displayName => memberName ?? userId;
 
   @override
-  List<Object?> get props =>
-      [camporeeMemberId, userId, camporeeId, status];
+  List<Object?> get props => [camporeeMemberId, userId, camporeeId, status];
 }
 
 // ── Payment enrollment ────────────────────────────────────────────────────────
@@ -231,8 +234,7 @@ class CamporeePaymentEnrollment extends Equatable {
   });
 
   /// ID to use in approval routes — camporeePaymentId if present, else paymentId string.
-  String get approvalId =>
-      camporeePaymentId ?? paymentId.toString();
+  String get approvalId => camporeePaymentId ?? paymentId.toString();
 
   String get displayName => memberName ?? memberId;
 
@@ -242,7 +244,8 @@ class CamporeePaymentEnrollment extends Equatable {
 
 // ── Legacy alias kept for backward compatibility with any remaining references ─
 // ignore: avoid_classes_with_only_static_members
-@Deprecated('Use CamporeeClubEnrollment / CamporeeMemberEnrollment / CamporeePaymentEnrollment')
+@Deprecated(
+    'Use CamporeeClubEnrollment / CamporeeMemberEnrollment / CamporeePaymentEnrollment')
 class CamporeeApproval extends Equatable {
   final String id;
   final CamporeeApprovalType type;

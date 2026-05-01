@@ -43,8 +43,10 @@ class ClassModulesView extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  HugeIcon(icon: HugeIcons.strokeRoundedCheckList,
-                      size: 56, color: context.sac.textTertiary),
+                  HugeIcon(
+                      icon: HugeIcons.strokeRoundedCheckList,
+                      size: 56,
+                      color: context.sac.textTertiary),
                   const SizedBox(height: 12),
                   Text(
                     'classes.modules.empty'.tr(),
@@ -78,13 +80,13 @@ class ClassModulesView extends ConsumerWidget {
                     await ref
                         .read(classProgressNotifierProvider.notifier)
                         .updateProgress(
-                          userId,
-                          classId,
-                          {
-                            'section_id': sectionId,
-                            'is_completed': isCompleted,
-                          },
-                        );
+                      userId,
+                      classId,
+                      {
+                        'section_id': sectionId,
+                        'is_completed': isCompleted,
+                      },
+                    );
 
                     ref.invalidate(classModulesProvider(classId));
 
@@ -119,8 +121,10 @@ class ClassModulesView extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                HugeIcon(icon: HugeIcons.strokeRoundedAlert02,
-                    size: 56, color: AppColors.error),
+                HugeIcon(
+                    icon: HugeIcons.strokeRoundedAlert02,
+                    size: 56,
+                    color: AppColors.error),
                 const SizedBox(height: 16),
                 Text(
                   'classes.modules.error_loading'.tr(),
@@ -132,8 +136,8 @@ class ClassModulesView extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Text(
                   error.toString(),
-                  style: TextStyle(
-                      fontSize: 14, color: context.sac.textSecondary),
+                  style:
+                      TextStyle(fontSize: 14, color: context.sac.textSecondary),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),

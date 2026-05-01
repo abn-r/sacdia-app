@@ -281,8 +281,7 @@ class _MembersTab extends ConsumerWidget {
                 ? _EmptyState(
                     icon: HugeIcons.strokeRoundedUserGroup,
                     title: 'members.view.no_members_title'.tr(),
-                    subtitle:
-                        'members.view.no_members_subtitle'.tr(),
+                    subtitle: 'members.view.no_members_subtitle'.tr(),
                   )
                 : RefreshIndicator(
                     color: AppColors.primary,
@@ -316,7 +315,8 @@ class _MembersTab extends ConsumerWidget {
     // Pre-compute flat item count: per group = 1 header + 1 spacing + N members + 1 trailing spacing
     int totalItems = 0;
     for (final entry in entries) {
-      totalItems += 2 + entry.value.length; // header + post-header spacing + members
+      totalItems +=
+          2 + entry.value.length; // header + post-header spacing + members
       totalItems += 1; // trailing spacing
     }
 
@@ -461,8 +461,7 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
                     child: ListView.separated(
                       padding: EdgeInsets.fromLTRB(hPad, 4, hPad, 24),
                       itemCount: filteredRequests.length,
-                      separatorBuilder: (_, __) =>
-                          const SizedBox(height: 10),
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
                       itemBuilder: (context, index) {
                         final request = filteredRequests[index];
                         final isProcessing =
@@ -475,8 +474,7 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
                           initialDelay: const Duration(milliseconds: 30),
                           child: JoinRequestCard(
                             request: request,
-                            onTap: () =>
-                                _openRequestProfile(context, request),
+                            onTap: () => _openRequestProfile(context, request),
                             onApprove: canAct
                                 ? () => _approveRequest(context, request)
                                 : null,
@@ -531,11 +529,11 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
           SnackBar(
             content: Text(
               success
-                  ? tr('members.view.request_approved', namedArgs: {'name': request.fullName})
+                  ? tr('members.view.request_approved',
+                      namedArgs: {'name': request.fullName})
                   : 'members.view.approve_error'.tr(),
             ),
-            backgroundColor:
-                success ? AppColors.secondary : AppColors.error,
+            backgroundColor: success ? AppColors.secondary : AppColors.error,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -560,11 +558,11 @@ class _JoinRequestsTabState extends ConsumerState<_JoinRequestsTab> {
           SnackBar(
             content: Text(
               success
-                  ? tr('members.view.request_rejected', namedArgs: {'name': request.fullName})
+                  ? tr('members.view.request_rejected',
+                      namedArgs: {'name': request.fullName})
                   : 'members.view.reject_error'.tr(),
             ),
-            backgroundColor:
-                success ? AppColors.secondary : AppColors.error,
+            backgroundColor: success ? AppColors.secondary : AppColors.error,
             behavior: SnackBarBehavior.floating,
           ),
         );

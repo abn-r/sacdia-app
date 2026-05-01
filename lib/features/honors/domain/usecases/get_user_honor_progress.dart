@@ -10,15 +10,19 @@ import '../repositories/honors_repository.dart';
 /// El userId se deriva del JWT en el backend — no se pasa explícitamente.
 /// Devuelve la lista de [UserHonorRequirementProgress] para todos los requisitos.
 class GetUserHonorProgress
-    implements UseCase<List<UserHonorRequirementProgress>, GetUserHonorProgressParams> {
+    implements
+        UseCase<List<UserHonorRequirementProgress>,
+            GetUserHonorProgressParams> {
   final HonorsRepository repository;
 
   GetUserHonorProgress(this.repository);
 
   @override
   Future<Either<Failure, List<UserHonorRequirementProgress>>> call(
-      GetUserHonorProgressParams params, {CancelToken? cancelToken}) async {
-    return await repository.getUserHonorProgress(params.userId, params.honorId, cancelToken: cancelToken);
+      GetUserHonorProgressParams params,
+      {CancelToken? cancelToken}) async {
+    return await repository.getUserHonorProgress(params.userId, params.honorId,
+        cancelToken: cancelToken);
   }
 }
 

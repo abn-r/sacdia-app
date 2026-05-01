@@ -16,8 +16,7 @@ class ClosedPeriodBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.accentLight,
         borderRadius: BorderRadius.circular(12),
-        border:
-            Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
+        border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [

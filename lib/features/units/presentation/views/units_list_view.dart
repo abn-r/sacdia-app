@@ -38,12 +38,15 @@ List<Unit> _filterUnitsByRole(
     return units; // management sees all
   }
   // Non-management: only units where the user is directly assigned
-  return units.where((u) =>
-    u.advisorId == userId ||
-    u.substituteAdvisorId == userId ||
-    u.captainId == userId ||
-    u.secretaryId == userId,
-  ).toList();
+  return units
+      .where(
+        (u) =>
+            u.advisorId == userId ||
+            u.substituteAdvisorId == userId ||
+            u.captainId == userId ||
+            u.secretaryId == userId,
+      )
+      .toList();
 }
 
 /// Vista de lista de unidades disponibles para el usuario.
@@ -211,8 +214,7 @@ class _Body extends ConsumerWidget {
     return clubContextAsync.when(
       data: (ctx) => ListView.builder(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
-        itemCount:
-            visibleUnits.length + (state.memberOfMonth != null ? 1 : 0),
+        itemCount: visibleUnits.length + (state.memberOfMonth != null ? 1 : 0),
         itemBuilder: (context, index) {
           // Primer elemento: card de Miembro del Mes (solo si hay datos)
           if (state.memberOfMonth != null) {
@@ -229,7 +231,8 @@ class _Body extends ConsumerWidget {
             }
             // Ajustar índice para la lista de unidades
             final unitIndex = index - 1;
-            return _buildUnitCard(context, ref, visibleUnits[unitIndex], unitIndex);
+            return _buildUnitCard(
+                context, ref, visibleUnits[unitIndex], unitIndex);
           }
           return _buildUnitCard(context, ref, visibleUnits[index], index);
         },
@@ -396,11 +399,10 @@ class _MemberOfMonthCard extends StatelessWidget {
                         isTie
                             ? members.map((m) => m.name).join(', ')
                             : primary.name,
-                        style:
-                            Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  color: c.text,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              color: c.text,
+                              fontWeight: FontWeight.w700,
+                            ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -415,12 +417,10 @@ class _MemberOfMonthCard extends StatelessWidget {
                           const SizedBox(width: 4),
                           Text(
                             isTie
-                                ? 'units.list.points_with_tie'
-                                    .tr(namedArgs: {
+                                ? 'units.list.points_with_tie'.tr(namedArgs: {
                                     'points': '${primary.totalPoints}',
                                   })
-                                : 'units.list.points'
-                                    .tr(namedArgs: {
+                                : 'units.list.points'.tr(namedArgs: {
                                     'points': '${primary.totalPoints}',
                                   }),
                             style:

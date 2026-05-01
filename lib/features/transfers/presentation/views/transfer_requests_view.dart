@@ -63,8 +63,7 @@ class TransferRequestsView extends ConsumerWidget {
 
           return RefreshIndicator(
             color: AppColors.primary,
-            onRefresh: () async =>
-                ref.invalidate(myTransferRequestsProvider),
+            onRefresh: () async => ref.invalidate(myTransferRequestsProvider),
             child: ListView.separated(
               padding: const EdgeInsets.all(20),
               itemCount: requests.length,
@@ -183,7 +182,8 @@ class _TransferCard extends StatelessWidget {
                     )
                   else
                     Text(
-                      tr('transfers.list.section_number', namedArgs: {'id': '${request.toSectionId}'}),
+                      tr('transfers.list.section_number',
+                          namedArgs: {'id': '${request.toSectionId}'}),
                       style: TextStyle(
                         fontSize: 12,
                         color: c.textSecondary,
@@ -407,9 +407,8 @@ class _TransferRequestFormViewState
     final notifier = ref.read(createTransferProvider.notifier);
     final success = await notifier.create(
       toSectionId: _parsedSectionId!,
-      reason: _reasonCtrl.text.trim().isNotEmpty
-          ? _reasonCtrl.text.trim()
-          : null,
+      reason:
+          _reasonCtrl.text.trim().isNotEmpty ? _reasonCtrl.text.trim() : null,
     );
 
     if (!mounted) return;
@@ -420,8 +419,8 @@ class _TransferRequestFormViewState
           content: Text('transfers.form.success_message'.tr()),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
       Navigator.of(context).pop();
@@ -480,7 +479,7 @@ class _TransferRequestFormViewState
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child:                     Text(
+                    child: Text(
                       tr('transfers.form.info_banner'),
                       style: const TextStyle(
                         fontSize: 12,
@@ -526,11 +525,11 @@ class _TransferRequestFormViewState
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                      color: AppColors.primary, width: 1.5),
+                  borderSide:
+                      const BorderSide(color: AppColors.primary, width: 1.5),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 14),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) {
@@ -575,11 +574,11 @@ class _TransferRequestFormViewState
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                      color: AppColors.primary, width: 1.5),
+                  borderSide:
+                      const BorderSide(color: AppColors.primary, width: 1.5),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 14),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               ),
             ),
 

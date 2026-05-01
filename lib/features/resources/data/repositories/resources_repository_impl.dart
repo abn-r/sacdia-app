@@ -51,9 +51,11 @@ class ResourcesRepositoryImpl implements ResourcesRepository {
   }
 
   @override
-  Future<Either<Failure, Resource>> getResource(String id, {CancelToken? cancelToken}) async {
+  Future<Either<Failure, Resource>> getResource(String id,
+      {CancelToken? cancelToken}) async {
     try {
-      final model = await remoteDataSource.getResource(id, cancelToken: cancelToken);
+      final model =
+          await remoteDataSource.getResource(id, cancelToken: cancelToken);
       return Right(model.toEntity());
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
@@ -68,9 +70,11 @@ class ResourcesRepositoryImpl implements ResourcesRepository {
   }
 
   @override
-  Future<Either<Failure, String>> getSignedUrl(String id, {CancelToken? cancelToken}) async {
+  Future<Either<Failure, String>> getSignedUrl(String id,
+      {CancelToken? cancelToken}) async {
     try {
-      final url = await remoteDataSource.getSignedUrl(id, cancelToken: cancelToken);
+      final url =
+          await remoteDataSource.getSignedUrl(id, cancelToken: cancelToken);
       return Right(url);
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
@@ -85,9 +89,11 @@ class ResourcesRepositoryImpl implements ResourcesRepository {
   }
 
   @override
-  Future<Either<Failure, List<ResourceCategory>>> getCategories({CancelToken? cancelToken}) async {
+  Future<Either<Failure, List<ResourceCategory>>> getCategories(
+      {CancelToken? cancelToken}) async {
     try {
-      final categoryModels = await remoteDataSource.getCategories(cancelToken: cancelToken);
+      final categoryModels =
+          await remoteDataSource.getCategories(cancelToken: cancelToken);
       final categories =
           categoryModels.map((model) => model.toEntity()).toList();
       return Right(categories);

@@ -84,7 +84,8 @@ class DashboardSummaryModel extends DashboardSummary {
   factory DashboardSummaryModel.fromJson(Map<String, dynamic> json) {
     final activitiesList = json['upcoming_activities'] as List<dynamic>? ?? [];
     final activities = activitiesList
-        .map((item) => UpcomingActivityModel.fromJson(item as Map<String, dynamic>))
+        .map((item) =>
+            UpcomingActivityModel.fromJson(item as Map<String, dynamic>))
         .toList();
 
     return DashboardSummaryModel(
@@ -98,7 +99,8 @@ class DashboardSummaryModel extends DashboardSummary {
       // Backend sends class_progress as an integer percentage (0–100).
       // The domain entity and all widgets expect a fraction (0.0–1.0),
       // so we divide by 100 here at the boundary.
-      classProgress: ((json['class_progress'] as num?)?.toDouble() ?? 0.0) / 100.0,
+      classProgress:
+          ((json['class_progress'] as num?)?.toDouble() ?? 0.0) / 100.0,
       honorsCompleted: json['honors_completed'] as int? ?? 0,
       honorsInProgress: json['honors_in_progress'] as int? ?? 0,
       upcomingActivities: activities.map((a) => a.toEntity()).toList(),

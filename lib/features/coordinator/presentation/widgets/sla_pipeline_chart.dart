@@ -190,8 +190,7 @@ class SlaThroughputChart extends StatelessWidget {
                               ),
                               // Rejected (red, top)
                               Expanded(
-                                flex:
-                                    ((1 - approvedFraction) * 100).round(),
+                                flex: ((1 - approvedFraction) * 100).round(),
                                 child: Container(
                                   color: AppColors.error.withValues(alpha: 0.7),
                                 ),

@@ -56,8 +56,8 @@ class _CamporeeRegisterMemberViewState
 
   @override
   Widget build(BuildContext context) {
-    final registrationState = ref.watch(
-        camporeeRegistrationNotifierProvider(widget.camporeeId));
+    final registrationState =
+        ref.watch(camporeeRegistrationNotifierProvider(widget.camporeeId));
     final c = context.sac;
 
     return Scaffold(
@@ -79,8 +79,8 @@ class _CamporeeRegisterMemberViewState
                 // Info banner
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
                     color: AppColors.accentLight,
                     borderRadius: BorderRadius.circular(12),
@@ -138,7 +138,8 @@ class _CamporeeRegisterMemberViewState
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'camporees.register_member.insurance_error_title'.tr(),
+                                'camporees.register_member.insurance_error_title'
+                                    .tr(),
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
@@ -147,7 +148,8 @@ class _CamporeeRegisterMemberViewState
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'camporees.register_member.insurance_error_body'.tr(),
+                                'camporees.register_member.insurance_error_body'
+                                    .tr(),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: AppColors.error,
@@ -234,7 +236,8 @@ class _CamporeeRegisterMemberViewState
                         value: 'local',
                         groupValue: _camporeeType,
                         label: 'camporees.register_member.local_label'.tr(),
-                        description: 'camporees.register_member.local_description'.tr(),
+                        description:
+                            'camporees.register_member.local_description'.tr(),
                         onChanged: (v) => setState(() => _camporeeType = v!),
                       ),
                       Divider(height: 1, color: c.border),
@@ -242,7 +245,8 @@ class _CamporeeRegisterMemberViewState
                         value: 'union',
                         groupValue: _camporeeType,
                         label: 'camporees.register_member.union_label'.tr(),
-                        description: 'camporees.register_member.union_description'.tr(),
+                        description:
+                            'camporees.register_member.union_description'.tr(),
                         onChanged: (v) => setState(() => _camporeeType = v!),
                       ),
                     ],
@@ -277,14 +281,16 @@ class _CamporeeRegisterMemberViewState
                   controller: _insuranceIdController,
                   keyboardType: TextInputType.number,
                   decoration: _inputDecoration(
-                    hintText: 'camporees.register_member.insurance_id_hint'.tr(),
+                    hintText:
+                        'camporees.register_member.insurance_id_hint'.tr(),
                     context: context,
                   ),
                   validator: (value) {
                     if (value != null && value.isNotEmpty) {
                       final parsed = int.tryParse(value);
                       if (parsed == null || parsed <= 0) {
-                        return 'camporees.register_member.insurance_id_invalid'.tr();
+                        return 'camporees.register_member.insurance_id_invalid'
+                            .tr();
                       }
                     }
                     return null;
@@ -322,8 +328,7 @@ class _CamporeeRegisterMemberViewState
       hintStyle: TextStyle(fontSize: 13, color: c.textTertiary),
       filled: true,
       fillColor: c.surface,
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: c.border),
@@ -498,8 +503,7 @@ class _RadioOption extends StatelessWidget {
                     label,
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight:
-                          selected ? FontWeight.w700 : FontWeight.w500,
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                       color: selected ? AppColors.primary : c.text,
                     ),
                   ),

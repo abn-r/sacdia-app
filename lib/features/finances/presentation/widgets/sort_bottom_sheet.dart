@@ -37,8 +37,7 @@ class _SortBottomSheetState extends State<SortBottomSheet> {
   }
 
   void _toggleSortOrder() {
-    setState(
-        () => _sortOrder = _sortOrder == 'desc' ? 'asc' : 'desc');
+    setState(() => _sortOrder = _sortOrder == 'desc' ? 'asc' : 'desc');
   }
 
   void _onApply() {
@@ -62,10 +61,9 @@ class _SortBottomSheetState extends State<SortBottomSheet> {
       'amount' => _sortOrder == 'desc'
           ? 'finances.widgets.sort_amount_desc'.tr()
           : 'finances.widgets.sort_amount_asc'.tr(),
-      'category' =>
-        _sortOrder == 'desc'
-            ? 'finances.widgets.sort_category_desc'.tr()
-            : 'finances.widgets.sort_category_asc'.tr(),
+      'category' => _sortOrder == 'desc'
+          ? 'finances.widgets.sort_category_desc'.tr()
+          : 'finances.widgets.sort_category_asc'.tr(),
       _ => '',
     };
   }
@@ -75,8 +73,7 @@ class _SortBottomSheetState extends State<SortBottomSheet> {
     return Container(
       decoration: BoxDecoration(
         color: context.sac.surface,
-        borderRadius:
-            const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
       child: Column(

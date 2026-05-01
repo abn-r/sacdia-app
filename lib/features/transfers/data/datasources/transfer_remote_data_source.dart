@@ -80,7 +80,9 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
     } on DioException catch (e) {
       AppLogger.e('DioException en createTransferRequest', tag: _tag, error: e);
       final msg = e.response?.data is Map
-          ? (e.response!.data['message'] ?? e.message ?? tr('common.error_network'))
+          ? (e.response!.data['message'] ??
+              e.message ??
+              tr('common.error_network'))
           : (e.message ?? tr('common.error_network'));
       throw ServerException(
           message: msg.toString(), code: e.response?.statusCode);
@@ -116,7 +118,9 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
       if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('DioException en getMyTransferRequests', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
+        message: e.response?.data?['message'] ??
+            e.message ??
+            tr('common.error_network'),
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -151,7 +155,9 @@ class TransferRemoteDataSourceImpl implements TransferRemoteDataSource {
       if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('DioException en getTransferRequest', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
+        message: e.response?.data?['message'] ??
+            e.message ??
+            tr('common.error_network'),
         code: e.response?.statusCode,
       );
     } catch (e) {

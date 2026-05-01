@@ -39,8 +39,7 @@ final dataExportRepositoryProvider = Provider<DataExportRepository>((ref) {
 /// - [refresh] fuerza recarga manual.
 /// - [requestExport] solicita nueva exportación y actualiza la lista optimistamente.
 /// - [download] obtiene la URL presignada de una exportación lista.
-class DataExportNotifier
-    extends AutoDisposeAsyncNotifier<List<DataExport>> {
+class DataExportNotifier extends AutoDisposeAsyncNotifier<List<DataExport>> {
   static const _tag = 'DataExportNotifier';
 
   @override
@@ -140,7 +139,7 @@ class DataExportNotifier
 ///
 /// autoDispose: se destruye al salir de la pantalla y fuerza GET fresco
 /// la próxima vez que el usuario abre la pantalla.
-final dataExportProvider = AsyncNotifierProvider.autoDispose<
-    DataExportNotifier, List<DataExport>>(
+final dataExportProvider =
+    AsyncNotifierProvider.autoDispose<DataExportNotifier, List<DataExport>>(
   DataExportNotifier.new,
 );

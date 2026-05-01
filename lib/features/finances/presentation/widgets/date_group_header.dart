@@ -23,8 +23,7 @@ class DateGroupHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final dateLabel = DateFormat('EEEE, d MMMM', 'es').format(date);
-    final capitalizedDate =
-        dateLabel[0].toUpperCase() + dateLabel.substring(1);
+    final capitalizedDate = dateLabel[0].toUpperCase() + dateLabel.substring(1);
     final totalFormatted = NumberFormat.currency(
       locale: 'en_US',
       symbol: '\$',

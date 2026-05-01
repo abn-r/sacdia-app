@@ -5,13 +5,15 @@ import '../entities/class_progress.dart';
 import '../repositories/classes_repository.dart';
 
 /// Caso de uso para actualizar el progreso de una clase
-class UpdateClassProgress implements UseCase<ClassProgress, UpdateClassProgressParams> {
+class UpdateClassProgress
+    implements UseCase<ClassProgress, UpdateClassProgressParams> {
   final ClassesRepository repository;
 
   UpdateClassProgress(this.repository);
 
   @override
-  Future<Either<Failure, ClassProgress>> call(UpdateClassProgressParams params) async {
+  Future<Either<Failure, ClassProgress>> call(
+      UpdateClassProgressParams params) async {
     return await repository.updateUserClassProgress(
       params.userId,
       params.classId,

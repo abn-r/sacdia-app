@@ -272,8 +272,7 @@ class _SpritePainter extends CustomPainter {
           ..style = PaintingStyle.stroke;
         canvas.drawLine(Offset(w * .5, h), Offset(w * .5, h * .4), stem);
         for (int i = 0; i < 5; i++) {
-          final px =
-              w * .5 + (w * .25) * 0.9 * (i % 2 == 0 ? 1 : -1);
+          final px = w * .5 + (w * .25) * 0.9 * (i % 2 == 0 ? 1 : -1);
           canvas.drawCircle(Offset(px, h * .3), w * .12, paint);
         }
         canvas.drawCircle(Offset(w * .5, h * .3), w * .12,
@@ -308,15 +307,14 @@ class _SpritePainter extends CustomPainter {
         );
         break;
       case 'rabbit':
-        canvas.drawOval(
-            Rect.fromLTWH(w * .15, h * .4, w * .7, h * .55), paint);
+        canvas.drawOval(Rect.fromLTWH(w * .15, h * .4, w * .7, h * .55), paint);
         canvas.drawCircle(Offset(w * .3, h * .35), w * .18, paint);
         // orejas
         canvas.drawOval(Rect.fromLTWH(w * .22, 0, w * .12, h * .4), paint);
         canvas.drawOval(Rect.fromLTWH(w * .36, 0, w * .12, h * .4), paint);
         // ojo
-        canvas.drawCircle(Offset(w * .25, h * .35), w * .03,
-            Paint()..color = Colors.black87);
+        canvas.drawCircle(
+            Offset(w * .25, h * .35), w * .03, Paint()..color = Colors.black87);
         break;
       case 'tent':
         final tentPath = Path()
@@ -394,8 +392,7 @@ class _SpritePainter extends CustomPainter {
         canvas.drawRect(Rect.fromLTWH(w * .2, h * .25, w * .6, h * .55),
             Paint()..color = const Color(0xFF6B5538));
         // luz
-        canvas.drawRect(
-            Rect.fromLTWH(w * .3, h * .35, w * .4, h * .35), paint);
+        canvas.drawRect(Rect.fromLTWH(w * .3, h * .35, w * .4, h * .35), paint);
         // top
         canvas.drawRect(Rect.fromLTWH(w * .15, h * .15, w * .7, h * .12),
             Paint()..color = const Color(0xFF6B5538));

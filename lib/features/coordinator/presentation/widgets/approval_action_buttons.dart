@@ -65,7 +65,8 @@ class ApprovalActionBar extends StatelessWidget {
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: AppColors.error.withValues(alpha: 0.5)),
               padding: const EdgeInsets.symmetric(vertical: 12),
-              textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              textStyle:
+                  const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
           ),
         ),
@@ -177,10 +178,9 @@ Future<String?> showRejectDialog({
                 hintText: 'coordinator.actions.reject_reason_hint'.tr(),
                 border: const OutlineInputBorder(),
               ),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty)
-                      ? 'coordinator.actions.reject_reason_required'.tr()
-                      : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'coordinator.actions.reject_reason_required'.tr()
+                  : null,
             ),
           ],
         ),

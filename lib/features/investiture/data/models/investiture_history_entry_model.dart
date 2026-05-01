@@ -40,7 +40,9 @@ class InvestitureHistoryEntryModel extends Equatable {
           : null,
       comments: json['comments'] as String?,
       performedAt: DateTime.parse(
-        (json['performed_at'] ?? json['created_at'] ?? DateTime.now().toIso8601String()) as String,
+        (json['performed_at'] ??
+            json['created_at'] ??
+            DateTime.now().toIso8601String()) as String,
       ),
       performerName:
           (performer?['name'] ?? json['performer_name'] ?? 'Sistema') as String,

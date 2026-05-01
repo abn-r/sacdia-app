@@ -145,17 +145,15 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
         id == null ? null : allMembers.where((m) => m.userId == id).firstOrNull;
 
     // Derive unit member list: UnitMember.id maps to ClubMember.userId
-    final unitMemberIds =
-        unit.members.map((um) => um.id).toSet();
+    final unitMemberIds = unit.members.map((um) => um.id).toSet();
 
     setState(() {
       _captain = find(unit.captainId);
       _secretary = find(unit.secretaryId);
       _advisor = find(unit.advisorId);
       _substituteAdvisor = find(unit.substituteAdvisorId);
-      _members = allMembers
-          .where((m) => unitMemberIds.contains(m.userId))
-          .toList();
+      _members =
+          allMembers.where((m) => unitMemberIds.contains(m.userId)).toList();
     });
   }
 
@@ -269,8 +267,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
     if (_captain == null || _secretary == null || _advisor == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text('units.form.roles_required_error'.tr()),
+          content: Text('units.form.roles_required_error'.tr()),
         ),
       );
       return;
@@ -332,9 +329,8 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
     if (success) {
       Navigator.of(context).pop(true);
     } else {
-      final errorMsg =
-          ref.read(unitsNotifierProvider).errorMessage ??
-              'common.error_generic'.tr();
+      final errorMsg = ref.read(unitsNotifierProvider).errorMessage ??
+          'common.error_generic'.tr();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMsg),
@@ -358,9 +354,10 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
 
     // Pre-populate role fields once data arrives in edit mode.
     // We track whether we've done this with a flag to avoid repeated resets.
-    ref.listen<AsyncValue<MembersData>>(membersNotifierProvider,
-        (prev, next) {
-      if (_isEditMode && prev?.valueOrNull == null && next.valueOrNull != null) {
+    ref.listen<AsyncValue<MembersData>>(membersNotifierProvider, (prev, next) {
+      if (_isEditMode &&
+          prev?.valueOrNull == null &&
+          next.valueOrNull != null) {
         _resolveEditFields(next.valueOrNull!.members);
       }
     });
@@ -390,10 +387,9 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                       width: 36,
                       height: 4,
                       decoration: BoxDecoration(
-                        color:
-                            c.textTertiary.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(
-                            AppTheme.radiusFull),
+                        color: c.textTertiary.withValues(alpha: 0.3),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusFull),
                       ),
                     ),
                   ),
@@ -401,8 +397,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
 
                 // ── Header ────────────────────────────────────────────────
                 Padding(
-                  padding:
-                      const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
                   child: Row(
                     children: [
                       Expanded(
@@ -420,8 +415,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                           color: c.textSecondary,
                           size: 22,
                         ),
-                        onPressed: () =>
-                            Navigator.of(context).pop(null),
+                        onPressed: () => Navigator.of(context).pop(null),
                         tooltip: 'common.cancel'.tr(),
                       ),
                     ],
@@ -436,57 +430,49 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                       ? const Center(child: CircularProgressIndicator())
                       : ListView(
                           controller: scrollController,
-                          padding: const EdgeInsets.fromLTRB(
-                              20, 20, 20, 0),
+                          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                           children: [
                             // ── Name ────────────────────────────────────
                             _SectionLabel(
-                              icon:
-                                  HugeIcons.strokeRoundedPencilEdit01,
+                              icon: HugeIcons.strokeRoundedPencilEdit01,
                               label: 'units.form.name_label'.tr(),
                             ),
                             const SizedBox(height: 8),
                             TextFormField(
                               controller: _nameController,
-                              textCapitalization:
-                                  TextCapitalization.words,
+                              textCapitalization: TextCapitalization.words,
                               decoration: InputDecoration(
                                 hintText: 'units.form.name_hint'.tr(),
-                                hintStyle: TextStyle(
-                                    color: c.textTertiary),
+                                hintStyle: TextStyle(color: c.textTertiary),
                                 filled: true,
                                 fillColor: c.surfaceVariant,
-                                contentPadding:
-                                    const EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 14),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 14),
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      AppTheme.radiusSM),
-                                  borderSide:
-                                      BorderSide(color: c.border),
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radiusSM),
+                                  borderSide: BorderSide(color: c.border),
                                 ),
                                 enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      AppTheme.radiusSM),
-                                  borderSide:
-                                      BorderSide(color: c.border),
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radiusSM),
+                                  borderSide: BorderSide(color: c.border),
                                 ),
                                 focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      AppTheme.radiusSM),
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radiusSM),
                                   borderSide: const BorderSide(
-                                      color: AppColors.primary,
-                                      width: 2),
+                                      color: AppColors.primary, width: 2),
                                 ),
                                 errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      AppTheme.radiusSM),
-                                  borderSide: const BorderSide(
-                                      color: AppColors.error),
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radiusSM),
+                                  borderSide:
+                                      const BorderSide(color: AppColors.error),
                                 ),
                                 focusedErrorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      AppTheme.radiusSM),
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radiusSM),
                                   borderSide: const BorderSide(
                                       color: AppColors.error, width: 2),
                                 ),
@@ -511,16 +497,14 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                             _MemberPickerField(
                               hint: 'units.form.captain_hint'.tr(),
                               selected: _captain,
-                              onTap: () =>
-                                  _pickCaptain(allMembers),
+                              onTap: () => _pickCaptain(allMembers),
                             ),
 
                             const SizedBox(height: 20),
 
                             // ── Secretary ────────────────────────────────
                             _SectionLabel(
-                              icon: HugeIcons
-                                  .strokeRoundedUserAccount,
+                              icon: HugeIcons.strokeRoundedUserAccount,
                               label: 'units.form.secretary_label'.tr(),
                               required: true,
                             ),
@@ -528,8 +512,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                             _MemberPickerField(
                               hint: 'units.form.secretary_hint'.tr(),
                               selected: _secretary,
-                              onTap: () =>
-                                  _pickSecretary(allMembers),
+                              onTap: () => _pickSecretary(allMembers),
                             ),
 
                             const SizedBox(height: 20),
@@ -544,16 +527,14 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                             _MemberPickerField(
                               hint: 'units.form.advisor_hint'.tr(),
                               selected: _advisor,
-                              onTap: () =>
-                                  _pickAdvisor(allMembers),
+                              onTap: () => _pickAdvisor(allMembers),
                             ),
 
                             const SizedBox(height: 20),
 
                             // ── Substitute Advisor ───────────────────────
                             _SectionLabel(
-                              icon: HugeIcons
-                                  .strokeRoundedUserStar01,
+                              icon: HugeIcons.strokeRoundedUserStar01,
                               label: 'units.form.substitute_advisor_label'.tr(),
                             ),
                             const SizedBox(height: 8),
@@ -561,11 +542,10 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                               hint: 'units.form.substitute_advisor_hint'.tr(),
                               selected: _substituteAdvisor,
                               optional: true,
-                              onTap: () =>
-                                  _pickSubstituteAdvisor(allMembers),
+                              onTap: () => _pickSubstituteAdvisor(allMembers),
                               onClear: _substituteAdvisor != null
-                                  ? () => setState(
-                                      () => _substituteAdvisor = null)
+                                  ? () =>
+                                      setState(() => _substituteAdvisor = null)
                                   : null,
                             ),
 
@@ -575,8 +555,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                             Row(
                               children: [
                                 HugeIcon(
-                                  icon: HugeIcons
-                                      .strokeRoundedUserGroup,
+                                  icon: HugeIcons.strokeRoundedUserGroup,
                                   color: AppColors.primary,
                                   size: 18,
                                 ),
@@ -584,8 +563,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                                 Text(
                                   'units.form.members_section'.tr(),
                                   style: theme.textTheme.titleMedium
-                                      ?.copyWith(
-                                          fontWeight: FontWeight.w600),
+                                      ?.copyWith(fontWeight: FontWeight.w600),
                                 ),
                                 const Spacer(),
                                 TextButton.icon(
@@ -618,8 +596,8 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                             else
                               _MembersChipGrid(
                                 members: _members,
-                                onRemove: (m) => setState(
-                                    () => _members.remove(m)),
+                                onRemove: (m) =>
+                                    setState(() => _members.remove(m)),
                               ),
 
                             const SizedBox(height: 32),
@@ -668,10 +646,9 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
   final _searchController = TextEditingController();
   late List<ClubMember> _filtered;
 
-  List<ClubMember> get _eligible =>
-      widget.members
-          .where((m) => !widget.excludeIds.contains(m.userId))
-          .toList();
+  List<ClubMember> get _eligible => widget.members
+      .where((m) => !widget.excludeIds.contains(m.userId))
+      .toList();
 
   @override
   void initState() {
@@ -724,8 +701,7 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                 height: 4,
                 decoration: BoxDecoration(
                   color: c.textTertiary.withValues(alpha: 0.3),
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusFull),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                 ),
               ),
             ),
@@ -733,8 +709,7 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
 
           // Title
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -749,7 +724,7 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
           // Search field
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child:             TextField(
+            child: TextField(
               controller: _searchController,
               autofocus: false,
               textCapitalization: TextCapitalization.sentences,
@@ -763,21 +738,18 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                         splashRadius: 16,
                       )
                     : null,
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 12),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusSM),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   borderSide: BorderSide(color: c.border),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusSM),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   borderSide: BorderSide(color: c.border),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusSM),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   borderSide:
                       const BorderSide(color: AppColors.primary, width: 2),
                 ),
@@ -818,12 +790,9 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                         title: Text(
                           m.fullName,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: isSelected
-                                ? AppColors.primary
-                                : c.text,
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.w400,
+                            color: isSelected ? AppColors.primary : c.text,
+                            fontWeight:
+                                isSelected ? FontWeight.w600 : FontWeight.w400,
                           ),
                         ),
                         subtitle: m.clubRole != null
@@ -873,16 +842,14 @@ class _MultiMemberPickerSheet extends StatefulWidget {
       _MultiMemberPickerSheetState();
 }
 
-class _MultiMemberPickerSheetState
-    extends State<_MultiMemberPickerSheet> {
+class _MultiMemberPickerSheetState extends State<_MultiMemberPickerSheet> {
   final _searchController = TextEditingController();
   late Set<String> _selected;
   late List<ClubMember> _filtered;
 
-  List<ClubMember> get _eligible =>
-      widget.members
-          .where((m) => !widget.excludeIds.contains(m.userId))
-          .toList();
+  List<ClubMember> get _eligible => widget.members
+      .where((m) => !widget.excludeIds.contains(m.userId))
+      .toList();
 
   @override
   void initState() {
@@ -921,9 +888,8 @@ class _MultiMemberPickerSheetState
   }
 
   void _confirm() {
-    final result = widget.members
-        .where((m) => _selected.contains(m.userId))
-        .toList();
+    final result =
+        widget.members.where((m) => _selected.contains(m.userId)).toList();
     Navigator.of(context).pop(result);
   }
 
@@ -953,8 +919,7 @@ class _MultiMemberPickerSheetState
                 height: 4,
                 decoration: BoxDecoration(
                   color: c.textTertiary.withValues(alpha: 0.3),
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusFull),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                 ),
               ),
             ),
@@ -962,49 +927,43 @@ class _MultiMemberPickerSheetState
 
           // Header row
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: Row(
               children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'units.form.add_member_button'.tr(),
-                              style: theme.textTheme.headlineSmall,
-                            ),
-                            if (_selected.isNotEmpty)
-                              Text(
-                                _selected.length == 1
-                                    ? tr('units.form.selected_count_one',
-                                        namedArgs: {
-                                          'count': '${_selected.length}'
-                                        })
-                                    : tr('units.form.selected_count_other',
-                                        namedArgs: {
-                                          'count': '${_selected.length}'
-                                        }),
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                          ],
-                        ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'units.form.add_member_button'.tr(),
+                        style: theme.textTheme.headlineSmall,
                       ),
-                      FilledButton(
-                        onPressed: _confirm,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AppTheme.radiusSM),
+                      if (_selected.isNotEmpty)
+                        Text(
+                          _selected.length == 1
+                              ? tr('units.form.selected_count_one',
+                                  namedArgs: {'count': '${_selected.length}'})
+                              : tr('units.form.selected_count_other',
+                                  namedArgs: {'count': '${_selected.length}'}),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        child: Text('units.form.done'.tr()),
+                    ],
+                  ),
+                ),
+                FilledButton(
+                  onPressed: _confirm,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                    ),
+                  ),
+                  child: Text('units.form.done'.tr()),
                 ),
               ],
             ),
@@ -1015,7 +974,7 @@ class _MultiMemberPickerSheetState
           // Search field
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child:             TextField(
+            child: TextField(
               controller: _searchController,
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
@@ -1028,21 +987,18 @@ class _MultiMemberPickerSheetState
                         splashRadius: 16,
                       )
                     : null,
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 12),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusSM),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   borderSide: BorderSide(color: c.border),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusSM),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   borderSide: BorderSide(color: c.border),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusSM),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   borderSide:
                       const BorderSide(color: AppColors.primary, width: 2),
                 ),
@@ -1086,9 +1042,8 @@ class _MultiMemberPickerSheetState
                           m.fullName,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: isSelected ? AppColors.primary : c.text,
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.w400,
+                            fontWeight:
+                                isSelected ? FontWeight.w600 : FontWeight.w400,
                           ),
                         ),
                         subtitle: m.clubRole != null
@@ -1315,14 +1270,13 @@ class _EmptyMembersPlaceholder extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'units.form.empty_members_title'.tr(),
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: c.textSecondary),
+              style:
+                  theme.textTheme.bodySmall?.copyWith(color: c.textSecondary),
             ),
             const SizedBox(height: 4),
             Text(
               'units.form.empty_members_subtitle'.tr(),
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: c.textTertiary),
+              style: theme.textTheme.bodySmall?.copyWith(color: c.textTertiary),
             ),
           ],
         ),
@@ -1355,21 +1309,18 @@ class _MembersChipGrid extends StatelessWidget {
           ),
           deleteIcon: const Icon(Icons.close_rounded, size: 16),
           onDeleted: () => onRemove(m),
-          backgroundColor:
-              AppColors.primaryLight,
+          backgroundColor: AppColors.primaryLight,
           deleteIconColor: AppColors.primaryDark,
           labelStyle: const TextStyle(
             color: AppColors.primaryDark,
             fontWeight: FontWeight.w500,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(AppTheme.radiusFull),
+            borderRadius: BorderRadius.circular(AppTheme.radiusFull),
             side: const BorderSide(color: Colors.transparent),
           ),
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          padding:
-              const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
         );
       }).toList(),
     );
@@ -1407,15 +1358,14 @@ class _BottomActionBar extends StatelessWidget {
         children: [
           // Cancel button
           Expanded(
-              child: OutlinedButton(
+            child: OutlinedButton(
               onPressed: isSaving ? null : onCancel,
               style: OutlinedButton.styleFrom(
                 foregroundColor: c.textSecondary,
                 side: BorderSide(color: c.border),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusSM),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                 ),
               ),
               child: Text('common.cancel'.tr()),
@@ -1429,12 +1379,10 @@ class _BottomActionBar extends StatelessWidget {
               onPressed: isSaving ? null : onSave,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                disabledBackgroundColor:
-                    AppColors.primaryLight,
+                disabledBackgroundColor: AppColors.primaryLight,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.radiusSM),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                 ),
               ),
               child: isSaving
@@ -1443,8 +1391,7 @@ class _BottomActionBar extends StatelessWidget {
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white),
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
                   : Text(isEditMode

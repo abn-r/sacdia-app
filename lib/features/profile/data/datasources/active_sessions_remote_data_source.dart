@@ -69,10 +69,8 @@ class ActiveSessionsRemoteDataSourceImpl
         tag: _tag,
         error: e,
       );
-      _throwMappedError(
-          e,
-          defaultMessage:
-              tr('profile.active_sessions.errors.get_sessions'));
+      _throwMappedError(e,
+          defaultMessage: tr('profile.active_sessions.errors.get_sessions'));
     } catch (e) {
       AppLogger.e('Error inesperado al obtener sesiones', tag: _tag, error: e);
       throw ServerException(
@@ -102,10 +100,8 @@ class ActiveSessionsRemoteDataSourceImpl
         tag: _tag,
         error: e,
       );
-      _throwMappedError(
-          e,
-          defaultMessage:
-              tr('profile.active_sessions.errors.revoke_session'));
+      _throwMappedError(e,
+          defaultMessage: tr('profile.active_sessions.errors.revoke_session'));
     } catch (e) {
       AppLogger.e('Error inesperado al revocar sesión', tag: _tag, error: e);
       throw ServerException(
@@ -140,12 +136,11 @@ class ActiveSessionsRemoteDataSourceImpl
         tag: _tag,
         error: e,
       );
-      _throwMappedError(
-          e,
+      _throwMappedError(e,
           defaultMessage: tr('profile.active_sessions.errors.revoke_all'));
     } catch (e) {
-      AppLogger.e(
-          'Error inesperado al revocar todas las sesiones', tag: _tag, error: e);
+      AppLogger.e('Error inesperado al revocar todas las sesiones',
+          tag: _tag, error: e);
       throw ServerException(
           message: '${tr('profile.active_sessions.errors.unexpected')}: $e');
     }

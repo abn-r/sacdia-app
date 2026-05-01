@@ -123,8 +123,7 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
             ? body
             : (body as Map<String, dynamic>)['data'] as List<dynamic>? ?? [];
         return rawList
-            .map((e) =>
-                InventoryItemModel.fromJson(e as Map<String, dynamic>))
+            .map((e) => InventoryItemModel.fromJson(e as Map<String, dynamic>))
             .toList();
       }
 
@@ -153,8 +152,9 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final body = response.data as Map<String, dynamic>;
-        final json =
-            body.containsKey('data') ? body['data'] as Map<String, dynamic> : body;
+        final json = body.containsKey('data')
+            ? body['data'] as Map<String, dynamic>
+            : body;
         return InventoryItemModel.fromJson(json);
       }
 
@@ -212,8 +212,9 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final resp = response.data as Map<String, dynamic>;
-        final json =
-            resp.containsKey('data') ? resp['data'] as Map<String, dynamic> : resp;
+        final json = resp.containsKey('data')
+            ? resp['data'] as Map<String, dynamic>
+            : resp;
         return InventoryItemModel.fromJson(json);
       }
 
@@ -269,8 +270,9 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final resp = response.data as Map<String, dynamic>;
-        final json =
-            resp.containsKey('data') ? resp['data'] as Map<String, dynamic> : resp;
+        final json = resp.containsKey('data')
+            ? resp['data'] as Map<String, dynamic>
+            : resp;
         return InventoryItemModel.fromJson(json);
       }
 
@@ -325,7 +327,8 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network'))
+            .toString();
       }
     } catch (e) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);

@@ -63,13 +63,15 @@ class WeeklyRecord {
 
   /// Nombre completo del usuario (si está disponible).
   String get fullName {
-    final parts = [userName, userLastName].where((s) => s != null && s.isNotEmpty);
+    final parts =
+        [userName, userLastName].where((s) => s != null && s.isNotEmpty);
     return parts.join(' ');
   }
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || other is WeeklyRecord && other.recordId == recordId;
+      identical(this, other) ||
+      other is WeeklyRecord && other.recordId == recordId;
 
   @override
   int get hashCode => recordId.hashCode;

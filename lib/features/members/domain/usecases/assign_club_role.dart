@@ -20,8 +20,7 @@ class AssignClubRoleParams extends Equatable {
   });
 
   @override
-  List<Object> get props =>
-      [clubId, sectionId, userId, role];
+  List<Object> get props => [clubId, sectionId, userId, role];
 }
 
 /// Caso de uso para asignar un rol de club a un miembro

@@ -27,8 +27,7 @@ class InsuranceFormSheet extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<InsuranceFormSheet> createState() =>
-      _InsuranceFormSheetState();
+  ConsumerState<InsuranceFormSheet> createState() => _InsuranceFormSheetState();
 }
 
 class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
@@ -44,9 +43,7 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
   bool get _isEditing => widget.existingInsurance != null;
 
   String get _memberId =>
-      widget.preselectedMemberId ??
-      widget.existingInsurance?.memberId ??
-      '';
+      widget.preselectedMemberId ?? widget.existingInsurance?.memberId ?? '';
 
   @override
   void initState() {
@@ -55,8 +52,7 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
       final ins = widget.existingInsurance!;
       _policyController.text = ins.policyNumber ?? '';
       _providerController.text = ins.providerName ?? '';
-      _amountController.text =
-          ins.coverageAmount?.toStringAsFixed(2) ?? '';
+      _amountController.text = ins.coverageAmount?.toStringAsFixed(2) ?? '';
       _insuranceType = ins.insuranceType ?? InsuranceType.generalActivities;
       _startDate = ins.startDate;
       _endDate = ins.endDate;
@@ -78,8 +74,7 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
     return Container(
       decoration: BoxDecoration(
         color: context.sac.background,
-        borderRadius:
-            const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -141,8 +136,7 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                     const SizedBox(height: 8),
                     _InsuranceTypeSelector(
                       selected: _insuranceType,
-                      onChanged: (t) =>
-                          setState(() => _insuranceType = t),
+                      onChanged: (t) => setState(() => _insuranceType = t),
                     ),
 
                     const SizedBox(height: 16),
@@ -181,8 +175,7 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                     _DatePickerField(
                       selectedDate: _startDate,
                       placeholder: 'insurance.form.placeholder_start_date'.tr(),
-                      onDateSelected: (d) =>
-                          setState(() => _startDate = d),
+                      onDateSelected: (d) => setState(() => _startDate = d),
                       onClear: () => setState(() => _startDate = null),
                       firstDate: DateTime(2000),
                       lastDate: DateTime(2100),
@@ -196,8 +189,7 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                     _DatePickerField(
                       selectedDate: _endDate,
                       placeholder: 'insurance.form.placeholder_end_date'.tr(),
-                      onDateSelected: (d) =>
-                          setState(() => _endDate = d),
+                      onDateSelected: (d) => setState(() => _endDate = d),
                       onClear: () => setState(() => _endDate = null),
                       firstDate: _startDate ?? DateTime(2000),
                       lastDate: DateTime(2100),
@@ -211,8 +203,7 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                     TextFormField(
                       controller: _amountController,
                       keyboardType:
-                          const TextInputType.numberWithOptions(
-                              decimal: true),
+                          const TextInputType.numberWithOptions(decimal: true),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
                             RegExp(r'^\d+\.?\d{0,2}')),
@@ -234,9 +225,8 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                     ),
                     const SizedBox(height: 6),
                     _EvidenceUploader(
-                      currentFile: ref
-                          .watch(insuranceFormNotifierProvider)
-                          .selectedFile,
+                      currentFile:
+                          ref.watch(insuranceFormNotifierProvider).selectedFile,
                       existingFileUrl: _isEditing
                           ? widget.existingInsurance?.evidenceFileUrl
                           : null,
@@ -258,8 +248,7 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Text(
                           formState.errorMessage!,
-                          style:
-                              const TextStyle(color: AppColors.error),
+                          style: const TextStyle(color: AppColors.error),
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -269,8 +258,7 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
                       width: double.infinity,
                       height: 52,
                       child: FilledButton(
-                        onPressed:
-                            formState.isLoading ? null : _submit,
+                        onPressed: formState.isLoading ? null : _submit,
                         style: FilledButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           shape: RoundedRectangleBorder(
@@ -340,8 +328,7 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
     }
 
     // Validate evidence for new records
-    final selectedFile =
-        ref.read(insuranceFormNotifierProvider).selectedFile;
+    final selectedFile = ref.read(insuranceFormNotifierProvider).selectedFile;
     if (!_isEditing && selectedFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -368,9 +355,7 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
         ? double.tryParse(_amountController.text)
         : null;
 
-    final success = await ref
-        .read(insuranceFormNotifierProvider.notifier)
-        .save(
+    final success = await ref.read(insuranceFormNotifierProvider.notifier).save(
           memberId: _memberId,
           insuranceType: _insuranceType,
           startDate: _startDate!,
@@ -421,24 +406,20 @@ class _InsuranceFormSheetState extends ConsumerState<InsuranceFormSheet> {
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(
-          color:
-              Theme.of(context).dividerColor.withValues(alpha: 0.4),
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.4),
         ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide:
-            const BorderSide(color: AppColors.primary, width: 2),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide:
-            const BorderSide(color: AppColors.error, width: 1.5),
+        borderSide: const BorderSide(color: AppColors.error, width: 1.5),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide:
-            const BorderSide(color: AppColors.error, width: 2),
+        borderSide: const BorderSide(color: AppColors.error, width: 2),
       ),
     );
   }
@@ -466,12 +447,10 @@ class _InsuranceTypeSelector extends StatelessWidget {
             onTap: () => onChanged(t),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 14, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primarySurface
-                    : Colors.transparent,
+                color:
+                    isSelected ? AppColors.primarySurface : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isSelected
@@ -498,16 +477,10 @@ class _InsuranceTypeSelector extends StatelessWidget {
                   const SizedBox(width: 12),
                   Text(
                     t.label,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyMedium
-                        ?.copyWith(
-                          fontWeight: isSelected
-                              ? FontWeight.w700
-                              : FontWeight.w400,
-                          color: isSelected
-                              ? AppColors.primaryDark
-                              : null,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w400,
+                          color: isSelected ? AppColors.primaryDark : null,
                         ),
                   ),
                 ],
@@ -542,16 +515,14 @@ class _DatePickerField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final formatted = selectedDate != null
-        ? DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es')
-            .format(selectedDate!)
+        ? DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es').format(selectedDate!)
         : placeholder;
 
     return InkWell(
       onTap: () => _pickDate(context),
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(
-            horizontal: 14, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
           color: Theme.of(context)
               .colorScheme
@@ -559,9 +530,7 @@ class _DatePickerField extends StatelessWidget {
               .withValues(alpha: 0.4),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Theme.of(context)
-                .dividerColor
-                .withValues(alpha: 0.4),
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.4),
           ),
         ),
         child: Row(
@@ -589,9 +558,7 @@ class _DatePickerField extends StatelessWidget {
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedCancel01,
                   size: 16,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurfaceVariant,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
           ],
@@ -638,7 +605,8 @@ class _EvidenceUploader extends StatelessWidget {
 
     if (existingFileUrl != null && existingFileUrl!.isNotEmpty) {
       return _ExistingFileTile(
-        fileName: existingFileName ?? 'insurance.form.current_receipt_fallback'.tr(),
+        fileName:
+            existingFileName ?? 'insurance.form.current_receipt_fallback'.tr(),
         onReplace: () => _showPicker(context),
       );
     }
@@ -815,8 +783,7 @@ class _ExistingFileTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.primarySurface,
         borderRadius: BorderRadius.circular(12),
-        border:
-            Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -879,8 +846,7 @@ class _FilePickerSheet extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius:
-            const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

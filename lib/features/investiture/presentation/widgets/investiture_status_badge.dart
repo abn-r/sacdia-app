@@ -70,9 +70,7 @@ class InvestitureStatusBadge extends StatelessWidget {
   Color _bgColor(bool isDark) {
     switch (status) {
       case InvestitureStatus.inProgress:
-        return isDark
-            ? const Color(0xFF2D2D2D)
-            : const Color(0xFFF1F5F9);
+        return isDark ? const Color(0xFF2D2D2D) : const Color(0xFFF1F5F9);
       case InvestitureStatus.submittedForValidation:
         return AppColors.accentLight;
       case InvestitureStatus.clubApproved:
@@ -92,9 +90,7 @@ class InvestitureStatusBadge extends StatelessWidget {
   Color _borderColor(bool isDark) {
     switch (status) {
       case InvestitureStatus.inProgress:
-        return isDark
-            ? const Color(0xFF404040)
-            : const Color(0xFFCBD5E1);
+        return isDark ? const Color(0xFF404040) : const Color(0xFFCBD5E1);
       case InvestitureStatus.submittedForValidation:
         return AppColors.accent.withValues(alpha: 0.4);
       case InvestitureStatus.clubApproved:
@@ -112,18 +108,14 @@ class InvestitureStatusBadge extends StatelessWidget {
   Color _textColor(bool isDark) {
     switch (status) {
       case InvestitureStatus.inProgress:
-        return isDark
-            ? const Color(0xFF94A3B8)
-            : const Color(0xFF64748B);
+        return isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
       case InvestitureStatus.submittedForValidation:
         return AppColors.accentDark;
       case InvestitureStatus.clubApproved:
       case InvestitureStatus.coordinatorApproved:
       case InvestitureStatus.fieldApproved:
       case InvestitureStatus.approved:
-        return isDark
-            ? AppColors.statusInfoTextDark
-            : AppColors.statusInfoText;
+        return isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
       case InvestitureStatus.rejected:
         return AppColors.errorDark;
       case InvestitureStatus.investido:

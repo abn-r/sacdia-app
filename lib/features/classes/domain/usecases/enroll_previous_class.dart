@@ -22,8 +22,7 @@ class EnrollPreviousClassParams extends Equatable {
 
 /// Caso de uso: inscribe al usuario en una clase que completó antes de unirse
 /// a la aplicación, usando el año eclesiástico actual o uno pasado.
-class EnrollPreviousClass
-    implements UseCase<void, EnrollPreviousClassParams> {
+class EnrollPreviousClass implements UseCase<void, EnrollPreviousClassParams> {
   final ClassesRepository _repository;
 
   EnrollPreviousClass(this._repository);

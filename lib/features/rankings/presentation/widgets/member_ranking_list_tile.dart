@@ -102,15 +102,15 @@ class MemberRankingListTile extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                               color: c.text,
                             ) ??
-                          const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.w700))
+                        const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w700))
                     : (Theme.of(context).textTheme.titleSmall?.copyWith(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                               color: c.textTertiary,
                             ) ??
-                          const TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.w500)),
+                        const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w500)),
               ),
             ),
 

@@ -46,9 +46,8 @@ class _InsuranceViewState extends ConsumerState<InsuranceView> {
 
     return Scaffold(
       backgroundColor: context.sac.background,
-      floatingActionButton: canManage
-          ? _AddFab(onTap: () => _openAddSheet(context, null))
-          : null,
+      floatingActionButton:
+          canManage ? _AddFab(onTap: () => _openAddSheet(context, null)) : null,
       body: SafeArea(
         child: RefreshIndicator(
           color: AppColors.primary,
@@ -75,8 +74,7 @@ class _InsuranceViewState extends ConsumerState<InsuranceView> {
                 centerTitle: false,
                 actions: [
                   IconButton(
-                    onPressed: () =>
-                        ref.invalidate(membersInsuranceProvider),
+                    onPressed: () => ref.invalidate(membersInsuranceProvider),
                     icon: HugeIcon(
                       icon: HugeIcons.strokeRoundedRefresh,
                       size: 20,
@@ -91,11 +89,8 @@ class _InsuranceViewState extends ConsumerState<InsuranceView> {
                 child: filteredAsync.when(
                   loading: () => _LoadingBody(),
                   error: (e, _) => _ErrorBody(
-                    message: e
-                        .toString()
-                        .replaceFirst('Exception: ', ''),
-                    onRetry: () =>
-                        ref.invalidate(membersInsuranceProvider),
+                    message: e.toString().replaceFirst('Exception: ', ''),
+                    onRetry: () => ref.invalidate(membersInsuranceProvider),
                   ),
                   data: (items) => _InsuranceBody(
                     items: items,
@@ -126,8 +121,7 @@ class _InsuranceViewState extends ConsumerState<InsuranceView> {
     );
   }
 
-  void _onMemberTap(
-      BuildContext context, MemberInsurance mi, bool canManage) {
+  void _onMemberTap(BuildContext context, MemberInsurance mi, bool canManage) {
     if (mi.status == InsuranceStatus.sinSeguro) {
       // Sin seguro: directamente abre el formulario (solo para gestores)
       if (canManage) {
@@ -197,10 +191,11 @@ class _InsuranceBody extends ConsumerWidget {
 
         // Expiring insurance alert banner
         expiringAsync.whenOrNull(
-          data: (expiring) => expiring.isNotEmpty
-              ? _ExpiringBanner(count: expiring.length)
-              : null,
-        ) ?? const SizedBox.shrink(),
+              data: (expiring) => expiring.isNotEmpty
+                  ? _ExpiringBanner(count: expiring.length)
+                  : null,
+            ) ??
+            const SizedBox.shrink(),
 
         // Search bar
         _SearchBar(
@@ -266,7 +261,8 @@ class _ExpiringBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFFFF3CD),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFFCA28).withValues(alpha: 0.6)),
+        border:
+            Border.all(color: const Color(0xFFFFCA28).withValues(alpha: 0.6)),
       ),
       child: Row(
         children: [
@@ -309,8 +305,7 @@ class _SearchBar extends StatelessWidget {
         onChanged: onChanged,
         decoration: InputDecoration(
           hintText: 'insurance.view.search_hint'.tr(),
-          hintStyle: TextStyle(
-              color: context.sac.textTertiary, fontSize: 14),
+          hintStyle: TextStyle(color: context.sac.textTertiary, fontSize: 14),
           prefixIcon: Padding(
             padding: const EdgeInsets.all(12),
             child: HugeIcon(
@@ -345,8 +340,7 @@ class _SearchBar extends StatelessWidget {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide:
-                const BorderSide(color: AppColors.primary, width: 2),
+            borderSide: const BorderSide(color: AppColors.primary, width: 2),
           ),
         ),
       ),
@@ -439,16 +433,16 @@ class _SortCountRow extends StatelessWidget {
           GestureDetector(
             onTap: () => _showSortMenu(context),
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 10, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest
                     .withValues(alpha: 0.4),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                    color: Theme.of(context)
-                        .dividerColor
-                        .withValues(alpha: 0.4)),
+                    color:
+                        Theme.of(context).dividerColor.withValues(alpha: 0.4)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -461,11 +455,10 @@ class _SortCountRow extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     sortOrder.label,
-                    style:
-                        Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 11,
-                            ),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                        ),
                   ),
                 ],
               ),
@@ -499,8 +492,7 @@ class _SortSheet extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius:
-            const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -530,8 +522,7 @@ class _SortSheet extends StatelessWidget {
               title: Text(
                 so.label,
                 style: TextStyle(
-                  fontWeight:
-                      isSelected ? FontWeight.w700 : FontWeight.w400,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
                   color: isSelected ? AppColors.primary : null,
                 ),
               ),
@@ -599,8 +590,7 @@ class _ErrorBody extends StatelessWidget {
           Text(
             message,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color:
-                      Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
             textAlign: TextAlign.center,
           ),
@@ -613,8 +603,7 @@ class _ErrorBody extends StatelessWidget {
               color: Colors.white,
             ),
             label: Text('common.retry'.tr()),
-            style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
           ),
         ],
       ),

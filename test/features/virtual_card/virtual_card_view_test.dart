@@ -12,7 +12,8 @@ void main() {
 
   test('maps functional errors to the safe virtual card copy', () {
     expect(
-      virtualCardErrorMessageKey(ServerException(message: 'Forbidden', code: 403)),
+      virtualCardErrorMessageKey(
+          ServerException(message: 'Forbidden', code: 403)),
       'virtual_card.errors.load_failed',
     );
     expect(

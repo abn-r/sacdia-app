@@ -38,7 +38,8 @@ class VirtualCardRepositoryImpl implements VirtualCardRepository {
     } on AppException {
       rethrow;
     } catch (e) {
-      AppLogger.e('Error inesperado al obtener tarjeta virtual', tag: _tag, error: e);
+      AppLogger.e('Error inesperado al obtener tarjeta virtual',
+          tag: _tag, error: e);
       throw ServerException(message: e.toString());
     }
   }

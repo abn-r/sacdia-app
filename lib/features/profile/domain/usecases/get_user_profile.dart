@@ -20,7 +20,9 @@ class GetUserProfile implements UseCase<UserDetail, GetUserProfileParams> {
   GetUserProfile(this.repository);
 
   @override
-  Future<Either<Failure, UserDetail>> call(GetUserProfileParams params, {CancelToken? cancelToken}) async {
-    return await repository.getUserProfile(params.userId, cancelToken: cancelToken);
+  Future<Either<Failure, UserDetail>> call(GetUserProfileParams params,
+      {CancelToken? cancelToken}) async {
+    return await repository.getUserProfile(params.userId,
+        cancelToken: cancelToken);
   }
 }

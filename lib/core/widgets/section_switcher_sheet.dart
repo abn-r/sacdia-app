@@ -50,7 +50,8 @@ Color _sectionColor(String? clubTypeName) {
   final lower = clubTypeName.toLowerCase();
   if (lower.contains('conquistador')) return AppColors.primary;
   if (lower.contains('aventurer')) return AppColors.sacBlue;
-  if (lower.contains('guía') || lower.contains('guia')) return AppColors.secondary;
+  if (lower.contains('guía') || lower.contains('guia'))
+    return AppColors.secondary;
   return AppColors.primary;
 }
 
@@ -136,9 +137,8 @@ class _SectionSwitcherSheetState extends ConsumerState<_SectionSwitcherSheet> {
     // use_build_context_synchronously across async gaps.
     final messenger = ScaffoldMessenger.of(widget.callerContext);
 
-    final success = await ref
-        .read(authNotifierProvider.notifier)
-        .switchContext(id);
+    final success =
+        await ref.read(authNotifierProvider.notifier).switchContext(id);
 
     if (!mounted) return;
 
@@ -324,8 +324,7 @@ class _OptionCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Accent bar for inactive cards (same as SacCard pattern).
-                if (!isActive)
-                  Container(width: 4, color: color),
+                if (!isActive) Container(width: 4, color: color),
 
                 Expanded(
                   child: Padding(
@@ -359,7 +358,8 @@ class _OptionCard extends StatelessWidget {
                             children: [
                               // Row 1: club type name
                               Text(
-                                grant.clubTypeName ?? tr('core.section_switcher.default_club_name'),
+                                grant.clubTypeName ??
+                                    tr('core.section_switcher.default_club_name'),
                                 style: Theme.of(context)
                                     .textTheme
                                     .titleSmall
@@ -372,7 +372,8 @@ class _OptionCard extends StatelessWidget {
                               Row(
                                 children: [
                                   _SectionBadge(
-                                    label: grant.clubTypeName ?? tr('core.section_switcher.default_club_name'),
+                                    label: grant.clubTypeName ??
+                                        tr('core.section_switcher.default_club_name'),
                                     bg: badgeBg,
                                     fg: badgeFg,
                                   ),
@@ -407,8 +408,7 @@ class _OptionCard extends StatelessWidget {
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(color),
+                              valueColor: AlwaysStoppedAnimation<Color>(color),
                             ),
                           )
                         else if (isActive)

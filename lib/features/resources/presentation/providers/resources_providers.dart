@@ -61,8 +61,7 @@ final selectedResourceCategoryProvider =
     StateProvider.autoDispose<int?>((ref) => null);
 
 /// Texto de búsqueda
-final resourceSearchProvider =
-    StateProvider.autoDispose<String>((ref) => '');
+final resourceSearchProvider = StateProvider.autoDispose<String>((ref) => '');
 
 // ── Data providers ───────────────────────────────────────────────────────────
 
@@ -72,7 +71,8 @@ final resourceCategoriesProvider =
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final getCategories = ref.read(getResourceCategoriesProvider);
-  final result = await getCategories(const NoParams(), cancelToken: cancelToken);
+  final result =
+      await getCategories(const NoParams(), cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (categories) => categories,

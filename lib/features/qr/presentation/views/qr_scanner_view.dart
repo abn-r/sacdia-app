@@ -200,9 +200,8 @@ class _SuccessBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final member = result.member;
     final attendance = result.attendance;
-    final subtitle = [member.clubName, member.sectionName]
-        .whereType<String>()
-        .join(' · ');
+    final subtitle =
+        [member.clubName, member.sectionName].whereType<String>().join(' · ');
 
     String? attendanceLabel;
     if (attendance != null) {

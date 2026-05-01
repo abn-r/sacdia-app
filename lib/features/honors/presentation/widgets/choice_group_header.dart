@@ -33,9 +33,8 @@ class ChoiceGroupHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color accentColor =
         _isSatisfied ? AppColors.secondary : AppColors.sacYellow;
-    final Color bgColor = _isSatisfied
-        ? AppColors.secondaryLight
-        : AppColors.accentLight;
+    final Color bgColor =
+        _isSatisfied ? AppColors.secondaryLight : AppColors.accentLight;
 
     return Container(
       margin: const EdgeInsets.only(top: 6, bottom: 4),
@@ -67,9 +66,8 @@ class ChoiceGroupHeader extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: _isSatisfied
-                  ? AppColors.secondaryDark
-                  : AppColors.accentDark,
+              color:
+                  _isSatisfied ? AppColors.secondaryDark : AppColors.accentDark,
             ),
           ),
           if (completedChildren > 0) ...[

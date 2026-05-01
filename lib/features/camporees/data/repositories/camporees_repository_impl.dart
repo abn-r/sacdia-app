@@ -34,9 +34,11 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
   // ── Métodos ───────────────────────────────────────────────────────────────────
 
   @override
-  Future<Either<Failure, List<Camporee>>> getCamporees({bool? active, CancelToken? cancelToken}) async {
+  Future<Either<Failure, List<Camporee>>> getCamporees(
+      {bool? active, CancelToken? cancelToken}) async {
     try {
-      final models = await remoteDataSource.getCamporees(active: active, cancelToken: cancelToken);
+      final models = await remoteDataSource.getCamporees(
+          active: active, cancelToken: cancelToken);
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return _serverFailure(e);
@@ -48,9 +50,11 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
   }
 
   @override
-  Future<Either<Failure, Camporee>> getCamporeeDetail(int camporeeId, {CancelToken? cancelToken}) async {
+  Future<Either<Failure, Camporee>> getCamporeeDetail(int camporeeId,
+      {CancelToken? cancelToken}) async {
     try {
-      final model = await remoteDataSource.getCamporeeDetail(camporeeId, cancelToken: cancelToken);
+      final model = await remoteDataSource.getCamporeeDetail(camporeeId,
+          cancelToken: cancelToken);
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return _serverFailure(e);
@@ -156,9 +160,11 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
 
   @override
   Future<Either<Failure, List<CamporeeEnrolledClub>>> getEnrolledClubs(
-      int camporeeId, {CancelToken? cancelToken}) async {
+      int camporeeId,
+      {CancelToken? cancelToken}) async {
     try {
-      final models = await remoteDataSource.getEnrolledClubs(camporeeId, cancelToken: cancelToken);
+      final models = await remoteDataSource.getEnrolledClubs(camporeeId,
+          cancelToken: cancelToken);
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return _serverFailure(e);
@@ -206,8 +212,8 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
     CancelToken? cancelToken,
   }) async {
     try {
-      final models =
-          await remoteDataSource.getMemberPayments(camporeeId, memberId, cancelToken: cancelToken);
+      final models = await remoteDataSource
+          .getMemberPayments(camporeeId, memberId, cancelToken: cancelToken);
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return _serverFailure(e);
@@ -220,9 +226,11 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
 
   @override
   Future<Either<Failure, List<CamporeePayment>>> getCamporeePayments(
-      int camporeeId, {CancelToken? cancelToken}) async {
+      int camporeeId,
+      {CancelToken? cancelToken}) async {
     try {
-      final models = await remoteDataSource.getCamporeePayments(camporeeId, cancelToken: cancelToken);
+      final models = await remoteDataSource.getCamporeePayments(camporeeId,
+          cancelToken: cancelToken);
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return _serverFailure(e);

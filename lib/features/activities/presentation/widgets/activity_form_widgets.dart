@@ -552,7 +552,8 @@ class ActivityDatePickerField extends StatelessWidget {
     final theme = Theme.of(context);
     final hasValue = value != null;
     final formatted = hasValue
-        ? DateFormat('d MMM yyyy', context.locale.toString()).format(value!.toLocal())
+        ? DateFormat('d MMM yyyy', context.locale.toString())
+            .format(value!.toLocal())
         : null;
 
     return Column(
@@ -745,7 +746,8 @@ class ActivityImagePicker extends StatelessWidget {
     final c = context.sac;
     final theme = Theme.of(context);
     final hasLocalImage = localImagePath != null;
-    final hasNetworkImage = networkImageUrl != null && networkImageUrl!.isNotEmpty;
+    final hasNetworkImage =
+        networkImageUrl != null && networkImageUrl!.isNotEmpty;
     final hasAnyImage = hasLocalImage || hasNetworkImage;
 
     return Column(

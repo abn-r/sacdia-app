@@ -41,9 +41,8 @@ class MemberQrCard extends ConsumerWidget {
                   tooltip: 'qr.rotate_token'.tr(),
                   onPressed: tokenAsync.isLoading
                       ? null
-                      : () => ref
-                          .read(qrMemberTokenProvider.notifier)
-                          .refresh(),
+                      : () =>
+                          ref.read(qrMemberTokenProvider.notifier).refresh(),
                   icon: const HugeIcon(
                     icon: HugeIcons.strokeRoundedRefresh,
                     color: Colors.black87,

@@ -61,7 +61,9 @@ class MockAdapter implements HttpClientAdapter {
     return ResponseBody.fromString(
       '{$responseBody}',
       statusCode,
-      headers: {Headers.contentTypeHeader: [Headers.jsonContentType]},
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType]
+      },
     );
   }
 
@@ -82,7 +84,8 @@ void main() {
   });
 
   group('deleteAccount — H-02 fix: validateStatus = 200|204 only', () {
-    test('401 response throws AuthException and does NOT clear token', () async {
+    test('401 response throws AuthException and does NOT clear token',
+        () async {
       // Seed a token so the call proceeds.
       await storage.write(AppConstants.tokenKey, 'my-jwt-token');
 

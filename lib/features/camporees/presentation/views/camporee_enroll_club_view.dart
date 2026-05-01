@@ -155,8 +155,7 @@ class _CamporeeEnrollClubViewState
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
                       hintText: 'camporees.enroll_club.section_id_hint'.tr(),
-                      hintStyle:
-                          TextStyle(fontSize: 13, color: c.textTertiary),
+                      hintStyle: TextStyle(fontSize: 13, color: c.textTertiary),
                       prefixIcon: HugeIcon(
                         icon: HugeIcons.strokeRoundedBuilding01,
                         color: c.textTertiary,
@@ -181,8 +180,7 @@ class _CamporeeEnrollClubViewState
                       ),
                       errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                            const BorderSide(color: AppColors.error),
+                        borderSide: const BorderSide(color: AppColors.error),
                       ),
                     ),
                     validator: (v) {
@@ -298,7 +296,9 @@ class _CamporeeEnrollClubViewState
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        club.clubName ?? 'camporees.enroll_club.unknown_club'.tr(),
+                                        club.clubName ??
+                                            'camporees.enroll_club.unknown_club'
+                                                .tr(),
                                         style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w700,
@@ -315,7 +315,10 @@ class _CamporeeEnrollClubViewState
                                         )
                                       else
                                         Text(
-                                          'camporees.enroll_club.section_number'.tr(namedArgs: {'number': '${club.clubSectionId}'}),
+                                          'camporees.enroll_club.section_number'
+                                              .tr(namedArgs: {
+                                            'number': '${club.clubSectionId}'
+                                          }),
                                           style: TextStyle(
                                             fontSize: 12,
                                             color: c.textSecondary,
@@ -357,9 +360,7 @@ class _CamporeeEnrollClubViewState
     final formState = _formKey.currentState;
     if (formState == null || !formState.validate()) return;
 
-    ref
-        .read(enrollClubNotifierProvider(widget.camporeeId).notifier)
-        .reset();
+    ref.read(enrollClubNotifierProvider(widget.camporeeId).notifier).reset();
 
     final sectionId = int.parse(_sectionIdCtrl.text.trim());
     final success = await ref
@@ -372,8 +373,8 @@ class _CamporeeEnrollClubViewState
           content: Text('camporees.enroll_club.success'.tr()),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
       _sectionIdCtrl.clear();

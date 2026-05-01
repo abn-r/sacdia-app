@@ -62,8 +62,12 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
                 child: Row(
                   children: [
                     HugeIcon(
-                      icon: _isCompleted ? HugeIcons.strokeRoundedCheckmarkCircle02 : HugeIcons.strokeRoundedRadioButton,
-                      color: _isCompleted ? AppColors.success : context.sac.textSecondary,
+                      icon: _isCompleted
+                          ? HugeIcons.strokeRoundedCheckmarkCircle02
+                          : HugeIcons.strokeRoundedRadioButton,
+                      color: _isCompleted
+                          ? AppColors.success
+                          : context.sac.textSecondary,
                       size: 32,
                     ),
                     const SizedBox(width: 16),
@@ -75,7 +79,10 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
                             _isCompleted
                                 ? 'classes.status.completed'.tr()
                                 : 'classes.status.pending'.tr(),
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: _isCompleted
                                       ? AppColors.success
@@ -85,8 +92,10 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
                           const SizedBox(height: 4),
                           Text(
                             _isCompleted
-                                ? 'classes.section_detail.completed_subtitle'.tr()
-                                : 'classes.section_detail.pending_subtitle'.tr(),
+                                ? 'classes.section_detail.completed_subtitle'
+                                    .tr()
+                                : 'classes.section_detail.pending_subtitle'
+                                    .tr(),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -108,14 +117,16 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
                   final newStatus = !_isCompleted;
 
                   // Actualizar progreso
-                  await ref.read(classProgressNotifierProvider.notifier).updateProgress(
-                        userId,
-                        widget.classId,
-                        {
-                          'section_id': widget.section.id,
-                          'is_completed': newStatus,
-                        },
-                      );
+                  await ref
+                      .read(classProgressNotifierProvider.notifier)
+                      .updateProgress(
+                    userId,
+                    widget.classId,
+                    {
+                      'section_id': widget.section.id,
+                      'is_completed': newStatus,
+                    },
+                  );
 
                   if (!mounted) return;
 
@@ -130,11 +141,17 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
                             ? 'classes.section_detail.mark_completed_snack'.tr()
                             : 'classes.section_detail.mark_pending_snack'.tr(),
                       ),
-                      backgroundColor: newStatus ? AppColors.success : AppColors.warning,
+                      backgroundColor:
+                          newStatus ? AppColors.success : AppColors.warning,
                     ),
                   );
                 },
-                icon: HugeIcon(icon: _isCompleted ? HugeIcons.strokeRoundedCancel01 : HugeIcons.strokeRoundedTick02, color: Colors.white, size: 24),
+                icon: HugeIcon(
+                    icon: _isCompleted
+                        ? HugeIcons.strokeRoundedCancel01
+                        : HugeIcons.strokeRoundedTick02,
+                    color: Colors.white,
+                    size: 24),
                 label: Text(_isCompleted
                     ? 'classes.section_detail.button_completed'.tr()
                     : 'classes.section_detail.button_pending'.tr()),

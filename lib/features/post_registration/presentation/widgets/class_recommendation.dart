@@ -34,7 +34,8 @@ class ClassRecommendation extends ConsumerWidget {
         );
 
         // Solo mostrar si encontramos una clase con rango de edad
-        if (recommendedClass.minAge == null || recommendedClass.maxAge == null) {
+        if (recommendedClass.minAge == null ||
+            recommendedClass.maxAge == null) {
           return const SizedBox.shrink();
         }
 
@@ -82,11 +83,11 @@ class ClassRecommendation extends ConsumerWidget {
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
-                          'post_registration.recommendation.age_range'.tr(
-                              namedArgs: {
-                                'min': recommendedClass.minAge.toString(),
-                                'max': recommendedClass.maxAge.toString(),
-                              }),
+                          'post_registration.recommendation.age_range'
+                              .tr(namedArgs: {
+                            'min': recommendedClass.minAge.toString(),
+                            'max': recommendedClass.maxAge.toString(),
+                          }),
                           style: TextStyle(
                             fontSize: 11,
                             color: AppColors.primary,

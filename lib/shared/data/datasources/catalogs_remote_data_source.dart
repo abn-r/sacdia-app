@@ -10,10 +10,14 @@ import '../../models/catalogs/catalogs.dart';
 abstract class CatalogsRemoteDataSource {
   Future<List<ClubTypeModel>> getClubTypes({CancelToken? cancelToken});
   Future<List<ActivityTypeModel>> getActivityTypes({CancelToken? cancelToken});
-  Future<List<DistrictModel>> getDistricts({int? localFieldId, CancelToken? cancelToken});
-  Future<List<ChurchModel>> getChurches({int? districtId, CancelToken? cancelToken});
-  Future<List<EcclesiasticalYearModel>> getEcclesiasticalYears({bool? active, CancelToken? cancelToken});
-  Future<EcclesiasticalYearModel?> getCurrentEcclesiasticalYear({CancelToken? cancelToken});
+  Future<List<DistrictModel>> getDistricts(
+      {int? localFieldId, CancelToken? cancelToken});
+  Future<List<ChurchModel>> getChurches(
+      {int? districtId, CancelToken? cancelToken});
+  Future<List<EcclesiasticalYearModel>> getEcclesiasticalYears(
+      {bool? active, CancelToken? cancelToken});
+  Future<EcclesiasticalYearModel?> getCurrentEcclesiasticalYear(
+      {CancelToken? cancelToken});
 }
 
 /// Implementación de la fuente de datos remota de catálogos
@@ -50,8 +54,9 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
-          message:
-              e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
+          message: e.response?.data?['message'] ??
+              e.message ??
+              tr('common.error_network'),
         );
       }
       if (e is AppException) rethrow;
@@ -60,7 +65,8 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
   }
 
   @override
-  Future<List<ActivityTypeModel>> getActivityTypes({CancelToken? cancelToken}) async {
+  Future<List<ActivityTypeModel>> getActivityTypes(
+      {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.catalogs}/activity-types',
@@ -84,8 +90,9 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
-          message:
-              e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
+          message: e.response?.data?['message'] ??
+              e.message ??
+              tr('common.error_network'),
         );
       }
       if (e is AppException) rethrow;
@@ -94,7 +101,8 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
   }
 
   @override
-  Future<List<DistrictModel>> getDistricts({int? localFieldId, CancelToken? cancelToken}) async {
+  Future<List<DistrictModel>> getDistricts(
+      {int? localFieldId, CancelToken? cancelToken}) async {
     try {
       final queryParams = <String, dynamic>{};
       if (localFieldId != null) queryParams['localFieldId'] = localFieldId;
@@ -118,8 +126,9 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
-          message:
-              e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
+          message: e.response?.data?['message'] ??
+              e.message ??
+              tr('common.error_network'),
         );
       }
       if (e is AppException) rethrow;
@@ -128,7 +137,8 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
   }
 
   @override
-  Future<List<ChurchModel>> getChurches({int? districtId, CancelToken? cancelToken}) async {
+  Future<List<ChurchModel>> getChurches(
+      {int? districtId, CancelToken? cancelToken}) async {
     try {
       final queryParams = <String, dynamic>{};
       if (districtId != null) queryParams['districtId'] = districtId;
@@ -152,8 +162,9 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
-          message:
-              e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
+          message: e.response?.data?['message'] ??
+              e.message ??
+              tr('common.error_network'),
         );
       }
       if (e is AppException) rethrow;
@@ -182,14 +193,16 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
             .toList();
       }
 
-      throw ServerException(message: tr('catalogs.errors.get_ecclesiastical_years'));
+      throw ServerException(
+          message: tr('catalogs.errors.get_ecclesiastical_years'));
     } catch (e) {
       AppLogger.e('Error en getEcclesiasticalYears', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
-          message:
-              e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
+          message: e.response?.data?['message'] ??
+              e.message ??
+              tr('common.error_network'),
         );
       }
       if (e is AppException) rethrow;
@@ -198,9 +211,11 @@ class CatalogsRemoteDataSourceImpl implements CatalogsRemoteDataSource {
   }
 
   @override
-  Future<EcclesiasticalYearModel?> getCurrentEcclesiasticalYear({CancelToken? cancelToken}) async {
+  Future<EcclesiasticalYearModel?> getCurrentEcclesiasticalYear(
+      {CancelToken? cancelToken}) async {
     try {
-      final years = await getEcclesiasticalYears(active: true, cancelToken: cancelToken);
+      final years =
+          await getEcclesiasticalYears(active: true, cancelToken: cancelToken);
       return years.isNotEmpty ? years.first : null;
     } catch (e) {
       AppLogger.e('Error en getCurrentEcclesiasticalYear', tag: _tag, error: e);

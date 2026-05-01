@@ -40,7 +40,9 @@ class CamporeePaymentsView extends ConsumerWidget {
         backgroundColor: c.background,
         surfaceTintColor: Colors.transparent,
         title: Text(
-          memberName != null ? 'camporees.payments.title'.tr(namedArgs: {'name': memberName!}) : 'camporees.payments.title_fallback'.tr(),
+          memberName != null
+              ? 'camporees.payments.title'.tr(namedArgs: {'name': memberName!})
+              : 'camporees.payments.title_fallback'.tr(),
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 18,
@@ -174,8 +176,7 @@ class _SummaryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.primaryLight,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-            color: AppColors.primary.withValues(alpha: 0.3)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -222,8 +223,10 @@ class _SummaryCard extends StatelessWidget {
             ),
             child: Text(
               paymentCount == 1
-                  ? 'camporees.payments.payment_count_one'.tr(namedArgs: {'count': '$paymentCount'})
-                  : 'camporees.payments.payment_count_other'.tr(namedArgs: {'count': '$paymentCount'}),
+                  ? 'camporees.payments.payment_count_one'
+                      .tr(namedArgs: {'count': '$paymentCount'})
+                  : 'camporees.payments.payment_count_other'
+                      .tr(namedArgs: {'count': '$paymentCount'}),
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
@@ -353,8 +356,7 @@ class _PaymentCard extends StatelessWidget {
           const SizedBox(height: 10),
           // Status badge
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: statusCfg.bg,
               borderRadius: BorderRadius.circular(20),
@@ -445,11 +447,11 @@ class _CamporeePaymentFormSheetState
   DateTime? _paymentDate;
 
   List<(String, String)> get _paymentTypes => [
-    ('cash', 'camporees.payments.payment_type_cash'.tr()),
-    ('transfer', 'camporees.payments.payment_type_transfer'.tr()),
-    ('check', 'camporees.payments.payment_type_check'.tr()),
-    ('card', 'camporees.payments.payment_type_card'.tr()),
-  ];
+        ('cash', 'camporees.payments.payment_type_cash'.tr()),
+        ('transfer', 'camporees.payments.payment_type_transfer'.tr()),
+        ('check', 'camporees.payments.payment_type_check'.tr()),
+        ('card', 'camporees.payments.payment_type_card'.tr()),
+      ];
 
   @override
   void dispose() {
@@ -563,7 +565,8 @@ class _CamporeePaymentFormSheetState
                     if (v == null || v.trim().isEmpty) {
                       return 'camporees.payments.amount_required'.tr();
                     }
-                    final parsed = double.tryParse(v.trim().replaceAll(',', '.'));
+                    final parsed =
+                        double.tryParse(v.trim().replaceAll(',', '.'));
                     if (parsed == null || parsed <= 0) {
                       return 'camporees.payments.amount_invalid'.tr();
                     }
@@ -665,9 +668,8 @@ class _CamporeePaymentFormSheetState
                               : 'camporees.payments.select_date'.tr(),
                           style: TextStyle(
                             fontSize: 14,
-                            color: _paymentDate != null
-                                ? c.text
-                                : c.textTertiary,
+                            color:
+                                _paymentDate != null ? c.text : c.textTertiary,
                           ),
                         ),
                       ],
@@ -725,8 +727,7 @@ class _CamporeePaymentFormSheetState
           : null,
       filled: true,
       fillColor: c.surface,
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: c.border),
@@ -768,22 +769,20 @@ class _CamporeePaymentFormSheetState
     );
     ref.read(createCamporeePaymentProvider(params).notifier).reset();
 
-    final amount = double.parse(
-        _amountCtrl.text.trim().replaceAll(',', '.'));
+    final amount = double.parse(_amountCtrl.text.trim().replaceAll(',', '.'));
     final reference =
         _referenceCtrl.text.trim().isEmpty ? null : _referenceCtrl.text.trim();
     final notes =
         _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim();
 
-    final success = await ref
-        .read(createCamporeePaymentProvider(params).notifier)
-        .create(
-          amount: amount,
-          paymentType: _paymentType,
-          reference: reference,
-          paymentDate: _paymentDate,
-          notes: notes,
-        );
+    final success =
+        await ref.read(createCamporeePaymentProvider(params).notifier).create(
+              amount: amount,
+              paymentType: _paymentType,
+              reference: reference,
+              paymentDate: _paymentDate,
+              notes: notes,
+            );
 
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -791,8 +790,8 @@ class _CamporeePaymentFormSheetState
           content: Text('camporees.payments.success'.tr()),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
       Navigator.of(context).pop();

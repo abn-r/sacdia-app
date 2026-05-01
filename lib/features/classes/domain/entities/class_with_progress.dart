@@ -33,20 +33,18 @@ class ClassWithProgress extends Equatable {
       modules.fold(0, (sum, m) => sum + m.requirements.length);
 
   /// Requerimientos completados (validados).
-  int get completedRequirements => modules.fold(
-      0, (sum, m) => sum + m.completedCount);
+  int get completedRequirements =>
+      modules.fold(0, (sum, m) => sum + m.completedCount);
 
   /// Requerimientos enviados (esperando validacion).
-  int get submittedRequirements => modules.fold(
-      0, (sum, m) => sum + m.submittedCount);
+  int get submittedRequirements =>
+      modules.fold(0, (sum, m) => sum + m.submittedCount);
 
   /// Total de puntos de la clase.
-  int get totalPoints =>
-      modules.fold(0, (sum, m) => sum + m.totalPoints);
+  int get totalPoints => modules.fold(0, (sum, m) => sum + m.totalPoints);
 
   /// Puntos ganados (solo requerimientos validados).
-  int get earnedPoints =>
-      modules.fold(0, (sum, m) => sum + m.earnedPoints);
+  int get earnedPoints => modules.fold(0, (sum, m) => sum + m.earnedPoints);
 
   /// Porcentaje de completacion (0.0 - 1.0).
   double get completionRatio =>

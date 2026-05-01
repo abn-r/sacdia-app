@@ -28,14 +28,14 @@ final annualFoldersRepositoryProvider =
 // ── Data providers ────────────────────────────────────────────────────────────
 
 /// Provider de la carpeta anual por enrollment.
-final annualFolderByEnrollmentProvider =
-    FutureProvider.autoDispose.family<AnnualFolder, int>(
-        (ref, enrollmentId) async {
+final annualFolderByEnrollmentProvider = FutureProvider.autoDispose
+    .family<AnnualFolder, int>((ref, enrollmentId) async {
   ref.keepAlive();
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final repo = ref.read(annualFoldersRepositoryProvider);
-  final result = await repo.getFolderByEnrollment(enrollmentId, cancelToken: cancelToken);
+  final result =
+      await repo.getFolderByEnrollment(enrollmentId, cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (folder) => folder,
@@ -82,8 +82,7 @@ class UploadEvidenceNotifier
     String? notes,
     required int enrollmentId,
   }) async {
-    state = state.copyWith(
-        isLoading: true, errorMessage: null, success: false);
+    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
     final result =
         await ref.read(annualFoldersRepositoryProvider).uploadEvidence(
@@ -96,8 +95,7 @@ class UploadEvidenceNotifier
 
     return result.fold(
       (failure) {
-        state = state.copyWith(
-            isLoading: false, errorMessage: failure.message);
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
         return false;
       },
       (_) {
@@ -142,14 +140,12 @@ class DeleteEvidenceState {
   }
 }
 
-class DeleteEvidenceNotifier
-    extends AutoDisposeNotifier<DeleteEvidenceState> {
+class DeleteEvidenceNotifier extends AutoDisposeNotifier<DeleteEvidenceState> {
   @override
   DeleteEvidenceState build() => const DeleteEvidenceState();
 
   Future<bool> delete(int evidenceId, {required int enrollmentId}) async {
-    state = state.copyWith(
-        isLoading: true, errorMessage: null, success: false);
+    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
     final result = await ref
         .read(annualFoldersRepositoryProvider)
@@ -157,8 +153,7 @@ class DeleteEvidenceNotifier
 
     return result.fold(
       (failure) {
-        state = state.copyWith(
-            isLoading: false, errorMessage: failure.message);
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
         return false;
       },
       (_) {
@@ -211,17 +206,14 @@ class SubmitFolderNotifier
   int get _folderId => arg;
 
   Future<bool> submit({required int enrollmentId}) async {
-    state = state.copyWith(
-        isLoading: true, errorMessage: null, success: false);
+    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result = await ref
-        .read(annualFoldersRepositoryProvider)
-        .submitFolder(_folderId);
+    final result =
+        await ref.read(annualFoldersRepositoryProvider).submitFolder(_folderId);
 
     return result.fold(
       (failure) {
-        state = state.copyWith(
-            isLoading: false, errorMessage: failure.message);
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
         return false;
       },
       (_) {

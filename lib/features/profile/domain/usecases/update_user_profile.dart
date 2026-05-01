@@ -17,13 +17,15 @@ class UpdateUserProfileParams {
 }
 
 /// Caso de uso para actualizar el perfil del usuario
-class UpdateUserProfile implements UseCase<UserDetail, UpdateUserProfileParams> {
+class UpdateUserProfile
+    implements UseCase<UserDetail, UpdateUserProfileParams> {
   final ProfileRepository repository;
 
   UpdateUserProfile(this.repository);
 
   @override
-  Future<Either<Failure, UserDetail>> call(UpdateUserProfileParams params) async {
+  Future<Either<Failure, UserDetail>> call(
+      UpdateUserProfileParams params) async {
     return await repository.updateUserProfile(params.userId, params.data);
   }
 }

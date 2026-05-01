@@ -67,19 +67,19 @@ class MemberInsuranceModel extends MemberInsurance {
 
     // Nombre completo
     final name = (user['name'] ?? '').toString();
-    final paternal = (user['paternal_last_name'] ?? user['p_lastname'] ?? '').toString();
-    final maternal = (user['maternal_last_name'] ?? user['m_lastname'] ?? '').toString();
-    final fullName = [name, paternal, maternal]
-        .where((s) => s.isNotEmpty)
-        .join(' ');
+    final paternal =
+        (user['paternal_last_name'] ?? user['p_lastname'] ?? '').toString();
+    final maternal =
+        (user['maternal_last_name'] ?? user['m_lastname'] ?? '').toString();
+    final fullName =
+        [name, paternal, maternal].where((s) => s.isNotEmpty).join(' ');
 
     // Avatar
-    final avatar =
-        (user['user_image'] ?? user['avatar'] ?? json['user_image'])?.toString();
+    final avatar = (user['user_image'] ?? user['avatar'] ?? json['user_image'])
+        ?.toString();
 
     // Clase progresiva
-    final classData =
-        json['current_class'] as Map<String, dynamic>? ??
+    final classData = json['current_class'] as Map<String, dynamic>? ??
         user['current_class'] as Map<String, dynamic>?;
     final memberClass = classData?['name']?.toString();
 
@@ -105,14 +105,16 @@ class MemberInsuranceModel extends MemberInsurance {
     // Calcular estado: vencido si end_date < hoy
     final now = DateTime.now();
     InsuranceStatus status;
-    if (endDate != null && endDate.isBefore(DateTime(now.year, now.month, now.day))) {
+    if (endDate != null &&
+        endDate.isBefore(DateTime(now.year, now.month, now.day))) {
       status = InsuranceStatus.vencido;
     } else {
       status = InsuranceStatus.asegurado;
     }
 
     return MemberInsuranceModel(
-      insuranceId: _parseInt(insuranceJson['insurance_id'] ?? insuranceJson['id']),
+      insuranceId:
+          _parseInt(insuranceJson['insurance_id'] ?? insuranceJson['id']),
       memberId: userId,
       memberName: fullName.isNotEmpty ? fullName : 'Sin nombre',
       memberPhotoUrl: avatar,
@@ -148,9 +150,8 @@ class MemberInsuranceModel extends MemberInsurance {
     final name = (user['name'] ?? '').toString();
     final paternal = (user['paternal_last_name'] ?? '').toString();
     final maternal = (user['maternal_last_name'] ?? '').toString();
-    final fullName = [name, paternal, maternal]
-        .where((s) => s.isNotEmpty)
-        .join(' ');
+    final fullName =
+        [name, paternal, maternal].where((s) => s.isNotEmpty).join(' ');
 
     final startDate = _parseDate(insurance['start_date']);
     final endDate = _parseDate(insurance['end_date']);
@@ -167,10 +168,12 @@ class MemberInsuranceModel extends MemberInsurance {
 
     return MemberInsuranceModel(
       insuranceId: _parseInt(insurance['insurance_id'] ?? insurance['id']),
-      memberId: (user['user_id'] ?? user['id'] ?? json['user_id'] ?? '').toString(),
+      memberId:
+          (user['user_id'] ?? user['id'] ?? json['user_id'] ?? '').toString(),
       memberName: fullName.isNotEmpty ? fullName : 'Sin nombre',
       memberPhotoUrl: (user['user_image'] ?? user['avatar'])?.toString(),
-      memberClass: (json['current_class'] as Map<String, dynamic>?)?['name']?.toString(),
+      memberClass:
+          (json['current_class'] as Map<String, dynamic>?)?['name']?.toString(),
       status: status,
       insuranceType: _parseType(insurance['insurance_type']?.toString()),
       policyNumber: insurance['policy_number']?.toString(),

@@ -125,7 +125,8 @@ Future<VirtualCard> _buildFallbackCard(
     achievementTier: null,
     cardIdShort: null,
     qrToken: qrToken?.token,
-    qrExpiresAt: qrToken?.expiresAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+    qrExpiresAt: qrToken?.expiresAt ??
+        DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
     isActive: user.authorization?.activeGrant?.isActive ?? true,
     isOffline: isOffline,
   );

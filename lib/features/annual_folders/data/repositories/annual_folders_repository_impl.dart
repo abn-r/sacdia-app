@@ -27,10 +27,11 @@ class AnnualFoldersRepositoryImpl implements AnnualFoldersRepository {
       Left(UnexpectedFailure(message: e.toString()));
 
   @override
-  Future<Either<Failure, AnnualFolder>> getFolderByEnrollment(
-      int enrollmentId, {CancelToken? cancelToken}) async {
+  Future<Either<Failure, AnnualFolder>> getFolderByEnrollment(int enrollmentId,
+      {CancelToken? cancelToken}) async {
     try {
-      final model = await remoteDataSource.getFolderByEnrollment(enrollmentId, cancelToken: cancelToken);
+      final model = await remoteDataSource.getFolderByEnrollment(enrollmentId,
+          cancelToken: cancelToken);
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return _serverFailure(e);

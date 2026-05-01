@@ -225,7 +225,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
 
   Widget _buildTitleSection(BuildContext context, Activity activity) {
     final typeColor = _typeColor(activity.activityType);
-    final typeText = _typeLabel(activity.activityType, activity.activityTypeName);
+    final typeText =
+        _typeLabel(activity.activityType, activity.activityTypeName);
     final platColor = _platformColor(activity.platform);
     final platText = _platformLabel(activity.platform);
 
@@ -317,7 +318,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader(context, 'activities.detail.section_description'.tr()),
+        _buildSectionHeader(
+            context, 'activities.detail.section_description'.tr()),
         const SizedBox(height: 10),
         AnimatedCrossFade(
           duration: const Duration(milliseconds: 200),
@@ -485,7 +487,6 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
             : null,
         body: activityAsync.when(
           loading: () => const ActivityDetailSkeleton(),
-
           error: (error, _) => Column(
             children: [
               AppBar(
@@ -517,12 +518,10 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                         const SizedBox(height: 8),
                         Text(
                           error.toString().replaceAll('Exception: ', ''),
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(
-                                color: context.sac.textSecondary,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: context.sac.textSecondary,
+                                  ),
                           textAlign: TextAlign.center,
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
@@ -541,7 +540,6 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
               ),
             ],
           ),
-
           data: (activity) {
             final heroHeight = _heroHeightFor(activity.platform);
             final hasLocation = activity.platform != 1 &&
@@ -770,9 +768,8 @@ class _CreatorAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasImage = imageUrl != null && imageUrl!.isNotEmpty;
-    final initial = name != null && name!.isNotEmpty
-        ? name![0].toUpperCase()
-        : '?';
+    final initial =
+        name != null && name!.isNotEmpty ? name![0].toUpperCase() : '?';
 
     if (hasImage) {
       return ClipOval(

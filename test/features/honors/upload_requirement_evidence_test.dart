@@ -65,8 +65,8 @@ class _StubHonorsRepository implements HonorsRepository {
       throw UnimplementedError();
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> getUserHonorStats(
-          String userId, {CancelToken? cancelToken}) =>
+  Future<Either<Failure, Map<String, dynamic>>> getUserHonorStats(String userId,
+          {CancelToken? cancelToken}) =>
       throw UnimplementedError();
 
   @override
@@ -80,8 +80,7 @@ class _StubHonorsRepository implements HonorsRepository {
       throw UnimplementedError();
 
   @override
-  Future<Either<Failure, void>> deleteUserHonor(
-          String userId, int honorId) =>
+  Future<Either<Failure, void>> deleteUserHonor(String userId, int honorId) =>
       throw UnimplementedError();
 
   @override
@@ -96,7 +95,8 @@ class _StubHonorsRepository implements HonorsRepository {
 
   @override
   Future<Either<Failure, List<HonorRequirement>>> getHonorRequirements(
-          int honorId, {CancelToken? cancelToken}) =>
+          int honorId,
+          {CancelToken? cancelToken}) =>
       throw UnimplementedError();
 
   @override
@@ -157,7 +157,8 @@ void main() {
   });
 
   group('UploadRequirementEvidence — MIME validation', () {
-    test('rejects .exe — returns ValidationFailure, repository NOT called', () async {
+    test('rejects .exe — returns ValidationFailure, repository NOT called',
+        () async {
       final result = await usecase(UploadRequirementEvidenceParams(
         userId: 'u1',
         honorId: 1,
@@ -173,7 +174,8 @@ void main() {
       expect(repository.capturedMimeType, isNull);
     });
 
-    test('rejects .gif — returns ValidationFailure, repository NOT called', () async {
+    test('rejects .gif — returns ValidationFailure, repository NOT called',
+        () async {
       final result = await usecase(UploadRequirementEvidenceParams(
         userId: 'u1',
         honorId: 1,

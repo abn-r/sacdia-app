@@ -19,8 +19,7 @@ class TransferRequestDetailView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final requestAsync =
-        ref.watch(transferRequestDetailProvider(requestId));
+    final requestAsync = ref.watch(transferRequestDetailProvider(requestId));
     final c = context.sac;
 
     return Scaffold(
@@ -129,7 +128,8 @@ class _DetailBody extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      tr('transfers.detail.request_number', namedArgs: {'id': '${request.id}'}),
+                      tr('transfers.detail.request_number',
+                          namedArgs: {'id': '${request.id}'}),
                       style: TextStyle(
                         fontSize: 12,
                         color: statusConfig.fg.withValues(alpha: 0.7),
@@ -157,7 +157,9 @@ class _DetailBody extends StatelessWidget {
               _DetailRow(
                 icon: HugeIcons.strokeRoundedUserGroup,
                 label: tr('transfers.detail.destination_section'),
-                value: request.toSectionName ?? tr('transfers.list.section_number', namedArgs: {'id': '${request.toSectionId}'}),
+                value: request.toSectionName ??
+                    tr('transfers.list.section_number',
+                        namedArgs: {'id': '${request.toSectionId}'}),
               ),
               if (request.toClubName != null) ...[
                 Divider(height: 1, color: c.borderLight),

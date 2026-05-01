@@ -208,8 +208,7 @@ class _SacTextFieldState extends State<SacTextField> {
     return Padding(
       padding: const EdgeInsets.only(left: 15, right: 8),
       child: widget.prefixIcon is IconData
-          ? Icon(widget.prefixIcon,
-              size: 20, color: context.sac.textSecondary)
+          ? Icon(widget.prefixIcon, size: 20, color: context.sac.textSecondary)
           : HugeIcon(
               icon: widget.prefixIcon,
               size: 20,

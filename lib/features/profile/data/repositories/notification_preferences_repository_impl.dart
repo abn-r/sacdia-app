@@ -60,7 +60,8 @@ class NotificationPreferencesRepositoryImpl
       final cached = await _readFromCache();
       return Right(cached);
     } catch (e) {
-      AppLogger.e('Error inesperado al obtener preferencias', tag: _tag, error: e);
+      AppLogger.e('Error inesperado al obtener preferencias',
+          tag: _tag, error: e);
       return Left(ServerFailure(
           message: tr('profile.notification_preferences.errors.fetch_failed',
               namedArgs: {'detail': '$e'})));
@@ -85,7 +86,8 @@ class NotificationPreferencesRepositoryImpl
       );
       return Left(ServerFailure(message: e.message, code: e.code));
     } catch (e) {
-      AppLogger.e('Error inesperado al actualizar preferencias', tag: _tag, error: e);
+      AppLogger.e('Error inesperado al actualizar preferencias',
+          tag: _tag, error: e);
       return Left(ServerFailure(
           message: tr('profile.notification_preferences.errors.update_failed',
               namedArgs: {'detail': '$e'})));

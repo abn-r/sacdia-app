@@ -110,17 +110,13 @@ class _MedicinesSelectionViewState
         actions: [
           IconButton(
             icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 24),
-            onPressed: () =>
-                ref.read(userMedicinesProvider.notifier).refresh(),
-            tooltip:
-                'post_registration.health.medicines.refresh_tooltip'.tr(),
+            onPressed: () => ref.read(userMedicinesProvider.notifier).refresh(),
+            tooltip: 'post_registration.health.medicines.refresh_tooltip'.tr(),
           ),
           TextButton.icon(
             onPressed: () async {
               final ids = ref.read(selectedMedicinesProvider);
-              await ref
-                  .read(userMedicinesProvider.notifier)
-                  .saveAll(ids);
+              await ref.read(userMedicinesProvider.notifier).saveAll(ids);
               if (context.mounted) Navigator.of(context).pop();
             },
             icon: const HugeIcon(

@@ -41,8 +41,7 @@ abstract class AuthRemoteDataSource {
   Future<void> resetPassword(String email);
 
   /// Actualiza la contraseña del usuario
-  Future<UserModel> updatePassword(
-      String currentPassword, String newPassword);
+  Future<UserModel> updatePassword(String currentPassword, String newPassword);
 
   /// Inicia sesión con Google OAuth
   Future<UserModel> signInWithGoogle();
@@ -127,7 +126,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await _secureStorage.write(AppConstants.refreshTokenKey, refreshToken);
     }
     if (expiresAt != null) {
-      await _secureStorage.write(AppConstants.expiresAtKey, expiresAt.toString());
+      await _secureStorage.write(
+          AppConstants.expiresAtKey, expiresAt.toString());
     }
     if (tokenType != null) {
       await _secureStorage.write(AppConstants.tokenTypeKey, tokenType);
@@ -386,7 +386,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       AppLogger.i('Login iniciado', tag: _tag);
 
-      final response = await _dio.post('$_baseUrl${ApiEndpoints.auth}/login', data: {
+      final response =
+          await _dio.post('$_baseUrl${ApiEndpoints.auth}/login', data: {
         'email': email,
         'password': password,
       });
@@ -442,7 +443,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         final serverMessage = e.response?.data is Map
             ? e.response!.data['message'] as String?
             : null;
-        throw AuthException(message: serverMessage ?? tr('common.error_network'));
+        throw AuthException(
+            message: serverMessage ?? tr('common.error_network'));
       }
       if (e is AuthException) rethrow;
       throw AuthException(message: e.toString());
@@ -460,7 +462,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       AppLogger.i('Registro iniciado', tag: _tag);
 
-      final response = await _dio.post('$_baseUrl${ApiEndpoints.auth}/register', data: {
+      final response =
+          await _dio.post('$_baseUrl${ApiEndpoints.auth}/register', data: {
         'email': email,
         'password': password,
         'name': name,
@@ -478,9 +481,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       // OR { data: { user: {...}, accessToken, refreshToken } } depending on endpoint version
       final responseBody = response.data as Map<String, dynamic>;
       final userData = responseBody['user'] as Map<String, dynamic>?;
-      final userId = userData?['id'] as String?
-          ?? responseBody['userId'] as String?
-          ?? (responseBody['data'] as Map<String, dynamic>?)?['user']?['id'] as String?;
+      final userId = userData?['id'] as String? ??
+          responseBody['userId'] as String? ??
+          (responseBody['data'] as Map<String, dynamic>?)?['user']?['id']
+              as String?;
 
       if (userId == null) {
         throw AuthException(message: tr('errors.missing_user_id'));
@@ -509,8 +513,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en registro', tag: _tag, error: e);
       if (e is DioException) {
-        final message =
-            e.response?.data?['message'] ?? e.message ?? tr('common.error_network');
+        final message = e.response?.data?['message'] ??
+            e.message ??
+            tr('common.error_network');
         throw AuthException(message: message);
       }
       if (e is AuthException) rethrow;
@@ -524,7 +529,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
     // Read tokens before clearing — needed to notify the server.
     final token = await _secureStorage.read(AppConstants.tokenKey);
-    final refreshToken = await _secureStorage.read(AppConstants.refreshTokenKey);
+    final refreshToken =
+        await _secureStorage.read(AppConstants.refreshTokenKey);
 
     // Always clear local state first, regardless of network outcome.
     await _clearToken();
@@ -577,8 +583,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       AppLogger.e('Error en reset password', tag: _tag, error: e);
       if (e is DioException) {
         throw AuthException(
-          message: e.response?.data?['message'] ??
-              tr('errors.password_reset_sent'),
+          message:
+              e.response?.data?['message'] ?? tr('errors.password_reset_sent'),
         );
       }
       throw AuthException(message: e.toString());
@@ -610,8 +616,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return user;
     } catch (e) {
       if (e is DioException) {
-        throw AuthException(
-            message: e.message ?? tr('errors.update_password'));
+        throw AuthException(message: e.message ?? tr('errors.update_password'));
       }
       if (e is AuthException) rethrow;
       throw AuthException(message: e.toString());
@@ -680,7 +685,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       AppLogger.i('Iniciando OAuth con Google', tag: _tag);
 
       // 1. Obtener el redirect URL del backend
-      final response = await _dio.get('$_baseUrl${ApiEndpoints.auth}/oauth/google');
+      final response =
+          await _dio.get('$_baseUrl${ApiEndpoints.auth}/oauth/google');
       final redirectUrl = _extractOAuthUrl(response, 'Google');
 
       // 2. Abrir en navegador del sistema
@@ -715,7 +721,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       AppLogger.i('Iniciando OAuth con Apple', tag: _tag);
 
       // 1. Obtener el redirect URL del backend
-      final response = await _dio.get('$_baseUrl${ApiEndpoints.auth}/oauth/apple');
+      final response =
+          await _dio.get('$_baseUrl${ApiEndpoints.auth}/oauth/apple');
       final redirectUrl = _extractOAuthUrl(response, 'Apple');
 
       // 2. Abrir en navegador del sistema
@@ -747,7 +754,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   String _extractOAuthUrl(dynamic response, String provider) {
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw AuthException(
-        message: response.data?['message'] ?? tr('errors.get_oauth_url', namedArgs: {'provider': provider}),
+        message: response.data?['message'] ??
+            tr('errors.get_oauth_url', namedArgs: {'provider': provider}),
       );
     }
     final data = response.data;
@@ -756,8 +764,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         : null;
     if (url == null || url.isEmpty) {
       throw AuthException(
-  message: tr('errors.oauth_url_missing', namedArgs: {'provider': provider}),
-);
+        message:
+            tr('errors.oauth_url_missing', namedArgs: {'provider': provider}),
+      );
     }
     return url;
   }
@@ -788,7 +797,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw AuthException(
-          message: response.data?['message'] ?? tr('errors.oauth_callback_failed'),
+          message:
+              response.data?['message'] ?? tr('errors.oauth_callback_failed'),
         );
       }
 
@@ -915,8 +925,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       rethrow;
     } catch (e) {
       throw AuthException(
-  message: tr('errors.unexpected', namedArgs: {'details': '$e'}),
-);
+        message: tr('errors.unexpected', namedArgs: {'details': '$e'}),
+      );
     }
   }
 

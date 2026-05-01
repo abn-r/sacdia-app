@@ -169,7 +169,8 @@ class _GlobalProgressCard extends StatelessWidget {
     final percentage = progress.progressPercentage;
     final isComplete = progress.completionStatus.toLowerCase() == 'completed';
     final completedModules = progress.modules
-        .where((m) => m.completedSections == m.totalSections && m.totalSections > 0)
+        .where((m) =>
+            m.completedSections == m.totalSections && m.totalSections > 0)
         .length;
 
     return Container(
@@ -206,7 +207,7 @@ class _GlobalProgressCard extends StatelessWidget {
                 color: Colors.white,
               ),
               const SizedBox(width: 8),
-                Expanded(
+              Expanded(
                 child: Text(
                   isComplete
                       ? 'certifications.progress.completed'.tr()
@@ -321,7 +322,8 @@ class _ModuleProgressSectionState
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: isComplete ? AppColors.secondary : AppColors.primary,
+                      color:
+                          isComplete ? AppColors.secondary : AppColors.primary,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: isComplete
@@ -348,15 +350,13 @@ class _ModuleProgressSectionState
                       children: [
                         Text(
                           module.moduleName,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: isComplete
-                                    ? AppColors.secondaryDark
-                                    : c.text,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: isComplete
+                                        ? AppColors.secondaryDark
+                                        : c.text,
+                                  ),
                         ),
                         const SizedBox(height: 4),
                         ClipRRect(
@@ -446,7 +446,8 @@ class _SectionCheckTileState extends ConsumerState<_SectionCheckTile> {
 
     try {
       await ref
-          .read(sectionProgressNotifierProvider(widget.certificationId).notifier)
+          .read(
+              sectionProgressNotifierProvider(widget.certificationId).notifier)
           .updateSection(
             moduleId: widget.moduleId,
             sectionId: widget.section.sectionId,
@@ -527,8 +528,7 @@ class _SectionCheckTileState extends ConsumerState<_SectionCheckTile> {
                 style: TextStyle(
                   fontSize: 13,
                   color: isCompleted ? AppColors.secondary : c.text,
-                  fontWeight:
-                      isCompleted ? FontWeight.w600 : FontWeight.w400,
+                  fontWeight: isCompleted ? FontWeight.w600 : FontWeight.w400,
                   decoration: isCompleted
                       ? TextDecoration.lineThrough
                       : TextDecoration.none,

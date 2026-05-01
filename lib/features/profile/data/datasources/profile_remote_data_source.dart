@@ -8,8 +8,10 @@ import '../models/user_detail_model.dart';
 
 /// Interfaz para la fuente de datos remota del perfil
 abstract class ProfileRemoteDataSource {
-  Future<UserDetailModel> getUserProfile(String userId, {CancelToken? cancelToken});
-  Future<UserDetailModel> updateUserProfile(String userId, Map<String, dynamic> data);
+  Future<UserDetailModel> getUserProfile(String userId,
+      {CancelToken? cancelToken});
+  Future<UserDetailModel> updateUserProfile(
+      String userId, Map<String, dynamic> data);
   Future<String> updateProfilePicture(String userId, String filePath);
 }
 
@@ -27,7 +29,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         _baseUrl = baseUrl;
 
   @override
-  Future<UserDetailModel> getUserProfile(String userId, {CancelToken? cancelToken}) async {
+  Future<UserDetailModel> getUserProfile(String userId,
+      {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.auth}/me',
@@ -124,7 +127,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
           response.data['avatar'] as String? ??
           '';
     } on DioException catch (e) {
-      AppLogger.e('Error al actualizar foto de perfil', tag: _tag, error: e.message);
+      AppLogger.e('Error al actualizar foto de perfil',
+          tag: _tag, error: e.message);
       throw ServerException(
         message: e.response?.data?['message'] ?? tr('common.error_network'),
         code: e.response?.statusCode,

@@ -196,7 +196,6 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                   if (requirement.type == RequirementType.honor &&
                       requirement.linkedHonorName != null)
                     _LinkedHonorSection(requirement: requirement),
-                  
 
                   // Estado actual tappable — abre historial como bottom sheet
                   const SizedBox(height: 16),
@@ -264,7 +263,8 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                             onProgress: onProgress,
                             skipInvalidation: true,
                           );
-                      if (!success) throw Exception(tr('classes.errors.upload_failed'));
+                      if (!success)
+                        throw Exception(tr('classes.errors.upload_failed'));
                     },
                     onDeleteRemote: (fileId) async {
                       await ref

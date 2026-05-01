@@ -16,7 +16,8 @@ final catalogsDataSourceProvider = Provider<CatalogsRemoteDataSource>((ref) {
 });
 
 /// Provider para obtener los tipos de club
-final clubTypesProvider = FutureProvider.autoDispose<List<ClubTypeModel>>((ref) async {
+final clubTypesProvider =
+    FutureProvider.autoDispose<List<ClubTypeModel>>((ref) async {
   ref.keepAlive();
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
@@ -35,35 +36,36 @@ final activityTypesProvider =
 });
 
 /// Provider para obtener distritos (con filtro opcional)
-final districtsProvider =
-    FutureProvider.autoDispose.family<List<DistrictModel>, int?>((ref, localFieldId) async {
+final districtsProvider = FutureProvider.autoDispose
+    .family<List<DistrictModel>, int?>((ref, localFieldId) async {
   ref.keepAlive();
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.watch(catalogsDataSourceProvider);
-  return dataSource.getDistricts(localFieldId: localFieldId, cancelToken: cancelToken);
+  return dataSource.getDistricts(
+      localFieldId: localFieldId, cancelToken: cancelToken);
 });
 
 /// Provider para obtener iglesias (con filtro opcional)
-final churchesProvider =
-    FutureProvider.autoDispose.family<List<ChurchModel>, int?>((ref, districtId) async {
+final churchesProvider = FutureProvider.autoDispose
+    .family<List<ChurchModel>, int?>((ref, districtId) async {
   ref.keepAlive();
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.watch(catalogsDataSourceProvider);
-  return dataSource.getChurches(districtId: districtId, cancelToken: cancelToken);
+  return dataSource.getChurches(
+      districtId: districtId, cancelToken: cancelToken);
 });
 
-
 /// Provider para obtener años eclesiásticos
-final ecclesiasticalYearsProvider =
-    FutureProvider.autoDispose.family<List<EcclesiasticalYearModel>, bool?>(
-        (ref, activeOnly) async {
+final ecclesiasticalYearsProvider = FutureProvider.autoDispose
+    .family<List<EcclesiasticalYearModel>, bool?>((ref, activeOnly) async {
   ref.keepAlive();
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final dataSource = ref.watch(catalogsDataSourceProvider);
-  return dataSource.getEcclesiasticalYears(active: activeOnly, cancelToken: cancelToken);
+  return dataSource.getEcclesiasticalYears(
+      active: activeOnly, cancelToken: cancelToken);
 });
 
 /// Provider para obtener el año eclesiástico actual (activo)

@@ -154,9 +154,7 @@ class InvestiturePendingListView extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              is403
-                  ? 'investiture.pending.error_403_body'.tr()
-                  : msg,
+              is403 ? 'investiture.pending.error_403_body'.tr() : msg,
               style: TextStyle(fontSize: 14, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
@@ -263,7 +261,8 @@ class _PendingCard extends ConsumerWidget {
                 const SizedBox(width: 4),
                 Text(
                   'investiture.pending.submitted_at'.tr(namedArgs: {
-                    'date': DateFormat('dd/MM/yyyy').format(item.submittedAt!.toLocal()),
+                    'date': DateFormat('dd/MM/yyyy')
+                        .format(item.submittedAt!.toLocal()),
                   }),
                   style: TextStyle(fontSize: 12, color: c.textSecondary),
                 ),
@@ -275,8 +274,7 @@ class _PendingCard extends ConsumerWidget {
             const SizedBox(height: 8),
             Container(
               width: double.infinity,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: c.surfaceVariant,
                 borderRadius: BorderRadius.circular(8),
@@ -430,12 +428,11 @@ class _PendingCard extends ConsumerWidget {
 
     if (confirmed != true || !context.mounted) return;
 
-    final notifier =
-        ref.read(validateEnrollmentNotifierProvider(item.enrollmentId).notifier);
+    final notifier = ref
+        .read(validateEnrollmentNotifierProvider(item.enrollmentId).notifier);
     final ok = await notifier.approve(
-      comments: commentsCtrl.text.trim().isEmpty
-          ? null
-          : commentsCtrl.text.trim(),
+      comments:
+          commentsCtrl.text.trim().isEmpty ? null : commentsCtrl.text.trim(),
     );
 
     if (!context.mounted) return;
@@ -476,10 +473,9 @@ class _PendingCard extends ConsumerWidget {
                   hintText: 'investiture.pending.field_reason_hint'.tr(),
                   border: const OutlineInputBorder(),
                 ),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty)
-                        ? 'investiture.pending.field_reason_error'.tr()
-                        : null,
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'investiture.pending.field_reason_error'.tr()
+                    : null,
               ),
             ],
           ),
@@ -507,8 +503,8 @@ class _PendingCard extends ConsumerWidget {
 
     if (confirmed != true || !context.mounted) return;
 
-    final notifier =
-        ref.read(validateEnrollmentNotifierProvider(item.enrollmentId).notifier);
+    final notifier = ref
+        .read(validateEnrollmentNotifierProvider(item.enrollmentId).notifier);
     final ok = await notifier.reject(comments: commentsCtrl.text.trim());
 
     if (!context.mounted) return;

@@ -92,9 +92,7 @@ class MedicalInfoView extends ConsumerWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 12),
-
           _MedicalSectionCard(
             icon: HugeIcons.strokeRoundedHealth,
             title: 'profile.medical_info.diseases'.tr(),
@@ -153,9 +151,7 @@ class MedicalInfoView extends ConsumerWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 12),
-
           _MedicalSectionCard(
             icon: HugeIcons.strokeRoundedMedicine01,
             title: 'profile.medical_info.medicines'.tr(),
@@ -214,9 +210,7 @@ class MedicalInfoView extends ConsumerWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 12),
-
           _MedicalSectionCard(
             icon: HugeIcons.strokeRoundedContactBook,
             title: 'profile.medical_info.emergency_contacts'.tr(),
@@ -302,9 +296,7 @@ class MedicalInfoView extends ConsumerWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 12),
-
           legalRequiredAsync.when(
             loading: () => const SizedBox.shrink(),
             error: (_, __) => const SizedBox.shrink(),
@@ -366,7 +358,6 @@ class MedicalInfoView extends ConsumerWidget {
               );
             },
           ),
-
           const SizedBox(height: 24),
         ],
       ),

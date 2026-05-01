@@ -38,7 +38,8 @@ class AchievementDetailSheet extends StatelessWidget {
 
     final isCompleted = userAchievement?.isCompleted ?? false;
     final isSecret = achievement.secret && !isCompleted;
-    final visualState = userAchievement?.visualState ?? AchievementVisualState.locked;
+    final visualState =
+        userAchievement?.visualState ?? AchievementVisualState.locked;
     final tierColor = achievementTierColor(achievement.tier);
 
     return DraggableScrollableSheet(
@@ -115,8 +116,7 @@ class AchievementDetailSheet extends StatelessWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.circle,
-                                    size: 8, color: tierColor),
+                                Icon(Icons.circle, size: 8, color: tierColor),
                                 const SizedBox(width: 4),
                                 Text(
                                   achievement.tier.displayName,
@@ -138,7 +138,8 @@ class AchievementDetailSheet extends StatelessWidget {
                           if (achievement.repeatable) ...[
                             const SizedBox(width: 8),
                             SacBadge(
-                              label: 'achievements.views.detail_repeatable'.tr(),
+                              label:
+                                  'achievements.views.detail_repeatable'.tr(),
                               variant: SacBadgeVariant.secondary,
                             ),
                           ],
@@ -194,7 +195,8 @@ class AchievementDetailSheet extends StatelessWidget {
                           userAchievement.timesCompleted > 0) ...[
                         _InfoRow(
                           icon: HugeIcons.strokeRoundedRefresh,
-                          label: 'achievements.views.detail_times_completed'.tr(),
+                          label:
+                              'achievements.views.detail_times_completed'.tr(),
                           value: userAchievement.timesCompleted.toString(),
                         ),
                         const SizedBox(height: 8),
@@ -320,10 +322,10 @@ class _CollectionContent extends StatelessWidget {
     // Extract items from criteria and collected from progress_metadata
     final requiredItems =
         (achievement.criteria['items'] as List<dynamic>?)?.cast<String>() ?? [];
-    final collectedItems = (userAchievement?.progressMetadata?['collected']
-                as List<dynamic>?)
-            ?.cast<String>() ??
-        [];
+    final collectedItems =
+        (userAchievement?.progressMetadata?['collected'] as List<dynamic>?)
+                ?.cast<String>() ??
+            [];
 
     if (requiredItems.isEmpty) return const SizedBox.shrink();
 
@@ -345,7 +347,9 @@ class _CollectionContent extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  isCollected ? Icons.check_circle : Icons.radio_button_unchecked,
+                  isCollected
+                      ? Icons.check_circle
+                      : Icons.radio_button_unchecked,
                   size: 18,
                   color: isCollected
                       ? AppColors.secondary
@@ -360,8 +364,7 @@ class _CollectionContent extends StatelessWidget {
                       color: isCollected
                           ? context.sac.text
                           : context.sac.textSecondary,
-                      decoration:
-                          isCollected ? TextDecoration.none : null,
+                      decoration: isCollected ? TextDecoration.none : null,
                     ),
                   ),
                 ),
@@ -387,8 +390,8 @@ class _StreakContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentStreak = userAchievement?.progressValue ?? 0;
-    final requiredStreak =
-        userAchievement?.progressTarget ?? (achievement.criteria['streak'] as int? ?? 0);
+    final requiredStreak = userAchievement?.progressTarget ??
+        (achievement.criteria['streak'] as int? ?? 0);
     final tierColor = achievementTierColor(achievement.tier);
 
     return Column(
@@ -458,7 +461,8 @@ class _PrerequisiteChip extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            'achievements.views.detail_prerequisite'.tr(namedArgs: {'id': '$prerequisiteId'}),
+            'achievements.views.detail_prerequisite'
+                .tr(namedArgs: {'id': '$prerequisiteId'}),
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,

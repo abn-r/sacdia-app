@@ -75,7 +75,8 @@ class NotificationsRemoteDataSourceImpl
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network'))
+            .toString();
       }
     } catch (_) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag);

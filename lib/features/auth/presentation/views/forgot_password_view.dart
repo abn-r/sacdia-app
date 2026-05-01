@@ -163,7 +163,9 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'auth.forgot_password_success_body'.tr(namedArgs: {'email': _emailController.text.trim()}),
+                          'auth.forgot_password_success_body'.tr(namedArgs: {
+                            'email': _emailController.text.trim()
+                          }),
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 14,

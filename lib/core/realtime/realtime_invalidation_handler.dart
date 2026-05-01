@@ -110,9 +110,8 @@ class RealtimeInvalidationHandler {
       if (existing != null && existing.isNotEmpty) {
         try {
           final decoded = jsonDecode(existing) as List<dynamic>;
-          queue = decoded
-              .map((e) => Map<String, String>.from(e as Map))
-              .toList();
+          queue =
+              decoded.map((e) => Map<String, String>.from(e as Map)).toList();
         } catch (_) {
           // Malformed stored data — start fresh.
           queue = [];
@@ -161,8 +160,7 @@ class RealtimeInvalidationHandler {
       List<Map<String, String>> queue;
       try {
         final decoded = jsonDecode(raw) as List<dynamic>;
-        queue =
-            decoded.map((e) => Map<String, String>.from(e as Map)).toList();
+        queue = decoded.map((e) => Map<String, String>.from(e as Map)).toList();
       } catch (e) {
         AppLogger.w(
           'Pending invalidation queue is malformed — clearing',

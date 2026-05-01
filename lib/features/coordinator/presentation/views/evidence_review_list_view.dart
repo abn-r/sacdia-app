@@ -59,11 +59,11 @@ class EvidenceReviewListView extends ConsumerWidget {
             // ── List ──────────────────────────────────────────────────────
             Expanded(
               child: evidenceAsync.when(
-                data: (list) => _buildList(context, ref, list, hPad, c,
-                    activeFilter),
+                data: (list) =>
+                    _buildList(context, ref, list, hPad, c, activeFilter),
                 loading: () => const Center(child: SacLoading()),
-                error: (error, _) => _buildError(context, ref, error,
-                    activeFilter),
+                error: (error, _) =>
+                    _buildError(context, ref, error, activeFilter),
               ),
             ),
           ],
@@ -98,8 +98,10 @@ class EvidenceReviewListView extends ConsumerWidget {
             const SizedBox(height: 6),
             Text(
               activeFilter != null
-                  ? 'coordinator.evidence_review.list.no_pending_type'
-                      .tr(namedArgs: {'type': activeFilter.displayLabel.toLowerCase()})
+                  ? 'coordinator.evidence_review.list.no_pending_type'.tr(
+                      namedArgs: {
+                          'type': activeFilter.displayLabel.toLowerCase()
+                        })
                   : 'coordinator.evidence_review.list.all_up_to_date'.tr(),
               style: TextStyle(fontSize: 13, color: c.textTertiary),
             ),
@@ -197,7 +199,8 @@ class EvidenceReviewListView extends ConsumerWidget {
             const SizedBox(height: 8),
             Text(
               is403
-                  ? 'coordinator.evidence_review.list.access_restricted_msg'.tr()
+                  ? 'coordinator.evidence_review.list.access_restricted_msg'
+                      .tr()
                   : msg,
               style: TextStyle(fontSize: 14, color: c.textSecondary),
               textAlign: TextAlign.center,
@@ -232,10 +235,7 @@ class _FilterChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final filters = <({String label, EvidenceReviewType? value})>[
-      (
-        label: 'coordinator.evidence_review.list.filter_all'.tr(),
-        value: null
-      ),
+      (label: 'coordinator.evidence_review.list.filter_all'.tr(), value: null),
       (
         label: 'coordinator.evidence_review.list.filter_folders'.tr(),
         value: EvidenceReviewType.folder

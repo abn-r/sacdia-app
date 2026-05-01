@@ -12,7 +12,8 @@ class GetHonorCategories implements UseCase<List<HonorCategory>, NoParams> {
   GetHonorCategories(this.repository);
 
   @override
-  Future<Either<Failure, List<HonorCategory>>> call(NoParams params, {CancelToken? cancelToken}) async {
+  Future<Either<Failure, List<HonorCategory>>> call(NoParams params,
+      {CancelToken? cancelToken}) async {
     return await repository.getHonorCategories(cancelToken: cancelToken);
   }
 }

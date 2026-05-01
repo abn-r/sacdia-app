@@ -10,7 +10,8 @@ class Validators {
       return tr('core.validators.email_required');
     }
 
-    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    final emailRegex =
+        RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
     if (!emailRegex.hasMatch(value)) {
       return tr('core.validators.email_invalid');
     }
@@ -50,7 +51,8 @@ class Validators {
   }
 
   /// Valida que ambas contraseñas coincidan
-  static String? validatePasswordMatch(String? password, String? confirmPassword) {
+  static String? validatePasswordMatch(
+      String? password, String? confirmPassword) {
     if (confirmPassword == null || confirmPassword.isEmpty) {
       return tr('core.validators.confirm_password_required');
     }

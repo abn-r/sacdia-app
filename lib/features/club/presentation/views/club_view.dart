@@ -218,8 +218,7 @@ class _ClubViewState extends ConsumerState<ClubView> {
         content: Text(message),
         backgroundColor: AppColors.error,
         behavior: SnackBarBehavior.floating,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -256,7 +255,8 @@ class _ClubViewState extends ConsumerState<ClubView> {
       },
       child: Scaffold(
         backgroundColor: c.background,
-        appBar: _buildAppBar(context, c, canEditAsync, sectionAsync, isUpdating),
+        appBar:
+            _buildAppBar(context, c, canEditAsync, sectionAsync, isUpdating),
         body: sectionAsync.when(
           loading: () => const Center(child: SacLoading()),
           error: (error, _) => _ErrorBody(
@@ -955,7 +955,8 @@ class _EmptyBody extends StatelessWidget {
             Text(
               'club.no_club_description'.tr(),
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: c.textSecondary, height: 1.4),
+              style:
+                  TextStyle(fontSize: 14, color: c.textSecondary, height: 1.4),
             ),
           ],
         ),

@@ -17,8 +17,7 @@ class ResourceCategoryModel extends Equatable {
   factory ResourceCategoryModel.fromJson(Map<String, dynamic> json) {
     return ResourceCategoryModel(
       // Backend puede devolver 'resource_category_id' o 'id'
-      resourceCategoryId:
-          (json['resource_category_id'] ?? json['id']) as int,
+      resourceCategoryId: (json['resource_category_id'] ?? json['id']) as int,
       name: json['name'] as String,
       description: json['description'] as String?,
     );

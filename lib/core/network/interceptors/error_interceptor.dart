@@ -124,7 +124,8 @@ class ErrorInterceptor extends Interceptor {
           DioException(
             requestOptions: err.requestOptions,
             error: ServerException(
-              message: tr('errors.unexpected', namedArgs: {'details': err.message ?? ''}),
+              message: tr('errors.unexpected',
+                  namedArgs: {'details': err.message ?? ''}),
               stackTrace: err.stackTrace,
             ),
             type: err.type,

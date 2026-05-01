@@ -25,8 +25,7 @@ class ClassModuleDetail extends Equatable {
   // Computed helpers
 
   /// Total de puntos del modulo.
-  int get totalPoints =>
-      requirements.fold(0, (sum, r) => sum + r.pointValue);
+  int get totalPoints => requirements.fold(0, (sum, r) => sum + r.pointValue);
 
   /// Puntos ganados en el modulo (solo requerimientos validados).
   int get earnedPoints =>
@@ -41,9 +40,8 @@ class ClassModuleDetail extends Equatable {
       requirements.where((r) => r.status == RequirementStatus.enviado).length;
 
   /// Progreso del modulo (0.0 - 1.0).
-  double get completionRatio => requirements.isEmpty
-      ? 0.0
-      : completedCount / requirements.length;
+  double get completionRatio =>
+      requirements.isEmpty ? 0.0 : completedCount / requirements.length;
 
   /// Devuelve una copia del modulo con una lista de requerimientos diferente.
   /// Util para filtrado de busqueda sin mutar el original.

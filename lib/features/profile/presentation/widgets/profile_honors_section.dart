@@ -42,88 +42,89 @@ class ProfileHonorsSection extends ConsumerWidget {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
       child: userHonorsAsync.when(
-      loading: () => _HonorsSkeleton(key: const ValueKey('honors-skeleton')),
-      error: (e, _) => Padding(
-        key: const ValueKey('honors-error'),
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Center(
-          child: Text(
-            'profile.honors_section.error_load'.tr(),
-            style: TextStyle(color: AppColors.error, fontSize: 14),
+        loading: () => _HonorsSkeleton(key: const ValueKey('honors-skeleton')),
+        error: (e, _) => Padding(
+          key: const ValueKey('honors-error'),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Center(
+            child: Text(
+              'profile.honors_section.error_load'.tr(),
+              style: TextStyle(color: AppColors.error, fontSize: 14),
+            ),
           ),
         ),
-      ),
-      data: (userHonors) {
-        if (userHonors.isEmpty) {
-          return Padding(
-            key: const ValueKey('honors-data'),
-            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
-            child: Column(
-              children: [
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedAward01,
-                  size: 48,
-                  color: context.sac.textTertiary,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'profile.honors_section.no_honors'.tr(),
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: context.sac.textSecondary,
+        data: (userHonors) {
+          if (userHonors.isEmpty) {
+            return Padding(
+              key: const ValueKey('honors-data'),
+              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
+              child: Column(
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedAward01,
+                    size: 48,
+                    color: context.sac.textTertiary,
                   ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-                SacButton.outline(
+                  const SizedBox(height: 12),
+                  Text(
+                    'profile.honors_section.no_honors'.tr(),
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: context.sac.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  SacButton.outline(
+                    text: 'profile.honors_section.add_honor'.tr(),
+                    icon: HugeIcons.strokeRoundedAdd01,
+                    onPressed: () {
+                      context.push(RouteNames.homeHonors);
+                    },
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Group userHonors by the category name embedded in the response.
+          final Map<String, List<UserHonor>> byCategory = {};
+          for (final uh in userHonors) {
+            final key = uh.honorCategoryName ??
+                'profile.honors_section.sin_categoria'.tr();
+            byCategory.putIfAbsent(key, () => []).add(uh);
+          }
+
+          // Sort category names alphabetically A→Z.
+          final sortedEntries = byCategory.entries.toList()
+            ..sort((a, b) => a.key.compareTo(b.key));
+
+          return Column(
+            key: const ValueKey('honors-data'),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ...sortedEntries.map((entry) {
+                return _CategorySection(
+                  categoryName: entry.key,
+                  categoryId: entry.value.first.honorCategoryId,
+                  userHonors: entry.value,
+                );
+              }),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: SacButton.outline(
                   text: 'profile.honors_section.add_honor'.tr(),
                   icon: HugeIcons.strokeRoundedAdd01,
                   onPressed: () {
                     context.push(RouteNames.homeHonors);
                   },
                 ),
-              ],
-            ),
-          );
-        }
-
-        // Group userHonors by the category name embedded in the response.
-        final Map<String, List<UserHonor>> byCategory = {};
-        for (final uh in userHonors) {
-          final key = uh.honorCategoryName ?? 'profile.honors_section.sin_categoria'.tr();
-          byCategory.putIfAbsent(key, () => []).add(uh);
-        }
-
-        // Sort category names alphabetically A→Z.
-        final sortedEntries = byCategory.entries.toList()
-          ..sort((a, b) => a.key.compareTo(b.key));
-
-        return Column(
-          key: const ValueKey('honors-data'),
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ...sortedEntries.map((entry) {
-              return _CategorySection(
-                categoryName: entry.key,
-                categoryId: entry.value.first.honorCategoryId,
-                userHonors: entry.value,
-              );
-            }),
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: SacButton.outline(
-                text: 'profile.honors_section.add_honor'.tr(),
-                icon: HugeIcons.strokeRoundedAdd01,
-                onPressed: () {
-                  context.push(RouteNames.homeHonors);
-                },
               ),
-            ),
-          ],
-        );
-      },
-    ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -169,8 +170,7 @@ class _CategorySection extends StatelessWidget {
               ),
               color: categoryColor.withAlpha(10),
             ),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
                 Container(
@@ -198,8 +198,8 @@ class _CategorySection extends StatelessWidget {
                 ),
                 // Count badge
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: categoryColor.withAlpha(20),
                     borderRadius: BorderRadius.circular(20),
@@ -228,10 +228,8 @@ class _CategorySection extends StatelessWidget {
             // height is required.
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            gridDelegate:
-                const SliverGridDelegateWithFixedCrossAxisCount(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
               childAspectRatio: 0.78,
               crossAxisSpacing: 10,
@@ -397,18 +395,21 @@ class _HonorsSkeleton extends StatelessWidget {
           const SizedBox(height: 10),
           // Simulate a row of 3 honor cards
           Row(
-            children: List.generate(3, (i) => Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(left: i == 0 ? 0 : 5, right: i == 2 ? 0 : 5),
-                child: Container(
-                  height: 90,
-                  decoration: BoxDecoration(
-                    color: skeletonColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            )),
+            children: List.generate(
+                3,
+                (i) => Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                            left: i == 0 ? 0 : 5, right: i == 2 ? 0 : 5),
+                        child: Container(
+                          height: 90,
+                          decoration: BoxDecoration(
+                            color: skeletonColor,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    )),
           ),
           const SizedBox(height: 20),
           // Simulate a second category header
@@ -422,18 +423,21 @@ class _HonorsSkeleton extends StatelessWidget {
           const SizedBox(height: 10),
           // Simulate a second row of cards
           Row(
-            children: List.generate(3, (i) => Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(left: i == 0 ? 0 : 5, right: i == 2 ? 0 : 5),
-                child: Container(
-                  height: 90,
-                  decoration: BoxDecoration(
-                    color: skeletonColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            )),
+            children: List.generate(
+                3,
+                (i) => Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                            left: i == 0 ? 0 : 5, right: i == 2 ? 0 : 5),
+                        child: Container(
+                          height: 90,
+                          decoration: BoxDecoration(
+                            color: skeletonColor,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    )),
           ),
         ],
       ),

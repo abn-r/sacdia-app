@@ -54,7 +54,8 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
   // ── Endpoints ────────────────────────────────────────────────────────────
 
   @override
-  Future<ClubInfoModel> getClub(String clubId, {CancelToken? cancelToken}) async {
+  Future<ClubInfoModel> getClub(String clubId,
+      {CancelToken? cancelToken}) async {
     try {
       AppLogger.i('Obteniendo club: $clubId', tag: _tag);
 
@@ -76,7 +77,9 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
       if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('DioException en getClub', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
+        message: e.response?.data?['message'] ??
+            e.message ??
+            tr('common.error_network'),
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -119,7 +122,9 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
       if (e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('DioException en getClubSection', tag: _tag, error: e);
       throw ServerException(
-        message: e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
+        message: e.response?.data?['message'] ??
+            e.message ??
+            tr('common.error_network'),
         code: e.response?.statusCode,
       );
     } catch (e) {
@@ -157,7 +162,9 @@ class ClubRemoteDataSourceImpl implements ClubRemoteDataSource {
     } on DioException catch (e) {
       AppLogger.e('DioException en updateClubSection', tag: _tag, error: e);
       final msg = e.response?.data is Map
-          ? (e.response!.data['message'] ?? e.message ?? tr('common.error_network'))
+          ? (e.response!.data['message'] ??
+              e.message ??
+              tr('common.error_network'))
           : (e.message ?? tr('common.error_network'));
       throw ServerException(
         message: msg.toString(),

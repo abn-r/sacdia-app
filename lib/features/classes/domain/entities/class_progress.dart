@@ -15,5 +15,6 @@ class ClassProgress extends Equatable {
   });
 
   @override
-  List<Object?> get props => [classId, totalSections, completedSections, percentage];
+  List<Object?> get props =>
+      [classId, totalSections, completedSections, percentage];
 }

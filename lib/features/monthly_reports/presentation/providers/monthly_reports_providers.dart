@@ -71,13 +71,13 @@ final monthlyReportPreviewProvider = FutureProvider.autoDispose
 });
 
 /// Lista de informes mensuales de un enrollment.
-final monthlyReportsByEnrollmentProvider =
-    FutureProvider.autoDispose.family<List<MonthlyReport>, int>(
-        (ref, enrollmentId) async {
+final monthlyReportsByEnrollmentProvider = FutureProvider.autoDispose
+    .family<List<MonthlyReport>, int>((ref, enrollmentId) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final repo = ref.read(monthlyReportsRepositoryProvider);
-  final result = await repo.getReportsByEnrollment(enrollmentId, cancelToken: cancelToken);
+  final result =
+      await repo.getReportsByEnrollment(enrollmentId, cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (reports) => reports,
@@ -85,9 +85,8 @@ final monthlyReportsByEnrollmentProvider =
 });
 
 /// Detalle de un informe mensual.
-final monthlyReportDetailProvider =
-    FutureProvider.autoDispose.family<MonthlyReport, int>(
-        (ref, reportId) async {
+final monthlyReportDetailProvider = FutureProvider.autoDispose
+    .family<MonthlyReport, int>((ref, reportId) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final repo = ref.read(monthlyReportsRepositoryProvider);
@@ -105,7 +104,8 @@ final monthlyReportPdfProvider =
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final repo = ref.read(monthlyReportsRepositoryProvider);
-  final result = await repo.downloadReportPdf(reportId, cancelToken: cancelToken);
+  final result =
+      await repo.downloadReportPdf(reportId, cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (localPath) => localPath,

@@ -12,7 +12,8 @@ class GetHonors implements UseCase<List<Honor>, GetHonorsParams> {
   GetHonors(this.repository);
 
   @override
-  Future<Either<Failure, List<Honor>>> call(GetHonorsParams params, {CancelToken? cancelToken}) async {
+  Future<Either<Failure, List<Honor>>> call(GetHonorsParams params,
+      {CancelToken? cancelToken}) async {
     return await repository.getHonors(
       categoryId: params.categoryId,
       clubTypeId: params.clubTypeId,
