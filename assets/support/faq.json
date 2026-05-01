@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "locale": "es",
+  "updated_at": "2026-04-23",
+  "items": [
+    {
+      "id": "onboarding_first_login",
+      "category": "onboarding",
+      "question": "¿Cómo inicio sesión por primera vez?",
+      "answer": "Al abrir SACDIA por primera vez, ingresá tu correo electrónico y la contraseña que te proporcionó tu director de club. Si es tu primera vez, serás llevado al flujo de post-registro para completar tu perfil (foto, datos personales, selección de club). También podés iniciar sesión con Google o Apple si tu cuenta tiene ese correo vinculado."
+    },
+    {
+      "id": "login_google_apple",
+      "category": "account",
+      "question": "¿Puedo iniciar sesión con Google o Apple?",
+      "answer": "Sí. En la pantalla de inicio de sesión tocá **Continuar con Google** o **Continuar con Apple**. Si es la primera vez, serás redirigido al navegador para autorizar el acceso. Al regresar a la app, la sesión se abre automáticamente. Importante: el correo de tu cuenta Google/Apple debe coincidir con el correo registrado en SACDIA."
+    },
+    {
+      "id": "login_forgot_password",
+      "category": "account",
+      "question": "Olvidé mi contraseña. ¿Cómo la recupero?",
+      "answer": "En la pantalla de inicio de sesión tocá **¿Olvidaste tu contraseña?** e ingresá tu correo. Te enviaremos un enlace para restablecerla. Si no recibís el correo en 5 minutos, revisá tu carpeta de spam. Si seguís sin verlo, contactanos desde **Configuración → Soporte → Contactar**."
+    },
+    {
+      "id": "login_stuck_oauth",
+      "category": "account",
+      "question": "El inicio con Google/Apple se queda cargando. ¿Qué hago?",
+      "answer": "1) Cerrá la app por completo (no solo minimizarla) y volvé a abrirla.\n2) Verificá que tu conexión a internet esté activa.\n3) Intentá iniciar con correo y contraseña.\n\nSi el problema persiste, reportalo desde **Configuración → Soporte → Reportar un problema**."
+    },
+    {
+      "id": "offline_mode",
+      "category": "offline",
+      "question": "¿La app funciona sin internet?",
+      "answer": "SACDIA muestra parte del contenido en modo offline (perfil, actividades ya cargadas, notificaciones recibidas). Sin embargo, para registrar puntos, enviar evidencias, o reportar problemas necesitás conexión a internet. Cuando la conexión se restablece, la app sincroniza automáticamente los cambios pendientes."
+    },
+    {
+      "id": "offline_sync_error",
+      "category": "offline",
+      "question": "Mis cambios no se guardan. ¿Qué pasa?",
+      "answer": "Verificá que tengas conexión a internet (WiFi o datos móviles). Si el problema persiste después de tener conexión, tocá el botón de recargar en la pantalla afectada (el ícono circular arriba a la derecha). Si el error continúa, reportalo desde **Soporte → Reportar un problema** con una descripción de lo que estabas haciendo."
+    },
+    {
+      "id": "notifications_not_receiving",
+      "category": "notifications",
+      "question": "No recibo notificaciones push. ¿Cómo lo soluciono?",
+      "answer": "1) Abrí **Configuración → Notificaciones** en SACDIA y verificá que el tipo de notificación esté activado.\n2) En los ajustes de tu teléfono: **Ajustes → SACDIA → Notificaciones** — asegurate de que estén permitidas.\n3) En iOS, revisá que **Modo de concentración** no esté bloqueándolas.\n\nSi tras estos pasos seguís sin recibir notificaciones, reportalo con tu modelo de teléfono y versión del sistema operativo."
+    },
+    {
+      "id": "notifications_silencing",
+      "category": "notifications",
+      "question": "¿Puedo silenciar ciertas notificaciones?",
+      "answer": "Sí. En **Configuración → Notificaciones** podés desactivar categorías individualmente (actividades, logros, mensajes del director, etc.). Los cambios se aplican de inmediato — no vas a recibir notificaciones de esa categoría hasta que la reactives."
+    },
+    {
+      "id": "profile_edit",
+      "category": "profile",
+      "question": "¿Cómo edito mi perfil?",
+      "answer": "Desde la pestaña **Perfil** tocá el ícono de lápiz (arriba a la derecha) o andá a **Configuración → Editar perfil**. Podés actualizar tu foto, datos personales, contactos de emergencia e información médica. Los cambios se guardan al tocar **Guardar**."
+    },
+    {
+      "id": "profile_change_club",
+      "category": "profile",
+      "question": "¿Cómo cambio de club?",
+      "answer": "Por seguridad, el cambio de club debe ser autorizado por el director del club de destino. Pedile a tu nuevo director que inicie la solicitud de transferencia desde el panel web. Una vez aprobada, tu club activo cambiará automáticamente al iniciar sesión."
+    },
+    {
+      "id": "privacy_data",
+      "category": "privacy",
+      "question": "¿Qué datos míos guarda SACDIA?",
+      "answer": "SACDIA almacena únicamente los datos necesarios para la gestión del club: nombre, correo, teléfono, foto, club asignado, historial de actividades y logros. Podés descargar una copia completa de tus datos desde **Configuración → Exportar mis datos** en cualquier momento."
+    },
+    {
+      "id": "privacy_delete_account",
+      "category": "privacy",
+      "question": "¿Puedo eliminar mi cuenta?",
+      "answer": "Sí. Desde **Configuración → Eliminar cuenta** podés solicitar la eliminación definitiva. Tu director de club será notificado y tus datos se borrarán en un plazo máximo de 30 días (algunos registros contables deben conservarse por requisitos legales, pero serán anonimizados)."
+    },
+    {
+      "id": "support_contact",
+      "category": "support",
+      "question": "¿Cómo contacto al equipo de soporte?",
+      "answer": "Tenés tres formas:\n\n1. **Reportar un problema** (dentro de la app) — desde **Configuración → Soporte → Reportar un problema**. La información de tu dispositivo se envía automáticamente para ayudarnos a resolverlo más rápido.\n2. **Correo**: escribinos a sacdia.app@gmail.com\n3. **WhatsApp**: disponible en **Configuración → Soporte → Contactar**\n\nRespondemos de lunes a viernes, 9:00 a 18:00 (hora de CDMX)."
+    },
+    {
+      "id": "support_response_time",
+      "category": "support",
+      "question": "¿Cuánto tardan en responder un reporte?",
+      "answer": "Los reportes enviados desde la app se procesan en 24-72 horas hábiles. Los problemas críticos (no poder iniciar sesión, pérdida de datos) tienen prioridad y solemos responder el mismo día. Si es urgente, escribinos por WhatsApp."
+    },
+    {
+      "id": "app_version",
+      "category": "support",
+      "question": "¿Cómo sé qué versión de la app tengo?",
+      "answer": "La versión se muestra al final de la pantalla **Configuración**, debajo del botón de cerrar sesión. Cuando reportes un problema, incluí esta información para que podamos ayudarte más rápido. La app se actualiza automáticamente desde la tienda de aplicaciones de tu teléfono."
+    }
+  ]
+}

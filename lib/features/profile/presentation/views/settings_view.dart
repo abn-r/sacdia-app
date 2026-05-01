@@ -12,10 +12,20 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../auth/domain/entities/user_entity.dart';
+import 'package:easy_localization/easy_localization.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../auth/presentation/providers/logout_cleanup.dart';
 import '../providers/notification_preferences_providers.dart';
 import '../widgets/setting_tile.dart';
+import '../../../qr/presentation/views/qr_scanner_view.dart';
+import '../../../accessibility/presentation/widgets/accessibility_settings_section.dart';
+import '../../../biometric/presentation/providers/biometric_provider.dart';
+import '../../../biometric/presentation/widgets/biometric_settings_section.dart';
+import '../../../settings/presentation/widgets/language_picker_tile.dart';
+import '../../../settings/presentation/widgets/sync_cache_section.dart';
+import '../../../support/presentation/widgets/support_settings_section.dart';
+import '../../../virtual_card/presentation/views/virtual_card_view.dart';
 import 'active_sessions_view.dart';
 import 'data_export_view.dart';
 import 'edit_profile_view.dart';
@@ -84,7 +94,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
             return AlertDialog(
-              title: const Text('Cambiar contraseña'),
+              title: Text('profile.settings.change_password_dialog_title'.tr()),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -94,7 +104,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     textInputAction: TextInputAction.next,
                     enabled: !isLoading,
                     decoration: InputDecoration(
-                      labelText: 'Contraseña actual',
+                      labelText: 'profile.settings.field_current_password'.tr(),
                       suffixIcon: IconButton(
                         icon: HugeIcon(
                           icon: currentObscure
@@ -117,7 +127,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     textInputAction: TextInputAction.next,
                     enabled: !isLoading,
                     decoration: InputDecoration(
-                      labelText: 'Nueva contraseña',
+                      labelText: 'profile.settings.field_new_password'.tr(),
                       suffixIcon: IconButton(
                         icon: HugeIcon(
                           icon: newObscure
@@ -140,7 +150,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     textInputAction: TextInputAction.done,
                     enabled: !isLoading,
                     decoration: InputDecoration(
-                      labelText: 'Confirmar nueva contraseña',
+                      labelText: 'profile.settings.field_confirm_password'.tr(),
                       suffixIcon: IconButton(
                         icon: HugeIcon(
                           icon: confirmObscure
@@ -170,7 +180,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 TextButton(
                   onPressed:
                       isLoading ? null : () => Navigator.pop(ctx, false),
-                  child: const Text('Cancelar'),
+                  child: Text('common.cancel'.tr()),
                 ),
                 FilledButton(
                   onPressed: isLoading
@@ -184,17 +194,17 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                               next.isEmpty ||
                               confirm.isEmpty) {
                             setDialogState(() =>
-                                errorText = 'Completa todos los campos.');
+                                errorText = 'profile.settings.error_fill_all'.tr());
                             return;
                           }
                           if (next != confirm) {
                             setDialogState(() => errorText =
-                                'Las contraseñas nuevas no coinciden.');
+                                'profile.settings.error_passwords_mismatch'.tr());
                             return;
                           }
                           if (next.length < 8) {
                             setDialogState(() => errorText =
-                                'La contraseña debe tener al menos 8 caracteres.');
+                                'profile.settings.error_password_too_short'.tr());
                             return;
                           }
                           setDialogState(() {
@@ -212,7 +222,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text('Cambiar'),
+                      : Text('profile.settings.action_change'.tr()),
                 ),
               ],
             );
@@ -222,6 +232,35 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     );
 
     if (submitted != true || !mounted) return;
+
+    // Confirmación biométrica antes de cambiar la contraseña
+    // (no-op si el usuario no tiene biometría habilitada).
+    final bioOk = await requireBiometricConfirmation(
+      context,
+      ref,
+      reason: 'biometric.confirm_sensitive_action'.tr(),
+    );
+    if (!mounted) {
+      currentCtrl.dispose();
+      newCtrl.dispose();
+      confirmCtrl.dispose();
+      return;
+    }
+    if (!bioOk) {
+      currentCtrl.dispose();
+      newCtrl.dispose();
+      confirmCtrl.dispose();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('profile.settings.operation_cancelled'.tr()),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      return;
+    }
 
     final error = await ref
         .read(authNotifierProvider.notifier)
@@ -237,7 +276,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(error ?? 'Contraseña actualizada correctamente.'),
+        content: Text(error ?? 'profile.settings.password_updated'.tr()),
         backgroundColor: error != null ? AppColors.error : AppColors.success,
         behavior: SnackBarBehavior.floating,
         shape:
@@ -272,20 +311,20 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
   String _getThemeName(ThemeMode mode) {
     switch (mode) {
       case ThemeMode.light:
-        return 'Claro';
+        return 'profile.settings.theme_light'.tr();
       case ThemeMode.dark:
-        return 'Oscuro';
+        return 'profile.settings.theme_dark'.tr();
       case ThemeMode.system:
-        return 'Sistema';
+        return 'profile.settings.theme_system'.tr();
     }
   }
 
   Future<void> _handleLogout() async {
     final shouldLogout = await SacDialog.show(
       context,
-      title: 'Cerrar sesión',
-      content: '¿Estás seguro que deseas cerrar sesión?',
-      confirmLabel: 'Cerrar sesión',
+      title: 'profile.settings.logout_tile'.tr(),
+      content: 'profile.settings.logout_confirm'.tr(),
+      confirmLabel: 'profile.settings.logout_confirm_action'.tr(),
       confirmIsDestructive: true,
     );
 
@@ -308,10 +347,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
     final firstConfirmed = await SacDialog.show(
       context,
-      title: 'Eliminar cuenta',
-      content:
-          'Esta acción es irreversible. Se eliminarán todos tus datos, historial y progreso. ¿Deseas continuar?',
-      confirmLabel: 'Continuar',
+      title: 'profile.settings.delete_account_title'.tr(),
+      content: 'profile.settings.delete_account_first_confirm_body'.tr(),
+      confirmLabel: 'profile.settings.delete_account_first_confirm_action'.tr(),
       confirmIsDestructive: true,
     );
 
@@ -324,16 +362,16 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
       barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text(
-            'Confirmar eliminación',
-            style: TextStyle(color: AppColors.error),
+          title: Text(
+            'profile.settings.delete_account_second_title'.tr(),
+            style: const TextStyle(color: AppColors.error),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Escribí ELIMINAR para confirmar.',
+                'profile.settings.delete_account_write_eliminate'.tr(),
                 style: TextStyle(fontSize: 14, color: c.textSecondary),
               ),
               const SizedBox(height: 12),
@@ -351,13 +389,13 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   ),
                 ],
                 decoration: const InputDecoration(
-                  hintText: 'ELIMINAR',
+                  hintText: 'ELIMINAR', // intentional: must match exact word
                   border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),
               Text(
-                'Ingresá tu contraseña actual para continuar.',
+                'profile.settings.delete_account_enter_password'.tr(),
                 style: TextStyle(fontSize: 14, color: c.textSecondary),
               ),
               const SizedBox(height: 8),
@@ -367,7 +405,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 enabled: !isLoading,
                 textInputAction: TextInputAction.done,
                 decoration: InputDecoration(
-                  hintText: 'Contraseña',
+                  hintText: 'profile.settings.field_password_hint'.tr(),
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: HugeIcon(
@@ -399,7 +437,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
             TextButton(
               onPressed:
                   isLoading ? null : () => Navigator.pop(ctx, false),
-              child: const Text('Cancelar'),
+              child: Text('common.cancel'.tr()),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
@@ -410,12 +448,12 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   : () {
                       if (confirmCtrl.text.trim() != 'ELIMINAR') {
                         setDialogState(() =>
-                            fieldError = 'Escribí exactamente ELIMINAR.');
+                            fieldError = 'profile.settings.delete_account_error_type_wrong'.tr());
                         return;
                       }
                       if (passwordCtrl.text.trim().isEmpty) {
                         setDialogState(
-                            () => fieldError = 'Ingresá tu contraseña.');
+                            () => fieldError = 'profile.settings.delete_account_error_no_password'.tr());
                         return;
                       }
                       setDialogState(() {
@@ -433,7 +471,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                         color: Colors.white,
                       ),
                     )
-                  : const Text('Eliminar cuenta'),
+                  : Text('profile.settings.delete_account_tile'.tr()),
             ),
           ],
         ),
@@ -449,10 +487,10 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     // Mostrar loading en la pantalla mientras corre la request.
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Row(
             children: [
-              SizedBox(
+              const SizedBox(
                 width: 16,
                 height: 16,
                 child: CircularProgressIndicator(
@@ -460,11 +498,11 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   color: Colors.white,
                 ),
               ),
-              SizedBox(width: 12),
-              Text('Eliminando cuenta...'),
+              const SizedBox(width: 12),
+              Text('profile.settings.deleting_account'.tr()),
             ],
           ),
-          duration: Duration(seconds: 30),
+          duration: const Duration(seconds: 30),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -483,7 +521,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
       clearUserStateOnLogout(ref);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Tu cuenta fue eliminada correctamente.'),
+          content: Text('profile.settings.account_deleted'.tr()),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
           shape:
@@ -521,7 +559,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     return Scaffold(
       backgroundColor: c.surfaceVariant,
       appBar: AppBar(
-        title: const Text('Configuración'),
+        title: Text('settings.title'.tr()),
         backgroundColor: c.surfaceVariant,
         foregroundColor: c.text,
         elevation: 0,
@@ -537,27 +575,29 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           ],
 
           // ── APARIENCIA ────────────────────────────────────────────
-          _SectionHeader(title: 'APARIENCIA'),
+          _SectionHeader(title: 'settings.section_appearance'.tr()),
           _GroupContainer(
             children: [
               SettingTile(
                 icon: HugeIcons.strokeRoundedPaintBrush01,
-                title: 'Tema',
+                title: 'profile.settings.theme_title'.tr(),
                 subtitle: _getThemeName(themeMode),
                 iconColor: AppColors.primary,
                 onTap: _showThemeDialog,
               ),
+              _groupDivider(),
+              const AccessibilitySettingsSection(),
             ],
           ),
           const SizedBox(height: 24),
 
           // ── NOTIFICACIONES ────────────────────────────────────────
-          _SectionHeader(title: 'NOTIFICACIONES'),
+          _SectionHeader(title: 'settings.section_notifications'.tr()),
           _GroupContainer(
             children: [
               _SwitchTile(
                 icon: HugeIcons.strokeRoundedNotification01,
-                title: 'Notificaciones push',
+                title: 'profile.settings.notif_push'.tr(),
                 iconColor: AppColors.primary,
                 value: master,
                 onChanged: notifPrefs == null
@@ -567,7 +607,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               _groupDivider(),
               _SwitchTile(
                 icon: HugeIcons.strokeRoundedCalendarCheckIn01,
-                title: 'Actividades',
+                title: 'profile.settings.notif_activities'.tr(),
                 iconColor: master ? c.textSecondary : c.textTertiary,
                 indent: true,
                 value: master && (notifPrefs?.activities ?? true),
@@ -579,7 +619,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               _groupDivider(),
               _SwitchTile(
                 icon: HugeIcons.strokeRoundedAward01,
-                title: 'Logros',
+                title: 'profile.settings.notif_achievements'.tr(),
                 iconColor: master ? c.textSecondary : c.textTertiary,
                 indent: true,
                 value: master && (notifPrefs?.achievements ?? true),
@@ -590,7 +630,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               _groupDivider(),
               _SwitchTile(
                 icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                title: 'Aprobaciones',
+                title: 'profile.settings.notif_approvals'.tr(),
                 iconColor: master ? c.textSecondary : c.textTertiary,
                 indent: true,
                 value: master && (notifPrefs?.approvals ?? true),
@@ -601,7 +641,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               _groupDivider(),
               _SwitchTile(
                 icon: HugeIcons.strokeRoundedUserAdd01,
-                title: 'Invitaciones',
+                title: 'profile.settings.notif_invitations'.tr(),
                 iconColor: master ? c.textSecondary : c.textTertiary,
                 indent: true,
                 value: master && (notifPrefs?.invitations ?? true),
@@ -612,7 +652,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               _groupDivider(),
               _SwitchTile(
                 icon: HugeIcons.strokeRoundedClock01,
-                title: 'Recordatorios',
+                title: 'profile.settings.notif_reminders'.tr(),
                 iconColor: master ? c.textSecondary : c.textTertiary,
                 indent: true,
                 value: master && (notifPrefs?.reminders ?? true),
@@ -624,13 +664,47 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           ),
           const SizedBox(height: 24),
 
+          // ── AYUDA Y SOPORTE ───────────────────────────────────────
+          const SupportSettingsSection(),
+          const SizedBox(height: 24),
+
+          // ── SINCRONIZACIÓN / CACHÉ ────────────────────────────────
+          const SyncCacheSection(),
+          const SizedBox(height: 24),
+
           // ── CUENTA ────────────────────────────────────────────────
-          _SectionHeader(title: 'CUENTA'),
+          _SectionHeader(title: 'settings.section_account'.tr()),
           _GroupContainer(
             children: [
               SettingTile(
+                icon: HugeIcons.strokeRoundedQrCode,
+                title: 'settings.member_qr'.tr(),
+                iconColor: AppColors.primary,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const VirtualCardView(),
+                  ),
+                ),
+              ),
+              if (hasAnyPermission(user, const {'attendance:manage'})) ...[
+                _groupDivider(),
+                SettingTile(
+                  icon: HugeIcons.strokeRoundedQrCode01,
+                  title: 'settings.scan_qr'.tr(),
+                  iconColor: AppColors.primary,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const QrScannerView(),
+                    ),
+                  ),
+                ),
+              ],
+              _groupDivider(),
+              SettingTile(
                 icon: HugeIcons.strokeRoundedDeviceAccess,
-                title: 'Sesiones activas',
+                title: 'settings.active_sessions'.tr(),
                 iconColor: AppColors.primary,
                 onTap: () => Navigator.push(
                   context,
@@ -642,7 +716,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               _groupDivider(),
               SettingTile(
                 icon: HugeIcons.strokeRoundedDownload02,
-                title: 'Descargar mis datos',
+                title: 'settings.download_my_data'.tr(),
                 iconColor: AppColors.primary,
                 onTap: () => Navigator.push(
                   context,
@@ -654,27 +728,31 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               _groupDivider(),
               SettingTile(
                 icon: HugeIcons.strokeRoundedLockPassword,
-                title: 'Cambiar contraseña',
+                title: 'settings.change_password'.tr(),
                 iconColor: AppColors.primary,
                 onTap: _showChangePasswordDialog,
               ),
+              _groupDivider(),
+              const BiometricSettingsSection(),
+              _groupDivider(),
+              const LanguagePickerTile(),
             ],
           ),
           const SizedBox(height: 24),
 
           // ── ACERCA DE ─────────────────────────────────────────────
-          _SectionHeader(title: 'ACERCA DE'),
+          _SectionHeader(title: 'settings.section_about'.tr()),
           _GroupContainer(
             children: [
               SettingTile(
                 icon: HugeIcons.strokeRoundedInformationCircle,
-                title: 'Versión de la app',
+                title: 'profile.settings.about_version'.tr(),
                 subtitle: _appVersion.isEmpty ? '—' : _appVersion,
               ),
               _groupDivider(),
               SettingTile(
                 icon: HugeIcons.strokeRoundedSecurityCheck,
-                title: 'Política de privacidad',
+                title: 'profile.settings.privacy_policy'.tr(),
                 onTap: () async {
                   await launchUrl(
                     Uri.parse('https://sacdia.com/privacy'),
@@ -685,7 +763,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               _groupDivider(),
               SettingTile(
                 icon: HugeIcons.strokeRoundedLegalDocument01,
-                title: 'Términos y condiciones',
+                title: 'profile.settings.terms'.tr(),
                 onTap: () async {
                   await launchUrl(
                     Uri.parse('https://sacdia.com/terms'),
@@ -702,7 +780,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
             children: [
               SettingTile(
                 icon: HugeIcons.strokeRoundedLogout01,
-                title: 'Cerrar sesión',
+                title: 'profile.settings.logout_tile'.tr(),
                 iconColor: AppColors.error,
                 onTap: _handleLogout,
               ),
@@ -715,7 +793,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
             children: [
               SettingTile(
                 icon: HugeIcons.strokeRoundedDelete02,
-                title: 'Eliminar cuenta',
+                title: 'profile.settings.delete_account_tile'.tr(),
                 iconColor: AppColors.error,
                 onTap: _handleDeleteAccount,
               ),
@@ -983,9 +1061,9 @@ class _ThemePickerDialog extends StatelessWidget {
     final c = context.sac;
 
     final options = [
-      (ThemeMode.light, 'Claro', HugeIcons.strokeRoundedSun01),
-      (ThemeMode.dark, 'Oscuro', HugeIcons.strokeRoundedMoon01),
-      (ThemeMode.system, 'Sistema', HugeIcons.strokeRoundedSmartPhone01),
+      (ThemeMode.light, 'profile.settings.theme_light'.tr(), HugeIcons.strokeRoundedSun01),
+      (ThemeMode.dark, 'profile.settings.theme_dark'.tr(), HugeIcons.strokeRoundedMoon01),
+      (ThemeMode.system, 'profile.settings.theme_system'.tr(), HugeIcons.strokeRoundedSmartPhone01),
     ];
 
     return Dialog(
@@ -1007,10 +1085,10 @@ class _ThemePickerDialog extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(20, 22, 20, 12),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 22, 20, 12),
                 child: Text(
-                  'Seleccionar Tema',
+                  'profile.settings.select_theme_title'.tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 17,
@@ -1084,7 +1162,7 @@ class _ThemePickerDialog extends StatelessWidget {
                   shape: const RoundedRectangleBorder(),
                 ),
                 child: Text(
-                  'Cancelar',
+                  'common.cancel'.tr(),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w400,

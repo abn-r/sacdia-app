@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -62,7 +63,7 @@ class _CamporeeRegisterMemberViewState
     return Scaffold(
       backgroundColor: c.background,
       appBar: AppBar(
-        title: const Text('Inscribir miembro'),
+        title: Text('camporees.register_member.title'.tr()),
         backgroundColor: c.surface,
         foregroundColor: c.text,
         elevation: 0,
@@ -97,8 +98,7 @@ class _CamporeeRegisterMemberViewState
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Para registrar un miembro necesitás su ID de usuario. '
-                          'El seguro de tipo CAMPOREE es necesario para validar la inscripción.',
+                          'camporees.register_member.info_banner'.tr(),
                           style: TextStyle(
                             fontSize: 12,
                             color: AppColors.accentDark,
@@ -138,7 +138,7 @@ class _CamporeeRegisterMemberViewState
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Error de seguro',
+                                'camporees.register_member.insurance_error_title'.tr(),
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
@@ -147,10 +147,7 @@ class _CamporeeRegisterMemberViewState
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'El miembro no tiene un seguro de tipo CAMPOREE '
-                                'activo y válido. Verificá que el seguro exista, '
-                                'sea de tipo CAMPOREE, esté activo y cubra las '
-                                'fechas del camporee.',
+                                'camporees.register_member.insurance_error_body'.tr(),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: AppColors.error,
@@ -191,19 +188,19 @@ class _CamporeeRegisterMemberViewState
 
                 // ID de usuario
                 _FieldLabel(
-                    label: 'ID de usuario',
+                    label: 'camporees.register_member.user_id_label'.tr(),
                     required: true,
                     icon: HugeIcons.strokeRoundedUser),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _userIdController,
                   decoration: _inputDecoration(
-                    hintText: 'UUID del usuario (ej. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)',
+                    hintText: 'camporees.register_member.user_id_hint'.tr(),
                     context: context,
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'El ID de usuario es obligatorio';
+                      return 'camporees.register_member.user_id_required'.tr();
                     }
                     // Basic UUID format check
                     final uuidRegex = RegExp(
@@ -211,7 +208,7 @@ class _CamporeeRegisterMemberViewState
                       caseSensitive: false,
                     );
                     if (!uuidRegex.hasMatch(value.trim())) {
-                      return 'Ingresa un UUID válido';
+                      return 'camporees.register_member.user_id_invalid'.tr();
                     }
                     return null;
                   },
@@ -221,7 +218,7 @@ class _CamporeeRegisterMemberViewState
 
                 // Tipo de camporee
                 _FieldLabel(
-                    label: 'Tipo de camporee',
+                    label: 'camporees.register_member.camporee_type_label'.tr(),
                     required: true,
                     icon: HugeIcons.strokeRoundedAward01),
                 const SizedBox(height: 8),
@@ -236,16 +233,16 @@ class _CamporeeRegisterMemberViewState
                       _RadioOption(
                         value: 'local',
                         groupValue: _camporeeType,
-                        label: 'Local',
-                        description: 'Camporee organizado a nivel de campo local',
+                        label: 'camporees.register_member.local_label'.tr(),
+                        description: 'camporees.register_member.local_description'.tr(),
                         onChanged: (v) => setState(() => _camporeeType = v!),
                       ),
                       Divider(height: 1, color: c.border),
                       _RadioOption(
                         value: 'union',
                         groupValue: _camporeeType,
-                        label: 'Unión',
-                        description: 'Camporee organizado a nivel de unión',
+                        label: 'camporees.register_member.union_label'.tr(),
+                        description: 'camporees.register_member.union_description'.tr(),
                         onChanged: (v) => setState(() => _camporeeType = v!),
                       ),
                     ],
@@ -256,14 +253,14 @@ class _CamporeeRegisterMemberViewState
 
                 // Nombre del club (opcional)
                 _FieldLabel(
-                    label: 'Nombre del club',
+                    label: 'camporees.register_member.club_name_label'.tr(),
                     required: false,
                     icon: HugeIcons.strokeRoundedBuilding01),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _clubNameController,
                   decoration: _inputDecoration(
-                    hintText: 'Nombre del club (requerido para unión)',
+                    hintText: 'camporees.register_member.club_name_hint'.tr(),
                     context: context,
                   ),
                 ),
@@ -272,7 +269,7 @@ class _CamporeeRegisterMemberViewState
 
                 // ID de seguro (opcional)
                 _FieldLabel(
-                    label: 'ID de seguro',
+                    label: 'camporees.register_member.insurance_id_label'.tr(),
                     required: false,
                     icon: HugeIcons.strokeRoundedShield01),
                 const SizedBox(height: 8),
@@ -280,14 +277,14 @@ class _CamporeeRegisterMemberViewState
                   controller: _insuranceIdController,
                   keyboardType: TextInputType.number,
                   decoration: _inputDecoration(
-                    hintText: 'ID del seguro de tipo CAMPOREE (opcional)',
+                    hintText: 'camporees.register_member.insurance_id_hint'.tr(),
                     context: context,
                   ),
                   validator: (value) {
                     if (value != null && value.isNotEmpty) {
                       final parsed = int.tryParse(value);
                       if (parsed == null || parsed <= 0) {
-                        return 'Ingresa un ID de seguro válido';
+                        return 'camporees.register_member.insurance_id_invalid'.tr();
                       }
                     }
                     return null;
@@ -298,7 +295,7 @@ class _CamporeeRegisterMemberViewState
 
                 // Botón registrar
                 SacButton.primary(
-                  text: 'Registrar miembro',
+                  text: 'camporees.register_member.register_button'.tr(),
                   icon: HugeIcons.strokeRoundedUserAdd01,
                   isLoading: registrationState.isLoading,
                   onPressed: registrationState.isLoading
@@ -374,7 +371,7 @@ class _CamporeeRegisterMemberViewState
     if (success && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Miembro registrado exitosamente'),
+          content: Text('camporees.register_member.success'.tr()),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -427,7 +424,7 @@ class _FieldLabel extends StatelessWidget {
         ] else ...[
           const SizedBox(width: 6),
           Text(
-            '(opcional)',
+            'common.optional'.tr(),
             style: TextStyle(
               fontSize: 12,
               color: context.sac.textTertiary,

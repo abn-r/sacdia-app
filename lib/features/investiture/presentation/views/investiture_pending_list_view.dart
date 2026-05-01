@@ -1,7 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
@@ -29,7 +29,7 @@ class InvestiturePendingListView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: c.background,
       appBar: AppBar(
-        title: const Text('Validación de Investidura'),
+        title: Text('investiture.pending.title'.tr()),
         actions: [
           IconButton(
             onPressed: () => ref.invalidate(pendingInvestituresProvider),
@@ -37,7 +37,7 @@ class InvestiturePendingListView extends ConsumerWidget {
               icon: HugeIcons.strokeRoundedRefresh,
               size: 22,
             ),
-            tooltip: 'Actualizar',
+            tooltip: 'investiture.pending.tooltip_refresh'.tr(),
           ),
         ],
       ),
@@ -70,12 +70,12 @@ class InvestiturePendingListView extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'No hay investiduras pendientes',
+              'investiture.pending.empty_title'.tr(),
               style: TextStyle(fontSize: 16, color: c.textSecondary),
             ),
             const SizedBox(height: 6),
             Text(
-              'Todas las validaciones están al día',
+              'investiture.pending.empty_subtitle'.tr(),
               style: TextStyle(fontSize: 13, color: c.textTertiary),
             ),
           ],
@@ -91,6 +91,9 @@ class InvestiturePendingListView extends ConsumerWidget {
         itemCount: list.length + 1,
         itemBuilder: (context, index) {
           if (index == 0) {
+            final countKey = list.length == 1
+                ? 'investiture.pending.count_one'
+                : 'investiture.pending.count_other';
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Row(
@@ -102,7 +105,7 @@ class InvestiturePendingListView extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    '${list.length} pendiente${list.length != 1 ? 's' : ''}',
+                    countKey.tr(namedArgs: {'count': list.length.toString()}),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -141,8 +144,8 @@ class InvestiturePendingListView extends ConsumerWidget {
             const SizedBox(height: 16),
             Text(
               is403
-                  ? 'Acceso restringido'
-                  : 'Error al cargar investiduras pendientes',
+                  ? 'investiture.pending.error_403_title'.tr()
+                  : 'investiture.pending.error_load_title'.tr(),
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -152,7 +155,7 @@ class InvestiturePendingListView extends ConsumerWidget {
             const SizedBox(height: 8),
             Text(
               is403
-                  ? 'Solo coordinadores y administradores pueden acceder a esta sección.'
+                  ? 'investiture.pending.error_403_body'.tr()
                   : msg,
               style: TextStyle(fontSize: 14, color: c.textSecondary),
               textAlign: TextAlign.center,
@@ -160,7 +163,7 @@ class InvestiturePendingListView extends ConsumerWidget {
             if (!is403) ...[
               const SizedBox(height: 24),
               SacButton.primary(
-                text: 'Reintentar',
+                text: 'common.retry'.tr(),
                 icon: HugeIcons.strokeRoundedRefresh,
                 onPressed: () => ref.invalidate(pendingInvestituresProvider),
               ),
@@ -259,7 +262,9 @@ class _PendingCard extends ConsumerWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'Enviado el ${DateFormat('dd/MM/yyyy').format(item.submittedAt!.toLocal())}',
+                  'investiture.pending.submitted_at'.tr(namedArgs: {
+                    'date': DateFormat('dd/MM/yyyy').format(item.submittedAt!.toLocal()),
+                  }),
                   style: TextStyle(fontSize: 12, color: c.textSecondary),
                 ),
               ],
@@ -327,7 +332,7 @@ class _PendingCard extends ConsumerWidget {
               icon: HugeIcons.strokeRoundedClock01,
               size: 16,
             ),
-            label: const Text('Historial'),
+            label: Text('investiture.pending.btn_history'.tr()),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 10),
               textStyle: const TextStyle(fontSize: 12),
@@ -345,7 +350,7 @@ class _PendingCard extends ConsumerWidget {
               color: AppColors.error,
             ),
             label: Text(
-              'Rechazar',
+              'investiture.pending.btn_reject'.tr(),
               style: TextStyle(color: AppColors.error),
             ),
             style: OutlinedButton.styleFrom(
@@ -365,7 +370,7 @@ class _PendingCard extends ConsumerWidget {
               size: 16,
               color: Colors.white,
             ),
-            label: const Text('Aprobar'),
+            label: Text('investiture.pending.btn_approve'.tr()),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.secondary,
               foregroundColor: Colors.white,
@@ -384,23 +389,24 @@ class _PendingCard extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Aprobar investidura'),
+        title: Text('investiture.pending.dialog_approve_title'.tr()),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '¿Confirmas la aprobación de ${item.fullName}?',
+              'investiture.pending.dialog_approve_body'
+                  .tr(namedArgs: {'name': item.fullName}),
               style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: commentsCtrl,
               maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Comentarios (opcional)',
-                hintText: 'Ej: Cumplió todos los requisitos',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: 'investiture.pending.field_comments_label'.tr(),
+                hintText: 'investiture.pending.field_comments_hint'.tr(),
+                border: const OutlineInputBorder(),
               ),
             ),
           ],
@@ -408,7 +414,7 @@ class _PendingCard extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text('common.cancel'.tr()),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -416,7 +422,7 @@ class _PendingCard extends ConsumerWidget {
               backgroundColor: AppColors.secondary,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Aprobar'),
+            child: Text('investiture.pending.btn_approve'.tr()),
           ),
         ],
       ),
@@ -435,7 +441,9 @@ class _PendingCard extends ConsumerWidget {
     if (!context.mounted) return;
     _showSnackbar(
       context,
-      ok ? 'Investidura aprobada correctamente' : 'Error al aprobar',
+      ok
+          ? 'investiture.pending.snack_approved'.tr()
+          : 'investiture.pending.snack_approve_error'.tr(),
       ok ? AppColors.secondary : AppColors.error,
     );
   }
@@ -447,7 +455,7 @@ class _PendingCard extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Rechazar investidura'),
+        title: Text('investiture.pending.dialog_reject_title'.tr()),
         content: Form(
           key: formKey,
           child: Column(
@@ -455,21 +463,22 @@ class _PendingCard extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '¿Rechazás la investidura de ${item.fullName}?',
+                'investiture.pending.dialog_reject_body'
+                    .tr(namedArgs: {'name': item.fullName}),
                 style: const TextStyle(fontSize: 14),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: commentsCtrl,
                 maxLines: 3,
-                decoration: const InputDecoration(
-                  labelText: 'Motivo del rechazo *',
-                  hintText: 'Es obligatorio indicar el motivo',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: 'investiture.pending.field_reason_label'.tr(),
+                  hintText: 'investiture.pending.field_reason_hint'.tr(),
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (v) =>
                     (v == null || v.trim().isEmpty)
-                        ? 'El motivo es obligatorio'
+                        ? 'investiture.pending.field_reason_error'.tr()
                         : null,
               ),
             ],
@@ -478,7 +487,7 @@ class _PendingCard extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text('common.cancel'.tr()),
           ),
           ElevatedButton(
             onPressed: () {
@@ -490,7 +499,7 @@ class _PendingCard extends ConsumerWidget {
               backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Rechazar'),
+            child: Text('investiture.pending.btn_reject'.tr()),
           ),
         ],
       ),
@@ -505,7 +514,9 @@ class _PendingCard extends ConsumerWidget {
     if (!context.mounted) return;
     _showSnackbar(
       context,
-      ok ? 'Investidura rechazada' : 'Error al rechazar',
+      ok
+          ? 'investiture.pending.snack_rejected'.tr()
+          : 'investiture.pending.snack_reject_error'.tr(),
       ok ? AppColors.accent : AppColors.error,
     );
   }

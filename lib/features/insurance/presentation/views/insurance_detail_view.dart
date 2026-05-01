@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -29,7 +29,7 @@ class InsuranceDetailView extends ConsumerWidget {
         backgroundColor: context.sac.background,
         surfaceTintColor: Colors.transparent,
         title: Text(
-          'Detalle del Seguro',
+          'insurance.detail.title'.tr(),
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: context.sac.text,
@@ -66,27 +66,27 @@ class InsuranceDetailView extends ConsumerWidget {
             // Policy details
             if (insurance.insuranceId != null) ...[
               _InfoCard(
-                title: 'Datos del seguro',
+                title: 'insurance.detail.section_data'.tr(),
                 icon: HugeIcons.strokeRoundedFiles01,
                 children: [
                   if (insurance.insuranceType != null)
                     _InfoRow(
                       icon: HugeIcons.strokeRoundedTag01,
-                      label: 'Tipo de seguro',
+                      label: 'insurance.detail.label_type'.tr(),
                       value: insurance.insuranceType!.label,
                     ),
                   if (insurance.policyNumber != null &&
                       insurance.policyNumber!.isNotEmpty)
                     _InfoRow(
                       icon: HugeIcons.strokeRoundedId,
-                      label: 'N. de póliza / folio',
+                      label: 'insurance.detail.label_policy'.tr(),
                       value: insurance.policyNumber!,
                     ),
                   if (insurance.providerName != null &&
                       insurance.providerName!.isNotEmpty)
                     _InfoRow(
                       icon: HugeIcons.strokeRoundedBuilding01,
-                      label: 'Aseguradora',
+                      label: 'insurance.detail.label_provider'.tr(),
                       value: insurance.providerName!,
                     ),
                 ],
@@ -96,27 +96,27 @@ class InsuranceDetailView extends ConsumerWidget {
 
               // Coverage period
               _InfoCard(
-                title: 'Período de cobertura',
+                title: 'insurance.detail.section_period'.tr(),
                 icon: HugeIcons.strokeRoundedCalendar01,
                 children: [
                   if (insurance.startDate != null)
                     _InfoRow(
                       icon: HugeIcons.strokeRoundedCalendarAdd01,
-                      label: 'Inicio de cobertura',
+                      label: 'insurance.detail.label_start_date'.tr(),
                       value: DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es')
                           .format(insurance.startDate!.toLocal()),
                     ),
                   if (insurance.endDate != null)
                     _InfoRow(
                       icon: HugeIcons.strokeRoundedCalendarRemove01,
-                      label: 'Fin de cobertura',
+                      label: 'insurance.detail.label_end_date'.tr(),
                       value: DateFormat('dd \'de\' MMMM \'de\' yyyy', 'es')
                           .format(insurance.endDate!.toLocal()),
                     ),
                   if (insurance.coverageAmount != null)
                     _InfoRow(
                       icon: HugeIcons.strokeRoundedMoney01,
-                      label: 'Monto de cobertura / prima',
+                      label: 'insurance.detail.label_amount'.tr(),
                       value: '\$${insurance.coverageAmount!.toStringAsFixed(2)}',
                       valueColor: AppColors.secondary,
                     ),
@@ -132,13 +132,13 @@ class InsuranceDetailView extends ConsumerWidget {
 
               // Audit trail
               _InfoCard(
-                title: 'Auditoría',
+                title: 'insurance.detail.section_audit'.tr(),
                 icon: HugeIcons.strokeRoundedUserCheck01,
                 children: [
                   if (insurance.registeredByName != null)
                     _InfoRow(
                       icon: HugeIcons.strokeRoundedUser,
-                      label: 'Registrado por',
+                      label: 'insurance.detail.label_registered_by'.tr(),
                       value: insurance.registeredAt != null
                           ? '${insurance.registeredByName!} · ${DateFormat('dd/MM/yyyy').format(insurance.registeredAt!.toLocal())}'
                           : insurance.registeredByName!,
@@ -146,7 +146,7 @@ class InsuranceDetailView extends ConsumerWidget {
                   if (insurance.modifiedByName != null)
                     _InfoRow(
                       icon: HugeIcons.strokeRoundedEdit01,
-                      label: 'Última modificación',
+                      label: 'insurance.detail.label_modified_by'.tr(),
                       value: insurance.modifiedAt != null
                           ? '${insurance.modifiedByName!} · ${DateFormat('dd/MM/yyyy').format(insurance.modifiedAt!.toLocal())}'
                           : insurance.modifiedByName!,
@@ -332,7 +332,7 @@ class _StatusSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Estado del seguro',
+            'insurance.detail.section_status'.tr(),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
@@ -343,7 +343,7 @@ class _StatusSection extends StatelessWidget {
           if (days != null) ...[
             const SizedBox(height: 8),
             Text(
-              _vigenciaText(insurance.status, days),
+              _vigenciaText(context, insurance.status, days),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: _vigenciaColor(insurance.status, days),
                     fontWeight: FontWeight.w600,
@@ -355,14 +355,20 @@ class _StatusSection extends StatelessWidget {
     );
   }
 
-  String _vigenciaText(InsuranceStatus status, int days) {
+  String _vigenciaText(BuildContext context, InsuranceStatus status, int days) {
     switch (status) {
       case InsuranceStatus.asegurado:
-        if (days == 0) return 'Vence hoy';
-        return 'Vigente por $days días más';
+        if (days == 0) return 'insurance.detail.expires_today'.tr();
+        final key = days == 1
+            ? 'insurance.detail.days_remaining_one'
+            : 'insurance.detail.days_remaining_other';
+        return key.tr(namedArgs: {'days': '$days'});
       case InsuranceStatus.vencido:
         final overdue = days.abs();
-        return 'Venció hace $overdue día${overdue != 1 ? 's' : ''}';
+        final key = overdue == 1
+            ? 'insurance.detail.expired_since_one'
+            : 'insurance.detail.expired_since_other';
+        return key.tr(namedArgs: {'days': '$overdue'});
       case InsuranceStatus.sinSeguro:
         return '';
     }
@@ -414,7 +420,7 @@ class _EvidenceSection extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  'Evidencia de pago',
+                  'insurance.detail.section_evidence'.tr(),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: context.sac.text,
@@ -452,7 +458,7 @@ class _EvidencePreview extends StatelessWidget {
   Widget build(BuildContext context) {
     if (_isPdf) {
       return _PdfTile(
-        fileName: insurance.evidenceFileName ?? 'Comprobante',
+        fileName: insurance.evidenceFileName ?? 'insurance.detail.receipt_fallback'.tr(),
         fileUrl: insurance.evidenceFileUrl!,
       );
     }
@@ -472,9 +478,9 @@ class _EvidencePreview extends StatelessWidget {
             errorWidget: (context, url, error) => Container(
               height: 100,
               color: AppColors.primarySurface,
-              child: const Center(
+              child: Center(
                 child: Text(
-                  'No se pudo cargar la imagen',
+                  'insurance.detail.image_load_error'.tr(),
                   style: TextStyle(color: AppColors.primaryDark),
                 ),
               ),
@@ -536,8 +542,8 @@ class _PdfTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
-                  const Text(
-                    'Toca para abrir',
+                  Text(
+                    'insurance.detail.tap_to_open'.tr(),
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.primary,
@@ -577,7 +583,7 @@ class _NoEvidence extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         Text(
-          'Sin evidencia de pago adjunta',
+          'insurance.detail.no_evidence'.tr(),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),

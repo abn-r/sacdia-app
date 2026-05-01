@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -19,7 +20,7 @@ class SlaPipelineChart extends StatelessWidget {
     if (stages.isEmpty) {
       return Center(
         child: Text(
-          'Sin datos de pipeline',
+          'coordinator.sla.pipeline.no_data'.tr(),
           style: TextStyle(fontSize: 13, color: c.textTertiary),
         ),
       );
@@ -39,7 +40,7 @@ class SlaPipelineChart extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Pipeline de revisión',
+          'coordinator.sla.pipeline.title'.tr(),
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: c.text,
@@ -132,7 +133,7 @@ class SlaThroughputChart extends StatelessWidget {
     if (data.isEmpty) {
       return Center(
         child: Text(
-          'Sin datos de throughput',
+          'coordinator.sla.pipeline.throughput_no_data'.tr(),
           style: TextStyle(fontSize: 13, color: c.textTertiary),
         ),
       );
@@ -149,7 +150,7 @@ class SlaThroughputChart extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Throughput semanal',
+          'coordinator.sla.pipeline.throughput_title'.tr(),
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: c.text,
@@ -219,9 +220,15 @@ class SlaThroughputChart extends StatelessWidget {
         // Legend
         Row(
           children: [
-            _LegendDot(color: AppColors.secondary, label: 'Aprobados'),
+            _LegendDot(
+              color: AppColors.secondary,
+              label: 'coordinator.sla.pipeline.legend_approved'.tr(),
+            ),
             const SizedBox(width: 12),
-            _LegendDot(color: AppColors.error, label: 'Rechazados'),
+            _LegendDot(
+              color: AppColors.error,
+              label: 'coordinator.sla.pipeline.legend_rejected'.tr(),
+            ),
           ],
         ),
       ],

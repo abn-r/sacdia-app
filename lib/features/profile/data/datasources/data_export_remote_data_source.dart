@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -53,7 +54,7 @@ class DataExportRemoteDataSourceImpl implements DataExportRemoteDataSource {
       // 201 = nueva; 200 = reutilizada en curso
       if (response.statusCode != 201 && response.statusCode != 200) {
         throw ServerException(
-          message: 'Error al solicitar exportación de datos',
+          message: tr('profile.data_export.errors.request_failed'),
           code: response.statusCode,
         );
       }
@@ -71,7 +72,7 @@ class DataExportRemoteDataSourceImpl implements DataExportRemoteDataSource {
       _throwMappedRequestError(e);
     } catch (e) {
       AppLogger.e('Error inesperado al solicitar exportación', tag: _tag, error: e);
-      throw ServerException(message: 'Error inesperado: $e');
+      throw ServerException(message: tr('profile.data_export.errors.unexpected', namedArgs: {'detail': '$e'}));
     }
   }
 
@@ -82,7 +83,7 @@ class DataExportRemoteDataSourceImpl implements DataExportRemoteDataSource {
 
       if (response.statusCode != 200) {
         throw ServerException(
-          message: 'Error al obtener exportaciones',
+          message: tr('profile.data_export.errors.list_failed'),
           code: response.statusCode,
         );
       }
@@ -93,7 +94,7 @@ class DataExportRemoteDataSourceImpl implements DataExportRemoteDataSource {
       if (data is Map<String, dynamic>) {
         exports = data['exports'] as List<dynamic>? ?? [];
       } else {
-        throw ServerException(message: 'Formato de respuesta inesperado');
+        throw ServerException(message: tr('profile.data_export.errors.unexpected_format'));
       }
 
       return exports
@@ -111,7 +112,7 @@ class DataExportRemoteDataSourceImpl implements DataExportRemoteDataSource {
       _throwMappedListError(e);
     } catch (e) {
       AppLogger.e('Error inesperado al obtener exportaciones', tag: _tag, error: e);
-      throw ServerException(message: 'Error inesperado: $e');
+      throw ServerException(message: tr('profile.data_export.errors.unexpected', namedArgs: {'detail': '$e'}));
     }
   }
 
@@ -122,7 +123,7 @@ class DataExportRemoteDataSourceImpl implements DataExportRemoteDataSource {
 
       if (response.statusCode != 200) {
         throw ServerException(
-          message: 'Error al obtener URL de descarga',
+          message: tr('profile.data_export.errors.download_failed'),
           code: response.statusCode,
         );
       }
@@ -131,7 +132,7 @@ class DataExportRemoteDataSourceImpl implements DataExportRemoteDataSource {
       final url = data['url'] as String?;
 
       if (url == null || url.isEmpty) {
-        throw ServerException(message: 'URL de descarga no disponible');
+        throw ServerException(message: tr('profile.data_export.errors.download_not_found'));
       }
 
       return url;
@@ -150,7 +151,7 @@ class DataExportRemoteDataSourceImpl implements DataExportRemoteDataSource {
         tag: _tag,
         error: e,
       );
-      throw ServerException(message: 'Error inesperado: $e');
+      throw ServerException(message: tr('profile.data_export.errors.unexpected', namedArgs: {'detail': '$e'}));
     }
   }
 
@@ -179,23 +180,22 @@ class DataExportRemoteDataSourceImpl implements DataExportRemoteDataSource {
           waitMsg = '${minutes}min';
         }
         throw ServerException(
-          message:
-              'Podés solicitar otra exportación en $waitMsg.',
+          message: tr('profile.data_export.errors.rate_limit_wait', namedArgs: {'wait': waitMsg}),
           code: 429,
         );
       }
 
       throw ServerException(
-        message: serverMessage ?? 'Límite de exportaciones alcanzado. Intentá más tarde.',
+        message: serverMessage ?? tr('profile.data_export.errors.rate_limit'),
         code: 429,
       );
     }
 
     final message = switch (statusCode) {
-      400 => serverMessage ?? 'Solicitud inválida.',
-      401 => 'Tu sesión expiró. Ingresá de nuevo.',
-      403 => 'No tenés permiso para solicitar una exportación.',
-      _ => serverMessage ?? 'Sin conexión. Verificá tu red e intentá de nuevo.',
+      400 => serverMessage ?? tr('profile.data_export.errors.request_invalid'),
+      401 => tr('profile.data_export.errors.request_auth'),
+      403 => tr('profile.data_export.errors.request_forbidden'),
+      _ => serverMessage ?? tr('common.error_network'),
     };
 
     throw ServerException(message: message, code: statusCode);
@@ -208,8 +208,8 @@ class DataExportRemoteDataSourceImpl implements DataExportRemoteDataSource {
         : null;
 
     final message = switch (statusCode) {
-      401 => 'Tu sesión expiró. Ingresá de nuevo.',
-      _ => serverMessage ?? 'Sin conexión. Verificá tu red e intentá de nuevo.',
+      401 => tr('profile.data_export.errors.list_auth'),
+      _ => serverMessage ?? tr('common.error_network'),
     };
 
     throw ServerException(message: message, code: statusCode);
@@ -219,11 +219,11 @@ class DataExportRemoteDataSourceImpl implements DataExportRemoteDataSource {
     final statusCode = e.response?.statusCode;
 
     final message = switch (statusCode) {
-      404 => 'Esta exportación ya no existe.',
-      409 => 'Tu exportación aún se está generando.',
-      410 => 'Esta exportación expiró. Solicitá una nueva.',
-      422 => 'La exportación falló. Intentalo de nuevo.',
-      _ => 'Sin conexión. Verificá tu red e intentá de nuevo.',
+      404 => tr('profile.data_export.errors.download_not_found'),
+      409 => tr('profile.data_export.errors.download_conflict'),
+      410 => tr('profile.data_export.errors.download_gone'),
+      422 => tr('profile.data_export.errors.download_invalid'),
+      _ => tr('common.error_network'),
     };
 
     AppLogger.w(

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -41,7 +42,7 @@ class ActiveSessionsRemoteDataSourceImpl
 
       if (response.statusCode != 200) {
         throw ServerException(
-          message: 'Error al obtener sesiones activas',
+          message: tr('profile.active_sessions.errors.get_sessions'),
           code: response.statusCode,
         );
       }
@@ -52,7 +53,8 @@ class ActiveSessionsRemoteDataSourceImpl
       if (data is Map<String, dynamic>) {
         sessions = data['sessions'] as List<dynamic>? ?? [];
       } else {
-        throw ServerException(message: 'Formato de respuesta inesperado');
+        throw ServerException(
+            message: tr('profile.active_sessions.errors.get_sessions_format'));
       }
 
       return sessions
@@ -67,10 +69,14 @@ class ActiveSessionsRemoteDataSourceImpl
         tag: _tag,
         error: e,
       );
-      _throwMappedError(e, defaultMessage: 'Error al obtener sesiones activas');
+      _throwMappedError(
+          e,
+          defaultMessage:
+              tr('profile.active_sessions.errors.get_sessions'));
     } catch (e) {
       AppLogger.e('Error inesperado al obtener sesiones', tag: _tag, error: e);
-      throw ServerException(message: 'Error inesperado: $e');
+      throw ServerException(
+          message: '${tr('profile.active_sessions.errors.unexpected')}: $e');
     }
   }
 
@@ -84,7 +90,7 @@ class ActiveSessionsRemoteDataSourceImpl
       // 204 No Content = éxito
       if (response.statusCode != 204 && response.statusCode != 200) {
         throw ServerException(
-          message: 'Error al revocar sesión',
+          message: tr('profile.active_sessions.errors.revoke_session'),
           code: response.statusCode,
         );
       }
@@ -96,10 +102,14 @@ class ActiveSessionsRemoteDataSourceImpl
         tag: _tag,
         error: e,
       );
-      _throwMappedError(e, defaultMessage: 'Error al revocar sesión');
+      _throwMappedError(
+          e,
+          defaultMessage:
+              tr('profile.active_sessions.errors.revoke_session'));
     } catch (e) {
       AppLogger.e('Error inesperado al revocar sesión', tag: _tag, error: e);
-      throw ServerException(message: 'Error inesperado: $e');
+      throw ServerException(
+          message: '${tr('profile.active_sessions.errors.unexpected')}: $e');
     }
   }
 
@@ -112,7 +122,7 @@ class ActiveSessionsRemoteDataSourceImpl
 
       if (response.statusCode != 200 && response.statusCode != 204) {
         throw ServerException(
-          message: 'Error al revocar sesiones',
+          message: tr('profile.active_sessions.errors.revoke_all'),
           code: response.statusCode,
         );
       }
@@ -130,11 +140,14 @@ class ActiveSessionsRemoteDataSourceImpl
         tag: _tag,
         error: e,
       );
-      _throwMappedError(e, defaultMessage: 'Error al revocar sesiones');
+      _throwMappedError(
+          e,
+          defaultMessage: tr('profile.active_sessions.errors.revoke_all'));
     } catch (e) {
       AppLogger.e(
           'Error inesperado al revocar todas las sesiones', tag: _tag, error: e);
-      throw ServerException(message: 'Error inesperado: $e');
+      throw ServerException(
+          message: '${tr('profile.active_sessions.errors.unexpected')}: $e');
     }
   }
 
@@ -151,11 +164,11 @@ class ActiveSessionsRemoteDataSourceImpl
 
     final message = switch (statusCode) {
       400 when serverMessage?.contains('logout') == true =>
-        'No podés revocar la sesión actual desde acá. Usá \'Cerrar sesión\'.',
+        tr('profile.active_sessions.errors.revoke_current_forbidden'),
       400 => serverMessage ?? defaultMessage,
-      403 => 'No tenés permiso para revocar esta sesión.',
-      404 => 'Esta sesión ya no existe.',
-      429 => 'Demasiadas solicitudes, esperá un momento.',
+      403 => tr('profile.active_sessions.errors.revoke_forbidden'),
+      404 => tr('profile.active_sessions.errors.revoke_not_found'),
+      429 => tr('profile.active_sessions.errors.too_many_requests'),
       _ => serverMessage ?? defaultMessage,
     };
 

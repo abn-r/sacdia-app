@@ -15,6 +15,12 @@ class ProgressiveClass extends Equatable {
   /// Progreso general de 0 a 100, proveniente del enrollment.
   final int? overallProgress;
 
+  /// Código de asset local para el roadmap (e.g. "AV-01", "CQ-03").
+  /// Cuando está presente, se usa para resolver directamente el asset local
+  /// en lugar de inferirlo por posición ordinal.
+  /// Null hasta que el backend esté desplegado con el campo poblado.
+  final String? assetCode;
+
   const ProgressiveClass({
     required this.id,
     required this.name,
@@ -23,6 +29,7 @@ class ProgressiveClass extends Equatable {
     this.imageUrl,
     this.investitureStatus,
     this.overallProgress,
+    this.assetCode,
   });
 
   @override
@@ -34,5 +41,6 @@ class ProgressiveClass extends Equatable {
         imageUrl,
         investitureStatus,
         overallProgress,
+        assetCode,
       ];
 }

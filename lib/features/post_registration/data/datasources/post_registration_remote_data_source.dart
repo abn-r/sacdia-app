@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:http_parser/http_parser.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
@@ -43,11 +44,11 @@ class PostRegistrationRemoteDataSourceImpl
         return CompletionStatusModel.fromJson(response.data);
       }
 
-      throw ServerException(message: 'Error al obtener estado de completitud');
+      throw ServerException(message: tr('post_registration.errors.fetch_completion_status'));
     } catch (e) {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? 'Error de conexión');
+        throw ServerException(message: e.message ?? tr('common.error_network'));
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -88,11 +89,11 @@ class PostRegistrationRemoteDataSourceImpl
         return response.data['url'] as String? ?? '';
       }
 
-      throw ServerException(message: 'Error al subir foto de perfil');
+      throw ServerException(message: tr('post_registration.errors.upload_profile_photo'));
     } catch (e) {
       AppLogger.e('Error al subir foto de perfil', tag: _tag, error: e);
       if (e is DioException) {
-        throw ServerException(message: e.message ?? 'Error de conexión');
+        throw ServerException(message: e.message ?? tr('common.error_network'));
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -107,11 +108,11 @@ class PostRegistrationRemoteDataSourceImpl
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {
-        throw ServerException(message: 'Error al eliminar foto de perfil');
+        throw ServerException(message: tr('post_registration.errors.delete_profile_photo'));
       }
     } catch (e) {
       if (e is DioException) {
-        throw ServerException(message: e.message ?? 'Error de conexión');
+        throw ServerException(message: e.message ?? tr('common.error_network'));
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -137,7 +138,7 @@ class PostRegistrationRemoteDataSourceImpl
     } catch (e) {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? 'Error de conexión');
+        throw ServerException(message: e.message ?? tr('common.error_network'));
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());
@@ -153,12 +154,12 @@ class PostRegistrationRemoteDataSourceImpl
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw ServerException(
-            message: 'Error al completar el paso 1 del post-registro');
+            message: tr('post_registration.errors.complete_step_1'));
       }
     } catch (e) {
       AppLogger.e('Error en completeStep1', tag: _tag, error: e);
       if (e is DioException) {
-        throw ServerException(message: e.message ?? 'Error de conexión');
+        throw ServerException(message: e.message ?? tr('common.error_network'));
       }
       if (e is AppException) rethrow;
       throw ServerException(message: e.toString());

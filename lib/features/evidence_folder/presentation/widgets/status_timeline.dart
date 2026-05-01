@@ -1,6 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -48,20 +48,26 @@ class StatusTimeline extends StatelessWidget {
 
     final steps = [
       _TimelineStep(
-        label: 'Pendiente',
-        sublabel: 'En espera de evidencias',
+        label: 'evidence_folder.status.pending'.tr(),
+        sublabel: 'evidence_folder.timeline.waiting_evidence'.tr(),
         icon: HugeIcons.strokeRoundedClock01,
         isCompleted: true,
         isActive: currentStatus == EvidenceSectionStatus.pending,
         activeColor: AppColors.accent,
       ),
       _TimelineStep(
-        label: 'Enviado',
+        label: 'evidence_folder.status.submitted'.tr(),
         sublabel: submittedByName != null && submittedAt != null
-            ? 'Por $submittedByName · ${dateFormat.format(submittedAt!.toLocal())}'
+            ? 'evidence_folder.trace.sent_by'.tr(namedArgs: {
+                'name': submittedByName!,
+                'date': ' · ${dateFormat.format(submittedAt!.toLocal())}',
+              })
             : submittedByName != null
-                ? 'Por $submittedByName'
-                : 'Esperando envío',
+                ? 'evidence_folder.trace.sent_by'.tr(namedArgs: {
+                    'name': submittedByName!,
+                    'date': '',
+                  })
+                : 'evidence_folder.timeline.waiting_send'.tr(),
         icon: HugeIcons.strokeRoundedSent,
         isCompleted: currentStatus == EvidenceSectionStatus.submitted ||
             currentStatus == EvidenceSectionStatus.validated ||
@@ -72,10 +78,13 @@ class StatusTimeline extends StatelessWidget {
       ),
       if (_isRejected)
         _TimelineStep(
-          label: 'Rechazado',
+          label: 'evidence_folder.status.rejected'.tr(),
           sublabel: lfApproverName != null
-              ? 'Por $lfApproverName'
-              : 'Sección rechazada',
+              ? 'evidence_folder.trace.sent_by'.tr(namedArgs: {
+                  'name': lfApproverName!,
+                  'date': '',
+                })
+              : 'evidence_folder.timeline.rejected'.tr(),
           icon: HugeIcons.strokeRoundedCancel01,
           isCompleted: true,
           isActive: true,
@@ -84,12 +93,18 @@ class StatusTimeline extends StatelessWidget {
       else ...[
         if (!_isRejected && showPreapproved) ...[
           _TimelineStep(
-            label: 'Preaprobado',
+            label: 'evidence_folder.status.preapproved'.tr(),
             sublabel: lfApproverName != null && lfApprovedAt != null
-                ? 'Por $lfApproverName · ${dateFormat.format(lfApprovedAt!.toLocal())}'
+                ? 'evidence_folder.trace.preapproved_by'.tr(namedArgs: {
+                    'name': lfApproverName!,
+                    'date': ' · ${dateFormat.format(lfApprovedAt!.toLocal())}',
+                  })
                 : lfApproverName != null
-                    ? 'Por $lfApproverName'
-                    : 'Revisión de campo local',
+                    ? 'evidence_folder.trace.preapproved_by'.tr(namedArgs: {
+                        'name': lfApproverName!,
+                        'date': '',
+                      })
+                    : 'evidence_folder.timeline.local_review'.tr(),
             icon: HugeIcons.strokeRoundedAnalytics01,
             isCompleted: currentStatus == EvidenceSectionStatus.preapprovedLf ||
                 currentStatus == EvidenceSectionStatus.validated,
@@ -98,14 +113,23 @@ class StatusTimeline extends StatelessWidget {
           ),
         ],
         _TimelineStep(
-          label: 'Validado',
+          label: 'evidence_folder.status.validated'.tr(),
           sublabel: unionApproverName != null && unionApprovedAt != null
-              ? 'Por $unionApproverName · ${dateFormat.format(unionApprovedAt!.toLocal())}'
+              ? 'evidence_folder.trace.validated_by'.tr(namedArgs: {
+                  'name': unionApproverName!,
+                  'date': ' · ${dateFormat.format(unionApprovedAt!.toLocal())}',
+                })
               : unionApproverName != null
-                  ? 'Por $unionApproverName'
+                  ? 'evidence_folder.trace.validated_by'.tr(namedArgs: {
+                      'name': unionApproverName!,
+                      'date': '',
+                    })
                   : lfApproverName != null && !showPreapproved
-                      ? 'Por $lfApproverName'
-                      : 'Esperando validación',
+                      ? 'evidence_folder.trace.validated_by'.tr(namedArgs: {
+                          'name': lfApproverName!,
+                          'date': '',
+                        })
+                      : 'evidence_folder.timeline.waiting_validation'.tr(),
           icon: HugeIcons.strokeRoundedCheckmarkCircle01,
           isCompleted: currentStatus == EvidenceSectionStatus.validated,
           isActive: currentStatus == EvidenceSectionStatus.validated,

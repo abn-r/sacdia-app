@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -75,13 +76,15 @@ class AchievementDetailSheet extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      const SizedBox(height: 16),
+
                       // Badge large
                       AchievementBadge(
                         badgeImageUrl: achievement.badgeImageUrl,
                         tier: achievement.tier,
                         visualState: visualState,
                         isSecret: achievement.secret,
-                        size: 96,
+                        size: 146,
                         progress: userAchievement?.progressPercentage ?? 0.0,
                       ),
                       const SizedBox(height: 16),
@@ -91,11 +94,11 @@ class AchievementDetailSheet extends StatelessWidget {
                         isSecret ? '???' : achievement.name,
                         style: Theme.of(context)
                             .textTheme
-                            .headlineSmall
+                            .headlineMedium
                             ?.copyWith(fontWeight: FontWeight.w700),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 15),
 
                       // Tier + Points badges
                       Row(
@@ -134,8 +137,8 @@ class AchievementDetailSheet extends StatelessWidget {
                           ),
                           if (achievement.repeatable) ...[
                             const SizedBox(width: 8),
-                            const SacBadge(
-                              label: 'Repetible',
+                            SacBadge(
+                              label: 'achievements.views.detail_repeatable'.tr(),
                               variant: SacBadgeVariant.secondary,
                             ),
                           ],
@@ -191,7 +194,7 @@ class AchievementDetailSheet extends StatelessWidget {
                           userAchievement.timesCompleted > 0) ...[
                         _InfoRow(
                           icon: HugeIcons.strokeRoundedRefresh,
-                          label: 'Veces completado',
+                          label: 'achievements.views.detail_times_completed'.tr(),
                           value: userAchievement.timesCompleted.toString(),
                         ),
                         const SizedBox(height: 8),
@@ -202,10 +205,10 @@ class AchievementDetailSheet extends StatelessWidget {
                           userAchievement?.completedAt != null) ...[
                         _InfoRow(
                           icon: HugeIcons.strokeRoundedCalendar01,
-                          label: 'Completado el',
+                          label: 'achievements.views.detail_completed_on'.tr(),
                           value: _formatDate(userAchievement!.completedAt!),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                       ],
 
                       const SizedBox(height: 32),
@@ -247,7 +250,7 @@ class _ProgressSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Progreso',
+              'achievements.views.detail_progress'.tr(),
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -328,7 +331,7 @@ class _CollectionContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Colección',
+          'achievements.views.detail_collection'.tr(),
           style: Theme.of(context)
               .textTheme
               .titleSmall
@@ -392,7 +395,7 @@ class _StreakContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
-          'Racha',
+          'achievements.views.detail_streak'.tr(),
           style: Theme.of(context)
               .textTheme
               .titleSmall
@@ -455,7 +458,7 @@ class _PrerequisiteChip extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            'Requiere: Logro #$prerequisiteId',
+            'achievements.views.detail_prerequisite'.tr(namedArgs: {'id': '$prerequisiteId'}),
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,

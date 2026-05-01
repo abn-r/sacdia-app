@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -32,7 +33,7 @@ class AttendanceButton extends StatelessWidget {
                 size: 20, color: AppColors.secondaryDark),
             const SizedBox(width: 8),
             Text(
-              'Asistencia confirmada',
+              'activities.widgets.attendance_confirmed'.tr(),
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 color: AppColors.secondaryDark,
@@ -44,7 +45,7 @@ class AttendanceButton extends StatelessWidget {
     }
 
     return SacButton.primary(
-      text: 'Confirmar asistencia',
+      text: 'activities.widgets.confirm_attendance'.tr(),
       icon: HugeIcons.strokeRoundedUserCheck01,
       isLoading: isLoading,
       onPressed: onPressed,

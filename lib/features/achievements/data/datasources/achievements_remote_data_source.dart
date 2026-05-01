@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -98,7 +99,7 @@ class AchievementsRemoteDataSourceImpl implements AchievementsRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener catálogo de logros',
+        message: tr('achievements.errors.fetch_achievements'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -106,7 +107,7 @@ class AchievementsRemoteDataSourceImpl implements AchievementsRemoteDataSource {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
-          message: e.message ?? 'Error de conexión',
+          message: e.message ?? tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }
@@ -141,7 +142,7 @@ class AchievementsRemoteDataSourceImpl implements AchievementsRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener logros del usuario',
+        message: tr('achievements.errors.fetch_user_achievements'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -149,7 +150,7 @@ class AchievementsRemoteDataSourceImpl implements AchievementsRemoteDataSource {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
-          message: e.message ?? 'Error de conexión',
+          message: e.message ?? tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }
@@ -170,14 +171,18 @@ class AchievementsRemoteDataSourceImpl implements AchievementsRemoteDataSource {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final List<dynamic> data = response.data as List<dynamic>;
-        return data
-            .map((json) =>
-                AchievementCategoryModel.fromJson(json as Map<String, dynamic>))
-            .toList();
+        return data.map((item) {
+          final json = item as Map<String, dynamic>;
+          final normalised = <String, dynamic>{
+            ...json,
+            'name': _resolveCategoryName(json),
+          };
+          return AchievementCategoryModel.fromJson(normalised);
+        }).toList();
       }
 
       throw ServerException(
-        message: 'Error al obtener categorías de logros',
+        message: tr('achievements.errors.fetch_categories'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -185,7 +190,7 @@ class AchievementsRemoteDataSourceImpl implements AchievementsRemoteDataSource {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
-          message: e.message ?? 'Error de conexión',
+          message: e.message ?? tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }
@@ -212,7 +217,11 @@ class AchievementsRemoteDataSourceImpl implements AchievementsRemoteDataSource {
   /// ```
   UserAchievementCategoryGroupRaw _parseUserGroupRaw(
       Map<String, dynamic> json) {
-    final category = AchievementCategoryModel.fromJson(json);
+    final normalised = <String, dynamic>{
+      ...json,
+      'name': _resolveCategoryName(json),
+    };
+    final category = AchievementCategoryModel.fromJson(normalised);
 
     final achievementsRaw = json['achievements'] as List<dynamic>? ?? [];
     final achievements = achievementsRaw.map((item) {
@@ -253,11 +262,13 @@ class AchievementsRemoteDataSourceImpl implements AchievementsRemoteDataSource {
   /// ```
   UserAchievementCategoryGroupRaw _parseCatalogGroupRaw(
       Map<String, dynamic> json) {
-    // Normalise the category JSON: catalog uses `category_name`, model reads `name`
+    // Normalise the category JSON: catalog uses `category_name`, model reads `name`.
+    // If BOTH keys are absent or null we inject a sentinel string and warn — this
+    // prevents a silent empty-string category name in the UI.
+    final resolvedName = _resolveCategoryName(json);
     final normalised = <String, dynamic>{
       ...json,
-      if (json['name'] == null && json['category_name'] != null)
-        'name': json['category_name'],
+      'name': resolvedName,
     };
     final category = AchievementCategoryModel.fromJson(normalised);
 
@@ -274,5 +285,29 @@ class AchievementsRemoteDataSourceImpl implements AchievementsRemoteDataSource {
       category: category,
       achievements: achievements,
     );
+  }
+
+  /// Resolves the human-readable category name from a raw JSON object.
+  ///
+  /// Handles two backend key variants:
+  /// - `name` — used by GET /achievements/me and GET /achievements/categories
+  /// - `category_name` — used by GET /achievements (catalog endpoint)
+  ///
+  /// If neither key is present or both are null/empty a sentinel string is
+  /// returned and a warning is logged so backend discrepancies are surfaced
+  /// during development without crashing the app.
+  String _resolveCategoryName(Map<String, dynamic> json) {
+    final name = json['name'];
+    final categoryName = json['category_name'];
+
+    if (name is String && name.isNotEmpty) return name;
+    if (categoryName is String && categoryName.isNotEmpty) return categoryName;
+
+    AppLogger.w(
+      'Category JSON missing both "name" and "category_name" — using sentinel. '
+      'category_id=${json['category_id'] ?? json['achievement_category_id'] ?? '?'}',
+      tag: _tag,
+    );
+    return 'Categoría';
   }
 }

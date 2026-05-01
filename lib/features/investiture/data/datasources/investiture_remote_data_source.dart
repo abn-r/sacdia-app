@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -62,19 +63,19 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
       final code = e.response?.statusCode;
       if (code == 403) {
         throw AuthException(
-          message: 'No tienes permiso para realizar esta acción',
+          message: tr('investiture.errors.no_permission'),
           code: code,
         );
       }
       if (code == 409) {
         throw ServerException(
-          message: msg.isNotEmpty ? msg : 'El enrollment no está en el estado correcto para esta acción',
+          message: msg.isNotEmpty ? msg : tr('investiture.errors.invalid_state'),
           code: code,
         );
       }
       if (code == 404) {
         throw ServerException(
-          message: 'Enrollment no encontrado',
+          message: tr('investiture.errors.enrollment_not_found'),
           code: code,
         );
       }
@@ -88,12 +89,12 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? 'Error de conexion').toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
       }
     } catch (e) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
     }
-    return e.message ?? 'Error de conexion';
+    return e.message ?? tr('common.error_network');
   }
 
   // ── POST /api/v1/enrollments/:enrollmentId/submit-for-validation ─────────────
@@ -122,7 +123,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al enviar para validación',
+        message: tr('investiture.errors.submit_for_validation'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -157,7 +158,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al validar enrollment',
+        message: tr('investiture.errors.validate_enrollment'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -191,7 +192,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al registrar investidura',
+        message: tr('investiture.errors.mark_as_investido'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -246,7 +247,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener investiduras pendientes',
+        message: tr('investiture.errors.get_pending'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -280,7 +281,7 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener historial de investidura',
+        message: tr('investiture.errors.get_history'),
         code: response.statusCode,
       );
     } catch (e) {

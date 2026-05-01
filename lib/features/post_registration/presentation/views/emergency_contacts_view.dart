@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,9 +22,10 @@ class EmergencyContactsView extends ConsumerWidget {
   ) async {
     final confirmed = await SacDialog.show(
       context,
-      title: 'Eliminar Contacto',
-      content: '¿Estás seguro de que deseas eliminar a $contactName?',
-      confirmLabel: 'Eliminar',
+      title: 'post_registration.emergency_contacts.delete_dialog_title'.tr(),
+      content: 'post_registration.emergency_contacts.delete_dialog_content'
+          .tr(namedArgs: {'name': contactName}),
+      confirmLabel: 'common.delete'.tr(),
       confirmIsDestructive: true,
     );
 
@@ -35,7 +37,8 @@ class EmergencyContactsView extends ConsumerWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Contacto eliminado correctamente'),
+              content: Text(
+                  'post_registration.emergency_contacts.delete_success'.tr()),
               backgroundColor: AppColors.secondary,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -48,7 +51,10 @@ class EmergencyContactsView extends ConsumerWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error al eliminar: ${e.toString()}'),
+              content: Text(
+                'post_registration.emergency_contacts.error_deleting'
+                    .tr(namedArgs: {'error': e.toString()}),
+              ),
               backgroundColor: AppColors.error,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -80,14 +86,16 @@ class EmergencyContactsView extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Contactos de Emergencia'),
+        title:
+            Text('post_registration.emergency_contacts.title'.tr()),
         actions: [
           IconButton(
             icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 24),
             onPressed: () {
               ref.read(emergencyContactsProvider.notifier).refresh();
             },
-            tooltip: 'Actualizar',
+            tooltip:
+                'post_registration.emergency_contacts.refresh_tooltip'.tr(),
           ),
         ],
       ),
@@ -102,11 +110,14 @@ class EmergencyContactsView extends ConsumerWidget {
                   size: 48,
                   color: AppColors.error),
               const SizedBox(height: 16),
-              Text('Error: $error'),
+              Text(
+                'post_registration.emergency_contacts.error_loading'
+                    .tr(namedArgs: {'error': error.toString()}),
+              ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
                 icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 20),
-                label: const Text('Reintentar'),
+                label: Text('common.retry'.tr()),
                 onPressed: () {
                   ref.read(emergencyContactsProvider.notifier).refresh();
                 },
@@ -127,7 +138,7 @@ class EmergencyContactsView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No hay contactos de emergencia',
+                    'post_registration.emergency_contacts.empty_title'.tr(),
                     style: TextStyle(
                       fontSize: 18,
                       color: context.sac.textSecondary,
@@ -136,7 +147,7 @@ class EmergencyContactsView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Agrega al menos un contacto de emergencia',
+                    'post_registration.emergency_contacts.empty_subtitle'.tr(),
                     style: TextStyle(
                       fontSize: 14,
                       color: context.sac.textTertiary,
@@ -146,7 +157,8 @@ class EmergencyContactsView extends ConsumerWidget {
                   ElevatedButton.icon(
                     icon:
                         HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 20),
-                    label: const Text('Agregar Contacto'),
+                    label: Text(
+                        'post_registration.emergency_contacts.add_button'.tr()),
                     onPressed: () => _navigateToAddEdit(context),
                   ),
                 ],
@@ -178,8 +190,12 @@ class EmergencyContactsView extends ConsumerWidget {
                     Expanded(
                       child: Text(
                         contacts.length >= 5
-                            ? 'Has alcanzado el límite de 5 contactos'
-                            : 'Puedes agregar hasta 5 contactos (${contacts.length}/5)',
+                            ? 'post_registration.emergency_contacts.limit_reached'
+                                .tr()
+                            : 'post_registration.emergency_contacts.limit_progress'
+                                .tr(namedArgs: {
+                                'current': contacts.length.toString()
+                              }),
                         style: TextStyle(
                           fontSize: 14,
                           color: contacts.length >= 5
@@ -228,9 +244,9 @@ class EmergencyContactsView extends ConsumerWidget {
               size: 22,
               color: Colors.white,
             ),
-            label: const Text(
-              'Agregar Contacto',
-              style: TextStyle(
+            label: Text(
+              'post_registration.emergency_contacts.add_button'.tr(),
+              style: const TextStyle(
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.3,
               ),

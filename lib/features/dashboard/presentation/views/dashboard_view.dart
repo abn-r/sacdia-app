@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -55,7 +56,7 @@ class DashboardView extends ConsumerWidget {
                         color: c.textTertiary),
                     const SizedBox(height: 12),
                     Text(
-                      'No se pudo cargar el dashboard',
+                      tr('dashboard.load_null_error'),
                       style: TextStyle(
                         fontSize: 16,
                         color: c.textSecondary,
@@ -168,7 +169,7 @@ class DashboardView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Error al cargar el dashboard',
+                    tr('dashboard.load_error'),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -185,7 +186,7 @@ class DashboardView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
                   SacButton.primary(
-                    text: 'Reintentar',
+                    text: tr('common.retry'),
                     icon: HugeIcons.strokeRoundedRefresh,
                     onPressed: () {
                       ref.read(dashboardNotifierProvider.notifier).refresh();

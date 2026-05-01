@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/utils/ip_masker.dart';
+import '../../../biometric/presentation/providers/biometric_provider.dart';
 import '../../domain/entities/active_session.dart';
 import '../providers/active_sessions_providers.dart';
 
@@ -97,7 +99,7 @@ class _ActiveSessionsViewState extends ConsumerState<ActiveSessionsView> {
     if (error != null) {
       _showSnackBar(error, isError: true);
     } else {
-      _showSnackBar('Sesión revocada correctamente.');
+      _showSnackBar('profile.active_sessions.ui.revoked_ok'.tr());
     }
   }
 
@@ -110,29 +112,44 @@ class _ActiveSessionsViewState extends ConsumerState<ActiveSessionsView> {
       barrierColor: context.sac.barrierColor,
       barrierDismissible: true,
       builder: (ctx) => AlertDialog(
-        title: const Text('Cerrar otras sesiones'),
+        title: Text('profile.active_sessions.ui.dialog_close_others_title'.tr()),
         content: Text(
-          'Esto cerrará sesión en $otherCount '
-          '${otherCount == 1 ? 'dispositivo' : 'dispositivos'}. '
-          '¿Querés continuar?',
+          otherCount == 1
+              ? 'profile.active_sessions.ui.dialog_close_others_body_one'
+                  .tr(namedArgs: {'count': '$otherCount'})
+              : 'profile.active_sessions.ui.dialog_close_others_body_other'
+                  .tr(namedArgs: {'count': '$otherCount'}),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text('common.cancel'.tr()),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.error,
             ),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Cerrar sesiones'),
+            child: Text('profile.active_sessions.ui.action_close_sessions'.tr()),
           ),
         ],
       ),
     );
 
     if (confirmed != true || !mounted) return;
+
+    // Confirmación biométrica antes de revocar todas las otras sesiones
+    // (no-op si el usuario no tiene biometría habilitada).
+    final bioOk = await requireBiometricConfirmation(
+      context,
+      ref,
+      reason: 'biometric.confirm_sensitive_action'.tr(),
+    );
+    if (!mounted) return;
+    if (!bioOk) {
+      _showSnackBar('profile.active_sessions.ui.operation_cancelled'.tr(), isError: true);
+      return;
+    }
 
     HapticFeedback.mediumImpact();
     setState(() => _revokingAll = true);
@@ -149,7 +166,9 @@ class _ActiveSessionsViewState extends ConsumerState<ActiveSessionsView> {
     } else {
       final n = result.count;
       _showSnackBar(
-        '$n ${n == 1 ? 'sesión revocada' : 'sesiones revocadas'} correctamente.',
+        n == 1
+            ? 'profile.active_sessions.ui.revoked_all_one'.tr()
+            : 'profile.active_sessions.ui.revoked_all_other'.tr(namedArgs: {'count': '$n'}),
       );
     }
   }
@@ -162,7 +181,7 @@ class _ActiveSessionsViewState extends ConsumerState<ActiveSessionsView> {
     return Scaffold(
       backgroundColor: c.surfaceVariant,
       appBar: AppBar(
-        title: const Text('Sesiones activas'),
+        title: Text('profile.active_sessions.ui.title'.tr()),
         backgroundColor: c.surfaceVariant,
         foregroundColor: c.text,
         elevation: 0,
@@ -241,7 +260,7 @@ class _ErrorState extends StatelessWidget {
                 size: 16,
                 color: Colors.white,
               ),
-              label: const Text('Reintentar'),
+              label: Text('common.retry'.tr()),
             ),
           ],
         ),
@@ -271,7 +290,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'No hay sesiones activas',
+              'profile.active_sessions.ui.no_sessions'.tr(),
               style: TextStyle(fontSize: 15, color: c.textSecondary),
             ),
           ],
@@ -313,7 +332,7 @@ class _SessionList extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 4, bottom: 10),
             child: Text(
-              'DISPOSITIVOS CON SESIÓN ABIERTA',
+              'profile.active_sessions.ui.devices_header'.tr(),
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
@@ -367,8 +386,8 @@ class _SessionList extends StatelessWidget {
                       ),
                 label: Text(
                   isRevokingAll
-                      ? 'Cerrando sesiones...'
-                      : 'Cerrar sesión en todos los otros dispositivos',
+                      ? 'profile.active_sessions.ui.closing_sessions'.tr()
+                      : 'profile.active_sessions.ui.close_all_others'.tr(),
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -453,7 +472,7 @@ class _SessionCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   session.isCurrent
-                      ? 'Esta sesión'
+                      ? 'profile.active_sessions.ui.this_session'.tr()
                       : maskIpAddress(session.ipAddress),
                   style: TextStyle(fontSize: 12, color: c.textSecondary),
                   maxLines: 1,
@@ -461,7 +480,7 @@ class _SessionCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 1),
                 Text(
-                  'Último uso: ${_relativeTime(session.lastActiveAt)}',
+                  'profile.active_sessions.ui.last_used'.tr(namedArgs: {'time': _relativeTime(session.lastActiveAt)}),
                   style: TextStyle(fontSize: 11, color: c.textTertiary),
                 ),
               ],
@@ -479,7 +498,7 @@ class _SessionCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                'Activa',
+                'profile.active_sessions.ui.session_active_badge'.tr(),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,

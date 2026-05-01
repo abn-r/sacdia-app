@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -91,7 +92,7 @@ class _TransactionSearchFieldState extends State<TransactionSearchField> {
                 color: context.sac.text,
               ),
               decoration: InputDecoration(
-                hintText: 'Buscar por nombre, categoría, monto\u2026',
+                hintText: 'finances.widgets.search_hint'.tr(),
                 hintStyle: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w400,

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -41,7 +42,9 @@ class NotificationPreferencesRemoteDataSourceImpl
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw ServerException(
-          message: 'Error al obtener preferencias de notificación',
+          message: tr(
+            'profile.notification_preferences.errors.get_status',
+          ),
           code: response.statusCode,
         );
       }
@@ -59,13 +62,16 @@ class NotificationPreferencesRemoteDataSourceImpl
       throw ServerException(
         message: e.response?.data is Map
             ? (e.response!.data['message'] as String? ??
-                'Error al obtener preferencias')
-            : 'Error al obtener preferencias',
+                tr('profile.notification_preferences.errors.get_http'))
+            : tr('profile.notification_preferences.errors.get_http'),
         code: e.response?.statusCode,
       );
     } catch (e) {
       AppLogger.e('Error inesperado al obtener preferencias', tag: _tag, error: e);
-      throw ServerException(message: 'Error inesperado: $e');
+      throw ServerException(
+        message:
+            '${tr('profile.notification_preferences.errors.get_unexpected')}: $e',
+      );
     }
   }
 
@@ -81,7 +87,9 @@ class NotificationPreferencesRemoteDataSourceImpl
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw ServerException(
-          message: 'Error al actualizar preferencias de notificación',
+          message: tr(
+            'profile.notification_preferences.errors.update_status',
+          ),
           code: response.statusCode,
         );
       }
@@ -99,13 +107,16 @@ class NotificationPreferencesRemoteDataSourceImpl
       throw ServerException(
         message: e.response?.data is Map
             ? (e.response!.data['message'] as String? ??
-                'Error al actualizar preferencias')
-            : 'Error al actualizar preferencias',
+                tr('profile.notification_preferences.errors.update_http'))
+            : tr('profile.notification_preferences.errors.update_http'),
         code: e.response?.statusCode,
       );
     } catch (e) {
       AppLogger.e('Error inesperado al actualizar preferencias', tag: _tag, error: e);
-      throw ServerException(message: 'Error inesperado: $e');
+      throw ServerException(
+        message:
+            '${tr('profile.notification_preferences.errors.update_unexpected')}: $e',
+      );
     }
   }
 
@@ -117,6 +128,8 @@ class NotificationPreferencesRemoteDataSourceImpl
       if (nested is Map<String, dynamic>) return nested;
       return responseData;
     }
-    throw ServerException(message: 'Formato de respuesta inesperado');
+    throw ServerException(
+      message: tr('profile.notification_preferences.errors.unexpected_format'),
+    );
   }
 }

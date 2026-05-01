@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -33,7 +34,7 @@ class AchievementsView extends ConsumerWidget {
         foregroundColor: context.sac.text,
         centerTitle: true,
         title: Text(
-          'Logros',
+          'achievements.views.title'.tr(),
           style: TextStyle(
             color: context.sac.text,
             fontSize: 17,
@@ -129,7 +130,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'No hay logros disponibles',
+              'achievements.views.empty_title'.tr(),
               style: TextStyle(
                 color: context.sac.textSecondary,
                 fontSize: 16,
@@ -165,7 +166,7 @@ class _ErrorState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error al cargar logros',
+              'achievements.views.error_title'.tr(),
               style: TextStyle(
                 color: context.sac.text,
                 fontSize: 16,
@@ -174,13 +175,13 @@ class _ErrorState extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Verifica tu conexión e intenta de nuevo.',
+              'achievements.views.error_subtitle'.tr(),
               style: TextStyle(color: context.sac.textSecondary, fontSize: 13),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
             SacButton.primary(
-              text: 'Reintentar',
+              text: 'achievements.views.retry'.tr(),
               icon: HugeIcons.strokeRoundedRefresh,
               onPressed: onRetry,
             ),

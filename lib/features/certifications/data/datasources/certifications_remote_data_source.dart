@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -87,12 +88,12 @@ class CertificationsRemoteDataSourceImpl
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? 'Error de conexion').toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
       }
     } catch (e) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
     }
-    return e.message ?? 'Error de conexion';
+    return e.message ?? tr('common.error_network');
   }
 
   // ── GET /certifications/certifications ──────────────────────────────────────
@@ -116,7 +117,7 @@ class CertificationsRemoteDataSourceImpl
       }
 
       throw ServerException(
-          message: 'Error al obtener certificaciones',
+          message: tr('certifications.errors.get_certifications'),
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getCertifications', tag: _tag, error: e);
@@ -143,7 +144,7 @@ class CertificationsRemoteDataSourceImpl
       }
 
       throw ServerException(
-          message: 'Error al obtener detalle de certificación',
+          message: tr('certifications.errors.get_certification_detail'),
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getCertificationDetail', tag: _tag, error: e);
@@ -173,7 +174,7 @@ class CertificationsRemoteDataSourceImpl
       }
 
       throw ServerException(
-          message: 'Error al obtener certificaciones del usuario',
+          message: tr('certifications.errors.get_user_certifications'),
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getUserCertifications', tag: _tag, error: e);
@@ -201,7 +202,7 @@ class CertificationsRemoteDataSourceImpl
       }
 
       throw ServerException(
-          message: 'Error al obtener progreso de certificación',
+          message: tr('certifications.errors.get_certification_progress'),
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getCertificationProgress', tag: _tag, error: e);
@@ -226,7 +227,7 @@ class CertificationsRemoteDataSourceImpl
       }
 
       throw ServerException(
-          message: 'Error al inscribirse en la certificación',
+          message: tr('certifications.errors.enroll_certification'),
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en enrollCertification', tag: _tag, error: e);
@@ -259,7 +260,7 @@ class CertificationsRemoteDataSourceImpl
       }
 
       throw ServerException(
-          message: 'Error al actualizar progreso de sección',
+          message: tr('certifications.errors.update_section_progress'),
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en updateSectionProgress', tag: _tag, error: e);
@@ -284,7 +285,7 @@ class CertificationsRemoteDataSourceImpl
       }
 
       throw ServerException(
-          message: 'Error al desinscribirse de la certificación',
+          message: tr('certifications.errors.unenroll_certification'),
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en unenrollCertification', tag: _tag, error: e);

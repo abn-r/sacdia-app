@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -100,11 +101,11 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
             .toList();
       }
 
-      throw ServerException(message: 'Error al obtener actividades', code: response.statusCode);
+      throw ServerException(message: tr('activities.errors.fetch_list'), code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getClubActivities', tag: _tag, error: e);
       if (e is DioException) {
-        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
+        throw ServerException(message: e.message ?? tr('common.error_network'), code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
@@ -126,11 +127,11 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
         return ActivityModel.fromJson(response.data as Map<String, dynamic>);
       }
 
-      throw ServerException(message: 'Error al obtener actividad', code: response.statusCode);
+      throw ServerException(message: tr('activities.errors.fetch_one'), code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getActivityById', tag: _tag, error: e);
       if (e is DioException) {
-        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
+        throw ServerException(message: e.message ?? tr('common.error_network'), code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
@@ -155,11 +156,11 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
             .toList();
       }
 
-      throw ServerException(message: 'Error al obtener asistencia', code: response.statusCode);
+      throw ServerException(message: tr('activities.errors.fetch_attendance'), code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getActivityAttendance', tag: _tag, error: e);
       if (e is DioException) {
-        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
+        throw ServerException(message: e.message ?? tr('common.error_network'), code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
@@ -189,13 +190,13 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
         return ActivityModel.fromJson(activityData);
       }
 
-      throw ServerException(message: 'Error al crear actividad', code: response.statusCode);
+      throw ServerException(message: tr('activities.errors.create'), code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en createActivity', tag: _tag, error: e);
       if (e is DioException) {
         final message = e.response?.data is Map
-            ? (e.response!.data['message'] ?? e.message ?? 'Error de conexión')
-            : (e.message ?? 'Error de conexión');
+            ? (e.response!.data['message'] ?? e.message ?? tr('common.error_network'))
+            : (e.message ?? tr('common.error_network'));
         throw ServerException(
           message: message.toString(),
           code: e.response?.statusCode,
@@ -262,12 +263,12 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
         return ActivityModel.fromJson(activityData as Map<String, dynamic>);
       }
 
-      throw ServerException(message: 'Error al actualizar actividad', code: response.statusCode);
+      throw ServerException(message: tr('activities.errors.update'), code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en updateActivity', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
-          message: e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
+          message: e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }
@@ -287,12 +288,12 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
 
       if (response.statusCode == 200 || response.statusCode == 201) return;
 
-      throw ServerException(message: 'Error al eliminar actividad', code: response.statusCode);
+      throw ServerException(message: tr('activities.errors.delete'), code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en deleteActivity', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
-          message: e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
+          message: e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }
@@ -317,12 +318,12 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
         return recordedCount;
       }
 
-      throw ServerException(message: 'Error al registrar asistencia', code: response.statusCode);
+      throw ServerException(message: tr('activities.errors.register_attendance'), code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en registerAttendance', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
-          message: e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
+          message: e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }
@@ -358,15 +359,15 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al subir imagen de actividad',
+        message: tr('activities.errors.upload_image'),
         code: response.statusCode,
       );
     } catch (e) {
       AppLogger.e('Error en uploadActivityImage', tag: _tag, error: e);
       if (e is DioException) {
         final message = e.response?.data is Map
-            ? (e.response!.data['message'] ?? e.message ?? 'Error de conexión')
-            : (e.message ?? 'Error de conexión');
+            ? (e.response!.data['message'] ?? e.message ?? tr('common.error_network'))
+            : (e.message ?? tr('common.error_network'));
         throw ServerException(
           message: message.toString(),
           code: e.response?.statusCode,
@@ -397,14 +398,14 @@ class ActivitiesRemoteDataSourceImpl implements ActivitiesRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener secciones del club',
+        message: tr('activities.errors.fetch_club_sections'),
         code: response.statusCode,
       );
     } catch (e) {
       AppLogger.e('Error en getClubSections', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
-          message: e.response?.data?['message'] ?? e.message ?? 'Error de conexión',
+          message: e.response?.data?['message'] ?? e.message ?? tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }

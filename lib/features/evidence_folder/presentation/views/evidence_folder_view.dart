@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -95,22 +96,23 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Enviar sección a validación'),
+        title: Text('evidence_folder.submit_section_dialog.title'.tr()),
         content: Text(
-          '¿Confirmás que querés enviar la sección "${section.name}" a validación?\n\n'
-          'No podrás modificar los archivos hasta que el campo local la revise.',
+          'evidence_folder.submit_section_dialog.message'.tr(namedArgs: {
+            'sectionName': section.name,
+          }),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(
               foregroundColor: AppColors.sacBlue,
             ),
-            child: const Text('Enviar'),
+            child: Text('evidence_folder.send'.tr()),
           ),
         ],
       ),
@@ -138,7 +140,10 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                    'Sección "${section.name}" enviada a validación exitosamente'),
+                  'evidence_folder.submit_success'.tr(namedArgs: {
+                    'sectionName': section.name,
+                  }),
+                ),
               ),
             ],
           ),
@@ -208,7 +213,7 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
             backgroundColor: c.background,
             surfaceTintColor: Colors.transparent,
             title: Text(
-              'Carpeta de Evidencias',
+              'evidence_folder.title'.tr(),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: c.text,
@@ -241,7 +246,7 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                   child: Text(
-                    'Secciones',
+                    'evidence_folder.sections_title'.tr(),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: c.text,
@@ -350,7 +355,9 @@ class _FolderHeaderCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      folder.isOpen ? 'Abierta' : 'Cerrada',
+                      folder.isOpen
+                          ? 'evidence_folder.status.open'.tr()
+                          : 'evidence_folder.status.closed'.tr(),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -419,7 +426,10 @@ class _FolderHeaderCard extends StatelessWidget {
               ),
               const SizedBox(width: 5),
               Text(
-                '${folder.earnedPoints} / ${folder.maxPoints} pts',
+                'evidence_folder.points_ratio'.tr(namedArgs: {
+                  'earned': '${folder.earnedPoints}',
+                  'max': '${folder.maxPoints}',
+                }),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -454,19 +464,19 @@ class _ProgressSummaryRow extends StatelessWidget {
         children: [
           _StatPill(
             count: pending,
-            label: 'Pendientes',
+            label: 'evidence_folder.stats.pending'.tr(),
             color: AppColors.accent,
           ),
           const SizedBox(width: 8),
           _StatPill(
             count: submitted,
-            label: 'Enviadas',
+            label: 'evidence_folder.stats.submitted'.tr(),
             color: AppColors.sacBlue,
           ),
           const SizedBox(width: 8),
           _StatPill(
             count: validated,
-            label: 'Validadas',
+            label: 'evidence_folder.stats.validated'.tr(),
             color: AppColors.secondary,
           ),
         ],
@@ -567,7 +577,7 @@ class _UnderEvaluationBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'En proceso de evaluación',
+                  'evidence_folder.evaluation_banner.title'.tr(),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: const Color(0xFF92400E),
@@ -575,7 +585,7 @@ class _UnderEvaluationBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'El evaluador del campo está revisando las evidencias de este club.',
+                  'evidence_folder.evaluation_banner.description'.tr(),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: const Color(0xFF92400E),
                         height: 1.45,
@@ -606,7 +616,7 @@ class _EmptySections extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'No hay secciones disponibles',
+            'evidence_folder.empty_sections'.tr(),
             style: Theme.of(context)
                 .textTheme
                 .titleSmall
@@ -644,7 +654,7 @@ class _NoFolderBody extends StatelessWidget {
             onPressed: onBack,
           ),
           title: Text(
-            'Carpeta de Evidencias',
+            'evidence_folder.title'.tr(),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: c.text,
@@ -676,7 +686,7 @@ class _NoFolderBody extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    'Carpeta no disponible',
+                    'evidence_folder.no_folder.title'.tr(),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: c.text,
@@ -685,7 +695,7 @@ class _NoFolderBody extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'La carpeta anual de evidencias aún no ha sido creada para esta sección.',
+                    'evidence_folder.no_folder.description1'.tr(),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: c.textSecondary,
                           height: 1.55,
@@ -694,7 +704,7 @@ class _NoFolderBody extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Contactá a la administración del campo local para consultar el estatus.',
+                    'evidence_folder.no_folder.description2'.tr(),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: c.textSecondary,
                           height: 1.55,
@@ -703,7 +713,7 @@ class _NoFolderBody extends StatelessWidget {
                   ),
                   const SizedBox(height: 32),
                   SacButton.ghost(
-                    text: 'Volver',
+                    text: 'common.back'.tr(),
                     icon: HugeIcons.strokeRoundedArrowLeft01,
                     onPressed: onBack,
                   ),
@@ -748,7 +758,7 @@ class _ErrorBody extends StatelessWidget {
             onPressed: onBack,
           ),
           title: Text(
-            'Carpeta de Evidencias',
+            'evidence_folder.title'.tr(),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: c.text,
@@ -770,7 +780,7 @@ class _ErrorBody extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Error al cargar la carpeta',
+                    'evidence_folder.error_load_title'.tr(),
                     style: Theme.of(context)
                         .textTheme
                         .titleMedium
@@ -787,7 +797,7 @@ class _ErrorBody extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   SacButton.primary(
-                    text: 'Reintentar',
+                    text: 'common.retry'.tr(),
                     icon: HugeIcons.strokeRoundedRefresh,
                     onPressed: onRetry,
                   ),

@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -77,7 +78,7 @@ class WelcomeHeader extends StatelessWidget {
                 size: 24,
                 color: AppColors.lightText,
               ),
-              tooltip: 'Notificaciones',
+              tooltip: tr('dashboard.notifications_tooltip'),
             ),
           ],
 
@@ -93,21 +94,27 @@ class WelcomeHeader extends StatelessWidget {
                   width: 2,
                 ),
               ),
-              child: ClipOval(
-                child: userAvatar != null && userAvatar!.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: userAvatar!,
-                        fit: BoxFit.cover,
-                        memCacheWidth: 132,
-                        memCacheHeight: 132,
-                        placeholder: (_, __) => _AvatarFallback(
-                          initial: firstName,
-                        ),
-                        errorWidget: (_, __, ___) => _AvatarFallback(
-                          initial: firstName,
-                        ),
-                      )
-                    : _AvatarFallback(initial: firstName),
+              // RepaintBoundary isolates this subtree so Impeller can composite
+              // opacity without triggering the SetInheritedOpacity validation
+              // warning that arises when ClipOval is inside a FadeTransition
+              // from StaggeredListItem.
+              child: RepaintBoundary(
+                child: ClipOval(
+                  child: userAvatar != null && userAvatar!.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: userAvatar!,
+                          fit: BoxFit.cover,
+                          memCacheWidth: 132,
+                          memCacheHeight: 132,
+                          placeholder: (_, __) => _AvatarFallback(
+                            initial: firstName,
+                          ),
+                          errorWidget: (_, __, ___) => _AvatarFallback(
+                            initial: firstName,
+                          ),
+                        )
+                      : _AvatarFallback(initial: firstName),
+                ),
               ),
             ),
           ),

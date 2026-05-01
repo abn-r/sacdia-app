@@ -1,43 +1,25 @@
+import 'package:easy_localization/easy_localization.dart';
+
 /// Utilidades para el manejo y traducción de roles del sistema
 class RoleUtils {
   const RoleUtils._();
 
-  /// Mapa de roles en inglés (clave del sistema) a su nombre en español
-  /// en forma masculina (género por defecto).
-  static const Map<String, String> _roleNamesMasculine = {
-    'super_admin': 'Súper administrador',
-    'admin': 'Administrador',
-    'assistant_admin': 'Administrador asistente',
-    'coordinator': 'Coordinador',
-    'pastor': 'Pastor',
-    'user': 'Usuario',
-    'director': 'Director',
-    'deputy_director': 'Subdirector',
-    'secretary': 'Secretario',
-    'treasurer': 'Tesorero',
-    'counselor': 'Consejero',
-    'instructor': 'Instructor',
-    'member': 'Miembro',
-    'secretary_treasurer': 'Secretario-Tesorero',
-  };
-
-  /// Mapa de roles en inglés (clave del sistema) a su nombre en español
-  /// en forma femenina.
-  static const Map<String, String> _roleNamesFeminine = {
-    'super_admin': 'Súper administradora',
-    'admin': 'Administradora',
-    'assistant_admin': 'Administradora asistente',
-    'coordinator': 'Coordinadora',
-    'pastor': 'Pastora',
-    'user': 'Usuaria',
-    'director': 'Directora',
-    'deputy_director': 'Subdirectora',
-    'secretary': 'Secretaria',
-    'treasurer': 'Tesorera',
-    'counselor': 'Consejera',
-    'instructor': 'Instructora',
-    'member': 'Miembro',
-    'secretary_treasurer': 'Secretaria-Tesorera',
+  /// Conjunto de claves de rol conocidas por el sistema.
+  static const _knownRoles = {
+    'super_admin',
+    'admin',
+    'assistant_admin',
+    'coordinator',
+    'pastor',
+    'user',
+    'director',
+    'deputy_director',
+    'secretary',
+    'treasurer',
+    'counselor',
+    'instructor',
+    'member',
+    'secretary_treasurer',
   };
 
   /// Retorna true si el valor de género indica sexo femenino.
@@ -50,7 +32,7 @@ class RoleUtils {
     return normalized == 'femenino' || normalized == 'f';
   }
 
-  /// Retorna el nombre en español del rol dado, con concordancia de género.
+  /// Retorna el nombre localizado del rol dado, con concordancia de género.
   ///
   /// [gender] debe ser el valor proveniente del campo `gender` del usuario
   /// cuyo rol se está mostrando — no el del usuario logueado.
@@ -62,9 +44,9 @@ class RoleUtils {
   static String translate(String? role, {String? gender}) {
     if (role == null || role.isEmpty) return '';
     final key = role.toLowerCase();
-    final map =
-        _isFeminine(gender) ? _roleNamesFeminine : _roleNamesMasculine;
-    return map[key] ?? _capitalize(role);
+    if (!_knownRoles.contains(key)) return _capitalize(role);
+    final genderSuffix = _isFeminine(gender) ? 'feminine' : 'masculine';
+    return tr('roles.$key.$genderSuffix');
   }
 
   /// Traduce una lista de roles y los une con coma.

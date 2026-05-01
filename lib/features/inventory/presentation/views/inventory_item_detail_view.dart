@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -34,7 +34,7 @@ class InventoryItemDetailView extends ConsumerWidget {
         backgroundColor: context.sac.background,
         surfaceTintColor: Colors.transparent,
         title: Text(
-          'Detalle del Artículo',
+          'inventory.detail.title'.tr(),
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: context.sac.text,
@@ -122,27 +122,27 @@ class InventoryItemDetailView extends ConsumerWidget {
               children: [
                 _InfoRow(
                   icon: HugeIcons.strokeRoundedPackage,
-                  label: 'Cantidad',
+                  label: 'inventory.detail.quantity'.tr(),
                   value: item.quantity.toString(),
                 ),
                 if (item.serialNumber != null &&
                     item.serialNumber!.isNotEmpty)
                   _InfoRow(
                     icon: HugeIcons.strokeRoundedTag01,
-                    label: 'N. de serie / código',
+                    label: 'inventory.detail.serial_number'.tr(),
                     value: item.serialNumber!,
                   ),
                 if (item.purchaseDate != null)
                   _InfoRow(
                     icon: HugeIcons.strokeRoundedCalendar01,
-                    label: 'Fecha de adquisición',
+                    label: 'inventory.detail.purchase_date'.tr(),
                     value: DateFormat('dd/MM/yyyy')
                         .format(item.purchaseDate!.toLocal()),
                   ),
                 if (item.estimatedValue != null)
                   _InfoRow(
                     icon: HugeIcons.strokeRoundedMoney01,
-                    label: 'Valor estimado',
+                    label: 'inventory.detail.estimated_value'.tr(),
                     value: '\$${item.estimatedValue!.toStringAsFixed(2)}',
                     valueColor: AppColors.secondary,
                   ),
@@ -156,14 +156,14 @@ class InventoryItemDetailView extends ConsumerWidget {
                   if (item.location != null && item.location!.isNotEmpty)
                     _InfoRow(
                       icon: HugeIcons.strokeRoundedLocation01,
-                      label: 'Ubicación',
+                      label: 'inventory.detail.location'.tr(),
                       value: item.location!,
                     ),
                   if (item.assignedTo != null &&
                       item.assignedTo!.isNotEmpty)
                     _InfoRow(
                       icon: HugeIcons.strokeRoundedUser,
-                      label: 'Asignado a',
+                      label: 'inventory.detail.assigned_to'.tr(),
                       value: item.assignedTo!,
                     ),
                 ],
@@ -176,7 +176,7 @@ class InventoryItemDetailView extends ConsumerWidget {
                 children: [
                   _InfoRow(
                     icon: HugeIcons.strokeRoundedNote01,
-                    label: 'Notas',
+                    label: 'inventory.detail.notes'.tr(),
                     value: item.notes!,
                     isMultiline: true,
                   ),
@@ -191,14 +191,14 @@ class InventoryItemDetailView extends ConsumerWidget {
               children: [
                 _InfoRow(
                   icon: HugeIcons.strokeRoundedUser,
-                  label: 'Registrado por',
+                  label: 'inventory.detail.registered_by'.tr(),
                   value:
                       '${item.registeredByName} · ${DateFormat('dd/MM/yyyy').format(item.registeredAt.toLocal())}',
                 ),
                 if (item.modifiedByName != null)
                   _InfoRow(
                     icon: HugeIcons.strokeRoundedEdit01,
-                    label: 'Última modificación',
+                    label: 'inventory.detail.last_modified'.tr(),
                     value:
                         '${item.modifiedByName} · ${item.modifiedAt != null ? DateFormat('dd/MM/yyyy').format(item.modifiedAt!.toLocal()) : ''}',
                   ),
@@ -224,13 +224,13 @@ class InventoryItemDetailView extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar artículo'),
-        content: Text(
-            '¿Estás seguro de que deseas eliminar "${item.name}"? Esta acción no se puede deshacer.'),
+        title: Text('inventory.detail.delete_title'.tr()),
+        content: Text('inventory.detail.delete_confirm'.tr(
+            namedArgs: {'name': item.name})),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: Text('common.cancel'.tr()),
           ),
           FilledButton(
             onPressed: () async {
@@ -240,16 +240,16 @@ class InventoryItemDetailView extends ConsumerWidget {
                   .deleteItem(item.id);
               if (success && context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Artículo eliminado correctamente'),
+                  SnackBar(
+                    content: Text('inventory.detail.deleted_success'.tr()),
                     backgroundColor: AppColors.secondary,
                   ),
                 );
                 Navigator.pop(context);
               } else if (!success && context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('No se pudo eliminar el artículo'),
+                  SnackBar(
+                    content: Text('inventory.detail.delete_error'.tr()),
                     backgroundColor: AppColors.error,
                     behavior: SnackBarBehavior.floating,
                   ),
@@ -257,7 +257,7 @@ class InventoryItemDetailView extends ConsumerWidget {
               }
             },
             style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Eliminar'),
+            child: Text('common.delete'.tr()),
           ),
         ],
       ),
@@ -309,7 +309,7 @@ class _BottomActionBar extends StatelessWidget {
                         size: 18,
                         color: AppColors.error,
                       ),
-                label: const Text('Eliminar'),
+                label: Text('common.delete'.tr()),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.error,
                   side: const BorderSide(color: AppColors.error),
@@ -333,7 +333,7 @@ class _BottomActionBar extends StatelessWidget {
                   size: 18,
                   color: Colors.white,
                 ),
-                label: const Text('Editar artículo'),
+                label: Text('inventory.detail.edit_button'.tr()),
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   minimumSize: const Size(0, 48),
@@ -397,7 +397,7 @@ class _PhotoPlaceholder extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Sin foto',
+            'inventory.detail.no_photo'.tr(),
             style: TextStyle(
               color: AppColors.primary.withValues(alpha: 0.5),
               fontSize: 13,

@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -47,7 +48,7 @@ class ProfileHonorsSection extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Center(
           child: Text(
-            'Error al cargar especialidades',
+            'profile.honors_section.error_load'.tr(),
             style: TextStyle(color: AppColors.error, fontSize: 14),
           ),
         ),
@@ -66,7 +67,7 @@ class ProfileHonorsSection extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Aún no tienes especialidades registradas',
+                  'profile.honors_section.no_honors'.tr(),
                   style: TextStyle(
                     fontSize: 15,
                     color: context.sac.textSecondary,
@@ -75,7 +76,7 @@ class ProfileHonorsSection extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
                 SacButton.outline(
-                  text: 'Agregar especialidad',
+                  text: 'profile.honors_section.add_honor'.tr(),
                   icon: HugeIcons.strokeRoundedAdd01,
                   onPressed: () {
                     context.push(RouteNames.homeHonors);
@@ -89,7 +90,7 @@ class ProfileHonorsSection extends ConsumerWidget {
         // Group userHonors by the category name embedded in the response.
         final Map<String, List<UserHonor>> byCategory = {};
         for (final uh in userHonors) {
-          final key = uh.honorCategoryName ?? 'Sin categoría';
+          final key = uh.honorCategoryName ?? 'profile.honors_section.sin_categoria'.tr();
           byCategory.putIfAbsent(key, () => []).add(uh);
         }
 
@@ -112,7 +113,7 @@ class ProfileHonorsSection extends ConsumerWidget {
               padding:
                   const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: SacButton.outline(
-                text: 'Agregar especialidad',
+                text: 'profile.honors_section.add_honor'.tr(),
                 icon: HugeIcons.strokeRoundedAdd01,
                 onPressed: () {
                   context.push(RouteNames.homeHonors);

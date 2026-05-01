@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -173,12 +174,12 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? 'Error de conexion').toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
       }
     } catch (_) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag);
     }
-    return e.message ?? 'Error de conexion';
+    return e.message ?? tr('common.error_network');
   }
 
   List<T> _parseList<T>(
@@ -219,7 +220,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
         return SlaDashboardModel.fromJson(data);
       }
       throw ServerException(
-        message: 'Error al obtener dashboard SLA',
+        message: tr('coordinator.errors.fetch_sla_dashboard'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -256,7 +257,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
         return _parseList(response.data, EvidenceReviewItemModel.fromJson);
       }
       throw ServerException(
-        message: 'Error al obtener evidencias pendientes',
+        message: tr('coordinator.errors.fetch_pending_evidence'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -286,7 +287,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
         return EvidenceReviewItemModel.fromJson(data);
       }
       throw ServerException(
-        message: 'Error al obtener detalle de evidencia',
+        message: tr('coordinator.errors.fetch_evidence_detail'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -316,7 +317,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
 
       if (_isOk(response.statusCode)) return;
       throw ServerException(
-        message: 'Error al aprobar evidencia',
+        message: tr('coordinator.errors.approve_evidence'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -341,7 +342,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
 
       if (_isOk(response.statusCode)) return;
       throw ServerException(
-        message: 'Error al rechazar evidencia',
+        message: tr('coordinator.errors.reject_evidence'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -365,7 +366,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
 
       if (_isOk(response.statusCode)) return;
       throw ServerException(
-        message: 'Error en aprobación masiva',
+        message: tr('coordinator.errors.bulk_approve_evidence'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -394,7 +395,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
 
       if (_isOk(response.statusCode)) return;
       throw ServerException(
-        message: 'Error en rechazo masivo',
+        message: tr('coordinator.errors.bulk_reject_evidence'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -425,7 +426,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
         );
       }
       throw ServerException(
-        message: 'Error al obtener camporees',
+        message: tr('coordinator.errors.fetch_local_camporees'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -454,7 +455,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
         );
       }
       throw ServerException(
-        message: 'Error al obtener camporees de unión',
+        message: tr('coordinator.errors.fetch_union_camporees'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -486,7 +487,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
         );
       }
       throw ServerException(
-        message: 'Error al obtener aprobaciones pendientes',
+        message: tr('coordinator.errors.fetch_local_pending'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -518,7 +519,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
         );
       }
       throw ServerException(
-        message: 'Error al obtener aprobaciones pendientes (unión)',
+        message: tr('coordinator.errors.fetch_union_pending'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -543,7 +544,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
 
       if (_isOk(response.statusCode)) return;
       throw ServerException(
-        message: 'Error al aprobar inscripción de club',
+        message: tr('coordinator.errors.approve_camporee_club'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -572,7 +573,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
 
       if (_isOk(response.statusCode)) return;
       throw ServerException(
-        message: 'Error al rechazar inscripción de club',
+        message: tr('coordinator.errors.reject_camporee_club'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -597,7 +598,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
 
       if (_isOk(response.statusCode)) return;
       throw ServerException(
-        message: 'Error al aprobar inscripción de miembro',
+        message: tr('coordinator.errors.approve_camporee_member'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -626,7 +627,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
 
       if (_isOk(response.statusCode)) return;
       throw ServerException(
-        message: 'Error al rechazar inscripción de miembro',
+        message: tr('coordinator.errors.reject_camporee_member'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -650,7 +651,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
 
       if (_isOk(response.statusCode)) return;
       throw ServerException(
-        message: 'Error al aprobar pago',
+        message: tr('coordinator.errors.approve_camporee_payment'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -676,7 +677,7 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
 
       if (_isOk(response.statusCode)) return;
       throw ServerException(
-        message: 'Error al rechazar pago',
+        message: tr('coordinator.errors.reject_camporee_payment'),
         code: response.statusCode,
       );
     } catch (e) {

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -43,16 +44,16 @@ List<List<dynamic>> resourceTypeIcon(String resourceType) {
 String resourceTypeLabel(String resourceType) {
   switch (resourceType) {
     case 'audio':
-      return 'AUDIO';
+      return 'resources.type_label.audio'.tr();
     case 'image':
-      return 'IMG';
+      return 'resources.type_label.image'.tr();
     case 'video_link':
-      return 'VIDEO';
+      return 'resources.type_label.video'.tr();
     case 'text':
-      return 'TXT';
+      return 'resources.type_label.text'.tr();
     case 'document':
     default:
-      return 'DOC';
+      return 'resources.type_label.document'.tr();
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -7,6 +8,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
+import '../../../../core/auth/club_role_names.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/member_of_month.dart';
@@ -18,16 +20,9 @@ import 'unit_form_sheet.dart';
 
 // ── Role helpers ──────────────────────────────────────────────────────────────
 
-const _kManagementRoles = [
-  'director',
-  'sub_director',
-  'secretario',
-  'secretario_tesorero',
-];
-
 bool _canManageRole(String? role) {
   if (role == null) return false;
-  return _kManagementRoles.contains(role.trim().toLowerCase());
+  return ClubRoleNames.management.contains(role.trim().toLowerCase());
 }
 
 bool _canDeleteRole(String? role) {
@@ -154,7 +149,7 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
     return Scaffold(
       backgroundColor: c.background,
       appBar: AppBar(
-        title: const Text('Mis Unidades'),
+        title: Text('units.list.title'.tr()),
       ),
       floatingActionButton: canManage
           ? FloatingActionButton(
@@ -275,22 +270,22 @@ class _Body extends ConsumerWidget {
                   final confirmed = await showDialog<bool>(
                         context: context,
                         builder: (ctx) => AlertDialog(
-                          title: const Text('Eliminar unidad'),
+                          title: Text('units.list.delete_title'.tr()),
                           content: Text(
-                            '¿Estás seguro de que querés eliminar "${unit.name}"? '
-                            'Esta acción no se puede deshacer.',
+                            'units.list.delete_confirm'
+                                .tr(namedArgs: {'name': unit.name}),
                           ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(ctx).pop(false),
-                              child: const Text('Cancelar'),
+                              child: Text('common.cancel'.tr()),
                             ),
                             TextButton(
                               onPressed: () => Navigator.of(ctx).pop(true),
                               style: TextButton.styleFrom(
                                 foregroundColor: Colors.red,
                               ),
-                              child: const Text('Eliminar'),
+                              child: Text('common.delete'.tr()),
                             ),
                           ],
                         ),
@@ -363,7 +358,7 @@ class _MemberOfMonthCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Miembro del Mes',
+                  'units.list.member_of_month'.tr(),
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         color: const Color(0xFFB8860B),
                         fontWeight: FontWeight.w700,
@@ -420,8 +415,14 @@ class _MemberOfMonthCard extends StatelessWidget {
                           const SizedBox(width: 4),
                           Text(
                             isTie
-                                ? '${primary.totalPoints} pts (empate)'
-                                : '${primary.totalPoints} pts',
+                                ? 'units.list.points_with_tie'
+                                    .tr(namedArgs: {
+                                    'points': '${primary.totalPoints}',
+                                  })
+                                : 'units.list.points'
+                                    .tr(namedArgs: {
+                                    'points': '${primary.totalPoints}',
+                                  }),
                             style:
                                 Theme.of(context).textTheme.bodySmall?.copyWith(
                                       color: c.textSecondary,
@@ -457,24 +458,21 @@ class _SingleAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (member.photoUrl != null && member.photoUrl!.isNotEmpty) {
-      return CircleAvatar(
-        radius: 28,
-        backgroundImage: CachedNetworkImageProvider(member.photoUrl!),
-      );
-    }
-    // Iniciales
     final initials = _initials(member.name);
-    return CircleAvatar(
-      radius: 28,
-      backgroundColor: const Color(0xFFD4A017).withValues(alpha: 0.2),
-      child: Text(
-        initials,
-        style: const TextStyle(
-          color: Color(0xFFB8860B),
-          fontWeight: FontWeight.w700,
-          fontSize: 16,
-        ),
+    return ClipOval(
+      child: SizedBox(
+        width: 56,
+        height: 56,
+        child: (member.photoUrl != null && member.photoUrl!.isNotEmpty)
+            ? CachedNetworkImage(
+                imageUrl: member.photoUrl!,
+                fit: BoxFit.cover,
+                memCacheWidth: 112,
+                memCacheHeight: 112,
+                placeholder: (_, __) => _MomInitials(initials: initials),
+                errorWidget: (_, __, ___) => _MomInitials(initials: initials),
+              )
+            : _MomInitials(initials: initials),
       ),
     );
   }
@@ -507,25 +505,26 @@ class _TieAvatarStack extends StatelessWidget {
       child: Stack(
         children: List.generate(visible.length, (i) {
           final member = visible[i];
+          final initials = _initials(member.name);
           return Positioned(
             left: i * overlap,
-            child: CircleAvatar(
-              radius: _size / 2,
-              backgroundColor: const Color(0xFFD4A017).withValues(alpha: 0.25),
-              backgroundImage: (member.photoUrl != null &&
-                      member.photoUrl!.isNotEmpty)
-                  ? CachedNetworkImageProvider(member.photoUrl!)
-                  : null,
-              child: (member.photoUrl == null || member.photoUrl!.isEmpty)
-                  ? Text(
-                      _initials(member.name),
-                      style: const TextStyle(
-                        color: Color(0xFFB8860B),
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
-                      ),
-                    )
-                  : null,
+            child: ClipOval(
+              child: SizedBox(
+                width: _size,
+                height: _size,
+                child: (member.photoUrl != null && member.photoUrl!.isNotEmpty)
+                    ? CachedNetworkImage(
+                        imageUrl: member.photoUrl!,
+                        fit: BoxFit.cover,
+                        memCacheWidth: 80,
+                        memCacheHeight: 80,
+                        placeholder: (_, __) =>
+                            _MomInitials(initials: initials, fontSize: 12),
+                        errorWidget: (_, __, ___) =>
+                            _MomInitials(initials: initials, fontSize: 12),
+                      )
+                    : _MomInitials(initials: initials, fontSize: 12),
+              ),
             ),
           );
         }),
@@ -539,6 +538,30 @@ class _TieAvatarStack extends StatelessWidget {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     }
     return name.isNotEmpty ? name[0].toUpperCase() : '?';
+  }
+}
+
+/// Fallback de iniciales con colores de "Miembro del Mes".
+class _MomInitials extends StatelessWidget {
+  final String initials;
+  final double fontSize;
+
+  const _MomInitials({required this.initials, this.fontSize = 16});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFFD4A017).withValues(alpha: 0.2),
+      alignment: Alignment.center,
+      child: Text(
+        initials,
+        style: TextStyle(
+          color: const Color(0xFFB8860B),
+          fontWeight: FontWeight.w700,
+          fontSize: fontSize,
+        ),
+      ),
+    );
   }
 }
 
@@ -603,7 +626,8 @@ class _UnitCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   _InfoChip(
                     icon: HugeIcons.strokeRoundedUser,
-                    label: '${unit.memberCount} miembros',
+                    label: 'units.list.members_count'
+                        .tr(namedArgs: {'count': '${unit.memberCount}'}),
                   ),
                 ],
               ),
@@ -647,7 +671,7 @@ class _UnitCard extends StatelessWidget {
             },
             itemBuilder: (_) {
               return <PopupMenuEntry<_UnitAction>>[
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: _UnitAction.edit,
                   child: Row(
                     children: [
@@ -657,12 +681,12 @@ class _UnitCard extends StatelessWidget {
                         color: AppColors.primary,
                       ),
                       SizedBox(width: 10),
-                      Text('Editar'),
+                      Text('common.edit'.tr()),
                     ],
                   ),
                 ),
                 if (canDelete)
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: _UnitAction.delete,
                     child: Row(
                       children: [
@@ -673,7 +697,7 @@ class _UnitCard extends StatelessWidget {
                         ),
                         SizedBox(width: 10),
                         Text(
-                          'Eliminar',
+                          'common.delete'.tr(),
                           style: TextStyle(color: AppColors.error),
                         ),
                       ],
@@ -740,14 +764,14 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'No tienes unidades asignadas',
+            'units.list.empty_title'.tr(),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: c.textSecondary,
                 ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Contacta al director de tu club\npara que te asigne una unidad.',
+            'units.list.empty_subtitle'.tr(),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: c.textTertiary,

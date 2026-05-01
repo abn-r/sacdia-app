@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 
 import 'inventory_category.dart';
@@ -11,22 +12,22 @@ enum ItemCondition {
   String get label {
     switch (this) {
       case ItemCondition.bueno:
-        return 'Buen estado';
+        return tr('inventory.conditions.good');
       case ItemCondition.regular:
-        return 'Regular';
+        return tr('inventory.conditions.regular');
       case ItemCondition.malo:
-        return 'Mal estado';
+        return tr('inventory.conditions.bad');
     }
   }
 
   String get shortLabel {
     switch (this) {
       case ItemCondition.bueno:
-        return 'Bueno';
+        return tr('inventory.conditions.good_short');
       case ItemCondition.regular:
-        return 'Regular';
+        return tr('inventory.conditions.regular');
       case ItemCondition.malo:
-        return 'Malo';
+        return tr('inventory.conditions.bad_short');
     }
   }
 }

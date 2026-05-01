@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -108,10 +109,10 @@ class _LoginViewState extends ConsumerState<LoginView> {
     final authState = ref.watch(authNotifierProvider);
     final isLoading = authState.isLoading;
     final errorMessage = authState.hasError
-        ? (authState.error?.toString() ?? 'Error al iniciar sesión')
+        ? (authState.error?.toString() ?? 'auth.login_error'.tr())
         : null;
     final cooldownMessage = _isCoolingDown
-        ? 'Demasiados intentos. Intenta de nuevo en $_cooldownRemaining segundo${_cooldownRemaining == 1 ? '' : 's'}'
+        ? 'auth.cooldown_message'.tr(namedArgs: {'seconds': '$_cooldownRemaining'})
         : null;
 
     final logoSize = Responsive.authLogoSize(context) * 1.5;
@@ -154,7 +155,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Inicia sesión para continuar',
+                        'auth.login_subtitle'.tr(),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: context.sac.textSecondary,
                             ),
@@ -165,8 +166,8 @@ class _LoginViewState extends ConsumerState<LoginView> {
                       // Campo email
                       SacTextField(
                         controller: _emailController,
-                        label: 'Correo electrónico',
-                        hint: 'tu@correo.com',
+                        label: 'auth.email_label'.tr(),
+                        hint: 'auth.email_hint'.tr(),
                         keyboardType: TextInputType.emailAddress,
                         prefixIcon: HugeIcons.strokeRoundedMail01,
                         validator: Validators.validateEmail,
@@ -177,8 +178,8 @@ class _LoginViewState extends ConsumerState<LoginView> {
                       // Campo password
                       SacTextField(
                         controller: _passwordController,
-                        label: 'Contraseña',
-                        hint: 'Tu contraseña',
+                        label: 'auth.password_label'.tr(),
+                        hint: 'auth.password_hint_login'.tr(),
                         obscureText: true,
                         prefixIcon: HugeIcons.strokeRoundedLockKey,
                         validator: Validators.validatePassword,
@@ -194,7 +195,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                           onPressed: () =>
                               context.push(RouteNames.forgotPassword),
                           child: Text(
-                            '¿Olvidaste tu contraseña?',
+                            'auth.forgot_password'.tr(),
                             style: TextStyle(
                                 color: context.sac.text,
                                 fontWeight: FontWeight.bold),
@@ -263,7 +264,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
 
                       // Botón login
                       SacButton.primary(
-                        text: 'Iniciar Sesión',
+                        text: 'auth.submit_idle'.tr(),
                         backgroundColor: AppColors.sacGreenLight,
                         isLoading: isLoading,
                         isEnabled: !_isCoolingDown,
@@ -328,7 +329,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                       Center(
                         child: RichText(
                           text: TextSpan(
-                            text: '¿No tienes cuenta? ',
+                            text: 'auth.no_account'.tr(),
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -337,7 +338,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                 ),
                             children: [
                               TextSpan(
-                                text: 'Regístrate',
+                                text: 'auth.register_link'.tr(),
                                 style: TextStyle(
                                   color: context.sac.text,
                                   fontWeight: FontWeight.bold,

@@ -1,3 +1,5 @@
+import 'package:easy_localization/easy_localization.dart';
+
 /// Clase base para todas las excepciones de la aplicación
 class AppException implements Exception {
   final String message;
@@ -77,8 +79,9 @@ class OAuthFlowInitiatedException extends AppException {
 
   OAuthFlowInitiatedException({required this.provider})
       : super(
-          message:
-              'Redirigiendo a $provider para autenticación. '
-              'Regresa a la app tras completar el proceso.',
+          message: tr(
+            'errors.oauth_redirecting',
+            namedArgs: {'provider': provider},
+          ),
         );
 }

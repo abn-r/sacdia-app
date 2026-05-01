@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -96,7 +97,7 @@ class EvidenceFolderRemoteDataSourceImpl
       }
 
       throw ServerException(
-        message: 'Error al obtener la carpeta de evidencias',
+        message: tr('evidence_folder.errors.get_folder'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -118,7 +119,7 @@ class EvidenceFolderRemoteDataSourceImpl
       if (response.statusCode == 200 || response.statusCode == 201) return;
 
       throw ServerException(
-        message: 'Error al enviar la carpeta a validación',
+        message: tr('evidence_folder.errors.submit_folder'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -142,7 +143,7 @@ class EvidenceFolderRemoteDataSourceImpl
       if (response.statusCode == 200 || response.statusCode == 201) return;
 
       throw ServerException(
-        message: 'Error al enviar la sección a validación',
+        message: tr('evidence_folder.errors.submit_section'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -209,7 +210,7 @@ class EvidenceFolderRemoteDataSourceImpl
       }
 
       throw ServerException(
-        message: 'Error al subir el archivo',
+        message: tr('evidence_folder.errors.upload_file'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -234,7 +235,7 @@ class EvidenceFolderRemoteDataSourceImpl
       }
 
       throw ServerException(
-        message: 'Error al eliminar el archivo',
+        message: tr('evidence_folder.errors.delete_file'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -264,11 +265,11 @@ class EvidenceFolderRemoteDataSourceImpl
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? 'Error de conexión').toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
       }
     } catch (e) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
     }
-    return e.message ?? 'Error de conexión';
+    return e.message ?? tr('common.error_network');
   }
 }

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,7 +59,7 @@ class ClassRecommendation extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Clase Recomendada',
+                      'post_registration.recommendation.recommended_class'.tr(),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -67,7 +68,10 @@ class ClassRecommendation extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Para tu edad ($userAge años), recomendamos la clase "${recommendedClass.name}"',
+                      'post_registration.recommendation.for_age'.tr(namedArgs: {
+                        'age': userAge.toString(),
+                        'class_name': recommendedClass.name,
+                      }),
                       style: TextStyle(
                         fontSize: 13,
                         color: AppColors.primaryDark,
@@ -78,7 +82,11 @@ class ClassRecommendation extends ConsumerWidget {
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
-                          'Rango de edad: ${recommendedClass.minAge} - ${recommendedClass.maxAge} años',
+                          'post_registration.recommendation.age_range'.tr(
+                              namedArgs: {
+                                'min': recommendedClass.minAge.toString(),
+                                'max': recommendedClass.maxAge.toString(),
+                              }),
                           style: TextStyle(
                             fontSize: 11,
                             color: AppColors.primary,

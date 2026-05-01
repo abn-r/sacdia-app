@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
@@ -39,7 +40,7 @@ class ClubDetailView extends ConsumerWidget {
             size: 22,
           ),
           onPressed: () => Navigator.of(context).maybePop(),
-          tooltip: 'Volver',
+          tooltip: 'common.back'.tr(),
         ),
         title: Row(
           children: [
@@ -50,7 +51,7 @@ class ClubDetailView extends ConsumerWidget {
             ),
             const SizedBox(width: 10),
             Text(
-              'DETALLE DEL CLUB',
+              'club.detail_title'.tr(),
               style: TextStyle(
                 color: c.text,
                 fontSize: 18,
@@ -95,13 +96,13 @@ class _ClubDetailBody extends StatelessWidget {
         // ── Sección: Información general ──────────────────────────────────
         _SectionHeader(
           icon: HugeIcons.strokeRoundedInformationCircle,
-          label: 'Información general',
+          label: 'club.section.general_info'.tr(),
         ),
         const SizedBox(height: 12),
 
         _InfoRow(
           icon: HugeIcons.strokeRoundedBuilding01,
-          label: 'Nombre del club',
+          label: 'club.name_label'.tr(),
           value: club.name.isNotEmpty ? club.name : '—',
         ),
 
@@ -109,8 +110,8 @@ class _ClubDetailBody extends StatelessWidget {
 
         _InfoRow(
           icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-          label: 'Estado',
-          value: club.active ? 'Activo' : 'Inactivo',
+          label: 'club.status'.tr(),
+          value: club.active ? 'club.active'.tr() : 'club.inactive'.tr(),
           valueColor: club.active ? AppColors.secondary : AppColors.error,
         ),
 
@@ -118,7 +119,7 @@ class _ClubDetailBody extends StatelessWidget {
 
         _InfoRow(
           icon: HugeIcons.strokeRoundedIdentification,
-          label: 'ID del club',
+          label: 'club.id_label'.tr(),
           value: club.id,
         ),
 
@@ -142,9 +143,7 @@ class _ClubDetailBody extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Para ver el detalle completo de las secciones del club '
-                  '(Aventureros, Conquistadores, Guías Mayores) '
-                  'accedé desde el módulo Mi Club.',
+                  'club.detail_note'.tr(),
                   style: TextStyle(
                     fontSize: 13,
                     color: c.text,
@@ -293,7 +292,7 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error al cargar el club',
+              'club.load_error'.tr(),
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -308,7 +307,7 @@ class _ErrorBody extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             SacButton.primary(
-              text: 'Reintentar',
+              text: 'common.retry'.tr(),
               icon: HugeIcons.strokeRoundedRefresh,
               onPressed: onRetry,
             ),

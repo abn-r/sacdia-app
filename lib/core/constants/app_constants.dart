@@ -41,6 +41,11 @@ class AppConstants {
   static const String themeKey = 'app_theme';
   static const String localeKey = 'app_locale';
 
+  // Accessibility (MVP: SharedPreferences only)
+  static const String accessibilityTextSizeKey = 'app_a11y_text_size';
+  static const String accessibilityHighContrastKey = 'app_a11y_high_contrast';
+  static const String accessibilityReduceMotionKey = 'app_a11y_reduce_motion';
+
   // Caché de PII de usuario (SecureStorage)
   static const String cachedUserId = 'cached_user_id';
   static const String cachedUserEmail = 'cached_user_email';
@@ -52,6 +57,11 @@ class AppConstants {
   static const String cachedActiveRoleName = 'cached_active_role_name';
   static const String cachedActiveClubName = 'cached_active_club_name';
   static const String cachedActiveClubType = 'cached_active_club_type';
+
+  // Biometric auth (SharedPreferences)
+  // MVP: opt-in only, boolean flag + ISO-8601 enrolledAt; no biometric data stored.
+  static const String biometricEnabledKey = 'biometric_enabled';
+  static const String biometricEnrolledAtKey = 'biometric_enrolled_at';
 
   // Dimensiones
   static const double paddingXS = 4.0;

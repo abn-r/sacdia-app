@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:easy_localization/easy_localization.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../qr/presentation/views/qr_scanner_view.dart';
 import '../../domain/entities/activity.dart';
 import '../providers/activities_providers.dart';
 import '../widgets/activity_attendees_section.dart';
@@ -84,24 +87,24 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     if (name != null && name.isNotEmpty) return name;
     switch (type) {
       case 1:
-        return 'Regular';
+        return 'activities.detail.type_regular'.tr();
       case 2:
-        return 'Especial';
+        return 'activities.detail.type_special'.tr();
       case 3:
-        return 'Camporee';
+        return 'activities.detail.type_camporee'.tr();
       default:
-        return 'Actividad';
+        return 'activities.detail.type_activity'.tr();
     }
   }
 
   String _platformLabel(int platform) {
     switch (platform) {
       case 1:
-        return 'Virtual';
+        return 'activities.detail.platform_virtual'.tr();
       case 2:
-        return 'Híbrido';
+        return 'activities.detail.platform_hybrid'.tr();
       default:
-        return 'Presencial';
+        return 'activities.detail.platform_in_person'.tr();
     }
   }
 
@@ -132,19 +135,19 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Eliminar actividad'),
-        content: const Text(
-          '¿Estás seguro que quieres eliminar esta actividad? Esta acción no se puede deshacer.',
+        title: Text('activities.detail.delete_title'.tr()),
+        content: Text(
+          'activities.detail.delete_confirm'.tr(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancelar'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Eliminar'),
+            child: Text('activities.detail.delete_button'.tr()),
           ),
         ],
       ),
@@ -164,7 +167,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     if (success) {
       messenger.showSnackBar(
         SnackBar(
-          content: const Text('Actividad eliminada correctamente'),
+          content: Text('activities.detail.deleted_ok'.tr()),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
           shape:
@@ -175,8 +178,9 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     } else {
       final deleteState = ref.read(deleteActivityNotifierProvider);
       final errorMsg = deleteState.hasError
-          ? deleteState.error?.toString() ?? 'Error al eliminar'
-          : 'Error al eliminar';
+          ? deleteState.error?.toString() ??
+              'activities.detail.error_delete'.tr()
+          : 'activities.detail.error_delete'.tr();
       messenger.showSnackBar(
         SnackBar(
           content: Text(errorMsg),
@@ -204,10 +208,16 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     if (date == null) return '';
     final now = DateTime.now();
     final diff = now.difference(date.toLocal()).inDays;
-    if (diff == 0) return 'hoy';
-    if (diff == 1) return 'ayer';
-    if (diff < 7) return 'hace $diff días';
-    if (diff < 30) return 'hace ${(diff / 7).floor()} semanas';
+    if (diff == 0) return 'activities.detail.relative_today'.tr();
+    if (diff == 1) return 'activities.detail.relative_yesterday'.tr();
+    if (diff < 7) {
+      return 'activities.detail.relative_days'
+          .tr(namedArgs: {'count': diff.toString()});
+    }
+    if (diff < 30) {
+      return 'activities.detail.relative_weeks'
+          .tr(namedArgs: {'count': (diff / 7).floor().toString()});
+    }
     return DateFormat('d MMM yyyy', 'es').format(date.toLocal());
   }
 
@@ -307,7 +317,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader(context, 'Descripción'),
+        _buildSectionHeader(context, 'activities.detail.section_description'.tr()),
         const SizedBox(height: 10),
         AnimatedCrossFade(
           duration: const Duration(milliseconds: 200),
@@ -338,7 +348,9 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
             child: Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Text(
-                _descriptionExpanded ? 'Ver menos' : 'Ver más',
+                _descriptionExpanded
+                    ? 'activities.detail.see_less'.tr()
+                    : 'activities.detail.see_more'.tr(),
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -375,7 +387,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Organizador',
+                  'activities.detail.organizer'.tr(),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: sac.textTertiary,
                         fontWeight: FontWeight.w600,
@@ -384,7 +396,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  activity.creatorName ?? 'Sistema',
+                  activity.creatorName ??
+                      'activities.detail.creator_system'.tr(),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -434,15 +447,42 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
 
   // ── main build ──────────────────────────────────────────────────────────────
 
+  void _openQrScanner() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => QrScannerView(activityId: widget.activityId),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final activityAsync = ref.watch(activityDetailProvider(widget.activityId));
     final deleteState = ref.watch(deleteActivityNotifierProvider);
+    final user = ref.watch(
+      authNotifierProvider.select((v) => v.valueOrNull),
+    );
+
+    final canScanAttendance = activityAsync.hasValue &&
+        hasAnyPermission(user, const {'attendance:manage'});
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: context.sac.background,
+        floatingActionButton: canScanAttendance
+            ? FloatingActionButton.extended(
+                onPressed: _openQrScanner,
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedQrCode01,
+                  color: Colors.white,
+                  size: 22,
+                ),
+                label: Text('qr.scan_attendance_title'.tr()),
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              )
+            : null,
         body: activityAsync.when(
           loading: () => const ActivityDetailSkeleton(),
 
@@ -467,7 +507,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No se pudo cargar la actividad',
+                          'activities.detail.error_load'.tr(),
                           style: Theme.of(context)
                               .textTheme
                               .titleMedium
@@ -489,7 +529,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                         ),
                         const SizedBox(height: 28),
                         SacButton.primary(
-                          text: 'Reintentar',
+                          text: 'common.retry'.tr(),
                           icon: HugeIcons.strokeRoundedRefresh,
                           onPressed: () => ref.invalidate(
                               activityDetailProvider(widget.activityId)),
@@ -680,7 +720,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                         if (activity.hasVirtualLink) ...[
                           const SizedBox(height: 12),
                           SacButton.primary(
-                            text: 'Unirse a la reunión',
+                            text: 'activities.detail.join_meeting'.tr(),
                             icon: HugeIcons.strokeRoundedComputerVideoCall,
                             onPressed: () => _openMeetLink(activity.linkMeet!),
                           ),

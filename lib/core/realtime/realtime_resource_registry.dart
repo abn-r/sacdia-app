@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/activities/presentation/providers/activities_providers.dart';
 import '../../features/members/presentation/providers/members_providers.dart';
+import '../../providers/catalogs_provider.dart';
 import 'realtime_ref.dart';
 
 /// Callback signature for provider invalidation handlers.
@@ -39,6 +40,7 @@ class RealtimeResourceRegistry {
 
   static final Map<String, InvalidationCallback> _handlers = {
     'activities': _invalidateActivities,
+    'members': _invalidateMembers,
   };
 
   // ── Public API ─────────────────────────────────────────────────────────────
@@ -62,6 +64,52 @@ class RealtimeResourceRegistry {
   /// before any FCM messages arrive.
   static void register(String resource, InvalidationCallback handler) {
     _handlers[resource] = handler;
+  }
+
+  /// Fires EVERY registered resource handler for [sectionId] plus app-wide
+  /// catalog providers.
+  ///
+  /// Used by the Settings → "Forzar sincronización" control to manually
+  /// replay what a broadcast FCM invalidation would do. Unlike [invalidate]
+  /// (which targets one resource), this walks the entire registry so newly
+  /// registered resources are picked up automatically.
+  ///
+  /// Catalogs are invalidated unconditionally — they are global (not
+  /// section-scoped), so bypassing the per-handler section guard is correct.
+  /// Individual resource handlers keep their own section guards, so passing
+  /// the user's active sectionId is required for them to fire.
+  static void invalidateAll(RealtimeRef ref, int sectionId) {
+    // Resource handlers (activities, members, …). Each handler applies its
+    // own section guard — we just dispatch to every registered name.
+    for (final entry in _handlers.entries) {
+      try {
+        entry.value(ref, sectionId);
+      } catch (e, st) {
+        debugPrint(
+          '[RealtimeRegistry] invalidateAll: handler "${entry.key}" threw '
+          '$e\n$st',
+        );
+      }
+    }
+
+    // Global catalogs — no section scoping, always safe to invalidate.
+    try {
+      ref.invalidate(clubTypesProvider);
+      ref.invalidate(activityTypesProvider);
+      ref.invalidate(districtsProvider);
+      ref.invalidate(churchesProvider);
+      ref.invalidate(ecclesiasticalYearsProvider);
+      ref.invalidate(currentEcclesiasticalYearProvider);
+    } catch (e, st) {
+      debugPrint(
+        '[RealtimeRegistry] invalidateAll: catalog invalidation threw $e\n$st',
+      );
+    }
+
+    debugPrint(
+      '[RealtimeRegistry] invalidateAll: dispatched to '
+      '${_handlers.length} handlers + catalogs (section=$sectionId)',
+    );
   }
 
   // ── Built-in handlers ───────────────────────────────────────────────────────
@@ -108,6 +156,43 @@ class RealtimeResourceRegistry {
 
     debugPrint(
       '[RealtimeRegistry] activities: invalidated clubActivitiesProvider '
+      'for clubId=${ctx.clubId} (section=$sectionId)',
+    );
+  }
+
+  /// Invalidates [membersNotifierProvider] for the active club when the
+  /// incoming [sectionId] matches the user's current club context.
+  ///
+  /// The bridge: FCM sends section_id. We read [clubContextProvider] to get
+  /// the active [ClubContext], which exposes both [clubId] and [sectionId].
+  /// If [sectionId] matches, we invalidate [membersNotifierProvider] — it has
+  /// no family key because it resolves its own context via [clubContextProvider]
+  /// inside its build method.
+  static void _invalidateMembers(RealtimeRef ref, int sectionId) {
+    final ctxAsync = ref.read(clubContextProvider);
+
+    // Use .valueOrNull — safe even when the provider is in loading/error state.
+    final ctx = ctxAsync.valueOrNull;
+
+    if (ctx == null) {
+      debugPrint(
+        '[RealtimeRegistry] members: no active club context, skipping',
+      );
+      return;
+    }
+
+    if (ctx.sectionId != sectionId) {
+      debugPrint(
+        '[RealtimeRegistry] members: section $sectionId does not match '
+        'active section ${ctx.sectionId} — skipping invalidation',
+      );
+      return;
+    }
+
+    ref.invalidate(membersNotifierProvider);
+
+    debugPrint(
+      '[RealtimeRegistry] members: invalidated membersNotifierProvider '
       'for clubId=${ctx.clubId} (section=$sectionId)',
     );
   }

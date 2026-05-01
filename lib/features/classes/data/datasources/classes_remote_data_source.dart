@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -83,12 +84,12 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? 'Error de conexion').toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
       }
     } catch (e) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
     }
-    return e.message ?? 'Error de conexion';
+    return e.message ?? tr('common.error_network');
   }
 
   // ── POST /users/:userId/classes/enroll ──────────────────────────────────────
@@ -114,7 +115,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al inscribir en la clase',
+        message: tr('classes.errors.enroll'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -148,7 +149,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al obtener clases', code: response.statusCode);
+          message: tr('classes.errors.fetch_list'), code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getClasses', tag: _tag, error: e);
       _rethrow(e);
@@ -170,7 +171,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al obtener clase', code: response.statusCode);
+          message: tr('classes.errors.fetch_one'), code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getClassById', tag: _tag, error: e);
       _rethrow(e);
@@ -196,7 +197,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al obtener modulos', code: response.statusCode);
+          message: tr('classes.errors.fetch_modules'), code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getClassModules', tag: _tag, error: e);
       _rethrow(e);
@@ -235,7 +236,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al obtener clases del usuario',
+          message: tr('classes.errors.fetch_user_classes'),
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getUserClasses', tag: _tag, error: e);
@@ -260,7 +261,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al obtener progreso de clase',
+          message: tr('classes.errors.fetch_progress'),
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getUserClassProgress', tag: _tag, error: e);
@@ -288,7 +289,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al actualizar progreso de clase',
+          message: tr('classes.errors.update_progress'),
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en updateUserClassProgress', tag: _tag, error: e);
@@ -351,7 +352,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al obtener clase con progreso',
+          message: tr('classes.errors.fetch_with_progress'),
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getClassWithProgress', tag: _tag, error: e);
@@ -376,7 +377,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       }
 
       throw ServerException(
-          message: 'Error al enviar el requerimiento a validacion',
+          message: tr('classes.errors.submit_requirement'),
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en submitRequirement', tag: _tag, error: e);
@@ -436,7 +437,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al subir el archivo de evidencia',
+        message: tr('classes.errors.upload_file'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -466,7 +467,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al eliminar el archivo de evidencia',
+        message: tr('classes.errors.delete_file'),
         code: response.statusCode,
       );
     } catch (e) {

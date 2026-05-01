@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -392,17 +393,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw AuthException(
-            message: response.data['message'] ?? 'Error de autenticación');
+            message: response.data['message'] ?? tr('errors.auth_failed'));
       }
 
       final responseData = response.data['data'] as Map<String, dynamic>?;
       if (responseData == null) {
-        throw AuthException(message: 'Respuesta del servidor inválida');
+        throw AuthException(message: tr('errors.invalid_response'));
       }
 
       final token = responseData['accessToken'] as String?;
       if (token == null) {
-        throw AuthException(message: 'No se recibió token de autenticación');
+        throw AuthException(message: tr('errors.missing_token'));
       }
 
       final refreshToken = responseData['refreshToken'] as String?;
@@ -418,7 +419,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final userData = responseData['user'] as Map<String, dynamic>?;
       final userId = userData?['id'] as String?;
       if (userId == null) {
-        throw AuthException(message: 'No se recibió ID de usuario');
+        throw AuthException(message: tr('errors.missing_user_id'));
       }
 
       final needsPostRegistration =
@@ -441,7 +442,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         final serverMessage = e.response?.data is Map
             ? e.response!.data['message'] as String?
             : null;
-        throw AuthException(message: serverMessage ?? 'Error de conexión');
+        throw AuthException(message: serverMessage ?? tr('common.error_network'));
       }
       if (e is AuthException) rethrow;
       throw AuthException(message: e.toString());
@@ -469,7 +470,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw AuthException(
-          message: response.data['message'] ?? 'Error en el registro',
+          message: response.data['message'] ?? tr('errors.register_failed'),
         );
       }
 
@@ -482,7 +483,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           ?? (responseBody['data'] as Map<String, dynamic>?)?['user']?['id'] as String?;
 
       if (userId == null) {
-        throw AuthException(message: 'No se recibió ID de usuario');
+        throw AuthException(message: tr('errors.missing_user_id'));
       }
 
       // If the response includes tokens (auto-login after register), persist them
@@ -509,7 +510,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       AppLogger.e('Error en registro', tag: _tag, error: e);
       if (e is DioException) {
         final message =
-            e.response?.data?['message'] ?? e.message ?? 'Error de conexión';
+            e.response?.data?['message'] ?? e.message ?? tr('common.error_network');
         throw AuthException(message: message);
       }
       if (e is AuthException) rethrow;
@@ -577,7 +578,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (e is DioException) {
         throw AuthException(
           message: e.response?.data?['message'] ??
-              'Si el correo existe, recibirás un enlace de recuperación',
+              tr('errors.password_reset_sent'),
         );
       }
       throw AuthException(message: e.toString());
@@ -590,7 +591,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final token = await _secureStorage.read(AppConstants.tokenKey);
       if (token == null) {
-        throw AuthException(message: 'No hay sesión activa');
+        throw AuthException(message: tr('errors.no_active_session'));
       }
 
       await _dio.post(
@@ -604,13 +605,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       final user = await getCurrentUser();
       if (user == null) {
-        throw AuthException(message: 'No se pudo obtener el usuario actualizado');
+        throw AuthException(message: tr('errors.refresh_user_failed'));
       }
       return user;
     } catch (e) {
       if (e is DioException) {
         throw AuthException(
-            message: e.message ?? 'Error al actualizar contraseña');
+            message: e.message ?? tr('errors.update_password'));
       }
       if (e is AuthException) rethrow;
       throw AuthException(message: e.toString());
@@ -690,7 +691,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       if (!launched) {
         throw AuthException(
-          message: 'No se pudo abrir el navegador para autenticación con Google',
+          message: tr('errors.google_browser_open'),
         );
       }
 
@@ -703,7 +704,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error iniciando OAuth Google', tag: _tag, error: e);
       throw AuthException(
-        message: 'Error al iniciar sesión con Google. Intenta de nuevo.',
+        message: tr('errors.google_signin_failed'),
       );
     }
   }
@@ -725,7 +726,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       if (!launched) {
         throw AuthException(
-          message: 'No se pudo abrir el navegador para autenticación con Apple',
+          message: tr('errors.apple_browser_open'),
         );
       }
 
@@ -737,7 +738,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error iniciando OAuth Apple', tag: _tag, error: e);
       throw AuthException(
-        message: 'Error al iniciar sesión con Apple. Intenta de nuevo.',
+        message: tr('errors.apple_signin_failed'),
       );
     }
   }
@@ -746,7 +747,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   String _extractOAuthUrl(dynamic response, String provider) {
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw AuthException(
-        message: response.data?['message'] ?? 'Error al obtener URL de $provider',
+        message: response.data?['message'] ?? tr('errors.get_oauth_url', namedArgs: {'provider': provider}),
       );
     }
     final data = response.data;
@@ -754,7 +755,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         ? (data['url'] as String? ?? data['data']?['url'] as String?)
         : null;
     if (url == null || url.isEmpty) {
-      throw AuthException(message: 'Backend no devolvió URL para OAuth de $provider');
+      throw AuthException(
+  message: tr('errors.oauth_url_missing', namedArgs: {'provider': provider}),
+);
     }
     return url;
   }
@@ -785,18 +788,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw AuthException(
-          message: response.data?['message'] ?? 'Error en OAuth callback',
+          message: response.data?['message'] ?? tr('errors.oauth_callback_failed'),
         );
       }
 
       final responseData = response.data['data'] as Map<String, dynamic>?;
       if (responseData == null) {
-        throw AuthException(message: 'Respuesta del servidor inválida');
+        throw AuthException(message: tr('errors.invalid_response'));
       }
 
       final token = responseData['accessToken'] as String?;
       if (token == null) {
-        throw AuthException(message: 'No se recibió token de autenticación');
+        throw AuthException(message: tr('errors.missing_token'));
       }
 
       await _saveToken(
@@ -809,7 +812,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final userData = responseData['user'] as Map<String, dynamic>?;
       final userId = userData?['id'] as String?;
       if (userId == null) {
-        throw AuthException(message: 'No se recibió ID de usuario');
+        throw AuthException(message: tr('errors.missing_user_id'));
       }
 
       final needsPostRegistration =
@@ -826,7 +829,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } catch (e) {
       AppLogger.e('Error en OAuth callback', tag: _tag, error: e);
       if (e is DioException) {
-        throw AuthException(message: e.message ?? 'Error de conexión');
+        throw AuthException(message: e.message ?? tr('common.error_network'));
       }
       if (e is AuthException) rethrow;
       throw AuthException(message: e.toString());
@@ -848,7 +851,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<void> switchContext(String assignmentId) async {
     final token = await _secureStorage.read(AppConstants.tokenKey);
     if (token == null) {
-      throw AuthException(message: 'No hay sesión activa');
+      throw AuthException(message: tr('errors.no_active_session'));
     }
 
     final response = await _dio.patch(
@@ -859,7 +862,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw AuthException(
-        message: response.data?['message'] ?? 'Error al cambiar contexto',
+        message: response.data?['message'] ?? tr('errors.switch_context'),
       );
     }
   }
@@ -869,7 +872,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final token = await _secureStorage.read(AppConstants.tokenKey);
       if (token == null) {
-        throw AuthException(message: 'No hay sesión activa');
+        throw AuthException(message: tr('errors.no_active_session'));
       }
 
       await _dio.delete(
@@ -894,24 +897,26 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       if (status == 401 || status == 403) {
         throw AuthException(
-          message: serverMsg ?? 'Contraseña incorrecta',
+          message: serverMsg ?? tr('errors.wrong_password'),
           code: status,
         );
       }
       if (status == 429) {
         throw AuthException(
-          message: 'Demasiados intentos. Intentá más tarde.',
+          message: tr('errors.too_many_attempts'),
           code: 429,
         );
       }
       throw AuthException(
-        message: serverMsg ?? 'Error al eliminar la cuenta',
+        message: serverMsg ?? tr('errors.delete_account'),
         code: status,
       );
     } on AuthException {
       rethrow;
     } catch (e) {
-      throw AuthException(message: 'Error inesperado: $e');
+      throw AuthException(
+  message: tr('errors.unexpected', namedArgs: {'details': '$e'}),
+);
     }
   }
 
@@ -920,7 +925,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final token = await _secureStorage.read(AppConstants.tokenKey);
       if (token == null) {
-        throw AuthException(message: 'No hay sesión activa');
+        throw AuthException(message: tr('errors.no_active_session'));
       }
 
       final response = await _dio.get(
@@ -939,7 +944,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } catch (e) {
       if (e is DioException) {
         throw AuthException(
-          message: e.message ?? 'Error al verificar estado de completitud',
+          message: e.message ?? tr('errors.check_completion_status'),
         );
       }
       if (e is AuthException) rethrow;

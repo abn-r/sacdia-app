@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -18,8 +19,27 @@ import 'class_detail_with_progress_view.dart';
 /// Sin AppBar (tab del bottom nav), titulo inline,
 /// ClassCards con SacProgressBar y badge "Clase actual".
 /// Items animan con stagger slide-up al cargar.
+///
+/// Internamente delega el cuerpo a [ClassesListViewBody] para que también
+/// pueda ser embebido en [ClassesTabsView] sin doble Scaffold.
 class ClassesListView extends ConsumerWidget {
   const ClassesListView({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.sac;
+    return Scaffold(
+      backgroundColor: c.background,
+      body: SafeArea(child: const ClassesListViewBody()),
+    );
+  }
+}
+
+/// Body de la lista de clases, sin Scaffold ni SafeArea propios.
+/// Usar este widget cuando se embebe dentro de otro Scaffold
+/// (p.ej. [ClassesTabsView]).
+class ClassesListViewBody extends ConsumerWidget {
+  const ClassesListViewBody({super.key});
 
   void _openEnrollSheet(BuildContext context) {
     showModalBottomSheet(
@@ -43,10 +63,7 @@ class ClassesListView extends ConsumerWidget {
     );
     final hasActiveClub = user?.authorization?.activeGrant?.sectionId != null;
 
-    return Scaffold(
-      backgroundColor: c.background,
-      body: SafeArea(
-        child: classesAsync.when(
+    return classesAsync.when(
           data: (classes) {
             if (classes.isEmpty) {
               return Center(
@@ -59,7 +76,7 @@ class ClassesListView extends ConsumerWidget {
                         color: c.textTertiary),
                     const SizedBox(height: 12),
                     Text(
-                      'No tienes clases asignadas',
+                      'classes.list.empty'.tr(),
                       style: TextStyle(
                         fontSize: 16,
                         color: c.textSecondary,
@@ -102,7 +119,7 @@ class ClassesListView extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Mis Clases',
+                                  'classes.list.title'.tr(),
                                   style: Theme.of(context)
                                       .textTheme
                                       .headlineSmall
@@ -113,7 +130,7 @@ class ClassesListView extends ConsumerWidget {
                           ),
                           if (hasActiveClub)
                             Tooltip(
-                              message: 'Inscribir clase anterior',
+                              message: 'classes.list.enroll_tooltip'.tr(),
                               child: IconButton(
                                 onPressed: () => _openEnrollSheet(context),
                                 icon: HugeIcon(
@@ -185,7 +202,7 @@ class ClassesListView extends ConsumerWidget {
                       color: AppColors.error),
                   const SizedBox(height: 16),
                   Text(
-                    'Error al cargar clases',
+                    'classes.list.error_loading'.tr(),
                     style: Theme.of(context)
                         .textTheme
                         .titleMedium
@@ -199,7 +216,7 @@ class ClassesListView extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
                   SacButton.primary(
-                    text: 'Reintentar',
+                    text: 'common.retry'.tr(),
                     icon: HugeIcons.strokeRoundedRefresh,
                     onPressed: () {
                       ref.invalidate(userClassesProvider);
@@ -209,8 +226,6 @@ class ClassesListView extends ConsumerWidget {
               ),
             ),
           ),
-        ),
-      ),
     );
   }
 }

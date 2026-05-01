@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:http_parser/http_parser.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -135,12 +136,12 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
             .toList();
       }
 
-      throw ServerException(message: 'Error al obtener categorías', code: response.statusCode);
+      throw ServerException(message: tr('honors.errors.fetch_categories'), code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getHonorCategories', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
+        throw ServerException(message: e.message ?? tr('common.error_network'), code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
@@ -168,7 +169,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
 
         if (response.statusCode != 200 && response.statusCode != 201) {
           throw ServerException(
-            message: 'Error al obtener especialidades',
+            message: tr('honors.errors.fetch_honors'),
             code: response.statusCode,
           );
         }
@@ -195,7 +196,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       AppLogger.e('Error en getHonors', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
+        throw ServerException(message: e.message ?? tr('common.error_network'), code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
@@ -214,12 +215,12 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
         return HonorModel.fromJson(response.data as Map<String, dynamic>);
       }
 
-      throw ServerException(message: 'Error al obtener especialidad', code: response.statusCode);
+      throw ServerException(message: tr('honors.errors.fetch_honor'), code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getHonorById', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
+        throw ServerException(message: e.message ?? tr('common.error_network'), code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
@@ -241,12 +242,12 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
             .toList();
       }
 
-      throw ServerException(message: 'Error al obtener especialidades del usuario', code: response.statusCode);
+      throw ServerException(message: tr('honors.errors.fetch_user_honors'), code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getUserHonors', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
+        throw ServerException(message: e.message ?? tr('common.error_network'), code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
@@ -265,12 +266,12 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
         return response.data as Map<String, dynamic>;
       }
 
-      throw ServerException(message: 'Error al obtener estadísticas', code: response.statusCode);
+      throw ServerException(message: tr('honors.errors.fetch_stats'), code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en getUserHonorStats', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
+        throw ServerException(message: e.message ?? tr('common.error_network'), code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
@@ -288,11 +289,11 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
         return UserHonorModel.fromJson(response.data as Map<String, dynamic>);
       }
 
-      throw ServerException(message: 'Error al inscribir en especialidad', code: response.statusCode);
+      throw ServerException(message: tr('honors.errors.enroll'), code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en enrollUserInHonor', tag: _tag, error: e);
       if (e is DioException) {
-        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
+        throw ServerException(message: e.message ?? tr('common.error_network'), code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
@@ -311,11 +312,11 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
         return UserHonorModel.fromJson(response.data as Map<String, dynamic>);
       }
 
-      throw ServerException(message: 'Error al actualizar especialidad', code: response.statusCode);
+      throw ServerException(message: tr('honors.errors.update'), code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en updateUserHonor', tag: _tag, error: e);
       if (e is DioException) {
-        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
+        throw ServerException(message: e.message ?? tr('common.error_network'), code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
@@ -330,12 +331,12 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {
-        throw ServerException(message: 'Error al eliminar especialidad', code: response.statusCode);
+        throw ServerException(message: tr('honors.errors.delete'), code: response.statusCode);
       }
     } catch (e) {
       AppLogger.e('Error en deleteUserHonor', tag: _tag, error: e);
       if (e is DioException) {
-        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
+        throw ServerException(message: e.message ?? tr('common.error_network'), code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
@@ -355,14 +356,14 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al registrar especialidad',
+        message: tr('honors.errors.register'),
         code: response.statusCode,
       );
     } catch (e) {
       AppLogger.e('Error en registerUserHonor', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
-          message: e.message ?? 'Error de conexión',
+          message: e.message ?? tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }
@@ -387,14 +388,14 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener especialidades agrupadas',
+        message: tr('honors.errors.fetch_grouped'),
         code: response.statusCode,
       );
     } catch (e) {
       AppLogger.e('Error en getHonorsGroupedByCategory', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
-        throw ServerException(message: e.message ?? 'Error de conexión', code: e.response?.statusCode);
+        throw ServerException(message: e.message ?? tr('common.error_network'), code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
       throw ServerException(message: e.toString());
@@ -421,7 +422,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener requisitos de la especialidad',
+        message: tr('honors.errors.fetch_requirements'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -429,7 +430,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
-            message: e.message ?? 'Error de conexión',
+            message: e.message ?? tr('common.error_network'),
             code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
@@ -457,7 +458,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener progreso de requisitos',
+        message: tr('honors.errors.fetch_progress'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -465,7 +466,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
-            message: e.message ?? 'Error de conexión',
+            message: e.message ?? tr('common.error_network'),
             code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
@@ -498,14 +499,14 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al actualizar requisito',
+        message: tr('honors.errors.update_requirement'),
         code: response.statusCode,
       );
     } catch (e) {
       AppLogger.e('Error en updateRequirementProgress', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
-            message: e.message ?? 'Error de conexión',
+            message: e.message ?? tr('common.error_network'),
             code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
@@ -537,14 +538,14 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al actualizar progreso de requisitos',
+        message: tr('honors.errors.bulk_update_progress'),
         code: response.statusCode,
       );
     } catch (e) {
       AppLogger.e('Error en bulkUpdateRequirementProgress', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
-            message: e.message ?? 'Error de conexión',
+            message: e.message ?? tr('common.error_network'),
             code: e.response?.statusCode);
       }
       if (e is ServerException || e is AuthException) rethrow;
@@ -582,14 +583,14 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       if (response.statusCode == 200 || response.statusCode == 201) return;
 
       throw ServerException(
-        message: 'Error al subir evidencia',
+        message: tr('honors.errors.upload_evidence'),
         code: response.statusCode,
       );
     } catch (e) {
       AppLogger.e('Error en uploadHonorFile', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
-          message: e.message ?? 'Error de conexión',
+          message: e.message ?? tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }
@@ -633,14 +634,14 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al subir evidencia de requisito',
+        message: tr('honors.errors.upload_requirement_evidence'),
         code: response.statusCode,
       );
     } catch (e) {
       AppLogger.e('Error en uploadRequirementEvidence', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
-          message: e.message ?? 'Error de conexión',
+          message: e.message ?? tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }
@@ -668,14 +669,14 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al agregar enlace de evidencia',
+        message: tr('honors.errors.add_evidence_link'),
         code: response.statusCode,
       );
     } catch (e) {
       AppLogger.e('Error en addRequirementEvidenceLink', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
-          message: e.message ?? 'Error de conexión',
+          message: e.message ?? tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }
@@ -708,7 +709,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener evidencias del requisito',
+        message: tr('honors.errors.fetch_requirement_evidences'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -716,7 +717,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(
-          message: e.message ?? 'Error de conexión',
+          message: e.message ?? tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }
@@ -739,7 +740,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
 
       if (response.statusCode != 200 && response.statusCode != 204) {
         throw ServerException(
-          message: 'Error al eliminar evidencia del requisito',
+          message: tr('honors.errors.delete_requirement_evidence'),
           code: response.statusCode,
         );
       }
@@ -747,7 +748,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
       AppLogger.e('Error en deleteRequirementEvidence', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(
-          message: e.message ?? 'Error de conexión',
+          message: e.message ?? tr('common.error_network'),
           code: e.response?.statusCode,
         );
       }

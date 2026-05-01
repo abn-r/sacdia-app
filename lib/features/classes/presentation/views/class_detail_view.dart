@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -81,9 +82,9 @@ class ClassDetailView extends ConsumerWidget {
                                         color: Colors.white,
                                       ),
                                 ),
-                                const Text(
-                                  'progreso',
-                                  style: TextStyle(
+                                Text(
+                                  'classes.detail.progress_label'.tr(),
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     color: Colors.white70,
                                   ),
@@ -123,7 +124,7 @@ class ClassDetailView extends ConsumerWidget {
                                 size: 20, color: AppColors.primary),
                             const SizedBox(width: 8),
                             Text(
-                              'Descripción',
+                              'classes.detail.description_header'.tr(),
                               style: Theme.of(context)
                                   .textTheme
                                   .titleMedium
@@ -145,7 +146,7 @@ class ClassDetailView extends ConsumerWidget {
 
                       // Modules button
                       SacButton.primary(
-                        text: 'Ver Módulos',
+                        text: 'classes.detail.view_modules_button'.tr(),
                         icon: HugeIcons.strokeRoundedCheckList,
                         onPressed: () {
                           Navigator.push(
@@ -176,7 +177,7 @@ class ClassDetailView extends ConsumerWidget {
                     size: 56, color: AppColors.error),
                 const SizedBox(height: 16),
                 Text(
-                  'Error al cargar detalle',
+                  'classes.detail.error_loading'.tr(),
                   style: Theme.of(context)
                       .textTheme
                       .titleMedium
@@ -191,7 +192,7 @@ class ClassDetailView extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
                 SacButton.primary(
-                  text: 'Reintentar',
+                  text: 'common.retry'.tr(),
                   icon: HugeIcons.strokeRoundedRefresh,
                   onPressed: () {
                     ref.invalidate(classDetailProvider(classId));

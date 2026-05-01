@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -180,7 +181,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
     final picked = await _showMemberPickerSheet(
       context: context,
       members: allMembers,
-      title: 'Seleccionar Capitán',
+      title: 'units.form.picker_captain'.tr(),
       currentUserId: _captain?.userId,
       excludeIds: exclude,
     );
@@ -196,7 +197,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
     final picked = await _showMemberPickerSheet(
       context: context,
       members: allMembers,
-      title: 'Seleccionar Secretario',
+      title: 'units.form.picker_secretary'.tr(),
       currentUserId: _secretary?.userId,
       excludeIds: exclude,
     );
@@ -212,7 +213,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
     final picked = await _showMemberPickerSheet(
       context: context,
       members: allMembers,
-      title: 'Seleccionar Consejero',
+      title: 'units.form.picker_advisor'.tr(),
       currentUserId: _advisor?.userId,
       excludeIds: exclude,
     );
@@ -228,7 +229,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
     final picked = await _showMemberPickerSheet(
       context: context,
       members: allMembers,
-      title: 'Seleccionar Consejero Suplente',
+      title: 'units.form.picker_substitute_advisor'.tr(),
       currentUserId: _substituteAdvisor?.userId,
       excludeIds: exclude,
     );
@@ -267,9 +268,9 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
     if (!_formKey.currentState!.validate()) return;
     if (_captain == null || _secretary == null || _advisor == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content:
-              Text('Capitán, Secretario y Consejero son obligatorios.'),
+              Text('units.form.roles_required_error'.tr()),
         ),
       );
       return;
@@ -299,8 +300,8 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
       if (ctx == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No se pudo obtener el contexto del club.'),
+            SnackBar(
+              content: Text('units.form.club_context_error'.tr()),
             ),
           );
           setState(() => _isSaving = false);
@@ -332,7 +333,8 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
       Navigator.of(context).pop(true);
     } else {
       final errorMsg =
-          ref.read(unitsNotifierProvider).errorMessage ?? 'Ocurrió un error.';
+          ref.read(unitsNotifierProvider).errorMessage ??
+              'common.error_generic'.tr();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMsg),
@@ -406,8 +408,8 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                       Expanded(
                         child: Text(
                           _isEditMode
-                              ? 'Editar Unidad'
-                              : 'Nueva Unidad',
+                              ? 'units.form.edit_title'.tr()
+                              : 'units.form.create_title'.tr(),
                           style: theme.textTheme.headlineSmall
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
@@ -420,7 +422,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                         ),
                         onPressed: () =>
                             Navigator.of(context).pop(null),
-                        tooltip: 'Cancelar',
+                        tooltip: 'common.cancel'.tr(),
                       ),
                     ],
                   ),
@@ -441,7 +443,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                             _SectionLabel(
                               icon:
                                   HugeIcons.strokeRoundedPencilEdit01,
-                              label: 'Nombre',
+                              label: 'units.form.name_label'.tr(),
                             ),
                             const SizedBox(height: 8),
                             TextFormField(
@@ -449,7 +451,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                               textCapitalization:
                                   TextCapitalization.words,
                               decoration: InputDecoration(
-                                hintText: 'Nombre de la unidad',
+                                hintText: 'units.form.name_hint'.tr(),
                                 hintStyle: TextStyle(
                                     color: c.textTertiary),
                                 filled: true,
@@ -491,7 +493,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                               ),
                               validator: (v) {
                                 if (v == null || v.trim().isEmpty) {
-                                  return 'Ingresá el nombre de la unidad.';
+                                  return 'units.form.name_required'.tr();
                                 }
                                 return null;
                               },
@@ -502,12 +504,12 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                             // ── Captain ──────────────────────────────────
                             _SectionLabel(
                               icon: HugeIcons.strokeRoundedUserStar01,
-                              label: 'Capitán',
+                              label: 'units.form.captain_label'.tr(),
                               required: true,
                             ),
                             const SizedBox(height: 8),
                             _MemberPickerField(
-                              hint: 'Seleccionar capitán',
+                              hint: 'units.form.captain_hint'.tr(),
                               selected: _captain,
                               onTap: () =>
                                   _pickCaptain(allMembers),
@@ -519,12 +521,12 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                             _SectionLabel(
                               icon: HugeIcons
                                   .strokeRoundedUserAccount,
-                              label: 'Secretario',
+                              label: 'units.form.secretary_label'.tr(),
                               required: true,
                             ),
                             const SizedBox(height: 8),
                             _MemberPickerField(
-                              hint: 'Seleccionar secretario',
+                              hint: 'units.form.secretary_hint'.tr(),
                               selected: _secretary,
                               onTap: () =>
                                   _pickSecretary(allMembers),
@@ -535,12 +537,12 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                             // ── Advisor ──────────────────────────────────
                             _SectionLabel(
                               icon: HugeIcons.strokeRoundedUserShield01,
-                              label: 'Consejero',
+                              label: 'units.form.advisor_label'.tr(),
                               required: true,
                             ),
                             const SizedBox(height: 8),
                             _MemberPickerField(
-                              hint: 'Seleccionar consejero',
+                              hint: 'units.form.advisor_hint'.tr(),
                               selected: _advisor,
                               onTap: () =>
                                   _pickAdvisor(allMembers),
@@ -552,11 +554,11 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                             _SectionLabel(
                               icon: HugeIcons
                                   .strokeRoundedUserStar01,
-                              label: 'Consejero Suplente',
+                              label: 'units.form.substitute_advisor_label'.tr(),
                             ),
                             const SizedBox(height: 8),
                             _MemberPickerField(
-                              hint: 'Seleccionar consejero suplente',
+                              hint: 'units.form.substitute_advisor_hint'.tr(),
                               selected: _substituteAdvisor,
                               optional: true,
                               onTap: () =>
@@ -580,7 +582,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Miembros',
+                                  'units.form.members_section'.tr(),
                                   style: theme.textTheme.titleMedium
                                       ?.copyWith(
                                           fontWeight: FontWeight.w600),
@@ -595,7 +597,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                                     size: 18,
                                   ),
                                   label:
-                                      const Text('Agregar miembro'),
+                                      Text('units.form.add_member_button'.tr()),
                                   style: TextButton.styleFrom(
                                     foregroundColor: AppColors.primary,
                                     padding: const EdgeInsets.symmetric(
@@ -747,12 +749,12 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
           // Search field
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: TextField(
+            child:             TextField(
               controller: _searchController,
               autofocus: false,
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
-                hintText: 'Buscar miembro...',
+                hintText: 'units.form.search_hint'.tr(),
                 prefixIcon: const Icon(Icons.search_rounded, size: 20),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
@@ -797,7 +799,7 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                             size: 48, color: c.textTertiary),
                         const SizedBox(height: 12),
                         Text(
-                          'No se encontraron resultados',
+                          'common.no_results'.tr(),
                           style: theme.textTheme.bodyMedium
                               ?.copyWith(color: c.textSecondary),
                         ),
@@ -964,37 +966,45 @@ class _MultiMemberPickerSheetState
                 const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: Row(
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Agregar miembro',
-                        style: theme.textTheme.headlineSmall,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'units.form.add_member_button'.tr(),
+                              style: theme.textTheme.headlineSmall,
+                            ),
+                            if (_selected.isNotEmpty)
+                              Text(
+                                _selected.length == 1
+                                    ? tr('units.form.selected_count_one',
+                                        namedArgs: {
+                                          'count': '${_selected.length}'
+                                        })
+                                    : tr('units.form.selected_count_other',
+                                        namedArgs: {
+                                          'count': '${_selected.length}'
+                                        }),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
-                      if (_selected.isNotEmpty)
-                        Text(
-                          '${_selected.length} seleccionado${_selected.length == 1 ? '' : 's'}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
+                      FilledButton(
+                        onPressed: _confirm,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusSM),
                           ),
                         ),
-                    ],
-                  ),
-                ),
-                FilledButton(
-                  onPressed: _confirm,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(AppTheme.radiusSM),
-                    ),
-                  ),
-                  child: const Text('Listo'),
+                        child: Text('units.form.done'.tr()),
                 ),
               ],
             ),
@@ -1005,11 +1015,11 @@ class _MultiMemberPickerSheetState
           // Search field
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: TextField(
+            child:             TextField(
               controller: _searchController,
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
-                hintText: 'Buscar miembro...',
+                hintText: 'units.form.search_hint'.tr(),
                 prefixIcon: const Icon(Icons.search_rounded, size: 20),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
@@ -1054,7 +1064,7 @@ class _MultiMemberPickerSheetState
                             size: 48, color: c.textTertiary),
                         const SizedBox(height: 12),
                         Text(
-                          'No se encontraron resultados',
+                          'common.no_results'.tr(),
                           style: theme.textTheme.bodyMedium
                               ?.copyWith(color: c.textSecondary),
                         ),
@@ -1304,13 +1314,13 @@ class _EmptyMembersPlaceholder extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Aún no hay miembros en esta unidad',
+              'units.form.empty_members_title'.tr(),
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: c.textSecondary),
             ),
             const SizedBox(height: 4),
             Text(
-              'Tocá "Agregar miembro" para añadir',
+              'units.form.empty_members_subtitle'.tr(),
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: c.textTertiary),
             ),
@@ -1397,7 +1407,7 @@ class _BottomActionBar extends StatelessWidget {
         children: [
           // Cancel button
           Expanded(
-            child: OutlinedButton(
+              child: OutlinedButton(
               onPressed: isSaving ? null : onCancel,
               style: OutlinedButton.styleFrom(
                 foregroundColor: c.textSecondary,
@@ -1408,7 +1418,7 @@ class _BottomActionBar extends StatelessWidget {
                       BorderRadius.circular(AppTheme.radiusSM),
                 ),
               ),
-              child: const Text('Cancelar'),
+              child: Text('common.cancel'.tr()),
             ),
           ),
           const SizedBox(width: 12),
@@ -1437,7 +1447,9 @@ class _BottomActionBar extends StatelessWidget {
                             Colors.white),
                       ),
                     )
-                  : Text(isEditMode ? 'Guardar' : 'Crear'),
+                  : Text(isEditMode
+                      ? 'common.save'.tr()
+                      : 'units.form.create'.tr()),
             ),
           ),
         ],

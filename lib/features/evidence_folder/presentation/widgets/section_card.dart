@@ -1,6 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -111,8 +111,10 @@ class SectionCard extends StatelessWidget {
                 children: [
                   _StatItem(
                     icon: HugeIcons.strokeRoundedStar,
-                    label:
-                        '${section.earnedPoints} / ${section.pointValue} pts',
+                    label: 'evidence_folder.points_ratio'.tr(namedArgs: {
+                      'earned': '${section.earnedPoints}',
+                      'max': '${section.pointValue}',
+                    }),
                     color: section.status == EvidenceSectionStatus.validated
                         ? AppColors.secondary
                         : c.textSecondary,
@@ -128,8 +130,10 @@ class SectionCard extends StatelessWidget {
                   const SizedBox(width: 16),
                   _StatItem(
                     icon: HugeIcons.strokeRoundedFiles01,
-                    label:
-                        '${section.files.length} / ${section.maxFiles} archivos',
+                    label: 'evidence_folder.files_ratio'.tr(namedArgs: {
+                      'current': '${section.files.length}',
+                      'max': '${section.maxFiles}',
+                    }),
                     color: c.textSecondary,
                     context: context,
                   ),
@@ -159,8 +163,12 @@ class SectionCard extends StatelessWidget {
                         color: Theme.of(context).brightness == Brightness.dark
                             ? AppColors.statusInfoTextDark
                             : AppColors.statusInfoText,
-                        text:
-                            'Enviado por ${section.submittedByName}${section.submittedAt != null ? " · ${dateFormat.format(section.submittedAt!.toLocal())}" : ""}',
+                        text: 'evidence_folder.trace.sent_by'.tr(namedArgs: {
+                          'name': section.submittedByName!,
+                          'date': section.submittedAt != null
+                              ? ' · ${dateFormat.format(section.submittedAt!.toLocal())}'
+                              : '',
+                        }),
                         context: context,
                       ),
                     if (section.lfApproverName != null) ...[
@@ -169,8 +177,12 @@ class SectionCard extends StatelessWidget {
                       _TraceRow(
                         icon: HugeIcons.strokeRoundedAnalytics01,
                         color: AppColors.accentDark,
-                        text:
-                            'Preaprobado por ${section.lfApproverName}${section.lfApprovedAt != null ? " · ${dateFormat.format(section.lfApprovedAt!.toLocal())}" : ""}',
+                        text: 'evidence_folder.trace.preapproved_by'.tr(namedArgs: {
+                          'name': section.lfApproverName!,
+                          'date': section.lfApprovedAt != null
+                              ? ' · ${dateFormat.format(section.lfApprovedAt!.toLocal())}'
+                              : '',
+                        }),
                         context: context,
                       ),
                     ],
@@ -181,8 +193,12 @@ class SectionCard extends StatelessWidget {
                       _TraceRow(
                         icon: HugeIcons.strokeRoundedCheckmarkCircle01,
                         color: AppColors.secondaryDark,
-                        text:
-                            'Validado por ${section.unionApproverName}${section.unionApprovedAt != null ? " · ${dateFormat.format(section.unionApprovedAt!.toLocal())}" : ""}',
+                        text: 'evidence_folder.trace.validated_by'.tr(namedArgs: {
+                          'name': section.unionApproverName!,
+                          'date': section.unionApprovedAt != null
+                              ? ' · ${dateFormat.format(section.unionApprovedAt!.toLocal())}'
+                              : '',
+                        }),
                         context: context,
                       ),
                     ],
@@ -279,7 +295,7 @@ class _SubmitSectionButton extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Enviando...',
+                      'evidence_folder.sending'.tr(),
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -294,7 +310,7 @@ class _SubmitSectionButton extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'Enviar a validación',
+                      'evidence_folder.send_to_validation'.tr(),
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,

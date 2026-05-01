@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -147,15 +148,13 @@ class EvidenceSectionNotifier
       data: (folder) {
         if (folder == null) {
           throw StateError(
-            'La carpeta no existe aún. No se pueden realizar operaciones '
-            'sin una carpeta creada.',
+            'evidence_folder.errors.folder_not_exists'.tr(),
           );
         }
         return folder.folderId;
       },
       orElse: () => throw StateError(
-        'La carpeta no está cargada. Asegúrese de que evidenceFolderProvider '
-        'haya completado antes de invocar operaciones de mutación.',
+        'evidence_folder.errors.folder_not_loaded'.tr(),
       ),
     );
   }

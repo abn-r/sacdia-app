@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -265,7 +266,7 @@ class _HonorRequirementsViewState
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Progreso guardado correctamente'),
+          content: Text('honors.requirements.success_saved'.tr()),
           backgroundColor: categoryColor,
           behavior: SnackBarBehavior.floating,
           shape:
@@ -298,19 +299,19 @@ class _HonorRequirementsViewState
         final confirm = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Cambios sin guardar'),
-            content: const Text(
-              'Tienes cambios sin guardar. ¿Seguro que quieres salir?',
+            title: Text('honors.requirements.unsaved_title'.tr()),
+            content: Text(
+              'honors.requirements.unsaved_content'.tr(),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Quedarme'),
+                child: Text('honors.requirements.unsaved_stay'.tr()),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Salir'),
+                child: Text('honors.requirements.unsaved_exit'.tr()),
               ),
             ],
           ),
@@ -588,9 +589,9 @@ class _DarkHeader extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
-                    const Text(
-                      'Requisitos',
-                      style: TextStyle(
+                    Text(
+                      'honors.requirements.header_subtitle'.tr(),
+                      style: const TextStyle(
                         color: Color(0x99FFFFFF),
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -635,7 +636,10 @@ class _ProgressSection extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '$completed de $total completados',
+                'honors.requirements.progress_text'.tr(namedArgs: {
+                  'completed': '$completed',
+                  'total': '$total',
+                }),
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -726,9 +730,9 @@ class _SaveBar extends StatelessWidget {
                     strokeWidth: 2.5,
                   ),
                 )
-              : const Text(
-                  'Guardar cambios',
-                  style: TextStyle(
+              : Text(
+                  'honors.requirements.save_button'.tr(),
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                   ),
@@ -823,7 +827,7 @@ class _ErrorBody extends StatelessWidget {
             Text(
               message.isNotEmpty
                   ? message
-                  : 'No se pudieron cargar los requisitos',
+                  : 'honors.requirements.error_load'.tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
@@ -834,9 +838,9 @@ class _ErrorBody extends StatelessWidget {
             const SizedBox(height: 20),
             TextButton(
               onPressed: onRetry,
-              child: const Text(
-                'Reintentar',
-                style: TextStyle(
+              child: Text(
+                'honors.requirements.retry'.tr(),
+                style: const TextStyle(
                   color: AppColors.sacBlue,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,

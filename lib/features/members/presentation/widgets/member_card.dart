@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -163,21 +164,25 @@ class _MemberAvatar extends StatelessWidget {
           width: 2,
         ),
       ),
-      child: CircleAvatar(
-        radius: 24,
-        backgroundColor: AppColors.primarySurface,
-        backgroundImage:
-            member.avatar != null ? CachedNetworkImageProvider(member.avatar!) : null,
-        child: member.avatar == null
-            ? Text(
-                member.initials,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.primary,
-                ),
-              )
-            : null,
+      child: ClipOval(
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: member.avatar != null
+              ? CachedNetworkImage(
+                  imageUrl: member.avatar!,
+                  fit: BoxFit.cover,
+                  memCacheWidth: 96,
+                  memCacheHeight: 96,
+                  placeholder: (_, __) => _AvatarInitials(
+                    initials: member.initials,
+                  ),
+                  errorWidget: (_, __, ___) => _AvatarInitials(
+                    initials: member.initials,
+                  ),
+                )
+              : _AvatarInitials(initials: member.initials),
+        ),
       ),
     );
   }
@@ -192,10 +197,10 @@ class _EnrollmentBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isEnrolled) {
-      return const SacBadge.success(label: 'Inscrito');
+      return SacBadge.success(label: 'members.common.enrolled'.tr());
     }
     return SacBadge(
-      label: 'No inscrito',
+      label: 'members.common.not_enrolled'.tr(),
       variant: SacBadgeVariant.neutral,
     );
   }
@@ -224,6 +229,30 @@ class _AssignRoleButton extends StatelessWidget {
             color: AppColors.primary,
             size: 18,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Iniciales de fallback cuando la foto 404 o no existe.
+class _AvatarInitials extends StatelessWidget {
+  final String initials;
+
+  const _AvatarInitials({required this.initials});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      color: theme.colorScheme.primaryContainer,
+      alignment: Alignment.center,
+      child: Text(
+        initials,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: theme.colorScheme.onPrimaryContainer,
         ),
       ),
     );

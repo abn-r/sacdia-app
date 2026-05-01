@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
-import '../../domain/entities/achievement.dart';
+import '../../domain/entities/achievement.dart'
+    show AchievementTier, kDefaultLockedAchievementBadgeUrl;
 import '../../domain/entities/user_achievement.dart';
 
 /// Devuelve el color del tier de un logro.
@@ -155,9 +156,18 @@ class _AchievementBadgeState extends State<AchievementBadge>
           ),
         ),
       );
-    } else if (widget.badgeImageUrl != null) {
+    } else {
+      // For locked achievements (or when admin hasn't uploaded a custom badge)
+      // show the default locked placeholder from R2 instead of the per-achievement
+      // image.  Unlocked achievements always use their own badgeImageUrl.
+      final effectiveUrl = isUnlocked
+          ? (widget.badgeImageUrl?.isNotEmpty == true
+              ? widget.badgeImageUrl!
+              : kDefaultLockedAchievementBadgeUrl)
+          : kDefaultLockedAchievementBadgeUrl;
+
       imageContent = CachedNetworkImage(
-        imageUrl: widget.badgeImageUrl!,
+        imageUrl: effectiveUrl,
         width: widget.size,
         height: widget.size,
         fit: BoxFit.cover,
@@ -175,8 +185,6 @@ class _AchievementBadgeState extends State<AchievementBadge>
         ),
         errorWidget: (context, url, error) => _FallbackBadgeIcon(size: widget.size),
       );
-    } else {
-      imageContent = _FallbackBadgeIcon(size: widget.size);
     }
 
     // Apply grayscale for locked and in-progress states

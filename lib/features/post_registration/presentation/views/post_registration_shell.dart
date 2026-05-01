@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -165,10 +166,8 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'No se pudo completar este paso. Por favor intentá de nuevo.',
-          ),
+        SnackBar(
+          content: Text(tr('post_registration.shell.error_step_failed')),
         ),
       );
     } finally {
@@ -225,21 +224,19 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('¿Cerrar sesión?'),
-        content: const Text(
-          'Si cierras sesión ahora, deberás completar este proceso cuando vuelvas a ingresar.',
-        ),
+        title: Text(tr('post_registration.shell.logout_dialog_title')),
+        content: Text(tr('post_registration.shell.logout_dialog_body')),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancelar'),
+            child: Text(tr('common.cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(ctx).colorScheme.error,
             ),
-            child: const Text('Cerrar sesión'),
+            child: Text(tr('post_registration.shell.logout_dialog_confirm')),
           ),
         ],
       ),
@@ -250,8 +247,8 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
       if (success) clearUserStateOnLogout(ref);
       if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No se pudo cerrar la sesión. Intenta de nuevo.'),
+          SnackBar(
+            content: Text(tr('post_registration.shell.error_logout_failed')),
           ),
         );
       }
@@ -316,7 +313,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Completar perfil',
+                        tr('post_registration.shell.title'),
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.w700,
                               color: context.sac.text,
@@ -328,7 +325,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
                       onPressed: _showLogoutDialog,
                       icon: const Icon(Icons.logout_rounded),
                       color: context.sac.text,
-                      tooltip: 'Cerrar sesión',
+                      tooltip: tr('post_registration.shell.logout_tooltip'),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
@@ -347,7 +344,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          '$currentStep de 3',
+                          tr('post_registration.shell.step_counter', namedArgs: {'current': '$currentStep', 'total': '3'}),
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,

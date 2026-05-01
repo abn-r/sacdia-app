@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 
 /// Base URL for achievement badge images stored in Cloudflare R2 via backend.
@@ -6,6 +7,13 @@ import 'package:equatable/equatable.dart';
 /// This prefix is prepended when the key doesn't already start with "http".
 const String _achievementBadgeBase =
     'https://sacdia-files.r2.dev/achievements/';
+
+/// Default badge image shown for locked achievements or when the admin has not
+/// yet uploaded a custom badge for an achievement.
+///
+/// Hosted in the public R2 bucket under achievements/achievements_default.png.
+const String kDefaultLockedAchievementBadgeUrl =
+    'https://pub-c8aa231ae66c46ff96fc5e811994d9d2.r2.dev/achievements/achievements_default.png';
 
 String? _buildBadgeImageUrl(String? key) {
   if (key == null || key.isEmpty) return null;
@@ -69,15 +77,15 @@ enum AchievementTier {
   String get displayName {
     switch (this) {
       case AchievementTier.bronze:
-        return 'Bronce';
+        return tr('achievements.tiers.bronze');
       case AchievementTier.silver:
-        return 'Plata';
+        return tr('achievements.tiers.silver');
       case AchievementTier.gold:
-        return 'Oro';
+        return tr('achievements.tiers.gold');
       case AchievementTier.platinum:
-        return 'Platino';
+        return tr('achievements.tiers.platinum');
       case AchievementTier.diamond:
-        return 'Diamante';
+        return tr('achievements.tiers.diamond');
       case AchievementTier.unknown:
         return '';
     }

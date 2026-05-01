@@ -1,3 +1,5 @@
+import 'package:easy_localization/easy_localization.dart';
+
 /// Un ganador individual del Miembro del Mes.
 ///
 /// Cuando hay empate, el backend retorna múltiples entradas
@@ -41,15 +43,16 @@ class MemberOfMonth {
     required this.members,
   });
 
-  /// Nombre del mes en español (1-indexed).
+  /// Nombre del mes localizado (1-indexed).
   String get monthName {
-    const names = [
+    const keys = [
       '', // 0-indexed padding
-      'Enero', 'Febrero', 'Marzo', 'Abril',
-      'Mayo', 'Junio', 'Julio', 'Agosto',
-      'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+      'january', 'february', 'march', 'april',
+      'may', 'june', 'july', 'august',
+      'september', 'october', 'november', 'december',
     ];
-    return (month >= 1 && month <= 12) ? names[month] : 'Mes $month';
+    if (month >= 1 && month <= 12) return tr('common.months.${keys[month]}');
+    return tr('common.months.unknown', namedArgs: {'month': '$month'});
   }
 
   @override

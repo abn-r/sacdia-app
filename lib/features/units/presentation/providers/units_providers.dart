@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/dio_provider.dart';
@@ -513,7 +514,9 @@ class UnitsNotifier extends Notifier<UnitsState> {
       state = state.copyWith(
         isSaving: false,
         errorMessage:
-            'Falló el registro para ${failures.length} miembro${failures.length == 1 ? '' : 's'}',
+            failures.length == 1
+                ? 'units.errors.save_failed_one'.tr()
+                : 'units.errors.save_failed_other'.tr(namedArgs: {'count': '${failures.length}'}),
       );
       return false;
     }

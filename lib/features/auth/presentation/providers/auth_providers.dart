@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failures.dart';
@@ -21,6 +22,7 @@ import '../../../../core/usecases/usecase.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/notifications/push_notification_provider.dart';
 import '../../../../providers/dio_provider.dart';
+import '../../../biometric/presentation/providers/biometric_provider.dart';
 import '../../../notifications/presentation/providers/unread_notifications_count_provider.dart';
 
 /// Provider para la URL base de la API
@@ -261,7 +263,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       (failure) {
         final errorMessage = failure is AuthFailure
             ? failure.message
-            : 'Error al iniciar sesión';
+            : 'auth.errors.sign_in_failed'.tr();
         AppLogger.w('Login fallido: $errorMessage', tag: _tag);
         return AsyncValue.error(errorMessage, StackTrace.current);
       },
@@ -303,7 +305,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       (failure) {
         final errorMessage = failure is AuthFailure
             ? failure.message
-            : 'Error al registrar usuario';
+            : 'auth.errors.sign_up_failed'.tr();
         return AsyncValue.error(errorMessage, StackTrace.current);
       },
       (user) => AsyncValue.data(user),
@@ -395,7 +397,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
           return OAuthLaunchResult.launched;
         }
         final errorMessage =
-            failure is AuthFailure ? failure.message : 'Error al iniciar con Google';
+            failure is AuthFailure ? failure.message : 'auth.errors.sign_in_google_failed'.tr();
         AppLogger.w('OAuth Google error: $errorMessage', tag: _tag);
         state = AsyncValue.error(errorMessage, StackTrace.current);
         return OAuthLaunchResult.failed;
@@ -424,7 +426,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
           return OAuthLaunchResult.launched;
         }
         final errorMessage =
-            failure is AuthFailure ? failure.message : 'Error al iniciar con Apple';
+            failure is AuthFailure ? failure.message : 'auth.errors.sign_in_apple_failed'.tr();
         AppLogger.w('OAuth Apple error: $errorMessage', tag: _tag);
         state = AsyncValue.error(errorMessage, StackTrace.current);
         return OAuthLaunchResult.failed;
@@ -515,7 +517,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       (failure) {
         final msg = failure is AuthFailure
             ? failure.message
-            : 'Error al cambiar la contraseña';
+            : 'auth.errors.change_password_failed'.tr();
         AppLogger.w('Cambio de contraseña fallido: $msg', tag: _tag);
         return msg;
       },
@@ -539,6 +541,17 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   Future<String?> deleteAccount(String password) async {
     AppLogger.i('Iniciando eliminación de cuenta', tag: _tag);
 
+    // Confirmación biométrica antes de cualquier efecto destructivo
+    // (no-op si el usuario no tiene biometría habilitada).
+    final bioOk = await requireBiometricConfirmationRef(
+      ref,
+      reason: 'biometric.confirm_delete_account'.tr(),
+    );
+    if (!bioOk) {
+      AppLogger.w('Delete account cancelado por biometría', tag: _tag);
+      return 'auth.errors.operation_cancelled'.tr();
+    }
+
     // Desregistrar FCM antes de borrar la sesión (el interceptor aún puede
     // adjuntar el Bearer header porque los tokens aún existen).
     try {
@@ -558,7 +571,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       (failure) {
         final msg = failure is AuthFailure
             ? failure.message
-            : 'Error al eliminar la cuenta';
+            : 'auth.errors.delete_account_failed'.tr();
         AppLogger.w('Delete account fallido: $msg', tag: _tag);
         return msg;
       },
@@ -632,7 +645,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     return result.fold(
       (failure) {
         final errorMessage =
-            failure is AuthFailure ? failure.message : 'Error al cerrar sesión';
+            failure is AuthFailure ? failure.message : 'auth.errors.sign_out_failed'.tr();
         state = AsyncValue.error(errorMessage, StackTrace.current);
         return false;
       },

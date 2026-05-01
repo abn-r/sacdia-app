@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -92,7 +93,7 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener categorías de inventario',
+        message: tr('inventory.errors.get_categories'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -128,7 +129,7 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener el inventario',
+        message: tr('inventory.errors.get_items'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -158,7 +159,7 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al obtener el ítem',
+        message: tr('inventory.errors.get_item'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -217,7 +218,7 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al crear el ítem',
+        message: tr('inventory.errors.create_item'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -274,7 +275,7 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al actualizar el ítem',
+        message: tr('inventory.errors.update_item'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -299,7 +300,7 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
       }
 
       throw ServerException(
-        message: 'Error al eliminar el ítem',
+        message: tr('inventory.errors.delete_item'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -324,11 +325,11 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? 'Error de conexión').toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
       }
     } catch (e) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
     }
-    return e.message ?? 'Error de conexión';
+    return e.message ?? tr('common.error_network');
   }
 }

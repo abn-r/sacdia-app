@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/notification_model.dart';
@@ -55,7 +56,7 @@ class NotificationsRemoteDataSourceImpl
       final code = e.response?.statusCode;
       if (code == 403 || code == 401) {
         throw AuthException(
-          message: 'No tienes permiso para ver las notificaciones',
+          message: tr('notifications.errors.no_permission'),
           code: code,
         );
       }
@@ -74,12 +75,12 @@ class NotificationsRemoteDataSourceImpl
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? 'Error de conexion').toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
       }
     } catch (_) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag);
     }
-    return e.message ?? 'Error de conexion';
+    return e.message ?? tr('common.error_network');
   }
 
   @override
@@ -126,7 +127,7 @@ class NotificationsRemoteDataSourceImpl
       }
 
       throw ServerException(
-        message: 'Error al obtener historial de notificaciones',
+        message: tr('notifications.errors.get_history'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -149,7 +150,7 @@ class NotificationsRemoteDataSourceImpl
       }
 
       throw ServerException(
-        message: 'Error al obtener contador de no leídas',
+        message: tr('notifications.errors.get_unread_count'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -170,7 +171,7 @@ class NotificationsRemoteDataSourceImpl
       }
 
       throw ServerException(
-        message: 'Error al marcar notificación como leída',
+        message: tr('notifications.errors.mark_as_read'),
         code: response.statusCode,
       );
     } catch (e) {
@@ -193,7 +194,7 @@ class NotificationsRemoteDataSourceImpl
       }
 
       throw ServerException(
-        message: 'Error al marcar todas las notificaciones como leídas',
+        message: tr('notifications.errors.mark_all_as_read'),
         code: response.statusCode,
       );
     } catch (e) {

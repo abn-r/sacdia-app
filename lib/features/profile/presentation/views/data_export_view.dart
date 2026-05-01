@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/utils/icon_helper.dart';
+import '../../../biometric/presentation/providers/biometric_provider.dart';
 import '../../domain/entities/data_export.dart';
 import '../providers/data_export_providers.dart';
 
@@ -124,6 +126,20 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
 
   Future<void> _handleRequestExport() async {
     HapticFeedback.mediumImpact();
+
+    // Confirmación biométrica antes de solicitar la exportación
+    // (no-op si el usuario no tiene biometría habilitada).
+    final bioOk = await requireBiometricConfirmation(
+      context,
+      ref,
+      reason: 'biometric.confirm_sensitive_action'.tr(),
+    );
+    if (!mounted) return;
+    if (!bioOk) {
+      _showSnackBar('profile.data_export.ui.operation_cancelled'.tr(), isError: true);
+      return;
+    }
+
     setState(() => _isRequesting = true);
 
     final error = await ref
@@ -136,7 +152,7 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
     if (error != null) {
       _showSnackBar(error, isError: true);
     } else {
-      _showSnackBar('Exportación solicitada. Te avisaremos cuando esté lista.');
+      _showSnackBar('profile.data_export.ui.export_requested'.tr());
       // Iniciar polling para la nueva export en progreso.
       final current = ref.read(dataExportProvider).valueOrNull ?? [];
       _startPollingIfNeeded(current);
@@ -147,7 +163,7 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
     HapticFeedback.lightImpact();
     setState(() => _downloadingIds.add(exportId));
 
-    _showSnackBar('Abriendo descarga...');
+    _showSnackBar('profile.data_export.ui.opening_download'.tr());
 
     final result = await ref
         .read(dataExportProvider.notifier)
@@ -166,7 +182,7 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
 
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!launched && mounted) {
-      _showSnackBar('No se pudo abrir el enlace de descarga.', isError: true);
+      _showSnackBar('profile.data_export.ui.download_link_error'.tr(), isError: true);
     }
   }
 
@@ -185,7 +201,7 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
     return Scaffold(
       backgroundColor: c.surfaceVariant,
       appBar: AppBar(
-        title: const Text('Descargar mis datos'),
+        title: Text('profile.data_export.ui.title'.tr()),
         backgroundColor: c.surfaceVariant,
         foregroundColor: c.text,
         elevation: 0,
@@ -262,10 +278,10 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
                     ),
               label: Text(
                 _isRequesting
-                    ? 'Solicitando...'
+                    ? 'profile.data_export.ui.requesting'.tr()
                     : hasActiveExport
-                        ? 'Exportación en curso...'
-                        : 'Solicitar exportación de datos',
+                        ? 'profile.data_export.ui.in_progress'.tr()
+                        : 'profile.data_export.ui.request_button'.tr(),
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -280,7 +296,7 @@ class _DataExportViewState extends ConsumerState<DataExportView> {
           Padding(
             padding: const EdgeInsets.only(left: 4, bottom: 10),
             child: Text(
-              'HISTORIAL DE SOLICITUDES',
+              'profile.data_export.ui.history_header'.tr(),
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
@@ -340,7 +356,7 @@ class _InfoCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Sobre tu exportación de datos',
+                'profile.data_export.ui.info_title'.tr(),
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
@@ -353,19 +369,19 @@ class _InfoCard extends StatelessWidget {
           _infoRow(
             context,
             icon: HugeIcons.strokeRoundedFileDownload,
-            text: 'Incluye tu perfil, actividades, logros y más en formato JSON.',
+            text: 'profile.data_export.ui.info_includes'.tr(),
           ),
           const SizedBox(height: 6),
           _infoRow(
             context,
             icon: HugeIcons.strokeRoundedTime04,
-            text: 'El archivo estará disponible para descargar durante 48 horas.',
+            text: 'profile.data_export.ui.info_available_hours'.tr(),
           ),
           const SizedBox(height: 6),
           _infoRow(
             context,
             icon: HugeIcons.strokeRoundedClock01,
-            text: 'Podés solicitar una exportación cada 24 horas.',
+            text: 'profile.data_export.ui.info_rate_limit'.tr(),
           ),
         ],
       ),
@@ -517,7 +533,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Aún no solicitaste exportaciones',
+            'profile.data_export.ui.empty_title'.tr(),
             style: TextStyle(
               fontSize: 14,
               color: c.textSecondary,
@@ -566,7 +582,7 @@ class _ErrorState extends StatelessWidget {
                 size: 16,
                 color: Colors.white,
               ),
-              label: const Text('Reintentar'),
+              label: Text('profile.data_export.ui.action_retry'.tr()),
             ),
           ],
         ),
@@ -704,7 +720,7 @@ class _ExportCard extends StatelessWidget {
                   if (export.expiresAt != null) ...[
                     const SizedBox(height: 1),
                     Text(
-                      'Expira el ${_formatExpiry(export.expiresAt!)}',
+                      'profile.data_export.ui.expires_on'.tr(namedArgs: {'date': _formatExpiry(export.expiresAt!)}),
                       style: TextStyle(fontSize: 11, color: c.textTertiary),
                     ),
                   ],
@@ -725,7 +741,7 @@ class _ExportCard extends StatelessWidget {
                 ] else if (export.status == DataExportStatus.failed) ...[
                   const SizedBox(height: 2),
                   Text(
-                    'Ocurrió un error al generar tu exportación.',
+                    'profile.data_export.ui.error_generating'.tr(),
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.error.withValues(alpha: 0.8),
