@@ -4,6 +4,7 @@ import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/network/network_info.dart';
 import 'package:sacdia_app/features/rankings/data/datasources/rankings_remote_data_source.dart';
+import 'package:sacdia_app/features/rankings/data/models/member_breakdown_dto.dart';
 import 'package:sacdia_app/features/rankings/data/models/member_ranking_dto.dart';
 import 'package:sacdia_app/features/rankings/data/models/section_ranking_dto.dart';
 import 'package:sacdia_app/features/rankings/data/repositories/section_rankings_repository_impl.dart';
@@ -16,6 +17,14 @@ class _StubDataSource implements RankingsRemoteDataSource {
 
   @override
   Future<MyRankingResponseDto> getMyRanking(
+    int yearId, {
+    cancelToken,
+  }) =>
+      throw UnimplementedError();
+
+  @override
+  Future<MemberBreakdownDtoModel> getBreakdown(
+    int enrollmentId,
     int yearId, {
     cancelToken,
   }) =>
