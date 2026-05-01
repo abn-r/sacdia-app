@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 class VirtualCardSkeleton extends StatelessWidget {
@@ -12,47 +14,100 @@ class VirtualCardSkeleton extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
       ),
       padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final avatarSize = (constraints.maxHeight * 0.18).clamp(76.0, 108.0);
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _bar(width: 92, height: 30, color: bg.withValues(alpha: 0.8)),
-              _bar(width: 64, height: 30, color: bg.withValues(alpha: 0.8)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _bar(width: 92, height: 30, color: bg.withValues(alpha: 0.8)),
+                  _bar(width: 64, height: 30, color: bg.withValues(alpha: 0.8)),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Center(
+                child: _circle(
+                  size: avatarSize,
+                  color: bg.withValues(alpha: 0.85),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Center(
+                child: _bar(
+                  width: 180,
+                  height: 22,
+                  color: bg.withValues(alpha: 0.8),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Center(
+                child: _bar(
+                  width: 140,
+                  height: 14,
+                  color: bg.withValues(alpha: 0.7),
+                ),
+              ),
+              const SizedBox(height: 18),
+              _bar(
+                  width: double.infinity,
+                  height: 1,
+                  color: bg.withValues(alpha: 0.7)),
+              const SizedBox(height: 12),
+              _bar(width: 120, height: 14, color: bg.withValues(alpha: 0.8)),
+              const SizedBox(height: 8),
+              _bar(width: 180, height: 18, color: bg.withValues(alpha: 0.85)),
+              const SizedBox(height: 10),
+              _bar(width: 90, height: 14, color: bg.withValues(alpha: 0.8)),
+              const SizedBox(height: 8),
+              _bar(width: 160, height: 18, color: bg.withValues(alpha: 0.85)),
+              const SizedBox(height: 16),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, qrConstraints) {
+                    final qrSize = math.min(
+                      160.0,
+                      math.min(qrConstraints.maxWidth, qrConstraints.maxHeight),
+                    );
+
+                    return Center(
+                      child: _square(
+                        size: qrSize,
+                        color: bg.withValues(alpha: 0.75),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+              Center(
+                child: _bar(
+                  width: 132,
+                  height: 18,
+                  color: bg.withValues(alpha: 0.8),
+                ),
+              ),
+              const SizedBox(height: 18),
+              _bar(
+                  width: double.infinity,
+                  height: 1,
+                  color: bg.withValues(alpha: 0.7)),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _bar(
+                      width: 128, height: 12, color: bg.withValues(alpha: 0.8)),
+                  _bar(
+                      width: 78, height: 20, color: bg.withValues(alpha: 0.85)),
+                ],
+              ),
             ],
-          ),
-          const SizedBox(height: 28),
-          Center(child: _circle(size: 108, color: bg.withValues(alpha: 0.85))),
-          const SizedBox(height: 24),
-          Center(child: _bar(width: 180, height: 24, color: bg.withValues(alpha: 0.8))),
-          const SizedBox(height: 10),
-          Center(child: _bar(width: 140, height: 16, color: bg.withValues(alpha: 0.7))),
-          const SizedBox(height: 28),
-          _bar(width: double.infinity, height: 1, color: bg.withValues(alpha: 0.7)),
-          const SizedBox(height: 18),
-          _bar(width: 120, height: 14, color: bg.withValues(alpha: 0.8)),
-          const SizedBox(height: 10),
-          _bar(width: 180, height: 18, color: bg.withValues(alpha: 0.85)),
-          const SizedBox(height: 12),
-          _bar(width: 90, height: 14, color: bg.withValues(alpha: 0.8)),
-          const SizedBox(height: 10),
-          _bar(width: 160, height: 18, color: bg.withValues(alpha: 0.85)),
-          const SizedBox(height: 24),
-          Center(child: _square(size: 160, color: bg.withValues(alpha: 0.75))),
-          const SizedBox(height: 18),
-          Center(child: _bar(width: 132, height: 18, color: bg.withValues(alpha: 0.8))),
-          const SizedBox(height: 26),
-          _bar(width: double.infinity, height: 1, color: bg.withValues(alpha: 0.7)),
-          const SizedBox(height: 14),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _bar(width: 128, height: 12, color: bg.withValues(alpha: 0.8)),
-              _bar(width: 78, height: 20, color: bg.withValues(alpha: 0.85)),
-            ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/errors/exceptions.dart';
+import '../../domain/entities/virtual_card.dart';
 import '../providers/virtual_card_providers.dart';
 import '../widgets/virtual_card_face.dart';
 import '../widgets/virtual_card_skeleton.dart';
@@ -80,15 +81,11 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
                               card: card,
                               onShowQr: card.canShowQr
                                   ? () => Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              VirtualCardQrFullscreenView(
-                                            card: card,
-                                          ),
-                                        ),
+                                        _qrFullscreenRoute(card),
                                       )
                                   : _refresh,
-                              onPhotoTap: card.photoUrl?.trim().isNotEmpty == true
+                              onPhotoTap: card.photoUrl?.trim().isNotEmpty ==
+                                      true
                                   ? () => Navigator.of(context).push(
                                         MaterialPageRoute(
                                           builder: (_) => VirtualCardPhotoView(
@@ -173,4 +170,24 @@ String virtualCardErrorMessageKey(Object error) {
   }
 
   return 'virtual_card.errors.load_failed';
+}
+
+Route<void> _qrFullscreenRoute(VirtualCard card) {
+  return PageRouteBuilder<void>(
+    transitionDuration: const Duration(milliseconds: 260),
+    reverseTransitionDuration: const Duration(milliseconds: 220),
+    pageBuilder: (_, __, ___) => VirtualCardQrFullscreenView(card: card),
+    transitionsBuilder: (_, animation, __, child) {
+      final curved = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeInCubic,
+      );
+
+      return FadeTransition(
+        opacity: curved,
+        child: child,
+      );
+    },
+  );
 }
