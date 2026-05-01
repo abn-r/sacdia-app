@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/auth/club_role_names.dart';
 import '../../../../providers/catalogs_provider.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../providers/section_ranking_provider.dart';
@@ -10,22 +11,9 @@ import '../widgets/ranking_skeleton.dart';
 
 // ── Role helpers ──────────────────────────────────────────────────────────────
 
-/// Roles autorizados a ver el ranking de sección.
-///
-/// Equivalente al conjunto de [_kManagementRoles] de units_list_view.dart
-/// más 'counselor' — los counselors son responsables de su unidad y
-/// necesitan visibilidad del ranking para hacer seguimiento.
-const _kSectionRankingRoles = [
-  'director',
-  'sub_director',
-  'secretario',
-  'secretario_tesorero',
-  'counselor',
-];
-
 bool _canViewSectionRanking(String? role) {
   if (role == null) return false;
-  return _kSectionRankingRoles.contains(role.trim().toLowerCase());
+  return ClubRoleNames.sectionRankingViewers.contains(role.trim().toLowerCase());
 }
 
 // ── Screen ────────────────────────────────────────────────────────────────────
