@@ -3,7 +3,6 @@ import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
-import '../../../../core/network/network_info.dart';
 import '../../domain/entities/club_info.dart';
 import '../../domain/repositories/club_repository.dart';
 import '../datasources/club_remote_data_source.dart';
@@ -11,13 +10,10 @@ import '../datasources/club_remote_data_source.dart';
 /// Implementación de [ClubRepository].
 class ClubRepositoryImpl implements ClubRepository {
   final ClubRemoteDataSource _remoteDataSource;
-  final NetworkInfo _networkInfo;
 
   const ClubRepositoryImpl({
     required ClubRemoteDataSource remoteDataSource,
-    required NetworkInfo networkInfo,
-  })  : _remoteDataSource = remoteDataSource,
-        _networkInfo = networkInfo;
+  }) : _remoteDataSource = remoteDataSource;
 
   // ── getClub ───────────────────────────────────────────────────────────────
 

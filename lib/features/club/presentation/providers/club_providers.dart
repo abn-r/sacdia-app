@@ -26,7 +26,6 @@ final clubRemoteDataSourceProvider = Provider<ClubRemoteDataSource>((ref) {
 final clubRepositoryProvider = Provider<ClubRepository>((ref) {
   return ClubRepositoryImpl(
     remoteDataSource: ref.read(clubRemoteDataSourceProvider),
-    networkInfo: ref.read(networkInfoProvider),
   );
 });
 

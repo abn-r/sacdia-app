@@ -3,20 +3,16 @@ import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
-import '../../../../core/network/network_info.dart';
 import '../../domain/entities/enrollment.dart';
 import '../../domain/repositories/enrollment_repository.dart';
 import '../datasources/enrollment_remote_data_source.dart';
 
 class EnrollmentRepositoryImpl implements EnrollmentRepository {
   final EnrollmentRemoteDataSource _remoteDataSource;
-  final NetworkInfo _networkInfo;
 
   const EnrollmentRepositoryImpl({
     required EnrollmentRemoteDataSource remoteDataSource,
-    required NetworkInfo networkInfo,
-  })  : _remoteDataSource = remoteDataSource,
-        _networkInfo = networkInfo;
+  }) : _remoteDataSource = remoteDataSource;
 
   @override
   Future<Either<Failure, Enrollment>> createEnrollment({

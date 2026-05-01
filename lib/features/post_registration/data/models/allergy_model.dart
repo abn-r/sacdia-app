@@ -6,7 +6,7 @@ class AllergyModel extends Equatable {
   final String name;
   final bool isSelected;
 
-  AllergyModel({
+  const AllergyModel({
     required this.id,
     required this.name,
     this.isSelected = false,

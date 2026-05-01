@@ -1,5 +1,4 @@
 import '../../../../core/utils/json_helpers.dart';
-import '../../domain/entities/award_tier.dart';
 import '../../domain/entities/member_breakdown.dart';
 import 'member_ranking_dto.dart';
 

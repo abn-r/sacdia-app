@@ -277,8 +277,9 @@ class EnrollmentRemoteDataSourceImpl implements EnrollmentRemoteDataSource {
       if (fee != null) data['fee'] = fee;
       if (feeAmount != null) data['fee_amount'] = feeAmount;
       if (directorId != null) data['director_id'] = directorId;
-      if (deputyDirectorIds != null)
+      if (deputyDirectorIds != null) {
         data['deputy_director_ids'] = deputyDirectorIds;
+      }
       if (secretaryId != null) data['secretary_id'] = secretaryId;
       if (treasurerId != null) data['treasurer_id'] = treasurerId;
       if (secretaryTreasurerId != null) {

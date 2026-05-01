@@ -3,20 +3,16 @@ import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
-import '../../../../core/network/network_info.dart';
 import '../../domain/entities/validation.dart';
 import '../../domain/repositories/validation_repository.dart';
 import '../datasources/validation_remote_data_source.dart';
 
 class ValidationRepositoryImpl implements ValidationRepository {
   final ValidationRemoteDataSource _remoteDataSource;
-  final NetworkInfo _networkInfo;
 
   const ValidationRepositoryImpl({
     required ValidationRemoteDataSource remoteDataSource,
-    required NetworkInfo networkInfo,
-  })  : _remoteDataSource = remoteDataSource,
-        _networkInfo = networkInfo;
+  }) : _remoteDataSource = remoteDataSource;
 
   @override
   Future<Either<Failure, ValidationSubmitResult>> submitForReview({

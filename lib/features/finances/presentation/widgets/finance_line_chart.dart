@@ -422,8 +422,9 @@ class _ChartView extends StatelessWidget {
 
   String _formatYValue(double v) {
     if (v == 0) return '\$0';
-    if (v >= 1000)
+    if (v >= 1000) {
       return '\$${(v / 1000).toStringAsFixed(v % 1000 == 0 ? 0 : 1)}k';
+    }
     return '\$${v.toStringAsFixed(0)}';
   }
 

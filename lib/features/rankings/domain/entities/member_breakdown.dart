@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-import 'award_tier.dart';
 import 'member_ranking.dart';
 
 /// Breakdown detail for the class signal component.
