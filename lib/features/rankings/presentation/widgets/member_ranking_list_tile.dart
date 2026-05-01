@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../domain/entities/award_tier.dart';
 
 /// Fila de ranking de un miembro dentro de su sección.
 ///
@@ -34,9 +34,9 @@ class MemberRankingListTile extends StatelessWidget {
   /// Nombre de la categoría premiada (e.g. "Oro", "Plata"). Null si no asignada.
   final String? awardedCategoryName;
 
-  /// ID UUID de la categoría — se usa para resolver el color del tier.
-  /// Neutro cuando null (sin tier asignado todavía).
-  final String? awardedCategoryTierId;
+  /// Tier tipado de la categoría — determina el color del score badge.
+  /// [AwardTier.unknown] cuando no hay categoría asignada (color neutro).
+  final AwardTier awardedCategoryTier;
 
   const MemberRankingListTile({
     super.key,
@@ -45,23 +45,13 @@ class MemberRankingListTile extends StatelessWidget {
     this.sectionName,
     this.compositeScore,
     this.awardedCategoryName,
-    this.awardedCategoryTierId,
+    this.awardedCategoryTier = AwardTier.unknown,
   });
 
-  /// Resuelve el color del tier para el score badge.
-  ///
-  /// Mismo enfoque que [RankingHeroCard._tierColor()]: la capa de dominio
-  /// no expone un campo `tier` tipado todavía — se usa el color de acento
-  /// cuando hay categoría y neutro cuando no.
+  /// Resuelve el color del tier para el score badge desde el campo tipado.
+  /// Usa los mismos valores hex que [achievementTierColor] para consistencia visual.
   Color _tierColor() {
-    if (awardedCategoryTierId == null) {
-      // Sin tier: color neutro que NO colisione con AppColors.accent
-      // (el accent se reserva para énfasis de puntaje compuesto en hero card).
-      return AppColors.secondary; // verde SACDIA — neutral, no compite
-    }
-    // Mientras el backend no exponga un campo `tier` en AwardCategory,
-    // usamos el color de acento como fallback para cualquier categoría presente.
-    return AppColors.accent;
+    return awardedCategoryTier.color;
   }
 
   /// Formatea el puntaje con 1 decimal fijo para alineación de columna.

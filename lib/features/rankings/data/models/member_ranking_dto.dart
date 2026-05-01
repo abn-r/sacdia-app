@@ -1,4 +1,5 @@
 import '../../../../core/utils/json_helpers.dart';
+import '../../domain/entities/award_tier.dart';
 import '../../domain/entities/member_ranking.dart';
 
 /// DTO for an award category embedded in ranking responses.
@@ -9,12 +10,16 @@ class AwardedCategoryDto {
   final double minPct;
   final double maxPct;
 
+  /// Raw tier string from the backend ('BRONZE' | 'SILVER' | 'GOLD' | 'DIAMOND' | null).
+  final AwardTier tier;
+
   const AwardedCategoryDto({
     required this.id,
     required this.name,
     this.icon,
     required this.minPct,
     required this.maxPct,
+    this.tier = AwardTier.unknown,
   });
 
   factory AwardedCategoryDto.fromJson(Map<String, dynamic> json) {
@@ -24,6 +29,7 @@ class AwardedCategoryDto {
       icon: safeStringOrNull(json['icon']),
       minPct: (json['min_pct'] as num?)?.toDouble() ?? 0.0,
       maxPct: (json['max_pct'] as num?)?.toDouble() ?? 0.0,
+      tier: AwardTier.fromString(json['tier'] as String?),
     );
   }
 
@@ -34,6 +40,7 @@ class AwardedCategoryDto {
       icon: icon,
       minPct: minPct,
       maxPct: maxPct,
+      tier: tier,
     );
   }
 }

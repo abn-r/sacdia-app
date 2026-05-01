@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'award_tier.dart';
+
 /// Visibility mode for member rankings — mirrors backend VisibilityMode type.
 enum MyRankingVisibilityMode {
   hidden,
@@ -26,16 +28,21 @@ class AwardCategory extends Equatable {
   final double minPct;
   final double maxPct;
 
+  /// Tier de la categoría — expuesto por el backend desde la fase B.
+  /// [AwardTier.unknown] cuando el campo no está presente o no es reconocido.
+  final AwardTier tier;
+
   const AwardCategory({
     required this.id,
     required this.name,
     this.icon,
     required this.minPct,
     required this.maxPct,
+    this.tier = AwardTier.unknown,
   });
 
   @override
-  List<Object?> get props => [id, name, icon, minPct, maxPct];
+  List<Object?> get props => [id, name, icon, minPct, maxPct, tier];
 }
 
 /// Domain entity for a single member ranking row.
