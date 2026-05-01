@@ -9,10 +9,6 @@ import 'my_ranking_provider.dart';
 
 // ── Param types ───────────────────────────────────────────────────────────────
 
-/// Parameter record for [sectionRankingsProvider].
-/// Using a Dart record ensures structural equality for provider family keying.
-typedef SectionRankingsParams = ({int yearId, int? clubId});
-
 /// Parameter record for [sectionMembersProvider].
 typedef SectionMembersParams = ({int sectionId, int yearId});
 
@@ -29,29 +25,6 @@ final sectionRankingsRepositoryProvider =
 });
 
 // ── Data providers ────────────────────────────────────────────────────────────
-
-/// Fetches paginated section rankings.
-///
-/// [params.clubId] is optional — backend applies RBAC scope filter when null.
-final sectionRankingsProvider = FutureProvider.autoDispose
-    .family<List<SectionRanking>, SectionRankingsParams>(
-        (ref, params) async {
-  ref.keepAlive();
-  final cancelToken = CancelToken();
-  ref.onDispose(() => cancelToken.cancel());
-
-  final repo = ref.watch(sectionRankingsRepositoryProvider);
-  final result = await repo.getSectionRankings(
-    yearId: params.yearId,
-    clubId: params.clubId,
-    cancelToken: cancelToken,
-  );
-
-  return result.fold(
-    (failure) => throw failure,
-    (sections) => sections,
-  );
-});
 
 /// Fetches members ranked within a specific section.
 ///
