@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../domain/entities/award_tier.dart';
 
 /// Hero card con fondo oscuro (#1A1A1A) que muestra el puntaje compuesto del
 /// miembro como ancla visual principal.
@@ -15,7 +16,7 @@ class RankingHeroCard extends StatelessWidget {
   final int? rankPosition;
   final int? totalInSection;
   final String? awardedCategoryName;
-  final String? awardedCategoryTierId;
+  final AwardTier awardedCategoryTier;
   final String? sectionName;
   final String ecclesiasticalYearLabel;
 
@@ -25,22 +26,18 @@ class RankingHeroCard extends StatelessWidget {
     this.rankPosition,
     this.totalInSection,
     this.awardedCategoryName,
-    this.awardedCategoryTierId,
+    this.awardedCategoryTier = AwardTier.unknown,
     this.sectionName,
     required this.ecclesiasticalYearLabel,
   });
 
-  /// Resuelve el color del tier a partir del ID de categoría.
-  /// Usa la misma función [achievementTierColor] que el resto de la app.
+  /// Resuelve el color del tier desde el campo tipado [awardedCategoryTier].
+  /// Usa los mismos valores hex que [achievementTierColor] para consistencia visual.
   Color _tierColor() {
-    if (awardedCategoryTierId == null) {
-      // TODO(rankings): replace with domain tier field when AwardCategory exposes it via Task 24 entity update
+    if (awardedCategoryTier == AwardTier.unknown) {
       return AppColors.darkBorder;
     }
-    // Mapeamos el UUID a un tier heurístico por nombre convencional.
-    // Los UUIDs reales los maneja el backend; esta función es un fallback
-    // hasta que la capa de dominio exponga un campo `tier` en AwardCategory.
-    return AppColors.accent;
+    return awardedCategoryTier.color;
   }
 
   /// Formatea el puntaje: 1 decimal cuando la parte fraccionaria != 0.
