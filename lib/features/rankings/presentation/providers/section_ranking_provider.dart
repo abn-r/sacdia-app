@@ -2,10 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../data/datasources/rankings_remote_data_source.dart';
 import '../../data/repositories/section_rankings_repository_impl.dart';
 import '../../domain/entities/section_ranking.dart';
 import '../../domain/repositories/section_rankings_repository.dart';
-import 'my_ranking_provider.dart';
 
 // ── Param types ───────────────────────────────────────────────────────────────
 
@@ -19,7 +19,7 @@ typedef SectionMembersParams = ({int sectionId, int yearId});
 // ── Infrastructure provider ───────────────────────────────────────────────────
 
 /// Provider for the section rankings repository.
-/// Reads the shared [rankingsRemoteDataSourceProvider] defined in my_ranking_provider.
+/// Reads the shared [rankingsRemoteDataSourceProvider] defined in the data layer.
 final sectionRankingsRepositoryProvider =
     Provider<SectionRankingsRepository>((ref) {
   return SectionRankingsRepositoryImpl(

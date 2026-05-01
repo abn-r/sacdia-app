@@ -1,8 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../../../providers/dio_provider.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/member_ranking_dto.dart';
 import '../models/section_ranking_dto.dart';
@@ -248,3 +251,17 @@ class RankingsRemoteDataSourceImpl implements RankingsRemoteDataSource {
     }
   }
 }
+
+// ── Infrastructure provider ───────────────────────────────────────────────────
+
+/// Provider for the shared rankings remote data source.
+/// Co-located with [RankingsRemoteDataSource] following Clean Architecture
+/// (infrastructure dependency belongs in the data layer).
+/// Both member and section repository providers read from this single instance.
+final rankingsRemoteDataSourceProvider =
+    Provider<RankingsRemoteDataSource>((ref) {
+  return RankingsRemoteDataSourceImpl(
+    dio: ref.read(dioProvider),
+    baseUrl: AppConstants.baseUrl,
+  );
+});

@@ -1,8 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/constants/app_constants.dart';
-import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/datasources/rankings_remote_data_source.dart';
 import '../../data/repositories/member_rankings_repository_impl.dart';
@@ -10,16 +8,6 @@ import '../../domain/entities/member_ranking.dart';
 import '../../domain/repositories/member_rankings_repository.dart';
 
 // ── Infrastructure providers ──────────────────────────────────────────────────
-
-/// Provider for the shared rankings remote data source.
-/// Both member and section repository providers read from this single instance.
-final rankingsRemoteDataSourceProvider =
-    Provider<RankingsRemoteDataSource>((ref) {
-  return RankingsRemoteDataSourceImpl(
-    dio: ref.read(dioProvider),
-    baseUrl: AppConstants.baseUrl,
-  );
-});
 
 /// Provider for the member rankings repository.
 final memberRankingsRepositoryProvider =
