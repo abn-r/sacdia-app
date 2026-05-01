@@ -34,8 +34,7 @@ class UploadRequirementEvidence
     if (mimeType == null || !_allowedMimeTypes.contains(mimeType)) {
       return Left(
         ValidationFailure(
-          message:
-              'Tipo de archivo no permitido. Usá JPG, PNG, WebP o PDF.',
+          message: 'Tipo de archivo no permitido. Usá JPG, PNG, WebP o PDF.',
         ),
       );
     }

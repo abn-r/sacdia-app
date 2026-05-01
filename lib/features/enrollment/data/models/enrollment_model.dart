@@ -31,16 +31,19 @@ class EnrollmentModel extends Enrollment {
   });
 
   factory EnrollmentModel.fromJson(Map<String, dynamic> json) {
-    final rawId = json['id'] ?? json['enrollment_id'] ?? json['club_enrollment_id'];
+    final rawId =
+        json['id'] ?? json['enrollment_id'] ?? json['club_enrollment_id'];
     final id = rawId is int ? rawId : int.tryParse(rawId.toString()) ?? 0;
 
     final rawSectionId = json['club_section_id'] ?? json['section_id'];
-    final sectionId =
-        rawSectionId is int ? rawSectionId : int.tryParse(rawSectionId.toString()) ?? 0;
+    final sectionId = rawSectionId is int
+        ? rawSectionId
+        : int.tryParse(rawSectionId.toString()) ?? 0;
 
     final rawYear = json['year'];
-    final year =
-        rawYear is int ? rawYear : int.tryParse(rawYear?.toString() ?? '') ?? DateTime.now().year;
+    final year = rawYear is int
+        ? rawYear
+        : int.tryParse(rawYear?.toString() ?? '') ?? DateTime.now().year;
 
     // meeting_days: puede llegar como List, String CSV o String JSON
     List<String> meetingDays = [];
@@ -102,7 +105,8 @@ class EnrollmentModel extends Enrollment {
 
     // Nuevos campos opcionales
     final rawSouls = json['souls_target'];
-    final soulsTarget = rawSouls is int ? rawSouls : int.tryParse(rawSouls?.toString() ?? '');
+    final soulsTarget =
+        rawSouls is int ? rawSouls : int.tryParse(rawSouls?.toString() ?? '');
 
     bool? fee;
     final rawFee = json['fee'];
@@ -159,10 +163,12 @@ class EnrollmentModel extends Enrollment {
       if (fee != null) 'fee': fee,
       if (feeAmount != null) 'fee_amount': feeAmount,
       if (directorId != null) 'director_id': directorId,
-      if (deputyDirectorIds.isNotEmpty) 'deputy_director_ids': deputyDirectorIds,
+      if (deputyDirectorIds.isNotEmpty)
+        'deputy_director_ids': deputyDirectorIds,
       if (secretaryId != null) 'secretary_id': secretaryId,
       if (treasurerId != null) 'treasurer_id': treasurerId,
-      if (secretaryTreasurerId != null) 'secretary_treasurer_id': secretaryTreasurerId,
+      if (secretaryTreasurerId != null)
+        'secretary_treasurer_id': secretaryTreasurerId,
     };
   }
 }

@@ -154,7 +154,8 @@ class PushNotificationService {
     final token = await _secureStorage.read(key: _tokenPrefKey);
     final tokenId = await _secureStorage.read(key: _tokenIdPrefKey);
 
-    if ((token == null || token.isEmpty) && (tokenId == null || tokenId.isEmpty)) {
+    if ((token == null || token.isEmpty) &&
+        (tokenId == null || tokenId.isEmpty)) {
       AppLogger.i(
         'No hay token FCM registrado, saltando unregister',
         tag: _tag,
@@ -353,16 +354,19 @@ class PushNotificationService {
           ? (responseData['fcm_token_id'] as dynamic)?.toString() ??
               (responseData['id'] as dynamic)?.toString() ??
               (responseData['data'] is Map<String, dynamic>
-                  ? ((responseData['data']['fcm_token_id'] as dynamic)?.toString() ??
+                  ? ((responseData['data']['fcm_token_id'] as dynamic)
+                          ?.toString() ??
                       (responseData['data']['id'] as dynamic)?.toString())
                   : null)
           : null;
 
       if (tokenId != null && tokenId.isNotEmpty) {
         await _secureStorage.write(key: _tokenIdPrefKey, value: tokenId);
-        AppLogger.i('Token FCM registrado exitosamente (id=$tokenId)', tag: _tag);
+        AppLogger.i('Token FCM registrado exitosamente (id=$tokenId)',
+            tag: _tag);
       } else {
-        AppLogger.i('Token FCM registrado exitosamente (sin id en respuesta)', tag: _tag);
+        AppLogger.i('Token FCM registrado exitosamente (sin id en respuesta)',
+            tag: _tag);
       }
     } on DioException catch (e) {
       AppLogger.w(

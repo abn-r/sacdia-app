@@ -57,7 +57,8 @@ class CascadingDropdown<T> extends StatelessWidget {
           )
         else
           DropdownButtonFormField<dynamic>(
-            value: selectedValue != null ? getItemValue(selectedValue as T) : null,
+            value:
+                selectedValue != null ? getItemValue(selectedValue as T) : null,
             decoration: InputDecoration(
               hintText: hintText ??
                   'post_registration.dropdown.select_label'

@@ -104,8 +104,7 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
           content: Text('auth.register_success'.tr()),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       );
     }
@@ -184,26 +183,26 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                       // Surnames in a row
                       Row(
                         children: [
-                            Expanded(
-                              child: SacTextField(
-                                controller: _paternalController,
-                                label: 'auth.paternal_surname_label'.tr(),
-                                hint: 'auth.paternal_surname_hint'.tr(),
-                                keyboardType: TextInputType.name,
-                                validator: (v) => Validators.validateRequired(
-                                    v, 'auth.paternal_surname_field_name'.tr()),
+                          Expanded(
+                            child: SacTextField(
+                              controller: _paternalController,
+                              label: 'auth.paternal_surname_label'.tr(),
+                              hint: 'auth.paternal_surname_hint'.tr(),
+                              keyboardType: TextInputType.name,
+                              validator: (v) => Validators.validateRequired(
+                                  v, 'auth.paternal_surname_field_name'.tr()),
                               textInputAction: TextInputAction.next,
                             ),
                           ),
                           const SizedBox(width: 12),
-                            Expanded(
-                              child: SacTextField(
-                                controller: _maternalController,
-                                label: 'auth.maternal_surname_label'.tr(),
-                                hint: 'auth.maternal_surname_hint'.tr(),
-                                keyboardType: TextInputType.name,
-                                validator: (v) => Validators.validateRequired(
-                                    v, 'auth.maternal_surname_field_name'.tr()),
+                          Expanded(
+                            child: SacTextField(
+                              controller: _maternalController,
+                              label: 'auth.maternal_surname_label'.tr(),
+                              hint: 'auth.maternal_surname_hint'.tr(),
+                              keyboardType: TextInputType.name,
+                              validator: (v) => Validators.validateRequired(
+                                  v, 'auth.maternal_surname_field_name'.tr()),
                               textInputAction: TextInputAction.next,
                             ),
                           ),
@@ -296,8 +295,8 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                       // Link to login
                       Center(
                         child: RichText(
-                        text: TextSpan(
-                          text: 'auth.have_account'.tr(),
+                          text: TextSpan(
+                            text: 'auth.have_account'.tr(),
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -305,8 +304,8 @@ class _RegisterViewState extends ConsumerState<RegisterView> {
                                   color: context.sac.textSecondary,
                                 ),
                             children: [
-                            TextSpan(
-                              text: 'auth.login_link'.tr(),
+                              TextSpan(
+                                text: 'auth.login_link'.tr(),
                                 style: const TextStyle(
                                   color: AppColors.primary,
                                   fontWeight: FontWeight.w600,

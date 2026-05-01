@@ -46,8 +46,9 @@ class CurrentClassCard extends ConsumerWidget {
     // Watch the provider once and reuse the result for both progress and logo.
     // valueOrNull gives us the data immediately once resolved without forcing
     // a loading/error branch split for the logo.
-    final classState =
-        currentClassId != null ? ref.watch(classWithProgressProvider(currentClassId!)) : null;
+    final classState = currentClassId != null
+        ? ref.watch(classWithProgressProvider(currentClassId!))
+        : null;
 
     // ── Progress ─────────────────────────────────────────────────────────────
     // Keeps the existing .when pattern: fallback while loading/error, accurate

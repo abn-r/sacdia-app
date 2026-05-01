@@ -149,10 +149,11 @@ class SacDialog extends StatelessWidget {
       if (i > 0) {
         // Vertical divider between buttons
         widgets.add(
-          Builder(builder: (ctx) => Container(
-            width: 0.5,
-            color: ctx.sac.border,
-          )),
+          Builder(
+              builder: (ctx) => Container(
+                    width: 0.5,
+                    color: ctx.sac.border,
+                  )),
         );
       }
       widgets.add(Expanded(child: _ActionButton(action: actions[i])));

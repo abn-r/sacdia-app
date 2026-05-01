@@ -75,9 +75,7 @@ class PaginatedResult<T> {
     final rawList = json['data'] as List<dynamic>? ?? [];
     final metaJson = json['meta'] as Map<String, dynamic>? ?? {};
     return PaginatedResult<T>(
-      data: rawList
-          .map((e) => parseItem(e as Map<String, dynamic>))
-          .toList(),
+      data: rawList.map((e) => parseItem(e as Map<String, dynamic>)).toList(),
       meta: PaginationMeta.fromJson(metaJson),
     );
   }

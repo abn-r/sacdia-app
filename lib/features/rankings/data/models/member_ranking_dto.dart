@@ -83,8 +83,7 @@ class MemberRankingDto {
       clubSectionId: safeIntOrNull(json['club_section_id']),
       sectionName: safeStringOrNull(json['section_name']),
       classScorePct: (json['class_score_pct'] as num?)?.toDouble(),
-      investitureScorePct:
-          (json['investiture_score_pct'] as num?)?.toDouble(),
+      investitureScorePct: (json['investiture_score_pct'] as num?)?.toDouble(),
       camporeeScorePct: (json['camporee_score_pct'] as num?)?.toDouble(),
       compositeScorePct: (json['composite_score_pct'] as num?)?.toDouble(),
       rankPosition: safeIntOrNull(json['rank_position']),
@@ -166,8 +165,8 @@ class MyRankingResponseDto {
           : null,
       visibilityMode: safeString(json['visibility_mode'], 'hidden'),
       topN: rawTopN
-          ?.map((e) =>
-              AnonymizedTopNEntryDto.fromJson(e as Map<String, dynamic>))
+          ?.map(
+              (e) => AnonymizedTopNEntryDto.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
   }
@@ -175,8 +174,7 @@ class MyRankingResponseDto {
   MyRankingView toEntity() {
     return MyRankingView(
       member: member?.toEntity(),
-      visibilityMode:
-          MyRankingVisibilityMode.fromString(visibilityMode),
+      visibilityMode: MyRankingVisibilityMode.fromString(visibilityMode),
       topN: topN?.map((e) => e.toEntity()).toList(),
     );
   }

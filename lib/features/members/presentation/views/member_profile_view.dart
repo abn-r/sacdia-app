@@ -131,28 +131,19 @@ class _ProfileScrollBody extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 16),
-
           _MemberProfileHeader(member: detail),
-
           const SizedBox(height: 24),
-
           _PersonalInfoSection(detail: detail),
-
           const SizedBox(height: 20),
-
           _ClubInfoSection(detail: detail),
-
           const SizedBox(height: 20),
           _ClassesSection(userId: detail.userId),
-
           const SizedBox(height: 20),
           _SpecialtiesSection(userId: detail.userId),
-
           if (canViewMedical) ...[
             const SizedBox(height: 20),
             _MedicalInfoSection(userId: detail.userId),
           ],
-
           const SizedBox(height: 32),
         ],
       ),
@@ -246,8 +237,7 @@ class _ClubInfoSection extends StatelessWidget {
           InfoItem(
             icon: HugeIcons.strokeRoundedLabel,
             label: 'members.profile_view.club_role_label'.tr(),
-            value:
-                RoleUtils.translate(detail.clubRole, gender: detail.gender),
+            value: RoleUtils.translate(detail.clubRole, gender: detail.gender),
           ),
         if (detail.currentClass != null)
           InfoItem(
@@ -258,7 +248,9 @@ class _ClubInfoSection extends StatelessWidget {
         InfoItem(
           icon: HugeIcons.strokeRoundedTicketStar,
           label: 'members.profile_view.enrollment_status_label'.tr(),
-          value: detail.isEnrolled ? 'members.common.enrolled'.tr() : 'members.common.not_enrolled'.tr(),
+          value: detail.isEnrolled
+              ? 'members.common.enrolled'.tr()
+              : 'members.common.not_enrolled'.tr(),
         ),
         if (baptismValue != null)
           InfoItem(
@@ -312,7 +304,8 @@ class _ClassesSectionBody extends ConsumerWidget {
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: classes.map((c) => _ClassItem(progressiveClass: c)).toList(),
+          children:
+              classes.map((c) => _ClassItem(progressiveClass: c)).toList(),
         );
       },
     );
@@ -370,7 +363,8 @@ class _ClassItem extends StatelessWidget {
                 ),
                 if (progress != null)
                   Text(
-                    tr('members.profile_view.progress', namedArgs: {'progress': '$progress'}),
+                    tr('members.profile_view.progress',
+                        namedArgs: {'progress': '$progress'}),
                     style: TextStyle(
                       fontSize: 12,
                       color: c.textSecondary,
@@ -472,7 +466,8 @@ class _SpecialtiesSectionBody extends ConsumerWidget {
           children: [
             if (validated.isNotEmpty) ...[
               _SpecialtiesSubheader(
-                label: tr('members.profile_view.completed_count', namedArgs: {'count': '${validated.length}'}),
+                label: tr('members.profile_view.completed_count',
+                    namedArgs: {'count': '${validated.length}'}),
                 color: AppColors.secondary,
               ),
               const SizedBox(height: 6),
@@ -489,7 +484,8 @@ class _SpecialtiesSectionBody extends ConsumerWidget {
               const SizedBox(height: 10),
             if (inProgress.isNotEmpty) ...[
               _SpecialtiesSubheader(
-                label: tr('members.profile_view.in_progress_count', namedArgs: {'count': '${inProgress.length}'}),
+                label: tr('members.profile_view.in_progress_count',
+                    namedArgs: {'count': '${inProgress.length}'}),
                 color: AppColors.accentDark,
               ),
               const SizedBox(height: 6),
@@ -929,7 +925,8 @@ class _MedicalError extends StatelessWidget {
             minimumSize: Size.zero,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-          child: Text('common.retry'.tr(), style: const TextStyle(fontSize: 12)),
+          child:
+              Text('common.retry'.tr(), style: const TextStyle(fontSize: 12)),
         ),
       ],
     );
@@ -1014,8 +1011,8 @@ class _MemberProfileHeader extends StatelessWidget {
                 children: [
                   if (member.clubRole != null)
                     SacBadge(
-                      label: RoleUtils.translate(
-                          member.clubRole, gender: member.gender),
+                      label: RoleUtils.translate(member.clubRole,
+                          gender: member.gender),
                       variant: SacBadgeVariant.primary,
                     ),
                   if (member.currentClass != null)
@@ -1024,7 +1021,9 @@ class _MemberProfileHeader extends StatelessWidget {
                       variant: SacBadgeVariant.secondary,
                     ),
                   SacBadge(
-                    label: member.isEnrolled ? 'members.common.enrolled'.tr() : 'members.common.not_enrolled'.tr(),
+                    label: member.isEnrolled
+                        ? 'members.common.enrolled'.tr()
+                        : 'members.common.not_enrolled'.tr(),
                     variant: member.isEnrolled
                         ? SacBadgeVariant.secondary
                         : SacBadgeVariant.neutral,

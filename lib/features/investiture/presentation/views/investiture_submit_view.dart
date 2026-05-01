@@ -304,9 +304,8 @@ class _MemberSubmitCard extends ConsumerWidget {
         submitForValidationNotifierProvider(member.enrollmentId).notifier);
     final ok = await notifier.submit(
       clubId: clubId,
-      comments: commentsCtrl.text.trim().isEmpty
-          ? null
-          : commentsCtrl.text.trim(),
+      comments:
+          commentsCtrl.text.trim().isEmpty ? null : commentsCtrl.text.trim(),
     );
 
     if (!context.mounted) return;

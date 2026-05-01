@@ -154,8 +154,7 @@ class _EnrollPreviousClassSheetState
         ),
         child: Row(
           children: [
-            Icon(Icons.warning_amber_rounded,
-                size: 16, color: AppColors.error),
+            Icon(Icons.warning_amber_rounded, size: 16, color: AppColors.error),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -192,9 +191,8 @@ class _EnrollPreviousClassSheetState
 
         final startYear = year.startDate.year;
         final endYear = year.endDate.year;
-        final yearLabel = startYear == endYear
-            ? '$startYear'
-            : '$startYear–$endYear';
+        final yearLabel =
+            startYear == endYear ? '$startYear' : '$startYear–$endYear';
 
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -284,8 +282,10 @@ class _EnrollPreviousClassSheetState
         }
 
         final year = yearAsync.valueOrNull;
-        final canSubmit =
-            _selectedClass != null && year != null && year.ecclesiasticalYearId > 0 && !_isSubmitting;
+        final canSubmit = _selectedClass != null &&
+            year != null &&
+            year.ecclesiasticalYearId > 0 &&
+            !_isSubmitting;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -329,9 +329,7 @@ class _EnrollPreviousClassSheetState
                             : c.surface,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: isSelected
-                              ? AppColors.primary
-                              : c.border,
+                          color: isSelected ? AppColors.primary : c.border,
                           width: isSelected ? 1.5 : 1,
                         ),
                       ),
@@ -341,9 +339,8 @@ class _EnrollPreviousClassSheetState
                             isSelected
                                 ? Icons.radio_button_checked
                                 : Icons.radio_button_unchecked,
-                            color: isSelected
-                                ? AppColors.primary
-                                : c.textTertiary,
+                            color:
+                                isSelected ? AppColors.primary : c.textTertiary,
                             size: 20,
                           ),
                           const SizedBox(width: 10),
@@ -360,27 +357,27 @@ class _EnrollPreviousClassSheetState
                                     borderRadius: BorderRadius.circular(8),
                                     child: CachedNetworkImage(
                                       imageUrl: cls.imageUrl!,
-                                      memCacheWidth: 108,  // 36 * 3 (max device pixel ratio)
+                                      memCacheWidth:
+                                          108, // 36 * 3 (max device pixel ratio)
                                       memCacheHeight: 108, // 36 * 3
                                       fit: BoxFit.cover,
-                                      errorWidget: (_, __, ___) =>
-                                          logoAsset != null
-                                              ? Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(5),
-                                                  child: Image.asset(
-                                                    logoAsset,
-                                                    fit: BoxFit.contain,
-                                                  ),
-                                                )
-                                              : Center(
-                                                  child: HugeIcon(
-                                                    icon: HugeIcons
-                                                        .strokeRoundedSchool,
-                                                    color: classColor,
-                                                    size: 18,
-                                                  ),
-                                                ),
+                                      errorWidget: (_, __, ___) => logoAsset !=
+                                              null
+                                          ? Padding(
+                                              padding: const EdgeInsets.all(5),
+                                              child: Image.asset(
+                                                logoAsset,
+                                                fit: BoxFit.contain,
+                                              ),
+                                            )
+                                          : Center(
+                                              child: HugeIcon(
+                                                icon: HugeIcons
+                                                    .strokeRoundedSchool,
+                                                color: classColor,
+                                                size: 18,
+                                              ),
+                                            ),
                                     ),
                                   )
                                 : logoAsset != null
@@ -393,8 +390,7 @@ class _EnrollPreviousClassSheetState
                                       )
                                     : Center(
                                         child: HugeIcon(
-                                          icon:
-                                              HugeIcons.strokeRoundedSchool,
+                                          icon: HugeIcons.strokeRoundedSchool,
                                           color: classColor,
                                           size: 18,
                                         ),
@@ -409,9 +405,7 @@ class _EnrollPreviousClassSheetState
                                 fontWeight: isSelected
                                     ? FontWeight.w600
                                     : FontWeight.normal,
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : c.text,
+                                color: isSelected ? AppColors.primary : c.text,
                               ),
                             ),
                           ),
@@ -433,14 +427,12 @@ class _EnrollPreviousClassSheetState
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.error_outline,
-                        size: 16, color: AppColors.error),
+                    Icon(Icons.error_outline, size: 16, color: AppColors.error),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         _submitError!,
-                        style: TextStyle(
-                            fontSize: 13, color: AppColors.error),
+                        style: TextStyle(fontSize: 13, color: AppColors.error),
                       ),
                     ),
                   ],
@@ -453,9 +445,7 @@ class _EnrollPreviousClassSheetState
               icon: HugeIcons.strokeRoundedSchool,
               isLoading: _isSubmitting,
               isEnabled: canSubmit,
-              onPressed: canSubmit
-                  ? () => _submit(context, year)
-                  : null,
+              onPressed: canSubmit ? () => _submit(context, year) : null,
             ),
           ],
         );
@@ -526,9 +516,8 @@ class _EnrollPreviousClassSheetState
 
         setState(() {
           _isSubmitting = false;
-          _submitError = is409
-              ? 'Ya estás inscrito en esta clase'
-              : failure.message;
+          _submitError =
+              is409 ? 'Ya estás inscrito en esta clase' : failure.message;
         });
       },
       (_) {

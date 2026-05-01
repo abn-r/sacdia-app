@@ -31,7 +31,8 @@ class UnitsRepositoryImpl implements UnitsRepository {
     CancelToken? cancelToken,
   }) async {
     try {
-      final models = await remoteDataSource.getClubUnits(clubId: clubId, cancelToken: cancelToken);
+      final models = await remoteDataSource.getClubUnits(
+          clubId: clubId, cancelToken: cancelToken);
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));

@@ -7,7 +7,8 @@ import '../entities/user_detail.dart';
 /// Interfaz del repositorio de perfil
 abstract class ProfileRepository {
   /// Obtiene el perfil del usuario
-  Future<Either<Failure, UserDetail>> getUserProfile(String userId, {CancelToken? cancelToken});
+  Future<Either<Failure, UserDetail>> getUserProfile(String userId,
+      {CancelToken? cancelToken});
 
   /// Actualiza el perfil del usuario
   Future<Either<Failure, UserDetail>> updateUserProfile(

@@ -22,7 +22,8 @@ class GetUnitDetail {
 
   const GetUnitDetail(this._repository);
 
-  Future<Either<Failure, Unit>> call(GetUnitDetailParams params, {CancelToken? cancelToken}) {
+  Future<Either<Failure, Unit>> call(GetUnitDetailParams params,
+      {CancelToken? cancelToken}) {
     return _repository.getUnitDetail(
       clubId: params.clubId,
       unitId: params.unitId,

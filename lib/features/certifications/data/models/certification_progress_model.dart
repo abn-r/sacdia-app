@@ -48,7 +48,8 @@ class SectionProgressModel extends Equatable {
   }
 
   @override
-  List<Object?> get props => [sectionId, sectionName, completed, completionDate];
+  List<Object?> get props =>
+      [sectionId, sectionName, completed, completionDate];
 }
 
 /// Modelo de progreso de módulo para la capa de datos
@@ -126,9 +127,10 @@ class CertificationProgressModel extends Equatable {
       certificationName: (json['certification_name'] ??
           (json['certifications'] as Map<String, dynamic>?)?['name'] ??
           '') as String,
-      progressPercentage:
-          ((json['progress_percentage'] ?? json['progressPercentage'] ?? 0) as num)
-              .toDouble(),
+      progressPercentage: ((json['progress_percentage'] ??
+              json['progressPercentage'] ??
+              0) as num)
+          .toDouble(),
       completionStatus: json['completion_status'] as String? ?? 'in_progress',
       enrollmentDate: DateTime.parse(json['enrollment_date'] as String),
       modules: (json['modules'] as List<dynamic>?)

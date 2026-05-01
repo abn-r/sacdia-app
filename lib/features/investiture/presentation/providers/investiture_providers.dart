@@ -20,8 +20,7 @@ final investitureRemoteDataSourceProvider =
 });
 
 /// Provider para el repositorio de investidura.
-final investitureRepositoryProvider =
-    Provider<InvestitureRepository>((ref) {
+final investitureRepositoryProvider = Provider<InvestitureRepository>((ref) {
   return InvestitureRepositoryImpl(
     remoteDataSource: ref.read(investitureRemoteDataSourceProvider),
     networkInfo: ref.read(networkInfoProvider),
@@ -38,7 +37,8 @@ final pendingInvestituresProvider =
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final repository = ref.read(investitureRepositoryProvider);
-  final result = await repository.getPendingInvestitures(cancelToken: cancelToken);
+  final result =
+      await repository.getPendingInvestitures(cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -49,9 +49,8 @@ final pendingInvestituresProvider =
 /// Provider para el historial de investidura de un enrollment específico.
 ///
 /// Family por [enrollmentId].
-final investitureHistoryProvider =
-    FutureProvider.autoDispose.family<List<InvestitureHistoryEntry>, int>(
-        (ref, enrollmentId) async {
+final investitureHistoryProvider = FutureProvider.autoDispose
+    .family<List<InvestitureHistoryEntry>, int>((ref, enrollmentId) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final repository = ref.read(investitureRepositoryProvider);
@@ -108,13 +107,12 @@ class SubmitForValidationNotifier
   Future<bool> submit({required int clubId, String? comments}) async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result = await ref
-        .read(investitureRepositoryProvider)
-        .submitForValidation(
-          enrollmentId: arg,
-          clubId: clubId,
-          comments: comments,
-        );
+    final result =
+        await ref.read(investitureRepositoryProvider).submitForValidation(
+              enrollmentId: arg,
+              clubId: clubId,
+              comments: comments,
+            );
 
     return result.fold(
       (failure) {
@@ -166,13 +164,12 @@ class ValidateEnrollmentNotifier
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result = await ref
-        .read(investitureRepositoryProvider)
-        .validateEnrollment(
-          enrollmentId: arg,
-          action: action,
-          comments: comments,
-        );
+    final result =
+        await ref.read(investitureRepositoryProvider).validateEnrollment(
+              enrollmentId: arg,
+              action: action,
+              comments: comments,
+            );
 
     return result.fold(
       (failure) {
@@ -210,12 +207,11 @@ class MarkAsInvestidoNotifier
   Future<bool> markInvestido({String? comments}) async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
-    final result = await ref
-        .read(investitureRepositoryProvider)
-        .markAsInvestido(
-          enrollmentId: arg,
-          comments: comments,
-        );
+    final result =
+        await ref.read(investitureRepositoryProvider).markAsInvestido(
+              enrollmentId: arg,
+              comments: comments,
+            );
 
     return result.fold(
       (failure) {

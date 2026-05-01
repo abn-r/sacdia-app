@@ -53,11 +53,10 @@ class InventoryFilterSheet extends ConsumerWidget {
                 children: [
                   Text(
                     'inventory.filter_sheet.title'.tr(),
-                    style:
-                        Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: c.text,
-                            ),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: c.text,
+                        ),
                   ),
                   TextButton(
                     onPressed: () {
@@ -95,9 +94,8 @@ class InventoryFilterSheet extends ConsumerWidget {
                           label: order.label,
                           isSelected: isSelected,
                           onTap: () {
-                            ref
-                                .read(inventoryFiltersProvider.notifier)
-                                .state = filters.copyWith(sortOrder: order);
+                            ref.read(inventoryFiltersProvider.notifier).state =
+                                filters.copyWith(sortOrder: order);
                           },
                         );
                       }).toList(),
@@ -106,7 +104,8 @@ class InventoryFilterSheet extends ConsumerWidget {
                     const SizedBox(height: 24),
 
                     // ── Condition ─────────────────────────────────────────
-                    _SectionTitle('inventory.filter_sheet.condition_title'.tr()),
+                    _SectionTitle(
+                        'inventory.filter_sheet.condition_title'.tr()),
                     const SizedBox(height: 10),
                     Row(
                       children: [
@@ -115,10 +114,8 @@ class InventoryFilterSheet extends ConsumerWidget {
                           isSelected: filters.condition == null,
                           color: AppColors.primary,
                           onTap: () {
-                            ref
-                                .read(inventoryFiltersProvider.notifier)
-                                .state = filters.copyWith(
-                                    clearCondition: true);
+                            ref.read(inventoryFiltersProvider.notifier).state =
+                                filters.copyWith(clearCondition: true);
                           },
                         ),
                         const SizedBox(width: 8),
@@ -131,8 +128,7 @@ class InventoryFilterSheet extends ConsumerWidget {
                                 onTap: () {
                                   ref
                                       .read(inventoryFiltersProvider.notifier)
-                                      .state =
-                                      filters.copyWith(condition: cond);
+                                      .state = filters.copyWith(condition: cond);
                                 },
                               ),
                             )),
@@ -208,9 +204,7 @@ class _SortChip extends StatelessWidget {
               : context.sac.surfaceVariant,
           borderRadius: BorderRadius.circular(AppTheme.radiusFull),
           border: Border.all(
-            color: isSelected
-                ? AppColors.primary
-                : context.sac.border,
+            color: isSelected ? AppColors.primary : context.sac.border,
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -230,9 +224,8 @@ class _SortChip extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isSelected
-                    ? AppColors.primary
-                    : context.sac.textSecondary,
+                color:
+                    isSelected ? AppColors.primary : context.sac.textSecondary,
               ),
             ),
           ],
@@ -265,9 +258,8 @@ class _ConditionChip extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
-          color: isSelected
-              ? color.withValues(alpha: 0.12)
-              : Colors.transparent,
+          color:
+              isSelected ? color.withValues(alpha: 0.12) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? color : Theme.of(context).dividerColor,

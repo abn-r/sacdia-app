@@ -36,8 +36,7 @@ class ScoringCategory {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ScoringCategory &&
-          other.scoringCategoryId == scoringCategoryId;
+      other is ScoringCategory && other.scoringCategoryId == scoringCategoryId;
 
   @override
   int get hashCode => scoringCategoryId.hashCode;

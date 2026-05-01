@@ -26,9 +26,8 @@ class InventoryStatsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final healthRatio = summary.totalItems > 0
-        ? summary.buenoCount / summary.totalItems
-        : 0.0;
+    final healthRatio =
+        summary.totalItems > 0 ? summary.buenoCount / summary.totalItems : 0.0;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
@@ -508,9 +507,7 @@ class _CategoryChip extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary
-              : context.sac.surfaceVariant,
+          color: isSelected ? AppColors.primary : context.sac.surfaceVariant,
           borderRadius: BorderRadius.circular(AppTheme.radiusFull),
           border: Border.all(
             color: isSelected ? AppColors.primary : context.sac.border,

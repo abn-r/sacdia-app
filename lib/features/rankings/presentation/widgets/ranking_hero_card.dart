@@ -112,8 +112,7 @@ class RankingHeroCard extends StatelessWidget {
                                   .textTheme
                                   .labelSmall
                                   ?.copyWith(
-                                    color: Colors.white
-                                        .withValues(alpha: 0.6),
+                                    color: Colors.white.withValues(alpha: 0.6),
                                   ),
                             ),
                           ],
@@ -162,7 +161,9 @@ class RankingHeroCard extends StatelessWidget {
                           const SizedBox(height: 8),
                           Text(
                             '$rankLine'
-                            '${sectionName != null ? ' · ${tr('rankings.my_ranking.section_label', namedArgs: {'name': sectionName!})}' : ''}',
+                            '${sectionName != null ? ' · ${tr('rankings.my_ranking.section_label', namedArgs: {
+                                    'name': sectionName!
+                                  })}' : ''}',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium

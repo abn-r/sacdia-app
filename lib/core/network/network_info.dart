@@ -9,7 +9,7 @@ abstract class NetworkInfo {
 class NetworkInfoImpl implements NetworkInfo {
   final Connectivity connectivity;
 
-  NetworkInfoImpl({Connectivity? connectivity}) 
+  NetworkInfoImpl({Connectivity? connectivity})
       : connectivity = connectivity ?? Connectivity();
 
   @override

@@ -11,7 +11,8 @@ class GetResourceSignedUrl implements UseCase<String, String> {
   GetResourceSignedUrl(this.repository);
 
   @override
-  Future<Either<Failure, String>> call(String id, {CancelToken? cancelToken}) async {
+  Future<Either<Failure, String>> call(String id,
+      {CancelToken? cancelToken}) async {
     return await repository.getSignedUrl(id, cancelToken: cancelToken);
   }
 }

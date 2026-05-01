@@ -142,14 +142,12 @@ class _CardContent extends StatelessWidget {
                         ),
                         child: Text(
                           item.category.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(
-                                color: AppColors.primaryDark,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 10,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.primaryDark,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 10,
+                                  ),
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -169,7 +167,8 @@ class _CardContent extends StatelessWidget {
                       ),
                       const SizedBox(width: 3),
                       Text(
-                        'inventory.item_card.quantity'.tr(namedArgs: {'count': '${item.quantity}'}),
+                        'inventory.item_card.quantity'
+                            .tr(namedArgs: {'count': '${item.quantity}'}),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: c.textSecondary,
                               fontSize: 11,
@@ -187,13 +186,11 @@ class _CardContent extends StatelessWidget {
                         Expanded(
                           child: Text(
                             item.location!,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                  color: c.textSecondary,
-                                  fontSize: 11,
-                                ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: c.textSecondary,
+                                      fontSize: 11,
+                                    ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -203,14 +200,12 @@ class _CardContent extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           '\$${_formatValue(item.estimatedValue!)}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(
-                                color: AppColors.accent,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.accent,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                         ),
                       ],
                     ],
@@ -258,7 +253,7 @@ class _ItemThumbnail extends StatelessWidget {
           imageUrl: photoUrl!,
           width: size,
           height: size,
-          memCacheWidth: 180,  // 60 * 3 (max device pixel ratio)
+          memCacheWidth: 180, // 60 * 3 (max device pixel ratio)
           memCacheHeight: 180, // 60 * 3
           fit: BoxFit.cover,
           placeholder: (_, __) => _Placeholder(size: size),

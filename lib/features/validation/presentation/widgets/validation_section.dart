@@ -51,13 +51,14 @@ class ValidationSection extends ConsumerWidget {
             ),
             const Spacer(),
             historyAsync.whenOrNull(
-              data: (history) {
-                if (history.isEmpty) return null;
-                final latest = history.first;
-                return ValidationStatusBadge(status: latest.status);
-              },
-            ) ??
-                const ValidationStatusBadge(status: ValidationStatus.inProgress),
+                  data: (history) {
+                    if (history.isEmpty) return null;
+                    final latest = history.first;
+                    return ValidationStatusBadge(status: latest.status);
+                  },
+                ) ??
+                const ValidationStatusBadge(
+                    status: ValidationStatus.inProgress),
           ],
         ),
 
@@ -65,7 +66,8 @@ class ValidationSection extends ConsumerWidget {
 
         // ── Submit button ────────────────────────────────────────────────
         historyAsync.when(
-          loading: () => const SizedBox(height: 40, child: Center(child: SacLoading())),
+          loading: () =>
+              const SizedBox(height: 40, child: Center(child: SacLoading())),
           error: (_, __) => const SizedBox.shrink(),
           data: (history) {
             final latestStatus = history.isEmpty
@@ -81,9 +83,8 @@ class ValidationSection extends ConsumerWidget {
               text: 'validation.section.submitButton'.tr(),
               icon: HugeIcons.strokeRoundedSent,
               isLoading: submitState.isLoading,
-              onPressed: submitState.isLoading
-                  ? null
-                  : () => _submit(context, ref),
+              onPressed:
+                  submitState.isLoading ? null : () => _submit(context, ref),
             );
           },
         ),
@@ -124,7 +125,8 @@ class ValidationSection extends ConsumerWidget {
 
         // ── History timeline ─────────────────────────────────────────────
         historyAsync.when(
-          loading: () => const SizedBox(height: 60, child: Center(child: SacLoading())),
+          loading: () =>
+              const SizedBox(height: 60, child: Center(child: SacLoading())),
           error: (e, _) => Text(
             'validation.section.historyError'.tr(),
             style: TextStyle(fontSize: 13, color: c.textSecondary),
@@ -202,7 +204,8 @@ class _HistoryItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final dateStr = DateFormat('dd/MM/yyyy HH:mm').format(entry.createdAt.toLocal());
+    final dateStr =
+        DateFormat('dd/MM/yyyy HH:mm').format(entry.createdAt.toLocal());
 
     return IntrinsicHeight(
       child: Row(
@@ -256,7 +259,8 @@ class _HistoryItem extends StatelessWidget {
                   if (entry.reviewerName != null) ...[
                     const SizedBox(height: 4),
                     Text(
-                      'validation.section.reviewer'.tr(namedArgs: {'name': entry.reviewerName!}),
+                      'validation.section.reviewer'
+                          .tr(namedArgs: {'name': entry.reviewerName!}),
                       style: TextStyle(
                         fontSize: 12,
                         color: c.textSecondary,

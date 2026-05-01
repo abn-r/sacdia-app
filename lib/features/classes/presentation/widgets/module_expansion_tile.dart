@@ -47,8 +47,10 @@ class ModuleExpansionTile extends StatelessWidget {
             ),
             child: Center(
               child: isComplete
-                  ? HugeIcon(icon: HugeIcons.strokeRoundedTick02,
-                      size: 20, color: AppColors.secondaryDark)
+                  ? HugeIcon(
+                      icon: HugeIcons.strokeRoundedTick02,
+                      size: 20,
+                      color: AppColors.secondaryDark)
                   : Text(
                       '$completedCount/$totalCount',
                       style: TextStyle(

@@ -102,9 +102,11 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
 
   double _offsetForIndex(int index) {
     const itemTotalWidth = _dateItemWidth + _dateItemHorizontalMargin * 2;
-    final viewportWidth =
-        _dateScrollController.hasClients ? _dateScrollController.position.viewportDimension : 334.0;
-    final offset = index * itemTotalWidth - (viewportWidth / 2) + (itemTotalWidth / 2);
+    final viewportWidth = _dateScrollController.hasClients
+        ? _dateScrollController.position.viewportDimension
+        : 334.0;
+    final offset =
+        index * itemTotalWidth - (viewportWidth / 2) + (itemTotalWidth / 2);
     return offset.clamp(0.0, double.infinity);
   }
 
@@ -142,12 +144,14 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
     final scrollOffset = _dateScrollController.offset;
     final viewportWidth = _dateScrollController.position.viewportDimension;
     final centerOffset = scrollOffset + viewportWidth / 2;
-    final centerIndex = (centerOffset / itemTotalWidth).round().clamp(0, _days.length - 1);
+    final centerIndex =
+        (centerOffset / itemTotalWidth).round().clamp(0, _days.length - 1);
     final centeredDay = _days[centerIndex];
     final newMonth = DateTime(centeredDay.year, centeredDay.month);
 
     final todayOffset = _offsetForIndex(_todayIndex);
-    final isAwayFromToday = (scrollOffset - todayOffset).abs() > itemTotalWidth * 1.5;
+    final isAwayFromToday =
+        (scrollOffset - todayOffset).abs() > itemTotalWidth * 1.5;
 
     if (newMonth != _visibleMonth || isAwayFromToday != _showTodayButton) {
       setState(() {
@@ -380,7 +384,8 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                         boxShadow: _isChronologicalView
                             ? [
                                 BoxShadow(
-                                  color: AppColors.primary.withValues(alpha: 0.3),
+                                  color:
+                                      AppColors.primary.withValues(alpha: 0.3),
                                   blurRadius: 8,
                                   offset: const Offset(0, 3),
                                 )
@@ -418,10 +423,13 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                               Expanded(
                                 child: SizedBox(
                                   height: 76,
-                                  child: NotificationListener<ScrollNotification>(
+                                  child:
+                                      NotificationListener<ScrollNotification>(
                                     onNotification: (notification) {
-                                      if (notification is ScrollUpdateNotification ||
-                                          notification is ScrollEndNotification) {
+                                      if (notification
+                                              is ScrollUpdateNotification ||
+                                          notification
+                                              is ScrollEndNotification) {
                                         _onDateStripScroll();
                                       }
                                       return false;
@@ -429,20 +437,23 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                     child: ListView.builder(
                                       controller: _dateScrollController,
                                       scrollDirection: Axis.horizontal,
-                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16),
                                       itemCount: _days.length,
                                       itemBuilder: (context, index) {
                                         final day = _days[index];
                                         final isToday = _isSameDay(day, today);
-                                        final isSelected = _selectedDate != null &&
-                                            _isSameDay(day, _selectedDate!);
+                                        final isSelected =
+                                            _selectedDate != null &&
+                                                _isSameDay(day, _selectedDate!);
 
                                         return GestureDetector(
                                           onTap: () => setState(() {
                                             _selectedDate = day;
                                           }),
                                           child: AnimatedContainer(
-                                            duration: const Duration(milliseconds: 200),
+                                            duration: const Duration(
+                                                milliseconds: 200),
                                             width: 52,
                                             margin: const EdgeInsets.symmetric(
                                                 horizontal: 4, vertical: 2),
@@ -452,10 +463,12 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                   : isToday
                                                       ? AppColors.primaryLight
                                                       : c.surface,
-                                              borderRadius: BorderRadius.circular(16),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
                                               border: Border.all(
                                                 color: isToday && !isSelected
-                                                    ? AppColors.primary.withValues(alpha: 0.35)
+                                                    ? AppColors.primary
+                                                        .withValues(alpha: 0.35)
                                                     : Colors.transparent,
                                                 width: 1.5,
                                               ),
@@ -463,15 +476,18 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                   ? [
                                                       BoxShadow(
                                                         color: AppColors.primary
-                                                            .withValues(alpha: 0.28),
+                                                            .withValues(
+                                                                alpha: 0.28),
                                                         blurRadius: 8,
-                                                        offset: const Offset(0, 3),
+                                                        offset:
+                                                            const Offset(0, 3),
                                                       )
                                                     ]
                                                   : null,
                                             ),
                                             child: Column(
-                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
                                               children: [
                                                 Text(
                                                   DateFormat('EEE', 'es')
@@ -482,7 +498,9 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                     fontSize: 10,
                                                     fontWeight: FontWeight.w600,
                                                     color: isSelected
-                                                        ? Colors.white.withValues(alpha: 0.8)
+                                                        ? Colors.white
+                                                            .withValues(
+                                                                alpha: 0.8)
                                                         : c.textTertiary,
                                                   ),
                                                 ),
@@ -521,14 +539,17 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                         height: 44,
                                         decoration: BoxDecoration(
                                           color: AppColors.primaryLight,
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                           border: Border.all(
-                                            color: AppColors.primary.withValues(alpha: 0.25),
+                                            color: AppColors.primary
+                                                .withValues(alpha: 0.25),
                                           ),
                                         ),
                                         child: Center(
                                           child: HugeIcon(
-                                            icon: HugeIcons.strokeRoundedCalendar02,
+                                            icon: HugeIcons
+                                                .strokeRoundedCalendar02,
                                             size: 20,
                                             color: AppColors.primary,
                                           ),
@@ -541,9 +562,11 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                         onTap: () {
                                           final now = DateTime.now();
                                           setState(() {
-                                            _selectedDate = DateTime(now.year, now.month, now.day);
+                                            _selectedDate = DateTime(
+                                                now.year, now.month, now.day);
                                             _showTodayButton = false;
-                                            _visibleMonth = DateTime(now.year, now.month);
+                                            _visibleMonth =
+                                                DateTime(now.year, now.month);
                                           });
                                           _scrollToToday(animate: true);
                                         },
@@ -552,11 +575,13 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                           height: 24,
                                           decoration: BoxDecoration(
                                             color: AppColors.primary,
-                                            borderRadius: BorderRadius.circular(12),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
                                           ),
                                           child: Center(
                                             child: Text(
-                                              'activities.list.today_label'.tr(),
+                                              'activities.list.today_label'
+                                                  .tr(),
                                               style: const TextStyle(
                                                 color: Colors.white,
                                                 fontSize: 11,
@@ -614,8 +639,8 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                         label: t.name,
                         isSelected: _selectedFilter == t.activityTypeId,
                         c: c,
-                        onTap: () => setState(
-                            () => _selectedFilter = t.activityTypeId),
+                        onTap: () =>
+                            setState(() => _selectedFilter = t.activityTypeId),
                       ),
                     ),
                   ];
@@ -638,7 +663,9 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                   // Activity type filter is applied locally — no new request needed.
                   // Date filter is also applied locally.
                   var filtered = _selectedFilter != null
-                      ? activities.where((a) => a.activityType == _selectedFilter).toList()
+                      ? activities
+                          .where((a) => a.activityType == _selectedFilter)
+                          .toList()
                       : List.of(activities);
 
                   if (!_isChronologicalView && _selectedDate != null) {
@@ -646,7 +673,8 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                       if (a.activityDate == null) return false;
                       final start = a.activityDate!.toLocal();
                       final end = a.activityEndDate?.toLocal() ?? start;
-                      final startDay = DateTime(start.year, start.month, start.day);
+                      final startDay =
+                          DateTime(start.year, start.month, start.day);
                       final endDay = DateTime(end.year, end.month, end.day);
                       final sel = DateTime(
                         _selectedDate!.year,

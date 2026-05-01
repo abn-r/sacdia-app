@@ -14,9 +14,8 @@ class FinanceSummaryModel extends FinanceSummary {
         json['monthly'] as List<dynamic>? ??
         [];
 
-    final bars = rawBars
-        .map((e) => _barFromJson(e as Map<String, dynamic>))
-        .toList();
+    final bars =
+        rawBars.map((e) => _barFromJson(e as Map<String, dynamic>)).toList();
 
     return FinanceSummaryModel(
       totalBalance:

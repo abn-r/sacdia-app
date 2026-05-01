@@ -6,7 +6,8 @@ import '../entities/activity.dart';
 import '../repositories/activities_repository.dart';
 
 /// Caso de uso para obtener las actividades de un club
-class GetClubActivities implements UseCase<List<Activity>, GetClubActivitiesParams> {
+class GetClubActivities
+    implements UseCase<List<Activity>, GetClubActivitiesParams> {
   final ActivitiesRepository repository;
 
   GetClubActivities(this.repository);

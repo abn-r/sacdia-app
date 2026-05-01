@@ -91,7 +91,9 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  _isEditing ? 'finances.add_transaction.edit_title'.tr() : 'finances.add_transaction.new_title'.tr(),
+                  _isEditing
+                      ? 'finances.add_transaction.edit_title'.tr()
+                      : 'finances.add_transaction.new_title'.tr(),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -134,8 +136,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _amountController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
                             RegExp(r'^\d*\.?\d{0,2}')),
@@ -147,7 +149,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       ),
                       validator: (v) {
                         if (v == null || v.isEmpty) {
-                          return 'finances.add_transaction.amount_required'.tr();
+                          return 'finances.add_transaction.amount_required'
+                              .tr();
                         }
                         final parsed = double.tryParse(v);
                         if (parsed == null || parsed <= 0) {
@@ -160,7 +163,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     const SizedBox(height: 16),
 
                     // Category
-                    _SectionLabel('finances.add_transaction.category_label'.tr()),
+                    _SectionLabel(
+                        'finances.add_transaction.category_label'.tr()),
                     const SizedBox(height: 6),
                     categoriesAsync.when(
                       loading: () => const LinearProgressIndicator(),
@@ -182,8 +186,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                         }).toList();
 
                         final dropdownValue = _selectedCategory != null &&
-                                filtered.any(
-                                    (c) => c.id == _selectedCategory!.id)
+                                filtered
+                                    .any((c) => c.id == _selectedCategory!.id)
                             ? filtered.firstWhere(
                                 (c) => c.id == _selectedCategory!.id)
                             : null;
@@ -205,8 +209,10 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                               .toList(),
                           onChanged: (c) =>
                               setState(() => _selectedCategory = c),
-                          validator: (v) =>
-                              v == null ? 'finances.add_transaction.category_required'.tr() : null,
+                          validator: (v) => v == null
+                              ? 'finances.add_transaction.category_required'
+                                  .tr()
+                              : null,
                         );
                       },
                     ),
@@ -214,7 +220,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     const SizedBox(height: 16),
 
                     // Description
-                    _SectionLabel('finances.add_transaction.description_label'.tr()),
+                    _SectionLabel(
+                        'finances.add_transaction.description_label'.tr()),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _descController,
@@ -223,10 +230,9 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                         context: context,
                       ),
                       maxLength: 200,
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty)
-                              ? 'finances.add_transaction.description_required'.tr()
-                              : null,
+                      validator: (v) => (v == null || v.trim().isEmpty)
+                          ? 'finances.add_transaction.description_required'.tr()
+                          : null,
                     ),
 
                     const SizedBox(height: 16),
@@ -236,8 +242,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     const SizedBox(height: 6),
                     _DatePickerField(
                       selectedDate: _selectedDate,
-                      onDateSelected: (d) =>
-                          setState(() => _selectedDate = d),
+                      onDateSelected: (d) => setState(() => _selectedDate = d),
                     ),
 
                     const SizedBox(height: 16),
@@ -293,8 +298,10 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                               )
                             : Text(
                                 _isEditing
-                                    ? 'finances.add_transaction.save_button'.tr()
-                                    : 'finances.add_transaction.register_button'.tr(),
+                                    ? 'finances.add_transaction.save_button'
+                                        .tr()
+                                    : 'finances.add_transaction.register_button'
+                                        .tr(),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 16,
@@ -320,18 +327,17 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     final clubIdAsync = await ref.read(currentClubIdProvider.future);
     if (clubIdAsync == null) return;
 
-    final success = await ref
-        .read(transactionFormNotifierProvider.notifier)
-        .save(
-          clubId: clubIdAsync,
-          categoryId: _selectedCategory!.id,
-          amount: amount,
-          description: _descController.text.trim(),
-          date: _selectedDate,
-          year: selectedMonth.year,
-          month: selectedMonth.month,
-          existingId: _isEditing ? widget.existing!.id : null,
-        );
+    final success =
+        await ref.read(transactionFormNotifierProvider.notifier).save(
+              clubId: clubIdAsync,
+              categoryId: _selectedCategory!.id,
+              amount: amount,
+              description: _descController.text.trim(),
+              date: _selectedDate,
+              year: selectedMonth.year,
+              month: selectedMonth.month,
+              existingId: _isEditing ? widget.existing!.id : null,
+            );
 
     if (success && mounted) {
       ref.read(transactionFormNotifierProvider.notifier).reset();
@@ -355,7 +361,9 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
       hintText: hint,
       prefixText: prefix,
       filled: true,
-      fillColor: Theme.of(context).colorScheme.surfaceContainerHighest
+      fillColor: Theme.of(context)
+          .colorScheme
+          .surfaceContainerHighest
           .withValues(alpha: 0.4),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -369,8 +377,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide:
-            const BorderSide(color: AppColors.primary, width: 2),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
       ),
     );
   }
@@ -435,7 +442,8 @@ class _TypeChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: isSelected ? color.withValues(alpha: 0.12) : Colors.transparent,
+          color:
+              isSelected ? color.withValues(alpha: 0.12) : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected ? color : Theme.of(context).dividerColor,
@@ -490,8 +498,7 @@ class _DatePickerField extends StatelessWidget {
       onTap: () => _pickDate(context),
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
           color: Theme.of(context)
               .colorScheme

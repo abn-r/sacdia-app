@@ -13,11 +13,16 @@ import '../models/class_model.dart';
 /// Interfaz para la fuente de datos remota de selección de club
 abstract class ClubSelectionRemoteDataSource {
   Future<List<CountryModel>> getCountries({CancelToken? cancelToken});
-  Future<List<UnionModel>> getUnionsByCountry(int countryId, {CancelToken? cancelToken});
-  Future<List<LocalFieldModel>> getLocalFieldsByUnion(int unionId, {CancelToken? cancelToken});
-  Future<List<ClubModel>> getClubsByLocalField(int localFieldId, {CancelToken? cancelToken});
-  Future<List<ClubSectionModel>> getClubSections(int clubId, {CancelToken? cancelToken});
-  Future<List<ClassModel>> getClassesByClubType(int clubTypeId, {CancelToken? cancelToken});
+  Future<List<UnionModel>> getUnionsByCountry(int countryId,
+      {CancelToken? cancelToken});
+  Future<List<LocalFieldModel>> getLocalFieldsByUnion(int unionId,
+      {CancelToken? cancelToken});
+  Future<List<ClubModel>> getClubsByLocalField(int localFieldId,
+      {CancelToken? cancelToken});
+  Future<List<ClubSectionModel>> getClubSections(int clubId,
+      {CancelToken? cancelToken});
+  Future<List<ClassModel>> getClassesByClubType(int clubTypeId,
+      {CancelToken? cancelToken});
   Future<void> completeStep3({
     required String userId,
     required int countryId,
@@ -55,7 +60,9 @@ class ClubSelectionRemoteDataSourceImpl
         return data.map((json) => CountryModel.fromJson(json)).toList();
       }
 
-      throw ServerException(message: tr('post_registration.club_selection.errors.fetch_countries'));
+      throw ServerException(
+          message:
+              tr('post_registration.club_selection.errors.fetch_countries'));
     } catch (e) {
       AppLogger.e('Error en getCountries', tag: _tag, error: e);
       if (e is DioException) {
@@ -83,7 +90,8 @@ class ClubSelectionRemoteDataSourceImpl
         return data.map((json) => UnionModel.fromJson(json)).toList();
       }
 
-      throw ServerException(message: tr('post_registration.club_selection.errors.fetch_unions'));
+      throw ServerException(
+          message: tr('post_registration.club_selection.errors.fetch_unions'));
     } catch (e) {
       AppLogger.e('Error en getUnionsByCountry', tag: _tag, error: e);
       if (e is DioException) {
@@ -111,7 +119,9 @@ class ClubSelectionRemoteDataSourceImpl
         return data.map((json) => LocalFieldModel.fromJson(json)).toList();
       }
 
-      throw ServerException(message: tr('post_registration.club_selection.errors.fetch_local_fields'));
+      throw ServerException(
+          message:
+              tr('post_registration.club_selection.errors.fetch_local_fields'));
     } catch (e) {
       AppLogger.e('Error en getLocalFieldsByUnion', tag: _tag, error: e);
       if (e is DioException) {
@@ -141,7 +151,8 @@ class ClubSelectionRemoteDataSourceImpl
         return data.map((json) => ClubModel.fromJson(json)).toList();
       }
 
-      throw ServerException(message: tr('post_registration.club_selection.errors.fetch_clubs'));
+      throw ServerException(
+          message: tr('post_registration.club_selection.errors.fetch_clubs'));
     } catch (e) {
       AppLogger.e('Error en getClubsByLocalField', tag: _tag, error: e);
       if (e is DioException) {
@@ -183,7 +194,9 @@ class ClubSelectionRemoteDataSourceImpl
             .toList();
       }
 
-      throw ServerException(message: tr('post_registration.club_selection.errors.fetch_club_sections'));
+      throw ServerException(
+          message: tr(
+              'post_registration.club_selection.errors.fetch_club_sections'));
     } catch (e) {
       AppLogger.e('Error en getClubSections', tag: _tag, error: e);
       if (e is DioException) {
@@ -213,7 +226,8 @@ class ClubSelectionRemoteDataSourceImpl
         return data.map((json) => ClassModel.fromJson(json)).toList();
       }
 
-      throw ServerException(message: tr('post_registration.club_selection.errors.fetch_classes'));
+      throw ServerException(
+          message: tr('post_registration.club_selection.errors.fetch_classes'));
     } catch (e) {
       AppLogger.e('Error en getClassesByClubType', tag: _tag, error: e);
       if (e is DioException) {
@@ -248,7 +262,8 @@ class ClubSelectionRemoteDataSourceImpl
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw ServerException(
-            message: tr('post_registration.club_selection.errors.complete_step_3'));
+            message:
+                tr('post_registration.club_selection.errors.complete_step_3'));
       }
     } catch (e) {
       AppLogger.e('Error en completeStep3', tag: _tag, error: e);

@@ -141,7 +141,8 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('post_registration.photo.errors.upload'.tr(namedArgs: {'message': failure.message})),
+                content: Text('post_registration.photo.errors.upload'
+                    .tr(namedArgs: {'message': failure.message})),
                 backgroundColor: AppColors.error,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(

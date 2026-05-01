@@ -9,7 +9,8 @@ import '../repositories/honors_repository.dart';
 /// Devuelve la lista actualizada de [UserHonorRequirementProgress].
 class UpdateRequirementProgress
     implements
-        UseCase<List<UserHonorRequirementProgress>, UpdateRequirementProgressParams> {
+        UseCase<List<UserHonorRequirementProgress>,
+            UpdateRequirementProgressParams> {
   final HonorsRepository repository;
 
   UpdateRequirementProgress(this.repository);

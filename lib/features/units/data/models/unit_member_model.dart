@@ -40,9 +40,7 @@ class UnitMemberModel extends UnitMember {
     final maternal =
         (users['maternal_last_name'] ?? users['m_lastname'] ?? '').toString();
     // El apellido display es paternal; maternal queda disponible si se necesita.
-    final surname = [paternal, maternal]
-        .where((s) => s.isNotEmpty)
-        .join(' ');
+    final surname = [paternal, maternal].where((s) => s.isNotEmpty).join(' ');
 
     final avatar = (users['user_image'] ?? users['avatar'])?.toString();
     final unitMemberId = _parseInt(json['unit_member_id']) ?? 0;

@@ -29,10 +29,10 @@ class CamporeeItemModel extends Equatable {
   }) {
     // Local camporee uses camporee_id / local_camporee_id, union uses union_camporee_id
     final id = (json['camporee_id'] ??
-            json['local_camporee_id'] ??
-            json['union_camporee_id'] ??
-            json['id'] ??
-            0) as int;
+        json['local_camporee_id'] ??
+        json['union_camporee_id'] ??
+        json['id'] ??
+        0) as int;
 
     return CamporeeItemModel(
       id: id,
@@ -251,8 +251,7 @@ class CamporeeMemberEnrollmentModel extends Equatable {
       );
 
   @override
-  List<Object?> get props =>
-      [camporeeMemberId, userId, camporeeId, status];
+  List<Object?> get props => [camporeeMemberId, userId, camporeeId, status];
 }
 
 // ── CamporeePaymentEnrollmentModel ────────────────────────────────────────────

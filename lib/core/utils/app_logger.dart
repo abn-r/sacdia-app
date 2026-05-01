@@ -29,7 +29,8 @@ abstract class AppLogger {
   }
 
   /// Error: operación fallida que requiere atención.
-  static void e(String message, {String? tag, Object? error, StackTrace? stackTrace}) {
+  static void e(String message,
+      {String? tag, Object? error, StackTrace? stackTrace}) {
     _log('ERR ', message, tag: tag, error: error, stackTrace: stackTrace);
   }
 

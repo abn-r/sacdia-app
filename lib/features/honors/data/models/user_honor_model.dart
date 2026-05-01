@@ -75,12 +75,14 @@ class UserHonorModel extends Equatable {
     }
 
     // Date field: 'date' is the honor date, 'created_at' as fallback
-    final dateRaw = safeStringOrNull(json['date']) ?? safeStringOrNull(json['created_at']);
+    final dateRaw =
+        safeStringOrNull(json['date']) ?? safeStringOrNull(json['created_at']);
     DateTime date;
     if (dateRaw != null) {
       final parsed = DateTime.tryParse(dateRaw);
       if (parsed == null) {
-        AppLogger.w('Failed to parse date: $dateRaw, using DateTime.now()', tag: _tag);
+        AppLogger.w('Failed to parse date: $dateRaw, using DateTime.now()',
+            tag: _tag);
       }
       date = parsed ?? DateTime.now();
     } else {
@@ -109,7 +111,8 @@ class UserHonorModel extends Equatable {
     final nestedHonor = json['honors'] as Map<String, dynamic>?;
     if (nestedHonor != null) {
       honorName = safeStringOrNull(nestedHonor['name']);
-      honorImageUrl = _buildImageUrl(safeStringOrNull(nestedHonor['honor_image']));
+      honorImageUrl =
+          _buildImageUrl(safeStringOrNull(nestedHonor['honor_image']));
       honorSkillLevel = safeIntOrNull(nestedHonor['skill_level']);
       final nestedCategory =
           nestedHonor['honors_categories'] as Map<String, dynamic>?;
@@ -123,8 +126,7 @@ class UserHonorModel extends Equatable {
       userId: safeString(json['user_id']),
       active: safeBool(json['active'], true),
       validate: safeBool(json['validate']),
-      validationStatus:
-          safeString(json['validation_status'], 'in_progress'),
+      validationStatus: safeString(json['validation_status'], 'in_progress'),
       certificate: safeString(json['certificate']),
       images: images,
       document: safeStringOrNull(json['document']),

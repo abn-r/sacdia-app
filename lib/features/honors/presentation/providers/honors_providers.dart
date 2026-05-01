@@ -70,13 +70,15 @@ final registerUserHonorProvider = Provider<RegisterUserHonor>((ref) {
 });
 
 /// Provider para las categorías de especialidades
-final honorCategoriesProvider = FutureProvider.autoDispose<List<HonorCategory>>((ref) async {
+final honorCategoriesProvider =
+    FutureProvider.autoDispose<List<HonorCategory>>((ref) async {
   ref.keepAlive();
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
 
   final getHonorCategories = ref.read(getHonorCategoriesProvider);
-  final result = await getHonorCategories(const NoParams(), cancelToken: cancelToken);
+  final result =
+      await getHonorCategories(const NoParams(), cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -102,7 +104,8 @@ final honorsProvider = FutureProvider.autoDispose
 /// Provider para las especialidades de un usuario.
 /// keepAlive: el provider se mantiene vivo mientras el árbol esté montado,
 /// evitando re-fetches al cambiar de tab y eliminando el retry loop 429.
-final userHonorsProvider = FutureProvider.autoDispose<List<UserHonor>>((ref) async {
+final userHonorsProvider =
+    FutureProvider.autoDispose<List<UserHonor>>((ref) async {
   ref.keepAlive();
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
@@ -119,7 +122,8 @@ final userHonorsProvider = FutureProvider.autoDispose<List<UserHonor>>((ref) asy
   }
 
   final getUserHonors = ref.read(getUserHonorsProvider);
-  final result = await getUserHonors(GetUserHonorsParams(userId: userId), cancelToken: cancelToken);
+  final result = await getUserHonors(GetUserHonorsParams(userId: userId),
+      cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -155,13 +159,15 @@ final userHonorStatsLocalProvider =
 });
 
 /// Provider para especialidades agrupadas por categoría
-final honorsGroupedByCategoryProvider = FutureProvider.autoDispose<List<HonorGroup>>((ref) async {
+final honorsGroupedByCategoryProvider =
+    FutureProvider.autoDispose<List<HonorGroup>>((ref) async {
   ref.keepAlive();
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
 
   final repository = ref.read(honorsRepositoryProvider);
-  final result = await repository.getHonorsGroupedByCategory(cancelToken: cancelToken);
+  final result =
+      await repository.getHonorsGroupedByCategory(cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (groups) => groups,
@@ -224,7 +230,8 @@ class HonorRegistrationState {
 }
 
 /// Notifier para manejar el registro completo de especialidades
-class HonorRegistrationNotifier extends AutoDisposeNotifier<HonorRegistrationState> {
+class HonorRegistrationNotifier
+    extends AutoDisposeNotifier<HonorRegistrationState> {
   @override
   HonorRegistrationState build() => const HonorRegistrationState();
 
@@ -259,8 +266,8 @@ class HonorRegistrationNotifier extends AutoDisposeNotifier<HonorRegistrationSta
 }
 
 /// Provider para el notifier de registro de especialidades
-final honorRegistrationNotifierProvider =
-    NotifierProvider.autoDispose<HonorRegistrationNotifier, HonorRegistrationState>(() {
+final honorRegistrationNotifierProvider = NotifierProvider.autoDispose<
+    HonorRegistrationNotifier, HonorRegistrationState>(() {
   return HonorRegistrationNotifier();
 });
 
@@ -273,7 +280,9 @@ final honorRegistrationNotifierProvider =
 /// "not enrolled" should also watch [userHonorsProvider] directly.
 final userHonorForHonorProvider =
     Provider.autoDispose.family<UserHonor?, int>((ref, honorId) {
-  return ref.watch(userHonorsProvider).valueOrNull
+  return ref
+      .watch(userHonorsProvider)
+      .valueOrNull
       ?.where((h) => h.honorId == honorId)
       .firstOrNull;
 });
@@ -353,7 +362,8 @@ final honorsWithStatusProvider = Provider.autoDispose<
         (filteredAsync as AsyncError).error, StackTrace.current);
   }
   if (userHonorsAsync is AsyncError) {
-    return AsyncValue.error(userHonorsAsync.error!, userHonorsAsync.stackTrace!);
+    return AsyncValue.error(
+        userHonorsAsync.error!, userHonorsAsync.stackTrace!);
   }
 
   final honors = filteredAsync.valueOrNull ?? [];
@@ -396,7 +406,8 @@ final honorRequirementsProvider = FutureProvider.autoDispose
   ref.onDispose(() => cancelToken.cancel());
 
   final useCase = ref.read(getHonorRequirementsProvider);
-  final result = await useCase(GetHonorRequirementsParams(honorId: honorId), cancelToken: cancelToken);
+  final result = await useCase(GetHonorRequirementsParams(honorId: honorId),
+      cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -424,7 +435,9 @@ final userHonorProgressProvider = FutureProvider.autoDispose
   }
 
   final useCase = ref.read(getUserHonorProgressProvider);
-  final result = await useCase(GetUserHonorProgressParams(userId: userId, honorId: honorId), cancelToken: cancelToken);
+  final result = await useCase(
+      GetUserHonorProgressParams(userId: userId, honorId: honorId),
+      cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -436,9 +449,9 @@ final userHonorProgressProvider = FutureProvider.autoDispose
 ///
 /// Retorna un record con: total, completed, percentage.
 /// Es un [Provider] síncrono que reactivamente recalcula cuando cambia el progreso.
-final honorProgressStatsProvider = Provider.family<
-    ({int total, int completed, double percentage}),
-    int>((ref, honorId) {
+final honorProgressStatsProvider =
+    Provider.family<({int total, int completed, double percentage}), int>(
+        (ref, honorId) {
   final progressAsync = ref.watch(userHonorProgressProvider(honorId));
 
   return progressAsync.maybeWhen(
@@ -457,8 +470,8 @@ final honorProgressStatsProvider = Provider.family<
 /// Notifier para manejar actualizaciones de progreso de requisitos.
 ///
 /// Keyed por honorId para invalidar el provider de progreso correcto.
-class RequirementProgressNotifier
-    extends AutoDisposeFamilyAsyncNotifier<List<UserHonorRequirementProgress>?, int> {
+class RequirementProgressNotifier extends AutoDisposeFamilyAsyncNotifier<
+    List<UserHonorRequirementProgress>?, int> {
   @override
   Future<List<UserHonorRequirementProgress>?> build(int arg) async => null;
 
@@ -469,7 +482,8 @@ class RequirementProgressNotifier
 
     final userId = ref.read(authNotifierProvider).valueOrNull?.id;
     if (userId == null) {
-      state = AsyncValue.error(tr('errors.user_not_authenticated'), StackTrace.current);
+      state = AsyncValue.error(
+          tr('errors.user_not_authenticated'), StackTrace.current);
       return false;
     }
 

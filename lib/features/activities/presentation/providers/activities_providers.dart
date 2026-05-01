@@ -17,7 +17,8 @@ import '../../domain/usecases/get_activity_detail.dart';
 import '../../domain/usecases/register_attendance.dart';
 
 /// Provider para el data source remoto de actividades
-final activitiesRemoteDataSourceProvider = Provider<ActivitiesRemoteDataSource>((ref) {
+final activitiesRemoteDataSourceProvider =
+    Provider<ActivitiesRemoteDataSource>((ref) {
   final dio = ref.read(dioProvider);
   final baseUrl = ref.read(apiBaseUrlProvider);
 
@@ -92,9 +93,8 @@ class ClubActivitiesParams {
 /// Fetches ALL activities for the club once and caches the result. Filter chips
 /// apply locally inside ActivitiesListView using _selectedFilter state, so
 /// tapping a chip never triggers an additional network request.
-final clubActivitiesProvider =
-    FutureProvider.autoDispose.family<List<Activity>, ClubActivitiesParams>(
-        (ref, params) async {
+final clubActivitiesProvider = FutureProvider.autoDispose
+    .family<List<Activity>, ClubActivitiesParams>((ref, params) async {
   ref.keepAlive();
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
@@ -112,7 +112,6 @@ final clubActivitiesProvider =
     (activities) => activities,
   );
 });
-
 
 /// Provider para el detalle de una actividad.
 /// Caches the result with a 5-minute timer: the instance is kept alive while
@@ -317,8 +316,7 @@ class UpdateActivityState {
 }
 
 /// Notifier para manejar la actualización de actividades
-class UpdateActivityNotifier
-    extends AutoDisposeNotifier<UpdateActivityState> {
+class UpdateActivityNotifier extends AutoDisposeNotifier<UpdateActivityState> {
   @override
   UpdateActivityState build() => const UpdateActivityState();
 

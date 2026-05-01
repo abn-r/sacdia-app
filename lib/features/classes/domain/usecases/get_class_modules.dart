@@ -6,14 +6,17 @@ import '../entities/class_module.dart';
 import '../repositories/classes_repository.dart';
 
 /// Caso de uso para obtener los módulos de una clase
-class GetClassModules implements UseCase<List<ClassModule>, GetClassModulesParams> {
+class GetClassModules
+    implements UseCase<List<ClassModule>, GetClassModulesParams> {
   final ClassesRepository repository;
 
   GetClassModules(this.repository);
 
   @override
-  Future<Either<Failure, List<ClassModule>>> call(GetClassModulesParams params, {CancelToken? cancelToken}) async {
-    return await repository.getClassModules(params.classId, cancelToken: cancelToken);
+  Future<Either<Failure, List<ClassModule>>> call(GetClassModulesParams params,
+      {CancelToken? cancelToken}) async {
+    return await repository.getClassModules(params.classId,
+        cancelToken: cancelToken);
   }
 }
 

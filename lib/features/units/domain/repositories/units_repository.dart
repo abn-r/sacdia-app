@@ -120,7 +120,8 @@ abstract class UnitsRepository {
   });
 
   /// Retorna el historial paginado de Miembros del Mes de una sección.
-  Future<Either<Failure, MemberOfMonthHistoryResponse>> getMemberOfMonthHistory({
+  Future<Either<Failure, MemberOfMonthHistoryResponse>>
+      getMemberOfMonthHistory({
     required int clubId,
     required int sectionId,
     int page = 1,

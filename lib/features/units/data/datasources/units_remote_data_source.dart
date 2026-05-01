@@ -14,10 +14,12 @@ import '../models/weekly_record_model.dart';
 /// Interfaz de la fuente de datos remota para el módulo de unidades.
 abstract class UnitsRemoteDataSource {
   /// Retorna todas las unidades activas de un club.
-  Future<List<UnitModel>> getClubUnits({required int clubId, CancelToken? cancelToken});
+  Future<List<UnitModel>> getClubUnits(
+      {required int clubId, CancelToken? cancelToken});
 
   /// Retorna el detalle de una unidad con sus miembros activos.
-  Future<UnitModel> getUnitDetail({required int clubId, required int unitId, CancelToken? cancelToken});
+  Future<UnitModel> getUnitDetail(
+      {required int clubId, required int unitId, CancelToken? cancelToken});
 
   /// Crea una nueva unidad en el club.
   Future<UnitModel> createUnit({
@@ -135,12 +137,14 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
   })  : _dio = dio,
         _baseUrl = baseUrl;
 
-  String _unitsBase(int clubId) => '$_baseUrl${ApiEndpoints.clubs}/$clubId/units';
+  String _unitsBase(int clubId) =>
+      '$_baseUrl${ApiEndpoints.clubs}/$clubId/units';
 
   // ── GET /clubs/:clubId/units ───────────────────────────────────────────────
 
   @override
-  Future<List<UnitModel>> getClubUnits({required int clubId, CancelToken? cancelToken}) async {
+  Future<List<UnitModel>> getClubUnits(
+      {required int clubId, CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         _unitsBase(clubId),
@@ -568,7 +572,8 @@ class UnitsRemoteDataSourceImpl implements UnitsRemoteDataSource {
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network'))
+            .toString();
       }
     } catch (e) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);

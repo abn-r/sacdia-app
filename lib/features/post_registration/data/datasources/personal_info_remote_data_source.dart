@@ -19,25 +19,36 @@ abstract class PersonalInfoRemoteDataSource {
     String? baptismDate,
   });
 
-  Future<List<EmergencyContactModel>> getEmergencyContacts(String userId, {CancelToken? cancelToken});
-  Future<EmergencyContactModel> addEmergencyContact(String userId, EmergencyContactModel contact);
-  Future<EmergencyContactModel> updateEmergencyContact(String userId, int contactId, EmergencyContactModel contact);
+  Future<List<EmergencyContactModel>> getEmergencyContacts(String userId,
+      {CancelToken? cancelToken});
+  Future<EmergencyContactModel> addEmergencyContact(
+      String userId, EmergencyContactModel contact);
+  Future<EmergencyContactModel> updateEmergencyContact(
+      String userId, int contactId, EmergencyContactModel contact);
   Future<void> deleteEmergencyContact(String userId, int contactId);
-  Future<List<RelationshipTypeModel>> getRelationshipTypes({CancelToken? cancelToken});
-  Future<bool> checkLegalRepresentativeRequired(String userId, {CancelToken? cancelToken});
-  Future<LegalRepresentativeModel> createLegalRepresentative(String userId, LegalRepresentativeModel representative);
-  Future<LegalRepresentativeModel?> getLegalRepresentative(String userId, {CancelToken? cancelToken});
-  Future<LegalRepresentativeModel> updateLegalRepresentative(String userId, LegalRepresentativeModel representative);
+  Future<List<RelationshipTypeModel>> getRelationshipTypes(
+      {CancelToken? cancelToken});
+  Future<bool> checkLegalRepresentativeRequired(String userId,
+      {CancelToken? cancelToken});
+  Future<LegalRepresentativeModel> createLegalRepresentative(
+      String userId, LegalRepresentativeModel representative);
+  Future<LegalRepresentativeModel?> getLegalRepresentative(String userId,
+      {CancelToken? cancelToken});
+  Future<LegalRepresentativeModel> updateLegalRepresentative(
+      String userId, LegalRepresentativeModel representative);
   Future<List<AllergyModel>> getAllergiesCatalog({CancelToken? cancelToken});
-  Future<List<AllergyModel>> getUserAllergies(String userId, {CancelToken? cancelToken});
+  Future<List<AllergyModel>> getUserAllergies(String userId,
+      {CancelToken? cancelToken});
   Future<void> saveUserAllergies(String userId, List<int> allergyIds);
   Future<void> deleteUserAllergy(String userId, int allergyId);
   Future<List<DiseaseModel>> getDiseasesCatalog({CancelToken? cancelToken});
-  Future<List<DiseaseModel>> getUserDiseases(String userId, {CancelToken? cancelToken});
+  Future<List<DiseaseModel>> getUserDiseases(String userId,
+      {CancelToken? cancelToken});
   Future<void> saveUserDiseases(String userId, List<int> diseaseIds);
   Future<void> deleteUserDisease(String userId, int diseaseId);
   Future<List<MedicineModel>> getMedicinesCatalog({CancelToken? cancelToken});
-  Future<List<MedicineModel>> getUserMedicines(String userId, {CancelToken? cancelToken});
+  Future<List<MedicineModel>> getUserMedicines(String userId,
+      {CancelToken? cancelToken});
   Future<void> saveUserMedicines(String userId, List<int> medicineIds);
   Future<void> deleteUserMedicine(String userId, int medicineId);
   Future<void> completeStep2(String userId);
@@ -74,7 +85,6 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
     String? baptismDate,
   }) async {
     try {
-
       final data = <String, dynamic>{};
 
       if (gender != null) data['gender'] = gender;
@@ -87,13 +97,14 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
       final response = await dio.patch(
         '$_baseUrl${ApiEndpoints.users}/$userId',
         data: data,
-
       );
 
       AppLogger.d('PATCH /users/$userId ${response.statusCode}', tag: _tag);
     } on DioException catch (e) {
-      AppLogger.e('Error PATCH /users/$userId', tag: _tag, error: e.response?.data ?? e.message);
-      throw Exception('${tr('post_registration.personal_info.errors.update_personal_info')}: ${e.message}');
+      AppLogger.e('Error PATCH /users/$userId',
+          tag: _tag, error: e.response?.data ?? e.message);
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.update_personal_info')}: ${e.message}');
     }
   }
 
@@ -110,11 +121,13 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
 
       final contactsJson = _extractList(response.data);
       return contactsJson
-          .map((json) => EmergencyContactModel.fromJson(json as Map<String, dynamic>))
+          .map((json) =>
+              EmergencyContactModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
-      throw Exception('${tr('post_registration.personal_info.errors.fetch_emergency_contacts')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.fetch_emergency_contacts')}: ${e.message}');
     }
   }
 
@@ -124,11 +137,9 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
     EmergencyContactModel contact,
   ) async {
     try {
-
       final response = await dio.post(
         '$_baseUrl${ApiEndpoints.users}/$userId/emergency-contacts',
         data: contact.toJson(),
-
       );
 
       final responseData = response.data is Map<String, dynamic> &&
@@ -137,7 +148,8 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
           : response.data as Map<String, dynamic>;
       return EmergencyContactModel.fromJson(responseData);
     } on DioException catch (e) {
-      throw Exception('${tr('post_registration.personal_info.errors.add_emergency_contact')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.add_emergency_contact')}: ${e.message}');
     }
   }
 
@@ -148,11 +160,9 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
     EmergencyContactModel contact,
   ) async {
     try {
-
       final response = await dio.patch(
         '$_baseUrl${ApiEndpoints.users}/$userId/emergency-contacts/$contactId',
         data: contact.toJson(),
-
       );
 
       final responseData = response.data is Map<String, dynamic> &&
@@ -161,20 +171,20 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
           : response.data as Map<String, dynamic>;
       return EmergencyContactModel.fromJson(responseData);
     } on DioException catch (e) {
-      throw Exception('${tr('post_registration.personal_info.errors.update_emergency_contact')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.update_emergency_contact')}: ${e.message}');
     }
   }
 
   @override
   Future<void> deleteEmergencyContact(String userId, int contactId) async {
     try {
-
       await dio.delete(
         '$_baseUrl${ApiEndpoints.users}/$userId/emergency-contacts/$contactId',
-
       );
     } on DioException catch (e) {
-      throw Exception('${tr('post_registration.personal_info.errors.delete_emergency_contact')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.delete_emergency_contact')}: ${e.message}');
     }
   }
 
@@ -190,11 +200,13 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
 
       final typesJson = _extractList(response.data);
       return typesJson
-          .map((json) => RelationshipTypeModel.fromJson(json as Map<String, dynamic>))
+          .map((json) =>
+              RelationshipTypeModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
-      throw Exception('${tr('post_registration.personal_info.errors.fetch_relationship_types')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.fetch_relationship_types')}: ${e.message}');
     }
   }
 
@@ -212,7 +224,8 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
       return response.data['required'] as bool;
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
-      throw Exception('${tr('post_registration.personal_info.errors.verify_legal_representative')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.verify_legal_representative')}: ${e.message}');
     }
   }
 
@@ -222,16 +235,16 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
     LegalRepresentativeModel representative,
   ) async {
     try {
-
       final response = await dio.post(
         '$_baseUrl${ApiEndpoints.users}/$userId/legal-representative',
         data: representative.toJson(),
-
       );
 
-      return LegalRepresentativeModel.fromJson(response.data as Map<String, dynamic>);
+      return LegalRepresentativeModel.fromJson(
+          response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      throw Exception('${tr('post_registration.personal_info.errors.create_legal_representative')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.create_legal_representative')}: ${e.message}');
     }
   }
 
@@ -259,7 +272,8 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
       if (e.response?.statusCode == 404) return null;
-      throw Exception('${tr('post_registration.personal_info.errors.fetch_legal_representative')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.fetch_legal_representative')}: ${e.message}');
     }
   }
 
@@ -269,16 +283,16 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
     LegalRepresentativeModel representative,
   ) async {
     try {
-
       final response = await dio.patch(
         '$_baseUrl${ApiEndpoints.users}/$userId/legal-representative',
         data: representative.toJson(),
-
       );
 
-      return LegalRepresentativeModel.fromJson(response.data as Map<String, dynamic>);
+      return LegalRepresentativeModel.fromJson(
+          response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      throw Exception('${tr('post_registration.personal_info.errors.update_legal_representative')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.update_legal_representative')}: ${e.message}');
     }
   }
 
@@ -298,7 +312,8 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
           .toList();
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
-      throw Exception('${tr('post_registration.personal_info.errors.fetch_allergies_catalog')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.fetch_allergies_catalog')}: ${e.message}');
     }
   }
 
@@ -320,34 +335,33 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
       if (e.response?.statusCode == 404) return [];
-      throw Exception('${tr('post_registration.personal_info.errors.fetch_user_allergies')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.fetch_user_allergies')}: ${e.message}');
     }
   }
 
   @override
   Future<void> saveUserAllergies(String userId, List<int> allergyIds) async {
     try {
-
       await dio.put(
         '$_baseUrl${ApiEndpoints.users}/$userId/allergies',
         data: {'allergy_ids': allergyIds},
-
       );
     } on DioException catch (e) {
-      throw Exception('${tr('post_registration.personal_info.errors.save_allergies')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.save_allergies')}: ${e.message}');
     }
   }
 
   @override
   Future<void> deleteUserAllergy(String userId, int allergyId) async {
     try {
-
       await dio.delete(
         '$_baseUrl${ApiEndpoints.users}/$userId/allergies/$allergyId',
-
       );
     } on DioException catch (e) {
-      throw Exception('${tr('post_registration.personal_info.errors.delete_allergy')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.delete_allergy')}: ${e.message}');
     }
   }
 
@@ -367,7 +381,8 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
           .toList();
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
-      throw Exception('${tr('post_registration.personal_info.errors.fetch_diseases_catalog')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.fetch_diseases_catalog')}: ${e.message}');
     }
   }
 
@@ -389,34 +404,33 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
       if (e.response?.statusCode == 404) return [];
-      throw Exception('${tr('post_registration.personal_info.errors.fetch_user_diseases')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.fetch_user_diseases')}: ${e.message}');
     }
   }
 
   @override
   Future<void> saveUserDiseases(String userId, List<int> diseaseIds) async {
     try {
-
       await dio.put(
         '$_baseUrl${ApiEndpoints.users}/$userId/diseases',
         data: {'disease_ids': diseaseIds},
-
       );
     } on DioException catch (e) {
-      throw Exception('${tr('post_registration.personal_info.errors.save_diseases')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.save_diseases')}: ${e.message}');
     }
   }
 
   @override
   Future<void> deleteUserDisease(String userId, int diseaseId) async {
     try {
-
       await dio.delete(
         '$_baseUrl${ApiEndpoints.users}/$userId/diseases/$diseaseId',
-
       );
     } on DioException catch (e) {
-      throw Exception('${tr('post_registration.personal_info.errors.delete_disease')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.delete_disease')}: ${e.message}');
     }
   }
 
@@ -436,7 +450,8 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
           .toList();
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
-      throw Exception('${tr('post_registration.personal_info.errors.fetch_medicines_catalog')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.fetch_medicines_catalog')}: ${e.message}');
     }
   }
 
@@ -458,47 +473,45 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
       if (e.response?.statusCode == 404) return [];
-      throw Exception('${tr('post_registration.personal_info.errors.fetch_user_medicines')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.fetch_user_medicines')}: ${e.message}');
     }
   }
 
   @override
   Future<void> saveUserMedicines(String userId, List<int> medicineIds) async {
     try {
-
       await dio.put(
         '$_baseUrl${ApiEndpoints.users}/$userId/medicines',
         data: {'medicine_ids': medicineIds},
-
       );
     } on DioException catch (e) {
-      throw Exception('${tr('post_registration.personal_info.errors.save_medicines')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.save_medicines')}: ${e.message}');
     }
   }
 
   @override
   Future<void> deleteUserMedicine(String userId, int medicineId) async {
     try {
-
       await dio.delete(
         '$_baseUrl${ApiEndpoints.users}/$userId/medicines/$medicineId',
-
       );
     } on DioException catch (e) {
-      throw Exception('${tr('post_registration.personal_info.errors.delete_medicine')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.delete_medicine')}: ${e.message}');
     }
   }
 
   @override
   Future<void> completeStep2(String userId) async {
     try {
-
       await dio.post(
         '$_baseUrl${ApiEndpoints.users}/$userId/post-registration/step-2/complete',
-
       );
     } on DioException catch (e) {
-      throw Exception('${tr('post_registration.personal_info.errors.complete_step_2')}: ${e.message}');
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.complete_step_2')}: ${e.message}');
     }
   }
 }

@@ -220,7 +220,7 @@ class HonorCard extends StatelessWidget {
               height: iconHeight,
               child: CachedNetworkImage(
                 imageUrl: honor.imageUrl!,
-                memCacheWidth: 174,  // 58 * 3 (max device pixel ratio)
+                memCacheWidth: 174, // 58 * 3 (max device pixel ratio)
                 memCacheHeight: 132, // 44 * 3
                 fit: BoxFit.cover,
                 errorWidget: (_, __, ___) => Container(

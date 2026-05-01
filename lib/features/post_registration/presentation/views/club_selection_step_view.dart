@@ -143,10 +143,12 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                 onTap: () async {
                   final picked = await showPickerSheet(
                     context: context,
-                    title: 'post_registration.club_selection.select_country'.tr(),
+                    title:
+                        'post_registration.club_selection.select_country'.tr(),
                     items: items,
                     selectedId: selectedCountryId,
-                    searchHint: 'post_registration.club_selection.search_country'.tr(),
+                    searchHint:
+                        'post_registration.club_selection.search_country'.tr(),
                     icon: Icons.public_rounded,
                   );
                   if (picked != null && picked != selectedCountryId) {
@@ -191,10 +193,12 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                   onTap: () async {
                     final picked = await showPickerSheet(
                       context: context,
-                      title: 'post_registration.club_selection.select_union'.tr(),
+                      title:
+                          'post_registration.club_selection.select_union'.tr(),
                       items: items,
                       selectedId: selectedUnionId,
-                      searchHint: 'post_registration.club_selection.search_union'.tr(),
+                      searchHint:
+                          'post_registration.club_selection.search_union'.tr(),
                       icon: Icons.account_tree_rounded,
                     );
                     if (picked != null && picked != selectedUnionId) {
@@ -234,18 +238,22 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                     localFields, (lf) => lf.id, (lf) => lf.name);
                 return PickerField(
                   label: 'post_registration.club_selection.local_field'.tr(),
-                  hint: 'post_registration.club_selection.select_local_field'.tr(),
+                  hint: 'post_registration.club_selection.select_local_field'
+                      .tr(),
                   icon: Icons.place_rounded,
                   selectedName: selectedLocalFieldName,
                   enabled: !isSaving,
                   onTap: () async {
                     final picked = await showPickerSheet(
                       context: context,
-                      title: 'post_registration.club_selection.select_local_field'.tr(),
+                      title:
+                          'post_registration.club_selection.select_local_field'
+                              .tr(),
                       items: items,
                       selectedId: selectedLocalFieldId,
                       searchHint:
-                          'post_registration.club_selection.search_local_field'.tr(),
+                          'post_registration.club_selection.search_local_field'
+                              .tr(),
                       icon: Icons.place_rounded,
                     );
                     if (picked != null && picked != selectedLocalFieldId) {
@@ -261,7 +269,8 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
               },
               loading: () => PickerField(
                 label: 'post_registration.club_selection.local_field'.tr(),
-                hint: 'post_registration.club_selection.loading_local_fields'.tr(),
+                hint: 'post_registration.club_selection.loading_local_fields'
+                    .tr(),
                 icon: Icons.place_rounded,
                 isLoading: true,
               ),
@@ -307,10 +316,12 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                   onTap: () async {
                     final picked = await showPickerSheet(
                       context: context,
-                      title: 'post_registration.club_selection.select_club'.tr(),
+                      title:
+                          'post_registration.club_selection.select_club'.tr(),
                       items: items,
                       selectedId: selectedClubId,
-                      searchHint: 'post_registration.club_selection.search_club'.tr(),
+                      searchHint:
+                          'post_registration.club_selection.search_club'.tr(),
                       icon: Icons.groups_rounded,
                     );
                     if (picked != null && picked != selectedClubId) {
@@ -386,7 +397,8 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                 final items = _toPickerItems<ClassModel>(
                     classes, (c) => c.id, (c) => c.name);
                 return PickerField(
-                  label: 'post_registration.club_selection.progressive_class'.tr(),
+                  label:
+                      'post_registration.club_selection.progressive_class'.tr(),
                   hint: 'post_registration.club_selection.select_class'.tr(),
                   icon: Icons.school_rounded,
                   selectedName: selectedClassName,
@@ -394,11 +406,13 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                   onTap: () async {
                     final picked = await showPickerSheet(
                       context: context,
-                      title: 'post_registration.club_selection.select_progressive_class'
-                          .tr(),
+                      title:
+                          'post_registration.club_selection.select_progressive_class'
+                              .tr(),
                       items: items,
                       selectedId: selectedClassId,
-                      searchHint: 'post_registration.club_selection.search_class'.tr(),
+                      searchHint:
+                          'post_registration.club_selection.search_class'.tr(),
                       icon: Icons.school_rounded,
                     );
                     if (picked != null && picked != selectedClassId) {
@@ -408,7 +422,8 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                 );
               },
               loading: () => PickerField(
-                label: 'post_registration.club_selection.progressive_class'.tr(),
+                label:
+                    'post_registration.club_selection.progressive_class'.tr(),
                 hint: 'post_registration.club_selection.loading_classes'.tr(),
                 icon: Icons.school_rounded,
                 isLoading: true,

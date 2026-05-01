@@ -48,7 +48,8 @@ final clubInfoProvider =
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final useCase = ref.read(getClubInfoUseCaseProvider);
-  final result = await useCase(GetClubInfoParams(clubId: clubId), cancelToken: cancelToken);
+  final result = await useCase(GetClubInfoParams(clubId: clubId),
+      cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (club) => club,

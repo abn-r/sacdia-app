@@ -18,7 +18,8 @@ class ContactView extends StatelessWidget {
 
   // Canales centralizados aquí para cambiarlos rápido sin tocar i18n.
   static const String _supportEmail = 'sacdia.app@gmail.com';
-  static const String _whatsappNumber = '525555555555'; // TODO: actualizar al número oficial
+  static const String _whatsappNumber =
+      '525555555555'; // TODO: actualizar al número oficial
   static const String _whatsappDisplay = '+52 55 5555 5555';
 
   Future<void> _openEmail(BuildContext context) async {

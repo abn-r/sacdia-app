@@ -56,7 +56,6 @@ abstract class InsuranceRemoteDataSource {
     required int days,
     CancelToken? cancelToken,
   });
-
 }
 
 /// Implementación de la fuente de datos remota para seguros.
@@ -100,8 +99,8 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
             ? body
             : (body as Map<String, dynamic>)['data'] as List<dynamic>? ?? [];
         return rawList
-            .map((e) =>
-                MemberInsuranceModel.fromJson(e as Map<String, dynamic>))
+            .map(
+                (e) => MemberInsuranceModel.fromJson(e as Map<String, dynamic>))
             .toList();
       }
 
@@ -336,8 +335,8 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
             ? body
             : (body as Map<String, dynamic>)['data'] as List<dynamic>? ?? [];
         return rawList
-            .map((e) =>
-                MemberInsuranceModel.fromJson(e as Map<String, dynamic>))
+            .map(
+                (e) => MemberInsuranceModel.fromJson(e as Map<String, dynamic>))
             .toList();
       }
 
@@ -370,7 +369,8 @@ class InsuranceRemoteDataSourceImpl implements InsuranceRemoteDataSource {
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network'))
+            .toString();
       }
     } catch (e) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);

@@ -55,9 +55,8 @@ class EvidenceHistoryEntryModel extends Equatable {
       id: (json['id'] ?? '') as String,
       action: (json['action'] ?? '') as String,
       actorName: (json['actorName'] ?? json['actor_name']) as String?,
-      comment:
-          (json['comment'] ?? json['comments'] ?? json['rejection_reason'])
-              as String?,
+      comment: (json['comment'] ?? json['comments'] ?? json['rejection_reason'])
+          as String?,
       createdAt: DateTime.tryParse(
               (json['createdAt'] ?? json['created_at'] ?? '') as String) ??
           DateTime.now(),
@@ -112,10 +111,10 @@ class EvidenceReviewItemModel extends Equatable {
 
     final user = json['user'] as Map<String, dynamic>?;
     final memberName = (user?['name'] ??
-            user?['full_name'] ??
-            json['member_name'] ??
-            json['memberName'] ??
-            '') as String;
+        user?['full_name'] ??
+        json['member_name'] ??
+        json['memberName'] ??
+        '') as String;
     final memberPhotoUrl = (user?['photo_url'] ??
         user?['avatar'] ??
         json['member_photo_url']) as String?;
@@ -123,8 +122,7 @@ class EvidenceReviewItemModel extends Equatable {
     final filesRaw = json['files'];
     final files = filesRaw is List
         ? filesRaw
-            .map((e) =>
-                EvidenceFileModel.fromJson(e as Map<String, dynamic>))
+            .map((e) => EvidenceFileModel.fromJson(e as Map<String, dynamic>))
             .toList()
         : <EvidenceFileModel>[];
 
@@ -147,9 +145,9 @@ class EvidenceReviewItemModel extends Equatable {
       submittedAt: DateTime.tryParse(
               (json['submittedAt'] ?? json['submitted_at'] ?? '') as String) ??
           DateTime.now(),
-      fileCount: (json['fileCount'] ?? json['file_count'] ?? files.length)
-              as int? ??
-          files.length,
+      fileCount:
+          (json['fileCount'] ?? json['file_count'] ?? files.length) as int? ??
+              files.length,
       files: files,
       history: history,
     );

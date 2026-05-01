@@ -326,12 +326,11 @@ class _HonorBadge extends StatelessWidget {
 
   const _HonorBadge({required this.honor, required this.userHonor});
 
-  String? get _imageUrl =>
-      honor?.imageUrl?.isNotEmpty == true
-          ? honor!.imageUrl
-          : (userHonor.honorImageUrl?.isNotEmpty == true
-              ? userHonor.honorImageUrl
-              : null);
+  String? get _imageUrl => honor?.imageUrl?.isNotEmpty == true
+      ? honor!.imageUrl
+      : (userHonor.honorImageUrl?.isNotEmpty == true
+          ? userHonor.honorImageUrl
+          : null);
 
   @override
   Widget build(BuildContext context) {
@@ -373,8 +372,7 @@ class _PillsRow extends StatelessWidget {
 
   const _PillsRow({required this.honor, required this.userHonor});
 
-  int? get _skillLevel =>
-      honor?.skillLevel ?? userHonor.honorSkillLevel;
+  int? get _skillLevel => honor?.skillLevel ?? userHonor.honorSkillLevel;
 
   @override
   Widget build(BuildContext context) {

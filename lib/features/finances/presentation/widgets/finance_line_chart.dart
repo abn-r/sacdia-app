@@ -31,8 +31,7 @@ class FinanceLineChart extends ConsumerWidget {
     final gridColor = isDark
         ? Colors.white.withValues(alpha: 0.05)
         : Colors.black.withValues(alpha: 0.06);
-    final tooltipBg =
-        isDark ? const Color(0xFF1A1A1A) : Colors.white;
+    final tooltipBg = isDark ? const Color(0xFF1A1A1A) : Colors.white;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -56,9 +55,13 @@ class FinanceLineChart extends ConsumerWidget {
               ),
               Row(
                 children: [
-                  _LegendDot(color: _incomeColor, label: 'finances.widgets.chart_income'.tr()),
+                  _LegendDot(
+                      color: _incomeColor,
+                      label: 'finances.widgets.chart_income'.tr()),
                   const SizedBox(width: 12),
-                  _LegendDot(color: _expenseColor, label: 'finances.widgets.chart_expense'.tr()),
+                  _LegendDot(
+                      color: _expenseColor,
+                      label: 'finances.widgets.chart_expense'.tr()),
                 ],
               ),
             ],
@@ -153,8 +156,7 @@ class _MonthlyChart extends ConsumerWidget {
     }
 
     // Determine the number of days to plot (days in the month).
-    final daysInMonth =
-        DateTime(month.year, month.month + 1, 0).day;
+    final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
 
     final incomeSpots = <FlSpot>[];
     final expenseSpots = <FlSpot>[];
@@ -224,25 +226,18 @@ class _SummaryChart extends ConsumerWidget {
   }
 
   List<MonthlyBar> _filterBars(List<MonthlyBar> bars, String period) {
-    final sorted = [...bars]
-      ..sort((a, b) {
+    final sorted = [...bars]..sort((a, b) {
         final cmp = a.year.compareTo(b.year);
         return cmp != 0 ? cmp : a.month.compareTo(b.month);
       });
 
     switch (period) {
       case '3M':
-        return sorted.length > 3
-            ? sorted.sublist(sorted.length - 3)
-            : sorted;
+        return sorted.length > 3 ? sorted.sublist(sorted.length - 3) : sorted;
       case '6M':
-        return sorted.length > 6
-            ? sorted.sublist(sorted.length - 6)
-            : sorted;
+        return sorted.length > 6 ? sorted.sublist(sorted.length - 6) : sorted;
       case '1A':
-        return sorted.length > 12
-            ? sorted.sublist(sorted.length - 12)
-            : sorted;
+        return sorted.length > 12 ? sorted.sublist(sorted.length - 12) : sorted;
       case 'Todo':
       default:
         return sorted;
@@ -347,8 +342,7 @@ class _ChartView extends StatelessWidget {
                 return LineTooltipItem(
                   '\$${_formatAmount(spot.y)}',
                   TextStyle(
-                    color:
-                        isIncome ? _incomeColor : _expenseColor,
+                    color: isIncome ? _incomeColor : _expenseColor,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
@@ -428,7 +422,8 @@ class _ChartView extends StatelessWidget {
 
   String _formatYValue(double v) {
     if (v == 0) return '\$0';
-    if (v >= 1000) return '\$${(v / 1000).toStringAsFixed(v % 1000 == 0 ? 0 : 1)}k';
+    if (v >= 1000)
+      return '\$${(v / 1000).toStringAsFixed(v % 1000 == 0 ? 0 : 1)}k';
     return '\$${v.toStringAsFixed(0)}';
   }
 
@@ -482,8 +477,18 @@ class _ChartView extends StatelessWidget {
 
   String _buildXLabel(double value) {
     const monthNames = [
-      'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-      'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
+      'Ene',
+      'Feb',
+      'Mar',
+      'Abr',
+      'May',
+      'Jun',
+      'Jul',
+      'Ago',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dic',
     ];
 
     switch (period) {

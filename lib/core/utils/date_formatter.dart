@@ -27,7 +27,8 @@ class SacDateFormatter {
   static String dateTime(DateTime? date) => format(date, 'dd/MM/yyyy HH:mm');
 
   /// d MMM yyyy, HH:mm — "25 mar 2026, 14:30"
-  static String dateTimeShort(DateTime? date) => format(date, 'd MMM yyyy, HH:mm');
+  static String dateTimeShort(DateTime? date) =>
+      format(date, 'd MMM yyyy, HH:mm');
 
   /// HH:mm — "14:30"
   static String time(DateTime? date) => format(date, 'HH:mm');

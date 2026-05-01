@@ -53,8 +53,7 @@ class _SerpentinePainter extends CustomPainter {
     final double H = size.height;
 
     // Curva tipo S: control 1 hacia atrás, control 2 hacia adelante.
-    final double c1x =
-        goingRight ? startX - 60 * scale : startX + 60 * scale;
+    final double c1x = goingRight ? startX - 60 * scale : startX + 60 * scale;
     final double c2x = goingRight ? endX + 60 * scale : endX - 60 * scale;
 
     final Path path = Path()

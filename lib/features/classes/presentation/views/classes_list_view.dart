@@ -64,168 +64,167 @@ class ClassesListViewBody extends ConsumerWidget {
     final hasActiveClub = user?.authorization?.activeGrant?.sectionId != null;
 
     return classesAsync.when(
-          data: (classes) {
-            if (classes.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    HugeIcon(
-                        icon: HugeIcons.strokeRoundedSchool,
-                        size: 56,
-                        color: c.textTertiary),
-                    const SizedBox(height: 12),
-                    Text(
-                      'classes.list.empty'.tr(),
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: c.textSecondary,
-                      ),
-                    ),
-                  ],
+      data: (classes) {
+        if (classes.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                HugeIcon(
+                    icon: HugeIcons.strokeRoundedSchool,
+                    size: 56,
+                    color: c.textTertiary),
+                const SizedBox(height: 12),
+                Text(
+                  'classes.list.empty'.tr(),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: c.textSecondary,
+                  ),
                 ),
-              );
-            }
+              ],
+            ),
+          );
+        }
 
-            return RefreshIndicator(
-              color: AppColors.primary,
-              onRefresh: () async {
-                ref.invalidate(userClassesProvider);
-              },
-              child: ListView.builder(
-                padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 24),
-                itemCount: classes.length + 1, // +1 para el header
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(9),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryLight,
-                              borderRadius: BorderRadius.circular(12),
+        return RefreshIndicator(
+          color: AppColors.primary,
+          onRefresh: () async {
+            ref.invalidate(userClassesProvider);
+          },
+          child: ListView.builder(
+            padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 24),
+            itemCount: classes.length + 1, // +1 para el header
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(9),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryLight,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedSchool,
+                          size: 22,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'classes.list.title'.tr(),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineSmall
+                                  ?.copyWith(fontWeight: FontWeight.w700),
                             ),
-                            child: HugeIcon(
-                              icon: HugeIcons.strokeRoundedSchool,
-                              size: 22,
+                          ],
+                        ),
+                      ),
+                      if (hasActiveClub)
+                        Tooltip(
+                          message: 'classes.list.enroll_tooltip'.tr(),
+                          child: IconButton(
+                            onPressed: () => _openEnrollSheet(context),
+                            icon: HugeIcon(
+                              icon: HugeIcons.strokeRoundedBookmarkAdd02,
+                              size: 24,
                               color: AppColors.primary,
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'classes.list.title'.tr(),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineSmall
-                                      ?.copyWith(fontWeight: FontWeight.w700),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (hasActiveClub)
-                            Tooltip(
-                              message: 'classes.list.enroll_tooltip'.tr(),
-                              child: IconButton(
-                                onPressed: () => _openEnrollSheet(context),
-                                icon: HugeIcon(
-                                  icon: HugeIcons.strokeRoundedBookmarkAdd02,
-                                  size: 24,
-                                  color: AppColors.primary,
-                                ),
-                                style: IconButton.styleFrom(
-                                  backgroundColor: AppColors.primaryLight,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
+                            style: IconButton.styleFrom(
+                              backgroundColor: AppColors.primaryLight,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                        ],
-                      ),
-                    );
-                  }
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              }
 
-                  final classIndex = index - 1;
-                  final progressiveClass = classes[classIndex];
+              final classIndex = index - 1;
+              final progressiveClass = classes[classIndex];
 
-                  return StaggeredListItem(
-                    index: classIndex,
-                    initialDelay: const Duration(milliseconds: 80),
-                    staggerDelay: const Duration(milliseconds: 65),
-                    child: Consumer(
-                      builder: (context, progressRef, _) {
-                        final progressAsync = progressRef.watch(
-                            classWithProgressProvider(progressiveClass.id));
-                        final progress = progressAsync.whenOrNull(
-                              data: (cwp) => cwp.completionRatio,
-                            ) ??
-                            0.0;
-                        return ClassCard(
-                          progressiveClass: progressiveClass,
-                          progress: progress,
-                          isCurrent: classIndex == 0,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    ClassDetailWithProgressView(
-                                  classId: progressiveClass.id,
-                                ),
-                              ),
-                            );
-                          },
+              return StaggeredListItem(
+                index: classIndex,
+                initialDelay: const Duration(milliseconds: 80),
+                staggerDelay: const Duration(milliseconds: 65),
+                child: Consumer(
+                  builder: (context, progressRef, _) {
+                    final progressAsync = progressRef
+                        .watch(classWithProgressProvider(progressiveClass.id));
+                    final progress = progressAsync.whenOrNull(
+                          data: (cwp) => cwp.completionRatio,
+                        ) ??
+                        0.0;
+                    return ClassCard(
+                      progressiveClass: progressiveClass,
+                      progress: progress,
+                      isCurrent: classIndex == 0,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ClassDetailWithProgressView(
+                              classId: progressiveClass.id,
+                            ),
+                          ),
                         );
                       },
-                    ),
-                  );
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+        );
+      },
+      loading: () => const Center(child: SacLoading()),
+      error: (error, stack) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              HugeIcon(
+                  icon: HugeIcons.strokeRoundedAlert02,
+                  size: 56,
+                  color: AppColors.error),
+              const SizedBox(height: 16),
+              Text(
+                'classes.list.error_loading'.tr(),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                error.toString().replaceFirst('Exception: ', ''),
+                style: TextStyle(fontSize: 14, color: c.textSecondary),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              SacButton.primary(
+                text: 'common.retry'.tr(),
+                icon: HugeIcons.strokeRoundedRefresh,
+                onPressed: () {
+                  ref.invalidate(userClassesProvider);
                 },
               ),
-            );
-          },
-          loading: () => const Center(child: SacLoading()),
-          error: (error, stack) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  HugeIcon(
-                      icon: HugeIcons.strokeRoundedAlert02,
-                      size: 56,
-                      color: AppColors.error),
-                  const SizedBox(height: 16),
-                  Text(
-                    'classes.list.error_loading'.tr(),
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    error.toString().replaceFirst('Exception: ', ''),
-                    style: TextStyle(fontSize: 14, color: c.textSecondary),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  SacButton.primary(
-                    text: 'common.retry'.tr(),
-                    icon: HugeIcons.strokeRoundedRefresh,
-                    onPressed: () {
-                      ref.invalidate(userClassesProvider);
-                    },
-                  ),
-                ],
-              ),
-            ),
+            ],
           ),
+        ),
+      ),
     );
   }
 }

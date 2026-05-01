@@ -114,7 +114,8 @@ class _AchievementBadgeState extends State<AchievementBadge>
   @override
   Widget build(BuildContext context) {
     final isUnlocked = widget.visualState == AchievementVisualState.unlocked;
-    final isInProgress = widget.visualState == AchievementVisualState.inProgress;
+    final isInProgress =
+        widget.visualState == AchievementVisualState.inProgress;
     final isLocked = widget.visualState == AchievementVisualState.locked;
     final tierColor = achievementTierColor(widget.tier);
     final showSecret = widget.isSecret && !isUnlocked;
@@ -183,7 +184,8 @@ class _AchievementBadgeState extends State<AchievementBadge>
             ),
           ),
         ),
-        errorWidget: (context, url, error) => _FallbackBadgeIcon(size: widget.size),
+        errorWidget: (context, url, error) =>
+            _FallbackBadgeIcon(size: widget.size),
       );
     }
 
@@ -250,8 +252,7 @@ class _AchievementBadgeState extends State<AchievementBadge>
           AnimatedBuilder(
             animation: _pulseController,
             builder: (context, _) {
-              final scale =
-                  1.0 + (_pulseController.value * 0.3);
+              final scale = 1.0 + (_pulseController.value * 0.3);
               return Transform.scale(
                 scale: scale,
                 child: Container(

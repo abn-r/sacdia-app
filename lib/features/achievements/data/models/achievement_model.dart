@@ -53,7 +53,8 @@ class AchievementModel extends Equatable {
       ),
       name: safeString(json['name']),
       description: safeStringOrNull(json['description']),
-      badgeImageKey: safeStringOrNull(json['badge_image_key'] ?? json['badge_image']),
+      badgeImageKey:
+          safeStringOrNull(json['badge_image_key'] ?? json['badge_image']),
       typeRaw: safeStringOrNull(json['type']),
       scope: safeStringOrNull(json['scope']),
       tierRaw: safeStringOrNull(json['tier']),

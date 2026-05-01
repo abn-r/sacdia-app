@@ -237,8 +237,9 @@ class QuickAccessGrid extends ConsumerWidget {
           itemCount: filteredItems.length,
           itemBuilder: (context, index) {
             final item = filteredItems[index];
-            final resolvedRoute =
-                item.routeResolver != null ? item.routeResolver!(ref) : item.route;
+            final resolvedRoute = item.routeResolver != null
+                ? item.routeResolver!(ref)
+                : item.route;
             // resolvedRoute is guaranteed non-null here: items with null
             // resolution were already filtered out above.
             return _QuickAccessTile(item: item, resolvedRoute: resolvedRoute!);

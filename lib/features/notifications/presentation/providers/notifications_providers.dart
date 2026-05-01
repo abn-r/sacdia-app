@@ -76,9 +76,18 @@ class NotificationsInboxState {
 class NotificationsInboxNotifier extends Notifier<NotificationsInboxState> {
   static const _pageSize = 20;
   CancelToken? _currentToken;
+  // Tracks whether the notifier's lifecycle has ended (disposal or
+  // invalidation). Used to guard async callbacks that fire after disposal
+  // and would otherwise crash with "ProviderContainer already disposed".
+  bool _disposed = false;
 
   @override
   NotificationsInboxState build() {
+    _disposed = false;
+    ref.onDispose(() {
+      _disposed = true;
+      _currentToken?.cancel();
+    });
     // Carga la primera página al inicializar.
     Future.microtask(() => _loadPage(1, refresh: true));
     return const NotificationsInboxState(isLoading: true);
@@ -121,6 +130,12 @@ class NotificationsInboxNotifier extends Notifier<NotificationsInboxState> {
 
     _currentToken?.cancel();
     _currentToken = CancelToken();
+
+    // Guard: if the notifier was disposed while we were waiting (e.g. during
+    // a nuclear reset in tests or rapid navigation), bail out to avoid a
+    // "Tried to read a provider from a ProviderContainer that was already
+    // disposed" crash.
+    if (_disposed) return;
 
     final repository = ref.read(notificationsRepositoryProvider);
     final result = await repository.getHistory(

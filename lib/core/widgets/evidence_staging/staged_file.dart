@@ -130,9 +130,8 @@ class StagedFile extends Equatable {
       remoteUrl: identical(remoteUrl, _sentinel)
           ? this.remoteUrl
           : remoteUrl as String?,
-      mimeType: identical(mimeType, _sentinel)
-          ? this.mimeType
-          : mimeType as String?,
+      mimeType:
+          identical(mimeType, _sentinel) ? this.mimeType : mimeType as String?,
       uploadProgress: uploadProgress ?? this.uploadProgress,
       errorMessage: identical(errorMessage, _sentinel)
           ? this.errorMessage

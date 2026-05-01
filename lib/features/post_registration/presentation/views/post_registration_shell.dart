@@ -344,7 +344,11 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          tr('post_registration.shell.step_counter', namedArgs: {'current': '$currentStep', 'total': '3'}),
+                          tr('post_registration.shell.step_counter',
+                              namedArgs: {
+                                'current': '$currentStep',
+                                'total': '3'
+                              }),
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,

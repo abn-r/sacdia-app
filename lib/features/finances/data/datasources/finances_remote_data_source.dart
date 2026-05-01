@@ -130,8 +130,9 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final body = response.data as Map<String, dynamic>;
-        final json =
-            body.containsKey('data') ? body['data'] as Map<String, dynamic> : body;
+        final json = body.containsKey('data')
+            ? body['data'] as Map<String, dynamic>
+            : body;
         return FinanceSummaryModel.fromJson(json);
       }
 
@@ -160,8 +161,9 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final body = response.data as Map<String, dynamic>;
-        final json =
-            body.containsKey('data') ? body['data'] as Map<String, dynamic> : body;
+        final json = body.containsKey('data')
+            ? body['data'] as Map<String, dynamic>
+            : body;
         return FinanceTransactionModel.fromJson(json);
       }
 
@@ -194,7 +196,8 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
         'finance_category_id': categoryId,
         'amount': amount.toInt(),
         'description': description,
-        'finance_date': '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
+        'finance_date':
+            '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
         'year': year,
         'month': month,
         'club_section_id': clubSectionId,
@@ -208,8 +211,9 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final resp = response.data as Map<String, dynamic>;
-        final json =
-            resp.containsKey('data') ? resp['data'] as Map<String, dynamic> : resp;
+        final json = resp.containsKey('data')
+            ? resp['data'] as Map<String, dynamic>
+            : resp;
         return FinanceTransactionModel.fromJson(json);
       }
 
@@ -250,8 +254,9 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final resp = response.data as Map<String, dynamic>;
-        final json =
-            resp.containsKey('data') ? resp['data'] as Map<String, dynamic> : resp;
+        final json = resp.containsKey('data')
+            ? resp['data'] as Map<String, dynamic>
+            : resp;
         return FinanceTransactionModel.fromJson(json);
       }
 
@@ -308,8 +313,8 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
             ? body
             : (body as Map<String, dynamic>)['data'] as List<dynamic>? ?? [];
         return rawList
-            .map((e) =>
-                FinanceCategoryModel.fromJson(e as Map<String, dynamic>))
+            .map(
+                (e) => FinanceCategoryModel.fromJson(e as Map<String, dynamic>))
             .toList();
       }
 
@@ -387,7 +392,8 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network'))
+            .toString();
       }
     } catch (e) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);

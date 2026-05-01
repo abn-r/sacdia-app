@@ -115,8 +115,7 @@ class ResourceCard extends StatelessWidget {
                   height: 44,
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.10),
-                    borderRadius:
-                        BorderRadius.circular(AppTheme.radiusSM),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
                   ),
                   child: Stack(
                     alignment: Alignment.center,
@@ -134,8 +133,8 @@ class ResourceCard extends StatelessWidget {
                               horizontal: 3, vertical: 1),
                           decoration: BoxDecoration(
                             color: color,
-                            borderRadius: BorderRadius.circular(
-                                AppTheme.radiusXS),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusXS),
                           ),
                           child: Text(
                             label,

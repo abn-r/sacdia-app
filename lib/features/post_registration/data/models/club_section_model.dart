@@ -37,9 +37,8 @@ class ClubSectionModel extends Equatable {
 
     // Derivar slug del nombre si no viene explícito
     final explicitSlug = json['club_type_slug'] as String? ?? '';
-    final slug = explicitSlug.isNotEmpty
-        ? explicitSlug
-        : _slugFromName(clubTypeName);
+    final slug =
+        explicitSlug.isNotEmpty ? explicitSlug : _slugFromName(clubTypeName);
 
     return ClubSectionModel(
       id: rawId is int ? rawId : (int.tryParse(rawId?.toString() ?? '') ?? 0),

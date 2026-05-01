@@ -88,7 +88,8 @@ class CertificationsRemoteDataSourceImpl
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network'))
+            .toString();
       }
     } catch (e) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
@@ -271,8 +272,7 @@ class CertificationsRemoteDataSourceImpl
   // ── DELETE /certifications/users/:userId/certifications/:certificationId ─────
 
   @override
-  Future<void> unenrollCertification(
-      String userId, int certificationId) async {
+  Future<void> unenrollCertification(String userId, int certificationId) async {
     try {
       final response = await _dio.delete(
         '$_baseUrl${ApiEndpoints.certifications}/users/$userId/certifications/$certificationId',

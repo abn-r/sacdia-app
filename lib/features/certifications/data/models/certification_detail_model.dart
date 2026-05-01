@@ -29,8 +29,8 @@ class CertificationDetailModel extends Equatable {
       active: json['active'] as bool? ?? true,
       modulesCount: (json['modules_count'] ?? json['modulesCount'] ?? 0) as int,
       modules: (json['modules'] as List<dynamic>?)
-              ?.map((m) => CertificationModuleModel.fromJson(
-                  m as Map<String, dynamic>))
+              ?.map((m) =>
+                  CertificationModuleModel.fromJson(m as Map<String, dynamic>))
               .toList() ??
           [],
     );

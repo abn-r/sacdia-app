@@ -31,9 +31,7 @@ class HonorCategoryChip extends StatelessWidget {
         curve: Curves.easeInOut,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected
-              ? chipColor
-              : context.sac.surfaceVariant,
+          color: isSelected ? chipColor : context.sac.surfaceVariant,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Text(
@@ -41,9 +39,7 @@ class HonorCategoryChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-            color: isSelected
-                ? Colors.white
-                : context.sac.textSecondary,
+            color: isSelected ? Colors.white : context.sac.textSecondary,
           ),
         ),
       ),

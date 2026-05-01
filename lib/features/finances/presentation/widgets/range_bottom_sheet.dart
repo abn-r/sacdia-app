@@ -50,11 +50,9 @@ class _RangeBottomSheetState extends State<RangeBottomSheet> {
     setState(() => _selectedPreset = preset);
   }
 
-  void _setCustomStart(DateTime date) =>
-      setState(() => _customStart = date);
+  void _setCustomStart(DateTime date) => setState(() => _customStart = date);
 
-  void _setCustomEnd(DateTime date) =>
-      setState(() => _customEnd = date);
+  void _setCustomEnd(DateTime date) => setState(() => _customEnd = date);
 
   void _onApply() {
     widget.onApply(_selectedPreset, _customStart, _customEnd);
@@ -66,8 +64,7 @@ class _RangeBottomSheetState extends State<RangeBottomSheet> {
     return Container(
       decoration: BoxDecoration(
         color: context.sac.surface,
-        borderRadius:
-            const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
       child: Column(
@@ -244,15 +241,13 @@ class _DateField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatted = date != null
-        ? DateFormat('d MMM yy', 'es').format(date!)
-        : '—';
+    final formatted =
+        date != null ? DateFormat('d MMM yy', 'es').format(date!) : '—';
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: context.sac.surfaceVariant,
           borderRadius: BorderRadius.circular(12),

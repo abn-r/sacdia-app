@@ -27,15 +27,13 @@ final memberRankingsRepositoryProvider =
 /// - [AsyncValue.data(null)] — visibility = hidden (empty state, NOT error)
 /// - [AsyncValue.error(Failure)] — auth or network error
 final myRankingProvider =
-    FutureProvider.autoDispose.family<MyRankingView?, int>(
-        (ref, yearId) async {
+    FutureProvider.autoDispose.family<MyRankingView?, int>((ref, yearId) async {
   ref.keepAlive();
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
 
   final repo = ref.watch(memberRankingsRepositoryProvider);
-  final result =
-      await repo.getMyRanking(yearId, cancelToken: cancelToken);
+  final result = await repo.getMyRanking(yearId, cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw failure,

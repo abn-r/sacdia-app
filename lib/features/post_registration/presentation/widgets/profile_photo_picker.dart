@@ -93,7 +93,8 @@ class ProfilePhotoPicker extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: AppColors.primary,
                         shape: BoxShape.circle,
-                        border: Border.all(color: context.sac.surface, width: 3),
+                        border:
+                            Border.all(color: context.sac.surface, width: 3),
                         boxShadow: [
                           BoxShadow(
                             color: context.sac.shadow,

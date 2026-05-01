@@ -49,8 +49,8 @@ class ClubMemberModel extends ClubMember {
         user['birthday'] as String? ?? user['birth_date'] as String?;
 
     // Fecha de bautismo
-    final baptismDateRaw = user['baptism_date'] as String? ??
-        json['baptism_date'] as String?;
+    final baptismDateRaw =
+        user['baptism_date'] as String? ?? json['baptism_date'] as String?;
 
     return ClubMemberModel(
       userId: user['user_id'] as String? ??

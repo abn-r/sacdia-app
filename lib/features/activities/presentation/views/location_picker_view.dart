@@ -221,7 +221,8 @@ class _LocationPickerViewState extends State<LocationPickerView> {
     });
   }
 
-  Future<void> _animateTo(LatLng target, {double zoom = MapsConstants.searchResultZoom}) async {
+  Future<void> _animateTo(LatLng target,
+      {double zoom = MapsConstants.searchResultZoom}) async {
     final controller = await _mapCompleter.future;
     controller.animateCamera(
       CameraUpdate.newCameraPosition(
@@ -580,7 +581,8 @@ class _LocationBottomCard extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
+                disabledBackgroundColor:
+                    AppColors.primary.withValues(alpha: 0.5),
                 disabledForegroundColor: Colors.white.withValues(alpha: 0.7),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppTheme.radiusSM),
@@ -700,8 +702,7 @@ class _ShimmerLineState extends State<_ShimmerLine>
 class _LocationSearchDelegate extends SearchDelegate<_NominatimPlace?> {
   _LocationSearchDelegate()
       : super(
-          searchFieldLabel:
-              'activities.location_picker.search_hint'.tr(),
+          searchFieldLabel: 'activities.location_picker.search_hint'.tr(),
           keyboardType: TextInputType.streetAddress,
           textInputAction: TextInputAction.search,
         );
@@ -863,7 +864,8 @@ class _LocationSearchDelegate extends SearchDelegate<_NominatimPlace?> {
     return StatefulBuilder(
       builder: (context, setState) {
         // Iniciar búsqueda cuando el query cambia
-        if (query != _lastQuery || _isLoading == false && _results.isEmpty && !_hasError) {
+        if (query != _lastQuery ||
+            _isLoading == false && _results.isEmpty && !_hasError) {
           _scheduleSearch(query, (fn) {
             // Llamar setState del StatefulBuilder para refrescar la UI
             if (context.mounted) setState(fn);
@@ -883,8 +885,7 @@ class _LocationSearchDelegate extends SearchDelegate<_NominatimPlace?> {
           return _SearchStatusMessage(
             icon: HugeIcons.strokeRoundedWifiError01,
             title: 'activities.location_picker.search_error_title'.tr(),
-            subtitle:
-                'activities.location_picker.search_error_subtitle'.tr(),
+            subtitle: 'activities.location_picker.search_error_subtitle'.tr(),
             c: c,
           );
         }
@@ -892,8 +893,7 @@ class _LocationSearchDelegate extends SearchDelegate<_NominatimPlace?> {
         if (_results.isEmpty) {
           return _SearchStatusMessage(
             icon: HugeIcons.strokeRoundedLocation01,
-            title:
-                'activities.location_picker.search_no_results_title'.tr(),
+            title: 'activities.location_picker.search_no_results_title'.tr(),
             subtitle:
                 'activities.location_picker.search_no_results_subtitle'.tr(),
             c: c,

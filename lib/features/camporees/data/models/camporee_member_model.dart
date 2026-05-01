@@ -50,7 +50,8 @@ class CamporeeMemberModel extends Equatable {
       userId: safeString(users != null ? users['user_id'] : json['user_id']),
       userName: userName,
       userEmail: users != null ? safeStringOrNull(users['email']) : null,
-      userImageUrl: users != null ? safeStringOrNull(users['user_image']) : null,
+      userImageUrl:
+          users != null ? safeStringOrNull(users['user_image']) : null,
       clubName: safeStringOrNull(json['club_name']),
       insuranceVerified: safeBool(json['insurance_verified']),
       active: safeBool(json['active'], true),

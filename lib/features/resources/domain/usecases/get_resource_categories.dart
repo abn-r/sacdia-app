@@ -13,7 +13,8 @@ class GetResourceCategories
   GetResourceCategories(this.repository);
 
   @override
-  Future<Either<Failure, List<ResourceCategory>>> call(NoParams params, {CancelToken? cancelToken}) async {
+  Future<Either<Failure, List<ResourceCategory>>> call(NoParams params,
+      {CancelToken? cancelToken}) async {
     return await repository.getCategories(cancelToken: cancelToken);
   }
 }

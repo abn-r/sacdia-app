@@ -53,8 +53,8 @@ void main() {
     test('unknown resource does not throw and logs warning', () {
       // Should complete without throwing.
       expect(
-        () => RealtimeResourceRegistry.invalidate(
-            stubRef, 'unknown_resource', 1),
+        () =>
+            RealtimeResourceRegistry.invalidate(stubRef, 'unknown_resource', 1),
         returnsNormally,
       );
       // No dispatch should have been recorded.

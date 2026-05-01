@@ -177,7 +177,8 @@ class SectionCard extends StatelessWidget {
                       _TraceRow(
                         icon: HugeIcons.strokeRoundedAnalytics01,
                         color: AppColors.accentDark,
-                        text: 'evidence_folder.trace.preapproved_by'.tr(namedArgs: {
+                        text: 'evidence_folder.trace.preapproved_by'
+                            .tr(namedArgs: {
                           'name': section.lfApproverName!,
                           'date': section.lfApprovedAt != null
                               ? ' · ${dateFormat.format(section.lfApprovedAt!.toLocal())}'
@@ -193,7 +194,8 @@ class SectionCard extends StatelessWidget {
                       _TraceRow(
                         icon: HugeIcons.strokeRoundedCheckmarkCircle01,
                         color: AppColors.secondaryDark,
-                        text: 'evidence_folder.trace.validated_by'.tr(namedArgs: {
+                        text:
+                            'evidence_folder.trace.validated_by'.tr(namedArgs: {
                           'name': section.unionApproverName!,
                           'date': section.unionApprovedAt != null
                               ? ' · ${dateFormat.format(section.unionApprovedAt!.toLocal())}'

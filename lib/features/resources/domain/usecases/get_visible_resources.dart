@@ -14,8 +14,8 @@ class GetVisibleResources
 
   @override
   Future<Either<Failure, PaginatedResources>> call(
-    GetVisibleResourcesParams params, {CancelToken? cancelToken}
-  ) async {
+      GetVisibleResourcesParams params,
+      {CancelToken? cancelToken}) async {
     return await repository.getVisibleResources(
       page: params.page,
       limit: params.limit,

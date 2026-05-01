@@ -22,155 +22,155 @@ class ProfileClassesSection extends ConsumerWidget {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
       child: classesAsync.when(
-      loading: () => _ClassesSkeleton(key: const ValueKey('classes-skeleton')),
-      error: (e, _) => Padding(
-        key: const ValueKey('classes-error'),
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Center(
-          child: Text(
-            'profile.classes_section.error_load'.tr(),
-            style: TextStyle(color: AppColors.error, fontSize: 14),
+        loading: () =>
+            _ClassesSkeleton(key: const ValueKey('classes-skeleton')),
+        error: (e, _) => Padding(
+          key: const ValueKey('classes-error'),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Center(
+            child: Text(
+              'profile.classes_section.error_load'.tr(),
+              style: TextStyle(color: AppColors.error, fontSize: 14),
+            ),
           ),
         ),
-      ),
-      data: (classes) {
-        if (classes.isEmpty) {
-          return Padding(
-            key: const ValueKey('classes-data'),
-            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
-            child: Column(
-              children: [
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedSchool,
-                  size: 48,
-                  color: context.sac.textTertiary,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'profile.classes_section.no_classes'.tr(),
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: context.sac.textSecondary,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-                SacButton.outline(
-                  text: 'profile.classes_section.browse_classes'.tr(),
-                  icon: HugeIcons.strokeRoundedAdd01,
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const ClassesListView(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          );
-        }
-
-        return Column(
-          key: const ValueKey('classes-data'),
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Class header banner
-            Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(
-                    color: AppColors.primary.withAlpha(80),
-                    width: 1.5,
-                  ),
-                  bottom: BorderSide(
-                    color: AppColors.primary.withAlpha(80),
-                    width: 1.5,
-                  ),
-                ),
-                color: AppColors.primary.withAlpha(10),
-              ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
+        data: (classes) {
+          if (classes.isEmpty) {
+            return Padding(
+              key: const ValueKey('classes-data'),
+              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
+              child: Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.school,
-                      color: Colors.white,
-                      size: 22,
-                    ),
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedSchool,
+                    size: 48,
+                    color: context.sac.textTertiary,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'profile.classes_section.my_classes_header'.tr(),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 17,
-                        color: AppColors.primary,
-                      ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'profile.classes_section.no_classes'.tr(),
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: context.sac.textSecondary,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                  // Count badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withAlpha(20),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppColors.primary.withAlpha(60),
-                      ),
-                    ),
-                    child: Text(
-                      '${classes.length}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
-                      ),
-                    ),
+                  const SizedBox(height: 20),
+                  SacButton.outline(
+                    text: 'profile.classes_section.browse_classes'.tr(),
+                    icon: HugeIcons.strokeRoundedAdd01,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ClassesListView(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
-            ),
+            );
+          }
 
-            // Classes grid (3 columns)
-            GridView.builder(
-              // shrinkWrap OK: progressive classes per user are naturally
-              // bounded (typically < 10 total classes). Lives inside a Column
-              // that is itself inside the profile's outer scroll view —
-              // intrinsic height is required.
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                childAspectRatio: 0.78,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
+          return Column(
+            key: const ValueKey('classes-data'),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Class header banner
+              Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(
+                      color: AppColors.primary.withAlpha(80),
+                      width: 1.5,
+                    ),
+                    bottom: BorderSide(
+                      color: AppColors.primary.withAlpha(80),
+                      width: 1.5,
+                    ),
+                  ),
+                  color: AppColors.primary.withAlpha(10),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.school,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'profile.classes_section.my_classes_header'.tr(),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 17,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                    // Count badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withAlpha(20),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppColors.primary.withAlpha(60),
+                        ),
+                      ),
+                      child: Text(
+                        '${classes.length}',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              itemCount: classes.length,
-              itemBuilder: (context, index) {
-                final progressiveClass = classes[index];
-                return _ClassGridItem(
-                  progressiveClass: progressiveClass,
-                );
-              },
-            ),
-          ],
-        );
-      },
-    ),
+
+              // Classes grid (3 columns)
+              GridView.builder(
+                // shrinkWrap OK: progressive classes per user are naturally
+                // bounded (typically < 10 total classes). Lives inside a Column
+                // that is itself inside the profile's outer scroll view —
+                // intrinsic height is required.
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  childAspectRatio: 0.78,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                ),
+                itemCount: classes.length,
+                itemBuilder: (context, index) {
+                  final progressiveClass = classes[index];
+                  return _ClassGridItem(
+                    progressiveClass: progressiveClass,
+                  );
+                },
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -222,9 +222,7 @@ class _ClassGridItem extends ConsumerWidget {
                     color: classColor.withAlpha(20),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: isInvested
-                          ? classColor
-                          : classColor.withAlpha(50),
+                      color: isInvested ? classColor : classColor.withAlpha(50),
                       width: isInvested ? 2 : 1,
                     ),
                   ),
@@ -332,22 +330,24 @@ class _ClassesSkeleton extends StatelessWidget {
           const SizedBox(height: 10),
           // Simulate a row of 3 class cards
           Row(
-            children: List.generate(3, (i) => Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(left: i == 0 ? 0 : 5, right: i == 2 ? 0 : 5),
-                child: Container(
-                  height: 90,
-                  decoration: BoxDecoration(
-                    color: skeletonColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            )),
+            children: List.generate(
+                3,
+                (i) => Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                            left: i == 0 ? 0 : 5, right: i == 2 ? 0 : 5),
+                        child: Container(
+                          height: 90,
+                          decoration: BoxDecoration(
+                            color: skeletonColor,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    )),
           ),
         ],
       ),
     );
   }
 }
-

@@ -83,7 +83,8 @@ class EvidenceReviewDetailView extends ConsumerWidget {
 
                 // ── Files ────────────────────────────────────────────────
                 _Section(
-                  title: 'coordinator.evidence_review.detail.section_files'.tr(),
+                  title:
+                      'coordinator.evidence_review.detail.section_files'.tr(),
                   icon: HugeIcons.strokeRoundedAttachment01,
                   child: EvidenceFileGallery(files: item.files),
                 ),
@@ -92,7 +93,8 @@ class EvidenceReviewDetailView extends ConsumerWidget {
                 // ── History ──────────────────────────────────────────────
                 if (item.history.isNotEmpty)
                   _Section(
-                    title: 'coordinator.evidence_review.detail.section_history'.tr(),
+                    title: 'coordinator.evidence_review.detail.section_history'
+                        .tr(),
                     icon: HugeIcons.strokeRoundedClock01,
                     child: _HistoryTimeline(history: item.history, c: c),
                   ),
@@ -259,10 +261,7 @@ class _MemberHeader extends StatelessWidget {
                     Expanded(
                       child: Text(
                         item.memberName,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleSmall
-                            ?.copyWith(
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w700,
                               color: c.text,
                             ),
@@ -321,8 +320,7 @@ class _MemberHeader extends StatelessWidget {
                               .format(item.submittedAt.toLocal()),
                         },
                       ),
-                      style:
-                          TextStyle(fontSize: 11, color: c.textTertiary),
+                      style: TextStyle(fontSize: 11, color: c.textTertiary),
                     ),
                   ],
                 ),
@@ -556,8 +554,7 @@ class _HistoryTimeline extends StatelessWidget {
                           ),
                         ),
                       ],
-                      if (item.comment != null &&
-                          item.comment!.isNotEmpty) ...[
+                      if (item.comment != null && item.comment!.isNotEmpty) ...[
                         const SizedBox(height: 6),
                         Container(
                           width: double.infinity,

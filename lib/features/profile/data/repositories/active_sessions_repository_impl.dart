@@ -33,8 +33,7 @@ class ActiveSessionsRepositoryImpl implements ActiveSessionsRepository {
       AppLogger.w('Sin red — no se puede cargar sesiones activas', tag: _tag);
       return Left(
         NetworkFailure(
-            message:
-                tr('profile.active_sessions.errors.no_connection_list')),
+            message: tr('profile.active_sessions.errors.no_connection_list')),
       );
     }
 
@@ -68,8 +67,7 @@ class ActiveSessionsRepositoryImpl implements ActiveSessionsRepository {
     if (!hasConnection) {
       return Left(
         NetworkFailure(
-            message:
-                tr('profile.active_sessions.errors.no_connection_revoke')),
+            message: tr('profile.active_sessions.errors.no_connection_revoke')),
       );
     }
 
@@ -118,7 +116,8 @@ class ActiveSessionsRepositoryImpl implements ActiveSessionsRepository {
       );
       return Left(ServerFailure(message: e.message, code: e.code));
     } on DioException catch (e) {
-      AppLogger.w('DioException al revocar todas las sesiones', tag: _tag, error: e);
+      AppLogger.w('DioException al revocar todas las sesiones',
+          tag: _tag, error: e);
       return Left(NetworkFailure(
         message: tr('profile.active_sessions.errors.network_revoke_all'),
         code: e.response?.statusCode,

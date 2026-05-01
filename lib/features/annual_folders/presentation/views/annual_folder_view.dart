@@ -79,8 +79,7 @@ class _FolderContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.sac;
-    final submitState =
-        ref.watch(submitFolderNotifierProvider(folder.id));
+    final submitState = ref.watch(submitFolderNotifierProvider(folder.id));
     final isOpen = folder.folderStatus == AnnualFolderStatus.open;
 
     return RefreshIndicator(
@@ -223,8 +222,8 @@ class _FolderContent extends ConsumerWidget {
             content: Text('annual_folders.submit_success'.tr()),
             backgroundColor: AppColors.secondary,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }
@@ -274,7 +273,8 @@ class _FolderHeaderCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'annual_folders.folder_title'.tr(namedArgs: {'year': '${folder.year}'}),
+                      'annual_folders.folder_title'
+                          .tr(namedArgs: {'year': '${folder.year}'}),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -295,8 +295,8 @@ class _FolderHeaderCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: statusCfg.bg,
                   borderRadius: BorderRadius.circular(20),
@@ -450,8 +450,14 @@ class _SectionCardState extends ConsumerState<_SectionCard> {
                         ),
                         Text(
                           widget.section.evidenceCount == 1
-                              ? 'annual_folders.evidence_count_one'.tr(namedArgs: {'count': '${widget.section.evidenceCount}'})
-                              : 'annual_folders.evidence_count_other'.tr(namedArgs: {'count': '${widget.section.evidenceCount}'}),
+                              ? 'annual_folders.evidence_count_one'.tr(
+                                  namedArgs: {
+                                      'count': '${widget.section.evidenceCount}'
+                                    })
+                              : 'annual_folders.evidence_count_other'.tr(
+                                  namedArgs: {
+                                      'count': '${widget.section.evidenceCount}'
+                                    }),
                           style: TextStyle(
                             fontSize: 12,
                             color: c.textTertiary,
@@ -496,17 +502,15 @@ class _SectionCardState extends ConsumerState<_SectionCard> {
                     context: context,
                     builder: (_) => AlertDialog(
                       title: Text('annual_folders.delete_evidence_title'.tr()),
-                      content: Text(
-                          'annual_folders.delete_evidence_confirm'.tr(namedArgs: {'fileName': evidence.fileName})),
+                      content: Text('annual_folders.delete_evidence_confirm'
+                          .tr(namedArgs: {'fileName': evidence.fileName})),
                       actions: [
                         TextButton(
-                          onPressed: () =>
-                              Navigator.of(context).pop(false),
+                          onPressed: () => Navigator.of(context).pop(false),
                           child: Text('common.cancel'.tr()),
                         ),
                         TextButton(
-                          onPressed: () =>
-                              Navigator.of(context).pop(true),
+                          onPressed: () => Navigator.of(context).pop(true),
                           child: Text(
                             'common.delete'.tr(),
                             style: const TextStyle(color: AppColors.error),
@@ -657,8 +661,7 @@ class _UploadEvidenceSheet extends ConsumerStatefulWidget {
       _UploadEvidenceSheetState();
 }
 
-class _UploadEvidenceSheetState
-    extends ConsumerState<_UploadEvidenceSheet> {
+class _UploadEvidenceSheetState extends ConsumerState<_UploadEvidenceSheet> {
   final _formKey = GlobalKey<FormState>();
   final _fileUrlCtrl = TextEditingController();
   final _fileNameCtrl = TextEditingController();
@@ -706,7 +709,6 @@ class _UploadEvidenceSheetState
                   ),
                 ),
                 const SizedBox(height: 16),
-
                 Text(
                   'annual_folders.add_evidence_title'.tr(),
                   style: TextStyle(
@@ -716,14 +718,14 @@ class _UploadEvidenceSheetState
                   ),
                 ),
                 Text(
-                  'annual_folders.section_label'.tr(namedArgs: {'sectionName': widget.sectionName}),
+                  'annual_folders.section_label'
+                      .tr(namedArgs: {'sectionName': widget.sectionName}),
                   style: TextStyle(
                     fontSize: 13,
                     color: c.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 20),
-
                 if (uploadState.errorMessage != null) ...[
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -753,7 +755,6 @@ class _UploadEvidenceSheetState
                   ),
                   const SizedBox(height: 12),
                 ],
-
                 _Label(label: 'annual_folders.file_url_label'.tr()),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -772,7 +773,6 @@ class _UploadEvidenceSheetState
                   },
                 ),
                 const SizedBox(height: 16),
-
                 _Label(label: 'annual_folders.file_name_label'.tr()),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -790,7 +790,6 @@ class _UploadEvidenceSheetState
                   },
                 ),
                 const SizedBox(height: 16),
-
                 _Label(label: 'annual_folders.notes_label'.tr()),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -802,7 +801,6 @@ class _UploadEvidenceSheetState
                   ),
                 ),
                 const SizedBox(height: 24),
-
                 SacButton.primary(
                   text: 'annual_folders.add_evidence_title'.tr(),
                   icon: HugeIcons.strokeRoundedUpload01,
@@ -832,8 +830,7 @@ class _UploadEvidenceSheetState
           : null,
       filled: true,
       fillColor: c.surface,
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: c.border),
@@ -844,8 +841,7 @@ class _UploadEvidenceSheetState
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide:
-            const BorderSide(color: AppColors.primary, width: 1.5),
+        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -858,9 +854,7 @@ class _UploadEvidenceSheetState
     final formState = _formKey.currentState;
     if (formState == null || !formState.validate()) return;
 
-    ref
-        .read(uploadEvidenceNotifierProvider(widget.folderId).notifier)
-        .reset();
+    ref.read(uploadEvidenceNotifierProvider(widget.folderId).notifier).reset();
 
     final success = await ref
         .read(uploadEvidenceNotifierProvider(widget.folderId).notifier)
@@ -868,9 +862,7 @@ class _UploadEvidenceSheetState
           sectionId: widget.sectionId,
           fileUrl: _fileUrlCtrl.text.trim(),
           fileName: _fileNameCtrl.text.trim(),
-          notes: _notesCtrl.text.trim().isEmpty
-              ? null
-              : _notesCtrl.text.trim(),
+          notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
           enrollmentId: widget.enrollmentId,
         );
 
@@ -880,8 +872,8 @@ class _UploadEvidenceSheetState
           content: Text('annual_folders.evidence_added_success'.tr()),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
       Navigator.of(context).pop();

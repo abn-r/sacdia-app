@@ -28,25 +28,21 @@ class SacColors {
   Color get background =>
       _isDark ? AppColors.darkBackground : AppColors.lightBackground;
 
-  Color get surface =>
-      _isDark ? AppColors.darkSurface : AppColors.lightSurface;
+  Color get surface => _isDark ? AppColors.darkSurface : AppColors.lightSurface;
 
   Color get surfaceVariant =>
       _isDark ? AppColors.darkSurfaceVariant : AppColors.lightSurfaceVariant;
 
   // ── Borders ───────────────────────────────────────────────────
-  Color get border =>
-      _isDark ? AppColors.darkBorder : AppColors.lightBorder;
+  Color get border => _isDark ? AppColors.darkBorder : AppColors.lightBorder;
 
   Color get borderLight =>
       _isDark ? AppColors.darkSurfaceVariant : AppColors.lightBorderLight;
 
-  Color get divider =>
-      _isDark ? AppColors.darkDivider : AppColors.lightDivider;
+  Color get divider => _isDark ? AppColors.darkDivider : AppColors.lightDivider;
 
   // ── Text ──────────────────────────────────────────────────────
-  Color get text =>
-      _isDark ? AppColors.darkText : AppColors.lightText;
+  Color get text => _isDark ? AppColors.darkText : AppColors.lightText;
 
   Color get textSecondary =>
       _isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;

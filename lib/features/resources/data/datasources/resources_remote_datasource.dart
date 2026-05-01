@@ -85,7 +85,8 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
   }
 
   @override
-  Future<ResourceModel> getResource(String id, {CancelToken? cancelToken}) async {
+  Future<ResourceModel> getResource(String id,
+      {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.resources}/me/$id',
@@ -149,7 +150,8 @@ class ResourcesRemoteDataSourceImpl implements ResourcesRemoteDataSource {
   }
 
   @override
-  Future<List<ResourceCategoryModel>> getCategories({CancelToken? cancelToken}) async {
+  Future<List<ResourceCategoryModel>> getCategories(
+      {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.resourceCategories}',

@@ -122,8 +122,9 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
     // parent rebuilt — making _queueFiles return [] and the sheet show the
     // premature "all done" state (Bug B).
     if (oldWidget.existingFiles != widget.existingFiles) {
-      final queueFiles =
-          _allFiles.where((f) => f.status != StagedFileStatus.uploaded).toList();
+      final queueFiles = _allFiles
+          .where((f) => f.status != StagedFileStatus.uploaded)
+          .toList();
       _allFiles = [...widget.existingFiles, ...queueFiles];
     }
   }
@@ -137,9 +138,8 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
   /// completed, or errored). Excludes already-remote (`uploaded`) files.
   /// Used to feed the upload progress sheet so it always sees the full queue
   /// regardless of the individual file status transitions.
-  List<StagedFile> get _queueFiles => _allFiles
-      .where((f) => f.status != StagedFileStatus.uploaded)
-      .toList();
+  List<StagedFile> get _queueFiles =>
+      _allFiles.where((f) => f.status != StagedFileStatus.uploaded).toList();
 
   bool get _hasLocalFiles => _localFiles.isNotEmpty;
 
@@ -226,7 +226,8 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
       AppLogger.e('Error al seleccionar imagen', error: e);
       if (mounted) {
         // ignore: use_build_context_synchronously
-        _showErrorSnackbar(context, tr('core.evidence_staging.error_select_image'));
+        _showErrorSnackbar(
+            context, tr('core.evidence_staging.error_select_image'));
       }
     }
   }
@@ -241,8 +242,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
       if (result == null || result.files.isEmpty || !mounted) return;
 
       // Validate file sizes before staging.
-      final validPdfs =
-          result.files.where((pf) => pf.path != null).toList();
+      final validPdfs = result.files.where((pf) => pf.path != null).toList();
       final oversized = validPdfs.where((pf) => pf.size > _maxFileSizeBytes);
       final acceptedPdfs =
           validPdfs.where((pf) => pf.size <= _maxFileSizeBytes).toList();
@@ -276,7 +276,8 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
       AppLogger.e('Error al seleccionar PDF', error: e);
       if (mounted) {
         // ignore: use_build_context_synchronously
-        _showErrorSnackbar(context, tr('core.evidence_staging.error_select_pdf'));
+        _showErrorSnackbar(
+            context, tr('core.evidence_staging.error_select_pdf'));
       }
     }
   }
@@ -305,7 +306,8 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
     } catch (e) {
       AppLogger.e('Error al eliminar archivo', error: e);
       if (mounted) {
-        _showErrorSnackbar(context, tr('core.evidence_staging.error_delete_file'));
+        _showErrorSnackbar(
+            context, tr('core.evidence_staging.error_delete_file'));
       }
     }
   }

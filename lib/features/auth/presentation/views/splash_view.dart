@@ -86,8 +86,7 @@ class _SplashViewState extends ConsumerState<SplashView>
         ),
         const SizedBox(height: 16),
         FilledButton.icon(
-          onPressed: () =>
-              ref.read(appBootstrapProvider.notifier).retry(),
+          onPressed: () => ref.read(appBootstrapProvider.notifier).retry(),
           icon: const Icon(Icons.refresh_rounded),
           label: Text('common.retry'.tr()),
         ),
@@ -165,7 +164,8 @@ class _SplashViewState extends ConsumerState<SplashView>
                 child: Text(
                   'by Sarza Roja',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: context.sac.textTertiary, fontWeight: FontWeight.w500),
+                      color: context.sac.textTertiary,
+                      fontWeight: FontWeight.w500),
                 ),
               ),
             ),

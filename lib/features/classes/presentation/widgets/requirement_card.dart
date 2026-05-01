@@ -55,8 +55,8 @@ class RequirementCard extends StatelessWidget {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: _typeColor(requirement.type)
-                          .withValues(alpha: 0.12),
+                      color:
+                          _typeColor(requirement.type).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Center(
@@ -74,13 +74,11 @@ class RequirementCard extends StatelessWidget {
                       children: [
                         Text(
                           requirement.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: c.text,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: c.text,
+                                  ),
                         ),
                         if (requirement.description != null &&
                             requirement.description!.isNotEmpty) ...[
@@ -89,13 +87,11 @@ class RequirementCard extends StatelessWidget {
                             requirement.description!,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                  color: c.textSecondary,
-                                  height: 1.4,
-                                ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: c.textSecondary,
+                                      height: 1.4,
+                                    ),
                           ),
                         ],
                         if (requirement.type == RequirementType.honor &&

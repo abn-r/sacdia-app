@@ -64,7 +64,8 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
   void initState() {
     super.initState();
     // Auto-show response field if there is an existing response.
-    _showResponse = widget.textResponse != null && widget.textResponse!.isNotEmpty;
+    _showResponse =
+        widget.textResponse != null && widget.textResponse!.isNotEmpty;
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────

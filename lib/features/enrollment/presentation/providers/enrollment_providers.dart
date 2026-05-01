@@ -44,8 +44,7 @@ final createEnrollmentUseCaseProvider = Provider<CreateEnrollment>((ref) {
 
 /// Carga la inscripción activa del usuario en su sección de club actual.
 /// Depende de [clubContextProvider] como fuente de verdad.
-final currentEnrollmentProvider =
-    FutureProvider<Enrollment?>((ref) async {
+final currentEnrollmentProvider = FutureProvider<Enrollment?>((ref) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
 
@@ -105,8 +104,7 @@ class EnrollmentFormState {
 
 // ── Create / Update notifier ──────────────────────────────────────────────────
 
-class EnrollmentFormNotifier
-    extends AutoDisposeNotifier<EnrollmentFormState> {
+class EnrollmentFormNotifier extends AutoDisposeNotifier<EnrollmentFormState> {
   @override
   EnrollmentFormState build() => const EnrollmentFormState();
 

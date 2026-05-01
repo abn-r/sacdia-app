@@ -15,7 +15,8 @@ class SectionProgress extends Equatable {
   });
 
   @override
-  List<Object?> get props => [sectionId, sectionName, completed, completionDate];
+  List<Object?> get props =>
+      [sectionId, sectionName, completed, completionDate];
 }
 
 /// Progreso de un módulo dentro de una certificación

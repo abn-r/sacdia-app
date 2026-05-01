@@ -31,12 +31,9 @@ class SyncCacheSection extends ConsumerWidget {
     final c = context.sac;
 
     final info = infoAsync.valueOrNull;
-    final sizeLabel = info == null
-        ? '—'
-        : formatBytes(info.totalBytes);
-    final lastSyncLabel = info == null
-        ? '—'
-        : formatRelativeTime(info.lastSyncAt);
+    final sizeLabel = info == null ? '—' : formatBytes(info.totalBytes);
+    final lastSyncLabel =
+        info == null ? '—' : formatRelativeTime(info.lastSyncAt);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -48,8 +45,7 @@ class SyncCacheSection extends ConsumerWidget {
             SettingTile(
               icon: HugeIcons.strokeRoundedDatabase01,
               title: 'settings.clear_cache_tile'.tr(),
-              subtitle:
-                  '${'settings.cache_size_label'.tr()}: $sizeLabel',
+              subtitle: '${'settings.cache_size_label'.tr()}: $sizeLabel',
               iconColor: AppColors.primary,
               trailing: clearState.inProgress
                   ? const SizedBox(
@@ -78,9 +74,7 @@ class SyncCacheSection extends ConsumerWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : null,
-              onTap: syncState.inProgress
-                  ? null
-                  : () => _runSync(context, ref),
+              onTap: syncState.inProgress ? null : () => _runSync(context, ref),
             ),
             _Divider(color: c.borderLight),
             // ── Tile 3: Última sincronización ────────────────────────────

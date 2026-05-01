@@ -28,7 +28,8 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
         _baseUrl = baseUrl;
 
   @override
-  Future<DashboardSummaryModel> getDashboardSummary({CancelToken? cancelToken}) async {
+  Future<DashboardSummaryModel> getDashboardSummary(
+      {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.dashboard}/summary',
@@ -70,7 +71,8 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
     try {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['message'] ?? e.message ?? tr('common.error_network')).toString();
+        return (data['message'] ?? e.message ?? tr('common.error_network'))
+            .toString();
       }
     } catch (e) {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);

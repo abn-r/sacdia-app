@@ -112,7 +112,8 @@ class _LoginViewState extends ConsumerState<LoginView> {
         ? (authState.error?.toString() ?? 'auth.login_error'.tr())
         : null;
     final cooldownMessage = _isCoolingDown
-        ? 'auth.cooldown_message'.tr(namedArgs: {'seconds': '$_cooldownRemaining'})
+        ? 'auth.cooldown_message'
+            .tr(namedArgs: {'seconds': '$_cooldownRemaining'})
         : null;
 
     final logoSize = Responsive.authLogoSize(context) * 1.5;

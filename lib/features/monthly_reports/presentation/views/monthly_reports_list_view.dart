@@ -53,8 +53,8 @@ class MonthlyReportsListView extends ConsumerWidget {
         loading: () => const Center(child: SacLoading()),
         error: (e, _) => _ErrorBody(
           message: e.toString().replaceFirst('Exception: ', ''),
-          onRetry: () => ref
-              .invalidate(monthlyReportsByEnrollmentProvider(enrollmentId)),
+          onRetry: () =>
+              ref.invalidate(monthlyReportsByEnrollmentProvider(enrollmentId)),
         ),
         data: (reports) {
           if (reports.isEmpty) {
@@ -71,8 +71,8 @@ class MonthlyReportsListView extends ConsumerWidget {
 
           return RefreshIndicator(
             color: AppColors.primary,
-            onRefresh: () async => ref.invalidate(
-                monthlyReportsByEnrollmentProvider(enrollmentId)),
+            onRefresh: () async => ref
+                .invalidate(monthlyReportsByEnrollmentProvider(enrollmentId)),
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: [
@@ -221,8 +221,8 @@ class _ReportCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: statusCfg.bg,
                     borderRadius: BorderRadius.circular(20),

@@ -89,8 +89,7 @@ class _StaggeredListItemState extends State<StaggeredListItem>
     if (widget.animate) {
       // Cap individual item delay so very long lists don't feel broken.
       final cappedIndex = widget.index.clamp(0, 10);
-      final delay = widget.initialDelay +
-          widget.staggerDelay * cappedIndex;
+      final delay = widget.initialDelay + widget.staggerDelay * cappedIndex;
       Future.delayed(delay, () {
         if (mounted) _controller.forward();
       });
@@ -156,8 +155,7 @@ class StaggeredColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     // Respect system reduced-motion preference.
     final mediaQuery = MediaQuery.of(context);
-    final shouldAnimate =
-        animate && !mediaQuery.disableAnimations;
+    final shouldAnimate = animate && !mediaQuery.disableAnimations;
 
     return Column(
       crossAxisAlignment: crossAxisAlignment,

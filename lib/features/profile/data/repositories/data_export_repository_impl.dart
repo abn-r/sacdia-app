@@ -54,8 +54,11 @@ class DataExportRepositoryImpl implements DataExportRepository {
         code: e.response?.statusCode,
       ));
     } catch (e) {
-      AppLogger.e('Error inesperado al solicitar exportación', tag: _tag, error: e);
-      return Left(ServerFailure(message: tr('profile.data_export.errors.unexpected', namedArgs: {'detail': '$e'})));
+      AppLogger.e('Error inesperado al solicitar exportación',
+          tag: _tag, error: e);
+      return Left(ServerFailure(
+          message: tr('profile.data_export.errors.unexpected',
+              namedArgs: {'detail': '$e'})));
     }
   }
 
@@ -88,8 +91,11 @@ class DataExportRepositoryImpl implements DataExportRepository {
         code: e.response?.statusCode,
       ));
     } catch (e) {
-      AppLogger.e('Error inesperado al listar exportaciones', tag: _tag, error: e);
-      return Left(ServerFailure(message: tr('profile.data_export.errors.unexpected', namedArgs: {'detail': '$e'})));
+      AppLogger.e('Error inesperado al listar exportaciones',
+          tag: _tag, error: e);
+      return Left(ServerFailure(
+          message: tr('profile.data_export.errors.unexpected',
+              namedArgs: {'detail': '$e'})));
     }
   }
 
@@ -130,7 +136,9 @@ class DataExportRepositoryImpl implements DataExportRepository {
         tag: _tag,
         error: e,
       );
-      return Left(ServerFailure(message: tr('profile.data_export.errors.unexpected', namedArgs: {'detail': '$e'})));
+      return Left(ServerFailure(
+          message: tr('profile.data_export.errors.unexpected',
+              namedArgs: {'detail': '$e'})));
     }
   }
 }

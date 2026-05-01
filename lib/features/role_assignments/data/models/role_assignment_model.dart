@@ -36,8 +36,7 @@ class RoleAssignmentModel extends Equatable {
 
     return RoleAssignmentModel(
       id: (json['id'] ?? json['assignment_id']) as int,
-      clubSectionId:
-          (json['club_section_id'] ?? section?['id'] ?? 0) as int,
+      clubSectionId: (json['club_section_id'] ?? section?['id'] ?? 0) as int,
       userId: (json['user_id'] ?? '') as String,
       roleId: (json['role_id'] ?? role?['id'] ?? 0) as int,
       roleName: role?['name'] as String? ?? json['role_name'] as String?,

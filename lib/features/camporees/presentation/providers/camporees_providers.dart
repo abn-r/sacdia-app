@@ -22,8 +22,7 @@ final camporeesRemoteDataSourceProvider =
 });
 
 /// Provider para el repositorio de camporees
-final camporeesRepositoryProvider =
-    Provider<CamporeesRepository>((ref) {
+final camporeesRepositoryProvider = Provider<CamporeesRepository>((ref) {
   return CamporeesRepositoryImpl(
     remoteDataSource: ref.read(camporeesRemoteDataSourceProvider),
     networkInfo: ref.read(networkInfoProvider),
@@ -38,7 +37,8 @@ final camporeesProvider =
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final repository = ref.read(camporeesRepositoryProvider);
-  final result = await repository.getCamporees(active: true, cancelToken: cancelToken);
+  final result =
+      await repository.getCamporees(active: true, cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -57,8 +57,7 @@ final camporeesProvider =
 /// Si el camporee no está en caché (p.ej. navegación por deep link),
 /// se realiza la llamada al endpoint de detalle normalmente.
 final camporeeDetailProvider =
-    FutureProvider.autoDispose.family<Camporee, int>(
-        (ref, camporeeId) async {
+    FutureProvider.autoDispose.family<Camporee, int>((ref, camporeeId) async {
   // Check the already-loaded list first to avoid a redundant network call.
   final cachedList = ref.read(camporeesProvider).valueOrNull;
   if (cachedList != null) {
@@ -75,7 +74,8 @@ final camporeeDetailProvider =
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final repository = ref.read(camporeesRepositoryProvider);
-  final result = await repository.getCamporeeDetail(camporeeId, cancelToken: cancelToken);
+  final result =
+      await repository.getCamporeeDetail(camporeeId, cancelToken: cancelToken);
 
   return result.fold(
     (failure) => throw Exception(failure.message),
@@ -120,9 +120,8 @@ final _camporeeMembersPaginatedProvider = FutureProvider.autoDispose
 ///
 /// TODO(pagination): convertir a un AsyncNotifier con load-more / infinite
 /// scroll cuando se requiera paginación completa en la UI.
-final camporeeMembersProvider =
-    FutureProvider.autoDispose.family<List<CamporeeMember>, int>(
-        (ref, camporeeId) async {
+final camporeeMembersProvider = FutureProvider.autoDispose
+    .family<List<CamporeeMember>, int>((ref, camporeeId) async {
   final paginated =
       await ref.watch(_camporeeMembersPaginatedProvider(camporeeId).future);
   return paginated.data;
@@ -135,9 +134,8 @@ final camporeeMembersProvider =
 ///
 /// Comparte la misma request de red que [camporeeMembersProvider] vía
 /// [_camporeeMembersPaginatedProvider].
-final camporeeMembersMetaProvider =
-    FutureProvider.autoDispose.family<PaginationMeta?, int>(
-        (ref, camporeeId) async {
+final camporeeMembersMetaProvider = FutureProvider.autoDispose
+    .family<PaginationMeta?, int>((ref, camporeeId) async {
   final paginated =
       await ref.watch(_camporeeMembersPaginatedProvider(camporeeId).future);
   return paginated.meta;
@@ -193,7 +191,10 @@ class CamporeeRegistrationNotifier
     int? insuranceId,
   }) async {
     state = state.copyWith(
-        isLoading: true, errorMessage: null, isInsuranceError: false, success: false);
+        isLoading: true,
+        errorMessage: null,
+        isInsuranceError: false,
+        success: false);
 
     final result = await ref.read(camporeesRepositoryProvider).registerMember(
           _camporeeId,
@@ -274,8 +275,7 @@ class CamporeeRemoveMemberNotifier
 
   /// Remueve un miembro del camporee.
   Future<bool> remove(String userId) async {
-    state = state.copyWith(
-        isLoading: true, errorMessage: null, success: false);
+    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
     final result = await ref
         .read(camporeesRepositoryProvider)
@@ -332,8 +332,7 @@ class CamporeePaymentParams {
 
 /// Provider para los pagos de un miembro en un camporee.
 final camporeeMemberPaymentsProvider = FutureProvider.autoDispose
-    .family<List<CamporeePayment>, CamporeePaymentParams>(
-        (ref, params) async {
+    .family<List<CamporeePayment>, CamporeePaymentParams>((ref, params) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final repo = ref.read(camporeesRepositoryProvider);
@@ -349,13 +348,13 @@ final camporeeMemberPaymentsProvider = FutureProvider.autoDispose
 });
 
 /// Provider para todos los pagos de un camporee.
-final camporeeAllPaymentsProvider =
-    FutureProvider.autoDispose.family<List<CamporeePayment>, int>(
-        (ref, camporeeId) async {
+final camporeeAllPaymentsProvider = FutureProvider.autoDispose
+    .family<List<CamporeePayment>, int>((ref, camporeeId) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final repo = ref.read(camporeesRepositoryProvider);
-  final result = await repo.getCamporeePayments(camporeeId, cancelToken: cancelToken);
+  final result =
+      await repo.getCamporeePayments(camporeeId, cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (payments) => payments,
@@ -363,13 +362,13 @@ final camporeeAllPaymentsProvider =
 });
 
 /// Provider para los clubes inscritos en un camporee.
-final camporeeEnrolledClubsProvider =
-    FutureProvider.autoDispose.family<List<CamporeeEnrolledClub>, int>(
-        (ref, camporeeId) async {
+final camporeeEnrolledClubsProvider = FutureProvider.autoDispose
+    .family<List<CamporeeEnrolledClub>, int>((ref, camporeeId) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final repo = ref.read(camporeesRepositoryProvider);
-  final result = await repo.getEnrolledClubs(camporeeId, cancelToken: cancelToken);
+  final result =
+      await repo.getEnrolledClubs(camporeeId, cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
     (clubs) => clubs,
@@ -415,8 +414,7 @@ class CreateCamporeePaymentNotifier extends AutoDisposeFamilyNotifier<
     DateTime? paymentDate,
     String? notes,
   }) async {
-    state = state.copyWith(
-        isLoading: true, errorMessage: null, success: false);
+    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
     final result = await ref.read(camporeesRepositoryProvider).createPayment(
           arg.camporeeId,
@@ -430,8 +428,7 @@ class CreateCamporeePaymentNotifier extends AutoDisposeFamilyNotifier<
 
     return result.fold(
       (failure) {
-        state = state.copyWith(
-            isLoading: false, errorMessage: failure.message);
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
         return false;
       },
       (_) {
@@ -487,8 +484,7 @@ class EnrollClubNotifier
   int get _camporeeId => arg;
 
   Future<bool> enroll({required int clubSectionId}) async {
-    state = state.copyWith(
-        isLoading: true, errorMessage: null, success: false);
+    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
     final result = await ref.read(camporeesRepositoryProvider).enrollClub(
           _camporeeId,
@@ -497,8 +493,7 @@ class EnrollClubNotifier
 
     return result.fold(
       (failure) {
-        state = state.copyWith(
-            isLoading: false, errorMessage: failure.message);
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
         return false;
       },
       (_) {

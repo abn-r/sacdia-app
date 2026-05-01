@@ -139,8 +139,7 @@ class _RankingBody extends ConsumerWidget {
               ),
 
               // Top-N (solo si visibility = selfAndTopN y topN no está vacío).
-              if (view.visibilityMode ==
-                      MyRankingVisibilityMode.selfAndTopN &&
+              if (view.visibilityMode == MyRankingVisibilityMode.selfAndTopN &&
                   view.topN != null &&
                   view.topN!.isNotEmpty)
                 SliverToBoxAdapter(
@@ -152,8 +151,7 @@ class _RankingBody extends ConsumerWidget {
                 ),
 
               // Espacio inferior para la última fila no quede pegada al borde.
-              const SliverPadding(
-                  padding: EdgeInsets.only(bottom: 32)),
+              const SliverPadding(padding: EdgeInsets.only(bottom: 32)),
             ],
           );
         },
@@ -202,9 +200,7 @@ class _ContextualNudge extends StatelessWidget {
     };
 
     // Filtramos solo los que tienen valor.
-    final available = scores.entries
-        .where((e) => e.value != null)
-        .toList()
+    final available = scores.entries.where((e) => e.value != null).toList()
       ..sort((a, b) => a.value!.compareTo(b.value!));
 
     if (available.isEmpty) return null;

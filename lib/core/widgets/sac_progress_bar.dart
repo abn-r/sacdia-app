@@ -131,8 +131,8 @@ class _SacProgressBarState extends State<SacProgressBar>
                 child: SizedBox(
                   height: widget.height,
                   child: AnimatedBuilder(
-                    animation: Listenable.merge(
-                        [_fillController, _shimmerController]),
+                    animation:
+                        Listenable.merge([_fillController, _shimmerController]),
                     builder: (context, _) {
                       final filledFraction = _fillAnimation.value;
 
@@ -141,7 +141,8 @@ class _SacProgressBarState extends State<SacProgressBar>
                           // Track background
                           Container(
                             decoration: BoxDecoration(
-                              color: widget.trackColor ?? context.sac.borderLight,
+                              color:
+                                  widget.trackColor ?? context.sac.borderLight,
                               borderRadius:
                                   BorderRadius.circular(widget.borderRadius),
                             ),
@@ -160,10 +161,9 @@ class _SacProgressBarState extends State<SacProgressBar>
                                         ],
                                       )
                                     : null,
-                                color:
-                                    widget.useGradient ? null : widget.color,
-                                borderRadius: BorderRadius.circular(
-                                    widget.borderRadius),
+                                color: widget.useGradient ? null : widget.color,
+                                borderRadius:
+                                    BorderRadius.circular(widget.borderRadius),
                               ),
                             ),
                           ),
@@ -175,13 +175,12 @@ class _SacProgressBarState extends State<SacProgressBar>
                               child: LayoutBuilder(
                                 builder: (context, constraints) {
                                   final shimmerWidth = widget.height * 6;
-                                  final shimmerX =
-                                      _shimmerController.value *
-                                          (constraints.maxWidth + shimmerWidth);
+                                  final shimmerX = _shimmerController.value *
+                                      (constraints.maxWidth + shimmerWidth);
                                   return ClipRect(
                                     child: Transform.translate(
-                                      offset: Offset(
-                                          shimmerX - shimmerWidth, 0),
+                                      offset:
+                                          Offset(shimmerX - shimmerWidth, 0),
                                       child: Container(
                                         width: shimmerWidth,
                                         decoration: BoxDecoration(

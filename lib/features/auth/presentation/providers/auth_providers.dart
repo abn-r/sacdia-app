@@ -88,7 +88,6 @@ final signInWithAppleProvider = Provider<SignInWithApple>((ref) {
   return SignInWithApple(ref.read(authRepositoryProvider));
 });
 
-
 /// Notifier para manejar la autenticación y sus estados
 class AuthNotifier extends AsyncNotifier<UserEntity?> {
   static const _tag = 'AuthNotifier';
@@ -122,7 +121,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     final cachedId = await secureStorage.read(AppConstants.cachedUserId);
     final cachedEmail = await secureStorage.read(AppConstants.cachedUserEmail);
     final cachedName = await secureStorage.read(AppConstants.cachedUserName);
-    final cachedAvatar = await secureStorage.read(AppConstants.cachedUserAvatar);
+    final cachedAvatar =
+        await secureStorage.read(AppConstants.cachedUserAvatar);
     final cachedAssignmentId =
         await secureStorage.read(AppConstants.cachedActiveAssignmentId);
     final cachedRoleName =
@@ -220,7 +220,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       user.postRegisterComplete.toString(),
     );
     // Keep non-PII flag in SharedPreferences for synchronous router reads.
-    ref.read(sharedPreferencesProvider)
+    ref
+        .read(sharedPreferencesProvider)
         .setBool('cached_post_register_complete', user.postRegisterComplete);
 
     // Cache active grant fields so the UI can render the correct role on the
@@ -230,12 +231,14 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       secureStorage.write(
           AppConstants.cachedActiveAssignmentId, activeGrant!.assignmentId!);
       if (activeGrant.roleName != null) {
-        secureStorage.write(AppConstants.cachedActiveRoleName, activeGrant.roleName!);
+        secureStorage.write(
+            AppConstants.cachedActiveRoleName, activeGrant.roleName!);
       } else {
         secureStorage.delete(AppConstants.cachedActiveRoleName);
       }
       if (activeGrant.clubTypeName != null) {
-        secureStorage.write(AppConstants.cachedActiveClubType, activeGrant.clubTypeName!);
+        secureStorage.write(
+            AppConstants.cachedActiveClubType, activeGrant.clubTypeName!);
       } else {
         secureStorage.delete(AppConstants.cachedActiveClubType);
       }
@@ -269,7 +272,9 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       },
       (user) {
         AppLogger.i('Login exitoso', tag: _tag);
-        ref.read(sharedPreferencesProvider).setBool('user_manually_logged_out', false);
+        ref
+            .read(sharedPreferencesProvider)
+            .setBool('user_manually_logged_out', false);
         _cacheUser(user);
         // Register FCM token after successful login (fire-and-forget).
         ref.read(pushNotificationServiceProvider).initialize();
@@ -396,8 +401,9 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
           state = const AsyncValue.data(null);
           return OAuthLaunchResult.launched;
         }
-        final errorMessage =
-            failure is AuthFailure ? failure.message : 'auth.errors.sign_in_google_failed'.tr();
+        final errorMessage = failure is AuthFailure
+            ? failure.message
+            : 'auth.errors.sign_in_google_failed'.tr();
         AppLogger.w('OAuth Google error: $errorMessage', tag: _tag);
         state = AsyncValue.error(errorMessage, StackTrace.current);
         return OAuthLaunchResult.failed;
@@ -425,8 +431,9 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
           state = const AsyncValue.data(null);
           return OAuthLaunchResult.launched;
         }
-        final errorMessage =
-            failure is AuthFailure ? failure.message : 'auth.errors.sign_in_apple_failed'.tr();
+        final errorMessage = failure is AuthFailure
+            ? failure.message
+            : 'auth.errors.sign_in_apple_failed'.tr();
         AppLogger.w('OAuth Apple error: $errorMessage', tag: _tag);
         state = AsyncValue.error(errorMessage, StackTrace.current);
         return OAuthLaunchResult.failed;
@@ -469,8 +476,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     AppLogger.i('Contexto cambiado. Refrescando usuario...', tag: _tag);
 
     // Capture old activeAssignmentId for diagnostics.
-    final oldActiveId =
-        state.valueOrNull?.authorization?.activeAssignmentId;
+    final oldActiveId = state.valueOrNull?.authorization?.activeAssignmentId;
 
     final refreshResult = await ref.read(getCurrentUserProvider)(NoParams());
     refreshResult.fold(
@@ -607,7 +613,8 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
   /// GoRouter redirects to login. Does NOT make any API calls (logout
   /// endpoint, FCM unregister) because the tokens are already invalid.
   void expireSession() {
-    AppLogger.w('Sesión expirada por interceptor, limpiando estado local', tag: _tag);
+    AppLogger.w('Sesión expirada por interceptor, limpiando estado local',
+        tag: _tag);
 
     final secureStorage = ref.read(secureStorageProvider);
     secureStorage.delete(AppConstants.cachedUserId);
@@ -644,8 +651,9 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
 
     return result.fold(
       (failure) {
-        final errorMessage =
-            failure is AuthFailure ? failure.message : 'auth.errors.sign_out_failed'.tr();
+        final errorMessage = failure is AuthFailure
+            ? failure.message
+            : 'auth.errors.sign_out_failed'.tr();
         state = AsyncValue.error(errorMessage, StackTrace.current);
         return false;
       },

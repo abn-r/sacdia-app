@@ -49,8 +49,7 @@ class RouteNames {
   static const String homeCamporees = '/home/camporees';
   static const String camporeeDetail = '/camporee/:camporeeId';
   static const String camporeeMembers = '/camporee/:camporeeId/members';
-  static const String camporeeRegisterMember =
-      '/camporee/:camporeeId/register';
+  static const String camporeeRegisterMember = '/camporee/:camporeeId/register';
 
   // Traslados
   static const String transferRequests = '/transfers';
@@ -85,13 +84,14 @@ class RouteNames {
       '/camporee/$camporeeId/register';
 
   // Traslados helpers
-  static String transferRequestDetail(int requestId) =>
-      '/transfer/$requestId';
+  static String transferRequestDetail(int requestId) => '/transfer/$requestId';
 
   // Honors evidence, completion & requirements
   static const String honorEvidence = '/honor/:honorId/evidence/:userHonorId';
-  static const String honorCompletion = '/honor/:honorId/completion/:userHonorId';
-  static const String honorRequirements = '/honor/:honorId/requirements/:userHonorId';
+  static const String honorCompletion =
+      '/honor/:honorId/completion/:userHonorId';
+  static const String honorRequirements =
+      '/honor/:honorId/requirements/:userHonorId';
 
   // Helpers
   static String honorEvidencePath(String honorId, String userHonorId) =>
@@ -123,7 +123,8 @@ class RouteNames {
   // Coordinación — hub y sub-módulos
   static const String coordinator = '/coordinator';
   static const String coordinatorSla = '/coordinator/sla';
-  static const String coordinatorEvidenceReview = '/coordinator/evidence-review';
+  static const String coordinatorEvidenceReview =
+      '/coordinator/evidence-review';
   static const String coordinatorEvidenceReviewDetailRoute =
       '/coordinator/evidence-review/:type/:id';
   static const String coordinatorCamporeeApprovals =
@@ -153,8 +154,7 @@ class RouteNames {
   // Pagos de camporee (miembro)
   static const String camporeePayments =
       '/camporee/:camporeeId/member/:memberId/payments';
-  static const String camporeeEnrollClub =
-      '/camporee/:camporeeId/enroll-club';
+  static const String camporeeEnrollClub = '/camporee/:camporeeId/enroll-club';
 
   static String camporeePaymentsPath(int camporeeId, String memberId) =>
       '/camporee/$camporeeId/member/$memberId/payments';
@@ -164,8 +164,7 @@ class RouteNames {
   // Rankings
   static const String homeMyRanking = '/home/my-ranking';
   static const String sectionRanking = '/section-ranking/:sectionId';
-  static const String memberBreakdown =
-      '/rankings/breakdown/:enrollmentId';
+  static const String memberBreakdown = '/rankings/breakdown/:enrollmentId';
 
   static String sectionRankingPath(int sectionId) =>
       '/section-ranking/$sectionId';
