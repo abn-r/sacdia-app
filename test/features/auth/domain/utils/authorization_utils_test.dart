@@ -35,9 +35,11 @@ void main() {
     });
 
     test('uses resolved role names from authorization grants', () {
+      // resolvedRoleNames returns globalGrants + active club assignment only.
+      // Use globalGrants to assert that role names are normalised to lowercase.
       final user = buildUser(
         id: 'actor',
-        clubAssignments: const [
+        globalGrants: const [
           AuthorizationGrant(roleName: 'Director'),
           AuthorizationGrant(roleName: 'Secretary'),
         ],
@@ -49,9 +51,11 @@ void main() {
     test(
         'allows third-party administrative completion with explicit global access',
         () {
+      // The fine-grained permission for postRegistration update is
+      // 'users:update_profile' (not the generic 'users:update').
       final user = buildUser(
         id: 'actor',
-        permissions: const ['users:update'],
+        permissions: const ['users:update_profile'],
       );
 
       expect(
@@ -139,9 +143,11 @@ void main() {
     test(
         'allows fine-grained updates without treating users:update as sensitive read',
         () {
+      // 'users:update_profile' grants postRegistration update but not read.
+      // This verifies that update-only permissions do not bleed into read gates.
       final updater = buildUser(
         id: 'actor',
-        permissions: const ['users:update'],
+        permissions: const ['users:update_profile'],
       );
       final fineGrained = buildUser(
         id: 'actor',
