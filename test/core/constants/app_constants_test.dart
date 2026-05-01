@@ -4,7 +4,7 @@ import 'package:sacdia_app/core/constants/app_constants.dart';
 void main() {
   test('uses the local development API URL for physical devices by default',
       () {
-    expect(AppConstants.baseUrl, 'http://192.168.1.14:3000/api/v1');
+    expect(AppConstants.baseUrl, 'http://localhost:3000/api/v1');
   });
 
   test('allows overriding the API URL when needed', () {
