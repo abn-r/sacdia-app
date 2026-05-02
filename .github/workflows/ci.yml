@@ -64,9 +64,9 @@ jobs:
         run: flutter test --no-pub
 
   # Build Android (APK) job intentionally omitted. Release APKs are produced
-  # via fastlane / manual dev pipeline, not from CI. The transitive
-  # image_cropper 5.0.1 dependency still references the legacy v1 Android
-  # embedding (PluginRegistry.Registrar) which the current Flutter SDK no
-  # longer ships, so a CI build would fail until that package is bumped.
-  # That is real upgrade work tracked separately. analyze + test are the
-  # meaningful gates on PRs.
+  # via fastlane / manual dev pipeline, not from CI. The release flavor wires
+  # in google-services.json, which is gitignored as a Firebase secret. Adding
+  # the build to CI requires either a GitHub Actions secret with the file
+  # base64-encoded + decoded at workflow time, or a CI-only build flavor
+  # without the google-services plugin. Until that is set up, analyze + test
+  # are the meaningful gates on PRs.
