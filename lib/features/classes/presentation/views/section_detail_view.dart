@@ -15,10 +15,10 @@ class SectionDetailView extends ConsumerStatefulWidget {
   final int classId;
 
   const SectionDetailView({
-    Key? key,
+    super.key,
     required this.section,
     required this.classId,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<SectionDetailView> createState() => _SectionDetailViewState();
@@ -115,6 +115,7 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
                   if (userId == null) return;
 
                   final newStatus = !_isCompleted;
+                  final messenger = ScaffoldMessenger.of(context);
 
                   // Actualizar progreso
                   await ref
@@ -134,7 +135,7 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
                     _isCompleted = newStatus;
                   });
 
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                     SnackBar(
                       content: Text(
                         newStatus

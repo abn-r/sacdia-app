@@ -57,7 +57,7 @@ class CascadingDropdown<T> extends StatelessWidget {
           )
         else
           DropdownButtonFormField<dynamic>(
-            value:
+            initialValue:
                 selectedValue != null ? getItemValue(selectedValue as T) : null,
             decoration: InputDecoration(
               hintText: hintText ??

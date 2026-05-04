@@ -72,8 +72,8 @@ class UnitModel extends Unit {
     // Miembros
     final rawMembers = json['unit_members'] as List<dynamic>? ?? [];
     final members = rawMembers
-        .where((m) => m is Map<String, dynamic>)
-        .map((m) => UnitMemberModel.fromJson(m as Map<String, dynamic>))
+        .whereType<Map<String, dynamic>>()
+        .map((m) => UnitMemberModel.fromJson(m))
         .cast<UnitMember>()
         .toList();
 

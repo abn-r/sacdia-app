@@ -129,8 +129,9 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
 
   @override
   Widget build(BuildContext context) {
-    if (MediaQuery.of(context).disableAnimations)
+    if (MediaQuery.of(context).disableAnimations) {
       return const SizedBox.shrink();
+    }
 
     return IgnorePointer(
       child: AnimatedBuilder(

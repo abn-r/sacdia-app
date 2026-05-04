@@ -63,10 +63,84 @@ jobs:
       - name: Run unit tests
         run: flutter test --no-pub
 
-  # Build Android (APK) job intentionally omitted. Release APKs are produced
-  # via fastlane / manual dev pipeline, not from CI. The transitive
-  # image_cropper 5.0.1 dependency still references the legacy v1 Android
-  # embedding (PluginRegistry.Registrar) which the current Flutter SDK no
-  # longer ships, so a CI build would fail until that package is bumped.
-  # That is real upgrade work tracked separately. analyze + test are the
-  # meaningful gates on PRs.
+  # ──────────────────────────────────────────────────────────────────────────
+  # JOB 3: Check Secrets
+  # ──────────────────────────────────────────────────────────────────────────
+  # Job-level `if: env.X != ''` does NOT work in GH Actions — the job-level
+  # env block is evaluated AFTER the if expression, so the secret is always
+  # seen as empty string and the workflow file is flagged as invalid.
+  # Solution: a tiny job reads the secret inside a step (where env IS
+  # available) and publishes the result as an output. build-android then
+  # conditions on `needs.check-secrets.outputs.has_google_services == 'true'`.
+  # ──────────────────────────────────────────────────────────────────────────
+  check-secrets:
+    name: Check Secrets
+    runs-on: ubuntu-latest
+    outputs:
+      has_google_services: ${{ steps.check.outputs.has_google_services }}
+    steps:
+      - id: check
+        env:
+          GS_SECRET: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          if [ -n "$GS_SECRET" ]; then
+            echo "has_google_services=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_google_services=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # JOB 4: Build Android (APK smoke gate)
+  # ──────────────────────────────────────────────────────────────────────────
+  # Requires repo secret GOOGLE_SERVICES_JSON_BASE64 (base64-encoded content
+  # of android/app/google-services.json). The job is skipped cleanly when the
+  # secret is absent so forks and PRs without secret access still pass CI.
+  #
+  # One-time setup (repo admin):
+  #   base64 -i android/app/google-services.json | pbcopy   # macOS
+  #   # Paste into Settings > Secrets > Actions > GOOGLE_SERVICES_JSON_BASE64
+  # ──────────────────────────────────────────────────────────────────────────
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    needs: [analyze, test, check-secrets]
+    if: needs.check-secrets.outputs.has_google_services == 'true'
+    env:
+      GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.6'
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Decode google-services.json
+        env:
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          # --ignore-garbage skips non-base64-alphabet chars (whitespace, tabs, etc)
+          # making the decode tolerant of any encoder's output.
+          printf '%s' "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode --ignore-garbage > android/app/google-services.json
+          # Sanity check: the decoded file should be valid JSON
+          if ! python3 -c "import json; json.load(open('android/app/google-services.json'))" 2>/dev/null; then
+            echo "ERROR: Decoded google-services.json is not valid JSON. Check the secret content." >&2
+            echo "Decoded file size: $(wc -c < android/app/google-services.json) bytes" >&2
+            exit 1
+          fi
+
+      - name: Build APK (release)
+        run: flutter build apk --release

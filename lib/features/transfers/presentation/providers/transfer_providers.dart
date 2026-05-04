@@ -21,7 +21,6 @@ final transferRemoteDataSourceProvider =
 final transferRepositoryProvider = Provider<TransferRepository>((ref) {
   return TransferRepositoryImpl(
     remoteDataSource: ref.read(transferRemoteDataSourceProvider),
-    networkInfo: ref.read(networkInfoProvider),
   );
 });
 

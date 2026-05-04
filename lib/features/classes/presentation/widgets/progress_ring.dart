@@ -9,11 +9,11 @@ class ProgressRing extends StatelessWidget {
   final double strokeWidth;
 
   const ProgressRing({
-    Key? key,
+    super.key,
     required this.progress,
     this.size = 60,
     this.strokeWidth = 4,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

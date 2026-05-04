@@ -56,7 +56,7 @@ class MockAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     final responseBody = body != null
-        ? '${body!.entries.map((e) => '"${e.key}":"${e.value}"').join(',')}'
+        ? body!.entries.map((e) => '"${e.key}":"${e.value}"').join(',')
         : '';
     return ResponseBody.fromString(
       '{$responseBody}',
