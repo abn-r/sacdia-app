@@ -88,8 +88,8 @@ class _SacDropdownFieldState<T> extends State<SacDropdownField<T>> {
             ),
             clipBehavior: Clip.antiAlias,
             child: DropdownButtonFormField<T>(
-              // Solo pasar el value si existe exactamente un item con ese valor
-              value: widget.value != null &&
+              // Solo pasar el initialValue si existe exactamente un item con ese valor
+              initialValue: widget.value != null &&
                       widget.items
                               .where((item) => item.value == widget.value)
                               .length ==

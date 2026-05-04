@@ -8,7 +8,6 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/widgets/sac_card.dart';
-import '../../domain/entities/award_tier.dart';
 import '../../domain/entities/member_breakdown.dart';
 import '../providers/member_breakdown_provider.dart';
 import '../widgets/ranking_empty_state.dart';

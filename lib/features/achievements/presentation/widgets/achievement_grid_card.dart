@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
-import '../../domain/entities/achievement.dart';
 import '../../domain/entities/user_achievement.dart';
 import '../../domain/repositories/achievements_repository.dart';
 import 'achievement_badge.dart';
@@ -36,8 +35,6 @@ class AchievementGridCard extends StatelessWidget {
         userAchievement?.visualState ?? AchievementVisualState.locked;
 
     final progressValue = userAchievement?.progressValue ?? 0;
-    final progressTarget =
-        userAchievement?.progressTarget ?? _extractTarget(achievement);
     final progressPercentage = userAchievement?.progressPercentage ?? 0.0;
     final timesCompleted = userAchievement?.timesCompleted ?? 0;
 
@@ -118,14 +115,6 @@ class AchievementGridCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  int _extractTarget(Achievement achievement) {
-    final target = achievement.criteria['target'];
-    if (target is int) return target;
-    if (target is double) return target.toInt();
-    if (target is String) return int.tryParse(target) ?? 0;
-    return 0;
   }
 }
 

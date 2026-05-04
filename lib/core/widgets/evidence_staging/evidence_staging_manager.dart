@@ -160,6 +160,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
   // ── File picking ──────────────────────────────────────────────────────────
 
   Future<void> _pickImages(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
     final source = await showImageSourceDialog(context);
     if (source == null || !mounted) return;
 
@@ -224,15 +225,13 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
       _notifyLocalFilesChanged();
     } catch (e) {
       AppLogger.e('Error al seleccionar imagen', error: e);
-      if (mounted) {
-        // ignore: use_build_context_synchronously
-        _showErrorSnackbar(
-            context, tr('core.evidence_staging.error_select_image'));
-      }
+      _showErrorSnackbarViaMessenger(
+          messenger, tr('core.evidence_staging.error_select_image'));
     }
   }
 
   Future<void> _pickPdfs(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -274,11 +273,8 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
       _notifyLocalFilesChanged();
     } catch (e) {
       AppLogger.e('Error al seleccionar PDF', error: e);
-      if (mounted) {
-        // ignore: use_build_context_synchronously
-        _showErrorSnackbar(
-            context, tr('core.evidence_staging.error_select_pdf'));
-      }
+      _showErrorSnackbarViaMessenger(
+          messenger, tr('core.evidence_staging.error_select_pdf'));
     }
   }
 
@@ -340,6 +336,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
   }
 
   Future<void> _executeUploadQueue(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
     setState(() => _isUploading = true);
 
     // Prepare the upload stream controller
@@ -431,13 +428,10 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
             _allFiles.any((f) => f.status == StagedFileStatus.uploaded);
 
         if (!hasCompletedFiles && !hasRemoteFiles) {
-          if (mounted) {
-            // ignore: use_build_context_synchronously
-            _showErrorSnackbar(
-              context,
-              tr('core.evidence_staging.error_upload_none'),
-            );
-          }
+          _showErrorSnackbarViaMessenger(
+            messenger,
+            tr('core.evidence_staging.error_upload_none'),
+          );
           break;
         }
 
@@ -597,19 +591,29 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
   void _showErrorSnackbar(BuildContext context, String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.error_outline_rounded,
-                color: Colors.white, size: 18),
-            const SizedBox(width: 8),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: AppColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      _buildErrorSnackBar(message),
+    );
+  }
+
+  void _showErrorSnackbarViaMessenger(
+      ScaffoldMessengerState messenger, String message) {
+    if (!mounted) return;
+    messenger.showSnackBar(_buildErrorSnackBar(message));
+  }
+
+  SnackBar _buildErrorSnackBar(String message) {
+    return SnackBar(
+      content: Row(
+        children: [
+          const Icon(Icons.error_outline_rounded,
+              color: Colors.white, size: 18),
+          const SizedBox(width: 8),
+          Expanded(child: Text(message)),
+        ],
       ),
+      backgroundColor: AppColors.error,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );
   }
 

@@ -3,20 +3,16 @@ import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
-import '../../../../core/network/network_info.dart';
 import '../../domain/entities/transfer_request.dart';
 import '../../domain/repositories/transfer_repository.dart';
 import '../datasources/transfer_remote_data_source.dart';
 
 class TransferRepositoryImpl implements TransferRepository {
   final TransferRemoteDataSource _remoteDataSource;
-  final NetworkInfo _networkInfo;
 
   const TransferRepositoryImpl({
     required TransferRemoteDataSource remoteDataSource,
-    required NetworkInfo networkInfo,
-  })  : _remoteDataSource = remoteDataSource,
-        _networkInfo = networkInfo;
+  }) : _remoteDataSource = remoteDataSource;
 
   @override
   Future<Either<Failure, TransferRequest>> createTransferRequest({

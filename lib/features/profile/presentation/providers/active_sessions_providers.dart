@@ -78,8 +78,9 @@ class ActiveSessionsNotifier
   /// Retorna null en éxito o un mensaje de error localizado.
   Future<String?> revoke(String sessionId) async {
     final previous = state.valueOrNull;
-    if (previous == null)
+    if (previous == null) {
       return 'profile.active_sessions.errors.no_sessions_loaded'.tr();
+    }
 
     // Optimistic remove — quitar de la lista localmente de inmediato.
     state = AsyncData(
@@ -111,11 +112,12 @@ class ActiveSessionsNotifier
   /// Retorna el número de sesiones revocadas, o un mensaje de error.
   Future<({int count, String? error})> revokeAllOthers() async {
     final previous = state.valueOrNull;
-    if (previous == null)
+    if (previous == null) {
       return (
         count: 0,
         error: 'profile.active_sessions.errors.no_sessions_loaded'.tr()
       );
+    }
 
     final othersCount = previous.where((s) => !s.isCurrent).length;
 
