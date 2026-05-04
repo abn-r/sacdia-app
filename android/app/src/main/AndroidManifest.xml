@@ -54,7 +54,8 @@
                    https://sacdia-backend.onrender.com/.well-known/assetlinks.json
                  with the app's SHA-256 release certificate fingerprint before this filter
                  can be auto-verified by Android.
-                 Test with: adb shell pm get-app-links --user cur com.sacdia.app
+                 Test with: adb shell pm get-app-links -user cur com.sacdia.app
+                 (NOTE: real adb command uses two hyphens before user; XML comments cannot contain double-hyphens)
                  See: https://developer.android.com/training/app-links/verify-android-applinks -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
