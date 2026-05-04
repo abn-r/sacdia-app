@@ -64,7 +64,33 @@ jobs:
         run: flutter test --no-pub
 
   # ──────────────────────────────────────────────────────────────────────────
-  # JOB 3: Build Android (APK smoke gate)
+  # JOB 3: Check Secrets
+  # ──────────────────────────────────────────────────────────────────────────
+  # Job-level `if: env.X != ''` does NOT work in GH Actions — the job-level
+  # env block is evaluated AFTER the if expression, so the secret is always
+  # seen as empty string and the workflow file is flagged as invalid.
+  # Solution: a tiny job reads the secret inside a step (where env IS
+  # available) and publishes the result as an output. build-android then
+  # conditions on `needs.check-secrets.outputs.has_google_services == 'true'`.
+  # ──────────────────────────────────────────────────────────────────────────
+  check-secrets:
+    name: Check Secrets
+    runs-on: ubuntu-latest
+    outputs:
+      has_google_services: ${{ steps.check.outputs.has_google_services }}
+    steps:
+      - id: check
+        env:
+          GS_SECRET: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          if [ -n "$GS_SECRET" ]; then
+            echo "has_google_services=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_google_services=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # JOB 4: Build Android (APK smoke gate)
   # ──────────────────────────────────────────────────────────────────────────
   # Requires repo secret GOOGLE_SERVICES_JSON_BASE64 (base64-encoded content
   # of android/app/google-services.json). The job is skipped cleanly when the
@@ -77,12 +103,10 @@ jobs:
   build-android:
     name: Build Android APK
     runs-on: ubuntu-latest
-    needs: [analyze, test]
-    # Secrets cannot be evaluated directly in `if:` expressions, so we map the
-    # secret to an env var first and compare against empty string here.
+    needs: [analyze, test, check-secrets]
+    if: needs.check-secrets.outputs.has_google_services == 'true'
     env:
       GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
-    if: ${{ env.GOOGLE_SERVICES_JSON_BASE64 != '' }}
 
     steps:
       - name: Checkout
@@ -107,7 +131,16 @@ jobs:
       - name: Decode google-services.json
         env:
           GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
-        run: echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 -d > android/app/google-services.json
+        run: |
+          # --ignore-garbage skips non-base64-alphabet chars (whitespace, tabs, etc)
+          # making the decode tolerant of any encoder's output.
+          printf '%s' "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode --ignore-garbage > android/app/google-services.json
+          # Sanity check: the decoded file should be valid JSON
+          if ! python3 -c "import json; json.load(open('android/app/google-services.json'))" 2>/dev/null; then
+            echo "ERROR: Decoded google-services.json is not valid JSON. Check the secret content." >&2
+            echo "Decoded file size: $(wc -c < android/app/google-services.json) bytes" >&2
+            exit 1
+          fi
 
       - name: Build APK (release)
         run: flutter build apk --release
