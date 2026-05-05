@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/class_requirement.dart';
+import '../utils/status_meta.dart';
 
 /// Badge de color con icono que indica el estado de un requerimiento.
 ///
@@ -60,6 +61,8 @@ class RequirementStatusBadge extends StatelessWidget {
         return 'classes.status.validated'.tr();
       case RequirementStatus.rechazado:
         return 'classes.status.rejected'.tr();
+      case RequirementStatus.observado:
+        return StatusMeta.of(status).label;
     }
   }
 
@@ -75,6 +78,8 @@ class RequirementStatusBadge extends StatelessWidget {
         return AppColors.secondaryLight;
       case RequirementStatus.rechazado:
         return AppColors.errorLight;
+      case RequirementStatus.observado:
+        return AppColors.observedBg;
     }
   }
 
@@ -88,6 +93,8 @@ class RequirementStatusBadge extends StatelessWidget {
         return AppColors.secondary.withValues(alpha: 0.4);
       case RequirementStatus.rechazado:
         return AppColors.error.withValues(alpha: 0.4);
+      case RequirementStatus.observado:
+        return AppColors.observedColor.withValues(alpha: 0.4);
     }
   }
 
@@ -101,6 +108,8 @@ class RequirementStatusBadge extends StatelessWidget {
         return AppColors.secondaryDark;
       case RequirementStatus.rechazado:
         return AppColors.errorDark;
+      case RequirementStatus.observado:
+        return AppColors.observedDark;
     }
   }
 
@@ -114,6 +123,8 @@ class RequirementStatusBadge extends StatelessWidget {
         return HugeIcons.strokeRoundedCheckmarkCircle01;
       case RequirementStatus.rechazado:
         return HugeIcons.strokeRoundedCancel01;
+      case RequirementStatus.observado:
+        return HugeIcons.strokeRoundedInformationCircle;
     }
   }
 }

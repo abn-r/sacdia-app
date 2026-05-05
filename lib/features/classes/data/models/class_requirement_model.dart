@@ -17,6 +17,12 @@ class ClassRequirementModel extends ClassRequirement {
     super.submittedAt,
     super.validatedByName,
     super.validatedAt,
+    super.observedByName,
+    super.observedAt,
+    super.observationComment,
+    super.rejectedByName,
+    super.rejectedAt,
+    super.rejectionReason,
     super.earnedPoints,
     super.linkedHonorId,
     super.linkedHonorName,
@@ -52,6 +58,20 @@ class ClassRequirementModel extends ClassRequirement {
           (json['validated_by_name'] ?? json['validatedByName'])?.toString(),
       validatedAt: _parseDate(
           json['validated_at']?.toString() ?? json['validatedAt']?.toString()),
+      observedByName:
+          (json['observed_by_name'] ?? json['observedByName'])?.toString(),
+      observedAt: _parseDate(
+          json['observed_at']?.toString() ?? json['observedAt']?.toString()),
+      observationComment:
+          (json['observation_comment'] ?? json['observationComment'] ??
+              json['observation'])
+              ?.toString(),
+      rejectedByName:
+          (json['rejected_by_name'] ?? json['rejectedByName'])?.toString(),
+      rejectedAt: _parseDate(
+          json['rejected_at']?.toString() ?? json['rejectedAt']?.toString()),
+      rejectionReason:
+          (json['rejection_reason'] ?? json['rejectionReason'])?.toString(),
       earnedPoints:
           _parseInt(json['earned_points'] ?? json['earnedPoints'] ?? 0),
       linkedHonorId: json['honor_id'] != null
@@ -92,6 +112,12 @@ class ClassRequirementModel extends ClassRequirement {
         submittedAt: submittedAt,
         validatedByName: validatedByName,
         validatedAt: validatedAt,
+        observedByName: observedByName,
+        observedAt: observedAt,
+        observationComment: observationComment,
+        rejectedByName: rejectedByName,
+        rejectedAt: rejectedAt,
+        rejectionReason: rejectionReason,
         earnedPoints: earnedPoints,
         linkedHonorId: linkedHonorId,
         linkedHonorName: linkedHonorName,

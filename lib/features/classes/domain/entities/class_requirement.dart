@@ -15,6 +15,9 @@ enum RequirementStatus {
 
   /// El lider rechazo el requerimiento; el miembro puede reenviar.
   rechazado,
+
+  /// El lider solicito correcciones (observado) antes de validar.
+  observado,
 }
 
 /// Parsea el string que llega desde la API al enum correspondiente.
@@ -30,6 +33,9 @@ RequirementStatus requirementStatusFromString(String? value) {
     case 'RECHAZADO':
     case 'REJECTED':
       return RequirementStatus.rechazado;
+    case 'OBSERVADO':
+    case 'OBSERVED':
+      return RequirementStatus.observado;
     default:
       return RequirementStatus.pendiente;
   }
@@ -44,6 +50,8 @@ String requirementStatusToString(RequirementStatus status) {
       return 'validado';
     case RequirementStatus.rechazado:
       return 'REJECTED';
+    case RequirementStatus.observado:
+      return 'OBSERVED';
     case RequirementStatus.pendiente:
       return 'pendiente';
   }
@@ -102,6 +110,24 @@ class ClassRequirement extends Equatable {
   final String? validatedByName;
   final DateTime? validatedAt;
 
+  /// Nombre del instructor que observo el requerimiento.
+  final String? observedByName;
+
+  /// Fecha en que fue observado.
+  final DateTime? observedAt;
+
+  /// Comentario del instructor al observar.
+  final String? observationComment;
+
+  /// Nombre del instructor que rechazo el requerimiento.
+  final String? rejectedByName;
+
+  /// Fecha en que fue rechazado.
+  final DateTime? rejectedAt;
+
+  /// Razon del rechazo.
+  final String? rejectionReason;
+
   /// Puntos efectivamente ganados en este requerimiento (0 hasta validacion).
   final int earnedPoints;
 
@@ -128,6 +154,12 @@ class ClassRequirement extends Equatable {
     this.submittedAt,
     this.validatedByName,
     this.validatedAt,
+    this.observedByName,
+    this.observedAt,
+    this.observationComment,
+    this.rejectedByName,
+    this.rejectedAt,
+    this.rejectionReason,
     this.earnedPoints = 0,
     this.linkedHonorId,
     this.linkedHonorName,
@@ -139,15 +171,17 @@ class ClassRequirement extends Equatable {
   /// Slots de archivos restantes.
   int get remainingSlots => (maxFiles - files.length).clamp(0, maxFiles);
 
-  /// El miembro puede subir o eliminar archivos cuando esta pendiente o rechazado.
+  /// El miembro puede subir o eliminar archivos cuando esta pendiente, rechazado u observado.
   bool get canUpload =>
       status == RequirementStatus.pendiente ||
-      status == RequirementStatus.rechazado;
+      status == RequirementStatus.rechazado ||
+      status == RequirementStatus.observado;
 
-  /// El miembro puede enviar a validacion cuando tiene archivos y esta pendiente o rechazado.
+  /// El miembro puede enviar a validacion cuando tiene archivos y esta pendiente, rechazado u observado.
   bool get canSubmit =>
       (status == RequirementStatus.pendiente ||
-          status == RequirementStatus.rechazado) &&
+          status == RequirementStatus.rechazado ||
+          status == RequirementStatus.observado) &&
       files.isNotEmpty;
 
   @override
@@ -165,6 +199,12 @@ class ClassRequirement extends Equatable {
         submittedAt,
         validatedByName,
         validatedAt,
+        observedByName,
+        observedAt,
+        observationComment,
+        rejectedByName,
+        rejectedAt,
+        rejectionReason,
         earnedPoints,
         linkedHonorId,
         linkedHonorName,
