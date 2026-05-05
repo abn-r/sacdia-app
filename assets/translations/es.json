@@ -1310,7 +1310,16 @@
       "empty": "No tienes clases asignadas",
       "title": "Mis Clases",
       "enroll_tooltip": "Inscribir clase anterior",
-      "error_loading": "Error al cargar clases"
+      "error_loading": "Error al cargar clases",
+      "roadmap_chip_title": "Ver mi camino completo",
+      "roadmap_chip_subtitle": "Conocé el progreso de tu carrera",
+      "section_current": "Clase actual",
+      "section_others": "Otras clases",
+      "enroll_cta": "Inscribirme a otra clase",
+      "enroll_cta_short": "Inscribirme"
+    },
+    "roadmap": {
+      "track_current_pill": "Cursando"
     },
     "status_history": {
       "title": "Historial de estados",
@@ -3032,6 +3041,7 @@
     "inactive_message": "Esta credencial no está activa. Comunicate con tu director.",
     "load_error": "No se pudo cargar la credencial",
     "photo_alt": "Foto de perfil de {name}",
+    "view_photo": "Ver foto",
     "qr_alt": "Código QR de la credencial",
     "club_label": "Club",
     "section_label": "Sección",

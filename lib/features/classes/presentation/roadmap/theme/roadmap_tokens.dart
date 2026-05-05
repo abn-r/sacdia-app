@@ -44,9 +44,41 @@ class RoadmapTokens {
   static const double frameWidth = 402; // ancho de referencia (iPhone)
 
   // Path serpenteante
-  static const double pathHeight = 160;
+  //
+  // Derivación geométrica del slot del conector
+  // ─────────────────────────────────────────────
+  // Distancia vertical entre shield-bottom del nodo anterior y
+  // shield-top del nodo actual (en coordenadas del Stack del nodo actual,
+  // donde y=0 es el top del escudo current):
+  //
+  //   gapBetweenShields = SizedBox(h:12) + label(≈38) + nodeRowGap(22) = 72
+  //
+  // Queremos que la curva se solape 8 px DENTRO de cada escudo:
+  //   shieldOverlap = 8
+  //
+  // Por tanto:
+  //   pathHeight = gapBetweenShields + 2 * shieldOverlap = 72 + 16 = 88
+  //
+  // El Positioned.top en el Stack del nodo actual debe colocar el borde
+  // superior del slot exactamente en (shield-bottom prev) + shieldOverlap:
+  //   top = -(gapBetweenShields + shieldOverlap) = -(72 + 8) = -80
+  //
+  // connectorVerticalInset se mantiene en 4 px como ajuste fino;
+  // el slot ya cubre el overlap, el inset sólo suaviza los endpoints.
+  static const double pathHeight = 88;
   static const double pathStrokeWidth = 6;
   static const double pathOpacity = 0.6;
+
+  // Offset del Positioned del conector dentro del Stack del nodo actual.
+  // Derivado: -(gapBetweenShields=72 + shieldOverlap=8) = -80.
+  static const double connectorSlotTopOffset = -80;
+
+  // Inset fino para que los endpoints de la curva no queden en el pixel
+  // exacto del borde del slot (valor pequeño, no compensa falta de anchor).
+  static const double connectorVerticalInset = 4.0;
+
+  // Ancho del ring estático que identifica la clase actual (tarea 2b).
+  static const double currentRingStrokeWidth = 2.5;
 
   // Sombras
   static List<BoxShadow> shieldShadow = [

@@ -1310,7 +1310,16 @@
       "empty": "Vous n'avez pas de classes assignées",
       "title": "Mes classes",
       "enroll_tooltip": "Inscrire une classe antérieure",
-      "error_loading": "Erreur lors du chargement des classes"
+      "error_loading": "Erreur lors du chargement des classes",
+      "roadmap_chip_title": "Voir mon parcours complet",
+      "roadmap_chip_subtitle": "Voir la progression de votre carrière",
+      "section_current": "Classe actuelle",
+      "section_others": "Autres classes",
+      "enroll_cta": "M'inscrire à une autre classe",
+      "enroll_cta_short": "S'inscrire"
+    },
+    "roadmap": {
+      "track_current_pill": "En cours"
     },
     "status_history": {
       "title": "Historique des statuts",
@@ -3032,6 +3041,7 @@
     "inactive_message": "Cette carte n’est pas active. Contactez votre directeur.",
     "load_error": "Impossible de charger la carte",
     "photo_alt": "Photo de profil de {name}",
+    "view_photo": "Voir la photo",
     "qr_alt": "Code QR de la carte",
     "club_label": "Club",
     "section_label": "Section",

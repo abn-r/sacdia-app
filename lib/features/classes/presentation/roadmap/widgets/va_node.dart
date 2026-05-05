@@ -85,6 +85,25 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
                           ),
                         ),
                       ),
+                    // Ring estático sobre el escudo cuando es la clase actual.
+                    // Coexiste con el halo pulsante: halo = glow suave,
+                    // ring = borde duro que señala sin animación.
+                    if (isCurrent)
+                      Container(
+                        width: RoadmapTokens.nodeShieldSize +
+                            RoadmapTokens.currentRingStrokeWidth * 2 +
+                            4,
+                        height: RoadmapTokens.nodeShieldSize +
+                            RoadmapTokens.currentRingStrokeWidth * 2 +
+                            4,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: widget.accentColor,
+                            width: RoadmapTokens.currentRingStrokeWidth,
+                          ),
+                        ),
+                      ),
                     SizedBox(
                       width: RoadmapTokens.nodeShieldSize,
                       height: RoadmapTokens.nodeShieldSize,

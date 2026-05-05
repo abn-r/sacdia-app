@@ -72,6 +72,7 @@ import '../../features/dashboard/presentation/views/dashboard_view.dart';
 import '../../features/classes/presentation/providers/classes_providers.dart';
 import '../../features/classes/presentation/views/classes_tabs_view.dart';
 import '../../features/classes/presentation/views/class_detail_with_progress_view.dart';
+import '../../features/classes/presentation/views/roadmap_full_screen_view.dart';
 import '../../features/members/presentation/views/members_view.dart';
 import '../../features/profile/presentation/views/profile_view.dart';
 import '../../features/profile/presentation/views/medical_info_view.dart';
@@ -301,6 +302,18 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: RouteNames.homeClasses,
                 pageBuilder: (context, state) =>
                     _fadeThroughBuild(context, state, const ClassesTabsView()),
+                routes: [
+                  // Roadmap como pantalla completa con AppBar y botón back.
+                  // Accesible via context.push(RouteNames.homeClassesRoadmap).
+                  GoRoute(
+                    path: 'roadmap',
+                    pageBuilder: (context, state) => _sharedAxisBuild(
+                      context,
+                      state,
+                      const RoadmapFullScreenView(),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
