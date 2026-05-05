@@ -35,6 +35,7 @@ class CompletionStatusNotifier
     extends AutoDisposeAsyncNotifier<CompletionStatus?> {
   @override
   Future<CompletionStatus?> build() async {
+    ref.keepAlive();
     final cancelToken = CancelToken();
     ref.onDispose(() => cancelToken.cancel());
     final result = await ref
