@@ -120,13 +120,19 @@ Future<Uint8List> buildCredencialPdf(
   final avatarFuture = _loadAvatarImage(vm.fotoUrl);
   final regularFontFuture = _loadFont('assets/fonts/inter/Inter-Regular.ttf');
   final boldFontFuture = _loadFont('assets/fonts/inter/Inter-Bold.ttf');
+  final italicFontFuture = _loadFont('assets/fonts/inter/Inter-Italic.ttf');
   final logo = await logoFuture;
   final avatar = await avatarFuture;
   final regularFont = await regularFontFuture;
   final boldFont = await boldFontFuture;
+  final italicFont = await italicFontFuture;
 
   final theme = (regularFont != null && boldFont != null)
-      ? pw.ThemeData.withFont(base: regularFont, bold: boldFont)
+      ? pw.ThemeData.withFont(
+          base: regularFont,
+          bold: boldFont,
+          italic: italicFont ?? regularFont,
+        )
       : null;
   final doc = pw.Document(theme: theme);
 
