@@ -2915,7 +2915,7 @@
     }
   },
   "roles": {
-    "super_admin": {
+    "super-admin": {
       "masculine": "Super administrador",
       "feminine": "Super administradora"
     },
@@ -2923,7 +2923,7 @@
       "masculine": "Administrador",
       "feminine": "Administradora"
     },
-    "assistant_admin": {
+    "assistant-admin": {
       "masculine": "Administrador assistente",
       "feminine": "Administradora assistente"
     },
@@ -2943,7 +2943,7 @@
       "masculine": "Diretor",
       "feminine": "Diretora"
     },
-    "deputy_director": {
+    "deputy-director": {
       "masculine": "Subdiretor",
       "feminine": "Subdiretora"
     },
