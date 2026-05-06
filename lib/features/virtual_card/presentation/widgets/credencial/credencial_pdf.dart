@@ -73,6 +73,18 @@ Future<pw.ImageProvider?> _loadAssetImage(String assetPath) async {
   }
 }
 
+// ── Font loader with graceful fallback ───────────────────────────────────────
+
+Future<pw.Font?> _loadFont(String assetPath) async {
+  try {
+    final data = await rootBundle.load(assetPath);
+    return pw.Font.ttf(data);
+  } catch (_) {
+    // Asset not available (test env / path wrong) — fall back a default font.
+    return null;
+  }
+}
+
 // ── Avatar loader with graceful fallback ──────────────────────────────────────
 
 Future<pw.ImageProvider?> _loadAvatarImage(String? url) async {
@@ -106,13 +118,24 @@ Future<pw.ImageProvider?> _loadAvatarImage(String? url) async {
 Future<Uint8List> buildCredencialPdf(CredencialViewModel vm) async {
   final sec = Sec.of(vm.seccion);
   final pal = _PdfPalette.of(sec);
-  final doc = pw.Document();
 
-  // Load assets in parallel.
+  // Load assets + fonts in parallel.
+  // Inter is embedded as TTF para soportar tildes y acentos correctamente
+  // (Helvetica default no tiene cobertura Unicode completa para 'Séptimo',
+  // 'Día', 'Guías Mayores', etc).
   final logoFuture = _loadAssetImage(sec.logo);
   final avatarFuture = _loadAvatarImage(vm.fotoUrl);
+  final regularFontFuture = _loadFont('assets/fonts/inter/Inter-Regular.ttf');
+  final boldFontFuture = _loadFont('assets/fonts/inter/Inter-Bold.ttf');
   final logo = await logoFuture;
   final avatar = await avatarFuture;
+  final regularFont = await regularFontFuture;
+  final boldFont = await boldFontFuture;
+
+  final theme = (regularFont != null && boldFont != null)
+      ? pw.ThemeData.withFont(base: regularFont, bold: boldFont)
+      : null;
+  final doc = pw.Document(theme: theme);
 
   // Timestamp at PDF creation — not a live clock.
   final nowStr = DateFormat('HH:mm').format(DateTime.now());
