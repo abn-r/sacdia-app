@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../theme/roadmap_tokens.dart';
 
@@ -10,6 +11,9 @@ class VATrackHeader extends StatelessWidget {
   final int done;
   final int total;
 
+  /// Si `true`, muestra el pill "Cursando" junto al badge de progreso.
+  final bool hasCurrent;
+
   const VATrackHeader({
     super.key,
     required this.title,
@@ -18,6 +22,7 @@ class VATrackHeader extends StatelessWidget {
     required this.soft,
     required this.done,
     required this.total,
+    this.hasCurrent = false,
   });
 
   @override
@@ -75,6 +80,28 @@ class VATrackHeader extends StatelessWidget {
               ],
             ),
           ),
+          // Pill "Cursando" — visible solo cuando el track tiene la clase actual.
+          if (hasCurrent) ...[
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: RoadmapTokens.statusCurrent.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                    color: RoadmapTokens.statusCurrent.withValues(alpha: 0.4)),
+              ),
+              child: Text(
+                'classes.roadmap.track_current_pill'.tr(),
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: RoadmapTokens.statusCurrent,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+          ],
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
             decoration: BoxDecoration(

@@ -6,6 +6,8 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../features/auth/domain/utils/authorization_utils.dart';
+import '../../../../features/auth/presentation/providers/auth_providers.dart';
 import '../../../../providers/catalogs_provider.dart';
 import '../../domain/entities/award_tier.dart';
 import '../../domain/entities/member_ranking.dart';
@@ -31,6 +33,23 @@ class MyRankingScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Deep-link / hot-restart defense: if the user arrives here without the
+    // required permission (e.g., via a push notification link or direct URL),
+    // show a friendly empty state instead of a raw 403 from the backend.
+    final user = ref.watch(
+      authNotifierProvider.select((v) => v.valueOrNull),
+    );
+    if (!hasAnyPermission(user, const {'member_rankings:read_self'})) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(tr('rankings.my_ranking.title')),
+        ),
+        body: const Center(
+          child: RankingEmptyState(reason: RankingEmptyReason.unauthorized),
+        ),
+      );
+    }
+
     final yearAsync = ref.watch(currentEcclesiasticalYearProvider);
 
     return Scaffold(

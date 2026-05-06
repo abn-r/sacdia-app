@@ -17,11 +17,27 @@ class VirtualCardModel extends VirtualCard {
     super.achievementTier,
     super.cardIdShort,
     super.isOffline,
+    super.currentClass,
+    super.bloodType,
+    super.emergencyContact,
   });
 
   factory VirtualCardModel.fromJson(Map<String, dynamic> json) {
     final member = json['member'] is Map
         ? Map<String, dynamic>.from(json['member'] as Map)
+        : null;
+    final emergencyRaw = member?['emergency_contact'] is Map
+        ? Map<String, dynamic>.from(member!['emergency_contact'] as Map)
+        : json['emergency_contact'] is Map
+            ? Map<String, dynamic>.from(json['emergency_contact'] as Map)
+            : null;
+    final emergencyContact = emergencyRaw != null
+        ? EmergencyContact(
+            name: (emergencyRaw['name'] as String? ?? '').trim(),
+            phone: (emergencyRaw['phone'] as String? ?? '').trim(),
+            relationship:
+                (emergencyRaw['relationship'] as String? ?? '').trim(),
+          )
         : null;
     final visual = json['visual'] is Map
         ? Map<String, dynamic>.from(json['visual'] as Map)
@@ -102,6 +118,19 @@ class VirtualCardModel extends VirtualCard {
           : null,
       isActive: json['is_active'] as bool? ?? true,
       isOffline: json['is_offline'] as bool? ?? false,
+      currentClass: _pickString([
+        member?['current_class'],
+        json['current_class'],
+      ]),
+      bloodType: _pickString([
+        member?['blood_type'],
+        json['blood_type'],
+      ]),
+      emergencyContact: emergencyContact != null &&
+              emergencyContact.name.isNotEmpty &&
+              emergencyContact.phone.isNotEmpty
+          ? emergencyContact
+          : null,
     );
   }
 
@@ -122,6 +151,15 @@ class VirtualCardModel extends VirtualCard {
       'qr_expires_at': qrExpiresAt?.toIso8601String(),
       'is_active': isActive,
       'is_offline': isOffline,
+      'current_class': currentClass,
+      'blood_type': bloodType,
+      'emergency_contact': emergencyContact == null
+          ? null
+          : {
+              'name': emergencyContact!.name,
+              'phone': emergencyContact!.phone,
+              'relationship': emergencyContact!.relationship,
+            },
     };
   }
 

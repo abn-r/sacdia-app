@@ -1310,7 +1310,16 @@
       "empty": "You have no assigned classes",
       "title": "My Classes",
       "enroll_tooltip": "Enroll previous class",
-      "error_loading": "Error loading classes"
+      "error_loading": "Error loading classes",
+      "roadmap_chip_title": "View my full journey",
+      "roadmap_chip_subtitle": "See your career progress",
+      "section_current": "Current class",
+      "section_others": "Other classes",
+      "enroll_cta": "Enroll in another class",
+      "enroll_cta_short": "Enroll"
+    },
+    "roadmap": {
+      "track_current_pill": "Current"
     },
     "status_history": {
       "title": "Status history",
@@ -2906,7 +2915,7 @@
     }
   },
   "roles": {
-    "super_admin": {
+    "super-admin": {
       "masculine": "Super administrator",
       "feminine": "Super administrator"
     },
@@ -2914,7 +2923,7 @@
       "masculine": "Administrator",
       "feminine": "Administrator"
     },
-    "assistant_admin": {
+    "assistant-admin": {
       "masculine": "Assistant administrator",
       "feminine": "Assistant administrator"
     },
@@ -2934,7 +2943,7 @@
       "masculine": "Director",
       "feminine": "Director"
     },
-    "deputy_director": {
+    "deputy-director": {
       "masculine": "Deputy director",
       "feminine": "Deputy director"
     },
@@ -3032,6 +3041,7 @@
     "inactive_message": "This credential is not active.",
     "load_error": "Could not load the credential",
     "photo_alt": "Profile photo of {name}",
+    "view_photo": "View photo",
     "qr_alt": "Credential QR code",
     "club_label": "Club",
     "section_label": "Section",

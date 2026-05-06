@@ -55,7 +55,7 @@ final List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
     icon: HugeIcons.strokeRoundedAnalytics01,
     color: AppColors.info,
     route: RouteNames.coordinator,
-    requiredRoles: {'coordinator', 'admin', 'super_admin', 'assistant_admin'},
+    requiredRoles: {'coordinator', 'admin', 'super-admin', 'assistant-admin'},
   ),
   // Administrative: member list — users:read_detail is held by counselor+
   _QuickAccessItemConfig(
@@ -129,12 +129,16 @@ final List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
     route: RouteNames.homeResources,
     requiredPermissions: {'folders:read'},
   ),
-  // Mi ranking — universal (no permission gate, visible to every member).
+  // Mi ranking — only visible to roles that hold member_rankings:read_self
+  // (MEMBER club-scope, ADMIN global, SUPER_ADMIN global). Other club roles
+  // (director, counselor, secretary, treasurer…) do not have this permission
+  // and must not see the entry.
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.my_ranking',
     icon: HugeIcons.strokeRoundedRanking,
     color: AppColors.accent,
     route: RouteNames.homeMyRanking,
+    requiredPermissions: {'member_rankings:read_self'},
   ),
   // Ranking de sección — gated by units:update (counselor+). Route is
   // resolved at render time because it requires the active sectionId from
