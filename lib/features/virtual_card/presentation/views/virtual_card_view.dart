@@ -49,7 +49,10 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
     setState(() => _downloadingPdf = true);
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final bytes = await buildCredencialPdf(vm);
+      final bytes = await buildCredencialPdf(
+        vm,
+        locale: context.locale.toString(),
+      );
       await Printing.sharePdf(
         bytes: bytes,
         filename:

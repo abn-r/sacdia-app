@@ -42,22 +42,9 @@ class _PdfPalette {
 
 // ── Date formatting ────────────────────────────────────────────────────────────
 
-String _fmtDate(DateTime d) {
-  const meses = [
-    'ENE',
-    'FEB',
-    'MAR',
-    'ABR',
-    'MAY',
-    'JUN',
-    'JUL',
-    'AGO',
-    'SEP',
-    'OCT',
-    'NOV',
-    'DIC',
-  ];
-  return '${d.day.toString().padLeft(2, '0')} ${meses[d.month - 1]} ${d.year}';
+String _fmtDate(DateTime d, String locale) {
+  // Formato local-aware. DateFormat respeta el locale activo (es/en/fr/pt-BR).
+  return DateFormat('dd MMM yyyy', locale).format(d).toUpperCase();
 }
 
 // ── Asset loader with graceful fallback ────────────────────────────────────────
@@ -115,7 +102,13 @@ Future<pw.ImageProvider?> _loadAvatarImage(String? url) async {
 /// Section logos are loaded from the Flutter asset bundle via [rootBundle].
 /// If the asset is unavailable (e.g. test environment), the logo slot is
 /// skipped gracefully so the rest of the PDF still renders correctly.
-Future<Uint8List> buildCredencialPdf(CredencialViewModel vm) async {
+///
+/// [locale] defaults to 'es' — pass `context.locale.toString()` from a widget
+/// to localize date / month abbreviations.
+Future<Uint8List> buildCredencialPdf(
+  CredencialViewModel vm, {
+  String locale = 'es',
+}) async {
   final sec = Sec.of(vm.seccion);
   final pal = _PdfPalette.of(sec);
 
@@ -216,6 +209,7 @@ Future<Uint8List> buildCredencialPdf(CredencialViewModel vm) async {
                     dangerColor,
                     successColor,
                     white,
+                    locale,
                   ),
                   if (vm.hasEmergencia) ...[
                     pw.SizedBox(height: 6),
@@ -451,6 +445,7 @@ pw.Widget _buildZonaBlanca(
   PdfColor dangerColor,
   PdfColor successColor,
   PdfColor white,
+  String locale,
 ) {
   final textDark = _pdfColor(0x0F, 0x11, 0x15);
 
@@ -542,7 +537,7 @@ pw.Widget _buildZonaBlanca(
                     children: [
                       _buildMiniField(
                         'virtual_card.credencial.label_valid_until'.tr(),
-                        _fmtDate(vm.fechaVencimiento),
+                        _fmtDate(vm.fechaVencimiento, locale),
                         grey,
                         textDark,
                         null,

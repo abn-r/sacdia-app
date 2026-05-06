@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:sacdia_app/features/virtual_card/presentation/widgets/credencial/credencial_pdf.dart';
 import 'package:sacdia_app/features/virtual_card/presentation/widgets/credencial/credencial_tokens.dart';
 import 'package:sacdia_app/features/virtual_card/presentation/widgets/credencial/credencial_view_model.dart';
@@ -12,6 +13,13 @@ void main() {
   // If the asset load fails (e.g. not in test bundle), _loadAssetImage returns
   // null gracefully and the PDF is still generated without the logo image.
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  // DateFormat con locale requiere date symbol data inicializada.
+  // En la app real easy_localization lo dispara; en tests hay que hacerlo
+  // manualmente para que `_fmtDate(date, 'es')` no tire LocaleDataException.
+  setUpAll(() async {
+    await initializeDateFormatting('es', null);
+  });
 
   CredencialViewModel buildVm({
     String seccion = 'CQ',

@@ -274,22 +274,12 @@ class CredencialCard extends StatelessWidget {
   }
 
   Widget _zonaBlanca(BuildContext context, Sec sec) {
+    // Formato local-aware: "06 MAY 2026" (es), "06 MAY 2026" (en),
+    // "06 MAI 2026" (fr), "06 MAI 2026" (pt-BR). DateFormat ya hace
+    // .toUpperCase()-friendly del nombre de mes según locale.
+    final locale = context.locale.toString();
     String fmt(DateTime d) {
-      const meses = [
-        'ENE',
-        'FEB',
-        'MAR',
-        'ABR',
-        'MAY',
-        'JUN',
-        'JUL',
-        'AGO',
-        'SEP',
-        'OCT',
-        'NOV',
-        'DIC',
-      ];
-      return '${d.day.toString().padLeft(2, '0')} ${meses[d.month - 1]} ${d.year}';
+      return DateFormat('dd MMM yyyy', locale).format(d).toUpperCase();
     }
 
     return Container(
