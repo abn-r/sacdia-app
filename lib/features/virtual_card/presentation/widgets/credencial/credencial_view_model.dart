@@ -70,6 +70,11 @@ class CredencialViewModel {
   bool get hasEmergencia =>
       emergenciaNombre.isNotEmpty && emergenciaTel.isNotEmpty;
 
+  /// Convenience boolean for `estado == 'Activo'` — used by widgets that
+  /// need to switch styles or translation keys without parsing the
+  /// localizable string.
+  bool get isActive => estado == 'Activo';
+
   String get iniciales {
     final parts = nombre.split(' ').where((p) => p.isNotEmpty).toList();
     if (parts.isEmpty) return '?';

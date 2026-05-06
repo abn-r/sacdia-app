@@ -37,8 +37,10 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
 
   Future<void> _share(CredencialViewModel vm) async {
     await Share.share(
-      'Mi credencial SACDIA\nFolio: ${vm.folio}\nClub: ${vm.club}',
-      subject: 'Credencial Digital SACDIA',
+      'virtual_card.credencial.share_body'.tr(
+        namedArgs: {'folio': vm.folio, 'club': vm.club},
+      ),
+      subject: 'virtual_card.credencial.share_subject'.tr(),
     );
   }
 
@@ -55,7 +57,10 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
       );
     } catch (e) {
       messenger.showSnackBar(SnackBar(
-        content: Text('No se pudo generar el PDF: $e'),
+        content: Text(
+          'virtual_card.credencial.pdf_generation_failed'
+              .tr(namedArgs: {'error': e.toString()}),
+        ),
         behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.red.shade700,
       ));
@@ -67,7 +72,10 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
   void _showComingSoon(String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('$feature — Próximamente'),
+        content: Text(
+          'virtual_card.credencial.coming_soon'
+              .tr(namedArgs: {'feature': feature}),
+        ),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
       ),
@@ -176,16 +184,22 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
                           children: [
                             Expanded(
                               child: ActionPill(
-                                label: 'Wallet',
+                                label:
+                                    'virtual_card.credencial.action_wallet'
+                                        .tr(),
                                 icon: ActionIcon.wallet,
                                 primary: true,
-                                onTap: () => _showComingSoon('Wallet'),
+                                onTap: () => _showComingSoon(
+                                  'virtual_card.credencial.action_wallet'.tr(),
+                                ),
                               ),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: ActionPill(
-                                label: 'Compartir',
+                                label:
+                                    'virtual_card.credencial.action_share'
+                                        .tr(),
                                 icon: ActionIcon.share,
                                 onTap: () => _share(vm),
                               ),
@@ -194,8 +208,9 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
                             Expanded(
                               child: ActionPill(
                                 label: _downloadingPdf
-                                    ? 'Descargando…'
-                                    : 'PDF',
+                                    ? 'virtual_card.credencial.action_downloading'
+                                        .tr()
+                                    : 'virtual_card.credencial.action_pdf'.tr(),
                                 icon: ActionIcon.pdf,
                                 onTap: _downloadingPdf
                                     ? null

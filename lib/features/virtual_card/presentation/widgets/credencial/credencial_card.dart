@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -145,11 +146,13 @@ class CredencialCard extends StatelessWidget {
                 const VerifiedDot(size: 6),
                 const SizedBox(width: 6),
                 Text(
-                  vm.estado == 'Activo' ? 'VIGENTE' : 'SUSPENDIDO',
+                  vm.isActive
+                      ? 'virtual_card.credencial.status_vigente'.tr()
+                      : 'virtual_card.credencial.status_suspendido'.tr(),
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
-                    color: vm.estado == 'Activo'
+                    color: vm.isActive
                         ? Colors.white
                         : CredencialTokens.dangerSoft,
                     letterSpacing: 0.6,
@@ -228,7 +231,10 @@ class CredencialCard extends StatelessWidget {
                     // Si no hay etapa pero sí cargo + sectionFull distintos,
                     // mostramos sectionFull como secundario (contexto extra).
                     if (vm.etapa.isNotEmpty)
-                      CredChip(label: 'Etapa ${vm.etapa}')
+                      CredChip(
+                        label: 'virtual_card.credencial.stage_chip'
+                            .tr(namedArgs: {'stage': vm.etapa}),
+                      )
                     else if (vm.cargo.isNotEmpty &&
                         vm.sectionFull.isNotEmpty &&
                         vm.cargo.toLowerCase() !=
@@ -354,8 +360,8 @@ class CredencialCard extends StatelessWidget {
                         // mostrar el nombre completo de la sección como label
                         // principal. Si no, mostramos CLUB normal.
                         vm.clubLooksLikeAcronym && vm.sectionFull.isNotEmpty
-                            ? 'SECCIÓN'
-                            : 'CLUB',
+                            ? 'virtual_card.credencial.label_section'.tr()
+                            : 'virtual_card.credencial.label_club'.tr(),
                         style: const TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.w700,
@@ -393,28 +399,36 @@ class CredencialCard extends StatelessWidget {
                       physics: const NeverScrollableScrollPhysics(),
                       children: [
                         MiniField(
-                          label: 'VIGENTE',
+                          label: 'virtual_card.credencial.label_valid_until'
+                              .tr(),
                           value: fmt(vm.fechaVencimiento),
                         ),
                         // Slot 2: SANGRE if available, else SECCIÓN acronym.
                         vm.tipoSangre.isNotEmpty
                             ? MiniField(
-                                label: 'SANGRE',
+                                label:
+                                    'virtual_card.credencial.label_blood'.tr(),
                                 value: vm.tipoSangre,
                                 highlight: CredencialTokens.danger,
                               )
                             : MiniField(
-                                label: 'SECCIÓN',
+                                label: 'virtual_card.credencial.label_section'
+                                    .tr(),
                                 value: vm.seccion.name,
                               ),
                         MiniField(
-                          label: 'AÑO ECL.',
+                          label:
+                              'virtual_card.credencial.label_ecclesiastical_year'
+                                  .tr(),
                           value: vm.anioEclesiastico,
                         ),
                         MiniField(
-                          label: 'ESTADO',
-                          value: vm.estado,
-                          highlight: vm.estado == 'Activo'
+                          label: 'virtual_card.credencial.label_state'.tr(),
+                          value: vm.isActive
+                              ? 'virtual_card.credencial.estado_activo'.tr()
+                              : 'virtual_card.credencial.estado_suspendido'
+                                  .tr(),
+                          highlight: vm.isActive
                               ? CredencialTokens.success
                               : CredencialTokens.danger,
                         ),
@@ -437,21 +451,23 @@ class CredencialCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Expanded(
+                Expanded(
                   child: Text.rich(
                     TextSpan(
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 10,
                         color: Color(0xFF6B7280),
                         height: 1.35,
                       ),
                       children: [
                         TextSpan(
-                          text: 'Iglesia Adventista del Séptimo Día\n',
+                          text:
+                              '${'virtual_card.credencial.institution_line_1'.tr()}\n',
                         ),
                         TextSpan(
-                          text: 'Ministerio Juvenil',
-                          style: TextStyle(fontSize: 9),
+                          text: 'virtual_card.credencial.institution_line_2'
+                              .tr(),
+                          style: const TextStyle(fontSize: 9),
                         ),
                       ],
                     ),

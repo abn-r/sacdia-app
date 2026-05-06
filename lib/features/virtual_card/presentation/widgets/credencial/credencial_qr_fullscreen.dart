@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -113,16 +114,20 @@ class _CredencialQrFullscreenState extends State<CredencialQrFullscreen> {
       );
 
       messenger.showSnackBar(
-        const SnackBar(
-          content: Text('QR guardado en galería'),
+        SnackBar(
+          content:
+              Text('virtual_card.credencial.qr_saved_to_gallery'.tr()),
           behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
         ),
       );
     } catch (e) {
       messenger.showSnackBar(
         SnackBar(
-          content: Text('No se pudo guardar: $e'),
+          content: Text(
+            'virtual_card.credencial.qr_save_failed'
+                .tr(namedArgs: {'error': e.toString()}),
+          ),
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.red.shade700,
         ),
@@ -221,8 +226,10 @@ class _CredencialQrFullscreenState extends State<CredencialQrFullscreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                _saving ? 'Guardando…' : 'Mantén presionado para guardar',
-                style: TextStyle(
+                _saving
+                    ? 'virtual_card.credencial.qr_saving'.tr()
+                    : 'virtual_card.credencial.qr_long_press_hint'.tr(),
+                style: const TextStyle(
                   fontSize: 11,
                   color: CredencialTokens.textTertiaryLight,
                   fontStyle: FontStyle.italic,
@@ -263,9 +270,9 @@ class _CredencialQrFullscreenState extends State<CredencialQrFullscreen> {
                   children: [
                     const VerifiedDot(color: Color(0xFF22C55E)),
                     const SizedBox(width: 8),
-                    const Text(
-                      'VERIFICADO',
-                      style: TextStyle(
+                    Text(
+                      'virtual_card.credencial.status_verificado'.tr(),
+                      style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 1,

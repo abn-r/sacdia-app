@@ -1,6 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
@@ -142,7 +142,9 @@ Future<Uint8List> buildCredencialPdf(CredencialViewModel vm) async {
 
   // ─── Derived display strings ───────────────────────────────────────────────
   final clubLabel =
-      vm.clubLooksLikeAcronym && vm.sectionFull.isNotEmpty ? 'SECCIÓN' : 'CLUB';
+      vm.clubLooksLikeAcronym && vm.sectionFull.isNotEmpty
+          ? 'virtual_card.credencial.label_section'.tr()
+          : 'virtual_card.credencial.label_club'.tr();
   final clubValue = vm.clubLooksLikeAcronym && vm.sectionFull.isNotEmpty
       ? vm.sectionFull
       : vm.club;
@@ -297,7 +299,7 @@ pw.Widget _buildTopRow(
               width: 5,
               height: 5,
               decoration: pw.BoxDecoration(
-                color: vm.estado == 'Activo'
+                color: vm.isActive
                     ? PdfColor(0.09, 0.82, 0.39) // green-ish
                     : PdfColor(0.98, 0.16, 0.25), // red
                 shape: pw.BoxShape.circle,
@@ -305,7 +307,9 @@ pw.Widget _buildTopRow(
             ),
             pw.SizedBox(width: 4),
             pw.Text(
-              vm.estado == 'Activo' ? 'VIGENTE' : 'SUSPENDIDO',
+              vm.isActive
+                  ? 'virtual_card.credencial.status_vigente'.tr()
+                  : 'virtual_card.credencial.status_suspendido'.tr(),
               style: pw.TextStyle(
                 fontSize: 8,
                 fontWeight: pw.FontWeight.bold,
@@ -537,7 +541,7 @@ pw.Widget _buildZonaBlanca(
                     crossAxisSpacing: 4,
                     children: [
                       _buildMiniField(
-                        'VIGENTE',
+                        'virtual_card.credencial.label_valid_until'.tr(),
                         _fmtDate(vm.fechaVencimiento),
                         grey,
                         textDark,
@@ -545,32 +549,35 @@ pw.Widget _buildZonaBlanca(
                       ),
                       vm.tipoSangre.isNotEmpty
                           ? _buildMiniField(
-                              'SANGRE',
+                              'virtual_card.credencial.label_blood'.tr(),
                               vm.tipoSangre,
                               grey,
                               textDark,
                               dangerColor,
                             )
                           : _buildMiniField(
-                              'SECCIÓN',
+                              'virtual_card.credencial.label_section'.tr(),
                               vm.seccion.name,
                               grey,
                               textDark,
                               null,
                             ),
                       _buildMiniField(
-                        'AÑO ECL.',
+                        'virtual_card.credencial.label_ecclesiastical_year'
+                            .tr(),
                         vm.anioEclesiastico,
                         grey,
                         textDark,
                         null,
                       ),
                       _buildMiniField(
-                        'ESTADO',
-                        vm.estado,
+                        'virtual_card.credencial.label_state'.tr(),
+                        vm.isActive
+                            ? 'virtual_card.credencial.estado_activo'.tr()
+                            : 'virtual_card.credencial.estado_suspendido'.tr(),
                         grey,
                         textDark,
-                        vm.estado == 'Activo' ? successColor : dangerColor,
+                        vm.isActive ? successColor : dangerColor,
                       ),
                     ],
                   ),
@@ -597,11 +604,11 @@ pw.Widget _buildZonaBlanca(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
-                      'Iglesia Adventista del Séptimo Día',
+                      'virtual_card.credencial.institution_line_1'.tr(),
                       style: pw.TextStyle(fontSize: 7, color: grey),
                     ),
                     pw.Text(
-                      'Ministerio Juvenil',
+                      'virtual_card.credencial.institution_line_2'.tr(),
                       style: pw.TextStyle(fontSize: 6.5, color: grey),
                     ),
                   ],
@@ -700,7 +707,8 @@ pw.Widget _buildEmergencia(CredencialViewModel vm, PdfColor dangerColor) {
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Text(
-          'EMERGENCIA · $relacion',
+          'virtual_card.credencial.emergency_label'
+              .tr(namedArgs: {'relationship': relacion}),
           style: pw.TextStyle(
             fontSize: 7,
             fontWeight: pw.FontWeight.bold,
