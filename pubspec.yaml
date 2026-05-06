@@ -24,7 +24,13 @@ dependencies:
   loading_animation_widget: ^1.3.0
   mobile_scanner: ^7.2.0
   qr_flutter: ^4.1.0
-  
+  share_plus: ^10.1.4    # Compartir credencial (action pill "Compartir")
+  pdf: ^3.11.1           # Client-side PDF rendering (pw.*)
+  printing: ^5.13.0      # Native print/share sheet for PDF bytes
+  http: ^1.2.2           # Lightweight HTTP for avatar image fetch in PDF builder
+  screen_brightness: ^2.1.4  # Brillo máximo en QR fullscreen
+  gal: ^2.3.0  # Guardar QR en galería desde long-press
+
   # Gestión de estado
   flutter_riverpod: ^2.6.1
 
@@ -117,6 +123,7 @@ flutter:
     - assets/svg/
     - assets/translations/
     - assets/support/
+    - assets/credencial/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
