@@ -35,6 +35,21 @@ enum VirtualCardTier {
       };
 }
 
+class EmergencyContact extends Equatable {
+  const EmergencyContact({
+    required this.name,
+    required this.phone,
+    required this.relationship,
+  });
+
+  final String name;
+  final String phone;
+  final String relationship;
+
+  @override
+  List<Object?> get props => [name, phone, relationship];
+}
+
 class VirtualCard extends Equatable {
   const VirtualCard({
     required this.userId,
@@ -52,6 +67,9 @@ class VirtualCard extends Equatable {
     this.achievementTier,
     this.cardIdShort,
     this.isOffline = false,
+    this.currentClass,
+    this.bloodType,
+    this.emergencyContact,
   });
 
   final String userId;
@@ -69,6 +87,9 @@ class VirtualCard extends Equatable {
   final DateTime? qrExpiresAt;
   final bool isActive;
   final bool isOffline;
+  final String? currentClass;
+  final String? bloodType;
+  final EmergencyContact? emergencyContact;
 
   bool get hasQr => qrToken?.trim().isNotEmpty ?? false;
 
@@ -98,6 +119,9 @@ class VirtualCard extends Equatable {
     DateTime? qrExpiresAt,
     bool? isActive,
     bool? isOffline,
+    String? currentClass,
+    String? bloodType,
+    EmergencyContact? emergencyContact,
   }) {
     return VirtualCard(
       userId: userId ?? this.userId,
@@ -115,6 +139,9 @@ class VirtualCard extends Equatable {
       qrExpiresAt: qrExpiresAt ?? this.qrExpiresAt,
       isActive: isActive ?? this.isActive,
       isOffline: isOffline ?? this.isOffline,
+      currentClass: currentClass ?? this.currentClass,
+      bloodType: bloodType ?? this.bloodType,
+      emergencyContact: emergencyContact ?? this.emergencyContact,
     );
   }
 
@@ -135,5 +162,8 @@ class VirtualCard extends Equatable {
         qrExpiresAt,
         isActive,
         isOffline,
+        currentClass,
+        bloodType,
+        emergencyContact,
       ];
 }
