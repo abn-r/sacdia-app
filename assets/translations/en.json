@@ -2602,7 +2602,12 @@
       "date_placeholder": "Select date",
       "date_picker_cancel": "Cancel",
       "date_picker_confirm": "OK",
-      "crop_photo_title": "Crop photo"
+      "crop_photo_title": "Crop photo",
+      "gender_select_title": "Select your gender",
+      "gender_select_subtitle": "This information appears on your profile and digital credential.",
+      "gender_updated": "Gender updated to {value}",
+      "gender_update_failed": "Could not update gender",
+      "gender_unset": "Gender not set"
     },
     "medical_info": {
       "title": "Medical Info",

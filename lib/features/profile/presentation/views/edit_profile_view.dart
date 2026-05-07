@@ -17,6 +17,7 @@ import '../../../../core/widgets/sac_text_field.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../post_registration/presentation/providers/post_registration_providers.dart';
 import '../providers/profile_providers.dart';
+import '../widgets/gender_selector.dart';
 
 /// Vista para editar el perfil del usuario.
 ///
@@ -42,7 +43,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
   final _addressController = TextEditingController();
 
   // State — personal info fields (F3)
-  String? _selectedGender;
+  Gender? _selectedGender;
   DateTime? _birthdate;
   bool _baptized = false;
   DateTime? _baptismDate;
@@ -77,7 +78,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
       // Pre-populate personal info fields (F3)
       setState(() {
-        _selectedGender = profile.gender;
+        _selectedGender = Gender.fromApiKey(profile.gender);
         _birthdate = profile.birthDate;
         _baptized = profile.baptized;
         _baptismDate = profile.baptismDate;
@@ -234,7 +235,7 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     };
 
     // Add personal info fields (F3)
-    if (_selectedGender != null) data['gender'] = _selectedGender;
+    if (_selectedGender != null) data['gender'] = _selectedGender!.apiKey;
     if (_birthdate != null) {
       data['birthday'] = _birthdate!.toUtc().toIso8601String();
     }
@@ -473,30 +474,19 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Gender chip selector
-                    Text(
-                      tr('profile.edit.gender_label'),
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: context.sac.textSecondary,
-                          ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        _GenderChip(
-                          label: tr('profile.edit.gender_male'),
-                          value: 'M',
-                          selectedValue: _selectedGender,
-                          onTap: () => setState(() => _selectedGender = 'M'),
-                        ),
-                        const SizedBox(width: 12),
-                        _GenderChip(
-                          label: tr('profile.edit.gender_female'),
-                          value: 'F',
-                          selectedValue: _selectedGender,
-                          onTap: () => setState(() => _selectedGender = 'F'),
-                        ),
-                      ],
+                    // Gender — bottomsheet selector (matches blood type pattern)
+                    _GenderPickerField(
+                      label: tr('profile.edit.gender_label'),
+                      selected: _selectedGender,
+                      onTap: () async {
+                        final picked = await showGenderSelector(
+                          context,
+                          current: _selectedGender,
+                        );
+                        if (picked != null) {
+                          setState(() => _selectedGender = picked);
+                        }
+                      },
                     ),
 
                     const SizedBox(height: 16),
@@ -766,61 +756,77 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-/// Chip selector de género (F3).
-class _GenderChip extends StatelessWidget {
+/// Campo tappable que muestra el género seleccionado y abre el bottomsheet
+/// selector al ser presionado (F3 — patrón bottomsheet de grupo sanguíneo).
+class _GenderPickerField extends StatelessWidget {
   final String label;
-  final String value;
-  final String? selectedValue;
+  final Gender? selected;
   final VoidCallback onTap;
 
-  const _GenderChip({
+  const _GenderPickerField({
     required this.label,
-    required this.value,
-    required this.selectedValue,
+    required this.selected,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isSelected = selectedValue == value;
+    final hasValue = selected != null;
 
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.primaryLight : context.sac.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected ? AppColors.primary : context.sac.border,
-              width: isSelected ? 2 : 1,
+    return SacCard(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: hasValue
+                  ? AppColors.primaryLight
+                  : context.sac.surfaceVariant,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: HugeIcon(
+                icon: hasValue ? selected!.icon : HugeIcons.strokeRoundedUser,
+                size: 20,
+                color: hasValue ? AppColors.primary : context.sac.textTertiary,
+              ),
             ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedUser,
-                size: 20,
-                color:
-                    isSelected ? AppColors.primary : context.sac.textSecondary,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isSelected
-                      ? AppColors.primary
-                      : context.sac.textSecondary,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: context.sac.textTertiary,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 2),
+                Text(
+                  hasValue
+                      ? selected!.display(context)
+                      : 'profile.edit.gender_unset'.tr(),
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color:
+                        hasValue ? context.sac.text : context.sac.textTertiary,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowRight01,
+            size: 18,
+            color: context.sac.textTertiary,
+          ),
+        ],
       ),
     );
   }

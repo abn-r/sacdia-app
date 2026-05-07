@@ -2602,7 +2602,12 @@
       "date_placeholder": "Sélectionner une date",
       "date_picker_cancel": "Annuler",
       "date_picker_confirm": "OK",
-      "crop_photo_title": "Rogner la photo"
+      "crop_photo_title": "Rogner la photo",
+      "gender_select_title": "Sélectionnez votre genre",
+      "gender_select_subtitle": "Ces informations apparaissent sur votre profil et votre carte numérique.",
+      "gender_updated": "Genre mis à jour : {value}",
+      "gender_update_failed": "Impossible de mettre à jour le genre",
+      "gender_unset": "Genre non renseigné"
     },
     "medical_info": {
       "title": "Informations médicales",
