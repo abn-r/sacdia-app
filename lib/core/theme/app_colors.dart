@@ -143,33 +143,34 @@ class AppColors {
   // ═══════════════════════════════════════════════════════════
 
   // Brand coral (alias + extended scale)
-  static const Color coral50  = Color(0xFFFFF1EE);
+  static const Color coral50 = Color(0xFFFFF1EE);
   static const Color coral100 = Color(0xFFFFE3DD);
   static const Color coral200 = Color(0xFFFFC9BE);
-  static const Color coral500 = Color(0xFFEF6B5C); // primary (same hue as AppColors.primary)
+  static const Color coral500 =
+      Color(0xFFEF6B5C); // primary (same hue as AppColors.primary)
   static const Color coral600 = Color(0xFFDD5A4B);
   static const Color coral700 = Color(0xFFB8453A);
 
   // Requisito status — color / bg / dark variants
   static const Color validatedColor = Color(0xFF4FB37C);
-  static const Color validatedBg    = Color(0xFFE8F5EE);
-  static const Color validatedDark  = Color(0xFF2E7A52);
+  static const Color validatedBg = Color(0xFFE8F5EE);
+  static const Color validatedDark = Color(0xFF2E7A52);
 
-  static const Color sentColor      = Color(0xFF5A7FA8);
-  static const Color sentBg         = Color(0xFFEAF1F8);
-  static const Color sentDark       = Color(0xFF3D6391);
+  static const Color sentColor = Color(0xFF5A7FA8);
+  static const Color sentBg = Color(0xFFEAF1F8);
+  static const Color sentDark = Color(0xFF3D6391);
 
-  static const Color observedColor  = Color(0xFFC99036);
-  static const Color observedBg     = Color(0xFFFCF1DC);
-  static const Color observedDark   = Color(0xFF8B6422);
+  static const Color observedColor = Color(0xFFC99036);
+  static const Color observedBg = Color(0xFFFCF1DC);
+  static const Color observedDark = Color(0xFF8B6422);
 
-  static const Color rejectedColor  = Color(0xFFD14B66);
-  static const Color rejectedBg     = Color(0xFFFDE9EE);
-  static const Color rejectedDark   = Color(0xFFA23147);
+  static const Color rejectedColor = Color(0xFFD14B66);
+  static const Color rejectedBg = Color(0xFFFDE9EE);
+  static const Color rejectedDark = Color(0xFFA23147);
 
-  static const Color pendingColor   = Color(0xFF9AA0AB);
-  static const Color pendingBg      = Color(0xFFF2F4F7);
-  static const Color pendingDark    = Color(0xFF6B7280);
+  static const Color pendingColor = Color(0xFF9AA0AB);
+  static const Color pendingBg = Color(0xFFF2F4F7);
+  static const Color pendingDark = Color(0xFF6B7280);
 
   // Neutrals warm low-saturation ink scale
   static const Color ink900 = Color(0xFF131316);
@@ -182,8 +183,8 @@ class AppColors {
   static const Color ink200 = Color(0xFFE3E5EA);
   static const Color ink150 = Color(0xFFECEEF2);
   static const Color ink100 = Color(0xFFF2F4F7);
-  static const Color ink50  = Color(0xFFF7F8FA);
-  static const Color paper  = Color(0xFFFFFFFF);
+  static const Color ink50 = Color(0xFFF7F8FA);
+  static const Color paper = Color(0xFFFFFFFF);
   static const Color canvas = Color(0xFFFAFAFB);
 
   // ═══════════════════════════════════════════════════════════

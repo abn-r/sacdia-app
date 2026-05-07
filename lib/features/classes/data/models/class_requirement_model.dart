@@ -62,10 +62,10 @@ class ClassRequirementModel extends ClassRequirement {
           (json['observed_by_name'] ?? json['observedByName'])?.toString(),
       observedAt: _parseDate(
           json['observed_at']?.toString() ?? json['observedAt']?.toString()),
-      observationComment:
-          (json['observation_comment'] ?? json['observationComment'] ??
+      observationComment: (json['observation_comment'] ??
+              json['observationComment'] ??
               json['observation'])
-              ?.toString(),
+          ?.toString(),
       rejectedByName:
           (json['rejected_by_name'] ?? json['rejectedByName'])?.toString(),
       rejectedAt: _parseDate(

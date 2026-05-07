@@ -735,6 +735,10 @@
         "label": "Date de baptême",
         "date_picker_help": "Sélectionnez votre date de baptême"
       },
+      "blood": {
+        "label": "Groupe sanguin",
+        "empty": "Sélectionner un groupe sanguin"
+      },
       "emergency_contacts": {
         "section_title": "Contacts d’urgence",
         "hint": "Enregistrez au moins un contact d’urgence",

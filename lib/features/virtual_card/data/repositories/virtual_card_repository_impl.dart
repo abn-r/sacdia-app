@@ -74,8 +74,7 @@ class VirtualCardRepositoryImpl implements VirtualCardRepository {
     } on AppException {
       rethrow;
     } catch (e) {
-      AppLogger.e('Error inesperado al descargar PDF',
-          tag: _tag, error: e);
+      AppLogger.e('Error inesperado al descargar PDF', tag: _tag, error: e);
       throw ServerException(message: e.toString());
     }
   }

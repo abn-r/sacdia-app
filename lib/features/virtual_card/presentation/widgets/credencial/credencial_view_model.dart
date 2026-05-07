@@ -129,11 +129,17 @@ class CredencialViewModel {
     final source =
         '${card.clubName ?? ''} ${card.roleCode ?? ''} ${card.sectionName ?? ''}'
             .toLowerCase();
-    if (source.contains('avent')) { return SeccionCode.AV; }
+    if (source.contains('avent')) {
+      return SeccionCode.AV;
+    }
     if (source.contains('guia') ||
         source.contains('guía') ||
-        source.contains('mayor')) { return SeccionCode.GM; }
-    if (source.contains('conq')) { return SeccionCode.CQ; }
+        source.contains('mayor')) {
+      return SeccionCode.GM;
+    }
+    if (source.contains('conq')) {
+      return SeccionCode.CQ;
+    }
     // Default to CQ — the most common section in SACDIA clubs.
     return SeccionCode.CQ;
   }
@@ -149,8 +155,7 @@ class CredencialViewModel {
           .split(RegExp(r'\s+'))
           .where((w) => w.isNotEmpty)
           .toList();
-      final acronym =
-          words.take(3).map((w) => w[0].toUpperCase()).join();
+      final acronym = words.take(3).map((w) => w[0].toUpperCase()).join();
       if (acronym.isNotEmpty) return acronym;
     }
     if (sectionName != null && sectionName.trim().length >= 3) {
