@@ -180,8 +180,7 @@ class _ClassBodyState extends State<_ClassBody> {
                       setState(() => _query = '');
                     },
                   ),
-                  if (!noResults)
-                    const _SectionLabel(text: 'MÓDULOS'),
+                  if (!noResults) const _SectionLabel(text: 'MÓDULOS'),
                 ],
               ),
             ),

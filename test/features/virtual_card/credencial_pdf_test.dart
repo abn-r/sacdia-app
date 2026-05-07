@@ -96,7 +96,8 @@ void main() {
       expect(withoutEmergencia[0], equals(0x25));
     });
 
-    test('generates PDF when qrData is empty (no QR widget rendered)', () async {
+    test('generates PDF when qrData is empty (no QR widget rendered)',
+        () async {
       final vm = CredencialViewModel(
         nombre: 'Sin QR',
         cargo: 'Miembro',

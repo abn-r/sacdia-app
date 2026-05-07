@@ -894,17 +894,15 @@ class _BloodTypeCard extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: selected
-                  ? AppColors.errorLight
-                  : context.sac.surfaceVariant,
+              color:
+                  selected ? AppColors.errorLight : context.sac.surfaceVariant,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Center(
               child: HugeIcon(
                 icon: HugeIcons.strokeRoundedBlood,
                 size: 20,
-                color:
-                    selected ? AppColors.error : context.sac.textTertiary,
+                color: selected ? AppColors.error : context.sac.textTertiary,
               ),
             ),
           ),
