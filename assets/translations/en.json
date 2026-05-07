@@ -735,6 +735,10 @@
         "label": "Baptism date",
         "date_picker_help": "Select your baptism date"
       },
+      "blood": {
+        "label": "Blood type",
+        "empty": "Select blood type"
+      },
       "emergency_contacts": {
         "section_title": "Emergency contacts",
         "hint": "Add at least one emergency contact",

@@ -735,6 +735,10 @@
         "label": "Fecha de bautismo",
         "date_picker_help": "Seleccioná tu fecha de bautismo"
       },
+      "blood": {
+        "label": "Tipo de sangre",
+        "empty": "Seleccionar tipo de sangre"
+      },
       "emergency_contacts": {
         "section_title": "Contactos de emergencia",
         "hint": "Registrá al menos un contacto de emergencia",
