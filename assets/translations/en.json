@@ -2614,7 +2614,13 @@
       "not_registered": "Not registered",
       "load_error": "Error loading",
       "action_edit": "Edit",
-      "action_manage": "Manage"
+      "action_manage": "Manage",
+      "blood_type": "Blood type",
+      "blood_type_unset": "No blood type on file",
+      "blood_type_select_title": "Select your blood type",
+      "blood_type_select_subtitle": "This shows on your digital credential and is useful in case of emergency.",
+      "blood_type_updated": "Blood type updated to {value}",
+      "blood_type_update_failed": "Could not update blood type"
     },
     "settings": {
       "change_password_dialog_title": "Change password",

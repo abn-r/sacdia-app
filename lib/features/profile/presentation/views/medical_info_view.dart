@@ -12,9 +12,49 @@ import 'package:sacdia_app/features/post_registration/presentation/views/disease
 import 'package:sacdia_app/features/post_registration/presentation/views/medicines_selection_view.dart';
 import 'package:sacdia_app/features/post_registration/presentation/views/emergency_contacts_view.dart';
 import 'package:sacdia_app/features/post_registration/presentation/views/legal_representative_view.dart';
+import 'package:sacdia_app/features/profile/presentation/providers/profile_providers.dart';
+import 'package:sacdia_app/features/profile/presentation/widgets/blood_type_selector.dart';
+import 'package:sacdia_app/features/virtual_card/presentation/providers/virtual_card_providers.dart';
 
 class MedicalInfoView extends ConsumerWidget {
   const MedicalInfoView({super.key});
+
+  Future<void> _handleEditBlood(
+    BuildContext context,
+    WidgetRef ref,
+    String? currentBlood,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final selected = await showBloodTypeSelector(
+      context,
+      current: BloodType.fromDisplay(currentBlood),
+    );
+    if (selected == null) return;
+
+    final ok = await ref
+        .read(profileNotifierProvider.notifier)
+        .updateProfile({'blood': selected.apiKey});
+
+    if (ok) {
+      // Refrescar la credencial digital para que muestre el nuevo tipo
+      // de sangre sin requerir pull-to-refresh manual.
+      ref.invalidate(virtualCardFetcherProvider);
+    }
+
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          ok
+              ? 'profile.medical_info.blood_type_updated'
+                  .tr(namedArgs: {'value': selected.display})
+              : 'profile.medical_info.blood_type_update_failed'.tr(),
+        ),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: ok ? null : AppColors.error,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,6 +64,7 @@ class MedicalInfoView extends ConsumerWidget {
     final contactsAsync = ref.watch(emergencyContactsProvider);
     final legalRepAsync = ref.watch(legalRepresentativeProvider);
     final legalRequiredAsync = ref.watch(legalRepresentativeRequiredProvider);
+    final profileAsync = ref.watch(profileNotifierProvider);
 
     final c = context.sac;
 
@@ -34,6 +75,65 @@ class MedicalInfoView extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // Tipo de sangre — sección compacta antes de las alergias.
+          _MedicalSectionCard(
+            icon: HugeIcons.strokeRoundedBlood,
+            title: 'profile.medical_info.blood_type'.tr(),
+            iconColor: AppColors.error,
+            body: profileAsync.when(
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: SacLoadingSmall(),
+              ),
+              error: (e, _) => _SectionError(
+                message: e.toString(),
+                onRetry: () =>
+                    ref.read(profileNotifierProvider.notifier).refresh(),
+              ),
+              data: (profile) {
+                final blood = profile?.blood?.trim();
+                if (blood == null || blood.isEmpty) {
+                  return Text(
+                    'profile.medical_info.blood_type_unset'.tr(),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: c.textTertiary,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  );
+                }
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.errorLight,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: AppColors.error.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Text(
+                    blood,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.errorDark,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                );
+              },
+            ),
+            actionLabel: 'profile.medical_info.action_edit'.tr(),
+            onAction: () => _handleEditBlood(
+              context,
+              ref,
+              profileAsync.valueOrNull?.blood,
+            ),
+          ),
+          const SizedBox(height: 12),
           _MedicalSectionCard(
             icon: HugeIcons.strokeRoundedFirstAidKit,
             title: 'profile.medical_info.allergies'.tr(),
