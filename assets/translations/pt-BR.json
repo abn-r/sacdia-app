@@ -2614,7 +2614,13 @@
       "not_registered": "Não registrado",
       "load_error": "Erro ao carregar",
       "action_edit": "Editar",
-      "action_manage": "Gerenciar"
+      "action_manage": "Gerenciar",
+      "blood_type": "Tipo sanguíneo",
+      "blood_type_unset": "Sem tipo sanguíneo registrado",
+      "blood_type_select_title": "Selecione seu tipo sanguíneo",
+      "blood_type_select_subtitle": "Esta informação aparece na sua credencial digital e é útil em caso de emergência.",
+      "blood_type_updated": "Tipo sanguíneo atualizado para {value}",
+      "blood_type_update_failed": "Não foi possível atualizar o tipo sanguíneo"
     },
     "settings": {
       "change_password_dialog_title": "Alterar senha",

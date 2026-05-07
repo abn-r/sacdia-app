@@ -2614,7 +2614,13 @@
       "not_registered": "Non enregistré",
       "load_error": "Erreur de chargement",
       "action_edit": "Modifier",
-      "action_manage": "Gérer"
+      "action_manage": "Gérer",
+      "blood_type": "Groupe sanguin",
+      "blood_type_unset": "Aucun groupe sanguin enregistré",
+      "blood_type_select_title": "Choisissez votre groupe sanguin",
+      "blood_type_select_subtitle": "Cette information figure sur votre carte numérique et est utile en cas d'urgence.",
+      "blood_type_updated": "Groupe sanguin mis à jour : {value}",
+      "blood_type_update_failed": "Impossible de mettre à jour le groupe sanguin"
     },
     "settings": {
       "change_password_dialog_title": "Changer le mot de passe",
