@@ -18,6 +18,7 @@ class UserDetailModel extends UserDetail {
     super.clubName,
     super.clubType,
     super.currentClass,
+    super.blood,
     super.roles,
     super.createdAt,
     super.lastSignInAt,
@@ -63,6 +64,7 @@ class UserDetailModel extends UserDetail {
       clubName: club?['club_name'] as String? ?? club?['name'] as String?,
       clubType: club?['club_type'] as String? ?? club?['type'] as String?,
       currentClass: json['current_class']?['name'] as String?,
+      blood: json['blood'] as String?,
       roles: roles,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'].toString())
@@ -88,6 +90,7 @@ class UserDetailModel extends UserDetail {
       'address': address,
       'baptism': baptized,
       'baptism_date': baptismDate?.toIso8601String(),
+      'blood': blood,
       'created_at': createdAt?.toIso8601String(),
       'last_sign_in_at': lastSignInAt?.toIso8601String(),
     };
@@ -110,6 +113,7 @@ class UserDetailModel extends UserDetail {
     String? clubName,
     String? clubType,
     String? currentClass,
+    String? blood,
     List<String>? roles,
     DateTime? createdAt,
     DateTime? lastSignInAt,
@@ -130,6 +134,7 @@ class UserDetailModel extends UserDetail {
       clubName: clubName ?? this.clubName,
       clubType: clubType ?? this.clubType,
       currentClass: currentClass ?? this.currentClass,
+      blood: blood ?? this.blood,
       roles: roles ?? this.roles,
       createdAt: createdAt ?? this.createdAt,
       lastSignInAt: lastSignInAt ?? this.lastSignInAt,
