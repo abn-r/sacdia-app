@@ -283,6 +283,30 @@ class HonorsRepositoryImpl implements HonorsRepository {
   }
 
   @override
+  Future<Either<Failure, void>> uploadHonorFile({
+    required String userId,
+    required int honorId,
+    required File file,
+    required String fileName,
+  }) async {
+    try {
+      await remoteDataSource.uploadHonorFile(
+        userId: userId,
+        honorId: honorId,
+        file: file,
+        fileName: fileName,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, RequirementEvidence>> uploadRequirementEvidence(
     String userId,
     int honorId,

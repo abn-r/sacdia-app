@@ -285,25 +285,28 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     setState(() => _isUploading = true);
 
     try {
-      final dataSource = ref.read(honorsRemoteDataSourceProvider);
-      await dataSource.uploadHonorFile(
-        userId: userId,
-        honorId: widget.honorId,
-        file: file,
-        fileName: fileName,
-      );
+      final success = await ref
+          .read(honorEvidenceActionsNotifierProvider.notifier)
+          .uploadFile(
+            userId: userId,
+            honorId: widget.honorId,
+            file: file,
+            fileName: fileName,
+          );
 
-      ref.invalidate(userHonorsProvider);
-      ref.invalidate(userHonorForHonorProvider(widget.honorId));
+      if (!mounted) return;
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('honors.evidence.upload_success'.tr()),
-            backgroundColor: AppColors.sacGreen,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success
+                ? 'honors.evidence.upload_success'.tr()
+                : 'honors.evidence.upload_error'
+                    .tr(namedArgs: {'name': fileName}),
           ),
-        );
-      }
+          backgroundColor: success ? AppColors.sacGreen : AppColors.sacRed,
+        ),
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -326,24 +329,21 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     setState(() => _isUploading = true);
 
     try {
-      final updatedImages =
-          userHonor.images.where((url) => url != imageUrl).toList();
-
-      final dataSource = ref.read(honorsRemoteDataSourceProvider);
-      await dataSource.updateUserHonor(
-        userId,
-        userHonor.honorId,
-        {'images': updatedImages},
-      );
-
-      ref.invalidate(userHonorsProvider);
-      ref.invalidate(userHonorForHonorProvider(widget.honorId));
+      final success = await ref
+          .read(honorEvidenceActionsNotifierProvider.notifier)
+          .deleteEvidenceFile(
+            userId: userId,
+            userHonor: userHonor,
+            imageUrl: imageUrl,
+          );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('honors.evidence.delete_success'.tr()),
-            backgroundColor: AppColors.sacGreen,
+            content: Text(success
+                ? 'honors.evidence.delete_success'.tr()
+                : 'honors.evidence.delete_error'.tr()),
+            backgroundColor: success ? AppColors.sacGreen : AppColors.sacRed,
           ),
         );
       }

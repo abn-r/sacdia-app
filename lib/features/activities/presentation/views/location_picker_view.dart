@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,12 +7,16 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sacdia_app/core/constants/maps_constants.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/features/activities/data/datasources/nominatim_remote_data_source.dart';
+import 'package:sacdia_app/features/activities/domain/entities/location_search_result.dart';
+import 'package:sacdia_app/features/activities/presentation/providers/location_search_providers.dart';
 
 /// Resultado devuelto por [LocationPickerView] al confirmar una ubicación.
 class LocationPickerResult {
@@ -30,23 +33,6 @@ class LocationPickerResult {
     required this.name,
     required this.lat,
     required this.long,
-  });
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Modelo privado para resultados de Nominatim
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// Resultado de la API de Nominatim con coordenadas y nombre del lugar.
-class _NominatimPlace {
-  final double lat;
-  final double lon;
-  final String displayName;
-
-  const _NominatimPlace({
-    required this.lat,
-    required this.lon,
-    required this.displayName,
   });
 }
 
@@ -70,7 +56,7 @@ class _NominatimPlace {
 /// ```
 ///
 /// Usa Google Maps SDK (requiere API Key configurada en Android y iOS).
-class LocationPickerView extends StatefulWidget {
+class LocationPickerView extends ConsumerStatefulWidget {
   /// Ubicación inicial del mapa. Si es null, usa la ubicación del usuario
   /// o la ubicación por defecto definida en [MapsConstants] (Ciudad de México).
   final LatLng? initialLocation;
@@ -78,10 +64,10 @@ class LocationPickerView extends StatefulWidget {
   const LocationPickerView({super.key, this.initialLocation});
 
   @override
-  State<LocationPickerView> createState() => _LocationPickerViewState();
+  ConsumerState<LocationPickerView> createState() => _LocationPickerViewState();
 }
 
-class _LocationPickerViewState extends State<LocationPickerView> {
+class _LocationPickerViewState extends ConsumerState<LocationPickerView> {
   // ── Controladores ─────────────────────────────────────────────────────────
   final Completer<GoogleMapController> _mapCompleter = Completer();
 
@@ -244,9 +230,11 @@ class _LocationPickerViewState extends State<LocationPickerView> {
   // ── Búsqueda ──────────────────────────────────────────────────────────────
 
   Future<void> _openSearch() async {
-    final place = await showSearch<_NominatimPlace?>(
+    final place = await showSearch<LocationSearchResult?>(
       context: context,
-      delegate: _LocationSearchDelegate(),
+      delegate: _LocationSearchDelegate(
+        dataSource: ref.read(nominatimRemoteDataSourceProvider),
+      ),
     );
 
     if (place == null || !mounted) return;
@@ -699,30 +687,18 @@ class _ShimmerLineState extends State<_ShimmerLine>
 ///
 /// Devuelve un [_NominatimPlace] con coordenadas y nombre del lugar
 /// seleccionado, evitando una segunda llamada de geocodificación.
-class _LocationSearchDelegate extends SearchDelegate<_NominatimPlace?> {
-  _LocationSearchDelegate()
+class _LocationSearchDelegate extends SearchDelegate<LocationSearchResult?> {
+  _LocationSearchDelegate({required this.dataSource})
       : super(
           searchFieldLabel: 'activities.location_picker.search_hint'.tr(),
           keyboardType: TextInputType.streetAddress,
           textInputAction: TextInputAction.search,
         );
 
-  // ── Nominatim ─────────────────────────────────────────────────────────────
-
-  static final Dio _dio = Dio(
-    BaseOptions(
-      baseUrl: 'https://nominatim.openstreetmap.org',
-      connectTimeout: const Duration(seconds: 5),
-      receiveTimeout: const Duration(seconds: 5),
-      headers: {
-        'User-Agent': 'SACDIA App/1.0 (contact@sacdia.org)',
-        'Accept-Language': 'es',
-      },
-    ),
-  );
+  final NominatimRemoteDataSource dataSource;
 
   // Estado interno del delegado
-  List<_NominatimPlace> _results = [];
+  List<LocationSearchResult> _results = [];
   bool _isLoading = false;
   bool _hasError = false;
   Timer? _debounce;
@@ -749,26 +725,7 @@ class _LocationSearchDelegate extends SearchDelegate<_NominatimPlace?> {
       if (q != _lastQuery) {
         _lastQuery = q;
         try {
-          final response = await _dio.get<List<dynamic>>(
-            '/search',
-            queryParameters: {
-              'q': q.trim(),
-              'format': 'json',
-              'limit': 5,
-              'addressdetails': 1,
-              'accept-language': 'es',
-            },
-          );
-
-          final data = response.data ?? [];
-          final places = data.map((item) {
-            final map = item as Map<String, dynamic>;
-            return _NominatimPlace(
-              lat: double.parse(map['lat'] as String),
-              lon: double.parse(map['lon'] as String),
-              displayName: map['display_name'] as String,
-            );
-          }).toList();
+          final places = await dataSource.search(q);
 
           refresh(() {
             _results = places;
@@ -804,7 +761,7 @@ class _LocationSearchDelegate extends SearchDelegate<_NominatimPlace?> {
   // ── SearchDelegate overrides ───────────────────────────────────────────────
 
   @override
-  void close(BuildContext context, _NominatimPlace? result) {
+  void close(BuildContext context, LocationSearchResult? result) {
     // Cancel any pending debounce timer on any dismissal path (back gesture,
     // system back, or programmatic close) to prevent dangling async callbacks.
     _debounce?.cancel();

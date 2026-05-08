@@ -11,14 +11,15 @@ import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../auth/presentation/providers/logout_cleanup.dart';
+import '../providers/post_registration_flow_providers.dart';
 import '../providers/post_registration_providers.dart';
+import '../providers/personal_info_providers.dart';
 import '../widgets/bottom_navigation_buttons.dart';
 import '../widgets/step_indicator.dart';
 import 'club_selection_step_view.dart';
 import 'personal_info_step_view.dart';
 import 'photo_step_view.dart';
 import '../providers/club_selection_providers.dart';
-import '../providers/personal_info_providers.dart';
 
 bool canReadSensitiveStep2Data(String targetUserId, UserEntity? user) {
   return canAccessSensitiveUserDataForUser(user, targetUserId: targetUserId) ||
@@ -121,26 +122,22 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
   }
 
   Future<void> _completeStep1() async {
-    final authState = ref.read(authNotifierProvider);
-    final userId = authState.valueOrNull?.id;
-    if (userId == null) return;
-
     setState(() => _isCompletingStep = true);
     try {
-      final repository = ref.read(postRegistrationRepositoryProvider);
-      final result = await repository.completeStep1(userId);
+      final result = await ref
+          .read(postRegistrationFlowNotifierProvider.notifier)
+          .completeStep1();
 
-      result.fold(
-        (failure) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(failure.message)),
-          );
-        },
-        (_) {
-          if (mounted) _goToStep(2);
-        },
-      );
+      if (!mounted) return;
+      if (result.success) {
+        _goToStep(2);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(result.errorMessage ??
+                  tr('post_registration.shell.error_step_failed'))),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isCompletingStep = false);
     }
@@ -156,64 +153,46 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
 
     setState(() => _isCompletingStep = true);
     try {
-      if (canReadSensitiveData) {
-        await ref.read(savePersonalInfoProvider.notifier).save();
-      } else {
-        final dataSource = ref.read(personalInfoDataSourceProvider);
-        await dataSource.completeStep2(userId);
-      }
-      if (mounted) _goToStep(3);
-    } catch (e) {
+      final result = await ref
+          .read(postRegistrationFlowNotifierProvider.notifier)
+          .completeStep2(canReadSensitiveData: canReadSensitiveData);
+
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(tr('post_registration.shell.error_step_failed')),
-        ),
-      );
+      if (result.success) {
+        _goToStep(3);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.errorMessage ??
+                tr('post_registration.shell.error_step_failed')),
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isCompletingStep = false);
     }
   }
 
   Future<void> _completeStep3() async {
-    final authState = ref.read(authNotifierProvider);
-    final userId = authState.valueOrNull?.id;
-    if (userId == null) return;
-
-    ref.read(isSavingStep3Provider.notifier).state = true;
-
-    try {
-      final dataSource = ref.read(clubSelectionDataSourceProvider);
-      await dataSource.completeStep3(
-        userId: userId,
-        countryId: ref.read(selectedCountryProvider)!,
-        unionId: ref.read(selectedUnionProvider)!,
-        localFieldId: ref.read(selectedLocalFieldProvider)!,
-        clubSectionId: ref.read(selectedClubSectionProvider)!,
-        classId: ref.read(selectedClassProvider)!,
-      );
-    } on Exception catch (e) {
-      final msg = e.toString();
-      // 409 Conflict = already completed → treat as success (idempotency)
-      if (!msg.contains('409') && mounted) {
-        ref.read(isSavingStep3Provider.notifier).state = false;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg.replaceFirst('Exception: ', ''))),
-        );
-        return;
-      }
-    } finally {
-      if (mounted) {
-        ref.read(isSavingStep3Provider.notifier).state = false;
-      }
-    }
+    final result = await ref
+        .read(postRegistrationFlowNotifierProvider.notifier)
+        .completeStep3();
 
     if (!mounted) return;
+
+    if (!result.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(result.errorMessage ??
+                tr('post_registration.shell.error_step_failed'))),
+      );
+      return;
+    }
 
     // Update auth state so router redirects correctly
     ref.read(authNotifierProvider.notifier).markPostRegisterComplete();
 
-    if (mounted) context.go(RouteNames.homeDashboard);
+    context.go(RouteNames.homeDashboard);
   }
 
   void _onSkipPhoto() {

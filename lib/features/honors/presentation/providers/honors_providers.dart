@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,6 +23,7 @@ import '../../domain/usecases/get_user_honors.dart';
 import '../../domain/usecases/register_user_honor.dart';
 import '../../domain/usecases/start_honor.dart';
 import '../../domain/usecases/update_requirement_progress.dart';
+import '../../domain/usecases/upload_honor_file.dart';
 
 /// Provider para el data source remoto de especialidades
 final honorsRemoteDataSourceProvider = Provider<HonorsRemoteDataSource>((ref) {
@@ -67,6 +70,11 @@ final startHonorProvider = Provider<StartHonor>((ref) {
 /// Provider para el caso de uso de registrar especialidad completa
 final registerUserHonorProvider = Provider<RegisterUserHonor>((ref) {
   return RegisterUserHonor(ref.read(honorsRepositoryProvider));
+});
+
+/// Provider para el caso de uso de subir archivo de evidencia general
+final uploadHonorFileProvider = Provider<UploadHonorFile>((ref) {
+  return UploadHonorFile(ref.read(honorsRepositoryProvider));
 });
 
 /// Provider para las categorías de especialidades
@@ -199,6 +207,79 @@ final honorEnrollmentNotifierProvider =
     AsyncNotifierProvider.autoDispose<HonorEnrollmentNotifier, UserHonor?>(() {
   return HonorEnrollmentNotifier();
 });
+
+// ── Honor evidence actions ──────────────────────────────────────────────────
+
+class HonorEvidenceActionsNotifier extends AutoDisposeAsyncNotifier<void> {
+  @override
+  Future<void> build() async {}
+
+  Future<bool> uploadFile({
+    required String userId,
+    required int honorId,
+    required File file,
+    required String fileName,
+  }) async {
+    state = const AsyncValue.loading();
+
+    final result = await ref.read(uploadHonorFileProvider)(
+      UploadHonorFileParams(
+        userId: userId,
+        honorId: honorId,
+        file: file,
+        fileName: fileName,
+      ),
+    );
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (_) {
+        state = const AsyncValue.data(null);
+        ref.invalidate(userHonorsProvider);
+        ref.invalidate(userHonorForHonorProvider(honorId));
+        return true;
+      },
+    );
+  }
+
+  Future<bool> deleteEvidenceFile({
+    required String userId,
+    required UserHonor userHonor,
+    required String imageUrl,
+  }) async {
+    state = const AsyncValue.loading();
+
+    final updatedImages =
+        userHonor.images.where((url) => url != imageUrl).toList();
+
+    final result = await ref.read(honorsRepositoryProvider).updateUserHonor(
+      userId,
+      userHonor.honorId,
+      {'images': updatedImages},
+    );
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (_) {
+        state = const AsyncValue.data(null);
+        ref.invalidate(userHonorsProvider);
+        ref.invalidate(userHonorForHonorProvider(userHonor.honorId));
+        return true;
+      },
+    );
+  }
+}
+
+final honorEvidenceActionsNotifierProvider =
+    AsyncNotifierProvider.autoDispose<HonorEvidenceActionsNotifier, void>(
+  HonorEvidenceActionsNotifier.new,
+);
 
 // ── Registration Notifier ────────────────────────────────────────────────────
 

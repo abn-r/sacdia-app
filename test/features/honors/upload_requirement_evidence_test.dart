@@ -28,6 +28,15 @@ class _StubHonorsRepository implements HonorsRepository {
   );
 
   @override
+  Future<Either<Failure, void>> uploadHonorFile({
+    required String userId,
+    required int honorId,
+    required File file,
+    required String fileName,
+  }) =>
+      throw UnimplementedError();
+
+  @override
   Future<Either<Failure, RequirementEvidence>> uploadRequirementEvidence(
     String userId,
     int honorId,

@@ -129,38 +129,31 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
     final user = authState.valueOrNull;
     if (user == null) return;
 
-    ref.read(isUploadingPhotoProvider.notifier).state = true;
-
-    try {
-      final result = await ref
-          .read(postRegistrationRepositoryProvider)
-          .uploadProfilePicture(userId: user.id, filePath: filePath);
-
-      result.fold(
-        (failure) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('post_registration.photo.errors.upload'
-                    .tr(namedArgs: {'message': failure.message})),
-                backgroundColor: AppColors.error,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
-              ),
+    final success =
+        await ref.read(profilePhotoUploadNotifierProvider.notifier).upload(
+              userId: user.id,
+              filePath: filePath,
             );
-            ref.read(selectedPhotoPathProvider.notifier).state = null;
-          }
-        },
-        (url) {
-          AppLogger.i('Foto subida exitosamente', tag: _tag);
-        },
+
+    if (!mounted) return;
+
+    if (!success) {
+      final error = ref.read(profilePhotoUploadNotifierProvider).error;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('post_registration.photo.errors.upload'.tr(
+            namedArgs: {'message': error?.toString() ?? tr('common.error')},
+          )),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
       );
-    } finally {
-      if (mounted) {
-        ref.read(isUploadingPhotoProvider.notifier).state = false;
-      }
+      ref.read(selectedPhotoPathProvider.notifier).state = null;
+      return;
     }
+
+    AppLogger.i('Foto subida exitosamente', tag: _tag);
   }
 
   void _removePhoto() {

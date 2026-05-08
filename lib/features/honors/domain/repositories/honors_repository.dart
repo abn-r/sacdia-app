@@ -86,6 +86,14 @@ abstract class HonorsRepository {
       bulkUpdateRequirementProgress(
           String userId, int honorId, List<Map<String, dynamic>> updates);
 
+  /// Sube un archivo de evidencia general al honor del usuario.
+  Future<Either<Failure, void>> uploadHonorFile({
+    required String userId,
+    required int honorId,
+    required File file,
+    required String fileName,
+  });
+
   /// Sube un archivo de evidencia para un requisito específico de una especialidad.
   /// [mimeType] debe ser validado por el llamador antes de invocar este método.
   Future<Either<Failure, RequirementEvidence>> uploadRequirementEvidence(
