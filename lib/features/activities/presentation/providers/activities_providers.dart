@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +16,7 @@ import '../../domain/usecases/create_activity.dart';
 import '../../domain/usecases/get_club_activities.dart';
 import '../../domain/usecases/get_activity_detail.dart';
 import '../../domain/usecases/register_attendance.dart';
+import '../../domain/usecases/upload_activity_image.dart';
 
 /// Provider para el data source remoto de actividades
 final activitiesRemoteDataSourceProvider =
@@ -57,6 +59,11 @@ final createActivityUseCaseProvider = Provider<CreateActivity>((ref) {
 /// Provider para el caso de uso de registrar asistencia
 final registerAttendanceProvider = Provider<RegisterAttendance>((ref) {
   return RegisterAttendance(ref.read(activitiesRepositoryProvider));
+});
+
+/// Provider para el caso de uso de subir imagen de actividad
+final uploadActivityImageProvider = Provider<UploadActivityImage>((ref) {
+  return UploadActivityImage(ref.read(activitiesRepositoryProvider));
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -384,6 +391,44 @@ class UpdateActivityNotifier extends AutoDisposeNotifier<UpdateActivityState> {
 final updateActivityNotifierProvider =
     NotifierProvider.autoDispose<UpdateActivityNotifier, UpdateActivityState>(
   UpdateActivityNotifier.new,
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ACTIVITY IMAGE UPLOAD
+// ─────────────────────────────────────────────────────────────────────────────
+
+class ActivityImageUploadNotifier extends AutoDisposeAsyncNotifier<String?> {
+  @override
+  Future<String?> build() async => null;
+
+  Future<bool> upload({
+    required int activityId,
+    required File imageFile,
+  }) async {
+    state = const AsyncValue.loading();
+
+    final result = await ref.read(uploadActivityImageProvider)(
+      UploadActivityImageParams(activityId: activityId, imageFile: imageFile),
+    );
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (url) {
+        state = AsyncValue.data(url);
+        ref.invalidate(clubActivitiesProvider);
+        ref.invalidate(activityDetailProvider(activityId));
+        return true;
+      },
+    );
+  }
+}
+
+final activityImageUploadNotifierProvider =
+    AsyncNotifierProvider.autoDispose<ActivityImageUploadNotifier, String?>(
+  ActivityImageUploadNotifier.new,
 );
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -137,35 +137,29 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
       setState(() => _isUploadingPhoto = true);
 
       try {
-        final result = await ref
-            .read(postRegistrationRepositoryProvider)
-            .uploadProfilePicture(
-              userId: user.id,
-              filePath: croppedFile.path,
-            );
+        final success =
+            await ref.read(profilePhotoUploadNotifierProvider.notifier).upload(
+                  userId: user.id,
+                  filePath: croppedFile.path,
+                );
 
-        result.fold(
-          (failure) {
-            if (mounted) {
-              _showSnackbar(
-                tr('profile.edit.photo_upload_error'),
-                AppColors.error,
-                HugeIcons.strokeRoundedAlert02,
-              );
-            }
-          },
-          (_) {
-            if (mounted) {
-              ref.invalidate(profileNotifierProvider);
-              ref.invalidate(authNotifierProvider);
-              _showSnackbar(
-                tr('profile.edit.photo_upload_success'),
-                AppColors.secondary,
-                HugeIcons.strokeRoundedCheckmarkCircle02,
-              );
-            }
-          },
-        );
+        if (!mounted) return;
+
+        if (!success) {
+          _showSnackbar(
+            tr('profile.edit.photo_upload_error'),
+            AppColors.error,
+            HugeIcons.strokeRoundedAlert02,
+          );
+        } else {
+          ref.invalidate(profileNotifierProvider);
+          ref.invalidate(authNotifierProvider);
+          _showSnackbar(
+            tr('profile.edit.photo_upload_success'),
+            AppColors.secondary,
+            HugeIcons.strokeRoundedCheckmarkCircle02,
+          );
+        }
       } finally {
         if (mounted) {
           setState(() => _isUploadingPhoto = false);

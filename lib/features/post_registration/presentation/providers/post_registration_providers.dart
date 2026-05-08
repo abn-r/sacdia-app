@@ -8,6 +8,7 @@ import '../../data/datasources/post_registration_remote_data_source.dart';
 import '../../data/repositories/post_registration_repository_impl.dart';
 import '../../domain/entities/completion_status.dart';
 import '../../domain/repositories/post_registration_repository.dart';
+import '../../domain/usecases/upload_profile_picture.dart';
 
 /// Provider para el repositorio de post-registro
 final postRegistrationRepositoryProvider =
@@ -23,6 +24,49 @@ final postRegistrationRepositoryProvider =
     networkInfo: networkInfo,
   );
 });
+
+/// Provider para el caso de uso de subir foto de perfil.
+final uploadProfilePictureProvider =
+    Provider.autoDispose<UploadProfilePicture>((ref) {
+  return UploadProfilePicture(ref.read(postRegistrationRepositoryProvider));
+});
+
+/// Notifier para subir foto de perfil sin acoplar vistas al repositorio.
+class ProfilePhotoUploadNotifier extends AutoDisposeAsyncNotifier<String?> {
+  @override
+  Future<String?> build() async => null;
+
+  Future<bool> upload({
+    required String userId,
+    required String filePath,
+  }) async {
+    ref.read(isUploadingPhotoProvider.notifier).state = true;
+    state = const AsyncValue.loading();
+
+    final result = await ref.read(uploadProfilePictureProvider)(
+      UploadProfilePictureParams(userId: userId, filePath: filePath),
+    );
+
+    ref.read(isUploadingPhotoProvider.notifier).state = false;
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (url) {
+        state = AsyncValue.data(url);
+        return true;
+      },
+    );
+  }
+}
+
+/// Provider para upload de foto de perfil.
+final profilePhotoUploadNotifierProvider =
+    AsyncNotifierProvider.autoDispose<ProfilePhotoUploadNotifier, String?>(
+  ProfilePhotoUploadNotifier.new,
+);
 
 /// Provider para el estado de completitud del post-registro
 final completionStatusProvider = AsyncNotifierProvider.autoDispose<

@@ -4,7 +4,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/notification_item.dart';
 import '../providers/notifications_providers.dart';
-import '../providers/unread_notifications_count_provider.dart';
 import 'notification_type_badge.dart';
 
 /// Card que muestra una notificación del historial.
@@ -21,27 +20,9 @@ class NotificationCard extends ConsumerWidget {
     final deliveryId = notification.deliveryId;
 
     if (!notification.isRead && deliveryId != null) {
-      // 1. Optimistic update: mark read locally + decrement counter.
-      ref
+      await ref
           .read(notificationsInboxProvider.notifier)
-          .updateItemReadState(deliveryId, isRead: true);
-      ref.read(unreadNotificationsCountProvider.notifier).decrement();
-
-      // 2. Persist via API (fire-and-forget with rollback on failure).
-      final repository = ref.read(notificationsRepositoryProvider);
-      final result = await repository.markAsRead(deliveryId);
-      result.fold(
-        (failure) {
-          // Rollback optimistic update on failure.
-          ref
-              .read(notificationsInboxProvider.notifier)
-              .updateItemReadState(deliveryId, isRead: false);
-          ref.read(unreadNotificationsCountProvider.notifier).increment();
-        },
-        (_) {
-          // Success — nothing extra needed.
-        },
-      );
+          .markAsRead(deliveryId);
     }
   }
 
