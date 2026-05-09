@@ -63,6 +63,23 @@ class VirtualCardRepositoryImpl implements VirtualCardRepository {
   }
 
   @override
+  Future<List<int>> getCardPdf() async {
+    final hasConnection = await _networkInfo.isConnected;
+    if (!hasConnection) {
+      throw ServerException(message: tr('virtual_card.errors.offline'));
+    }
+
+    try {
+      return await _remoteDataSource.getVirtualCardPdf();
+    } on AppException {
+      rethrow;
+    } catch (e) {
+      AppLogger.e('Error inesperado al descargar PDF', tag: _tag, error: e);
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
   Future<void> saveCachedCard(VirtualCard card) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(

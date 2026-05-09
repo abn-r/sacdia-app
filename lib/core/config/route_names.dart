@@ -23,6 +23,9 @@ class RouteNames {
   static const String homeActivities = '/home/activities';
   static const String homeProfile = '/home/profile';
 
+  // Roadmap de clases (pantalla completa dentro del branch de Clases)
+  static const String homeClassesRoadmap = '/home/classes/roadmap';
+
   // Módulos de acceso rápido (dentro del shell)
   static const String homeMembers = '/home/members';
   static const String homeClub = '/home/club';

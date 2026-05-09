@@ -6,14 +6,14 @@ class RoleUtils {
 
   /// Conjunto de claves de rol conocidas por el sistema.
   static const _knownRoles = {
-    'super_admin',
+    'super-admin',
     'admin',
-    'assistant_admin',
+    'assistant-admin',
     'coordinator',
     'pastor',
     'user',
     'director',
-    'deputy_director',
+    'deputy-director',
     'secretary',
     'treasurer',
     'counselor',

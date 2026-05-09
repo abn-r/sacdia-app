@@ -31,7 +31,7 @@ class _RoleAssignmentViewState extends ConsumerState<RoleAssignmentView> {
   /// Roles disponibles para asignar en el club
   static const _availableRoles = [
     'director',
-    'deputy_director',
+    'deputy-director',
     'secretary',
     'treasurer',
     'counselor',
