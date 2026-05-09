@@ -41,9 +41,8 @@ class FinancesView extends ConsumerWidget {
     return SecureScreen(
       child: Scaffold(
         backgroundColor: context.sac.background,
-        floatingActionButton: showFab
-            ? _AddFab(onTap: () => _openAddSheet(context, ref))
-            : null,
+        floatingActionButton:
+            showFab ? _AddFab(onTap: () => _openAddSheet(context, ref)) : null,
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         body: SafeArea(
           child: RefreshIndicator(
@@ -66,9 +65,9 @@ class FinancesView extends ConsumerWidget {
                   title: Text(
                     'finances.view.title'.tr(),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: context.sac.text,
-                    ),
+                          fontWeight: FontWeight.w700,
+                          color: context.sac.text,
+                        ),
                   ),
                   centerTitle: false,
                   actions: [
@@ -149,8 +148,7 @@ class _FinanceBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isOpen = financeMonth?.isOpen ?? true;
-    final totalBalance =
-        summaryAsync.valueOrNull?.totalBalance ??
+    final totalBalance = summaryAsync.valueOrNull?.totalBalance ??
         financeMonth?.totalBalance ??
         0.0;
     final transactions = financeMonth?.transactions ?? [];
@@ -284,8 +282,8 @@ class _EmptyTransactions extends StatelessWidget {
               'finances.view.empty_title'.tr(),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: context.sac.textSecondary,
-              ),
+                    color: context.sac.textSecondary,
+                  ),
             ),
             const SizedBox(height: 4),
             Text(

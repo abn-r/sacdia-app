@@ -83,9 +83,8 @@ class _CredencialQrFullscreenState extends State<CredencialQrFullscreen> {
     final messenger = ScaffoldMessenger.of(context);
 
     try {
-      final boundary =
-          _qrBoundaryKey.currentContext?.findRenderObject()
-              as RenderRepaintBoundary?;
+      final boundary = _qrBoundaryKey.currentContext?.findRenderObject()
+          as RenderRepaintBoundary?;
       if (boundary == null) {
         throw StateError('QR boundary no encontrado');
       }

@@ -128,11 +128,11 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
                                 vm: vm,
                                 onQrTap: card.canShowQr
                                     ? () => Navigator.of(context).push(
-                                        _credencialQrFullscreenRoute(
-                                          vm,
-                                          heroTag,
-                                        ),
-                                      )
+                                          _credencialQrFullscreenRoute(
+                                            vm,
+                                            heroTag,
+                                          ),
+                                        )
                                     : _refresh,
                               ),
                               if (card.isOffline)
@@ -197,9 +197,8 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: ActionPill(
-                                  label: _downloadingPdf
-                                      ? 'Descargando…'
-                                      : 'PDF',
+                                  label:
+                                      _downloadingPdf ? 'Descargando…' : 'PDF',
                                   icon: ActionIcon.pdf,
                                   onTap: _downloadingPdf
                                       ? null
