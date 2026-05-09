@@ -32,9 +32,9 @@ class MedicalInfoView extends ConsumerWidget {
     );
     if (selected == null) return;
 
-    final ok = await ref
-        .read(profileNotifierProvider.notifier)
-        .updateProfile({'blood': selected.apiKey});
+    final ok = await ref.read(profileNotifierProvider.notifier).updateProfile({
+      'blood': selected.apiKey,
+    });
 
     if (ok) {
       // Refrescar la credencial digital para que muestre el nuevo tipo
@@ -46,8 +46,9 @@ class MedicalInfoView extends ConsumerWidget {
       SnackBar(
         content: Text(
           ok
-              ? 'profile.medical_info.blood_type_updated'
-                  .tr(namedArgs: {'value': selected.display})
+              ? 'profile.medical_info.blood_type_updated'.tr(
+                  namedArgs: {'value': selected.display},
+                )
               : 'profile.medical_info.blood_type_update_failed'.tr(),
         ),
         behavior: SnackBarBehavior.floating,
@@ -71,398 +72,398 @@ class MedicalInfoView extends ConsumerWidget {
 
     return SecureScreen(
       child: Scaffold(
-      appBar: AppBar(
-        title: Text('profile.medical_info.title'.tr()),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Tipo de sangre — sección compacta antes de las alergias.
-          _MedicalSectionCard(
-            icon: HugeIcons.strokeRoundedBlood,
-            title: 'profile.medical_info.blood_type'.tr(),
-            iconColor: AppColors.error,
-            body: profileAsync.when(
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: SacLoadingSmall(),
-              ),
-              error: (e, _) => _SectionError(
-                message: e.toString(),
-                onRetry: () =>
-                    ref.read(profileNotifierProvider.notifier).refresh(),
-              ),
-              data: (profile) {
-                final blood = profile?.blood?.trim();
-                if (blood == null || blood.isEmpty) {
-                  return Text(
-                    'profile.medical_info.blood_type_unset'.tr(),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: c.textTertiary,
-                      fontStyle: FontStyle.italic,
+        appBar: AppBar(title: Text('profile.medical_info.title'.tr())),
+        body: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // Tipo de sangre — sección compacta antes de las alergias.
+            _MedicalSectionCard(
+              icon: HugeIcons.strokeRoundedBlood,
+              title: 'profile.medical_info.blood_type'.tr(),
+              iconColor: AppColors.error,
+              body: profileAsync.when(
+                loading: () => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: SacLoadingSmall(),
+                ),
+                error: (e, _) => _SectionError(
+                  message: e.toString(),
+                  onRetry: () =>
+                      ref.read(profileNotifierProvider.notifier).refresh(),
+                ),
+                data: (profile) {
+                  final blood = profile?.blood?.trim();
+                  if (blood == null || blood.isEmpty) {
+                    return Text(
+                      'profile.medical_info.blood_type_unset'.tr(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: c.textTertiary,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    );
+                  }
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.errorLight,
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: AppColors.error.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Text(
+                      blood,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.errorDark,
+                        letterSpacing: 0.4,
+                      ),
                     ),
                   );
-                }
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.errorLight,
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                      color: AppColors.error.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Text(
-                    blood,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.errorDark,
-                      letterSpacing: 0.4,
-                    ),
-                  ),
-                );
-              },
-            ),
-            actionLabel: 'profile.medical_info.action_edit'.tr(),
-            onAction: () => _handleEditBlood(
-              context,
-              ref,
-              profileAsync.valueOrNull?.blood,
-            ),
-          ),
-          const SizedBox(height: 12),
-          _MedicalSectionCard(
-            icon: HugeIcons.strokeRoundedFirstAidKit,
-            title: 'profile.medical_info.allergies'.tr(),
-            iconColor: AppColors.error,
-            body: allergiesAsync.when(
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: SacLoadingSmall(),
+                },
               ),
-              error: (e, _) => _SectionError(
-                message: e.toString(),
-                onRetry: () => ref.invalidate(userAllergiesProvider),
+              actionLabel: 'profile.medical_info.action_edit'.tr(),
+              onAction: () => _handleEditBlood(
+                context,
+                ref,
+                profileAsync.valueOrNull?.blood,
               ),
-              data: (allergies) {
-                if (allergies.isEmpty) {
-                  return Text(
-                    'profile.medical_info.none_allergies'.tr(),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: c.textTertiary,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  );
-                }
-                return Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: allergies
-                      .map(
-                        (a) => Chip(
-                          label: Text(
-                            a.name,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.errorDark,
-                              fontWeight: FontWeight.w500,
+            ),
+            const SizedBox(height: 12),
+            _MedicalSectionCard(
+              icon: HugeIcons.strokeRoundedFirstAidKit,
+              title: 'profile.medical_info.allergies'.tr(),
+              iconColor: AppColors.error,
+              body: allergiesAsync.when(
+                loading: () => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: SacLoadingSmall(),
+                ),
+                error: (e, _) => _SectionError(
+                  message: e.toString(),
+                  onRetry: () => ref.invalidate(userAllergiesProvider),
+                ),
+                data: (allergies) {
+                  if (allergies.isEmpty) {
+                    return Text(
+                      'profile.medical_info.none_allergies'.tr(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: c.textTertiary,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    );
+                  }
+                  return Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: allergies
+                        .map(
+                          (a) => Chip(
+                            label: Text(
+                              a.name,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.errorDark,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-                          backgroundColor: AppColors.errorLight,
-                          side: BorderSide(
-                            color: AppColors.error.withValues(alpha: 0.3),
-                          ),
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                        ),
-                      )
-                      .toList(),
-                );
-              },
-            ),
-            actionLabel: 'profile.medical_info.action_edit'.tr(),
-            onAction: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const AllergiesSelectionView(),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          _MedicalSectionCard(
-            icon: HugeIcons.strokeRoundedHealth,
-            title: 'profile.medical_info.diseases'.tr(),
-            iconColor: AppColors.accent,
-            body: diseasesAsync.when(
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: SacLoadingSmall(),
-              ),
-              error: (e, _) => _SectionError(
-                message: e.toString(),
-                onRetry: () => ref.invalidate(userDiseasesProvider),
-              ),
-              data: (diseases) {
-                if (diseases.isEmpty) {
-                  return Text(
-                    'profile.medical_info.none_diseases'.tr(),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: c.textTertiary,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  );
-                }
-                return Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: diseases
-                      .map(
-                        (d) => Chip(
-                          label: Text(
-                            d.name,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.accentDark,
-                              fontWeight: FontWeight.w500,
+                            backgroundColor: AppColors.errorLight,
+                            side: BorderSide(
+                              color: AppColors.error.withValues(alpha: 0.3),
                             ),
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
                           ),
-                          backgroundColor: AppColors.accentLight,
-                          side: BorderSide(
-                            color: AppColors.accent.withValues(alpha: 0.3),
-                          ),
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                        ),
-                      )
-                      .toList(),
-                );
-              },
-            ),
-            actionLabel: 'profile.medical_info.action_edit'.tr(),
-            onAction: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const DiseasesSelectionView(),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          _MedicalSectionCard(
-            icon: HugeIcons.strokeRoundedMedicine01,
-            title: 'profile.medical_info.medicines'.tr(),
-            iconColor: AppColors.secondary,
-            body: medicinesAsync.when(
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: SacLoadingSmall(),
-              ),
-              error: (e, _) => _SectionError(
-                message: e.toString(),
-                onRetry: () => ref.invalidate(userMedicinesProvider),
-              ),
-              data: (medicines) {
-                if (medicines.isEmpty) {
-                  return Text(
-                    'profile.medical_info.none_medicines'.tr(),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: c.textTertiary,
-                      fontStyle: FontStyle.italic,
-                    ),
+                        )
+                        .toList(),
                   );
-                }
-                return Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: medicines
-                      .map(
-                        (m) => Chip(
-                          label: Text(
-                            m.name,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.secondaryDark,
-                              fontWeight: FontWeight.w500,
+                },
+              ),
+              actionLabel: 'profile.medical_info.action_edit'.tr(),
+              onAction: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const AllergiesSelectionView(),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            _MedicalSectionCard(
+              icon: HugeIcons.strokeRoundedHealth,
+              title: 'profile.medical_info.diseases'.tr(),
+              iconColor: AppColors.accent,
+              body: diseasesAsync.when(
+                loading: () => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: SacLoadingSmall(),
+                ),
+                error: (e, _) => _SectionError(
+                  message: e.toString(),
+                  onRetry: () => ref.invalidate(userDiseasesProvider),
+                ),
+                data: (diseases) {
+                  if (diseases.isEmpty) {
+                    return Text(
+                      'profile.medical_info.none_diseases'.tr(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: c.textTertiary,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    );
+                  }
+                  return Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: diseases
+                        .map(
+                          (d) => Chip(
+                            label: Text(
+                              d.name,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.accentDark,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
+                            backgroundColor: AppColors.accentLight,
+                            side: BorderSide(
+                              color: AppColors.accent.withValues(alpha: 0.3),
+                            ),
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
                           ),
-                          backgroundColor: AppColors.secondaryLight,
-                          side: BorderSide(
-                            color: AppColors.secondary.withValues(alpha: 0.3),
-                          ),
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                        ),
-                      )
-                      .toList(),
-                );
-              },
-            ),
-            actionLabel: 'profile.medical_info.action_edit'.tr(),
-            onAction: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const MedicinesSelectionView(),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          _MedicalSectionCard(
-            icon: HugeIcons.strokeRoundedContactBook,
-            title: 'profile.medical_info.emergency_contacts'.tr(),
-            iconColor: AppColors.primary,
-            body: contactsAsync.when(
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: SacLoadingSmall(),
-              ),
-              error: (e, _) => _SectionError(
-                message: e.toString(),
-                onRetry: () => ref.invalidate(emergencyContactsProvider),
-              ),
-              data: (contacts) {
-                if (contacts.isEmpty) {
-                  return Text(
-                    'profile.medical_info.none_contacts'.tr(),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: c.textTertiary,
-                      fontStyle: FontStyle.italic,
-                    ),
+                        )
+                        .toList(),
                   );
-                }
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: contacts
-                      .map(
-                        (contact) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 32,
-                                height: 32,
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryLight,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Center(
-                                  child: HugeIcon(
-                                    icon: HugeIcons.strokeRoundedUser,
-                                    color: AppColors.primaryDark,
-                                    size: 16,
+                },
+              ),
+              actionLabel: 'profile.medical_info.action_edit'.tr(),
+              onAction: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const DiseasesSelectionView(),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            _MedicalSectionCard(
+              icon: HugeIcons.strokeRoundedMedicine01,
+              title: 'profile.medical_info.medicines'.tr(),
+              iconColor: AppColors.secondary,
+              body: medicinesAsync.when(
+                loading: () => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: SacLoadingSmall(),
+                ),
+                error: (e, _) => _SectionError(
+                  message: e.toString(),
+                  onRetry: () => ref.invalidate(userMedicinesProvider),
+                ),
+                data: (medicines) {
+                  if (medicines.isEmpty) {
+                    return Text(
+                      'profile.medical_info.none_medicines'.tr(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: c.textTertiary,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    );
+                  }
+                  return Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: medicines
+                        .map(
+                          (m) => Chip(
+                            label: Text(
+                              m.name,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.secondaryDark,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            backgroundColor: AppColors.secondaryLight,
+                            side: BorderSide(
+                              color: AppColors.secondary.withValues(alpha: 0.3),
+                            ),
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                          ),
+                        )
+                        .toList(),
+                  );
+                },
+              ),
+              actionLabel: 'profile.medical_info.action_edit'.tr(),
+              onAction: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const MedicinesSelectionView(),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            _MedicalSectionCard(
+              icon: HugeIcons.strokeRoundedContactBook,
+              title: 'profile.medical_info.emergency_contacts'.tr(),
+              iconColor: AppColors.primary,
+              body: contactsAsync.when(
+                loading: () => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: SacLoadingSmall(),
+                ),
+                error: (e, _) => _SectionError(
+                  message: e.toString(),
+                  onRetry: () => ref.invalidate(emergencyContactsProvider),
+                ),
+                data: (contacts) {
+                  if (contacts.isEmpty) {
+                    return Text(
+                      'profile.medical_info.none_contacts'.tr(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: c.textTertiary,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    );
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: contacts
+                        .map(
+                          (contact) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryLight,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(
+                                    child: HugeIcon(
+                                      icon: HugeIcons.strokeRoundedUser,
+                                      color: AppColors.primaryDark,
+                                      size: 16,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      contact.name,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: c.text,
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        contact.name,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: c.text,
+                                        ),
                                       ),
-                                    ),
-                                    Text(
-                                      '${contact.relationshipTypeName ?? contact.relationshipTypeId} · ${contact.phone}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: c.textSecondary,
+                                      Text(
+                                        '${contact.relationshipTypeName ?? contact.relationshipTypeId} · ${contact.phone}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: c.textSecondary,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      )
-                      .toList(),
+                        )
+                        .toList(),
+                  );
+                },
+              ),
+              actionLabel: 'profile.medical_info.action_manage'.tr(),
+              onAction: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const EmergencyContactsView(),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            legalRequiredAsync.when(
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+              data: (isRequired) {
+                if (!isRequired) return const SizedBox.shrink();
+                return _MedicalSectionCard(
+                  icon: HugeIcons.strokeRoundedUserShield01,
+                  title: 'profile.medical_info.legal_rep'.tr(),
+                  iconColor: AppColors.secondary,
+                  body: legalRepAsync.when(
+                    loading: () => const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: SacLoadingSmall(),
+                    ),
+                    error: (e, _) => _SectionError(
+                      message: e.toString(),
+                      onRetry: () =>
+                          ref.invalidate(legalRepresentativeProvider),
+                    ),
+                    data: (rep) {
+                      if (rep == null) {
+                        return Text(
+                          'profile.medical_info.not_registered'.tr(),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: c.textTertiary,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        );
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${rep.name} ${rep.paternalSurname} ${rep.maternalSurname}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: c.text,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${rep.type} · ${rep.phone}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: c.textSecondary,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  actionLabel: 'profile.medical_info.action_edit'.tr(),
+                  onAction: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const LegalRepresentativeView(),
+                    ),
+                  ),
                 );
               },
             ),
-            actionLabel: 'profile.medical_info.action_manage'.tr(),
-            onAction: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const EmergencyContactsView(),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          legalRequiredAsync.when(
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
-            data: (isRequired) {
-              if (!isRequired) return const SizedBox.shrink();
-              return _MedicalSectionCard(
-                icon: HugeIcons.strokeRoundedUserShield01,
-                title: 'profile.medical_info.legal_rep'.tr(),
-                iconColor: AppColors.secondary,
-                body: legalRepAsync.when(
-                  loading: () => const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: SacLoadingSmall(),
-                  ),
-                  error: (e, _) => _SectionError(
-                    message: e.toString(),
-                    onRetry: () => ref.invalidate(legalRepresentativeProvider),
-                  ),
-                  data: (rep) {
-                    if (rep == null) {
-                      return Text(
-                        'profile.medical_info.not_registered'.tr(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: c.textTertiary,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      );
-                    }
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${rep.name} ${rep.paternalSurname} ${rep.maternalSurname}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: c.text,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${rep.type} · ${rep.phone}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: c.textSecondary,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                actionLabel: 'profile.medical_info.action_edit'.tr(),
-                onAction: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const LegalRepresentativeView(),
-                  ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }
@@ -510,11 +511,7 @@ class _MedicalSectionCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Center(
-                    child: HugeIcon(
-                      icon: icon,
-                      color: iconColor,
-                      size: 18,
-                    ),
+                    child: HugeIcon(icon: icon, color: iconColor, size: 18),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -532,8 +529,10 @@ class _MedicalSectionCard extends StatelessWidget {
                   onPressed: onAction,
                   style: TextButton.styleFrom(
                     foregroundColor: AppColors.primary,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
@@ -549,10 +548,7 @@ class _MedicalSectionCard extends StatelessWidget {
             ),
           ),
           Divider(height: 1, thickness: 1, color: c.borderLight),
-          Padding(
-            padding: const EdgeInsets.all(14),
-            child: body,
-          ),
+          Padding(padding: const EdgeInsets.all(14), child: body),
         ],
       ),
     );
@@ -563,10 +559,7 @@ class _SectionError extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
 
-  const _SectionError({
-    required this.message,
-    required this.onRetry,
-  });
+  const _SectionError({required this.message, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -581,10 +574,7 @@ class _SectionError extends StatelessWidget {
         Expanded(
           child: Text(
             'profile.medical_info.load_error'.tr(),
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.error,
-            ),
+            style: TextStyle(fontSize: 13, color: AppColors.error),
           ),
         ),
         TextButton(

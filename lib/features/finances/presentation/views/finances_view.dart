@@ -40,82 +40,84 @@ class FinancesView extends ConsumerWidget {
 
     return SecureScreen(
       child: Scaffold(
-      backgroundColor: context.sac.background,
-      floatingActionButton:
-          showFab ? _AddFab(onTap: () => _openAddSheet(context, ref)) : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      body: SafeArea(
-        child: RefreshIndicator(
-          color: AppColors.primary,
-          onRefresh: () async {
-            ref.invalidate(financeMonthProvider);
-            ref.invalidate(financeSummaryProvider);
-          },
-          child: CustomScrollView(
-            physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics()),
-            slivers: [
-              // ── App bar ───────────────────────────────────────────────────
-              SliverAppBar(
-                pinned: true,
-                expandedHeight: 0,
-                backgroundColor: context.sac.background,
-                surfaceTintColor: Colors.transparent,
-                title: Text(
-                  'finances.view.title'.tr(),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: context.sac.text,
+        backgroundColor: context.sac.background,
+        floatingActionButton: showFab
+            ? _AddFab(onTap: () => _openAddSheet(context, ref))
+            : null,
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        body: SafeArea(
+          child: RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () async {
+              ref.invalidate(financeMonthProvider);
+              ref.invalidate(financeSummaryProvider);
+            },
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              slivers: [
+                // ── App bar ───────────────────────────────────────────────────
+                SliverAppBar(
+                  pinned: true,
+                  expandedHeight: 0,
+                  backgroundColor: context.sac.background,
+                  surfaceTintColor: Colors.transparent,
+                  title: Text(
+                    'finances.view.title'.tr(),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: context.sac.text,
+                    ),
+                  ),
+                  centerTitle: false,
+                  actions: [
+                    if (financeMonthAsync.isLoading)
+                      const Padding(
+                        padding: EdgeInsets.all(14),
+                        child: SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    else
+                      IconButton(
+                        onPressed: () {
+                          ref.invalidate(financeMonthProvider);
+                          ref.invalidate(financeSummaryProvider);
+                        },
+                        icon: HugeIcon(
+                          icon: HugeIcons.strokeRoundedRefresh,
+                          size: 20,
+                          color: context.sac.textSecondary,
+                        ),
                       ),
+                  ],
                 ),
-                centerTitle: false,
-                actions: [
-                  if (financeMonthAsync.isLoading)
-                    const Padding(
-                      padding: EdgeInsets.all(14),
-                      child: SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    )
-                  else
-                    IconButton(
-                      onPressed: () {
+
+                // ── Body ──────────────────────────────────────────────────────
+                SliverToBoxAdapter(
+                  child: financeMonthAsync.when(
+                    loading: () => const FinancesLoadingSkeleton(),
+                    error: (e, _) => _ErrorBody(
+                      message: e.toString().replaceFirst('Exception: ', ''),
+                      onRetry: () {
                         ref.invalidate(financeMonthProvider);
                         ref.invalidate(financeSummaryProvider);
                       },
-                      icon: HugeIcon(
-                        icon: HugeIcons.strokeRoundedRefresh,
-                        size: 20,
-                        color: context.sac.textSecondary,
-                      ),
                     ),
-                ],
-              ),
-
-              // ── Body ──────────────────────────────────────────────────────
-              SliverToBoxAdapter(
-                child: financeMonthAsync.when(
-                  loading: () => const FinancesLoadingSkeleton(),
-                  error: (e, _) => _ErrorBody(
-                    message: e.toString().replaceFirst('Exception: ', ''),
-                    onRetry: () {
-                      ref.invalidate(financeMonthProvider);
-                      ref.invalidate(financeSummaryProvider);
-                    },
-                  ),
-                  data: (financeMonth) => _FinanceBody(
-                    financeMonth: financeMonth,
-                    summaryAsync: summaryAsync,
-                    canManage: canManage,
+                    data: (financeMonth) => _FinanceBody(
+                      financeMonth: financeMonth,
+                      summaryAsync: summaryAsync,
+                      canManage: canManage,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }
@@ -147,7 +149,8 @@ class _FinanceBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isOpen = financeMonth?.isOpen ?? true;
-    final totalBalance = summaryAsync.valueOrNull?.totalBalance ??
+    final totalBalance =
+        summaryAsync.valueOrNull?.totalBalance ??
         financeMonth?.totalBalance ??
         0.0;
     final transactions = financeMonth?.transactions ?? [];
@@ -241,17 +244,16 @@ class _FinanceBody extends ConsumerWidget {
   void _openTransactionDetail(BuildContext context, FinanceTransaction t) {
     Navigator.push(
       context,
-      SacSharedAxisRoute(
-        builder: (_) => TransactionDetailView(transaction: t),
-      ),
+      SacSharedAxisRoute(builder: (_) => TransactionDetailView(transaction: t)),
     );
   }
 
   void _openFullTransactionList(BuildContext context) {
     // Pass the currently selected month so AllTransactionsView seeds its
     // date range filter to that month on first open.
-    final selected =
-        ProviderScope.containerOf(context).read(selectedMonthProvider);
+    final selected = ProviderScope.containerOf(
+      context,
+    ).read(selectedMonthProvider);
     Navigator.of(context).push(
       SacSharedAxisRoute(
         builder: (_) => AllTransactionsView(initialMonth: selected),
@@ -282,16 +284,16 @@ class _EmptyTransactions extends StatelessWidget {
               'finances.view.empty_title'.tr(),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: context.sac.textSecondary,
-                  ),
+                color: context.sac.textSecondary,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               'finances.view.empty_subtitle'.tr(),
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: context.sac.textTertiary,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: context.sac.textTertiary),
             ),
           ],
         ),
@@ -329,9 +331,9 @@ class _ErrorBody extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             message,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: context.sac.textSecondary,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: context.sac.textSecondary),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
