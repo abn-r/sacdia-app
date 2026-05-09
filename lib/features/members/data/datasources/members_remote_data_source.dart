@@ -87,14 +87,14 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
   }
 
   String _normalizeRoleKey(String value) {
-    return value.trim().toLowerCase().replaceAll(RegExp(r'[\s-]+'), '_');
+    return value.trim().toLowerCase().replaceAll(RegExp(r'[\s_]+'), '-');
   }
 
   List<String> _roleLookupCandidates(String role) {
     final normalized = _normalizeRoleKey(role);
     const aliases = <String, List<String>>{
-      'deputy_director': ['subdirector'],
-      'subdirector': ['deputy_director'],
+      'deputy-director': ['subdirector'],
+      'subdirector': ['deputy-director'],
       'secretary': ['secretario'],
       'treasurer': ['tesorero'],
       'counselor': ['consejero'],

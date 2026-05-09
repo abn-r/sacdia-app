@@ -8,6 +8,8 @@ import '../models/virtual_card_model.dart';
 
 abstract class VirtualCardRemoteDataSource {
   Future<VirtualCardModel> getVirtualCard({CancelToken? cancelToken});
+
+  Future<List<int>> getVirtualCardPdf({CancelToken? cancelToken});
 }
 
 class VirtualCardRemoteDataSourceImpl implements VirtualCardRemoteDataSource {
@@ -50,6 +52,41 @@ class VirtualCardRemoteDataSourceImpl implements VirtualCardRemoteDataSource {
       rethrow;
     } catch (e) {
       AppLogger.e('Error inesperado al obtener la tarjeta virtual',
+          tag: _tag, error: e);
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<List<int>> getVirtualCardPdf({CancelToken? cancelToken}) async {
+    try {
+      final response = await _dio.get<List<int>>(
+        '$_baseUrl${ApiEndpoints.qr}/me/card.pdf',
+        cancelToken: cancelToken,
+        options: Options(
+          responseType: ResponseType.bytes,
+          headers: {'Accept': 'application/pdf'},
+        ),
+      );
+
+      final bytes = response.data;
+      if (bytes == null || bytes.isEmpty) {
+        throw ServerException(message: 'PDF vacío');
+      }
+      return bytes;
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      if (e.error is AppException) {
+        throw e.error as AppException;
+      }
+      final msg = _extractMessage(e);
+      AppLogger.w('Error al descargar el PDF de la credencial',
+          tag: _tag, error: msg);
+      throw ServerException(message: msg, code: e.response?.statusCode);
+    } on AppException {
+      rethrow;
+    } catch (e) {
+      AppLogger.e('Error inesperado al descargar el PDF de la credencial',
           tag: _tag, error: e);
       throw ServerException(message: e.toString());
     }

@@ -58,6 +58,9 @@ class _FakeVirtualCardRepository implements VirtualCardRepository {
   Future<void> saveCachedCard(VirtualCard card) async {
     saveCalls++;
   }
+
+  @override
+  Future<List<int>> getCardPdf() async => const <int>[];
 }
 
 UserEntity _sampleUser() {

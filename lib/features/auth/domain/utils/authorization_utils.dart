@@ -75,7 +75,7 @@ bool hasAnyPermission(UserEntity? user, Iterable<String> permissions) {
 
 /// Canonical role-name check against `user.authorization.resolvedRoleNames`.
 /// Use this only when the gate is genuinely role-based (global roles like
-/// `coordinator`, `admin`, `super_admin`). Prefer [hasAnyPermission] for
+/// `coordinator`, `admin`, `super-admin`). Prefer [hasAnyPermission] for
 /// anything permission-driven.
 bool hasAnyRole(UserEntity? user, Iterable<String> roles) {
   final granted = extractUserRoles(user);
