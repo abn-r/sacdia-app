@@ -231,8 +231,7 @@ class CredencialCard extends StatelessWidget {
                       CredChip(label: 'Etapa ${vm.etapa}')
                     else if (vm.cargo.isNotEmpty &&
                         vm.sectionFull.isNotEmpty &&
-                        vm.cargo.toLowerCase() !=
-                            vm.sectionFull.toLowerCase())
+                        vm.cargo.toLowerCase() != vm.sectionFull.toLowerCase())
                       CredChip(label: vm.sectionFull),
                   ],
                 ),
@@ -304,8 +303,7 @@ class CredencialCard extends StatelessWidget {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius:
-                        BorderRadius.circular(CredencialTokens.rCard),
+                    borderRadius: BorderRadius.circular(CredencialTokens.rCard),
                     border: Border.all(color: CredencialTokens.borderLight),
                     boxShadow: [
                       BoxShadow(
