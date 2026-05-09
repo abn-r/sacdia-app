@@ -6,6 +6,23 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+// ---------------------------------------------------------------------------
+// Release keystore signing
+// ---------------------------------------------------------------------------
+// Place android/key.properties (one level up from this file) with:
+//   storeFile=../sacdia-release-key.jks
+//   storePassword=<password>
+//   keyPassword=<password>
+//   keyAlias=sacdia
+// See android/KEYSTORE.md for full instructions.
+// NEVER commit key.properties or the .jks file — both are in .gitignore.
+// ---------------------------------------------------------------------------
+def keystorePropertiesFile = rootProject.file("key.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withReader("UTF-8") { reader -> keystoreProperties.load(reader) }
+}
+
 android {
     namespace = "com.sacdia.app"
     compileSdk = flutter.compileSdkVersion
@@ -34,21 +51,36 @@ android {
         manifestPlaceholders += [GOOGLE_MAPS_API_KEY: project.findProperty("GOOGLE_MAPS_API_KEY") ?: "AIzaSyAQoO0HmAfSdbRs-T0cqtCXEGNn7TtMGZk"]
     }
 
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias     keystoreProperties["keyAlias"]
+                keyPassword  keystoreProperties["keyPassword"]
+                storeFile    keystoreProperties["storeFile"] ? rootProject.file(keystoreProperties["storeFile"]) : null
+                storePassword keystoreProperties["storePassword"]
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // SECURITY: Currently signed with debug keys for local `flutter run --release`.
-            // DO NOT ship to Play Store with debug signing keys.
-            // Before publishing, generate a release keystore and reference it here:
-            //   keytool -genkey -v -keystore sacdia-release.keystore \
-            //     -alias sacdia -keyalg RSA -keysize 2048 -validity 10000
-            // Then create android/key.properties:
-            //   storePassword=<password>
-            //   keyPassword=<password>
-            //   keyAlias=sacdia
-            //   storeFile=<path-to-keystore>
-            // And replace signingConfigs.debug with a release signingConfig that
-            // reads from key.properties (never commit key.properties to git).
-            signingConfig = signingConfigs.debug
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            } else {
+                // SECURITY WARNING: key.properties not found.
+                // Release build will be signed with the debug keystore.
+                // This is fine for local development, but MUST NOT be used for
+                // Play Store or any public distribution. Provide android/key.properties
+                // before publishing. See android/KEYSTORE.md for instructions.
+                println "WARNING: android/key.properties not found — release build will be signed with debug keystore. Provide android/key.properties before publishing to Play Store."
+                signingConfig signingConfigs.debug
+            }
+
+            // Recommended: enable obfuscation for Play Store releases.
+            // Uncomment the lines below and run `flutter build appbundle --obfuscate --split-debug-info=build/app/outputs/symbols`
+            // minifyEnabled true
+            // shrinkResources true
+            // proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
 }
