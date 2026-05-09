@@ -12,6 +12,7 @@ import 'package:sacdia_app/features/post_registration/presentation/views/disease
 import 'package:sacdia_app/features/post_registration/presentation/views/medicines_selection_view.dart';
 import 'package:sacdia_app/features/post_registration/presentation/views/emergency_contacts_view.dart';
 import 'package:sacdia_app/features/post_registration/presentation/views/legal_representative_view.dart';
+import 'package:sacdia_app/core/widgets/secure_screen.dart';
 import 'package:sacdia_app/features/profile/presentation/providers/profile_providers.dart';
 import 'package:sacdia_app/features/profile/presentation/widgets/blood_type_selector.dart';
 import 'package:sacdia_app/features/virtual_card/presentation/providers/virtual_card_providers.dart';
@@ -68,7 +69,8 @@ class MedicalInfoView extends ConsumerWidget {
 
     final c = context.sac;
 
-    return Scaffold(
+    return SecureScreen(
+      child: Scaffold(
       appBar: AppBar(
         title: Text('profile.medical_info.title'.tr()),
       ),
@@ -460,6 +462,7 @@ class MedicalInfoView extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
         ],
+      ),
       ),
     );
   }

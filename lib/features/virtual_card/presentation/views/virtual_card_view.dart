@@ -6,6 +6,7 @@ import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/widgets/secure_screen.dart';
 import '../providers/virtual_card_providers.dart';
 import '../widgets/credencial/action_pill.dart';
 import '../widgets/credencial/credencial_card.dart';
@@ -78,7 +79,8 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
   Widget build(BuildContext context) {
     final state = ref.watch(virtualCardProvider);
 
-    return Scaffold(
+    return SecureScreen(
+      child: Scaffold(
       appBar: AppBar(
         title: Text('virtual_card.title'.tr()),
         actions: [
@@ -227,6 +229,7 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

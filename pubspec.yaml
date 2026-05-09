@@ -72,6 +72,9 @@ dependencies:
   local_auth_android: ^1.0.56
   local_auth_darwin: ^1.6.1
 
+  # Security — Android FLAG_SECURE + iOS app-switcher blur
+  secure_application: ^4.1.0
+
   # Firebase
   firebase_core: ^3.8.0
   firebase_messaging: ^15.1.6

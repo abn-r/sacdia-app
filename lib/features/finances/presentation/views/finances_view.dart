@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/animations/staggered_list_animation.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/secure_screen.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/finance_month.dart';
 import '../../domain/entities/transaction.dart';
@@ -37,7 +38,8 @@ class FinancesView extends ConsumerWidget {
     final canManage = canManageAsync.valueOrNull ?? false;
     final showFab = canManage && isOpen;
 
-    return Scaffold(
+    return SecureScreen(
+      child: Scaffold(
       backgroundColor: context.sac.background,
       floatingActionButton:
           showFab ? _AddFab(onTap: () => _openAddSheet(context, ref)) : null,
@@ -113,6 +115,7 @@ class FinancesView extends ConsumerWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

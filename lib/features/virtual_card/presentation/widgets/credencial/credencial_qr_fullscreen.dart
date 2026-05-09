@@ -7,6 +7,7 @@ import 'package:gal/gal.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 
+import '../../../../../core/widgets/secure_screen.dart';
 import 'credencial_tokens.dart';
 import 'credencial_view_model.dart';
 import 'live_clock.dart';
@@ -136,7 +137,8 @@ class _CredencialQrFullscreenState extends State<CredencialQrFullscreen> {
     final sec = Sec.of(widget.vm.seccion);
     final size = MediaQuery.of(context).size.shortestSide * 0.78;
 
-    return Scaffold(
+    return SecureScreen(
+      child: Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
@@ -296,6 +298,7 @@ class _CredencialQrFullscreenState extends State<CredencialQrFullscreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }
