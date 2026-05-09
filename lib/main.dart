@@ -24,19 +24,7 @@ import 'providers/storage_provider.dart';
 const _sentryDsn =
     'https://48ff634d9f5d4213de75a751c2838383@o4510840511528960.ingest.us.sentry.io/4511270132645888';
 
-const _sensitiveFields = <String>{
-  'password',
-  'refresh_token',
-  'refreshToken',
-  'access_token',
-  'accessToken',
-  'blood',
-  'birthday',
-  'allergies',
-  'diseases',
-  'medicines',
-};
-
+/// Credentials and session tokens — never log these.
 const _sensitiveHeaders = <String>{
   'authorization',
   'cookie',
@@ -44,29 +32,99 @@ const _sensitiveHeaders = <String>{
   'x-refresh-token',
 };
 
-void _scrubMap(Map<dynamic, dynamic>? data, Set<String> keys) {
-  if (data == null) return;
-  for (final entry in data.entries.toList()) {
-    if (entry.key is String && keys.contains(entry.key)) {
-      data[entry.key] = '[REDACTED]';
+/// PII and medical fields — scrubbed from event body, extra, contexts,
+/// and breadcrumbs. Covers all field-name variants seen in the API contract.
+const _sensitiveFields = <String>{
+  // Auth / tokens
+  'password',
+  'refresh_token',
+  'refreshToken',
+  'access_token',
+  'accessToken',
+  // Medical
+  'blood',
+  'birthday',
+  'birthDate',
+  'birth_date',
+  'birthdate',
+  'allergies',
+  'diseases',
+  'medicines',
+  // Identity & contact
+  'email',
+  'phone',
+  'phoneNumber',
+  'mobile',
+  'name',
+  'firstName',
+  'first_name',
+  'lastName',
+  'last_name',
+  'fullName',
+  'full_name',
+  'displayName',
+  'display_name',
+  // User IDs
+  'user_id',
+  'userId',
+  // Address / location
+  'address',
+  'street',
+  'city',
+  'state',
+  'zip',
+  'postalCode',
+  'postal_code',
+  // National identifiers (Mexican context)
+  'birthplace',
+  'birthPlace',
+  'dni',
+  'documentNumber',
+  'document_number',
+  'nationalId',
+  'national_id',
+  'curp',
+  'rfc',
+};
+
+/// Recursively walks [data] and replaces values whose keys appear in [keys]
+/// with '[REDACTED]'. Only operates on [Map] nodes; lists are traversed for
+/// nested maps. Non-Map values are left untouched.
+void _scrubMapRecursive(dynamic data, Set<String> keys) {
+  if (data is Map) {
+    for (final key in data.keys.toList()) {
+      if (key is String && keys.contains(key)) {
+        data[key] = '[REDACTED]';
+      } else {
+        _scrubMapRecursive(data[key], keys);
+      }
+    }
+  } else if (data is List) {
+    for (final item in data) {
+      _scrubMapRecursive(item, keys);
     }
   }
 }
 
 SentryEvent? _scrubEvent(SentryEvent event, Hint hint) {
+  // Scrub HTTP request headers and body.
   final request = event.request;
   if (request != null) {
-    _scrubMap(request.headers, _sensitiveHeaders);
+    _scrubMapRecursive(request.headers, _sensitiveHeaders);
     final data = request.data;
-    if (data is Map) _scrubMap(data, _sensitiveFields);
+    if (data is Map) _scrubMapRecursive(data, _sensitiveFields);
   }
+
+  // Scrub breadcrumb data — each crumb may capture navigation or network
+  // payloads that could include PII in structured form.
   final breadcrumbs = event.breadcrumbs;
   if (breadcrumbs != null) {
     for (final crumb in breadcrumbs) {
-      _scrubMap(crumb.data, _sensitiveHeaders);
-      _scrubMap(crumb.data, _sensitiveFields);
+      _scrubMapRecursive(crumb.data, _sensitiveHeaders);
+      _scrubMapRecursive(crumb.data, _sensitiveFields);
     }
   }
+
   return event;
 }
 
