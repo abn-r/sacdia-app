@@ -37,7 +37,6 @@ import 'package:sacdia_app/features/units/presentation/views/member_of_month_his
 import 'package:sacdia_app/features/units/presentation/views/units_list_view.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_payments_view.dart';
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_enroll_club_view.dart';
-import 'package:sacdia_app/features/annual_folders/presentation/views/annual_folder_view.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_reports_list_view.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_report_detail_view.dart';
 import 'package:sacdia_app/features/role_assignments/presentation/views/role_assignments_view.dart';
@@ -807,18 +806,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // Carpeta anual de un enrollment
+      // Compat legacy: la carpeta anual ahora usa el flujo canónico por sección
+      // activa en EvidenceFolderView. El enrollment en el path se conserva sólo
+      // para no romper deep links antiguos.
       GoRoute(
         path: RouteNames.annualFolder,
-        pageBuilder: (context, state) {
-          final enrollmentId =
-              int.tryParse(state.pathParameters['enrollmentId']!) ?? 0;
-          return _sharedAxisBuild(
-            context,
-            state,
-            AnnualFolderView(enrollmentId: enrollmentId),
-          );
-        },
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const _EvidenceFolderShell()),
       ),
 
       // Lista de informes mensuales de un enrollment

@@ -237,10 +237,6 @@ class _FilterChips extends StatelessWidget {
     final filters = <({String label, EvidenceReviewType? value})>[
       (label: 'coordinator.evidence_review.list.filter_all'.tr(), value: null),
       (
-        label: 'coordinator.evidence_review.list.filter_folders'.tr(),
-        value: EvidenceReviewType.folder
-      ),
-      (
         label: 'coordinator.evidence_review.list.filter_classes'.tr(),
         value: EvidenceReviewType.classType
       ),

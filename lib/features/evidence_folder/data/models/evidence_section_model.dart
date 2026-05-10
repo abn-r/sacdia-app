@@ -87,7 +87,9 @@ class EvidenceSectionModel extends EvidenceSection {
     // Se lee el campo `status` del JSON directamente. Si el campo no está
     // presente (rollout parcial), se usa PENDING como fallback seguro.
     final storedStatus =
-        EvidenceSectionStatusX.fromJson(json['status']?.toString());
+        EvidenceSectionStatusX.fromJson(
+      (json['status'] ?? evaluation?['status'])?.toString(),
+    );
 
     // ── Actores de aprobación dual-level ────────────────────────────────────
     final lfApproverName =
