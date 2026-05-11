@@ -17,6 +17,7 @@ class UserDetail extends Equatable {
   final String? clubName;
   final String? clubType;
   final String? currentClass;
+  final String? blood;
   final List<String> roles;
   final DateTime? createdAt;
   final DateTime? lastSignInAt;
@@ -37,6 +38,7 @@ class UserDetail extends Equatable {
     this.clubName,
     this.clubType,
     this.currentClass,
+    this.blood,
     this.roles = const [],
     this.createdAt,
     this.lastSignInAt,
@@ -67,6 +69,7 @@ class UserDetail extends Equatable {
         clubName,
         clubType,
         currentClass,
+        blood,
         roles,
         createdAt,
         lastSignInAt,

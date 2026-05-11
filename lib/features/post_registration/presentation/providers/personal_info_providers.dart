@@ -9,6 +9,7 @@ import '../../data/models/disease_model.dart';
 import '../../data/models/medicine_model.dart';
 import '../../data/models/relationship_type_model.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../profile/presentation/widgets/blood_type_selector.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../../core/utils/app_logger.dart';
 
@@ -29,12 +30,14 @@ class PersonalInfoFormState {
   final DateTime? birthdate;
   final bool baptized;
   final DateTime? baptismDate;
+  final BloodType? bloodType;
 
   const PersonalInfoFormState({
     this.gender,
     this.birthdate,
     this.baptized = false,
     this.baptismDate,
+    this.bloodType,
   });
 
   PersonalInfoFormState copyWith({
@@ -42,12 +45,14 @@ class PersonalInfoFormState {
     DateTime? birthdate,
     bool? baptized,
     DateTime? baptismDate,
+    BloodType? bloodType,
   }) {
     return PersonalInfoFormState(
       gender: gender ?? this.gender,
       birthdate: birthdate ?? this.birthdate,
       baptized: baptized ?? this.baptized,
       baptismDate: baptismDate ?? this.baptismDate,
+      bloodType: bloodType ?? this.bloodType,
     );
   }
 }
@@ -565,7 +570,7 @@ class SavePersonalInfoNotifier extends AutoDisposeAsyncNotifier<void> {
       final dataSource = ref.read(personalInfoDataSourceProvider);
 
       AppLogger.d(
-        'savePersonalInfo userId=$userId gender=${formState.gender} baptized=${formState.baptized}',
+        'savePersonalInfo userId=$userId gender=${formState.gender} baptized=${formState.baptized} blood=${formState.bloodType?.apiKey}',
         tag: tag,
       );
 
@@ -575,6 +580,7 @@ class SavePersonalInfoNotifier extends AutoDisposeAsyncNotifier<void> {
         birthdate: formState.birthdate?.toUtc().toIso8601String(),
         baptized: formState.baptized,
         baptismDate: formState.baptismDate?.toUtc().toIso8601String(),
+        blood: formState.bloodType?.apiKey,
       );
 
       final selectedAllergies = ref.read(selectedAllergiesProvider);

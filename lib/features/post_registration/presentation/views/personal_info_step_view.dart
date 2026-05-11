@@ -10,6 +10,7 @@ import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/features/profile/presentation/widgets/blood_type_selector.dart';
 import '../providers/personal_info_providers.dart';
 import 'emergency_contacts_view.dart';
 import 'legal_representative_view.dart';
@@ -216,6 +217,18 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                 onTap: () => _selectBaptismDate(context),
               ),
             ],
+            const SizedBox(height: 20),
+            Text(
+              tr('post_registration.personal_info.blood.label'),
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: context.sac.textSecondary,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            _BloodTypeCard(
+              bloodType: formState.bloodType,
+              onTap: () => _selectBloodType(context),
+            ),
             const SizedBox(height: 28),
           ],
 
@@ -603,6 +616,14 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
     }
   }
 
+  Future<void> _selectBloodType(BuildContext context) async {
+    final current = ref.read(personalInfoFormProvider).bloodType;
+    final picked = await showBloodTypeSelector(context, current: current);
+    if (picked == null) return;
+    ref.read(personalInfoFormProvider.notifier).state =
+        ref.read(personalInfoFormProvider).copyWith(bloodType: picked);
+  }
+
   Future<void> _selectBaptismDate(BuildContext context) async {
     final birthdate = ref.read(personalInfoFormProvider).birthdate;
     final now = DateTime.now();
@@ -847,6 +868,60 @@ class _DatePickerCard extends StatelessWidget {
           HugeIcon(
             icon: HugeIcons.strokeRoundedCalendar01,
             size: 18,
+            color: context.sac.textTertiary,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Card para mostrar y seleccionar tipo de sangre.
+class _BloodTypeCard extends StatelessWidget {
+  final BloodType? bloodType;
+  final VoidCallback onTap;
+
+  const _BloodTypeCard({required this.bloodType, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = bloodType != null;
+    return SacCard(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color:
+                  selected ? AppColors.errorLight : context.sac.surfaceVariant,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedBlood,
+                size: 20,
+                color: selected ? AppColors.error : context.sac.textTertiary,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              selected
+                  ? bloodType!.display
+                  : tr('post_registration.personal_info.blood.empty'),
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                color: selected ? context.sac.text : context.sac.textTertiary,
+                letterSpacing: selected ? 0.4 : 0,
+              ),
+            ),
+          ),
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowRight01,
             color: context.sac.textTertiary,
           ),
         ],

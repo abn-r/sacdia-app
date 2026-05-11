@@ -105,7 +105,7 @@ class EvidenceReviewItemModel extends Equatable {
 
   factory EvidenceReviewItemModel.fromJson(Map<String, dynamic> json) {
     final typeStr =
-        (json['type'] ?? json['evidence_type'] ?? 'folder') as String;
+        (json['type'] ?? json['evidence_type'] ?? 'class') as String;
     final statusStr =
         (json['status'] ?? json['review_status'] ?? 'pending') as String;
 

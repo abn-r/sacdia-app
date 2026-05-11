@@ -3,27 +3,22 @@ import 'package:equatable/equatable.dart';
 
 /// Tipo de evidencia que puede ser revisada.
 enum EvidenceReviewType {
-  folder,
   classType,
   honor;
 
   static EvidenceReviewType fromString(String value) {
     switch (value.toLowerCase()) {
-      case 'folder':
-        return EvidenceReviewType.folder;
       case 'class':
         return EvidenceReviewType.classType;
       case 'honor':
         return EvidenceReviewType.honor;
       default:
-        return EvidenceReviewType.folder;
+        return EvidenceReviewType.classType;
     }
   }
 
   String get apiValue {
     switch (this) {
-      case EvidenceReviewType.folder:
-        return 'folder';
       case EvidenceReviewType.classType:
         return 'class';
       case EvidenceReviewType.honor:
@@ -33,8 +28,6 @@ enum EvidenceReviewType {
 
   String get displayLabel {
     switch (this) {
-      case EvidenceReviewType.folder:
-        return tr('coordinator.evidence_type.folder');
       case EvidenceReviewType.classType:
         return tr('coordinator.evidence_type.class_type');
       case EvidenceReviewType.honor:
@@ -52,9 +45,13 @@ enum EvidenceReviewStatus {
   static EvidenceReviewStatus fromString(String value) {
     switch (value.toLowerCase()) {
       case 'approved':
+      case 'validated':
         return EvidenceReviewStatus.approved;
       case 'rejected':
         return EvidenceReviewStatus.rejected;
+      case 'submitted':
+      case 'pending_review':
+      case 'pending':
       default:
         return EvidenceReviewStatus.pending;
     }

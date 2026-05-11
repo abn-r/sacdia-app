@@ -175,7 +175,7 @@ class ProfileClassesSection extends ConsumerWidget {
   }
 }
 
-class _ClassGridItem extends ConsumerWidget {
+class _ClassGridItem extends StatelessWidget {
   final ProgressiveClass progressiveClass;
 
   const _ClassGridItem({
@@ -183,21 +183,14 @@ class _ClassGridItem extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final classColor = AppColors.classColor(progressiveClass.name);
     final logoAsset = AppColors.classLogoAsset(progressiveClass.name);
 
-    // Use classWithProgressProvider for accurate client-side completionPercent,
-    // falling back to overallProgress from the enrollment record while loading
-    // or on error (same pattern as CurrentClassCard on the dashboard).
-    final fallbackProgress = progressiveClass.overallProgress ?? 0;
-    final classProgressAsync =
-        ref.watch(classWithProgressProvider(progressiveClass.id));
-    final progress = classProgressAsync.when(
-      data: (cwp) => cwp.completionPercent,
-      loading: () => fallbackProgress,
-      error: (_, __) => fallbackProgress,
-    );
+    // Profile only needs summary progress. The enrollment list already includes
+    // `overallProgress`, so avoid one detail request per class here. The full
+    // `classWithProgressProvider` remains reserved for class detail screens.
+    final progress = progressiveClass.overallProgress ?? 0;
 
     final isInvested = progressiveClass.investitureStatus == 'INVESTIDO';
 

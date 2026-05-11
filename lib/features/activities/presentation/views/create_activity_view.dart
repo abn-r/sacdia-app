@@ -241,35 +241,34 @@ class _CreateActivityViewState extends ConsumerState<CreateActivityView> {
     if (_pickedImageFile != null && createdActivity != null) {
       setState(() => _isUploadingImage = true);
 
-      final repository = ref.read(activitiesRepositoryProvider);
-      final uploadResult = await repository.uploadActivityImage(
-        createdActivity.id,
-        File(_pickedImageFile!.path),
-      );
+      final uploadSuccess =
+          await ref.read(activityImageUploadNotifierProvider.notifier).upload(
+                activityId: createdActivity.id,
+                imageFile: File(_pickedImageFile!.path),
+              );
 
       if (mounted) setState(() => _isUploadingImage = false);
 
       if (!mounted) return;
 
-      uploadResult.fold(
-        (failure) {
-          // Activity was created — just warn about the image
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'activities.create.success_image_error'
-                    .tr(namedArgs: {'error': failure.message}),
-              ),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+      if (!uploadSuccess) {
+        final error = ref.read(activityImageUploadNotifierProvider).error;
+        // Activity was created — just warn about the image
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'activities.create.success_image_error'.tr(
+                namedArgs: {'error': error?.toString() ?? tr('common.error')},
               ),
             ),
-          );
-        },
-        (_) {}, // success — no extra feedback needed
-      );
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
     }
 
     if (!mounted) return;

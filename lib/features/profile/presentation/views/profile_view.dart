@@ -87,45 +87,39 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       setState(() => _isUploadingPhoto = true);
 
       try {
-        final result = await ref
-            .read(postRegistrationRepositoryProvider)
-            .uploadProfilePicture(
-              userId: user.id,
-              filePath: croppedFile.path,
-            );
+        final success =
+            await ref.read(profilePhotoUploadNotifierProvider.notifier).upload(
+                  userId: user.id,
+                  filePath: croppedFile.path,
+                );
 
-        result.fold(
-          (failure) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('profile.view.photo_upload_error'.tr()),
-                  backgroundColor: AppColors.error,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              );
-            }
-          },
-          (_) {
-            if (mounted) {
-              ref.invalidate(profileNotifierProvider);
-              ref.invalidate(authNotifierProvider);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('profile.view.photo_upload_success'.tr()),
-                  backgroundColor: AppColors.secondary,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              );
-            }
-          },
-        );
+        if (!mounted) return;
+
+        if (!success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('profile.view.photo_upload_error'.tr()),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        } else {
+          ref.invalidate(profileNotifierProvider);
+          ref.invalidate(authNotifierProvider);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('profile.view.photo_upload_success'.tr()),
+              backgroundColor: AppColors.secondary,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        }
       } finally {
         if (mounted) {
           setState(() => _isUploadingPhoto = false);

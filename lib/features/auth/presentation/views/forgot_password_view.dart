@@ -25,7 +25,6 @@ class ForgotPasswordView extends ConsumerStatefulWidget {
 class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  bool _isLoading = false;
   String? _errorMessage;
   bool _emailSent = false;
 
@@ -40,40 +39,35 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
     final formState = _formKey.currentState;
     if (formState == null || !formState.validate()) return;
 
-    setState(() => _isLoading = true);
-
     try {
-      final result = await ref
-          .read(authRepositoryProvider)
-          .resetPassword(_emailController.text.trim());
+      final success = await ref
+          .read(forgotPasswordNotifierProvider.notifier)
+          .submit(_emailController.text.trim());
 
       if (!mounted) return;
 
-      result.fold(
-        (failure) {
-          setState(() {
-            _errorMessage = failure.message;
-            _isLoading = false;
-          });
-        },
-        (_) {
-          setState(() {
-            _isLoading = false;
-            _emailSent = true;
-          });
-        },
-      );
+      if (success) {
+        setState(() => _emailSent = true);
+      } else {
+        final error = ref.read(forgotPasswordNotifierProvider).error;
+        setState(() {
+          _errorMessage =
+              error?.toString() ?? 'auth.forgot_password_error'.tr();
+        });
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _errorMessage = 'auth.forgot_password_error'.tr();
-        _isLoading = false;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final forgotPasswordState = ref.watch(forgotPasswordNotifierProvider);
+    final isLoading = forgotPasswordState.isLoading;
+
     return Scaffold(
       backgroundColor: context.sac.surface,
       body: SafeArea(
@@ -191,7 +185,9 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                     prefixIcon: HugeIcons.strokeRoundedMail01,
                     validator: Validators.validateEmail,
                     textInputAction: TextInputAction.done,
-                    onSubmitted: (_) => _handleSubmit(),
+                    onSubmitted: (_) {
+                      if (!isLoading) _handleSubmit();
+                    },
                   ),
                   const SizedBox(height: 24),
 
@@ -227,7 +223,7 @@ class _ForgotPasswordViewState extends ConsumerState<ForgotPasswordView> {
                   // Submit button
                   SacButton.primary(
                     text: 'auth.forgot_password_button'.tr(),
-                    isLoading: _isLoading,
+                    isLoading: isLoading,
                     onPressed: _handleSubmit,
                   ),
                   const SizedBox(height: 40),
