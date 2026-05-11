@@ -143,4 +143,12 @@ jobs:
           fi
 
       - name: Build APK (release)
-        run: flutter build apk --release
+        env:
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          GOOGLE_MAPS_GRADLE_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+        run: |
+          # Pass GOOGLE_MAPS_API_KEY both as a dart-define (for Static Maps REST)
+          # and as a gradle property (for the interactive Maps SDK manifest placeholder).
+          flutter build apk --release \
+            --dart-define=GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_API_KEY}" \
+            -P GOOGLE_MAPS_API_KEY="${GOOGLE_MAPS_GRADLE_KEY}"

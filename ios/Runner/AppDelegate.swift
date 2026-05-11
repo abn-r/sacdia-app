@@ -8,11 +8,14 @@ import GoogleMaps
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    if let mapsKey = Bundle.main.infoDictionary?["GOOGLE_MAPS_API_KEY"] as? String, !mapsKey.isEmpty {
-      GMSServices.provideAPIKey(mapsKey)
-    } else {
-      GMSServices.provideAPIKey("AIzaSyAQoO0HmAfSdbRs-T0cqtCXEGNn7TtMGZk")
+    // GOOGLE_MAPS_API_KEY must be set in Xcode build settings or via xcconfig.
+    // Never hardcode the key here — use the Info.plist placeholder $(GOOGLE_MAPS_API_KEY).
+    guard let mapsKey = Bundle.main.infoDictionary?["GOOGLE_MAPS_API_KEY"] as? String,
+          !mapsKey.isEmpty else {
+      assertionFailure("GOOGLE_MAPS_API_KEY is missing from Info.plist. Set it in Xcode build settings or via xcconfig.")
+      return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
+    GMSServices.provideAPIKey(mapsKey)
 
     // Forzar renderer OpenGL en simuladores — Metal no renderiza en iOS Simulator
     #if targetEnvironment(simulator)

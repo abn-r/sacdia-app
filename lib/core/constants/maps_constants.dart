@@ -6,19 +6,29 @@
 /// El geocoding usa los geocoders nativos del dispositivo:
 ///   - iOS: CLGeocoder (Apple)
 ///   - Android: Android Geocoder (Google Play Services)
+///
+/// SECURITY: La API key NO se hardcodea en el código fuente.
+/// Proveer mediante build config:
+///   Android: gradle.properties → GOOGLE_MAPS_API_KEY=YOUR_KEY
+///   iOS:     Xcode build settings → GOOGLE_MAPS_API_KEY=YOUR_KEY
+///   CI:      Variable de entorno GOOGLE_MAPS_API_KEY en el runner.
 /// ─────────────────────────────────────────────────────────────────
 class MapsConstants {
   MapsConstants._();
 
-  /// Google Maps API key — used for Static Maps API image requests.
+  /// Google Maps API key, injected at compile-time via:
+  ///   `--dart-define=GOOGLE_MAPS_API_KEY=<key>`
   ///
-  /// The same key is configured in:
-  ///   - ios/Runner/AppDelegate.swift  (GMSServices.provideAPIKey)
-  ///   - android/app/src/main/AndroidManifest.xml  (com.google.android.geo.API_KEY)
+  /// For the Interactive Maps SDK (android/iOS) the key is configured
+  /// natively via gradle.properties / Xcode build settings. This Dart
+  /// constant is used ONLY for the Static Maps REST API (image tiles).
   ///
-  /// TODO: Move to --dart-define=GOOGLE_MAPS_API_KEY to avoid committing the key.
-  static const String googleMapsApiKey =
-      'AIzaSyAQoO0HmAfSdbRs-T0cqtCXEGNn7TtMGZk';
+  /// If the key is empty the static map URL will 403 and the cached_network_image
+  /// errorWidget is shown — a graceful degradation with no crash.
+  static const String googleMapsApiKey = String.fromEnvironment(
+    'GOOGLE_MAPS_API_KEY',
+    defaultValue: '',
+  );
 
   /// Ubicación por defecto cuando no hay ubicación del dispositivo disponible.
   /// Centro de México (Ciudad de México).
