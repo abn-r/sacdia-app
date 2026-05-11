@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/persona/nav_slot.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/features/notifications/presentation/providers/unread_notifications_count_provider.dart';
 
 /// Wraps [child] with a notification badge driven by [source].
@@ -12,7 +13,7 @@ import 'package:sacdia_app/features/notifications/presentation/providers/unread_
 /// top-right corner when the count is greater than zero.
 ///
 /// Design constraints (NFR-3, NFR-4):
-/// - Badge uses `Theme.of(context).colorScheme.error` (Material 3 semantic token).
+/// - Badge uses `context.sac.error` (SacColors semantic token).
 /// - Badge counter is capped at 99+.
 /// - Touch target maintained by parent [NavigationDestination] / [NavigationRailDestination].
 ///
@@ -64,13 +65,13 @@ class NavBadge extends ConsumerWidget {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 4),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.error,
+                color: context.sac.error,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 badgeLabel,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onError,
+                  color: context.sac.onError,
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
                   height: 1.6,
