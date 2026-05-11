@@ -52,14 +52,16 @@ void main() {
     });
 
     test('contains expected values', () {
-      expect(NavBadgeSource.values, containsAll([
-        NavBadgeSource.activities,
-        NavBadgeSource.unit,
-        NavBadgeSource.members,
-        NavBadgeSource.finances,
-        NavBadgeSource.hub,
-        NavBadgeSource.none,
-      ]));
+      expect(
+          NavBadgeSource.values,
+          containsAll([
+            NavBadgeSource.activities,
+            NavBadgeSource.unit,
+            NavBadgeSource.members,
+            NavBadgeSource.finances,
+            NavBadgeSource.hub,
+            NavBadgeSource.none,
+          ]));
     });
   });
 }

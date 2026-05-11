@@ -34,7 +34,8 @@ void main() {
             expect(
               slot.labelKey.isNotEmpty,
               isTrue,
-              reason: 'slot with branchIndex=${slot.branchIndex} has empty labelKey',
+              reason:
+                  'slot with branchIndex=${slot.branchIndex} has empty labelKey',
             );
           }
         });

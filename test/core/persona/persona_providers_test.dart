@@ -109,7 +109,8 @@ void main() {
       expect(slots.length, 5);
     });
 
-    test('director auth → director nav (5 slots, first slot = Miembros)', () async {
+    test('director auth → director nav (5 slots, first slot = Miembros)',
+        () async {
       final container = await _makeContainer(_userWithRole('director'));
       addTearDown(container.dispose);
 
@@ -118,9 +119,16 @@ void main() {
       expect(slots.first.labelKey, 'nav.members');
     });
 
-    test('every persona nav config has Activities slot with badgeSource=activities',
+    test(
+        'every persona nav config has Activities slot with badgeSource=activities',
         () async {
-      for (final role in ['member', 'counselor', 'director', 'treasurer', 'coordinator']) {
+      for (final role in [
+        'member',
+        'counselor',
+        'director',
+        'treasurer',
+        'coordinator'
+      ]) {
         final container = await _makeContainer(_userWithRole(role));
         addTearDown(container.dispose);
 
@@ -131,7 +139,8 @@ void main() {
         expect(
           hasActivities,
           isTrue,
-          reason: 'role=$role: nav must have Activities slot with badgeSource=activities',
+          reason:
+              'role=$role: nav must have Activities slot with badgeSource=activities',
         );
       }
     });

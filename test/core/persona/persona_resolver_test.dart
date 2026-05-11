@@ -85,7 +85,9 @@ void main() {
     });
   });
 
-  group('resolvePersona — global role mapping (FR-9 fallback when active is null)', () {
+  group(
+      'resolvePersona — global role mapping (FR-9 fallback when active is null)',
+      () {
     test('coordinator global role → Persona.coordinador', () {
       expect(
         resolvePersona(_snapshotWithGlobalRole('coordinator')),
@@ -127,7 +129,8 @@ void main() {
       );
     });
 
-    test('snapshot with null activeGrant and empty globalGrants → Persona.miembro',
+    test(
+        'snapshot with null activeGrant and empty globalGrants → Persona.miembro',
         () {
       expect(
         resolvePersona(
