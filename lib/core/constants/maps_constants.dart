@@ -6,19 +6,15 @@
 /// El geocoding usa los geocoders nativos del dispositivo:
 ///   - iOS: CLGeocoder (Apple)
 ///   - Android: Android Geocoder (Google Play Services)
+///
+/// SECURITY: La API key NO se hardcodea en el código fuente.
+/// Proveer mediante build config:
+///   Android: gradle.properties → GOOGLE_MAPS_API_KEY=<key>
+///   iOS:     Xcode build settings → GOOGLE_MAPS_API_KEY=<key>
+///   CI:      Variable de entorno GOOGLE_MAPS_API_KEY en el runner.
 /// ─────────────────────────────────────────────────────────────────
 class MapsConstants {
   MapsConstants._();
-
-  /// Google Maps API key — used for Static Maps API image requests.
-  ///
-  /// The same key is configured in:
-  ///   - ios/Runner/AppDelegate.swift  (GMSServices.provideAPIKey)
-  ///   - android/app/src/main/AndroidManifest.xml  (com.google.android.geo.API_KEY)
-  ///
-  /// TODO: Move to --dart-define=GOOGLE_MAPS_API_KEY to avoid committing the key.
-  static const String googleMapsApiKey =
-      'AIzaSyAQoO0HmAfSdbRs-T0cqtCXEGNn7TtMGZk';
 
   /// Ubicación por defecto cuando no hay ubicación del dispositivo disponible.
   /// Centro de México (Ciudad de México).
