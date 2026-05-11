@@ -41,11 +41,21 @@
   },
   "nav": {
     "home": "Accueil",
+    "dashboard": "Accueil",
     "activities": "Activités",
     "classes": "Classes",
     "honors": "Spécialités",
     "profile": "Profil",
-    "settings": "Paramètres"
+    "settings": "Paramètres",
+    "ranking": "Classement",
+    "my_unit": "Mon Unité",
+    "members": "Membres",
+    "club": "Club",
+    "finances": "Finances",
+    "insurance": "Assurances",
+    "hub": "Hub",
+    "clubs": "Clubs",
+    "reports": "Rapports"
   },
   "settings": {
     "title": "Paramètres",
