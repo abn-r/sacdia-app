@@ -133,6 +133,17 @@ class RouteNames {
   static const String coordinatorCamporeeApprovals =
       '/coordinator/camporee-approvals';
 
+  // Coordinator shell tab routes (PR-4, separate StatefulShellRoute)
+  // Branch 0: /coordinator        — Hub (reuses coordinator root)
+  // Branch 1: /coordinator/clubs  — Clubes / Aprobaciones
+  static const String coordinatorClubs = '/coordinator/clubs';
+  // Branch 2: /coordinator/reports — Reportes / SLA dashboard
+  static const String coordinatorReports = '/coordinator/reports';
+  // Branch 3: /coordinator/coord-activities — Actividades (coordinator view)
+  static const String coordinatorActivities = '/coordinator/coord-activities';
+  // Branch 4: /coordinator/coord-profile  — Perfil (coordinator view)
+  static const String coordinatorProfile = '/coordinator/coord-profile';
+
   // Helpers para coordinación
   static String coordinatorEvidenceReviewDetail(String type, String id) =>
       '/coordinator/evidence-review/$type/$id';
