@@ -120,8 +120,8 @@ class _MembersViewState extends ConsumerState<MembersView>
                                 .refresh();
                           },
                     child: Container(
-                      width: 36,
-                      height: 36,
+                      width: 44,
+                      height: 44,
                       decoration: BoxDecoration(
                         color: c.surface,
                         borderRadius: BorderRadius.circular(10),

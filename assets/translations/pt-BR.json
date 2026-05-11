@@ -41,11 +41,21 @@
   },
   "nav": {
     "home": "Início",
+    "dashboard": "Início",
     "activities": "Atividades",
     "classes": "Classes",
     "honors": "Especialidades",
     "profile": "Perfil",
-    "settings": "Configurações"
+    "settings": "Configurações",
+    "ranking": "Ranking",
+    "my_unit": "Minha Unidade",
+    "members": "Membros",
+    "club": "Clube",
+    "finances": "Finanças",
+    "insurance": "Seguros",
+    "hub": "Hub",
+    "clubs": "Clubes",
+    "reports": "Relatórios"
   },
   "settings": {
     "title": "Configurações",

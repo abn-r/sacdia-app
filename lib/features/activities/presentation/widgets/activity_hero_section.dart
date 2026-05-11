@@ -46,6 +46,14 @@ class ActivityHeroSection extends StatelessWidget {
       final lat = activity.lat!;
       final lng = activity.longitude!;
 
+      // Skip the network request when the API key is not configured.
+      // The key is empty when the build was launched without
+      // --dart-define=GOOGLE_MAPS_API_KEY. Firing the request would 403 and
+      // waste bandwidth, so we fall back immediately to the static fallback UI.
+      if (MapsConstants.googleMapsApiKey.isEmpty) {
+        return _buildLocationFallback(context);
+      }
+
       return GestureDetector(
         onTap: () => _openInMaps(),
         child: CachedNetworkImage(
