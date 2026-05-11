@@ -13,3 +13,4 @@ export 'persona_nav_config.dart';
 export 'persona_providers.dart';
 export 'persona_resolver.dart';
 export 'widgets/nav_badge.dart';
+export 'widgets/more_sheet.dart';

@@ -19,11 +19,16 @@ class WelcomeHeader extends StatelessWidget {
   /// Si es null, el icono de campana no se muestra.
   final VoidCallback? onNotificationsTap;
 
+  /// Callback opcional para abrir el sheet «Más» desde la barra de acciones.
+  /// Si es null, el botón Más no se muestra.
+  final VoidCallback? onMoreTap;
+
   const WelcomeHeader({
     super.key,
     required this.userName,
     this.userAvatar,
     this.onNotificationsTap,
+    this.onMoreTap,
   });
 
   String _getGreeting() {
@@ -68,6 +73,23 @@ class WelcomeHeader extends StatelessWidget {
               ],
             ),
           ),
+
+          // Botón «Más» — abre el sheet de destinos adicionales (T-27)
+          if (onMoreTap != null) ...[
+            Semantics(
+              button: true,
+              label: 'nav.more'.tr(),
+              child: IconButton(
+                onPressed: onMoreTap,
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedMoreHorizontal,
+                  size: 24,
+                  color: AppColors.lightText,
+                ),
+                tooltip: 'nav.more'.tr(),
+              ),
+            ),
+          ],
 
           // Botón de notificaciones
           if (onNotificationsTap != null) ...[
