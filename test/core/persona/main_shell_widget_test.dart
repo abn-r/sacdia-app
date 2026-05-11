@@ -203,8 +203,7 @@ void main() {
       expect(find.text('nav.profile'), findsWidgets);
     });
 
-    testWidgets(
-        'Tesorero: nav bar shows correct labelKey text for all 5 slots',
+    testWidgets('Tesorero: nav bar shows correct labelKey text for all 5 slots',
         (tester) async {
       await _pumpShell(tester, user: _userWithRole('treasurer'));
 
