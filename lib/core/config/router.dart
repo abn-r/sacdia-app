@@ -196,11 +196,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // Splash es transitorio: una vez que la carga terminó, siempre salir.
+      // T-15 / T-17: landing redirect only fires from splash (post-login entry).
+      // Any other path (deep link, mid-session navigation) falls through
+      // untouched — this satisfies FR-4 (no re-trigger on context switch) and
+      // FR-6 / R5 (deep-link target preserved: GoRouter evaluates the redirect
+      // with state.matchedLocation == the final intended path, NOT the transient
+      // splash, so deep links never hit this block).
       if (currentPath == RouteNames.splash) {
         if (!isLoggedIn) return RouteNames.login;
-        return user.postRegisterComplete
-            ? RouteNames.homeDashboard
-            : RouteNames.postRegistration;
+        if (!user.postRegisterComplete) return RouteNames.postRegistration;
+        final persona = resolvePersona(user.authorization);
+        return personaLandingRoute(persona);
       }
 
       // Sin usuario autenticado → login
@@ -208,11 +214,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         return isPublicRoute ? null : RouteNames.login;
       }
 
-      // Usuario autenticado en ruta pública → decidir destino
+      // T-16: Usuario autenticado en ruta pública → decidir destino
+      // Uses persona-routed landing for consistency with post-login flow.
       if (isPublicRoute) {
-        return user.postRegisterComplete
-            ? RouteNames.homeDashboard
-            : RouteNames.postRegistration;
+        if (!user.postRegisterComplete) return RouteNames.postRegistration;
+        final persona = resolvePersona(user.authorization);
+        return personaLandingRoute(persona);
       }
 
       // Usuario autenticado con post-registro incompleto fuera de la ruta de post-registro
@@ -221,11 +228,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         return RouteNames.postRegistration;
       }
 
-      // Usuario autenticado con post-registro completo en la ruta de post-registro
-      // (e.g., navigated back somehow) → redirigir a home
+      // T-16: Usuario autenticado con post-registro completo en la ruta de post-registro
+      // (e.g., navigated back somehow) → redirigir al destino de la persona.
       if (user.postRegisterComplete &&
           currentPath == RouteNames.postRegistration) {
-        return RouteNames.homeDashboard;
+        final persona = resolvePersona(user.authorization);
+        return personaLandingRoute(persona);
       }
 
       return null;

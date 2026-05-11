@@ -55,7 +55,8 @@
     "insurance": "Seguros",
     "hub": "Hub",
     "clubs": "Clubes",
-    "reports": "Relatórios"
+    "reports": "Relatórios",
+    "unread_notifications_a11y": "{count} notificações não lidas"
   },
   "settings": {
     "title": "Configurações",

@@ -55,7 +55,8 @@
     "insurance": "Assurances",
     "hub": "Hub",
     "clubs": "Clubs",
-    "reports": "Rapports"
+    "reports": "Rapports",
+    "unread_notifications_a11y": "{count} notifications non lues"
   },
   "settings": {
     "title": "Paramètres",
