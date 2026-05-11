@@ -55,7 +55,8 @@
     "insurance": "Insurance",
     "hub": "Hub",
     "clubs": "Clubs",
-    "reports": "Reports"
+    "reports": "Reports",
+    "unread_notifications_a11y": "{count} unread notifications"
   },
   "settings": {
     "title": "Settings",
