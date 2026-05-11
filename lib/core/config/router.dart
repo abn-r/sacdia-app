@@ -858,17 +858,95 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
 
-      // Coordinador: hub principal
-      GoRoute(
-        path: RouteNames.coordinator,
-        pageBuilder: (context, state) => _sharedAxisBuild(
-          context,
-          state,
-          const CoordinatorHubView(),
-        ),
+      // ── Coordinator shell — separate StatefulShellRoute (PR-4) ─────────────
+      //
+      // Coordinator-persona users are routed to this shell exclusively.
+      // It maintains its own 5 branches (indices 0–4) scoped independently of
+      // the main shell's branches (0–17), satisfying design R2 mitigation.
+      //
+      // Context-switch from coordinator → club re-mounts main shell: the
+      // router.refresh() listener on authNotifierProvider re-evaluates the
+      // redirect, resolvePersona() returns a non-coordinator persona, and
+      // personaLandingRoute() redirects to the main shell's landing route.
+      // No explicit guard needed here — the redirect logic handles it (FR-5,
+      // S-15).
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            _CoordinatorShell(navigationShell: navigationShell),
+        branches: [
+          // ── Coordinator Branch 0: Hub ──────────────────────────────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.coordinator,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const CoordinatorHubView(),
+                ),
+              ),
+            ],
+          ),
+
+          // ── Coordinator Branch 1: Clubes / Aprobaciones ───────────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.coordinatorClubs,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const CamporeeApprovalsView(),
+                ),
+              ),
+            ],
+          ),
+
+          // ── Coordinator Branch 2: Reportes / SLA ──────────────────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.coordinatorReports,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const SLADashboardView(),
+                ),
+              ),
+            ],
+          ),
+
+          // ── Coordinator Branch 3: Actividades ─────────────────────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.coordinatorActivities,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const ActivitiesListView(),
+                ),
+              ),
+            ],
+          ),
+
+          // ── Coordinator Branch 4: Perfil ───────────────────────────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.coordinatorProfile,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const ProfileView(),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
 
-      // Coordinador: dashboard SLA operativo
+      // Coordinador: dashboard SLA operativo (deep-link / sub-view entry)
       GoRoute(
         path: RouteNames.coordinatorSla,
         pageBuilder: (context, state) => _sharedAxisBuild(
@@ -878,7 +956,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
 
-      // Coordinador: lista de evidencias pendientes
+      // Coordinador: lista de evidencias pendientes (deep-link / sub-view entry)
       GoRoute(
         path: RouteNames.coordinatorEvidenceReview,
         pageBuilder: (context, state) => _sharedAxisBuild(
@@ -903,7 +981,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // Coordinador: aprobaciones de camporees
+      // Coordinador: aprobaciones de camporees (deep-link / sub-view entry)
       GoRoute(
         path: RouteNames.coordinatorCamporeeApprovals,
         pageBuilder: (context, state) => _sharedAxisBuild(
@@ -1119,6 +1197,16 @@ class _MainShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final slots = ref.watch(personaNavSlotsProvider);
 
+    // Defensive guard (PR-4): coordinator persona should never reach _MainShell
+    // because the post-login redirect sends coordinators to /coordinator which
+    // mounts _CoordinatorShell instead. If somehow a coordinator ends up here
+    // (e.g., a direct context.go() call to a main-shell route), we render the
+    // standard shell with the coordinator's slots — this is safe because
+    // personaNavSlotsProvider already returns the coordinator config with
+    // branchIndex 0–4 scoped to the coordinator shell. The coordinator shell's
+    // redirect (router.refresh → personaLandingRoute → /coordinator) will
+    // correct the navigation in the next frame.
+
     // Map the shell's current branch index to the persona-slot UI position.
     // Branches that are not part of the current persona's nav (quick-access or
     // other-persona slots) are not shown; we fall back to index 0 in that case.
@@ -1182,6 +1270,117 @@ class _MainShell extends ConsumerWidget {
     // El FAB de "Inscribir clase" fue movido a ClassesListView para evitar
     // que se filtre al detalle de clase durante Navigator.push (branch 1 sigue
     // activo y el Scaffold del shell lo heredaba).
+    return Scaffold(
+      body: navigationShell,
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: selectedIndex,
+        onDestinationSelected: (uiIndex) =>
+            navigationShell.goBranch(slots[uiIndex].branchIndex),
+        destinations: slots
+            .map(
+              (slot) => NavigationDestination(
+                icon: NavBadge(
+                  source: slot.badgeSource,
+                  child: HugeIcon(icon: slot.icon),
+                ),
+                selectedIcon: NavBadge(
+                  source: slot.badgeSource,
+                  child: HugeIcon(icon: slot.icon),
+                ),
+                label: tr(slot.labelKey),
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+}
+
+// ── Coordinator shell ─────────────────────────────────────────────────────────
+
+/// Coordinator-persona navigation shell.
+///
+/// A dedicated [StatefulShellRoute.indexedStack]-driven shell for the
+/// coordinator persona. Lives outside the main club shell so coordinator
+/// screens (global-scope, no clubId required) never mix with club-scoped
+/// providers (design §4 — separate StatefulShellRoute decision).
+///
+/// Branches (0–4, scoped independently of main shell's 0–17):
+///   0 → Hub          (/coordinator)
+///   1 → Clubes       (/coordinator/clubs)
+///   2 → Reportes     (/coordinator/reports)
+///   3 → Actividades  (/coordinator/coord-activities)
+///   4 → Perfil       (/coordinator/coord-profile)
+///
+/// Context-switch to a club persona: the router.refresh() listener causes
+/// redirect to re-evaluate; resolvePersona() returns a non-coordinator
+/// persona and personaLandingRoute() sends the user to the main shell.
+/// No crash — GoRouter simply unmounts this shell and mounts the main one.
+class _CoordinatorShell extends ConsumerWidget {
+  final StatefulNavigationShell navigationShell;
+
+  const _CoordinatorShell({required this.navigationShell});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Coordinator slot config (branchIndex 0–4, scoped to this shell).
+    final slots = personaNavConfig[Persona.coordinador]!;
+
+    final currentBranchIndex = navigationShell.currentIndex;
+    final selectedIndex = () {
+      final uiIdx = slots.indexWhere(
+        (slot) => slot.branchIndex == currentBranchIndex,
+      );
+      return uiIdx < 0 ? 0 : uiIdx;
+    }();
+
+    final useRail = Responsive.isTablet(context);
+
+    if (useRail) {
+      return Scaffold(
+        body: Row(
+          children: [
+            NavigationRail(
+              selectedIndex: selectedIndex,
+              onDestinationSelected: (uiIndex) =>
+                  navigationShell.goBranch(slots[uiIndex].branchIndex),
+              labelType: NavigationRailLabelType.all,
+              useIndicator: true,
+              destinations: slots
+                  .map(
+                    (slot) => NavigationRailDestination(
+                      icon: NavBadge(
+                        source: slot.badgeSource,
+                        child: HugeIcon(
+                          icon: slot.icon,
+                          size: 24,
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      selectedIcon: NavBadge(
+                        source: slot.badgeSource,
+                        child: HugeIcon(
+                          icon: slot.icon,
+                          size: 24,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      label: Semantics(
+                        label: tr(slot.labelKey),
+                        child: Text(tr(slot.labelKey)),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+            const VerticalDivider(width: 1, thickness: 1),
+            Expanded(child: navigationShell),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
