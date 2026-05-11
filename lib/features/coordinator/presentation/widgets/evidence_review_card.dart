@@ -149,8 +149,6 @@ class EvidenceReviewCard extends StatelessWidget {
 
   Color _typeColor(EvidenceReviewType type) {
     switch (type) {
-      case EvidenceReviewType.folder:
-        return AppColors.accent;
       case EvidenceReviewType.classType:
         return AppColors.info;
       case EvidenceReviewType.honor:

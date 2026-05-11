@@ -14,7 +14,7 @@ abstract class CoordinatorRemoteDataSource {
   /// GET /admin/analytics/sla-dashboard
   Future<SlaDashboardModel> getSlaDashboard({CancelToken? cancelToken});
 
-  /// GET /evidence-review/pending?page=1&limit=20&type=folder|class|honor
+  /// GET /evidence-review/pending?page=1&limit=20&type=class|honor
   Future<List<EvidenceReviewItemModel>> getPendingEvidence({
     int page = 1,
     int limit = 20,
@@ -191,6 +191,10 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
       list = raw;
     } else if (raw is Map && raw['data'] is List) {
       list = raw['data'] as List;
+    } else if (raw is Map &&
+        raw['data'] is Map &&
+        (raw['data'] as Map)['data'] is List) {
+      list = (raw['data'] as Map)['data'] as List;
     } else {
       list = [];
     }
@@ -280,9 +284,10 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
       );
 
       if (_isOk(response.statusCode)) {
-        final data = response.data is Map
-            ? response.data as Map<String, dynamic>
-            : (response.data['data'] as Map<String, dynamic>);
+        final raw = response.data;
+        final data = raw is Map<String, dynamic> && raw['data'] is Map
+            ? Map<String, dynamic>.from(raw['data'] as Map)
+            : Map<String, dynamic>.from(raw as Map);
         return EvidenceReviewItemModel.fromJson(data);
       }
       throw ServerException(

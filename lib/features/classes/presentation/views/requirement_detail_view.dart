@@ -759,10 +759,12 @@ class _ObservationCard extends StatelessWidget {
   String _timeAgo(DateTime dt) {
     final now = DateTime.now();
     final diff = now.difference(dt);
-    if (diff.inDays >= 1)
+    if (diff.inDays >= 1) {
       return 'hace ${diff.inDays} día${diff.inDays == 1 ? '' : 's'}';
-    if (diff.inHours >= 1)
+    }
+    if (diff.inHours >= 1) {
       return 'hace ${diff.inHours} hora${diff.inHours == 1 ? '' : 's'}';
+    }
     if (diff.inMinutes >= 1) {
       return 'hace ${diff.inMinutes} minuto${diff.inMinutes == 1 ? '' : 's'}';
     }
@@ -915,10 +917,12 @@ class _FileRow extends StatelessWidget {
   String _timeAgo(DateTime dt) {
     final now = DateTime.now();
     final diff = now.difference(dt);
-    if (diff.inDays >= 1)
+    if (diff.inDays >= 1) {
       return 'Hace ${diff.inDays} día${diff.inDays == 1 ? '' : 's'}';
-    if (diff.inHours >= 1)
+    }
+    if (diff.inHours >= 1) {
       return 'Hace ${diff.inHours} hora${diff.inHours == 1 ? '' : 's'}';
+    }
     return 'Hace un momento';
   }
 }
