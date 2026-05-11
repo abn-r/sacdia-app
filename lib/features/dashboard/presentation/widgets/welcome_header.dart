@@ -76,7 +76,7 @@ class WelcomeHeader extends StatelessWidget {
               icon: HugeIcon(
                 icon: HugeIcons.strokeRoundedNotification01,
                 size: 24,
-                color: AppColors.lightText,
+                color: context.sac.text,
               ),
               tooltip: tr('dashboard.notifications_tooltip'),
             ),

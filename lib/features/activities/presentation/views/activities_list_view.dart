@@ -571,12 +571,12 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                           _scrollToToday(animate: true);
                                         },
                                         child: Container(
-                                          width: 44,
-                                          height: 24,
+                                          width: 60,
+                                          height: 44,
                                           decoration: BoxDecoration(
                                             color: AppColors.primary,
                                             borderRadius:
-                                                BorderRadius.circular(12),
+                                                BorderRadius.circular(22),
                                           ),
                                           child: Center(
                                             child: Text(
