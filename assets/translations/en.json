@@ -41,11 +41,21 @@
   },
   "nav": {
     "home": "Home",
+    "dashboard": "Home",
     "activities": "Activities",
     "classes": "Classes",
     "honors": "Honors",
     "profile": "Profile",
-    "settings": "Settings"
+    "settings": "Settings",
+    "ranking": "Ranking",
+    "my_unit": "My Unit",
+    "members": "Members",
+    "club": "Club",
+    "finances": "Finances",
+    "insurance": "Insurance",
+    "hub": "Hub",
+    "clubs": "Clubs",
+    "reports": "Reports"
   },
   "settings": {
     "title": "Settings",
