@@ -24,7 +24,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/persona/index.dart';
-import 'package:sacdia_app/core/persona/persona_resolver.dart';
 import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
@@ -133,7 +132,8 @@ void main() {
   group('T-24: coordinator persona nav config shape (FR-2, FR-5)', () {
     test('coordinator nav config has exactly 5 slots', () {
       final slots = personaNavConfig[Persona.coordinador]!;
-      expect(slots.length, 5, reason: 'Coordinator nav must have exactly 5 slots (FR-2)');
+      expect(slots.length, 5,
+          reason: 'Coordinator nav must have exactly 5 slots (FR-2)');
     });
 
     test('coordinator slots have correct labelKeys in order', () {
@@ -145,11 +145,14 @@ void main() {
       expect(slots[4].labelKey, 'nav.profile');
     });
 
-    test('coordinator branch indices are scoped 0–4 (coordinator shell, NOT main 0–17)', () {
+    test(
+        'coordinator branch indices are scoped 0–4 (coordinator shell, NOT main 0–17)',
+        () {
       final slots = personaNavConfig[Persona.coordinador]!;
       final indices = slots.map((s) => s.branchIndex).toList();
       expect(indices, [0, 1, 2, 3, 4],
-          reason: 'Coordinator shell branchIndex must be 0–4, independent of main shell (design R2)');
+          reason:
+              'Coordinator shell branchIndex must be 0–4, independent of main shell (design R2)');
     });
 
     test('coordinator Hub slot has badgeSource=hub (FR-8)', () {
@@ -195,16 +198,17 @@ void main() {
 
   // ── T-24: _CoordinatorShell widget rendering ──────────────────────────────
 
-  group('T-24: _CoordinatorShell widget — renders 5 navigation destinations', () {
-    testWidgets(
-        'coordinator shell renders exactly 5 NavigationDestinations',
+  group('T-24: _CoordinatorShell widget — renders 5 navigation destinations',
+      () {
+    testWidgets('coordinator shell renders exactly 5 NavigationDestinations',
         (tester) async {
       await _pumpCoordShell(tester);
 
       expect(
         find.byType(NavigationDestination),
         findsNWidgets(5),
-        reason: 'Coordinator shell must render exactly 5 nav destinations (FR-2, FR-5)',
+        reason:
+            'Coordinator shell must render exactly 5 nav destinations (FR-2, FR-5)',
       );
     });
 
@@ -216,7 +220,8 @@ void main() {
           reason: 'First coordinator slot must be Hub');
     });
 
-    testWidgets('coordinator shell shows all 5 expected labelKeys', (tester) async {
+    testWidgets('coordinator shell shows all 5 expected labelKeys',
+        (tester) async {
       await _pumpCoordShell(tester);
 
       expect(find.text('nav.hub'), findsWidgets);
@@ -230,7 +235,9 @@ void main() {
   // ── T-25 / S-15: context-switch routing logic ─────────────────────────────
 
   group('T-25 / S-15: coordinator context-switch — shell routing', () {
-    test('coordinator persona lands at RouteNames.coordinator (coordinator shell)', () {
+    test(
+        'coordinator persona lands at RouteNames.coordinator (coordinator shell)',
+        () {
       final user = _userWithRole('coordinator');
       final persona = resolvePersona(user.authorization);
 
@@ -238,11 +245,14 @@ void main() {
       expect(
         personaLandingRoute(persona),
         RouteNames.coordinator,
-        reason: 'S-05: coordinator post-login must land at coordinator shell root',
+        reason:
+            'S-05: coordinator post-login must land at coordinator shell root',
       );
     });
 
-    test('S-15: switching from coordinator to director persona changes landing route', () {
+    test(
+        'S-15: switching from coordinator to director persona changes landing route',
+        () {
       // coordinator — lands in coordinator shell
       final coordUser = _userWithRole('coordinator');
       final coordPersona = resolvePersona(coordUser.authorization);
@@ -254,11 +264,18 @@ void main() {
       final directorPersona = resolvePersona(directorUser.authorization);
       expect(directorPersona, Persona.director);
       expect(personaLandingRoute(directorPersona), RouteNames.homeMembers,
-          reason: 'S-15: after context switch to director, landing route must be main shell route');
+          reason:
+              'S-15: after context switch to director, landing route must be main shell route');
     });
 
-    test('S-15: coordinator persona does not resolve to any main-shell persona', () {
-      for (final coordRole in ['coordinator', 'admin', 'super-admin', 'assistant-admin']) {
+    test('S-15: coordinator persona does not resolve to any main-shell persona',
+        () {
+      for (final coordRole in [
+        'coordinator',
+        'admin',
+        'super-admin',
+        'assistant-admin'
+      ]) {
         final user = _userWithRole(coordRole);
         final persona = resolvePersona(user.authorization);
         expect(persona, Persona.coordinador,
@@ -268,7 +285,8 @@ void main() {
         expect(
           landingRoute.startsWith('/home/'),
           isFalse,
-          reason: 'Coordinator landing route must NOT be a main shell /home/* path (FR-5)',
+          reason:
+              'Coordinator landing route must NOT be a main shell /home/* path (FR-5)',
         );
       }
     });

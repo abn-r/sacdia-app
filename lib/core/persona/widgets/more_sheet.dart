@@ -156,7 +156,8 @@ class MoreSheetResolvedItem {
   final MoreSheetDestination dest;
   final String resolvedRoute;
 
-  const MoreSheetResolvedItem({required this.dest, required this.resolvedRoute});
+  const MoreSheetResolvedItem(
+      {required this.dest, required this.resolvedRoute});
 }
 
 /// Pure filtering function: returns items from [moreSheetDestinations] that
@@ -187,8 +188,8 @@ List<MoreSheetResolvedItem> filterSheetDestinations({
     } else {
       final hasPermission = dest.requiredPermissions.isNotEmpty &&
           hasAnyPermission(user, dest.requiredPermissions);
-      final hasRole = dest.requiredRoles.isNotEmpty &&
-          hasAnyRole(user, dest.requiredRoles);
+      final hasRole =
+          dest.requiredRoles.isNotEmpty && hasAnyRole(user, dest.requiredRoles);
       if (!hasPermission && !hasRole) continue;
     }
 
@@ -255,8 +256,7 @@ class _MoreSheetContent extends ConsumerWidget {
     final persona = ref.watch(currentPersonaProvider);
     // Use ref.watch so the sheet reactively updates if auth state changes.
     final user = ref.watch(authNotifierProvider).valueOrNull;
-    final navRoutes =
-        personaNavConfig[persona]!.map((s) => s.route).toSet();
+    final navRoutes = personaNavConfig[persona]!.map((s) => s.route).toSet();
     final items = filterSheetDestinations(
       navRoutes: navRoutes,
       user: user,
@@ -293,8 +293,7 @@ class _MoreSheetContent extends ConsumerWidget {
 
             // ── Title row ──────────────────────────────────────────────
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
               child: Row(
                 children: [
                   Text(
@@ -387,8 +386,7 @@ class _MoreSheetTile extends StatelessWidget {
           context.push(resolvedRoute);
         },
         child: Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Row(
             children: [
               // Icon container

@@ -1353,8 +1353,7 @@ class _CoordinatorShell extends ConsumerWidget {
                         child: HugeIcon(
                           icon: slot.icon,
                           size: 24,
-                          color:
-                              Theme.of(context).colorScheme.onSurfaceVariant,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                       selectedIcon: NavBadge(

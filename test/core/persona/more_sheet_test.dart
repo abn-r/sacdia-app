@@ -59,9 +59,8 @@ UserEntity _userWithRole(
           status: 'active',
         ),
       ],
-      globalGrants: globalRoles
-          .map((r) => AuthorizationGrant(roleName: r))
-          .toList(),
+      globalGrants:
+          globalRoles.map((r) => AuthorizationGrant(roleName: r)).toList(),
       activeAssignmentId: 'a1',
     ),
   );
@@ -70,8 +69,7 @@ UserEntity _userWithRole(
 /// Shorthand: call [filterSheetDestinations] for a [persona] + [user] combo
 /// (no dynamic route resolvers, no WidgetRef needed).
 List<MoreSheetResolvedItem> _filterFor(Persona persona, UserEntity? user) {
-  final navRoutes =
-      personaNavConfig[persona]!.map((s) => s.route).toSet();
+  final navRoutes = personaNavConfig[persona]!.map((s) => s.route).toSet();
   return filterSheetDestinations(navRoutes: navRoutes, user: user);
 }
 
@@ -108,8 +106,7 @@ void main() {
           reason: 'homeResources should appear for member with folders:read');
     });
 
-    test(
-        '2. Director — nav-slot routes excluded, non-slot RBAC-allowed shown',
+    test('2. Director — nav-slot routes excluded, non-slot RBAC-allowed shown',
         () {
       // Director nav: homeMembers, homeClub, homeFinances, homeActivities,
       // homeProfile.
@@ -183,8 +180,7 @@ void main() {
 
     test('5. Null user — no items returned', () {
       final items = _filterFor(Persona.miembro, null);
-      expect(items, isEmpty,
-          reason: 'Null user should see no sheet items');
+      expect(items, isEmpty, reason: 'Null user should see no sheet items');
     });
   });
 
@@ -238,8 +234,7 @@ void main() {
       );
     });
 
-    testWidgets(
-        '7. Sheet renders empty-state when no items pass RBAC filter',
+    testWidgets('7. Sheet renders empty-state when no items pass RBAC filter',
         (tester) async {
       // User with no permissions → empty sheet.
       final user = _userWithRole('member', permissions: [], globalRoles: []);
@@ -268,8 +263,7 @@ class _MoreSheetContentTestWrapper extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final persona = ref.watch(currentPersonaProvider);
     final user = ref.watch(authNotifierProvider).valueOrNull;
-    final navRoutes =
-        personaNavConfig[persona]!.map((s) => s.route).toSet();
+    final navRoutes = personaNavConfig[persona]!.map((s) => s.route).toSet();
     final items = filterSheetDestinations(
       navRoutes: navRoutes,
       user: user,

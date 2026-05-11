@@ -87,8 +87,7 @@ String? _runRedirect({
     RouteNames.authCallback,
   ];
   final isPublicRoute = publicRoutes.contains(currentPath);
-  final isAlreadyInsideApp =
-      !isPublicRoute && currentPath != RouteNames.splash;
+  final isAlreadyInsideApp = !isPublicRoute && currentPath != RouteNames.splash;
 
   if (isLoading) {
     if (currentPath == RouteNames.splash) return null;
@@ -121,7 +120,7 @@ String? _runRedirect({
   // Splash block (T-15)
   if (currentPath == RouteNames.splash) {
     if (!isLoggedIn) return RouteNames.login;
-    if (!user!.postRegisterComplete) return RouteNames.postRegistration;
+    if (!user.postRegisterComplete) return RouteNames.postRegistration;
     final persona = resolvePersona(user.authorization);
     return personaLandingRoute(persona);
   }
@@ -132,13 +131,13 @@ String? _runRedirect({
 
   // Public route block (T-16)
   if (isPublicRoute) {
-    if (!user!.postRegisterComplete) return RouteNames.postRegistration;
+    if (!user.postRegisterComplete) return RouteNames.postRegistration;
     final persona = resolvePersona(user.authorization);
     return personaLandingRoute(persona);
   }
 
   // Post-registration complete on post-registration route (T-16)
-  if (user!.postRegisterComplete &&
+  if (user.postRegisterComplete &&
       currentPath == RouteNames.postRegistration) {
     final persona = resolvePersona(user.authorization);
     return personaLandingRoute(persona);
@@ -162,8 +161,7 @@ void main() {
         overrides: [
           authNotifierProvider
               .overrideWith(() => _FakeAuthNotifier(_userWith('member'))),
-          appBootstrapProvider
-              .overrideWith(() => _FakeBootstrapNotifier()),
+          appBootstrapProvider.overrideWith(() => _FakeBootstrapNotifier()),
         ],
       );
       addTearDown(container.dispose);
@@ -186,8 +184,7 @@ void main() {
         overrides: [
           authNotifierProvider
               .overrideWith(() => _FakeAuthNotifier(_userWith('director'))),
-          appBootstrapProvider
-              .overrideWith(() => _FakeBootstrapNotifier()),
+          appBootstrapProvider.overrideWith(() => _FakeBootstrapNotifier()),
         ],
       );
       addTearDown(container.dispose);
@@ -209,8 +206,7 @@ void main() {
         overrides: [
           authNotifierProvider
               .overrideWith(() => _FakeAuthNotifier(_userWith('treasurer'))),
-          appBootstrapProvider
-              .overrideWith(() => _FakeBootstrapNotifier()),
+          appBootstrapProvider.overrideWith(() => _FakeBootstrapNotifier()),
         ],
       );
       addTearDown(container.dispose);
@@ -232,8 +228,7 @@ void main() {
         overrides: [
           authNotifierProvider
               .overrideWith(() => _FakeAuthNotifier(_userWith('counselor'))),
-          appBootstrapProvider
-              .overrideWith(() => _FakeBootstrapNotifier()),
+          appBootstrapProvider.overrideWith(() => _FakeBootstrapNotifier()),
         ],
       );
       addTearDown(container.dispose);
@@ -255,8 +250,7 @@ void main() {
         overrides: [
           authNotifierProvider
               .overrideWith(() => _FakeAuthNotifier(_userWith('coordinator'))),
-          appBootstrapProvider
-              .overrideWith(() => _FakeBootstrapNotifier()),
+          appBootstrapProvider.overrideWith(() => _FakeBootstrapNotifier()),
         ],
       );
       addTearDown(container.dispose);
@@ -273,13 +267,13 @@ void main() {
           reason: 'S-05: coordinator must land on coordinator hub');
     });
 
-    test('secretary-treasurer collapses to Director → homeMembers (S-14)', () async {
+    test('secretary-treasurer collapses to Director → homeMembers (S-14)',
+        () async {
       final container = ProviderContainer(
         overrides: [
-          authNotifierProvider
-              .overrideWith(() => _FakeAuthNotifier(_userWith('secretary-treasurer'))),
-          appBootstrapProvider
-              .overrideWith(() => _FakeBootstrapNotifier()),
+          authNotifierProvider.overrideWith(
+              () => _FakeAuthNotifier(_userWith('secretary-treasurer'))),
+          appBootstrapProvider.overrideWith(() => _FakeBootstrapNotifier()),
         ],
       );
       addTearDown(container.dispose);
@@ -306,8 +300,7 @@ void main() {
         overrides: [
           authNotifierProvider
               .overrideWith(() => _FakeAuthNotifier(_userWith('member'))),
-          appBootstrapProvider
-              .overrideWith(() => _FakeBootstrapNotifier()),
+          appBootstrapProvider.overrideWith(() => _FakeBootstrapNotifier()),
         ],
       );
       addTearDown(container.dispose);
@@ -333,8 +326,7 @@ void main() {
         overrides: [
           authNotifierProvider
               .overrideWith(() => _FakeAuthNotifier(_userWith('director'))),
-          appBootstrapProvider
-              .overrideWith(() => _FakeBootstrapNotifier()),
+          appBootstrapProvider.overrideWith(() => _FakeBootstrapNotifier()),
         ],
       );
       addTearDown(container.dispose);
@@ -366,8 +358,7 @@ void main() {
         overrides: [
           authNotifierProvider
               .overrideWith(() => _FakeAuthNotifier(_userWith('director'))),
-          appBootstrapProvider
-              .overrideWith(() => _FakeBootstrapNotifier()),
+          appBootstrapProvider.overrideWith(() => _FakeBootstrapNotifier()),
         ],
       );
       addTearDown(container.dispose);
@@ -394,8 +385,7 @@ void main() {
         overrides: [
           authNotifierProvider
               .overrideWith(() => _FakeAuthNotifier(_userWith('treasurer'))),
-          appBootstrapProvider
-              .overrideWith(() => _FakeBootstrapNotifier()),
+          appBootstrapProvider.overrideWith(() => _FakeBootstrapNotifier()),
         ],
       );
       addTearDown(container.dispose);
@@ -420,8 +410,7 @@ void main() {
         overrides: [
           authNotifierProvider
               .overrideWith(() => _FakeAuthNotifier(_userWith('counselor'))),
-          appBootstrapProvider
-              .overrideWith(() => _FakeBootstrapNotifier()),
+          appBootstrapProvider.overrideWith(() => _FakeBootstrapNotifier()),
         ],
       );
       addTearDown(container.dispose);

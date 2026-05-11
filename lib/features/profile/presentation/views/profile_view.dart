@@ -196,8 +196,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 MaterialPageRoute(builder: (_) => const VirtualCardView()),
               ),
               // T-28: Más sheet entry point #2 — Profile tile
-              onMoreTap: () =>
-                  showMoreSheet(context: context, ref: ref),
+              onMoreTap: () => showMoreSheet(context: context, ref: ref),
               onRefresh: () async {
                 await ref.read(profileNotifierProvider.notifier).refresh();
                 ref.invalidate(userClassesProvider);
