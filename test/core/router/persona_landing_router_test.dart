@@ -137,8 +137,7 @@ String? _runRedirect({
   }
 
   // Post-registration complete on post-registration route (T-16)
-  if (user.postRegisterComplete &&
-      currentPath == RouteNames.postRegistration) {
+  if (user.postRegisterComplete && currentPath == RouteNames.postRegistration) {
     final persona = resolvePersona(user.authorization);
     return personaLandingRoute(persona);
   }
