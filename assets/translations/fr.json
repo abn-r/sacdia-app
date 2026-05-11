@@ -56,7 +56,10 @@
     "hub": "Hub",
     "clubs": "Clubs",
     "reports": "Rapports",
-    "unread_notifications_a11y": "{count} notifications non lues"
+    "unread_notifications_a11y": "{count} notifications non lues",
+    "more": "Plus",
+    "more_options": "Plus d'options",
+    "more_sheet_title": "Plus de destinations"
   },
   "settings": {
     "title": "Paramètres",

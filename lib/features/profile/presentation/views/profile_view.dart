@@ -34,6 +34,7 @@ import '../../../virtual_card/presentation/views/virtual_card_view.dart';
 import 'edit_profile_view.dart';
 import 'medical_info_view.dart';
 import 'settings_view.dart';
+import 'package:sacdia_app/core/persona/widgets/more_sheet.dart';
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 
@@ -194,6 +195,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 context,
                 MaterialPageRoute(builder: (_) => const VirtualCardView()),
               ),
+              // T-28: Más sheet entry point #2 — Profile tile
+              onMoreTap: () =>
+                  showMoreSheet(context: context, ref: ref),
               onRefresh: () async {
                 await ref.read(profileNotifierProvider.notifier).refresh();
                 ref.invalidate(userClassesProvider);
@@ -286,6 +290,9 @@ class _ProfileScrollBody extends StatelessWidget {
   final VoidCallback onSettings;
   final VoidCallback onQr;
 
+  /// Callback to open the «Más» bottom sheet (T-28).
+  final VoidCallback? onMoreTap;
+
   const _ProfileScrollBody({
     required this.profile,
     required this.authUser,
@@ -298,6 +305,7 @@ class _ProfileScrollBody extends StatelessWidget {
     required this.onSettings,
     required this.onQr,
     this.onChangePhoto,
+    this.onMoreTap,
   });
 
   @override
@@ -415,6 +423,26 @@ class _ProfileScrollBody extends StatelessWidget {
                 ),
               ),
             ),
+
+            // ── 3. Más opciones — sheet entry point #2 (T-28) ────────
+            if (onMoreTap != null) ...[
+              const SizedBox(height: 8),
+              Padding(
+                padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: c.surface,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: c.border, width: 1),
+                  ),
+                  child: SettingTile(
+                    icon: HugeIcons.strokeRoundedMoreHorizontal,
+                    title: 'nav.more_options'.tr(),
+                    onTap: onMoreTap,
+                  ),
+                ),
+              ),
+            ],
 
             const SizedBox(height: 20),
 
