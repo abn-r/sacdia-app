@@ -523,8 +523,8 @@ class _ProfileScrollBody extends StatelessWidget {
                             ),
                           ),
                           child: const Center(
-                            child: Icon(
-                              Icons.add_rounded,
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedAdd01,
                               color: AppColors.sacBlue,
                               size: 18,
                             ),
