@@ -197,12 +197,6 @@ Future<void> main() async {
           ),
         ),
       );
-
-      // La verificación de sesión no necesita bloquear el primer frame.
-      // Reutilizamos la instancia ya cargada para evitar un segundo getInstance().
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _checkAndCleanSessionAtStartup(sharedPreferences);
-      });
     },
   );
 }
@@ -226,36 +220,6 @@ Future<void> _initializeFirebaseExtras() async {
     if (kDebugMode) {
       AppLogger.w('FirebaseAppCheck no pudo activarse', tag: tag, error: e);
     }
-  }
-}
-
-/// Verifica y limpia sesiones inválidas o corruptas al inicio.
-///
-/// Con Better Auth / Option C no hay cliente Supabase. Simplemente
-/// verificamos si el access token almacenado localmente existe. La
-/// validación real contra el servidor ocurre en [AuthNotifier.build()]
-/// mediante GET /auth/me.
-///
-/// Recibe la instancia de [SharedPreferences] ya cargada en [main] para
-/// evitar un segundo [SharedPreferences.getInstance]. La limpieza de
-/// residuos de Supabase se ejecuta una única vez gracias al flag
-/// `supabase_migration_done`.
-Future<void> _checkAndCleanSessionAtStartup(SharedPreferences prefs) async {
-  try {
-    // La limpieza de residuos de Supabase solo necesita ocurrir una vez.
-    if (prefs.getBool('supabase_migration_done') == true) return;
-
-    final keys = prefs.getKeys().toList();
-    for (final key in keys) {
-      // Eliminar residuos de sesiones Supabase previas
-      if (key.contains('supabase')) {
-        await prefs.remove(key);
-      }
-    }
-
-    await prefs.setBool('supabase_migration_done', true);
-  } catch (e) {
-    // Silenciar errores de verificación de sesión
   }
 }
 
