@@ -326,6 +326,8 @@ class _MemberOfMonthCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
     final members = memberOfMonth.members;
+    // Guard: backend may return an empty members list in edge cases.
+    if (members.isEmpty) return const SizedBox.shrink();
     final isTie = members.length > 1;
     final primary = members.first;
 

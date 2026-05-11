@@ -244,15 +244,15 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                     color: Colors.white.withAlpha(120),
                     fontSize: 14,
                   ),
-                  prefixIcon: Icon(
-                    Icons.search_rounded,
+                  prefixIcon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedSearch01,
                     color: Colors.white.withAlpha(120),
                     size: 20,
                   ),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
-                          icon: Icon(
-                            Icons.close_rounded,
+                          icon: HugeIcon(
+                            icon: HugeIcons.strokeRoundedCancel01,
                             color: Colors.white.withAlpha(120),
                             size: 18,
                           ),
@@ -339,7 +339,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
             HugeIcon(
               icon: HugeIcons.strokeRoundedAward01,
               size: 56,
-              color: AppColors.sacGrey,
+              color: context.sac.textTertiary,
             ),
             const SizedBox(height: 12),
             Text(
@@ -355,7 +355,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
     }
 
     return RefreshIndicator(
-      color: AppColors.sacBlue,
+      color: AppColors.primary,
       onRefresh: () async {
         ref.invalidate(honorsGroupedByCategoryProvider);
         ref.invalidate(allHonorsProvider);
@@ -401,10 +401,14 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
               ref.invalidate(allHonorsProvider);
               ref.invalidate(userHonorsProvider);
             },
-            icon: const Icon(Icons.refresh, size: 18),
+            icon: const HugeIcon(
+              icon: HugeIcons.strokeRoundedRefresh,
+              size: 18,
+              color: Colors.white,
+            ),
             label: Text('honors.catalog.retry'.tr()),
             style: FilledButton.styleFrom(
-              backgroundColor: AppColors.sacBlue,
+              backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
