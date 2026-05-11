@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/persona/nav_slot.dart';
@@ -54,7 +55,8 @@ class NavBadge extends ConsumerWidget {
           top: -4,
           right: -6,
           child: Semantics(
-            label: '$badgeLabel notificaciones no leídas',
+            label: 'nav.unread_notifications_a11y'
+                .tr(namedArgs: {'count': badgeLabel}),
             child: Container(
               constraints: const BoxConstraints(
                 minWidth: 16,

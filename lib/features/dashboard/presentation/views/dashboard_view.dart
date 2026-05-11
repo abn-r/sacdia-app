@@ -23,6 +23,7 @@ import '../widgets/upcoming_activities_card.dart';
 import '../widgets/membership_status_banner.dart';
 import '../widgets/welcome_header.dart';
 import '../../../enrollment/presentation/widgets/enrollment_status_card.dart';
+import 'package:sacdia_app/core/persona/widgets/more_sheet.dart';
 
 /// Vista principal del dashboard - Estilo "Scout Vibrante"
 class DashboardView extends ConsumerWidget {
@@ -88,6 +89,9 @@ class DashboardView extends ConsumerWidget {
                         userAvatar: dashboard.userAvatar ?? authAvatar,
                         onNotificationsTap: () =>
                             context.push(RouteNames.notificationsInbox),
+                        // T-27: Más sheet entry point #1 — action bar button
+                        onMoreTap: () =>
+                            showMoreSheet(context: context, ref: ref),
                       ),
                     ),
 
