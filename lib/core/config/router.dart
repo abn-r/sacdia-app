@@ -56,9 +56,6 @@ import 'package:sacdia_app/features/rankings/presentation/screens/member_breakdo
 import 'package:sacdia_app/features/rankings/presentation/screens/my_ranking_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/section_ranking_screen.dart';
 
-import '../../features/auth/domain/entities/authorization_snapshot.dart';
-import '../../features/auth/domain/entities/user_entity.dart';
-import '../../features/auth/domain/utils/authorization_utils.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../providers/app_bootstrap_provider.dart';
 import '../notifications/push_notification_provider.dart';
@@ -77,6 +74,7 @@ import '../../features/profile/presentation/views/profile_view.dart';
 import '../../features/profile/presentation/views/medical_info_view.dart';
 import '../animations/page_transitions.dart';
 import '../utils/responsive.dart';
+import '../persona/index.dart';
 import 'route_names.dart';
 
 /// Shared-axis slide for standard forward/back navigation.
@@ -1073,70 +1071,20 @@ final routerProvider = Provider<GoRouter>((ref) {
 });
 
 // ── Navigation destination data ───────────────────────────────────────────────
-
-class _NavItemConfig {
-  /// The shell branch index for this tab. Must match the branch position in
-  /// the StatefulShellRoute.indexedStack branches list.
-  final int branchIndex;
-  final String route;
-  final List<List<dynamic>> icon;
-
-  /// i18n key resolved via tr() at build time.
-  final String labelKey;
-  final Set<String> requiredPermissions;
-
-  const _NavItemConfig({
-    required this.branchIndex,
-    required this.route,
-    required this.icon,
-    required this.labelKey,
-    this.requiredPermissions = const {},
-  });
-
-  String get label => tr(labelKey);
-}
-
-const List<_NavItemConfig> _navItemsConfig = [
-  _NavItemConfig(
-    branchIndex: 0,
-    route: RouteNames.homeDashboard,
-    icon: HugeIcons.strokeRoundedHome01,
-    labelKey: 'router.nav.home',
-  ),
-  _NavItemConfig(
-    branchIndex: 1,
-    route: RouteNames.homeClasses,
-    icon: HugeIcons.strokeRoundedSchool,
-    labelKey: 'router.nav.classes',
-    requiredPermissions: {'classes:read'},
-  ),
-  _NavItemConfig(
-    branchIndex: 2,
-    route: RouteNames.homeActivities,
-    icon: HugeIcons.strokeRoundedCalendar01,
-    labelKey: 'router.nav.activities',
-    requiredPermissions: {'activities:read'},
-  ),
-  _NavItemConfig(
-    branchIndex: 3,
-    route: RouteNames.homeProfile,
-    icon: HugeIcons.strokeRoundedUser,
-    labelKey: 'router.nav.profile',
-  ),
-];
-
-List<_NavItemConfig> _filterNavItems(
-  List<_NavItemConfig> items,
-  UserEntity? user,
-  AuthorizationSnapshot? authorization,
-) {
-  if (authorization == null) return items;
-
-  return items.where((item) {
-    if (item.requiredPermissions.isEmpty) return true;
-    return hasAnyPermission(user, item.requiredPermissions);
-  }).toList();
-}
+//
+// MIGRATED (PR-2): _NavItemConfig, _navItemsConfig, and _filterNavItems have
+// been replaced by the persona module. Nav slot configuration now lives in
+// lib/core/persona/persona_nav_config.dart and is consumed via
+// personaNavSlotsProvider (see _MainShell below).
+//
+// Slot definitions per persona:
+//   Miembro     → Dashboard | Clases | Actividades | Ranking  | Perfil
+//   Consejero   → Mi Unidad | Clases | Miembros    | Actividades | Perfil
+//   Director    → Miembros  | Club   | Finanzas    | Actividades | Perfil
+//   Tesorero    → Finanzas  | Seguros| Club        | Actividades | Perfil
+//   Coordinador → Hub       | Clubes | Reportes    | Actividades | Perfil  (PR-4 shell)
+//
+// All 18 StatefulShellBranch indices (0–17) are preserved unchanged (NFR-5).
 
 // ── Main shell — adaptive navigation ─────────────────────────────────────────
 
@@ -1148,8 +1096,12 @@ List<_NavItemConfig> _filterNavItems(
 /// across tab switches, preventing autoDispose providers from being disposed
 /// on every tab change.
 ///
-/// Watches [authNotifierProvider] scoped to the authorization sub-state so
-/// the tab list rebuilds reactively when permissions change (e.g. context switch).
+/// Watches [personaNavSlotsProvider] which derives the [NavSlot] list from the
+/// current [Persona]. Rebuilds only when the persona changes (e.g. after login
+/// or a context switch via [activeAssignmentId]).
+///
+/// [NavBadge] is applied to each slot icon when [NavSlot.badgeSource] is not
+/// [NavBadgeSource.none], rendering unread notification counts inline.
 class _MainShell extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
 
@@ -1157,24 +1109,15 @@ class _MainShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(
-      authNotifierProvider.select((v) => v.valueOrNull),
-    );
-    final authorization = user?.authorization;
+    final slots = ref.watch(personaNavSlotsProvider);
 
-    final filteredItems = _filterNavItems(
-      _navItemsConfig,
-      user,
-      authorization,
-    );
-
-    // Map the shell's current branch index to the filtered UI position.
-    // Quick-access branches (index >= _kNavBranchCount) are not shown in the
-    // nav bar, so we fall back to index 0 (Dashboard) for those cases.
+    // Map the shell's current branch index to the persona-slot UI position.
+    // Branches that are not part of the current persona's nav (quick-access or
+    // other-persona slots) are not shown; we fall back to index 0 in that case.
     final currentBranchIndex = navigationShell.currentIndex;
     final selectedIndex = () {
-      final uiIdx = filteredItems.indexWhere(
-        (item) => item.branchIndex == currentBranchIndex,
+      final uiIdx = slots.indexWhere(
+        (slot) => slot.branchIndex == currentBranchIndex,
       );
       return uiIdx < 0 ? 0 : uiIdx;
     }();
@@ -1189,23 +1132,33 @@ class _MainShell extends ConsumerWidget {
             NavigationRail(
               selectedIndex: selectedIndex,
               onDestinationSelected: (uiIndex) =>
-                  navigationShell.goBranch(filteredItems[uiIndex].branchIndex),
+                  navigationShell.goBranch(slots[uiIndex].branchIndex),
               labelType: NavigationRailLabelType.all,
               useIndicator: true,
-              destinations: filteredItems
+              destinations: slots
                   .map(
-                    (item) => NavigationRailDestination(
-                      icon: HugeIcon(
-                        icon: item.icon,
-                        size: 24,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    (slot) => NavigationRailDestination(
+                      icon: NavBadge(
+                        source: slot.badgeSource,
+                        child: HugeIcon(
+                          icon: slot.icon,
+                          size: 24,
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                      selectedIcon: HugeIcon(
-                        icon: item.icon,
-                        size: 24,
-                        color: Theme.of(context).colorScheme.primary,
+                      selectedIcon: NavBadge(
+                        source: slot.badgeSource,
+                        child: HugeIcon(
+                          icon: slot.icon,
+                          size: 24,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                       ),
-                      label: Text(item.label),
+                      label: Semantics(
+                        label: tr(slot.labelKey),
+                        child: Text(tr(slot.labelKey)),
+                      ),
                     ),
                   )
                   .toList(),
@@ -1226,13 +1179,19 @@ class _MainShell extends ConsumerWidget {
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: (uiIndex) =>
-            navigationShell.goBranch(filteredItems[uiIndex].branchIndex),
-        destinations: filteredItems
+            navigationShell.goBranch(slots[uiIndex].branchIndex),
+        destinations: slots
             .map(
-              (item) => NavigationDestination(
-                icon: HugeIcon(icon: item.icon),
-                selectedIcon: HugeIcon(icon: item.icon),
-                label: item.label,
+              (slot) => NavigationDestination(
+                icon: NavBadge(
+                  source: slot.badgeSource,
+                  child: HugeIcon(icon: slot.icon),
+                ),
+                selectedIcon: NavBadge(
+                  source: slot.badgeSource,
+                  child: HugeIcon(icon: slot.icon),
+                ),
+                label: tr(slot.labelKey),
               ),
             )
             .toList(),
