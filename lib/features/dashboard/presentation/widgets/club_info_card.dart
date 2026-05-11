@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/club_type.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
@@ -43,17 +43,6 @@ class ClubInfoCard extends ConsumerWidget {
     this.userRole,
   });
 
-  Color _getClubColor(String? type) {
-    if (type == null) return AppColors.primary;
-    final lower = type.toLowerCase();
-    if (lower.contains('conquistador')) return AppColors.primary;
-    if (lower.contains('aventurer')) return AppColors.sacBlue;
-    if (lower.contains('guía') || lower.contains('guia')) {
-      return AppColors.secondary;
-    }
-    return AppColors.primary;
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authNotifierProvider);
@@ -73,7 +62,7 @@ class ClubInfoCard extends ConsumerWidget {
         ? RoleUtils.translate(activeGrant!.roleName, gender: userGender)
         : userRole;
 
-    final clubColor = _getClubColor(resolvedClubType);
+    final Color clubColor = clubColorFromName(resolvedClubType);
 
     return SacCard(
       accentColor: clubColor,
