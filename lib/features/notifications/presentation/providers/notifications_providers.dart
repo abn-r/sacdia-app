@@ -6,6 +6,7 @@ import '../../data/datasources/notifications_remote_data_source.dart';
 import '../../data/repositories/notifications_repository_impl.dart';
 import '../../domain/entities/notification_item.dart';
 import '../../domain/repositories/notifications_repository.dart';
+import 'unread_notifications_count_provider.dart';
 
 // ── Infrastructure providers ──────────────────────────────────────────────────
 
@@ -110,6 +111,49 @@ class NotificationsInboxNotifier extends Notifier<NotificationsInboxState> {
       return item;
     }).toList();
     state = state.copyWith(items: updated);
+  }
+
+  /// Marca una notificación como leída con optimistic update + rollback.
+  Future<void> markAsRead(String deliveryId) async {
+    final currentItem =
+        state.items.where((item) => item.deliveryId == deliveryId).firstOrNull;
+    if (currentItem == null || currentItem.isRead) return;
+
+    updateItemReadState(deliveryId, isRead: true);
+    ref.read(unreadNotificationsCountProvider.notifier).decrement();
+
+    final result =
+        await ref.read(notificationsRepositoryProvider).markAsRead(deliveryId);
+    result.fold(
+      (_) {
+        updateItemReadState(deliveryId, isRead: false);
+        ref.read(unreadNotificationsCountProvider.notifier).increment();
+      },
+      (_) {},
+    );
+  }
+
+  /// Marca todas las notificaciones como leídas desde el notifier.
+  Future<void> markAllAsRead() async {
+    final previousItems = state.items;
+    final updatedItems = previousItems
+        .map((item) => item.isRead
+            ? item
+            : item.copyWith(isRead: true, readAt: DateTime.now()))
+        .toList();
+
+    state = state.copyWith(items: updatedItems);
+    ref.read(unreadNotificationsCountProvider.notifier).setZero();
+
+    final result =
+        await ref.read(notificationsRepositoryProvider).markAllAsRead();
+    result.fold(
+      (_) {
+        state = state.copyWith(items: previousItems);
+        ref.read(unreadNotificationsCountProvider.notifier).refresh();
+      },
+      (_) {},
+    );
   }
 
   /// Carga la siguiente página si hay más datos disponibles.

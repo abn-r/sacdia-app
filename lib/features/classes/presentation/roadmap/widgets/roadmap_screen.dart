@@ -44,7 +44,8 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
     // (incluido el nodo actual, que puede estar debajo del fold) se
     // haya completado antes de llamar a ensureVisible.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToCurrentNode());
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _scrollToCurrentNode());
     });
   }
 
@@ -52,7 +53,9 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
     if (!mounted) return;
 
     final ctx = _currentNodeKey.currentContext;
-    if (ctx == null) return; // No hay clase actual o el widget no está en el árbol.
+    if (ctx == null) {
+      return; // No hay clase actual o el widget no está en el árbol.
+    }
 
     // Verificar que el RenderObject esté realmente laid out antes de llamar
     // ensureVisible. Si todavía está en NEEDS-LAYOUT la llamada lanzaría

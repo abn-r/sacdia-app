@@ -6,6 +6,7 @@ import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/widgets/secure_screen.dart';
 import '../providers/virtual_card_providers.dart';
 import '../widgets/credencial/action_pill.dart';
 import '../widgets/credencial/credencial_card.dart';
@@ -54,11 +55,13 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
             'credencial_${vm.folio.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_')}.pdf',
       );
     } catch (e) {
-      messenger.showSnackBar(SnackBar(
-        content: Text('No se pudo generar el PDF: $e'),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.red.shade700,
-      ));
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('No se pudo generar el PDF: $e'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
     } finally {
       if (mounted) setState(() => _downloadingPdf = false);
     }
@@ -78,155 +81,159 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
   Widget build(BuildContext context) {
     final state = ref.watch(virtualCardProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('virtual_card.title'.tr()),
-        actions: [
-          IconButton(
-            tooltip: 'virtual_card.refresh'.tr(),
-            onPressed: _refresh,
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedRefresh,
-              size: 22,
-            ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _refresh,
-          child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 24),
-            children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 220),
-                child: state.when(
-                  loading: () => const AspectRatio(
-                    key: ValueKey('virtual-card-loading'),
-                    aspectRatio: 5 / 8,
-                    child: VirtualCardSkeleton(),
-                  ),
-                  error: (error, _) => _ErrorState(
-                    key: const ValueKey('virtual-card-error'),
-                    messageKey: virtualCardErrorMessageKey(error),
-                    onRetry: _refresh,
-                  ),
-                  data: (card) {
-                    final vm = CredencialViewModel.fromVirtualCard(card);
-                    final heroTag = 'virtual-card-qr-${card.userId}';
-                    return Column(
-                      key: ValueKey('virtual-card-${card.userId}'),
-                      children: [
-                        Stack(
-                          children: [
-                            CredencialCard(
-                              vm: vm,
-                              onQrTap: card.canShowQr
-                                  ? () => Navigator.of(context).push(
-                                        _credencialQrFullscreenRoute(
-                                          vm,
-                                          heroTag,
-                                        ),
-                                      )
-                                  : _refresh,
-                            ),
-                            if (card.isOffline)
-                              Positioned(
-                                top: 14,
-                                left: 14,
-                                right: 14,
-                                child: _StatusBanner(
-                                  key: const Key(
-                                    'virtual-card-offline-banner',
-                                  ),
-                                  icon: Icons.wifi_off_outlined,
-                                  text: 'virtual_card.offline_banner'.tr(),
-                                ),
-                              ),
-                            if (card.isInactive)
-                              Positioned.fill(
-                                child: Container(
-                                  key: const Key(
-                                    'virtual-card-inactive-overlay',
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0x33C53D3D),
-                                    borderRadius: BorderRadius.circular(
-                                      CredencialTokens.rImmersive,
-                                    ),
-                                  ),
-                                  alignment: Alignment.center,
-                                  padding: const EdgeInsets.all(24),
-                                  child: Text(
-                                    'virtual_card.inactive_message'.tr(),
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ActionPill(
-                                label: 'Wallet',
-                                icon: ActionIcon.wallet,
-                                primary: true,
-                                onTap: () => _showComingSoon('Wallet'),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: ActionPill(
-                                label: 'Compartir',
-                                icon: ActionIcon.share,
-                                onTap: () => _share(vm),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: ActionPill(
-                                label: _downloadingPdf
-                                    ? 'Descargando…'
-                                    : 'PDF',
-                                icon: ActionIcon.pdf,
-                                onTap: _downloadingPdf
-                                    ? null
-                                    : () => _downloadAndSharePdf(vm),
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (card.photoUrl?.trim().isNotEmpty == true) ...[
-                          const SizedBox(height: 8),
-                          Center(
-                            child: TextButton.icon(
-                              onPressed: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => VirtualCardPhotoView(
-                                    title: card.fullName,
-                                    photoUrl: card.photoUrl,
-                                  ),
-                                ),
-                              ),
-                              icon: const Icon(Icons.photo_outlined, size: 18),
-                              label: Text('virtual_card.view_photo'.tr()),
-                            ),
-                          ),
-                        ],
-                      ],
-                    );
-                  },
-                ),
+    return SecureScreen(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('virtual_card.title'.tr()),
+          actions: [
+            IconButton(
+              tooltip: 'virtual_card.refresh'.tr(),
+              onPressed: _refresh,
+              icon: const HugeIcon(
+                icon: HugeIcons.strokeRoundedRefresh,
+                size: 22,
               ),
-            ],
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: RefreshIndicator(
+            onRefresh: _refresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 24),
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 220),
+                  child: state.when(
+                    loading: () => const AspectRatio(
+                      key: ValueKey('virtual-card-loading'),
+                      aspectRatio: 5 / 8,
+                      child: VirtualCardSkeleton(),
+                    ),
+                    error: (error, _) => _ErrorState(
+                      key: const ValueKey('virtual-card-error'),
+                      messageKey: virtualCardErrorMessageKey(error),
+                      onRetry: _refresh,
+                    ),
+                    data: (card) {
+                      final vm = CredencialViewModel.fromVirtualCard(card);
+                      final heroTag = 'virtual-card-qr-${card.userId}';
+                      return Column(
+                        key: ValueKey('virtual-card-${card.userId}'),
+                        children: [
+                          Stack(
+                            children: [
+                              CredencialCard(
+                                vm: vm,
+                                onQrTap: card.canShowQr
+                                    ? () => Navigator.of(context).push(
+                                          _credencialQrFullscreenRoute(
+                                            vm,
+                                            heroTag,
+                                          ),
+                                        )
+                                    : _refresh,
+                              ),
+                              if (card.isOffline)
+                                Positioned(
+                                  top: 14,
+                                  left: 14,
+                                  right: 14,
+                                  child: _StatusBanner(
+                                    key: const Key(
+                                      'virtual-card-offline-banner',
+                                    ),
+                                    icon: Icons.wifi_off_outlined,
+                                    text: 'virtual_card.offline_banner'.tr(),
+                                  ),
+                                ),
+                              if (card.isInactive)
+                                Positioned.fill(
+                                  child: Container(
+                                    key: const Key(
+                                      'virtual-card-inactive-overlay',
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0x33C53D3D),
+                                      borderRadius: BorderRadius.circular(
+                                        CredencialTokens.rImmersive,
+                                      ),
+                                    ),
+                                    alignment: Alignment.center,
+                                    padding: const EdgeInsets.all(24),
+                                    child: Text(
+                                      'virtual_card.inactive_message'.tr(),
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ActionPill(
+                                  label: 'Wallet',
+                                  icon: ActionIcon.wallet,
+                                  primary: true,
+                                  onTap: () => _showComingSoon('Wallet'),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ActionPill(
+                                  label: 'Compartir',
+                                  icon: ActionIcon.share,
+                                  onTap: () => _share(vm),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ActionPill(
+                                  label:
+                                      _downloadingPdf ? 'Descargando…' : 'PDF',
+                                  icon: ActionIcon.pdf,
+                                  onTap: _downloadingPdf
+                                      ? null
+                                      : () => _downloadAndSharePdf(vm),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (card.photoUrl?.trim().isNotEmpty == true) ...[
+                            const SizedBox(height: 8),
+                            Center(
+                              child: TextButton.icon(
+                                onPressed: () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => VirtualCardPhotoView(
+                                      title: card.fullName,
+                                      photoUrl: card.photoUrl,
+                                    ),
+                                  ),
+                                ),
+                                icon: const Icon(
+                                  Icons.photo_outlined,
+                                  size: 18,
+                                ),
+                                label: Text('virtual_card.view_photo'.tr()),
+                              ),
+                            ),
+                          ],
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -265,9 +272,9 @@ class _ErrorState extends StatelessWidget {
           Text(
             'virtual_card.load_error'.tr(),
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 8),
           Text(
@@ -287,11 +294,7 @@ class _ErrorState extends StatelessWidget {
 }
 
 class _StatusBanner extends StatelessWidget {
-  const _StatusBanner({
-    super.key,
-    required this.icon,
-    required this.text,
-  });
+  const _StatusBanner({super.key, required this.icon, required this.text});
 
   final IconData icon;
   final String text;
@@ -339,10 +342,8 @@ Route<void> _credencialQrFullscreenRoute(
   return PageRouteBuilder<void>(
     transitionDuration: const Duration(milliseconds: 260),
     reverseTransitionDuration: const Duration(milliseconds: 220),
-    pageBuilder: (_, __, ___) => CredencialQrFullscreen(
-      vm: vm,
-      heroTag: heroTag,
-    ),
+    pageBuilder: (_, __, ___) =>
+        CredencialQrFullscreen(vm: vm, heroTag: heroTag),
     transitionsBuilder: (_, animation, __, child) {
       final curved = CurvedAnimation(
         parent: animation,

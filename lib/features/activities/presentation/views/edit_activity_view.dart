@@ -294,33 +294,32 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
     if (_pickedImageFile != null) {
       setState(() => _isUploadingImage = true);
 
-      final repository = ref.read(activitiesRepositoryProvider);
-      final uploadResult = await repository.uploadActivityImage(
-        a.id,
-        File(_pickedImageFile!.path),
-      );
+      final uploadSuccess =
+          await ref.read(activityImageUploadNotifierProvider.notifier).upload(
+                activityId: a.id,
+                imageFile: File(_pickedImageFile!.path),
+              );
 
       if (mounted) setState(() => _isUploadingImage = false);
       if (!mounted) return;
 
-      uploadResult.fold(
-        (failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'activities.edit.success_image_error'
-                    .tr(namedArgs: {'error': failure.message}),
-              ),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+      if (!uploadSuccess) {
+        final error = ref.read(activityImageUploadNotifierProvider).error;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'activities.edit.success_image_error'.tr(
+                namedArgs: {'error': error?.toString() ?? tr('common.error')},
               ),
             ),
-          );
-        },
-        (_) {},
-      );
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
     }
 
     if (!mounted) return;

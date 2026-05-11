@@ -71,20 +71,6 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
     }
   }
 
-  Future<void> _markAllAsRead() async {
-    final repository = ref.read(notificationsRepositoryProvider);
-    final result = await repository.markAllAsRead();
-    result.fold(
-      (_) {
-        // On failure, nothing to roll back — just let the state remain.
-      },
-      (_) {
-        ref.read(unreadNotificationsCountProvider.notifier).setZero();
-        ref.invalidate(notificationsInboxProvider);
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final inboxState = ref.watch(notificationsInboxProvider);
@@ -148,7 +134,11 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
           // Mark all as read
           if (unreadCount > 0)
             IconButton(
-              onPressed: inboxState.isLoading ? null : _markAllAsRead,
+              onPressed: inboxState.isLoading
+                  ? null
+                  : () => ref
+                      .read(notificationsInboxProvider.notifier)
+                      .markAllAsRead(),
               icon: HugeIcon(
                 icon: HugeIcons.strokeRoundedCheckmarkSquare01,
                 size: 22,

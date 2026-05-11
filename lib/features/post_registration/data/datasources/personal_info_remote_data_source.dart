@@ -17,6 +17,7 @@ abstract class PersonalInfoRemoteDataSource {
     String? birthdate,
     bool? baptized,
     String? baptismDate,
+    String? blood,
   });
 
   Future<List<EmergencyContactModel>> getEmergencyContacts(String userId,
@@ -83,6 +84,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
     String? birthdate,
     bool? baptized,
     String? baptismDate,
+    String? blood,
   }) async {
     try {
       final data = <String, dynamic>{};
@@ -93,6 +95,7 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
       if (baptized == true && baptismDate != null) {
         data['baptism_date'] = baptismDate;
       }
+      if (blood != null) data['blood'] = blood;
 
       final response = await dio.patch(
         '$_baseUrl${ApiEndpoints.users}/$userId',

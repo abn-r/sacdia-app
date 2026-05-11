@@ -18,7 +18,7 @@ abstract class CoordinatorRepository {
   // ── Evidence Review ───────────────────────────────────────────────────────
 
   /// Devuelve la lista paginada de evidencias pendientes de revisión.
-  /// GET /evidence-review/pending?page=1&limit=20&type=folder|class|honor
+  /// GET /evidence-review/pending?page=1&limit=20&type=class|honor
   Future<Either<Failure, List<EvidenceReviewItem>>> getPendingEvidence({
     int page = 1,
     int limit = 20,

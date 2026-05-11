@@ -11,6 +11,7 @@ import '../../domain/entities/authorization_snapshot.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/usecases/get_current_user.dart';
+import '../../domain/usecases/reset_password_request.dart';
 import '../../domain/usecases/sign_in.dart';
 import '../../domain/usecases/sign_in_with_apple.dart';
 import '../../domain/usecases/sign_in_with_google.dart';
@@ -78,6 +79,11 @@ final updatePasswordProvider = Provider<UpdatePassword>((ref) {
   return UpdatePassword(ref.read(authRepositoryProvider));
 });
 
+/// Provider para el caso de uso de recuperación de contraseña
+final resetPasswordRequestProvider = Provider<ResetPasswordRequest>((ref) {
+  return ResetPasswordRequest(ref.read(authRepositoryProvider));
+});
+
 /// Provider para el caso de uso de OAuth con Google
 final signInWithGoogleProvider = Provider<SignInWithGoogle>((ref) {
   return SignInWithGoogle(ref.read(authRepositoryProvider));
@@ -87,6 +93,37 @@ final signInWithGoogleProvider = Provider<SignInWithGoogle>((ref) {
 final signInWithAppleProvider = Provider<SignInWithApple>((ref) {
   return SignInWithApple(ref.read(authRepositoryProvider));
 });
+
+/// Notifier para solicitar recuperación de contraseña sin acoplar la vista al repositorio.
+class ForgotPasswordNotifier extends AutoDisposeAsyncNotifier<void> {
+  @override
+  Future<void> build() async {}
+
+  Future<bool> submit(String email) async {
+    state = const AsyncValue.loading();
+
+    final result = await ref.read(resetPasswordRequestProvider)(
+      ResetPasswordRequestParams(email: email),
+    );
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (_) {
+        state = const AsyncValue.data(null);
+        return true;
+      },
+    );
+  }
+}
+
+/// Provider para recuperación de contraseña.
+final forgotPasswordNotifierProvider =
+    AsyncNotifierProvider.autoDispose<ForgotPasswordNotifier, void>(
+  ForgotPasswordNotifier.new,
+);
 
 /// Notifier para manejar la autenticación y sus estados
 class AuthNotifier extends AsyncNotifier<UserEntity?> {

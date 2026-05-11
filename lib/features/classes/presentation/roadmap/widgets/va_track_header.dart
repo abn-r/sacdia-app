@@ -83,8 +83,7 @@ class VATrackHeader extends StatelessWidget {
           // Pill "Cursando" — visible solo cuando el track tiene la clase actual.
           if (hasCurrent) ...[
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: RoadmapTokens.statusCurrent.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(999),

@@ -127,7 +127,8 @@ class ClassesListViewBody extends ConsumerWidget {
 
         // Split: current class (index 0) vs others
         final currentClass = classes.first;
-        final otherClasses = classes.length > 1 ? classes.sublist(1) : <dynamic>[];
+        final otherClasses =
+            classes.length > 1 ? classes.sublist(1) : <dynamic>[];
 
         return RefreshIndicator(
           color: AppColors.primary,
@@ -200,8 +201,8 @@ class ClassesListViewBody extends ConsumerWidget {
                     child: Consumer(
                       builder: (context, progressRef, _) {
                         final progressiveClass = otherClasses[i];
-                        final progressAsync = progressRef
-                            .watch(classWithProgressProvider(progressiveClass.id));
+                        final progressAsync = progressRef.watch(
+                            classWithProgressProvider(progressiveClass.id));
                         final progress = progressAsync.whenOrNull(
                               data: (cwp) => cwp.completionRatio,
                             ) ??
@@ -226,7 +227,6 @@ class ClassesListViewBody extends ConsumerWidget {
                     ),
                   ),
               ],
-
             ],
           ),
         );

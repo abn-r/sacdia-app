@@ -42,8 +42,7 @@ class RequirementDetailView extends ConsumerStatefulWidget {
       _RequirementDetailViewState();
 }
 
-class _RequirementDetailViewState
-    extends ConsumerState<RequirementDetailView> {
+class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
   bool _hasUnsavedFiles = false;
 
   ClassRequirement _liveRequirement(AsyncValue<dynamic> classAsync) {
@@ -115,8 +114,7 @@ class _RequirementDetailViewState
         ),
         backgroundColor: AppColors.rejectedColor,
         behavior: SnackBarBehavior.floating,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -151,23 +149,20 @@ class _RequirementDetailViewState
         final confirm = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title:
-                Text('classes.requirement_detail.unsaved_files_title'.tr()),
+            title: Text('classes.requirement_detail.unsaved_files_title'.tr()),
             content: Text(
               'classes.requirement_detail.unsaved_files_body'.tr(),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child:
-                    Text('classes.requirement_detail.stay_button'.tr()),
+                child: Text('classes.requirement_detail.stay_button'.tr()),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
                 style: TextButton.styleFrom(
                     foregroundColor: AppColors.rejectedColor),
-                child: Text(
-                    'classes.requirement_detail.leave_button'.tr()),
+                child: Text('classes.requirement_detail.leave_button'.tr()),
               ),
             ],
           ),
@@ -185,9 +180,7 @@ class _RequirementDetailViewState
                 children: [
                   // NavBar
                   _ReqNavBar(
-                    onBack: isLoading
-                        ? null
-                        : () => Navigator.pop(context),
+                    onBack: isLoading ? null : () => Navigator.pop(context),
                     onMore: () => showRequirementStatusHistorySheet(
                       context,
                       requirement: requirement,
@@ -198,8 +191,7 @@ class _RequirementDetailViewState
                     child: SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
                       child: Padding(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -232,8 +224,7 @@ class _RequirementDetailViewState
                                     RequirementStatus.observado ||
                                 requirement.status ==
                                     RequirementStatus.rechazado)
-                              _BannerEstado(
-                                  status: requirement.status),
+                              _BannerEstado(status: requirement.status),
 
                             // Observation card (observed / rejected)
                             if ((requirement.status ==
@@ -252,8 +243,7 @@ class _RequirementDetailViewState
                                     RequirementStatus.observado &&
                                 requirement.status !=
                                     RequirementStatus.rechazado) ...[
-                              _DescriptionCard(
-                                  text: requirement.description!),
+                              _DescriptionCard(text: requirement.description!),
                               const SizedBox(height: 16),
                             ],
 
@@ -389,7 +379,8 @@ class _RequirementDetailViewState
                                             ),
                                           ],
                                         ),
-                                        backgroundColor: AppColors.validatedColor,
+                                        backgroundColor:
+                                            AppColors.validatedColor,
                                         behavior: SnackBarBehavior.floating,
                                         shape: RoundedRectangleBorder(
                                             borderRadius:
@@ -441,29 +432,25 @@ class _RequirementDetailViewState
 
   int _resolveModuleIndex(
       AsyncValue<dynamic> classAsync, ClassRequirement req) {
-    return classAsync
-            .whenData((cp) {
-              for (final m in cp.modules) {
-                for (int i = 0; i < m.requirements.length; i++) {
-                  if (m.requirements[i].id == req.id) return i + 1;
-                }
-              }
-              return 1;
-            })
-            .valueOrNull ??
+    return classAsync.whenData((cp) {
+          for (final m in cp.modules) {
+            for (int i = 0; i < m.requirements.length; i++) {
+              if (m.requirements[i].id == req.id) return i + 1;
+            }
+          }
+          return 1;
+        }).valueOrNull ??
         1;
   }
 
   int _resolveModuleTotal(
       AsyncValue<dynamic> classAsync, ClassRequirement req) {
-    return classAsync
-            .whenData((cp) {
-              for (final m in cp.modules) {
-                if (m.id == req.moduleId) return m.requirements.length;
-              }
-              return 1;
-            })
-            .valueOrNull ??
+    return classAsync.whenData((cp) {
+          for (final m in cp.modules) {
+            if (m.id == req.moduleId) return m.requirements.length;
+          }
+          return 1;
+        }).valueOrNull ??
         1;
   }
 
@@ -490,15 +477,14 @@ class _RequirementDetailViewState
                   color: Colors.white, size: 18),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                    'classes.requirement_detail.submit_success'.tr()),
+                child: Text('classes.requirement_detail.submit_success'.tr()),
               ),
             ],
           ),
           backgroundColor: AppColors.validatedColor,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
       // ignore: use_build_context_synchronously
@@ -661,19 +647,20 @@ class _ObservationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isObserved = requirement.status == RequirementStatus.observado;
-    final instructorName =
-        (isObserved ? requirement.observedByName : requirement.rejectedByName) ??
-            'Instructor';
-    final comment =
-        (isObserved ? requirement.observationComment : requirement.rejectionReason) ??
-            '';
-    final timestamp = isObserved ? requirement.observedAt : requirement.rejectedAt;
+    final instructorName = (isObserved
+            ? requirement.observedByName
+            : requirement.rejectedByName) ??
+        'Instructor';
+    final comment = (isObserved
+            ? requirement.observationComment
+            : requirement.rejectionReason) ??
+        '';
+    final timestamp =
+        isObserved ? requirement.observedAt : requirement.rejectedAt;
 
     final initials = _initials(instructorName);
-    final avatarBg =
-        isObserved ? AppColors.coral100 : AppColors.rejectedBg;
-    final avatarText =
-        isObserved ? AppColors.coral700 : AppColors.rejectedDark;
+    final avatarBg = isObserved ? AppColors.coral100 : AppColors.rejectedBg;
+    final avatarText = isObserved ? AppColors.coral700 : AppColors.rejectedDark;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 18),
@@ -766,16 +753,18 @@ class _ObservationCard extends StatelessWidget {
     if (parts.length >= 2) {
       return '${parts.first[0]}${parts[1][0]}'.toUpperCase();
     }
-    return name
-        .substring(0, name.length.clamp(0, 2))
-        .toUpperCase();
+    return name.substring(0, name.length.clamp(0, 2)).toUpperCase();
   }
 
   String _timeAgo(DateTime dt) {
     final now = DateTime.now();
     final diff = now.difference(dt);
-    if (diff.inDays >= 1) return 'hace ${diff.inDays} día${diff.inDays == 1 ? '' : 's'}';
-    if (diff.inHours >= 1) return 'hace ${diff.inHours} hora${diff.inHours == 1 ? '' : 's'}';
+    if (diff.inDays >= 1) {
+      return 'hace ${diff.inDays} día${diff.inDays == 1 ? '' : 's'}';
+    }
+    if (diff.inHours >= 1) {
+      return 'hace ${diff.inHours} hora${diff.inHours == 1 ? '' : 's'}';
+    }
     if (diff.inMinutes >= 1) {
       return 'hace ${diff.inMinutes} minuto${diff.inMinutes == 1 ? '' : 's'}';
     }
@@ -810,8 +799,7 @@ class _FileRowsList extends StatelessWidget {
             )),
 
         // Empty file slot if canModify
-        if (canModify)
-          _EmptyFileSlot(onTap: onUploadTap ?? () {}),
+        if (canModify) _EmptyFileSlot(onTap: onUploadTap ?? () {}),
       ],
     );
   }
@@ -834,8 +822,7 @@ class _FileRow extends StatelessWidget {
     // In rejected context, files show "Rechazado" badge (observedBg/observedDark).
     // Note: the handoff uses "observedBg" yellow for rejected file icon bg — we
     // follow the reference exactly.
-    final iconBg =
-        isObservedContext ? AppColors.sentBg : AppColors.observedBg;
+    final iconBg = isObservedContext ? AppColors.sentBg : AppColors.observedBg;
     final iconColor =
         isObservedContext ? AppColors.sentDark : AppColors.observedDark;
     final badgeLabel = isObservedContext ? 'En revisión' : 'Rechazado';
@@ -908,8 +895,7 @@ class _FileRow extends StatelessWidget {
 
           // Badge pill
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: badgeBg,
               borderRadius: BorderRadius.circular(999),
@@ -931,8 +917,12 @@ class _FileRow extends StatelessWidget {
   String _timeAgo(DateTime dt) {
     final now = DateTime.now();
     final diff = now.difference(dt);
-    if (diff.inDays >= 1) return 'Hace ${diff.inDays} día${diff.inDays == 1 ? '' : 's'}';
-    if (diff.inHours >= 1) return 'Hace ${diff.inHours} hora${diff.inHours == 1 ? '' : 's'}';
+    if (diff.inDays >= 1) {
+      return 'Hace ${diff.inDays} día${diff.inDays == 1 ? '' : 's'}';
+    }
+    if (diff.inHours >= 1) {
+      return 'Hace ${diff.inHours} hora${diff.inHours == 1 ? '' : 's'}';
+    }
     return 'Hace un momento';
   }
 }
