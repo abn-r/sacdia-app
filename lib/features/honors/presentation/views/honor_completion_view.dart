@@ -97,7 +97,7 @@ class _ErrorScaffold extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: AppColors.sacGreen,
+        backgroundColor: AppColors.success,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -108,7 +108,7 @@ class _ErrorScaffold extends StatelessWidget {
             const Icon(
               Icons.error_outline_rounded,
               size: 48,
-              color: AppColors.sacGreen,
+              color: AppColors.success,
             ),
             const SizedBox(height: 16),
             Text(
@@ -123,7 +123,7 @@ class _ErrorScaffold extends StatelessWidget {
               onPressed: () => context.pop(),
               child: Text(
                 'honors.completion.back'.tr(),
-                style: const TextStyle(color: AppColors.sacBlue, fontSize: 14),
+                style: const TextStyle(color: AppColors.info, fontSize: 14),
               ),
             ),
           ],
@@ -156,12 +156,12 @@ class _CompletionBody extends StatelessWidget {
           SliverAppBar(
             expandedHeight: 210,
             pinned: true,
-            backgroundColor: AppColors.sacGreen,
+            backgroundColor: AppColors.success,
             foregroundColor: Colors.white,
             elevation: 0,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                color: AppColors.sacGreen,
+                color: AppColors.success,
                 child: SafeArea(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -225,7 +225,7 @@ class _CompletionBody extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.sacBlack,
+                      color: AppColors.lightText,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -252,7 +252,7 @@ class _CompletionBody extends StatelessWidget {
                         context.pop();
                       },
                       style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.sacBlue,
+                        backgroundColor: AppColors.info,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 15),
                         shape: RoundedRectangleBorder(
@@ -338,7 +338,7 @@ class _HonorBadge extends StatelessWidget {
       width: 88,
       height: 88,
       decoration: const BoxDecoration(
-        color: AppColors.sacYellow,
+        color: AppColors.accent,
         shape: BoxShape.circle,
       ),
       child: _imageUrl != null
@@ -387,13 +387,13 @@ class _PillsRow extends StatelessWidget {
         if (skillLevel != null)
           _StatusPill(
             label: _skillLevelLabel(skillLevel),
-            color: AppColors.sacGreen,
+            color: AppColors.success,
           ),
 
         // Badge obtained pill (yellow tint) — always shown on completion
         _StatusPill(
           label: 'honors.completion.badge_obtained'.tr(),
-          color: AppColors.sacYellow,
+          color: AppColors.accent,
         ),
       ],
     );
@@ -456,7 +456,7 @@ class _StatsCard extends StatelessWidget {
             _StatItem(
               value: '${userHonor.evidenceCount}',
               label: 'honors.completion.stat_evidences'.tr(),
-              color: AppColors.sacBlue,
+              color: AppColors.info,
             ),
 
             // Divider
@@ -470,7 +470,7 @@ class _StatsCard extends StatelessWidget {
             _StatItem(
               value: DateFormat('d MMM', 'es').format(enrollmentDate),
               label: 'honors.completion.stat_enrollment'.tr(),
-              color: AppColors.sacRed,
+              color: AppColors.error,
             ),
 
             // Divider
@@ -484,7 +484,7 @@ class _StatsCard extends StatelessWidget {
             _StatItem(
               value: duration,
               label: 'honors.completion.stat_duration'.tr(),
-              color: AppColors.sacGreen,
+              color: AppColors.success,
             ),
           ],
         ),

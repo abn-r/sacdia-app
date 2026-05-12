@@ -192,7 +192,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                       style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.sacRed),
+                          color: AppColors.error),
                     ),
                   ),
                   // Completed/total badge pill
@@ -298,7 +298,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
               child: HonorCategoryChip(
                 label: 'honors.catalog.all_category'.tr(),
                 isSelected: selectedCategory == null,
-                activeColor: AppColors.sacRed,
+                activeColor: AppColors.error,
                 onTap: () {
                   ref.read(selectedCategoryProvider.notifier).state = null;
                 },
@@ -383,7 +383,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
           HugeIcon(
             icon: HugeIcons.strokeRoundedAlert02,
             size: 56,
-            color: AppColors.sacRed,
+            color: AppColors.error,
           ),
           const SizedBox(height: 16),
           Text(

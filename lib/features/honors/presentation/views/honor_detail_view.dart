@@ -108,7 +108,7 @@ class _LoadingScaffold extends StatelessWidget {
         children: [
           Container(
             height: _kHeroHeight,
-            color: AppColors.sacBlack.withValues(alpha: 0.85),
+            color: AppColors.lightText.withValues(alpha: 0.85),
             child: const SafeArea(
               child: Center(
                 child: CircularProgressIndicator(
@@ -137,7 +137,7 @@ class _ErrorScaffold extends StatelessWidget {
     return Scaffold(
       backgroundColor: context.sac.background,
       appBar: AppBar(
-        backgroundColor: AppColors.sacBlack,
+        backgroundColor: AppColors.lightText,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -156,7 +156,7 @@ class _ErrorScaffold extends StatelessWidget {
               onPressed: onRetry,
               child: Text(
                 'honors.catalog.retry'.tr(),
-                style: const TextStyle(color: AppColors.sacBlue, fontSize: 14),
+                style: const TextStyle(color: AppColors.info, fontSize: 14),
               ),
             ),
           ],
@@ -555,14 +555,14 @@ class _BadgeImage extends StatelessWidget {
         errorWidget: (_, __, ___) => HugeIcon(
           icon: HugeIcons.strokeRoundedAward01,
           size: 36,
-          color: AppColors.sacBlack,
+          color: AppColors.lightText,
         ),
       );
     }
     return HugeIcon(
       icon: HugeIcons.strokeRoundedAward01,
       size: 36,
-      color: AppColors.sacBlack,
+      color: AppColors.lightText,
     );
   }
 }
@@ -601,11 +601,11 @@ class _StatusBadgePill extends StatelessWidget {
   Color _bgColor() {
     switch (status) {
       case 'validado':
-        return AppColors.sacGreen;
+        return AppColors.success;
       case 'enviado':
-        return AppColors.sacYellow;
+        return AppColors.accent;
       case 'rechazado':
-        return AppColors.sacRed;
+        return AppColors.error;
       default:
         return Colors.white.withValues(alpha: 0.25);
     }
@@ -1004,7 +1004,7 @@ class _DescriptionSectionState extends State<_DescriptionSection> {
                     ? 'honors.detail.see_less'.tr()
                     : 'honors.detail.see_more'.tr(),
                 style: TextStyle(
-                  color: AppColors.sacBlue,
+                  color: AppColors.info,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
@@ -1456,10 +1456,10 @@ class _RequirementPreviewItem extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: completed
-                  ? AppColors.sacGreen.withValues(alpha: 0.12)
+                  ? AppColors.success.withValues(alpha: 0.12)
                   : context.sac.surfaceVariant,
               border: Border.all(
-                color: completed ? AppColors.sacGreen : context.sac.border,
+                color: completed ? AppColors.success : context.sac.border,
                 width: 1.5,
               ),
             ),
@@ -1467,7 +1467,7 @@ class _RequirementPreviewItem extends StatelessWidget {
                 ? const Icon(
                     Icons.check_rounded,
                     size: 13,
-                    color: AppColors.sacGreen,
+                    color: AppColors.success,
                   )
                 : null,
           ),
@@ -1966,21 +1966,21 @@ class _EnrolledCtaButton extends StatelessWidget {
         width: double.infinity,
         height: 48,
         decoration: BoxDecoration(
-          color: AppColors.sacYellow.withValues(alpha: 0.15),
+          color: AppColors.accent.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.sacYellow, width: 1.5),
+          border: Border.all(color: AppColors.accent, width: 1.5),
         ),
         alignment: Alignment.center,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.hourglass_top_rounded,
-                size: 16, color: AppColors.sacYellow),
+                size: 16, color: AppColors.accent),
             const SizedBox(width: 8),
             Text(
               'honors.detail.under_review_cta'.tr(),
               style: const TextStyle(
-                color: AppColors.sacYellow,
+                color: AppColors.accent,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
               ),
@@ -1996,21 +1996,21 @@ class _EnrolledCtaButton extends StatelessWidget {
         width: double.infinity,
         height: 48,
         decoration: BoxDecoration(
-          color: AppColors.sacGreen.withValues(alpha: 0.12),
+          color: AppColors.success.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.sacGreen, width: 1.5),
+          border: Border.all(color: AppColors.success, width: 1.5),
         ),
         alignment: Alignment.center,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.check_circle_rounded,
-                size: 18, color: AppColors.sacGreen),
+                size: 18, color: AppColors.success),
             const SizedBox(width: 8),
             Text(
               'honors.detail.completed_cta'.tr(),
               style: const TextStyle(
-                color: AppColors.sacGreen,
+                color: AppColors.success,
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
               ),

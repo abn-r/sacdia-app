@@ -85,7 +85,7 @@ const _mockCategories = <ResourceCategory>[
   ResourceCategory(
     name: 'Manuales',
     fileCount: 8,
-    color: AppColors.sacBlue,
+    color: AppColors.info,
   ),
   ResourceCategory(
     name: 'Imágenes',
@@ -423,7 +423,7 @@ class _FileCard extends StatelessWidget {
       case ResourceType.pdf:
         return AppColors.primary;
       case ResourceType.document:
-        return AppColors.sacBlue;
+        return AppColors.info;
       case ResourceType.image:
         return AppColors.secondary;
       case ResourceType.audio:

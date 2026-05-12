@@ -49,7 +49,7 @@ Color _sectionColor(String? clubTypeName) {
   if (clubTypeName == null) return AppColors.primary;
   final lower = clubTypeName.toLowerCase();
   if (lower.contains('conquistador')) return AppColors.primary;
-  if (lower.contains('aventurer')) return AppColors.sacBlue;
+  if (lower.contains('aventurer')) return AppColors.info;
   if (lower.contains('guía') || lower.contains('guia')) {
     return AppColors.secondary;
   }

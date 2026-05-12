@@ -88,7 +88,7 @@ class RequirementStatusBadge extends StatelessWidget {
       case RequirementStatus.pendiente:
         return AppColors.accent.withValues(alpha: 0.4);
       case RequirementStatus.enviado:
-        return AppColors.sacBlue.withValues(alpha: 0.4);
+        return AppColors.info.withValues(alpha: 0.4);
       case RequirementStatus.validado:
         return AppColors.secondary.withValues(alpha: 0.4);
       case RequirementStatus.rechazado:
