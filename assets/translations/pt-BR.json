@@ -1234,6 +1234,14 @@
       "folder": "Pasta",
       "class_type": "Aula",
       "honor": "Honra"
+    },
+    "clubs": {
+      "title": "Clubes",
+      "search_hint": "Buscar clube...",
+      "empty_title": "Sem clubes",
+      "empty_subtitle": "Não há clubes atribuídos ao seu campo local.",
+      "error_load": "Erro ao carregar clubes",
+      "field_id_label": "Campo local #{id}"
     }
   },
   "classes": {

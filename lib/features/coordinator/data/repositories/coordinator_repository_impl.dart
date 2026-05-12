@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../domain/entities/coordinator_club.dart';
 import '../../domain/entities/sla_dashboard.dart';
 import '../../domain/entities/evidence_review_item.dart';
 import '../../domain/entities/camporee_approval.dart';
@@ -29,6 +30,28 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
 
   Left<Failure, T> _unexpectedFailure<T>(Object e) =>
       Left(UnexpectedFailure(message: e.toString()));
+
+  // ── Clubs list ────────────────────────────────────────────────────────────────
+
+  @override
+  Future<Either<Failure, List<CoordinatorClub>>> listClubs({
+    int? localFieldId,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final models = await remoteDataSource.listClubs(
+        localFieldId: localFieldId,
+        cancelToken: cancelToken,
+      );
+      return Right(models);
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
 
   // ── SLA Dashboard ─────────────────────────────────────────────────────────────
 

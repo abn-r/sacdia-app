@@ -1234,6 +1234,14 @@
       "folder": "Folder",
       "class_type": "Class",
       "honor": "Honor"
+    },
+    "clubs": {
+      "title": "Clubs",
+      "search_hint": "Search club...",
+      "empty_title": "No clubs",
+      "empty_subtitle": "There are no clubs assigned to your local field.",
+      "error_load": "Error loading clubs",
+      "field_id_label": "Local field #{id}"
     }
   },
   "classes": {

@@ -5,12 +5,19 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/evidence_review_item.dart';
 import '../../domain/entities/camporee_approval.dart';
+import '../models/coordinator_club_model.dart';
 import '../models/sla_dashboard_model.dart';
 import '../models/evidence_review_model.dart';
 import '../models/camporee_approval_model.dart';
 
 /// Interfaz para la fuente de datos remota del coordinador.
 abstract class CoordinatorRemoteDataSource {
+  /// GET /clubs?localFieldId=...
+  Future<List<CoordinatorClubModel>> listClubs({
+    int? localFieldId,
+    CancelToken? cancelToken,
+  });
+
   /// GET /admin/analytics/sla-dashboard
   Future<SlaDashboardModel> getSlaDashboard({CancelToken? cancelToken});
 
@@ -205,6 +212,43 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
   }
 
   bool _isOk(int? code) => code == 200 || code == 201 || code == 204;
+
+  // ── GET /clubs ───────────────────────────────────────────────────────────────
+
+  @override
+  Future<List<CoordinatorClubModel>> listClubs({
+    int? localFieldId,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      AppLogger.i(
+        'Listando clubs para coordinador (localFieldId=$localFieldId)',
+        tag: _tag,
+      );
+      final queryParams = <String, dynamic>{};
+      if (localFieldId != null) queryParams['localFieldId'] = localFieldId;
+
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.clubs}',
+        queryParameters: queryParams.isEmpty ? null : queryParams,
+        cancelToken: cancelToken,
+      );
+
+      if (_isOk(response.statusCode)) {
+        return _parseList(
+          response.data,
+          CoordinatorClubModel.fromJson,
+        );
+      }
+      throw ServerException(
+        message: tr('coordinator.clubs.error_load'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en listClubs (coordinator)', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
 
   // ── GET /admin/analytics/sla-dashboard ──────────────────────────────────────
 
