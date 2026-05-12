@@ -3,159 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/config/route_names.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/nav/destinations.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
-import 'package:sacdia_app/features/members/presentation/providers/members_providers.dart';
-
-class _QuickAccessItemConfig {
-  /// Translation key resolved at render time via tr(labelKey).
-  final String labelKey;
-  final List<List<dynamic>> icon;
-  final Color? color;
-
-  /// Static route path. Use this for routes that do not depend on runtime
-  /// context. For dynamic routes, leave empty and provide [routeResolver].
-  final String route;
-
-  /// Optional resolver for routes that need runtime data (e.g. sectionId from
-  /// clubContextProvider). Called at render time with a [WidgetRef]. Return
-  /// null to hide the card when context data is unavailable.
-  final String? Function(WidgetRef ref)? routeResolver;
-
-  final Set<String> requiredPermissions;
-
-  /// Canonical role names to gate against when the item is not permission-based.
-  /// Only used for global roles whose authority cannot be modeled as a single
-  /// permission (e.g. `coordinator`, `admin`). Leave empty when the item is
-  /// gated purely by [requiredPermissions].
-  final Set<String> requiredRoles;
-
-  const _QuickAccessItemConfig({
-    required this.labelKey,
-    required this.icon,
-    this.color,
-    this.route = '',
-    this.routeResolver,
-    this.requiredPermissions = const {},
-    this.requiredRoles = const {},
-  });
-}
-
-// ignore: prefer_const_declarations
-final List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
-  // Coordination hub — gated by GLOBAL role only. The concept "is the user a
-  // coordinator / admin" does not map to a single permission, because club
-  // directors also hold operational permissions like `investiture:validate`;
-  // using those would incorrectly reveal the hub to directors.
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.coordination',
-    icon: HugeIcons.strokeRoundedAnalytics01,
-    color: AppColors.info,
-    route: RouteNames.coordinator,
-    requiredRoles: {'coordinator', 'admin', 'super-admin', 'assistant-admin'},
-  ),
-  // Administrative: member list — users:read_detail is held by counselor+
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.members',
-    icon: HugeIcons.strokeRoundedUserGroup,
-    color: AppColors.primary,
-    route: RouteNames.homeMembers,
-    requiredPermissions: {'users:read_detail'},
-  ),
-  // Administrative: club management — clubs:update is held by secretary+
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.club',
-    icon: HugeIcons.strokeRoundedBuilding01,
-    color: AppColors.secondary,
-    route: RouteNames.homeClub,
-    requiredPermissions: {'clubs:update'},
-  ),
-  // Administrative: evidence folder management — uses users:read_detail.
-  // Members access their OWN evidence via the profile screen, not this view.
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.evidence_folder',
-    icon: HugeIcons.strokeRoundedFolder01,
-    color: AppColors.accent,
-    route: RouteNames.homeEvidences,
-    requiredPermissions: {'users:read_detail'},
-  ),
-  // Administrative: financial records — finances:read is held by treasurer+
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.finances',
-    icon: HugeIcons.strokeRoundedCreditCard,
-    color: AppColors.info,
-    route: RouteNames.homeFinances,
-    requiredPermissions: {'finances:read'},
-  ),
-  // Administrative: unit management — units:update is held by counselor+
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.units',
-    icon: HugeIcons.strokeRoundedCompass01,
-    color: AppColors.secondary,
-    route: RouteNames.homeUnits,
-    requiredPermissions: {'units:update'},
-  ),
-  // Administrative: group class management — classes:submit_progress is held by counselor+
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.grouped_class',
-    icon: HugeIcons.strokeRoundedBookOpen01,
-    color: AppColors.primary,
-    route: RouteNames.homeGroupedClass,
-    requiredPermissions: {'classes:submit_progress'},
-  ),
-  // Administrative: insurance management
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.insurance',
-    icon: HugeIcons.strokeRoundedShield01,
-    color: AppColors.secondaryDark,
-    route: RouteNames.homeInsurance,
-    requiredPermissions: {'insurance:read'},
-  ),
-  // Administrative: inventory management
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.inventory',
-    icon: HugeIcons.strokeRoundedPackage,
-    color: AppColors.accent,
-    route: RouteNames.homeInventory,
-    requiredPermissions: {'inventory:read'},
-  ),
-  // Club-wide shared resources — folders:read is granted to every club role.
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.resources',
-    icon: HugeIcons.strokeRoundedFiles01,
-    route: RouteNames.homeResources,
-    requiredPermissions: {'folders:read'},
-  ),
-  // Mi ranking — only visible to roles that hold member_rankings:read_self
-  // (MEMBER club-scope, ADMIN global, SUPER_ADMIN global). Other club roles
-  // (director, counselor, secretary, treasurer…) do not have this permission
-  // and must not see the entry.
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.my_ranking',
-    icon: HugeIcons.strokeRoundedRanking,
-    color: AppColors.accent,
-    route: RouteNames.homeMyRanking,
-    requiredPermissions: {'member_rankings:read_self'},
-  ),
-  // Ranking de sección — gated by units:update (counselor+). Route is
-  // resolved at render time because it requires the active sectionId from
-  // clubContextProvider. Card is hidden when context is unavailable.
-  _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.section_ranking',
-    icon: HugeIcons.strokeRoundedAward01,
-    color: AppColors.primary,
-    routeResolver: (ref) {
-      final ctxAsync = ref.watch(clubContextProvider);
-      final sectionId = ctxAsync.valueOrNull?.sectionId;
-      if (sectionId == null) return null;
-      return RouteNames.sectionRankingPath(sectionId);
-    },
-    requiredPermissions: {'units:update'},
-  ),
-];
 
 /// Grid 2xN de acceso rápido a los módulos principales del sistema.
 ///
@@ -188,7 +39,7 @@ class QuickAccessGrid extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    final filteredItems = _quickAccessItemsConfig.where((item) {
+    final filteredItems = appDestinations.where((item) {
       // Ungated items (no permissions AND no roles) are visible to every
       // authenticated user — used only when authorization is not a concern.
       if (item.requiredPermissions.isEmpty && item.requiredRoles.isEmpty) {
@@ -305,7 +156,7 @@ class _QuickAccessSkeleton extends StatelessWidget {
 }
 
 class _QuickAccessTile extends StatelessWidget {
-  final _QuickAccessItemConfig item;
+  final NavDestination item;
 
   /// Pre-resolved navigation path (static route or resolved dynamic route).
   final String resolvedRoute;
