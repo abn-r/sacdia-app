@@ -18,7 +18,6 @@ import '../providers/dashboard_providers.dart';
 import '../widgets/club_info_card.dart';
 import '../widgets/current_class_card.dart';
 import '../widgets/quick_stats_card.dart';
-import '../widgets/quick_access_grid.dart';
 import '../widgets/upcoming_activities_card.dart';
 import '../widgets/membership_status_banner.dart';
 import '../widgets/welcome_header.dart';
@@ -139,10 +138,6 @@ class DashboardView extends ConsumerWidget {
                             honorsCompleted: dashboard.honorsCompleted,
                             honorsInProgress: dashboard.honorsInProgress,
                           ),
-                          const SizedBox(height: 16),
-
-                          // Quick access grid
-                          const QuickAccessGrid(),
                           const SizedBox(height: 16),
 
                           // Upcoming activities
