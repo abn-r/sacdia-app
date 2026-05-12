@@ -23,7 +23,7 @@ class HonorCategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final chipColor = activeColor ?? AppColors.sacBlue;
+    final chipColor = activeColor ?? AppColors.info;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(

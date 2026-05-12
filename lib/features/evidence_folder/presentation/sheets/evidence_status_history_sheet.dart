@@ -166,7 +166,7 @@ class EvidenceStatusHistorySheet extends StatelessWidget {
           label: 'evidence_folder.status.submitted'.tr(),
           description: 'evidence_folder.status_history.submitted_desc'.tr(),
           icon: HugeIcons.strokeRoundedSent,
-          color: AppColors.sacBlue,
+          color: AppColors.info,
           author: section.submittedByName,
           timestamp: section.submittedAt,
         ),

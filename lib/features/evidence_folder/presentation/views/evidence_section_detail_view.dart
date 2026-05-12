@@ -103,7 +103,7 @@ class _EvidenceSectionDetailViewState
           title: Text(
             'evidence_folder.section_title'.tr(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700, color: AppColors.sacRed),
+                fontWeight: FontWeight.w700, color: AppColors.primary),
             overflow: TextOverflow.ellipsis,
           ),
           backgroundColor: c.background,
@@ -576,7 +576,7 @@ class _EvidenceStatusChip extends StatelessWidget {
       case EvidenceSectionStatus.pending:
         return AppColors.accent.withValues(alpha: 0.4);
       case EvidenceSectionStatus.submitted:
-        return AppColors.sacBlue.withValues(alpha: 0.4);
+        return AppColors.info.withValues(alpha: 0.4);
       case EvidenceSectionStatus.preapprovedLf:
         return AppColors.accent.withValues(alpha: 0.5);
       case EvidenceSectionStatus.validated:
@@ -846,8 +846,7 @@ class _ReviewerNoteCalloutState extends State<_ReviewerNoteCallout> {
     // AppColors.statusInfoBg* que ya existen para el estado "enviado".
     final bgColor =
         isDark ? AppColors.statusInfoBgDark : AppColors.statusInfoBgLight;
-    final borderColor =
-        AppColors.sacBlue.withValues(alpha: isDark ? 0.3 : 0.35);
+    final borderColor = AppColors.info.withValues(alpha: isDark ? 0.3 : 0.35);
     final noteColor =
         isDark ? AppColors.statusInfoTextDark : AppColors.statusInfoText;
     final labelColor = isDark

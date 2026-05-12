@@ -75,16 +75,16 @@ class UserHonor extends Equatable {
   Color get statusColor {
     switch (displayStatus) {
       case 'validado':
-        return AppColors.sacGreen;
+        return AppColors.success;
       case 'enviado':
-        return AppColors.sacYellow;
+        return AppColors.accent;
       case 'en_progreso':
       case 'rechazado':
-        return AppColors.sacRed;
+        return AppColors.error;
       case 'inscrito':
-        return AppColors.sacBlue;
+        return AppColors.info;
       default:
-        return AppColors.sacGrey;
+        return AppColors.pendingColor;
     }
   }
 

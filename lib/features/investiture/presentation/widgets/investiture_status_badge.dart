@@ -97,7 +97,7 @@ class InvestitureStatusBadge extends StatelessWidget {
       case InvestitureStatus.coordinatorApproved:
       case InvestitureStatus.fieldApproved:
       case InvestitureStatus.approved:
-        return AppColors.sacBlue.withValues(alpha: 0.4);
+        return AppColors.info.withValues(alpha: 0.4);
       case InvestitureStatus.rejected:
         return AppColors.error.withValues(alpha: 0.4);
       case InvestitureStatus.investido:

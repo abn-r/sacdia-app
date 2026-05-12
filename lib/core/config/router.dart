@@ -45,6 +45,7 @@ import 'package:sacdia_app/features/coordinator/presentation/views/sla_dashboard
 import 'package:sacdia_app/features/coordinator/presentation/views/evidence_review_list_view.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/evidence_review_detail_view.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/camporee_approvals_view.dart';
+import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_clubs_list_view.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/evidence_review_item.dart';
 import 'package:sacdia_app/features/notifications/presentation/views/notifications_inbox_view.dart';
 import 'package:sacdia_app/features/achievements/presentation/views/achievements_view.dart';
@@ -888,7 +889,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // ── Coordinator Branch 1: Clubes / Aprobaciones ───────────────────
+          // ── Coordinator Branch 1: Clubes ──────────────────────────────────
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -896,7 +897,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 pageBuilder: (context, state) => _fadeThroughBuild(
                   context,
                   state,
-                  const CamporeeApprovalsView(),
+                  const CoordinatorClubsListView(),
                 ),
               ),
             ],

@@ -110,7 +110,7 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(
-              foregroundColor: AppColors.sacBlue,
+              foregroundColor: AppColors.info,
             ),
             child: Text('evidence_folder.send'.tr()),
           ),
@@ -471,7 +471,7 @@ class _ProgressSummaryRow extends StatelessWidget {
           _StatPill(
             count: submitted,
             label: 'evidence_folder.stats.submitted'.tr(),
-            color: AppColors.sacBlue,
+            color: AppColors.info,
           ),
           const SizedBox(width: 8),
           _StatPill(

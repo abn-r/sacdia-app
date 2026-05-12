@@ -7,7 +7,7 @@ import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/features/members/presentation/providers/members_providers.dart';
 
 /// A single navigable destination used across all navigation surfaces
-/// (quick-access grid, «Más» bottom sheet, etc.).
+/// (persona nav slots, «Más» bottom sheet, etc.).
 ///
 /// Const-constructible so the [appDestinations] list is a compile-time
 /// constant and avoids repeated allocation on rebuild.
@@ -52,7 +52,7 @@ class NavDestination {
 
 /// Single source of truth for all navigable app destinations.
 ///
-/// Every surface that exposes navigation items (quick-access grid, «Más»
+/// Every surface that exposes navigation items (persona nav bar, «Más»
 /// sheet, etc.) MUST consume this list and apply RBAC / slot-dedup at render
 /// time. Do NOT maintain parallel copies.
 ///
