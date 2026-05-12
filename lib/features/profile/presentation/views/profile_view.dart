@@ -341,12 +341,11 @@ class _ProfileScrollBody extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         'profile.view.user_profile'.tr(),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: c.text,
-                          letterSpacing: -0.2,
-                        ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: c.text,
+                                ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -494,23 +493,28 @@ class _ProfileScrollBody extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _SectionLabel(label: 'profile.view.section_my_classes'.tr()),
-                  GestureDetector(
-                    onTap: onRefreshClasses,
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: c.surface,
+                  SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: Material(
+                      color: c.surface,
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: c.border,
-                        ),
+                        side: BorderSide(color: c.border),
                       ),
-                      child: Center(
-                        child: HugeIcon(
-                          icon: HugeIcons.strokeRoundedRefresh,
-                          color: c.textTertiary,
-                          size: 16,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: onRefreshClasses,
+                        child: Semantics(
+                          label: 'common.retry'.tr(),
+                          button: true,
+                          child: Center(
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedRefresh,
+                              color: c.textTertiary,
+                              size: 16,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -535,48 +539,60 @@ class _ProfileScrollBody extends StatelessWidget {
                   Row(
                     children: [
                       // Add honor button
-                      GestureDetector(
-                        onTap: () {
-                          context.push(RouteNames.homeHonors);
-                        },
-                        child: Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: AppColors.sacBlue.withAlpha(20),
+                      SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: Material(
+                          color: AppColors.sacBlue.withAlpha(20),
+                          shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
+                            side: BorderSide(
                               color: AppColors.sacBlue.withAlpha(40),
                             ),
                           ),
-                          child: const Center(
-                            child: HugeIcon(
-                              icon: HugeIcons.strokeRoundedAdd01,
-                              color: AppColors.sacBlue,
-                              size: 18,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () {
+                              context.push(RouteNames.homeHonors);
+                            },
+                            child: Semantics(
+                              label: 'profile.view.section_honors'.tr(),
+                              button: true,
+                              child: const Center(
+                                child: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedAdd01,
+                                  color: AppColors.sacBlue,
+                                  size: 18,
+                                ),
+                              ),
                             ),
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       // Refresh button
-                      GestureDetector(
-                        onTap: onRefreshHonors,
-                        child: Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: c.surface,
+                      SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: Material(
+                          color: c.surface,
+                          shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: c.border,
-                            ),
+                            side: BorderSide(color: c.border),
                           ),
-                          child: Center(
-                            child: HugeIcon(
-                              icon: HugeIcons.strokeRoundedRefresh,
-                              color: c.textTertiary,
-                              size: 16,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: onRefreshHonors,
+                            child: Semantics(
+                              label: 'common.retry'.tr(),
+                              button: true,
+                              child: Center(
+                                child: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedRefresh,
+                                  color: c.textTertiary,
+                                  size: 16,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -825,8 +841,6 @@ class _ProfileHeaderCard extends StatelessWidget {
                                 ?.copyWith(
                                   fontWeight: FontWeight.w700,
                                   color: c.text,
-                                  letterSpacing: -0.3,
-                                  fontSize: 20,
                                 ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -880,111 +894,116 @@ class _ProfileHeaderCard extends StatelessWidget {
                     const SizedBox(width: 16),
 
                     // ── Right: circular avatar with camera button ──
-                    GestureDetector(
-                      onTap: onEditPhoto,
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppColors.primaryLight,
-                                width: 3,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color:
-                                      AppColors.primary.withValues(alpha: 0.15),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 4),
+                    Semantics(
+                      label: 'profile.view.crop_photo_title'.tr(),
+                      button: true,
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: onEditPhoto,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.primaryLight,
+                                  width: 3,
                                 ),
-                              ],
-                            ),
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                ClipOval(
-                                  child: SizedBox(
-                                    width: avatarRadius * 2,
-                                    height: avatarRadius * 2,
-                                    child: avatar != null
-                                        ? CachedNetworkImage(
-                                            imageUrl: avatar!,
-                                            fit: BoxFit.cover,
-                                            memCacheWidth: 176,
-                                            memCacheHeight: 176,
-                                            placeholder: (_, __) =>
-                                                _AvatarInitials(
-                                              name: name,
-                                              fontSize: fallbackFontSize,
-                                            ),
-                                            errorWidget: (_, __, ___) =>
-                                                _AvatarInitials(
-                                              name: name,
-                                              fontSize: fallbackFontSize,
-                                            ),
-                                          )
-                                        : _AvatarInitials(
-                                            name: name,
-                                            fontSize: fallbackFontSize,
-                                          ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary
+                                        .withValues(alpha: 0.15),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 4),
                                   ),
-                                ),
-                                if (isUploadingPhoto)
-                                  Container(
-                                    width: avatarRadius * 2,
-                                    height: avatarRadius * 2,
-                                    decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Color(0x80000000),
+                                ],
+                              ),
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  ClipOval(
+                                    child: SizedBox(
+                                      width: avatarRadius * 2,
+                                      height: avatarRadius * 2,
+                                      child: avatar != null
+                                          ? CachedNetworkImage(
+                                              imageUrl: avatar!,
+                                              fit: BoxFit.cover,
+                                              memCacheWidth: 176,
+                                              memCacheHeight: 176,
+                                              placeholder: (_, __) =>
+                                                  _AvatarInitials(
+                                                name: name,
+                                                fontSize: fallbackFontSize,
+                                              ),
+                                              errorWidget: (_, __, ___) =>
+                                                  _AvatarInitials(
+                                                name: name,
+                                                fontSize: fallbackFontSize,
+                                              ),
+                                            )
+                                          : _AvatarInitials(
+                                              name: name,
+                                              fontSize: fallbackFontSize,
+                                            ),
                                     ),
-                                    child: const Center(
-                                      child: SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2.5,
+                                  ),
+                                  if (isUploadingPhoto)
+                                    Container(
+                                      width: avatarRadius * 2,
+                                      height: avatarRadius * 2,
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Color(0x80000000),
+                                      ),
+                                      child: const Center(
+                                        child: SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2.5,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                          if (!isUploadingPhoto)
-                            Positioned(
-                              bottom: 2,
-                              right: 2,
-                              child: Container(
-                                width: 28,
-                                height: 28,
-                                decoration: BoxDecoration(
-                                  color: c.background,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: c.border,
-                                    width: 1.5,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: context.sac.shadow,
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
+                            if (!isUploadingPhoto)
+                              Positioned(
+                                bottom: 2,
+                                right: 2,
+                                child: Container(
+                                  width: 28,
+                                  height: 28,
+                                  decoration: BoxDecoration(
+                                    color: c.background,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: c.border,
+                                      width: 1.5,
                                     ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: HugeIcon(
-                                    icon: HugeIcons.strokeRoundedCamera01,
-                                    color: c.textSecondary,
-                                    size: 14,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: context.sac.shadow,
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Center(
+                                    child: HugeIcon(
+                                      icon: HugeIcons.strokeRoundedCamera01,
+                                      color: c.textSecondary,
+                                      size: 14,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],
