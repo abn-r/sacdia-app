@@ -3,164 +3,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/config/route_names.dart';
+import 'package:sacdia_app/core/nav/destinations.dart';
 import 'package:sacdia_app/core/persona/persona.dart';
 import 'package:sacdia_app/core/persona/persona_nav_config.dart';
 import 'package:sacdia_app/core/persona/persona_providers.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 
-// ─── Data model ───────────────────────────────────────────────────────────────
-
-/// A single navigable destination exposed in the «Más» sheet.
-///
-/// Mirrors the structure of the private `_QuickAccessItemConfig` in
-/// `quick_access_grid.dart` so that the sheet can reuse the same RBAC
-/// predicates ([hasAnyPermission] / [hasAnyRole]) without coupling to the
-/// dashboard widget's private types.
-@visibleForTesting
-class MoreSheetDestination {
-  final String labelKey;
-  final HugeIconData icon;
-  final Color? color;
-
-  /// Static route path. Use when the route does not depend on runtime context.
-  final String route;
-
-  /// Optional resolver for routes that need runtime data (e.g. sectionId).
-  /// Return `null` to hide the item when context data is unavailable.
-  final String? Function(WidgetRef ref)? routeResolver;
-
-  final Set<String> requiredPermissions;
-  final Set<String> requiredRoles;
-
-  const MoreSheetDestination({
-    required this.labelKey,
-    required this.icon,
-    this.color,
-    this.route = '',
-    this.routeResolver,
-    this.requiredPermissions = const {},
-    this.requiredRoles = const {},
-  });
-}
-
-/// Master list of all navigable destinations that can appear in the «Más» sheet.
-///
-/// This list intentionally mirrors [_quickAccessItemsConfig] from
-/// `quick_access_grid.dart` so the same destinations are reachable from both
-/// surfaces. RBAC gating is applied at render time via [hasAnyPermission] /
-/// [hasAnyRole]. Persona-nav-slot dedup is applied per [_buildSheetItems].
-///
-/// NOTE: Do NOT add new routes here unless they are also present in
-/// [_quickAccessItemsConfig]. The «Más» sheet is a secondary surface for
-/// out-of-band navigation, not a primary feature launcher.
-const List<MoreSheetDestination> moreSheetDestinations = [
-  // Coordination hub — gated by GLOBAL role only.
-  MoreSheetDestination(
-    labelKey: 'dashboard.quick_access.coordination',
-    icon: HugeIcons.strokeRoundedAnalytics01,
-    color: AppColors.info,
-    route: RouteNames.coordinator,
-    requiredRoles: {'coordinator', 'admin', 'super-admin', 'assistant-admin'},
-  ),
-  // Member list — users:read_detail is held by counselor+
-  MoreSheetDestination(
-    labelKey: 'dashboard.quick_access.members',
-    icon: HugeIcons.strokeRoundedUserGroup,
-    color: AppColors.primary,
-    route: RouteNames.homeMembers,
-    requiredPermissions: {'users:read_detail'},
-  ),
-  // Club management — clubs:update is held by secretary+
-  MoreSheetDestination(
-    labelKey: 'dashboard.quick_access.club',
-    icon: HugeIcons.strokeRoundedBuilding01,
-    color: AppColors.secondary,
-    route: RouteNames.homeClub,
-    requiredPermissions: {'clubs:update'},
-  ),
-  // Evidence folder management — users:read_detail
-  MoreSheetDestination(
-    labelKey: 'dashboard.quick_access.evidence_folder',
-    icon: HugeIcons.strokeRoundedFolder01,
-    color: AppColors.accent,
-    route: RouteNames.homeEvidences,
-    requiredPermissions: {'users:read_detail'},
-  ),
-  // Financial records — finances:read is held by treasurer+
-  MoreSheetDestination(
-    labelKey: 'dashboard.quick_access.finances',
-    icon: HugeIcons.strokeRoundedCreditCard,
-    color: AppColors.info,
-    route: RouteNames.homeFinances,
-    requiredPermissions: {'finances:read'},
-  ),
-  // Unit management — units:update is held by counselor+
-  MoreSheetDestination(
-    labelKey: 'dashboard.quick_access.units',
-    icon: HugeIcons.strokeRoundedCompass01,
-    color: AppColors.secondary,
-    route: RouteNames.homeUnits,
-    requiredPermissions: {'units:update'},
-  ),
-  // Group class management — classes:submit_progress is held by counselor+
-  MoreSheetDestination(
-    labelKey: 'dashboard.quick_access.grouped_class',
-    icon: HugeIcons.strokeRoundedBookOpen01,
-    color: AppColors.primary,
-    route: RouteNames.homeGroupedClass,
-    requiredPermissions: {'classes:submit_progress'},
-  ),
-  // Insurance management
-  MoreSheetDestination(
-    labelKey: 'dashboard.quick_access.insurance',
-    icon: HugeIcons.strokeRoundedShield01,
-    color: AppColors.secondaryDark,
-    route: RouteNames.homeInsurance,
-    requiredPermissions: {'insurance:read'},
-  ),
-  // Inventory management
-  MoreSheetDestination(
-    labelKey: 'dashboard.quick_access.inventory',
-    icon: HugeIcons.strokeRoundedPackage,
-    color: AppColors.accent,
-    route: RouteNames.homeInventory,
-    requiredPermissions: {'inventory:read'},
-  ),
-  // Club-wide shared resources — folders:read is granted to every club role
-  MoreSheetDestination(
-    labelKey: 'dashboard.quick_access.resources',
-    icon: HugeIcons.strokeRoundedFiles01,
-    route: RouteNames.homeResources,
-    requiredPermissions: {'folders:read'},
-  ),
-  // My ranking — member_rankings:read_self (member scope)
-  MoreSheetDestination(
-    labelKey: 'dashboard.quick_access.my_ranking',
-    icon: HugeIcons.strokeRoundedRanking,
-    color: AppColors.accent,
-    route: RouteNames.homeMyRanking,
-    requiredPermissions: {'member_rankings:read_self'},
-  ),
-];
-
 // ─── Sheet logic ──────────────────────────────────────────────────────────────
 
-/// Value object that pairs a [MoreSheetDestination] with its resolved route.
+/// Value object that pairs a [NavDestination] with its resolved route.
 class MoreSheetResolvedItem {
-  final MoreSheetDestination dest;
+  final NavDestination dest;
   final String resolvedRoute;
 
   const MoreSheetResolvedItem(
       {required this.dest, required this.resolvedRoute});
 }
 
-/// Pure filtering function: returns items from [moreSheetDestinations] that
+/// Pure filtering function: returns items from [appDestinations] that
 /// pass the persona-slot dedup and RBAC checks.
 ///
 /// Filtering rules (applied in order):
@@ -178,7 +41,7 @@ List<MoreSheetResolvedItem> filterSheetDestinations({
   WidgetRef? ref,
 }) {
   final result = <MoreSheetResolvedItem>[];
-  for (final dest in moreSheetDestinations) {
+  for (final dest in appDestinations) {
     // 1. Skip if static route is already in persona nav slots.
     if (dest.routeResolver == null && navRoutes.contains(dest.route)) continue;
 
@@ -364,7 +227,7 @@ class _MoreSheetContent extends ConsumerWidget {
 // ─── Individual tile ──────────────────────────────────────────────────────────
 
 class _MoreSheetTile extends StatelessWidget {
-  final MoreSheetDestination item;
+  final NavDestination item;
   final String resolvedRoute;
 
   const _MoreSheetTile({
