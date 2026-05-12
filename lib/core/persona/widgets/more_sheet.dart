@@ -45,7 +45,7 @@ List<MoreSheetResolvedItem> filterSheetDestinations({
     // 1. Skip if static route is already in persona nav slots.
     if (dest.routeResolver == null && navRoutes.contains(dest.route)) continue;
 
-    // 2. RBAC gate — mirrors QuickAccessGrid's filter predicate exactly.
+    // 2. RBAC gate — same predicate used by the former QuickAccessGrid (now removed).
     if (dest.requiredPermissions.isEmpty && dest.requiredRoles.isEmpty) {
       // Ungated — visible to all authenticated users.
     } else {
