@@ -88,7 +88,7 @@ class SectionStatusBadge extends StatelessWidget {
       case EvidenceSectionStatus.pending:
         return AppColors.accent.withValues(alpha: 0.4);
       case EvidenceSectionStatus.submitted:
-        return AppColors.sacBlue.withValues(alpha: 0.4);
+        return AppColors.info.withValues(alpha: 0.4);
       case EvidenceSectionStatus.preapprovedLf:
         return AppColors.accent.withValues(alpha: 0.5);
       case EvidenceSectionStatus.validated:

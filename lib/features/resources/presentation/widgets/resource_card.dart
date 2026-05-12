@@ -16,7 +16,7 @@ Color resourceTypeColor(String resourceType) {
     case 'video_link':
       return const Color(0xFFE53935);
     case 'text':
-      return AppColors.sacBlue;
+      return AppColors.info;
     case 'document':
     default:
       return AppColors.primary;

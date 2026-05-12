@@ -275,7 +275,7 @@ class _ClassesSection extends ConsumerWidget {
     return _MedicalCard(
       icon: HugeIcons.strokeRoundedSchool,
       title: 'members.profile_view.progressive_classes_title'.tr(),
-      iconColor: AppColors.sacBlue,
+      iconColor: AppColors.info,
       child: _ClassesSectionBody(userId: userId),
     );
   }
@@ -402,7 +402,7 @@ class _ClassItem extends StatelessWidget {
       case 'PENDIENTE':
         return AppColors.accent;
       default:
-        return AppColors.sacBlue;
+        return AppColors.info;
     }
   }
 

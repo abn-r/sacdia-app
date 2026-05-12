@@ -32,7 +32,7 @@ class ChoiceGroupHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color accentColor =
-        _isSatisfied ? AppColors.secondary : AppColors.sacYellow;
+        _isSatisfied ? AppColors.secondary : AppColors.accent;
     final Color bgColor =
         _isSatisfied ? AppColors.secondaryLight : AppColors.accentLight;
 

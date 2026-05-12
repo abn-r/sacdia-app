@@ -74,7 +74,7 @@ class StatusTimeline extends StatelessWidget {
             currentStatus == EvidenceSectionStatus.rejected ||
             currentStatus == EvidenceSectionStatus.preapprovedLf,
         isActive: currentStatus == EvidenceSectionStatus.submitted,
-        activeColor: AppColors.sacBlue,
+        activeColor: AppColors.info,
       ),
       if (_isRejected)
         _TimelineStep(

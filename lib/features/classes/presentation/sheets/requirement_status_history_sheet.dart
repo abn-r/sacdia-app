@@ -160,7 +160,7 @@ class RequirementStatusHistorySheet extends StatelessWidget {
           label: 'classes.status.sent'.tr(),
           description: 'classes.status_history.sent_desc'.tr(),
           icon: HugeIcons.strokeRoundedSent,
-          color: AppColors.sacBlue,
+          color: AppColors.info,
           author: requirement.submittedByName,
           timestamp: requirement.submittedAt,
         ),

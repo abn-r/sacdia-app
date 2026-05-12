@@ -127,7 +127,7 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                     decoration: BoxDecoration(
-                      color: AppColors.sacBlack.withValues(alpha: 0.08),
+                      color: AppColors.lightText.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(5),
                     ),
                     child: Text(
@@ -146,7 +146,7 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                     decoration: BoxDecoration(
-                      color: AppColors.sacBlack.withValues(alpha: 0.08),
+                      color: AppColors.lightText.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(5),
                     ),
                     child: Text(

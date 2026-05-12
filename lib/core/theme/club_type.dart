@@ -24,7 +24,7 @@ extension ClubColorX on ClubType {
       case ClubType.conquistadores:
         return AppColors.primary; // SACDIA Red
       case ClubType.aventureros:
-        return AppColors.sacBlue; // SACDIA Blue
+        return AppColors.info; // SACDIA Blue
       case ClubType.guiasMayores:
         return AppColors.secondary; // SACDIA Green
     }

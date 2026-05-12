@@ -543,11 +543,11 @@ class _ProfileScrollBody extends StatelessWidget {
                         width: 32,
                         height: 32,
                         child: Material(
-                          color: AppColors.sacBlue.withAlpha(20),
+                          color: AppColors.info.withAlpha(20),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                             side: BorderSide(
-                              color: AppColors.sacBlue.withAlpha(40),
+                              color: AppColors.info.withAlpha(40),
                             ),
                           ),
                           child: InkWell(
@@ -561,7 +561,7 @@ class _ProfileScrollBody extends StatelessWidget {
                               child: const Center(
                                 child: HugeIcon(
                                   icon: HugeIcons.strokeRoundedAdd01,
-                                  color: AppColors.sacBlue,
+                                  color: AppColors.info,
                                   size: 18,
                                 ),
                               ),

@@ -272,11 +272,11 @@ class _SubmitSectionButton extends StatelessWidget {
           child: Ink(
             decoration: BoxDecoration(
               color: isSubmitting
-                  ? AppColors.sacBlue.withValues(alpha: 0.08)
-                  : AppColors.sacBlue.withValues(alpha: 0.12),
+                  ? AppColors.info.withValues(alpha: 0.08)
+                  : AppColors.info.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: AppColors.sacBlue.withValues(alpha: 0.35),
+                color: AppColors.info.withValues(alpha: 0.35),
               ),
             ),
             child: Padding(
@@ -291,7 +291,7 @@ class _SubmitSectionButton extends StatelessWidget {
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          AppColors.sacBlue,
+                          AppColors.info,
                         ),
                       ),
                     ),
@@ -301,14 +301,14 @@ class _SubmitSectionButton extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.sacBlue,
+                        color: AppColors.info,
                       ),
                     ),
                   ] else ...[
                     HugeIcon(
                       icon: HugeIcons.strokeRoundedSent,
                       size: 15,
-                      color: AppColors.sacBlue,
+                      color: AppColors.info,
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -316,7 +316,7 @@ class _SubmitSectionButton extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.sacBlue,
+                        color: AppColors.info,
                       ),
                     ),
                   ],

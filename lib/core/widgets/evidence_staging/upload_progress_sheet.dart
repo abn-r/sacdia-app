@@ -446,7 +446,7 @@ class _FileProgressRow extends StatelessWidget {
               width: 10,
               height: 10,
               decoration: const BoxDecoration(
-                color: AppColors.sacBlue,
+                color: AppColors.info,
                 shape: BoxShape.circle,
               ),
             ),
@@ -456,7 +456,7 @@ class _FileProgressRow extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: AppColors.sacBlue,
+                color: AppColors.info,
               ),
             ),
           ],
