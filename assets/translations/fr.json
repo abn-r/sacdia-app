@@ -1234,6 +1234,14 @@
       "folder": "Dossier",
       "class_type": "Classe",
       "honor": "Honneur"
+    },
+    "clubs": {
+      "title": "Clubs",
+      "search_hint": "Rechercher un club...",
+      "empty_title": "Aucun club",
+      "empty_subtitle": "Il n'y a aucun club assigné à votre champ local.",
+      "error_load": "Erreur lors du chargement des clubs",
+      "field_id_label": "Champ local #{id}"
     }
   },
   "classes": {

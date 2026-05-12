@@ -1,12 +1,22 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
+import '../entities/coordinator_club.dart';
 import '../entities/sla_dashboard.dart';
 import '../entities/evidence_review_item.dart';
 import '../entities/camporee_approval.dart';
 
 /// Repositorio del módulo de coordinador (interfaz del dominio).
 abstract class CoordinatorRepository {
+  // ── Clubs list ────────────────────────────────────────────────────────────
+
+  /// Devuelve la lista de clubs accesibles para el coordinador.
+  /// GET /clubs?localFieldId=... (coordinadores ven todos los clubs de su campo)
+  Future<Either<Failure, List<CoordinatorClub>>> listClubs({
+    int? localFieldId,
+    CancelToken? cancelToken,
+  });
+
   // ── SLA Dashboard ─────────────────────────────────────────────────────────
 
   /// Devuelve el dashboard SLA operativo del coordinador.

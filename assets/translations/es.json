@@ -1234,6 +1234,14 @@
       "folder": "Carpeta",
       "class_type": "Clase",
       "honor": "Honor"
+    },
+    "clubs": {
+      "title": "Clubs",
+      "search_hint": "Buscar club...",
+      "empty_title": "Sin clubs",
+      "empty_subtitle": "No hay clubs asignados a tu campo local.",
+      "error_load": "Error al cargar clubs",
+      "field_id_label": "Campo local #{id}"
     }
   },
   "classes": {
