@@ -1275,18 +1275,25 @@ class _MainShell extends ConsumerWidget {
         selectedIndex: selectedIndex,
         onDestinationSelected: (uiIndex) =>
             navigationShell.goBranch(slots[uiIndex].branchIndex),
+        // Each destination is wrapped in Semantics to explicitly declare the
+        // Spanish label and button role, mirroring the NavigationRail label
+        // pattern for screen-reader parity (PR-2 a11y WARNING fix).
         destinations: slots
             .map(
-              (slot) => NavigationDestination(
-                icon: NavBadge(
-                  source: slot.badgeSource,
-                  child: HugeIcon(icon: slot.icon),
-                ),
-                selectedIcon: NavBadge(
-                  source: slot.badgeSource,
-                  child: HugeIcon(icon: slot.icon),
-                ),
+              (slot) => Semantics(
                 label: tr(slot.labelKey),
+                button: true,
+                child: NavigationDestination(
+                  icon: NavBadge(
+                    source: slot.badgeSource,
+                    child: HugeIcon(icon: slot.icon),
+                  ),
+                  selectedIcon: NavBadge(
+                    source: slot.badgeSource,
+                    child: HugeIcon(icon: slot.icon),
+                  ),
+                  label: tr(slot.labelKey),
+                ),
               ),
             )
             .toList(),
