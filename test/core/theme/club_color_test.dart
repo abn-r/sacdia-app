@@ -81,8 +81,8 @@ void main() {
       expect(ClubType.conquistadores.color, AppColors.primary);
     });
 
-    test('aventureros → AppColors.sacBlue', () {
-      expect(ClubType.aventureros.color, AppColors.sacBlue);
+    test('aventureros → AppColors.info', () {
+      expect(ClubType.aventureros.color, AppColors.info);
     });
 
     test('guiasMayores → AppColors.secondary', () {
@@ -93,7 +93,7 @@ void main() {
   group('clubColorFromName — convenience helper', () {
     test('known name returns the correct color', () {
       expect(clubColorFromName('Conquistadores'), AppColors.primary);
-      expect(clubColorFromName('Aventureros'), AppColors.sacBlue);
+      expect(clubColorFromName('Aventureros'), AppColors.info);
       expect(clubColorFromName('Guías Mayores'), AppColors.secondary);
     });
 
@@ -113,9 +113,9 @@ void main() {
         'Conquistadores': AppColors.primary,
         'conquistador': AppColors.primary,
         'CONQUISTADORES': AppColors.primary,
-        'Aventureros': AppColors.sacBlue,
-        'aventurero': AppColors.sacBlue,
-        'AVENTUREROS': AppColors.sacBlue,
+        'Aventureros': AppColors.info,
+        'aventurero': AppColors.info,
+        'AVENTUREROS': AppColors.info,
         'Guías Mayores': AppColors.secondary,
         'guia mayor': AppColors.secondary,
         'GUÍA': AppColors.secondary,
