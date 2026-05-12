@@ -70,7 +70,7 @@ class SacColors {
   Color get warning => AppColors.accent; // #FBBD5E — same value both modes
   Color get onWarning => AppColors.accentDark; // dark text on yellow bg
 
-  Color get info => AppColors.sacBlue; // #2EA0DA — same value both modes
+  Color get info => AppColors.info; // #2EA0DA — same value both modes
   Color get onInfo => Colors.white;
 
   Color get error => AppColors.error; // #DC2626 — same value both modes
