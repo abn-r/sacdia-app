@@ -109,7 +109,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
     final logoBottomSpacing = Responsive.authLogoBottomSpacing(context);
 
     return Scaffold(
-      backgroundColor: AppColors.sacGreen,
+      backgroundColor: AppColors.loginScaffoldGreen,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -255,7 +255,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                       // Botón login
                       SacButton.primary(
                         text: 'auth.submit_idle'.tr(),
-                        backgroundColor: AppColors.sacGreenLight,
+                        backgroundColor: AppColors.loginButtonGreen,
                         isLoading: isLoading,
                         isEnabled: !_isCoolingDown,
                         onPressed: _signIn,
@@ -279,7 +279,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                       //             .textTheme
                       //             .bodySmall
                       //             ?.copyWith(
-                      //               color: AppColors.sacBlack,
+                      //               color: AppColors.lightText,
                       //             ),
                       //       ),
                       //     ),

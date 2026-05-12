@@ -227,7 +227,7 @@ class HonorCard extends StatelessWidget {
                   color: const Color(0xFFF0F4F5),
                   child: Icon(
                     Icons.emoji_events_outlined,
-                    color: _statusColor ?? AppColors.sacGrey,
+                    color: _statusColor ?? AppColors.pendingColor,
                     size: 24,
                   ),
                 ),
@@ -243,7 +243,7 @@ class HonorCard extends StatelessWidget {
             ),
             child: Icon(
               Icons.emoji_events_outlined,
-              color: _statusColor ?? AppColors.sacGrey,
+              color: _statusColor ?? AppColors.pendingColor,
               size: 24,
             ),
           );
@@ -265,7 +265,7 @@ class HonorCard extends StatelessWidget {
               width: 18,
               height: 18,
               decoration: BoxDecoration(
-                color: AppColors.sacGreen,
+                color: AppColors.success,
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 1.5),
               ),
@@ -288,7 +288,7 @@ class HonorCard extends StatelessWidget {
         width: 28,
         height: 28,
         decoration: const BoxDecoration(
-          color: AppColors.sacYellow,
+          color: AppColors.accent,
           shape: BoxShape.circle,
         ),
         child: const Icon(
@@ -307,7 +307,7 @@ class HonorCard extends StatelessWidget {
     // Available: chevron
     return const Icon(
       Icons.chevron_right_rounded,
-      color: AppColors.sacGrey,
+      color: AppColors.pendingColor,
       size: 24,
     );
   }

@@ -195,7 +195,7 @@ class ActivityHeroSection extends StatelessWidget {
 
   Widget _buildVideoFallback(BuildContext context) {
     return Container(
-      color: AppColors.sacBlue.withValues(alpha: 0.12),
+      color: AppColors.info.withValues(alpha: 0.12),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -203,20 +203,20 @@ class ActivityHeroSection extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: AppColors.sacBlue.withValues(alpha: 0.18),
+              color: AppColors.info.withValues(alpha: 0.18),
               shape: BoxShape.circle,
             ),
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedComputerVideoCall,
               size: 28,
-              color: AppColors.sacBlue,
+              color: AppColors.info,
             ),
           ),
           const SizedBox(height: 10),
           Text(
             'activities.widgets.virtual_fallback'.tr(),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: AppColors.sacBlue,
+                  color: AppColors.info,
                   fontWeight: FontWeight.w600,
                 ),
           ),
@@ -296,7 +296,7 @@ class _JoinMeetChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: AppColors.sacBlue,
+          color: AppColors.info,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(

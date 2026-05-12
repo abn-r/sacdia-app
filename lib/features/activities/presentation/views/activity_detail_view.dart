@@ -72,7 +72,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
   Color _typeColor(int type) {
     switch (type) {
       case 1:
-        return AppColors.sacBlue;
+        return AppColors.info;
       case 2:
         return AppColors.accent;
       case 3:
@@ -111,7 +111,7 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
   Color _platformColor(int platform) {
     switch (platform) {
       case 1:
-        return AppColors.sacBlue;
+        return AppColors.info;
       case 2:
         return AppColors.accent;
       default:

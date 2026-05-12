@@ -52,8 +52,8 @@ class ActivityVirtualBanner extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.sacBlue,
-            AppColors.sacBlue.withValues(alpha: 0.6),
+            AppColors.info,
+            AppColors.info.withValues(alpha: 0.6),
           ],
         ),
       ),

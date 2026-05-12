@@ -836,7 +836,7 @@ class _ErrorBody extends StatelessWidget {
               child: Text(
                 'honors.requirements.retry'.tr(),
                 style: const TextStyle(
-                  color: AppColors.sacBlue,
+                  color: AppColors.info,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),

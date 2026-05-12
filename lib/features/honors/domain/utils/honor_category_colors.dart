@@ -40,7 +40,7 @@ const Map<String, Color> kCategoryColorByName = {
 };
 
 /// Resolves the category [Color] using [categoryId] as primary key and
-/// [categoryName] as fallback. Returns [AppColors.sacBlue] if neither matches.
+/// [categoryName] as fallback. Returns [AppColors.info] if neither matches.
 Color getCategoryColor({int? categoryId, String? categoryName}) {
   if (categoryId != null) {
     final color = kCategoryColorById[categoryId];
@@ -50,5 +50,5 @@ Color getCategoryColor({int? categoryId, String? categoryName}) {
     final color = kCategoryColorByName[categoryName];
     if (color != null) return color;
   }
-  return AppColors.sacBlue;
+  return AppColors.info;
 }

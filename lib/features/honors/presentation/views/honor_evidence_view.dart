@@ -75,7 +75,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     // Surface any hard error from userHonorsProvider
     if (userHonorsAsync.hasError) {
       return Scaffold(
-        appBar: AppBar(backgroundColor: AppColors.sacRed),
+        appBar: AppBar(backgroundColor: AppColors.error),
         body: Center(child: Text('honors.evidence.error_load'.tr())),
       );
     }
@@ -139,7 +139,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('honors.evidence.sent_review'.tr()),
-          backgroundColor: AppColors.sacGreen,
+          backgroundColor: AppColors.success,
         ),
       );
     }
@@ -160,7 +160,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.sacGrey,
+                color: AppColors.pendingColor,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -168,7 +168,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
             ListTile(
               leading: const Icon(
                 Icons.camera_alt_rounded,
-                color: AppColors.sacBlue,
+                color: AppColors.info,
               ),
               title: Text('honors.evidence.pick_camera'.tr()),
               onTap: () {
@@ -179,7 +179,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
             ListTile(
               leading: const Icon(
                 Icons.photo_library_rounded,
-                color: AppColors.sacGreen,
+                color: AppColors.success,
               ),
               title: Text('honors.evidence.pick_gallery'.tr()),
               onTap: () {
@@ -190,7 +190,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
             ListTile(
               leading: const Icon(
                 Icons.picture_as_pdf_rounded,
-                color: AppColors.sacRed,
+                color: AppColors.error,
               ),
               title: Text('honors.evidence.pick_pdf'.tr()),
               onTap: () {
@@ -262,7 +262,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
           SnackBar(
             content: Text('honors.evidence.file_size_error'
                 .tr(namedArgs: {'name': fileName})),
-            backgroundColor: AppColors.sacRed,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -275,7 +275,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('honors.evidence.no_session'.tr()),
-            backgroundColor: AppColors.sacRed,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -304,7 +304,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
                 : 'honors.evidence.upload_error'
                     .tr(namedArgs: {'name': fileName}),
           ),
-          backgroundColor: success ? AppColors.sacGreen : AppColors.sacRed,
+          backgroundColor: success ? AppColors.success : AppColors.error,
         ),
       );
     } catch (e) {
@@ -313,7 +313,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
           SnackBar(
             content: Text('honors.evidence.upload_error'
                 .tr(namedArgs: {'name': fileName})),
-            backgroundColor: AppColors.sacRed,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -343,7 +343,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
             content: Text(success
                 ? 'honors.evidence.delete_success'.tr()
                 : 'honors.evidence.delete_error'.tr()),
-            backgroundColor: success ? AppColors.sacGreen : AppColors.sacRed,
+            backgroundColor: success ? AppColors.success : AppColors.error,
           ),
         );
       }
@@ -352,7 +352,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('honors.evidence.delete_error'.tr()),
-            backgroundColor: AppColors.sacRed,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -381,7 +381,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('honors.evidence.open_error'.tr()),
-            backgroundColor: AppColors.sacRed,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -661,11 +661,11 @@ class _StatusPill extends StatelessWidget {
   Color _bgColor() {
     switch (status) {
       case 'validado':
-        return AppColors.sacGreen;
+        return AppColors.success;
       case 'enviado':
-        return AppColors.sacYellow;
+        return AppColors.accent;
       case 'rechazado':
-        return AppColors.sacRed;
+        return AppColors.error;
       case 'en_progreso':
         return Colors.white.withValues(alpha: 0.30);
       default:
@@ -1134,7 +1134,7 @@ class _EvidenceThumbnail extends StatelessWidget {
                         onDelete();
                       },
                       style: TextButton.styleFrom(
-                        foregroundColor: AppColors.sacRed,
+                        foregroundColor: AppColors.error,
                       ),
                       child: Text('honors.evidence.delete_confirm'.tr()),
                     ),
@@ -1151,13 +1151,13 @@ class _EvidenceThumbnail extends StatelessWidget {
             // File content
             if (_isPdf)
               Container(
-                color: AppColors.sacRed.withAlpha(20),
+                color: AppColors.error.withAlpha(20),
                 child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
                       Icons.picture_as_pdf_rounded,
-                      color: AppColors.sacRed,
+                      color: AppColors.error,
                       size: 28,
                     ),
                     SizedBox(height: 4),
@@ -1166,7 +1166,7 @@ class _EvidenceThumbnail extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.sacRed,
+                        color: AppColors.error,
                       ),
                     ),
                   ],
@@ -1209,7 +1209,7 @@ class _EvidenceThumbnail extends StatelessWidget {
                   width: 18,
                   height: 18,
                   decoration: const BoxDecoration(
-                    color: AppColors.sacGreen,
+                    color: AppColors.success,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -1259,10 +1259,10 @@ class _RejectionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.sacRed.withValues(alpha: 0.07),
+        color: AppColors.error.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: AppColors.sacRed.withValues(alpha: 0.25),
+          color: AppColors.error.withValues(alpha: 0.25),
           width: 1,
         ),
       ),
@@ -1271,7 +1271,7 @@ class _RejectionCard extends StatelessWidget {
         children: [
           const Icon(
             Icons.warning_amber_rounded,
-            color: AppColors.sacRed,
+            color: AppColors.error,
             size: 22,
           ),
           const SizedBox(width: 12),
@@ -1284,7 +1284,7 @@ class _RejectionCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.sacRed,
+                    color: AppColors.error,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -1295,7 +1295,7 @@ class _RejectionCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 12,
                     height: 1.5,
-                    color: AppColors.sacRed,
+                    color: AppColors.error,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -1303,7 +1303,7 @@ class _RejectionCard extends StatelessWidget {
                   'honors.evidence.rejection_hint'.tr(),
                   style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.sacRed.withValues(alpha: 0.70),
+                    color: AppColors.error.withValues(alpha: 0.70),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -1383,7 +1383,7 @@ class _BottomCtaBar extends ConsumerWidget {
         return _CtaButton(
           label: 'honors.evidence.cta_sent'.tr(),
           icon: Icons.hourglass_top_rounded,
-          color: AppColors.sacGrey,
+          color: AppColors.pendingColor,
           onPressed: null,
         );
 
@@ -1393,7 +1393,7 @@ class _BottomCtaBar extends ConsumerWidget {
           builder: (context) => _CtaButton(
             label: 'honors.evidence.cta_completed'.tr(),
             icon: Icons.emoji_events_rounded,
-            color: AppColors.sacGreen,
+            color: AppColors.success,
             onPressed: () {
               context.push(
                 RouteNames.honorCompletionPath(
@@ -1447,9 +1447,9 @@ class _CtaButton extends StatelessWidget {
       child: FilledButton(
         onPressed: isLoading ? null : onPressed,
         style: FilledButton.styleFrom(
-          backgroundColor: isDisabled ? AppColors.sacGrey : color,
+          backgroundColor: isDisabled ? AppColors.pendingColor : color,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: AppColors.sacGrey,
+          disabledBackgroundColor: AppColors.pendingColor,
           disabledForegroundColor: Colors.white.withValues(alpha: 0.70),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
