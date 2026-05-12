@@ -241,19 +241,19 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                 decoration: InputDecoration(
                   hintText: 'honors.catalog.search_hint'.tr(),
                   hintStyle: TextStyle(
-                    color: Colors.white.withAlpha(120),
+                    color: Colors.white.withValues(alpha: 0.78),
                     fontSize: 14,
                   ),
                   prefixIcon: HugeIcon(
                     icon: HugeIcons.strokeRoundedSearch01,
-                    color: Colors.white.withAlpha(120),
+                    color: Colors.white.withValues(alpha: 0.85),
                     size: 20,
                   ),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
                           icon: HugeIcon(
                             icon: HugeIcons.strokeRoundedCancel01,
-                            color: Colors.white.withAlpha(120),
+                            color: Colors.white.withValues(alpha: 0.85),
                             size: 18,
                           ),
                           onPressed: () {
