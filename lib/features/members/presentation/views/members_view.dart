@@ -102,46 +102,51 @@ class _MembersViewState extends ConsumerState<MembersView>
                   const SizedBox(width: 12),
                   Text(
                     'members.view.title'.tr(),
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: c.text,
-                      letterSpacing: -0.4,
-                    ),
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall
+                        ?.copyWith(color: c.text),
                   ),
                   const Spacer(),
                   // Refresh button
-                  GestureDetector(
-                    onTap: membersAsync.isLoading
-                        ? null
-                        : () {
-                            ref
-                                .read(membersNotifierProvider.notifier)
-                                .refresh();
-                          },
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: c.surface,
+                  SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: Material(
+                      color: c.surface,
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: c.border),
+                        side: BorderSide(color: c.border),
                       ),
-                      child: Center(
-                        child: membersAsync.isLoading
-                            ? SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: c.textTertiary,
-                                ),
-                              )
-                            : HugeIcon(
-                                icon: HugeIcons.strokeRoundedRefresh,
-                                color: c.textTertiary,
-                                size: 18,
-                              ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: membersAsync.isLoading
+                            ? null
+                            : () {
+                                ref
+                                    .read(membersNotifierProvider.notifier)
+                                    .refresh();
+                              },
+                        child: Semantics(
+                          label: 'common.retry'.tr(),
+                          button: true,
+                          child: Center(
+                            child: membersAsync.isLoading
+                                ? SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: c.textTertiary,
+                                    ),
+                                  )
+                                : HugeIcon(
+                                    icon: HugeIcons.strokeRoundedRefresh,
+                                    color: c.textTertiary,
+                                    size: 18,
+                                  ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -906,25 +911,33 @@ class _StatusFilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: isActive
-              ? AppColors.primary.withValues(alpha: 0.12)
-              : c.surfaceVariant,
+    return Semantics(
+      label: label,
+      button: true,
+      selected: isActive,
+      child: Material(
+        color: isActive
+            ? AppColors.primary.withValues(alpha: 0.12)
+            : c.surfaceVariant,
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
+          side: BorderSide(
             color: isActive ? AppColors.primaryLight : c.border,
           ),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-            color: isActive ? AppColors.primary : c.textSecondary,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                color: isActive ? AppColors.primary : c.textSecondary,
+              ),
+            ),
           ),
         ),
       ),
