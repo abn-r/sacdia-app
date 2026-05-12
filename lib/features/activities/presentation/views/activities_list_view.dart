@@ -320,86 +320,98 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                     ),
                   ),
                   if (_canCreateActivities())
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          SacSlideUpRoute(
-                            builder: (context) => CreateActivityView(
-                              clubId: resolvedClubId ?? 0,
-                              clubSectionId: resolvedSectionId ?? 0,
-                            ),
-                          ),
-                        ).then((created) {
-                          // Si la actividad fue creada, refrescar la lista
-                          if (created == true && mounted) {
-                            ref.invalidate(clubActivitiesProvider);
-                          }
-                        });
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.all(9),
-                        decoration: BoxDecoration(
-                          color: c.surface,
+                    Semantics(
+                      label: 'activities.list.add'.tr(),
+                      button: true,
+                      child: Material(
+                        color: c.surface,
+                        shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: c.border,
-                          ),
+                          side: BorderSide(color: c.border),
                         ),
-                        child: Row(
-                          children: [
-                            HugeIcon(
-                              icon: HugeIcons.strokeRoundedCalendarAdd01,
-                              size: 20,
-                              color: c.textSecondary,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              SacSlideUpRoute(
+                                builder: (context) => CreateActivityView(
+                                  clubId: resolvedClubId ?? 0,
+                                  clubSectionId: resolvedSectionId ?? 0,
+                                ),
+                              ),
+                            ).then((created) {
+                              // Si la actividad fue creada, refrescar la lista
+                              if (created == true && mounted) {
+                                ref.invalidate(clubActivitiesProvider);
+                              }
+                            });
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(9),
+                            child: Row(
+                              children: [
+                                HugeIcon(
+                                  icon: HugeIcons.strokeRoundedCalendarAdd01,
+                                  size: 20,
+                                  color: c.textSecondary,
+                                ),
+                                const SizedBox(width: 5),
+                                Text('activities.list.add'.tr()),
+                              ],
                             ),
-                            const SizedBox(width: 5),
-                            Text('activities.list.add'.tr())
-                          ],
+                          ),
                         ),
                       ),
                     ),
                   const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isChronologicalView = !_isChronologicalView;
-                        if (_isChronologicalView) _shouldScrollToToday = true;
-                      });
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.all(9),
-                      decoration: BoxDecoration(
-                        color: _isChronologicalView
-                            ? AppColors.primary
-                            : c.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: _isChronologicalView
-                              ? AppColors.primary
-                              : c.border,
-                        ),
-                        boxShadow: _isChronologicalView
-                            ? [
-                                BoxShadow(
-                                  color:
-                                      AppColors.primary.withValues(alpha: 0.3),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 3),
-                                )
-                              ]
-                            : null,
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    decoration: BoxDecoration(
+                      color:
+                          _isChronologicalView ? AppColors.primary : c.surface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color:
+                            _isChronologicalView ? AppColors.primary : c.border,
                       ),
-                      child: HugeIcon(
-                        icon: _isChronologicalView
-                            ? HugeIcons.strokeRoundedCalendar01
-                            : HugeIcons.strokeRoundedListView,
-                        size: 20,
-                        color: _isChronologicalView
-                            ? Colors.white
-                            : c.textSecondary,
+                      boxShadow: _isChronologicalView
+                          ? [
+                              BoxShadow(
+                                color: AppColors.primary.withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              )
+                            ]
+                          : null,
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        splashColor: _isChronologicalView
+                            ? Colors.white.withValues(alpha: 0.2)
+                            : null,
+                        onTap: () {
+                          setState(() {
+                            _isChronologicalView = !_isChronologicalView;
+                            if (_isChronologicalView) {
+                              _shouldScrollToToday = true;
+                            }
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(9),
+                          child: HugeIcon(
+                            icon: _isChronologicalView
+                                ? HugeIcons.strokeRoundedCalendar01
+                                : HugeIcons.strokeRoundedListView,
+                            size: 20,
+                            color: _isChronologicalView
+                                ? Colors.white
+                                : c.textSecondary,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -447,10 +459,11 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                             _selectedDate != null &&
                                                 _isSameDay(day, _selectedDate!);
 
-                                        return GestureDetector(
-                                          onTap: () => setState(() {
-                                            _selectedDate = day;
-                                          }),
+                                        return Semantics(
+                                          label: DateFormat('EEEE d MMMM', 'es')
+                                              .format(day),
+                                          button: true,
+                                          selected: isSelected,
                                           child: AnimatedContainer(
                                             duration: const Duration(
                                                 milliseconds: 200),
@@ -485,40 +498,58 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                     ]
                                                   : null,
                                             ),
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                Text(
-                                                  DateFormat('EEE', 'es')
-                                                      .format(day)
-                                                      .substring(0, 2)
-                                                      .toUpperCase(),
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: isSelected
-                                                        ? Colors.white
-                                                            .withValues(
-                                                                alpha: 0.8)
-                                                        : c.textTertiary,
-                                                  ),
+                                            child: Material(
+                                              color: Colors.transparent,
+                                              child: InkWell(
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                                splashColor: isSelected
+                                                    ? Colors.white
+                                                        .withValues(alpha: 0.2)
+                                                    : null,
+                                                onTap: () => setState(() {
+                                                  _selectedDate = day;
+                                                }),
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Text(
+                                                      DateFormat('EEE', 'es')
+                                                          .format(day)
+                                                          .substring(0, 2)
+                                                          .toUpperCase(),
+                                                      style: TextStyle(
+                                                        fontSize: 10,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: isSelected
+                                                            ? Colors.white
+                                                                .withValues(
+                                                                    alpha: 0.8)
+                                                            : c.textTertiary,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    Text(
+                                                      DateFormat('d')
+                                                          .format(day),
+                                                      style: TextStyle(
+                                                        fontSize: 20,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        height: 1,
+                                                        color: isSelected
+                                                            ? Colors.white
+                                                            : isToday
+                                                                ? AppColors
+                                                                    .primary
+                                                                : c.text,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  DateFormat('d').format(day),
-                                                  style: TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight: FontWeight.w700,
-                                                    height: 1,
-                                                    color: isSelected
-                                                        ? Colors.white
-                                                        : isToday
-                                                            ? AppColors.primary
-                                                            : c.text,
-                                                  ),
-                                                ),
-                                              ],
+                                              ),
                                             ),
                                           ),
                                         );
@@ -532,60 +563,70 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    GestureDetector(
-                                      onTap: () => _openDatePicker(context),
-                                      child: Container(
-                                        width: 44,
-                                        height: 44,
-                                        decoration: BoxDecoration(
-                                          color: AppColors.primaryLight,
+                                    SizedBox(
+                                      width: 44,
+                                      height: 44,
+                                      child: Material(
+                                        color: AppColors.primaryLight,
+                                        shape: RoundedRectangleBorder(
                                           borderRadius:
                                               BorderRadius.circular(12),
-                                          border: Border.all(
+                                          side: BorderSide(
                                             color: AppColors.primary
                                                 .withValues(alpha: 0.25),
                                           ),
                                         ),
-                                        child: Center(
-                                          child: HugeIcon(
-                                            icon: HugeIcons
-                                                .strokeRoundedCalendar02,
-                                            size: 20,
-                                            color: AppColors.primary,
+                                        child: InkWell(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          onTap: () => _openDatePicker(context),
+                                          child: const Center(
+                                            child: HugeIcon(
+                                              icon: HugeIcons
+                                                  .strokeRoundedCalendar02,
+                                              size: 20,
+                                              color: AppColors.primary,
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
                                     if (_showTodayButton) ...[
                                       const SizedBox(height: 4),
-                                      GestureDetector(
-                                        onTap: () {
-                                          final now = DateTime.now();
-                                          setState(() {
-                                            _selectedDate = DateTime(
-                                                now.year, now.month, now.day);
-                                            _showTodayButton = false;
-                                            _visibleMonth =
-                                                DateTime(now.year, now.month);
-                                          });
-                                          _scrollToToday(animate: true);
-                                        },
-                                        child: Container(
-                                          width: 60,
-                                          height: 44,
-                                          decoration: BoxDecoration(
-                                            color: AppColors.primary,
+                                      SizedBox(
+                                        width: 60,
+                                        height: 44,
+                                        child: Material(
+                                          color: AppColors.primary,
+                                          borderRadius:
+                                              BorderRadius.circular(22),
+                                          child: InkWell(
                                             borderRadius:
                                                 BorderRadius.circular(22),
-                                          ),
-                                          child: Center(
-                                            child: Text(
-                                              'activities.list.today_label'
-                                                  .tr(),
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w600,
+                                            splashColor: Colors.white
+                                                .withValues(alpha: 0.2),
+                                            onTap: () {
+                                              final now = DateTime.now();
+                                              setState(() {
+                                                _selectedDate = DateTime(
+                                                    now.year,
+                                                    now.month,
+                                                    now.day);
+                                                _showTodayButton = false;
+                                                _visibleMonth = DateTime(
+                                                    now.year, now.month);
+                                              });
+                                              _scrollToToday(animate: true);
+                                            },
+                                            child: Center(
+                                              child: Text(
+                                                'activities.list.today_label'
+                                                    .tr(),
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -926,11 +967,12 @@ class _ActivityFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
+    return Semantics(
+      label: label,
+      button: true,
+      selected: isSelected,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : c.surface,
           borderRadius: BorderRadius.circular(20),
@@ -938,13 +980,27 @@ class _ActivityFilterChip extends StatelessWidget {
             color: isSelected ? AppColors.primary : c.border,
           ),
         ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : c.textSecondary,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            splashColor:
+                isSelected ? Colors.white.withValues(alpha: 0.2) : null,
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Align(
+                alignment: Alignment.center,
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isSelected ? Colors.white : c.textSecondary,
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),
