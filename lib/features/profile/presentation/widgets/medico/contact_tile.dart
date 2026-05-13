@@ -19,8 +19,7 @@ class ContactTile extends StatelessWidget {
     this.onSms,
   });
 
-  static String _cleanPhone(String p) =>
-      p.replaceAll(RegExp(r'[^0-9+]'), '');
+  static String _cleanPhone(String p) => p.replaceAll(RegExp(r'[^0-9+]'), '');
 
   String get _initial =>
       contact.name.isNotEmpty ? contact.name[0].toUpperCase() : '?';

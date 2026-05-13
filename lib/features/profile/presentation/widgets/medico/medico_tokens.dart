@@ -14,7 +14,7 @@ class MedicoTokens {
   MedicoTokens._();
 
   // ────────── BRAND / SEMÁNTICA ──────────
-  static const coral50  = Color(0xFFFFF1EE);
+  static const coral50 = Color(0xFFFFF1EE);
   static const coral100 = Color(0xFFFFE3DD);
   static const coral200 = Color(0xFFFFC9BE);
   static const coral300 = Color(0xFFFFA493);
@@ -22,13 +22,13 @@ class MedicoTokens {
   static const coral600 = Color(0xFFDD5A4B);
   static const coral700 = Color(0xFFB8453A);
 
-  static const mint50  = Color(0xFFE8F5EE);
+  static const mint50 = Color(0xFFE8F5EE);
   static const mint100 = Color(0xFFD7EFE2);
   static const mint500 = Color(0xFF4FB37C);
   static const mintInk = Color(0xFF2C7A52); // texto sobre mint50
   static const mintInkSoft = Color(0xFF5A8A6E);
 
-  static const amber50  = Color(0xFFFCF1DC);
+  static const amber50 = Color(0xFFFCF1DC);
   static const amber100 = Color(0xFFFBE7C2);
   static const amber500 = Color(0xFFC99036);
   static const amberInk = Color(0xFF8B6020);
@@ -36,7 +36,7 @@ class MedicoTokens {
   static const lavender100 = Color(0xFFDCD5EE);
   static const lavender500 = Color(0xFF6B59A8);
 
-  static const rose50  = Color(0xFFFDE9EE);
+  static const rose50 = Color(0xFFFDE9EE);
   static const rose500 = Color(0xFFD14B66);
   static const roseInk = Color(0xFF9B2D49);
 
@@ -51,18 +51,18 @@ class MedicoTokens {
   static const ink200 = Color(0xFFE3E5EA);
   static const ink150 = Color(0xFFECEEF2);
   static const ink100 = Color(0xFFF2F4F7);
-  static const ink50  = Color(0xFFF7F8FA);
-  static const paper  = Color(0xFFFFFFFF);
+  static const ink50 = Color(0xFFF7F8FA);
+  static const paper = Color(0xFFFFFFFF);
   static const canvas = Color(0xFFFAFAFB);
 
   // ────────── ESPACIADO (4pt) ──────────
-  static const s1  = 4.0;
-  static const s2  = 8.0;
-  static const s3  = 12.0;
-  static const s4  = 16.0;
-  static const s5  = 20.0;
-  static const s6  = 24.0;
-  static const s8  = 32.0;
+  static const s1 = 4.0;
+  static const s2 = 8.0;
+  static const s3 = 12.0;
+  static const s4 = 16.0;
+  static const s5 = 20.0;
+  static const s6 = 24.0;
+  static const s8 = 32.0;
 
   // ────────── RADIOS ──────────
   static const rField = 10.0;
@@ -112,4 +112,3 @@ class ChipTone {
   final Color dot;
   const ChipTone({required this.bg, required this.fg, required this.dot});
 }
-

@@ -28,18 +28,17 @@ import 'emergency_mode_view.dart';
 
 /// Mapea [AllergySeverity] a [SeverityTone] para renderizar chips.
 SeverityTone _severityTone(AllergySeverity severity) => switch (severity) {
-  AllergySeverity.alta => SeverityTone.rose,
-  AllergySeverity.media => SeverityTone.amber,
-  AllergySeverity.leve => SeverityTone.mint,
-};
+      AllergySeverity.alta => SeverityTone.rose,
+      AllergySeverity.media => SeverityTone.amber,
+      AllergySeverity.leve => SeverityTone.mint,
+    };
 
 class MedicalInfoView extends ConsumerWidget {
   const MedicalInfoView({super.key});
 
   // ── Helpers para url_launcher ──────────────────────────────────────────────
 
-  static String _cleanPhone(String p) =>
-      p.replaceAll(RegExp(r'[^0-9+]'), '');
+  static String _cleanPhone(String p) => p.replaceAll(RegExp(r'[^0-9+]'), '');
 
   static Future<void> _call(String phone) async {
     final uri = Uri.parse('tel:${_cleanPhone(phone)}');
@@ -143,7 +142,8 @@ class MedicalInfoView extends ConsumerWidget {
                   children: [
                     // ── Hero: tipo de sangre ────────────────────────────────
                     BloodHeroCard(
-                      bloodType: (blood == null || blood.isEmpty) ? null : blood,
+                      bloodType:
+                          (blood == null || blood.isEmpty) ? null : blood,
                       filled: filled,
                       total: total,
                       onEditar: () => _handleEditBlood(
@@ -173,13 +173,16 @@ class MedicalInfoView extends ConsumerWidget {
                         ),
                         error: (e, _) => _SectionError(
                           message: e.toString(),
-                          onRetry: () => ref.invalidate(emergencyContactsProvider),
+                          onRetry: () =>
+                              ref.invalidate(emergencyContactsProvider),
                         ),
                         data: (contactList) {
                           if (contactList.isEmpty) {
                             return EmptyHint(
                               label: 'profile.medical_info.none_contacts'.tr(),
-                              actionLabel: 'profile.medical_info.empty.add_contact_cta'.tr(),
+                              actionLabel:
+                                  'profile.medical_info.empty.add_contact_cta'
+                                      .tr(),
                               onAction: () => Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (_) => const EmergencyContactsView(),
@@ -229,10 +232,12 @@ class MedicalInfoView extends ConsumerWidget {
                           if (allergyList.isEmpty) {
                             return EmptyHint(
                               label: 'profile.medical_info.none_allergies'.tr(),
-                              actionLabel: 'profile.medical_info.action_edit'.tr(),
+                              actionLabel:
+                                  'profile.medical_info.action_edit'.tr(),
                               onAction: () => Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (_) => const AllergiesSelectionView(),
+                                  builder: (_) =>
+                                      const AllergiesSelectionView(),
                                 ),
                               ),
                             );
@@ -276,7 +281,8 @@ class MedicalInfoView extends ConsumerWidget {
                           if (diseaseList.isEmpty) {
                             return EmptyHint(
                               label: 'profile.medical_info.none_diseases'.tr(),
-                              actionLabel: 'profile.medical_info.action_edit'.tr(),
+                              actionLabel:
+                                  'profile.medical_info.action_edit'.tr(),
                               onAction: () => Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (_) => const DiseasesSelectionView(),
@@ -285,16 +291,14 @@ class MedicalInfoView extends ConsumerWidget {
                             );
                           }
                           return MedicalChipRow(
-                            children: diseaseList
-                                .map((d) {
-                                  final year = d.sinceYear;
-                                  return MedicalChip(
-                                    label: d.name,
-                                    sub: year != null ? 'desde $year' : null,
-                                    tone: SeverityTone.amber,
-                                  );
-                                })
-                                .toList(),
+                            children: diseaseList.map((d) {
+                              final year = d.sinceYear;
+                              return MedicalChip(
+                                label: d.name,
+                                sub: year != null ? 'desde $year' : null,
+                                tone: SeverityTone.amber,
+                              );
+                            }).toList(),
                           );
                         },
                       ),
@@ -326,10 +330,12 @@ class MedicalInfoView extends ConsumerWidget {
                           if (medicineList.isEmpty) {
                             return EmptyHint(
                               label: 'profile.medical_info.none_medicines'.tr(),
-                              actionLabel: 'profile.medical_info.action_edit'.tr(),
+                              actionLabel:
+                                  'profile.medical_info.action_edit'.tr(),
                               onAction: () => Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (_) => const MedicinesSelectionView(),
+                                  builder: (_) =>
+                                      const MedicinesSelectionView(),
                                 ),
                               ),
                             );
@@ -377,7 +383,8 @@ class MedicalInfoView extends ConsumerWidget {
                             data: (rep) {
                               if (rep == null) {
                                 return EmptyHint(
-                                  label: 'profile.medical_info.not_registered'.tr(),
+                                  label: 'profile.medical_info.not_registered'
+                                      .tr(),
                                 );
                               }
                               return Column(
