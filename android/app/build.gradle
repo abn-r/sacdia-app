@@ -23,6 +23,18 @@ if (keystorePropertiesFile.exists()) {
     keystorePropertiesFile.withReader("UTF-8") { reader -> keystoreProperties.load(reader) }
 }
 
+// ---------------------------------------------------------------------------
+// Secrets (Google Maps API key, etc.)
+// ---------------------------------------------------------------------------
+// Place android/secrets.properties (one level up from this file). See
+// android/secrets.properties.example. The file is gitignored.
+// ---------------------------------------------------------------------------
+def secretsPropertiesFile = rootProject.file("secrets.properties")
+def secretsProperties = new Properties()
+if (secretsPropertiesFile.exists()) {
+    secretsPropertiesFile.withReader("UTF-8") { reader -> secretsProperties.load(reader) }
+}
+
 android {
     namespace = "com.sacdia.app"
     compileSdk = flutter.compileSdkVersion
@@ -46,12 +58,14 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        // GOOGLE_MAPS_API_KEY must be set in android/gradle.properties or as a CI
-        // environment variable. Never hardcode the key here.
-        // Local dev: add `GOOGLE_MAPS_API_KEY=<key>` to android/gradle.properties (gitignored).
-        def mapsKey = project.findProperty("GOOGLE_MAPS_API_KEY") ?: ""
+        // GOOGLE_MAPS_API_KEY resolution order:
+        //   1. android/secrets.properties (gitignored, local dev) — see secrets.properties.example
+        //   2. Gradle -P / ~/.gradle/gradle.properties / CI env var
+        // Never hardcode the key here.
+        def mapsKey = secretsProperties.getProperty("GOOGLE_MAPS_API_KEY")
+            ?: project.findProperty("GOOGLE_MAPS_API_KEY") ?: ""
         if (mapsKey.isEmpty()) {
-            logger.warn("WARNING: GOOGLE_MAPS_API_KEY is not set. Google Maps will not render. Set it in android/gradle.properties or as a CI environment variable.")
+            logger.warn("WARNING: GOOGLE_MAPS_API_KEY is not set. Google Maps will not render. Set it in android/secrets.properties or as a CI environment variable.")
         }
         manifestPlaceholders += [GOOGLE_MAPS_API_KEY: mapsKey]
     }
