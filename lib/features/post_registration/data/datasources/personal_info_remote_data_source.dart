@@ -9,6 +9,51 @@ import '../models/medicine_model.dart';
 import '../models/relationship_type_model.dart';
 import '../../../../core/utils/app_logger.dart';
 
+// ---------------------------------------------------------------------------
+// DTO de entrada para PUT — shape nueva del backend
+// ---------------------------------------------------------------------------
+
+/// Entrada de alergia para PUT /users/:id/allergies
+class AllergyEntry {
+  final int id;
+  final AllergySeverity severity;
+
+  const AllergyEntry({required this.id, required this.severity});
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'severity': severity.name,
+      };
+}
+
+/// Entrada de enfermedad para PUT /users/:id/diseases
+class DiseaseEntry {
+  final int id;
+  final int? sinceYear;
+
+  const DiseaseEntry({required this.id, this.sinceYear});
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{'id': id};
+    if (sinceYear != null) map['since_year'] = sinceYear;
+    return map;
+  }
+}
+
+/// Entrada de medicamento para PUT /users/:id/medicines
+class MedicineEntry {
+  final int id;
+  final String? dose;
+
+  const MedicineEntry({required this.id, this.dose});
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{'id': id};
+    if (dose != null) map['dose'] = dose;
+    return map;
+  }
+}
+
 /// Interface del data source remoto para información personal
 abstract class PersonalInfoRemoteDataSource {
   Future<void> updatePersonalInfo(
@@ -40,17 +85,23 @@ abstract class PersonalInfoRemoteDataSource {
   Future<List<AllergyModel>> getAllergiesCatalog({CancelToken? cancelToken});
   Future<List<AllergyModel>> getUserAllergies(String userId,
       {CancelToken? cancelToken});
-  Future<void> saveUserAllergies(String userId, List<int> allergyIds);
+
+  /// Guarda alergias con severidad. Shape nueva: `{ allergies: [{id, severity}] }`
+  Future<void> saveUserAllergies(String userId, List<AllergyEntry> entries);
   Future<void> deleteUserAllergy(String userId, int allergyId);
   Future<List<DiseaseModel>> getDiseasesCatalog({CancelToken? cancelToken});
   Future<List<DiseaseModel>> getUserDiseases(String userId,
       {CancelToken? cancelToken});
-  Future<void> saveUserDiseases(String userId, List<int> diseaseIds);
+
+  /// Guarda enfermedades con since_year. Shape nueva: `{ diseases: [{id, since_year?}] }`
+  Future<void> saveUserDiseases(String userId, List<DiseaseEntry> entries);
   Future<void> deleteUserDisease(String userId, int diseaseId);
   Future<List<MedicineModel>> getMedicinesCatalog({CancelToken? cancelToken});
   Future<List<MedicineModel>> getUserMedicines(String userId,
       {CancelToken? cancelToken});
-  Future<void> saveUserMedicines(String userId, List<int> medicineIds);
+
+  /// Guarda medicamentos con dosis. Shape nueva: `{ medicines: [{id, dose?}] }`
+  Future<void> saveUserMedicines(String userId, List<MedicineEntry> entries);
   Future<void> deleteUserMedicine(String userId, int medicineId);
   Future<void> completeStep2(String userId);
 }
@@ -344,11 +395,12 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
   }
 
   @override
-  Future<void> saveUserAllergies(String userId, List<int> allergyIds) async {
+  Future<void> saveUserAllergies(
+      String userId, List<AllergyEntry> entries) async {
     try {
       await dio.put(
         '$_baseUrl${ApiEndpoints.users}/$userId/allergies',
-        data: {'allergy_ids': allergyIds},
+        data: {'allergies': entries.map((e) => e.toJson()).toList()},
       );
     } on DioException catch (e) {
       throw Exception(
@@ -413,11 +465,12 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
   }
 
   @override
-  Future<void> saveUserDiseases(String userId, List<int> diseaseIds) async {
+  Future<void> saveUserDiseases(
+      String userId, List<DiseaseEntry> entries) async {
     try {
       await dio.put(
         '$_baseUrl${ApiEndpoints.users}/$userId/diseases',
-        data: {'disease_ids': diseaseIds},
+        data: {'diseases': entries.map((e) => e.toJson()).toList()},
       );
     } on DioException catch (e) {
       throw Exception(
@@ -482,11 +535,12 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
   }
 
   @override
-  Future<void> saveUserMedicines(String userId, List<int> medicineIds) async {
+  Future<void> saveUserMedicines(
+      String userId, List<MedicineEntry> entries) async {
     try {
       await dio.put(
         '$_baseUrl${ApiEndpoints.users}/$userId/medicines',
-        data: {'medicine_ids': medicineIds},
+        data: {'medicines': entries.map((e) => e.toJson()).toList()},
       );
     } on DioException catch (e) {
       throw Exception(

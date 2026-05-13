@@ -909,6 +909,19 @@
         "load_error": "Error: {error}"
       }
     },
+    "allergies": {
+      "severity_label": "Severity"
+    },
+    "diseases": {
+      "since_year_label": "Since what year?",
+      "since_year_hint": "Year (e.g. 2018)",
+      "since_year_invalid": "Invalid year (1900–present)"
+    },
+    "medicines": {
+      "dose_label": "Dose",
+      "dose_hint": "e.g. 500mg every 8 hours",
+      "dose_too_long": "Maximum 255 characters"
+    },
     "photo": {
       "title": "Put a face to your adventure!",
       "subtitle": "Upload a photo so your club can recognize you",
@@ -2651,7 +2664,12 @@
       "blood_type_select_title": "Select your blood type",
       "blood_type_select_subtitle": "This shows on your digital credential and is useful in case of emergency.",
       "blood_type_updated": "Blood type updated to {value}",
-      "blood_type_update_failed": "Could not update blood type"
+      "blood_type_update_failed": "Could not update blood type",
+      "severity": {
+        "leve": "Mild",
+        "media": "Moderate",
+        "alta": "High"
+      }
     },
     "settings": {
       "change_password_dialog_title": "Change password",

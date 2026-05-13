@@ -909,6 +909,19 @@
         "load_error": "Error: {error}"
       }
     },
+    "allergies": {
+      "severity_label": "Severidad"
+    },
+    "diseases": {
+      "since_year_label": "¿Desde qué año?",
+      "since_year_hint": "Año (ej. 2018)",
+      "since_year_invalid": "Año inválido (1900–presente)"
+    },
+    "medicines": {
+      "dose_label": "Dosis",
+      "dose_hint": "ej. 500mg cada 8 hs",
+      "dose_too_long": "Máximo 255 caracteres"
+    },
     "photo": {
       "title": "¡Ponle cara a tu aventura!",
       "subtitle": "Subí una foto para que te reconozcan en tu club",
@@ -2651,7 +2664,12 @@
       "blood_type_select_title": "Seleccioná tu tipo de sangre",
       "blood_type_select_subtitle": "Esta información aparece en tu credencial digital y es útil ante una emergencia.",
       "blood_type_updated": "Tipo de sangre actualizado a {value}",
-      "blood_type_update_failed": "No se pudo actualizar el tipo de sangre"
+      "blood_type_update_failed": "No se pudo actualizar el tipo de sangre",
+      "severity": {
+        "leve": "Leve",
+        "media": "Media",
+        "alta": "Alta"
+      }
     },
     "settings": {
       "change_password_dialog_title": "Cambiar contraseña",

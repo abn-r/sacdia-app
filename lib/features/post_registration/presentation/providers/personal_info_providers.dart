@@ -13,6 +13,10 @@ import '../../../profile/presentation/widgets/blood_type_selector.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../../core/utils/app_logger.dart';
 
+// Re-export entry DTOs so views can import them from one place
+export '../../data/datasources/personal_info_remote_data_source.dart'
+    show AllergyEntry, DiseaseEntry, MedicineEntry;
+
 /// Provider del data source de información personal
 final personalInfoDataSourceProvider =
     Provider.autoDispose<PersonalInfoRemoteDataSource>((ref) {
@@ -139,8 +143,12 @@ class UserAllergiesNotifier
     });
   }
 
-  /// Guarda la lista completa de alergias seleccionadas en la API
-  Future<void> saveAll(List<int> allergyIds) async {
+  /// Guarda la lista completa de alergias con severidad en la API.
+  ///
+  /// Cada [AllergyEntry] contiene `id` + `severity`. La severity es
+  /// requerida (NOT NULL) en el backend; el default [AllergySeverity.leve]
+  /// se aplica cuando el usuario no la elige explícitamente en la vista.
+  Future<void> saveAll(List<AllergyEntry> entries) async {
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
@@ -150,7 +158,7 @@ class UserAllergiesNotifier
       if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
-      await dataSource.saveUserAllergies(userId, allergyIds);
+      await dataSource.saveUserAllergies(userId, entries);
 
       return await dataSource.getUserAllergies(userId);
     });
@@ -219,8 +227,11 @@ class UserDiseasesNotifier
     });
   }
 
-  /// Guarda la lista completa de enfermedades seleccionadas en la API
-  Future<void> saveAll(List<int> diseaseIds) async {
+  /// Guarda la lista completa de enfermedades con since_year en la API.
+  ///
+  /// Cada [DiseaseEntry] contiene `id` + `sinceYear` opcional.
+  /// `sinceYear == null` se serializa omitiendo el campo (backend acepta null).
+  Future<void> saveAll(List<DiseaseEntry> entries) async {
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
@@ -230,7 +241,7 @@ class UserDiseasesNotifier
       if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
-      await dataSource.saveUserDiseases(userId, diseaseIds);
+      await dataSource.saveUserDiseases(userId, entries);
 
       return await dataSource.getUserDiseases(userId);
     });
@@ -312,8 +323,11 @@ class UserMedicinesNotifier
     });
   }
 
-  /// Guarda la lista completa de medicamentos seleccionados en la API
-  Future<void> saveAll(List<int> medicineIds) async {
+  /// Guarda la lista completa de medicamentos con dosis en la API.
+  ///
+  /// Cada [MedicineEntry] contiene `id` + `dose` opcional.
+  /// `dose == null` se serializa omitiendo el campo (backend acepta null).
+  Future<void> saveAll(List<MedicineEntry> entries) async {
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
@@ -323,7 +337,7 @@ class UserMedicinesNotifier
       if (userId == null) throw Exception(tr('errors.user_not_authenticated'));
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
-      await dataSource.saveUserMedicines(userId, medicineIds);
+      await dataSource.saveUserMedicines(userId, entries);
 
       return await dataSource.getUserMedicines(userId);
     });
@@ -585,17 +599,28 @@ class SavePersonalInfoNotifier extends AutoDisposeAsyncNotifier<void> {
 
       final selectedAllergies = ref.read(selectedAllergiesProvider);
       if (selectedAllergies.isNotEmpty) {
-        await dataSource.saveUserAllergies(userId, selectedAllergies);
+        // Post-registration flow: no severity UI yet — default to leve
+        final allergyEntries = selectedAllergies
+            .map((id) =>
+                AllergyEntry(id: id, severity: AllergySeverity.leve))
+            .toList();
+        await dataSource.saveUserAllergies(userId, allergyEntries);
       }
 
       final selectedDiseases = ref.read(selectedDiseasesProvider);
       if (selectedDiseases.isNotEmpty) {
-        await dataSource.saveUserDiseases(userId, selectedDiseases);
+        // Post-registration flow: no since_year UI yet — omit the field
+        final diseaseEntries =
+            selectedDiseases.map((id) => DiseaseEntry(id: id)).toList();
+        await dataSource.saveUserDiseases(userId, diseaseEntries);
       }
 
       final selectedMedicines = ref.read(selectedMedicinesProvider);
       if (selectedMedicines.isNotEmpty) {
-        await dataSource.saveUserMedicines(userId, selectedMedicines);
+        // Post-registration flow: no dose UI yet — omit the field
+        final medicineEntries =
+            selectedMedicines.map((id) => MedicineEntry(id: id)).toList();
+        await dataSource.saveUserMedicines(userId, medicineEntries);
       }
 
       await dataSource.completeStep2(userId);
