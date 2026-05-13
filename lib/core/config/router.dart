@@ -75,7 +75,9 @@ import '../../features/profile/presentation/views/profile_view.dart';
 import '../../features/profile/presentation/views/medical_info_view.dart';
 import '../animations/page_transitions.dart';
 import '../utils/responsive.dart';
-import '../persona/index.dart';
+import '../../features/auth/domain/entities/authorization_snapshot.dart';
+import '../../features/auth/domain/entities/user_entity.dart';
+import '../../features/auth/domain/utils/authorization_utils.dart';
 import 'route_names.dart';
 
 /// Shared-axis slide for standard forward/back navigation.
@@ -206,8 +208,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (currentPath == RouteNames.splash) {
         if (!isLoggedIn) return RouteNames.login;
         if (!user.postRegisterComplete) return RouteNames.postRegistration;
-        final persona = resolvePersona(user.authorization);
-        return personaLandingRoute(persona);
+        return RouteNames.homeDashboard;
       }
 
       // Sin usuario autenticado → login
@@ -215,12 +216,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         return isPublicRoute ? null : RouteNames.login;
       }
 
-      // T-16: Usuario autenticado en ruta pública → decidir destino
-      // Uses persona-routed landing for consistency with post-login flow.
+      // Usuario autenticado en ruta pública → destino home compartido.
       if (isPublicRoute) {
         if (!user.postRegisterComplete) return RouteNames.postRegistration;
-        final persona = resolvePersona(user.authorization);
-        return personaLandingRoute(persona);
+        return RouteNames.homeDashboard;
       }
 
       // Usuario autenticado con post-registro incompleto fuera de la ruta de post-registro
@@ -229,12 +228,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         return RouteNames.postRegistration;
       }
 
-      // T-16: Usuario autenticado con post-registro completo en la ruta de post-registro
-      // (e.g., navigated back somehow) → redirigir al destino de la persona.
+      // Usuario autenticado con post-registro completo en la ruta de post-registro
+      // (e.g., navigated back somehow) → redirigir al home compartido.
       if (user.postRegisterComplete &&
           currentPath == RouteNames.postRegistration) {
-        final persona = resolvePersona(user.authorization);
-        return personaLandingRoute(persona);
+        return RouteNames.homeDashboard;
       }
 
       return null;
@@ -859,92 +857,42 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
 
-      // ── Coordinator shell — separate StatefulShellRoute (PR-4) ─────────────
-      //
-      // Coordinator-persona users are routed to this shell exclusively.
-      // It maintains its own 5 branches (indices 0–4) scoped independently of
-      // the main shell's branches (0–17), satisfying design R2 mitigation.
-      //
-      // Context-switch from coordinator → club re-mounts main shell: the
-      // router.refresh() listener on authNotifierProvider re-evaluates the
-      // redirect, resolvePersona() returns a non-coordinator persona, and
-      // personaLandingRoute() redirects to the main shell's landing route.
-      // No explicit guard needed here — the redirect logic handles it (FR-5,
-      // S-15).
-      StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) =>
-            _CoordinatorShell(navigationShell: navigationShell),
-        branches: [
-          // ── Coordinator Branch 0: Hub ──────────────────────────────────────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.coordinator,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const CoordinatorHubView(),
-                ),
-              ),
-            ],
-          ),
+      // Coordinador — hub (deep-link / direct entry, fuera del shell principal).
+      GoRoute(
+        path: RouteNames.coordinator,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const CoordinatorHubView()),
+      ),
 
-          // ── Coordinator Branch 1: Clubes ──────────────────────────────────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.coordinatorClubs,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const CoordinatorClubsListView(),
-                ),
-              ),
-            ],
-          ),
+      // Coordinador — lista de clubes
+      GoRoute(
+        path: RouteNames.coordinatorClubs,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          const CoordinatorClubsListView(),
+        ),
+      ),
 
-          // ── Coordinator Branch 2: Reportes / SLA ──────────────────────────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.coordinatorReports,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const SLADashboardView(),
-                ),
-              ),
-            ],
-          ),
+      // Coordinador — reportes / SLA hub
+      GoRoute(
+        path: RouteNames.coordinatorReports,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const SLADashboardView()),
+      ),
 
-          // ── Coordinator Branch 3: Actividades ─────────────────────────────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.coordinatorActivities,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const ActivitiesListView(),
-                ),
-              ),
-            ],
-          ),
+      // Coordinador — actividades
+      GoRoute(
+        path: RouteNames.coordinatorActivities,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const ActivitiesListView()),
+      ),
 
-          // ── Coordinator Branch 4: Perfil ───────────────────────────────────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.coordinatorProfile,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const ProfileView(),
-                ),
-              ),
-            ],
-          ),
-        ],
+      // Coordinador — perfil
+      GoRoute(
+        path: RouteNames.coordinatorProfile,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const ProfileView()),
       ),
 
       // Coordinador: dashboard SLA operativo (deep-link / sub-view entry)
@@ -1158,20 +1106,66 @@ final routerProvider = Provider<GoRouter>((ref) {
 });
 
 // ── Navigation destination data ───────────────────────────────────────────────
-//
-// MIGRATED (PR-2): _NavItemConfig, _navItemsConfig, and _filterNavItems have
-// been replaced by the persona module. Nav slot configuration now lives in
-// lib/core/persona/persona_nav_config.dart and is consumed via
-// personaNavSlotsProvider (see _MainShell below).
-//
-// Slot definitions per persona:
-//   Miembro     → Dashboard | Clases | Actividades | Ranking  | Perfil
-//   Consejero   → Mi Unidad | Clases | Miembros    | Actividades | Perfil
-//   Director    → Miembros  | Club   | Finanzas    | Actividades | Perfil
-//   Tesorero    → Finanzas  | Seguros| Club        | Actividades | Perfil
-//   Coordinador → Hub       | Clubes | Reportes    | Actividades | Perfil  (PR-4 shell)
-//
-// All 18 StatefulShellBranch indices (0–17) are preserved unchanged (NFR-5).
+
+class _NavItemConfig {
+  final int branchIndex;
+  final String route;
+  final List<List<dynamic>> icon;
+  final String labelKey;
+  final Set<String> requiredPermissions;
+
+  const _NavItemConfig({
+    required this.branchIndex,
+    required this.route,
+    required this.icon,
+    required this.labelKey,
+    this.requiredPermissions = const {},
+  });
+
+  String get label => tr(labelKey);
+}
+
+const List<_NavItemConfig> _navItemsConfig = [
+  _NavItemConfig(
+    branchIndex: 0,
+    route: RouteNames.homeDashboard,
+    icon: HugeIcons.strokeRoundedHome01,
+    labelKey: 'router.nav.home',
+  ),
+  _NavItemConfig(
+    branchIndex: 1,
+    route: RouteNames.homeClasses,
+    icon: HugeIcons.strokeRoundedSchool,
+    labelKey: 'router.nav.classes',
+    requiredPermissions: {'classes:read'},
+  ),
+  _NavItemConfig(
+    branchIndex: 2,
+    route: RouteNames.homeActivities,
+    icon: HugeIcons.strokeRoundedCalendar01,
+    labelKey: 'router.nav.activities',
+    requiredPermissions: {'activities:read'},
+  ),
+  _NavItemConfig(
+    branchIndex: 3,
+    route: RouteNames.homeProfile,
+    icon: HugeIcons.strokeRoundedUser,
+    labelKey: 'router.nav.profile',
+  ),
+];
+
+List<_NavItemConfig> _filterNavItems(
+  List<_NavItemConfig> items,
+  UserEntity? user,
+  AuthorizationSnapshot? authorization,
+) {
+  if (authorization == null) return items;
+
+  return items.where((item) {
+    if (item.requiredPermissions.isEmpty) return true;
+    return hasAnyPermission(user, item.requiredPermissions);
+  }).toList();
+}
 
 // ── Main shell — adaptive navigation ─────────────────────────────────────────
 
@@ -1183,12 +1177,8 @@ final routerProvider = Provider<GoRouter>((ref) {
 /// across tab switches, preventing autoDispose providers from being disposed
 /// on every tab change.
 ///
-/// Watches [personaNavSlotsProvider] which derives the [NavSlot] list from the
-/// current [Persona]. Rebuilds only when the persona changes (e.g. after login
-/// or a context switch via [activeAssignmentId]).
-///
-/// [NavBadge] is applied to each slot icon when [NavSlot.badgeSource] is not
-/// [NavBadgeSource.none], rendering unread notification counts inline.
+/// Watches [authNotifierProvider] scoped to the authorization sub-state so
+/// the tab list rebuilds reactively when permissions change (e.g. context switch).
 class _MainShell extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
 
@@ -1196,147 +1186,24 @@ class _MainShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final slots = ref.watch(personaNavSlotsProvider);
-
-    // Defensive guard (PR-4): coordinator persona should never reach _MainShell
-    // because the post-login redirect sends coordinators to /coordinator which
-    // mounts _CoordinatorShell instead. If somehow a coordinator ends up here
-    // (e.g., a direct context.go() call to a main-shell route), we render the
-    // standard shell with the coordinator's slots — this is safe because
-    // personaNavSlotsProvider already returns the coordinator config with
-    // branchIndex 0–4 scoped to the coordinator shell. The coordinator shell's
-    // redirect (router.refresh → personaLandingRoute → /coordinator) will
-    // correct the navigation in the next frame.
-
-    // Map the shell's current branch index to the persona-slot UI position.
-    // Branches that are not part of the current persona's nav (quick-access or
-    // other-persona slots) are not shown; we fall back to index 0 in that case.
-    final currentBranchIndex = navigationShell.currentIndex;
-    final selectedIndex = () {
-      final uiIdx = slots.indexWhere(
-        (slot) => slot.branchIndex == currentBranchIndex,
-      );
-      return uiIdx < 0 ? 0 : uiIdx;
-    }();
-
-    final useRail = Responsive.isTablet(context);
-
-    if (useRail) {
-      // ── Tablet / landscape: side NavigationRail ──────────────────────────
-      return Scaffold(
-        body: Row(
-          children: [
-            NavigationRail(
-              selectedIndex: selectedIndex,
-              onDestinationSelected: (uiIndex) =>
-                  navigationShell.goBranch(slots[uiIndex].branchIndex),
-              labelType: NavigationRailLabelType.all,
-              useIndicator: true,
-              destinations: slots
-                  .map(
-                    (slot) => NavigationRailDestination(
-                      icon: NavBadge(
-                        source: slot.badgeSource,
-                        child: HugeIcon(
-                          icon: slot.icon,
-                          size: 24,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      selectedIcon: NavBadge(
-                        source: slot.badgeSource,
-                        child: HugeIcon(
-                          icon: slot.icon,
-                          size: 24,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                      label: Semantics(
-                        label: tr(slot.labelKey),
-                        child: Text(tr(slot.labelKey)),
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
-            const VerticalDivider(width: 1, thickness: 1),
-            Expanded(child: navigationShell),
-          ],
-        ),
-      );
-    }
-
-    // ── Phone: bottom NavigationBar ──────────────────────────────────────────
-    // El FAB de "Inscribir clase" fue movido a ClassesListView para evitar
-    // que se filtre al detalle de clase durante Navigator.push (branch 1 sigue
-    // activo y el Scaffold del shell lo heredaba).
-    return Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedIndex,
-        onDestinationSelected: (uiIndex) =>
-            navigationShell.goBranch(slots[uiIndex].branchIndex),
-        // Each destination is wrapped in Semantics to explicitly declare the
-        // Spanish label and button role, mirroring the NavigationRail label
-        // pattern for screen-reader parity (PR-2 a11y WARNING fix).
-        destinations: slots
-            .map(
-              (slot) => Semantics(
-                label: tr(slot.labelKey),
-                button: true,
-                child: NavigationDestination(
-                  icon: NavBadge(
-                    source: slot.badgeSource,
-                    child: HugeIcon(icon: slot.icon),
-                  ),
-                  selectedIcon: NavBadge(
-                    source: slot.badgeSource,
-                    child: HugeIcon(icon: slot.icon),
-                  ),
-                  label: tr(slot.labelKey),
-                ),
-              ),
-            )
-            .toList(),
-      ),
+    final user = ref.watch(
+      authNotifierProvider.select((v) => v.valueOrNull),
     );
-  }
-}
+    final authorization = user?.authorization;
 
-// ── Coordinator shell ─────────────────────────────────────────────────────────
+    final filteredItems = _filterNavItems(
+      _navItemsConfig,
+      user,
+      authorization,
+    );
 
-/// Coordinator-persona navigation shell.
-///
-/// A dedicated [StatefulShellRoute.indexedStack]-driven shell for the
-/// coordinator persona. Lives outside the main club shell so coordinator
-/// screens (global-scope, no clubId required) never mix with club-scoped
-/// providers (design §4 — separate StatefulShellRoute decision).
-///
-/// Branches (0–4, scoped independently of main shell's 0–17):
-///   0 → Hub          (/coordinator)
-///   1 → Clubes       (/coordinator/clubs)
-///   2 → Reportes     (/coordinator/reports)
-///   3 → Actividades  (/coordinator/coord-activities)
-///   4 → Perfil       (/coordinator/coord-profile)
-///
-/// Context-switch to a club persona: the router.refresh() listener causes
-/// redirect to re-evaluate; resolvePersona() returns a non-coordinator
-/// persona and personaLandingRoute() sends the user to the main shell.
-/// No crash — GoRouter simply unmounts this shell and mounts the main one.
-class _CoordinatorShell extends ConsumerWidget {
-  final StatefulNavigationShell navigationShell;
-
-  const _CoordinatorShell({required this.navigationShell});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Coordinator slot config (branchIndex 0–4, scoped to this shell).
-    final slots = personaNavConfig[Persona.coordinador]!;
-
+    // Map the shell's current branch index to the filtered UI position.
+    // Quick-access branches are not shown in the nav bar, so we fall back to
+    // index 0 (Dashboard) for those cases.
     final currentBranchIndex = navigationShell.currentIndex;
     final selectedIndex = () {
-      final uiIdx = slots.indexWhere(
-        (slot) => slot.branchIndex == currentBranchIndex,
+      final uiIdx = filteredItems.indexWhere(
+        (item) => item.branchIndex == currentBranchIndex,
       );
       return uiIdx < 0 ? 0 : uiIdx;
     }();
@@ -1350,32 +1217,23 @@ class _CoordinatorShell extends ConsumerWidget {
             NavigationRail(
               selectedIndex: selectedIndex,
               onDestinationSelected: (uiIndex) =>
-                  navigationShell.goBranch(slots[uiIndex].branchIndex),
+                  navigationShell.goBranch(filteredItems[uiIndex].branchIndex),
               labelType: NavigationRailLabelType.all,
               useIndicator: true,
-              destinations: slots
+              destinations: filteredItems
                   .map(
-                    (slot) => NavigationRailDestination(
-                      icon: NavBadge(
-                        source: slot.badgeSource,
-                        child: HugeIcon(
-                          icon: slot.icon,
-                          size: 24,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                    (item) => NavigationRailDestination(
+                      icon: HugeIcon(
+                        icon: item.icon,
+                        size: 24,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
-                      selectedIcon: NavBadge(
-                        source: slot.badgeSource,
-                        child: HugeIcon(
-                          icon: slot.icon,
-                          size: 24,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                      selectedIcon: HugeIcon(
+                        icon: item.icon,
+                        size: 24,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
-                      label: Semantics(
-                        label: tr(slot.labelKey),
-                        child: Text(tr(slot.labelKey)),
-                      ),
+                      label: Text(item.label),
                     ),
                   )
                   .toList(),
@@ -1392,19 +1250,13 @@ class _CoordinatorShell extends ConsumerWidget {
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: (uiIndex) =>
-            navigationShell.goBranch(slots[uiIndex].branchIndex),
-        destinations: slots
+            navigationShell.goBranch(filteredItems[uiIndex].branchIndex),
+        destinations: filteredItems
             .map(
-              (slot) => NavigationDestination(
-                icon: NavBadge(
-                  source: slot.badgeSource,
-                  child: HugeIcon(icon: slot.icon),
-                ),
-                selectedIcon: NavBadge(
-                  source: slot.badgeSource,
-                  child: HugeIcon(icon: slot.icon),
-                ),
-                label: tr(slot.labelKey),
+              (item) => NavigationDestination(
+                icon: HugeIcon(icon: item.icon),
+                selectedIcon: HugeIcon(icon: item.icon),
+                label: item.label,
               ),
             )
             .toList(),
