@@ -2669,6 +2669,29 @@
         "leve": "Léger",
         "media": "Moyen",
         "alta": "Élevé"
+      },
+      "hero": {
+        "eyebrow": "GROUPE SANGUIN",
+        "completeness_title": "Fiche complète",
+        "completeness_format": "{filled} sur {total}",
+        "empty_blood": "—",
+        "rh_positive": "Rh positif",
+        "rh_negative": "Rh négatif"
+      },
+      "appbar": {
+        "eyebrow": "PROFIL"
+      },
+      "contact": {
+        "call_aria": "Appeler",
+        "sms_aria": "Envoyer un SMS"
+      },
+      "sos": {
+        "button": "SOS",
+        "coming_soon": "Mode urgence · bientôt disponible"
+      },
+      "empty": {
+        "add_contact_cta": "Ajouter le premier",
+        "no_blood": "Aucun groupe sanguin enregistré · appuyez pour compléter"
       }
     },
     "settings": {

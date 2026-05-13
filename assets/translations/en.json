@@ -2669,6 +2669,29 @@
         "leve": "Mild",
         "media": "Moderate",
         "alta": "High"
+      },
+      "hero": {
+        "eyebrow": "BLOOD TYPE",
+        "completeness_title": "Profile complete",
+        "completeness_format": "{filled} of {total}",
+        "empty_blood": "—",
+        "rh_positive": "Rh positive",
+        "rh_negative": "Rh negative"
+      },
+      "appbar": {
+        "eyebrow": "PROFILE"
+      },
+      "contact": {
+        "call_aria": "Call",
+        "sms_aria": "Send SMS"
+      },
+      "sos": {
+        "button": "SOS",
+        "coming_soon": "Emergency mode · coming soon"
+      },
+      "empty": {
+        "add_contact_cta": "Add first one",
+        "no_blood": "No blood type registered · tap to complete"
       }
     },
     "settings": {
