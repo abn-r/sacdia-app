@@ -601,8 +601,7 @@ class SavePersonalInfoNotifier extends AutoDisposeAsyncNotifier<void> {
       if (selectedAllergies.isNotEmpty) {
         // Post-registration flow: no severity UI yet — default to leve
         final allergyEntries = selectedAllergies
-            .map((id) =>
-                AllergyEntry(id: id, severity: AllergySeverity.leve))
+            .map((id) => AllergyEntry(id: id, severity: AllergySeverity.leve))
             .toList();
         await dataSource.saveUserAllergies(userId, allergyEntries);
       }

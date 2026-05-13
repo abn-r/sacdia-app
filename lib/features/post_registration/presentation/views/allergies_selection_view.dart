@@ -480,8 +480,7 @@ class _AllergiesListWithSeverityState
                   itemBuilder: (context, index) {
                     final item = filteredItems[index];
                     final isNoneOption = item.id == _noneOptionId;
-                    final isSelected =
-                        item.isSelected && !isNoneOption;
+                    final isSelected = item.isSelected && !isNoneOption;
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

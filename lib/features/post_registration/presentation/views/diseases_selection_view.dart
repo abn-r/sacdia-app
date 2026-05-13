@@ -586,8 +586,7 @@ class _SinceYearInlineEditorState extends State<_SinceYearInlineEditor> {
 
     if (year == null || year < 1900 || year > currentYear) {
       setState(() {
-        _errorText =
-            'post_registration.diseases.since_year_invalid'.tr();
+        _errorText = 'post_registration.diseases.since_year_invalid'.tr();
       });
       widget.onChanged(null);
     } else {
