@@ -909,6 +909,19 @@
         "load_error": "Erreur : {error}"
       }
     },
+    "allergies": {
+      "severity_label": "Sévérité"
+    },
+    "diseases": {
+      "since_year_label": "Depuis quelle année ?",
+      "since_year_hint": "Année (ex. 2018)",
+      "since_year_invalid": "Année invalide (1900–présent)"
+    },
+    "medicines": {
+      "dose_label": "Dose",
+      "dose_hint": "ex. 500 mg toutes les 8 h",
+      "dose_too_long": "Maximum 255 caractères"
+    },
     "photo": {
       "title": "Donnez un visage à votre aventure !",
       "subtitle": "Ajoutez une photo pour que votre club vous reconnaisse",
@@ -2651,7 +2664,12 @@
       "blood_type_select_title": "Choisissez votre groupe sanguin",
       "blood_type_select_subtitle": "Cette information figure sur votre carte numérique et est utile en cas d'urgence.",
       "blood_type_updated": "Groupe sanguin mis à jour : {value}",
-      "blood_type_update_failed": "Impossible de mettre à jour le groupe sanguin"
+      "blood_type_update_failed": "Impossible de mettre à jour le groupe sanguin",
+      "severity": {
+        "leve": "Léger",
+        "media": "Moyen",
+        "alta": "Élevé"
+      }
     },
     "settings": {
       "change_password_dialog_title": "Changer le mot de passe",
