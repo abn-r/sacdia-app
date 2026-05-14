@@ -4,10 +4,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../domain/entities/comprobante.dart';
+import '../../domain/entities/material_comprobante_status.dart';
 import '../../domain/entities/material_estado.dart';
 import '../../domain/entities/orden.dart';
 import '../../domain/entities/orden_line.dart';
 import '../providers/cancel_order_provider.dart';
+import '../providers/comprobantes_provider.dart';
 import '../providers/orden_detail_provider.dart';
 import '../utils/money_format.dart';
 import '../widgets/material_estado_badge.dart';
@@ -180,6 +183,17 @@ class _OrdenBody extends ConsumerWidget {
 
           const SizedBox(height: 24),
 
+          // ── Comprobantes (aprobada / pagada / entregada) ───────────────────
+          if (orden.estado == MaterialEstado.aprobada ||
+              orden.estado == MaterialEstado.pagada ||
+              orden.estado == MaterialEstado.entregada) ...[
+            _SectionHeader(title: 'Comprobantes'),
+            const SizedBox(height: 8),
+            _ComprobantesSection(
+                folioOrId: orden.folioReferencia ?? orden.id),
+            const SizedBox(height: 24),
+          ],
+
           // ── Acción según estado ────────────────────────────────────────────
           _ActionCard(orden: orden),
         ],
@@ -269,7 +283,7 @@ class _ActionCard extends ConsumerWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Tu pedido fue aprobado. El campo local te enviará los datos de pago.',
+                    'Tu pedido fue aprobado. Realizá la transferencia y subí el comprobante.',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: AppColors.accentDark,
                     ),
@@ -277,9 +291,25 @@ class _ActionCard extends ConsumerWidget {
                 ],
               ),
             ),
-            // TODO(PR13): replace with datos_pago route when available.
             const SizedBox(height: 12),
-            FilledButton(
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              icon: const Icon(Icons.account_balance_outlined),
+              label: const Text('Ver datos de pago'),
+              onPressed: () => context.push(
+                RouteNames.materialesOrdenPago(
+                    orden.folioReferencia ?? orden.id),
+              ),
+            ),
+            const SizedBox(height: 8),
+            FilledButton.icon(
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -287,8 +317,12 @@ class _ActionCard extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: null, // disabled until PR13
-              child: const Text('Subir comprobante de pago (próximamente)'),
+              icon: const Icon(Icons.upload_file_outlined),
+              label: const Text('Subir comprobante'),
+              onPressed: () => context.push(
+                RouteNames.materialesOrdenComprobante(
+                    orden.folioReferencia ?? orden.id),
+              ),
             ),
           ],
         );
@@ -618,6 +652,180 @@ class _TotalRow extends StatelessWidget {
                 ),
         ),
       ],
+    );
+  }
+}
+
+// ── Comprobantes section ───────────────────────────────────────────────────────
+
+/// Sección que muestra la lista de comprobantes de una orden.
+/// Usa [comprobantesProvider] para cargarlos de forma lazy.
+class _ComprobantesSection extends ConsumerWidget {
+  final String folioOrId;
+  const _ComprobantesSection({required this.folioOrId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final comprobantesAsync = ref.watch(comprobantesProvider(folioOrId));
+
+    return comprobantesAsync.when(
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: CircularProgressIndicator(),
+        ),
+      ),
+      error: (e, _) => const SizedBox.shrink(),
+      data: (comprobantes) {
+        if (comprobantes.isEmpty) {
+          return Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.ink100,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Text(
+              'No hay comprobantes subidos aún.',
+              style: TextStyle(color: AppColors.lightTextSecondary),
+            ),
+          );
+        }
+        return Column(
+          children: [
+            for (int i = 0; i < comprobantes.length; i++)
+              Padding(
+                padding: EdgeInsets.only(bottom: i < comprobantes.length - 1 ? 8 : 0),
+                child: _ComprobanteCard(comprobante: comprobantes[i]),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ComprobanteCard extends StatelessWidget {
+  final Comprobante comprobante;
+  const _ComprobanteCard({required this.comprobante});
+
+  Color get _statusColor {
+    switch (comprobante.status) {
+      case MaterialComprobanteStatus.aprobado:
+        return AppColors.secondaryDark;
+      case MaterialComprobanteStatus.rechazado:
+        return AppColors.errorDark;
+      case MaterialComprobanteStatus.pendiente:
+        return AppColors.accentDark;
+    }
+  }
+
+  Color get _statusBg {
+    switch (comprobante.status) {
+      case MaterialComprobanteStatus.aprobado:
+        return AppColors.secondaryLight;
+      case MaterialComprobanteStatus.rechazado:
+        return AppColors.errorLight;
+      case MaterialComprobanteStatus.pendiente:
+        return AppColors.accentLight;
+    }
+  }
+
+  String get _statusLabel {
+    switch (comprobante.status) {
+      case MaterialComprobanteStatus.aprobado:
+        return 'Aprobado';
+      case MaterialComprobanteStatus.rechazado:
+        return 'Rechazado';
+      case MaterialComprobanteStatus.pendiente:
+        return 'Pendiente';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: AppColors.lightBorder),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.insert_drive_file_outlined,
+                    size: 18, color: AppColors.lightTextSecondary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    comprobante.fileName,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: _statusBg,
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: Text(
+                    _statusLabel,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: _statusColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              formatMxn(comprobante.montoCentavos),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.lightTextSecondary,
+              ),
+            ),
+            if (comprobante.rejectReason != null &&
+                comprobante.rejectReason!.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.errorLight,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.info_outline,
+                        size: 14, color: AppColors.errorDark),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        comprobante.rejectReason!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.errorDark,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }

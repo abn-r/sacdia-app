@@ -55,10 +55,12 @@ import 'package:sacdia_app/features/support/presentation/views/contact_view.dart
 import 'package:sacdia_app/features/support/presentation/views/report_problem_view.dart';
 import 'package:sacdia_app/features/materiales/presentation/screens/carrito_screen.dart';
 import 'package:sacdia_app/features/materiales/presentation/screens/catalogo_screen.dart';
+import 'package:sacdia_app/features/materiales/presentation/screens/datos_pago_screen.dart';
 import 'package:sacdia_app/features/materiales/presentation/screens/detalle_producto_screen.dart';
 import 'package:sacdia_app/features/materiales/presentation/screens/historial_screen.dart';
 import 'package:sacdia_app/features/materiales/presentation/screens/orden_review_screen.dart';
 import 'package:sacdia_app/features/materiales/presentation/screens/resumen_screen.dart';
+import 'package:sacdia_app/features/materiales/presentation/screens/subir_comprobante_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/member_breakdown_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/my_ranking_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/section_ranking_screen.dart';
@@ -1125,6 +1127,32 @@ final routerProvider = Provider<GoRouter>((ref) {
             context,
             state,
             OrdenReviewScreen(folioOrId: folioOrId),
+          );
+        },
+      ),
+
+      // Materiales — datos bancarios para pago (push, fuera del shell)
+      GoRoute(
+        path: RouteNames.materialesOrdenPagoRoute,
+        pageBuilder: (context, state) {
+          final folioOrId = state.pathParameters['folio']!;
+          return _sharedAxisBuild(
+            context,
+            state,
+            DatosPagoScreen(folioOrId: folioOrId),
+          );
+        },
+      ),
+
+      // Materiales — subir comprobante de pago (push, fuera del shell)
+      GoRoute(
+        path: RouteNames.materialesOrdenComprobanteRoute,
+        pageBuilder: (context, state) {
+          final folioOrId = state.pathParameters['folio']!;
+          return _sharedAxisBuild(
+            context,
+            state,
+            SubirComprobanteScreen(folioOrId: folioOrId),
           );
         },
       ),
