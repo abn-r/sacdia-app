@@ -2687,7 +2687,47 @@
       },
       "sos": {
         "button": "SOS",
-        "coming_soon": "Modo emergencia · próximamente"
+        "coming_soon": "Modo emergencia · próximamente",
+        "title": "EMERGENCIA SOS",
+        "live_badge": "EN VIVO",
+        "hero": {
+          "age_years": "{age} años",
+          "blood_label": "Tipo de sangre: {blood}",
+          "blood_unknown_label": "Tipo de sangre no registrado",
+          "blood_unknown_desc": "Tipo de sangre no registrado"
+        },
+        "critical_allergies_label": "ALERGIAS GRAVES",
+        "no_severe_allergies": "Sin alergias graves registradas",
+        "actions": {
+          "call_primary": "LLAMAR A {name}",
+          "call_first_contact": "LLAMAR PRIMER CONTACTO",
+          "call_911": "LLAMAR 911",
+          "share_gps": "COMPARTIR UBICACIÓN POR SMS",
+          "gps_acquiring": "Obteniendo ubicación…",
+          "gps_launching": "Abriendo SMS…",
+          "gps_sent": "Ubicación enviada",
+          "gps_failed": "No se pudo obtener ubicación"
+        },
+        "contacts_section_title": "CONTACTOS",
+        "more_contacts": "Más contactos ({count})",
+        "empty": {
+          "no_contacts": "Agregá un contacto en tu perfil",
+          "go_to_profile": "Ir a mi perfil",
+          "no_primary_contact": "Sin contacto primario"
+        },
+        "gps": {
+          "sms_body": "EMERGENCIA — {name}. Ubicación: {url} (precisión ±{accuracy}m, {time})",
+          "permission_title": "Permiso de ubicación requerido",
+          "permission_body": "Necesitamos acceso a tu ubicación para enviar tu posición exacta en la emergencia.",
+          "permission_open_settings": "Abrir ajustes",
+          "permission_cancel": "Cancelar"
+        },
+        "errors": {
+          "load_failed": "Error al cargar datos médicos",
+          "call_failed": "No se pudo realizar la llamada. Revisá señal o modo avión.",
+          "retry": "Reintentar",
+          "dismiss": "Cerrar"
+        }
       },
       "empty": {
         "add_contact_cta": "Agregar el primero",

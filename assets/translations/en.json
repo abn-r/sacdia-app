@@ -2687,7 +2687,47 @@
       },
       "sos": {
         "button": "SOS",
-        "coming_soon": "Emergency mode · coming soon"
+        "coming_soon": "Emergency mode · coming soon",
+        "title": "SOS EMERGENCY",
+        "live_badge": "LIVE",
+        "hero": {
+          "age_years": "{age} years old",
+          "blood_label": "Blood type: {blood}",
+          "blood_unknown_label": "Blood type not registered",
+          "blood_unknown_desc": "Blood type not registered"
+        },
+        "critical_allergies_label": "SEVERE ALLERGIES",
+        "no_severe_allergies": "No severe allergies on record",
+        "actions": {
+          "call_primary": "CALL {name}",
+          "call_first_contact": "CALL FIRST CONTACT",
+          "call_911": "CALL 911",
+          "share_gps": "SHARE LOCATION VIA SMS",
+          "gps_acquiring": "Getting location…",
+          "gps_launching": "Opening SMS…",
+          "gps_sent": "Location sent",
+          "gps_failed": "Could not get location"
+        },
+        "contacts_section_title": "CONTACTS",
+        "more_contacts": "More contacts ({count})",
+        "empty": {
+          "no_contacts": "Add a contact in your profile",
+          "go_to_profile": "Go to my profile",
+          "no_primary_contact": "No primary contact"
+        },
+        "gps": {
+          "sms_body": "EMERGENCY — {name}. Location: {url} (accuracy ±{accuracy}m, {time})",
+          "permission_title": "Location permission required",
+          "permission_body": "We need access to your location to share your exact position during an emergency.",
+          "permission_open_settings": "Open settings",
+          "permission_cancel": "Cancel"
+        },
+        "errors": {
+          "load_failed": "Error loading medical data",
+          "call_failed": "Call failed. Check signal or airplane mode.",
+          "retry": "Retry",
+          "dismiss": "Dismiss"
+        }
       },
       "empty": {
         "add_contact_cta": "Add first one",

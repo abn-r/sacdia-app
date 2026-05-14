@@ -88,6 +88,11 @@ class MedicoTokens {
   static const sectionIconBox = 38.0;
   static const sectionIconRadius = 11.0;
 
+  // ────────── SOS-SPECIFIC TOKENS ──────────
+  static const sosCanvas = Color(0xFFFFF7F5);
+  static const sosInkOnCoral = Color(0xFFFFFFFF);
+  static const sosCritical = coral600; // semantic alias para coral600
+
   // ────────── HELPERS ──────────
   /// Tonos de chip por nivel de severidad.
   static ChipTone toneFor(SeverityTone t) {

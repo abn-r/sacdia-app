@@ -24,7 +24,7 @@ import '../widgets/medico/medical_chip.dart';
 import '../widgets/medico/contact_tile.dart';
 import '../widgets/medico/medicament_tile.dart';
 import '../widgets/medico/empty_hint.dart';
-import 'emergency_mode_view.dart';
+import 'medical_sos_view.dart';
 
 /// Mapea [AllergySeverity] a [SeverityTone] para renderizar chips.
 SeverityTone _severityTone(AllergySeverity severity) => switch (severity) {
@@ -129,7 +129,7 @@ class MedicalInfoView extends ConsumerWidget {
             children: [
               _MedicoAppBar(
                 onBack: () => Navigator.of(context).maybePop(),
-                onSOS: () => context.push(EmergencyModeView.routeName),
+                onSOS: () => context.push(MedicalSosView.routeName),
               ),
               Expanded(
                 child: ListView(
