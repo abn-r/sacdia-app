@@ -56,6 +56,9 @@ import 'package:sacdia_app/features/support/presentation/views/report_problem_vi
 import 'package:sacdia_app/features/materiales/presentation/screens/carrito_screen.dart';
 import 'package:sacdia_app/features/materiales/presentation/screens/catalogo_screen.dart';
 import 'package:sacdia_app/features/materiales/presentation/screens/detalle_producto_screen.dart';
+import 'package:sacdia_app/features/materiales/presentation/screens/historial_screen.dart';
+import 'package:sacdia_app/features/materiales/presentation/screens/orden_review_screen.dart';
+import 'package:sacdia_app/features/materiales/presentation/screens/resumen_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/member_breakdown_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/my_ranking_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/section_ranking_screen.dart';
@@ -1097,6 +1100,33 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RouteNames.materialesCarrito,
         pageBuilder: (context, state) =>
             _sharedAxisBuild(context, state, const CarritoScreen()),
+      ),
+
+      // Materiales — resumen y confirmación de pedido (push, fuera del shell)
+      GoRoute(
+        path: RouteNames.materialesResumen,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const ResumenScreen()),
+      ),
+
+      // Materiales — historial de pedidos (push, fuera del shell)
+      GoRoute(
+        path: RouteNames.materialesHistorial,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const HistorialScreen()),
+      ),
+
+      // Materiales — detalle de orden por folio o ID (push, fuera del shell)
+      GoRoute(
+        path: RouteNames.materialesOrdenDetailRoute,
+        pageBuilder: (context, state) {
+          final folioOrId = state.pathParameters['folio']!;
+          return _sharedAxisBuild(
+            context,
+            state,
+            OrdenReviewScreen(folioOrId: folioOrId),
+          );
+        },
       ),
 
       // OAuth callback deep link — io.sacdia.app://auth/callback?session_token=...&provider=...

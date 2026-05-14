@@ -179,10 +179,17 @@ class RouteNames {
   static const String homeMateriales = '/home/materiales';
   static const String materialesProductDetail = '/home/materiales/producto/:id';
   static const String materialesCarrito = '/home/materiales/carrito';
+  static const String materialesResumen = '/home/materiales/resumen';
+  static const String materialesHistorial = '/home/materiales/historial';
+  static const String materialesOrdenDetailRoute =
+      '/home/materiales/orden/:folio';
 
   // Helpers para materiales
   static String materialesProductDetailPath(String id) =>
       '/home/materiales/producto/$id';
+
+  static String materialesOrdenDetail(String folioOrId) =>
+      '/home/materiales/orden/$folioOrId';
 
   // Rankings
   static const String homeMyRanking = '/home/my-ranking';

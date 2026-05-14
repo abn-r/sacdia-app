@@ -107,10 +107,8 @@ class CarritoScreen extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      // PR12 defines the resumen route — placeholder push for now
-                      onPressed: () => context.push(
-                        '${RouteNames.homeMateriales}/resumen',
-                      ),
+                      onPressed: () =>
+                          context.push(RouteNames.materialesResumen),
                       child: const Text(
                         'Continuar',
                         style: TextStyle(

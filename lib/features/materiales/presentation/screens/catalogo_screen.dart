@@ -64,6 +64,11 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
       appBar: AppBar(
         title: const Text('Materiales'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.receipt_long_outlined),
+            tooltip: 'Mis pedidos',
+            onPressed: () => context.push(RouteNames.materialesHistorial),
+          ),
           Stack(
             alignment: Alignment.topRight,
             children: [
