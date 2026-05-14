@@ -178,31 +178,31 @@ class RouteNames {
   static String camporeeEnrollClubPath(int camporeeId) =>
       '/camporee/$camporeeId/enroll-club';
 
-  // Materiales (pedidos)
-  static const String homeMateriales = '/home/materiales';
-  static const String materialesProductDetail = '/home/materiales/producto/:id';
-  static const String materialesCarrito = '/home/materiales/carrito';
-  static const String materialesResumen = '/home/materiales/resumen';
-  static const String materialesHistorial = '/home/materiales/historial';
-  static const String materialesOrdenDetailRoute =
-      '/home/materiales/orden/:folio';
-  static const String materialesOrdenPagoRoute =
-      '/home/materiales/orden/:folio/pago';
-  static const String materialesOrdenComprobanteRoute =
-      '/home/materiales/orden/:folio/comprobante';
+  // Materials (orders)
+  static const String homeMaterials = '/home/materials';
+  static const String materialsProductDetail = '/home/materials/product/:id';
+  static const String materialsCart = '/home/materials/cart';
+  static const String materialsSummary = '/home/materials/summary';
+  static const String materialsHistory = '/home/materials/history';
+  static const String materialsOrderDetailRoute =
+      '/home/materials/order/:folio';
+  static const String materialsOrderPaymentRoute =
+      '/home/materials/order/:folio/payment';
+  static const String materialsOrderReceiptRoute =
+      '/home/materials/order/:folio/receipt';
 
-  // Helpers para materiales
-  static String materialesProductDetailPath(String id) =>
-      '/home/materiales/producto/$id';
+  // Helpers for materials
+  static String materialsProductDetailPath(String id) =>
+      '/home/materials/product/$id';
 
-  static String materialesOrdenDetail(String folioOrId) =>
-      '/home/materiales/orden/$folioOrId';
+  static String materialsOrderDetail(String folioOrId) =>
+      '/home/materials/order/$folioOrId';
 
-  static String materialesOrdenPago(String folioOrId) =>
-      '/home/materiales/orden/$folioOrId/pago';
+  static String materialsOrderPayment(String folioOrId) =>
+      '/home/materials/order/$folioOrId/payment';
 
-  static String materialesOrdenComprobante(String folioOrId) =>
-      '/home/materiales/orden/$folioOrId/comprobante';
+  static String materialsOrderReceipt(String folioOrId) =>
+      '/home/materials/order/$folioOrId/receipt';
 
   // Rankings
   static const String homeMyRanking = '/home/my-ranking';

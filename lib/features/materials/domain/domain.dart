@@ -1,0 +1,24 @@
+// Domain barrel — entities, repositories, usecases
+export 'entities/receipt.dart';
+export 'entities/material_category.dart';
+export 'entities/material_receipt_status.dart';
+export 'entities/material_config.dart';
+export 'entities/material_disponibilidad.dart';
+export 'entities/material_delivery.dart';
+export 'entities/material_status.dart';
+export 'entities/material_item.dart';
+export 'entities/material_program.dart';
+export 'entities/material_variant.dart';
+export 'entities/material_variant_option.dart';
+export 'entities/material_variant_type.dart';
+export 'entities/order.dart';
+export 'entities/order_line.dart';
+export 'repositories/materials_repository.dart';
+export 'usecases/browse_catalog.dart';
+export 'usecases/cancel_order.dart';
+export 'usecases/create_order.dart';
+export 'usecases/get_config.dart';
+export 'usecases/get_order_detail.dart';
+export 'usecases/get_order_history.dart';
+export 'usecases/get_product_detail.dart';
+export 'usecases/upload_receipt.dart';

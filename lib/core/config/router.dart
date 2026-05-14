@@ -53,14 +53,14 @@ import 'package:sacdia_app/features/support/presentation/views/support_view.dart
 import 'package:sacdia_app/features/support/presentation/views/faq_view.dart';
 import 'package:sacdia_app/features/support/presentation/views/contact_view.dart';
 import 'package:sacdia_app/features/support/presentation/views/report_problem_view.dart';
-import 'package:sacdia_app/features/materiales/presentation/screens/carrito_screen.dart';
-import 'package:sacdia_app/features/materiales/presentation/screens/catalogo_screen.dart';
-import 'package:sacdia_app/features/materiales/presentation/screens/datos_pago_screen.dart';
-import 'package:sacdia_app/features/materiales/presentation/screens/detalle_producto_screen.dart';
-import 'package:sacdia_app/features/materiales/presentation/screens/historial_screen.dart';
-import 'package:sacdia_app/features/materiales/presentation/screens/orden_review_screen.dart';
-import 'package:sacdia_app/features/materiales/presentation/screens/resumen_screen.dart';
-import 'package:sacdia_app/features/materiales/presentation/screens/subir_comprobante_screen.dart';
+import 'package:sacdia_app/features/materials/presentation/views/cart_view.dart';
+import 'package:sacdia_app/features/materials/presentation/views/catalog_view.dart';
+import 'package:sacdia_app/features/materials/presentation/views/payment_details_view.dart';
+import 'package:sacdia_app/features/materials/presentation/views/product_detail_view.dart';
+import 'package:sacdia_app/features/materials/presentation/views/order_history_view.dart';
+import 'package:sacdia_app/features/materials/presentation/views/order_review_view.dart';
+import 'package:sacdia_app/features/materials/presentation/views/order_summary_view.dart';
+import 'package:sacdia_app/features/materials/presentation/views/upload_receipt_view.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/member_breakdown_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/my_ranking_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/section_ranking_screen.dart';
@@ -556,11 +556,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: RouteNames.homeMateriales,
+                path: RouteNames.homeMaterials,
                 pageBuilder: (context, state) => _fadeThroughBuild(
                   context,
                   state,
-                  const CatalogoScreen(),
+                  const CatalogView(),
                 ),
               ),
             ],
@@ -1094,73 +1094,73 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Materiales — detalle de producto (push, fuera del shell)
       GoRoute(
-        path: RouteNames.materialesProductDetail,
+        path: RouteNames.materialsProductDetail,
         pageBuilder: (context, state) {
           final productId = state.pathParameters['id']!;
           return _sharedAxisBuild(
             context,
             state,
-            DetalleProductoScreen(productId: productId),
+            ProductDetailView(productId: productId),
           );
         },
       ),
 
       // Materiales — carrito (push, fuera del shell)
       GoRoute(
-        path: RouteNames.materialesCarrito,
+        path: RouteNames.materialsCart,
         pageBuilder: (context, state) =>
-            _sharedAxisBuild(context, state, const CarritoScreen()),
+            _sharedAxisBuild(context, state, const CartView()),
       ),
 
       // Materiales — resumen y confirmación de pedido (push, fuera del shell)
       GoRoute(
-        path: RouteNames.materialesResumen,
+        path: RouteNames.materialsSummary,
         pageBuilder: (context, state) =>
-            _sharedAxisBuild(context, state, const ResumenScreen()),
+            _sharedAxisBuild(context, state, const OrderSummaryView()),
       ),
 
       // Materiales — historial de pedidos (push, fuera del shell)
       GoRoute(
-        path: RouteNames.materialesHistorial,
+        path: RouteNames.materialsHistory,
         pageBuilder: (context, state) =>
-            _sharedAxisBuild(context, state, const HistorialScreen()),
+            _sharedAxisBuild(context, state, const OrderHistoryView()),
       ),
 
       // Materiales — detalle de orden por folio o ID (push, fuera del shell)
       GoRoute(
-        path: RouteNames.materialesOrdenDetailRoute,
+        path: RouteNames.materialsOrderDetailRoute,
         pageBuilder: (context, state) {
           final folioOrId = state.pathParameters['folio']!;
           return _sharedAxisBuild(
             context,
             state,
-            OrdenReviewScreen(folioOrId: folioOrId),
+            OrderReviewView(folioOrId: folioOrId),
           );
         },
       ),
 
       // Materiales — datos bancarios para pago (push, fuera del shell)
       GoRoute(
-        path: RouteNames.materialesOrdenPagoRoute,
+        path: RouteNames.materialsOrderPaymentRoute,
         pageBuilder: (context, state) {
           final folioOrId = state.pathParameters['folio']!;
           return _sharedAxisBuild(
             context,
             state,
-            DatosPagoScreen(folioOrId: folioOrId),
+            PaymentDetailsView(folioOrId: folioOrId),
           );
         },
       ),
 
       // Materiales — subir comprobante de pago (push, fuera del shell)
       GoRoute(
-        path: RouteNames.materialesOrdenComprobanteRoute,
+        path: RouteNames.materialsOrderReceiptRoute,
         pageBuilder: (context, state) {
           final folioOrId = state.pathParameters['folio']!;
           return _sharedAxisBuild(
             context,
             state,
-            SubirComprobanteScreen(folioOrId: folioOrId),
+            UploadReceiptView(folioOrId: folioOrId),
           );
         },
       ),
