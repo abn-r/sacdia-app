@@ -178,6 +178,32 @@ class RouteNames {
   static String camporeeEnrollClubPath(int camporeeId) =>
       '/camporee/$camporeeId/enroll-club';
 
+  // Materiales (pedidos)
+  static const String homeMateriales = '/home/materiales';
+  static const String materialesProductDetail = '/home/materiales/producto/:id';
+  static const String materialesCarrito = '/home/materiales/carrito';
+  static const String materialesResumen = '/home/materiales/resumen';
+  static const String materialesHistorial = '/home/materiales/historial';
+  static const String materialesOrdenDetailRoute =
+      '/home/materiales/orden/:folio';
+  static const String materialesOrdenPagoRoute =
+      '/home/materiales/orden/:folio/pago';
+  static const String materialesOrdenComprobanteRoute =
+      '/home/materiales/orden/:folio/comprobante';
+
+  // Helpers para materiales
+  static String materialesProductDetailPath(String id) =>
+      '/home/materiales/producto/$id';
+
+  static String materialesOrdenDetail(String folioOrId) =>
+      '/home/materiales/orden/$folioOrId';
+
+  static String materialesOrdenPago(String folioOrId) =>
+      '/home/materiales/orden/$folioOrId/pago';
+
+  static String materialesOrdenComprobante(String folioOrId) =>
+      '/home/materiales/orden/$folioOrId/comprobante';
+
   // Rankings
   static const String homeMyRanking = '/home/my-ranking';
   static const String sectionRanking = '/section-ranking/:sectionId';

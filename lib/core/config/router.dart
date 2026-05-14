@@ -53,6 +53,14 @@ import 'package:sacdia_app/features/support/presentation/views/support_view.dart
 import 'package:sacdia_app/features/support/presentation/views/faq_view.dart';
 import 'package:sacdia_app/features/support/presentation/views/contact_view.dart';
 import 'package:sacdia_app/features/support/presentation/views/report_problem_view.dart';
+import 'package:sacdia_app/features/materiales/presentation/screens/carrito_screen.dart';
+import 'package:sacdia_app/features/materiales/presentation/screens/catalogo_screen.dart';
+import 'package:sacdia_app/features/materiales/presentation/screens/datos_pago_screen.dart';
+import 'package:sacdia_app/features/materiales/presentation/screens/detalle_producto_screen.dart';
+import 'package:sacdia_app/features/materiales/presentation/screens/historial_screen.dart';
+import 'package:sacdia_app/features/materiales/presentation/screens/orden_review_screen.dart';
+import 'package:sacdia_app/features/materiales/presentation/screens/resumen_screen.dart';
+import 'package:sacdia_app/features/materiales/presentation/screens/subir_comprobante_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/member_breakdown_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/my_ranking_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/section_ranking_screen.dart';
@@ -539,6 +547,20 @@ final routerProvider = Provider<GoRouter>((ref) {
                   context,
                   state,
                   const MyRankingScreen(),
+                ),
+              ),
+            ],
+          ),
+
+          // ── Branch 18: Materiales / Pedidos (quick-access, no nav bar) ────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeMateriales,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const CatalogoScreen(),
                 ),
               ),
             ],
@@ -1068,6 +1090,79 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: ReportProblemView.routeName,
         pageBuilder: (context, state) =>
             _sharedAxisBuild(context, state, const ReportProblemView()),
+      ),
+
+      // Materiales — detalle de producto (push, fuera del shell)
+      GoRoute(
+        path: RouteNames.materialesProductDetail,
+        pageBuilder: (context, state) {
+          final productId = state.pathParameters['id']!;
+          return _sharedAxisBuild(
+            context,
+            state,
+            DetalleProductoScreen(productId: productId),
+          );
+        },
+      ),
+
+      // Materiales — carrito (push, fuera del shell)
+      GoRoute(
+        path: RouteNames.materialesCarrito,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const CarritoScreen()),
+      ),
+
+      // Materiales — resumen y confirmación de pedido (push, fuera del shell)
+      GoRoute(
+        path: RouteNames.materialesResumen,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const ResumenScreen()),
+      ),
+
+      // Materiales — historial de pedidos (push, fuera del shell)
+      GoRoute(
+        path: RouteNames.materialesHistorial,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const HistorialScreen()),
+      ),
+
+      // Materiales — detalle de orden por folio o ID (push, fuera del shell)
+      GoRoute(
+        path: RouteNames.materialesOrdenDetailRoute,
+        pageBuilder: (context, state) {
+          final folioOrId = state.pathParameters['folio']!;
+          return _sharedAxisBuild(
+            context,
+            state,
+            OrdenReviewScreen(folioOrId: folioOrId),
+          );
+        },
+      ),
+
+      // Materiales — datos bancarios para pago (push, fuera del shell)
+      GoRoute(
+        path: RouteNames.materialesOrdenPagoRoute,
+        pageBuilder: (context, state) {
+          final folioOrId = state.pathParameters['folio']!;
+          return _sharedAxisBuild(
+            context,
+            state,
+            DatosPagoScreen(folioOrId: folioOrId),
+          );
+        },
+      ),
+
+      // Materiales — subir comprobante de pago (push, fuera del shell)
+      GoRoute(
+        path: RouteNames.materialesOrdenComprobanteRoute,
+        pageBuilder: (context, state) {
+          final folioOrId = state.pathParameters['folio']!;
+          return _sharedAxisBuild(
+            context,
+            state,
+            SubirComprobanteScreen(folioOrId: folioOrId),
+          );
+        },
       ),
 
       // OAuth callback deep link — io.sacdia.app://auth/callback?session_token=...&provider=...
