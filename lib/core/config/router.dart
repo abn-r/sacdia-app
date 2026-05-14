@@ -53,6 +53,9 @@ import 'package:sacdia_app/features/support/presentation/views/support_view.dart
 import 'package:sacdia_app/features/support/presentation/views/faq_view.dart';
 import 'package:sacdia_app/features/support/presentation/views/contact_view.dart';
 import 'package:sacdia_app/features/support/presentation/views/report_problem_view.dart';
+import 'package:sacdia_app/features/materiales/presentation/screens/carrito_screen.dart';
+import 'package:sacdia_app/features/materiales/presentation/screens/catalogo_screen.dart';
+import 'package:sacdia_app/features/materiales/presentation/screens/detalle_producto_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/member_breakdown_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/my_ranking_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/section_ranking_screen.dart';
@@ -538,6 +541,20 @@ final routerProvider = Provider<GoRouter>((ref) {
                   context,
                   state,
                   const MyRankingScreen(),
+                ),
+              ),
+            ],
+          ),
+
+          // ── Branch 18: Materiales / Pedidos (quick-access, no nav bar) ────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeMateriales,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const CatalogoScreen(),
                 ),
               ),
             ],
@@ -1060,6 +1077,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: ReportProblemView.routeName,
         pageBuilder: (context, state) =>
             _sharedAxisBuild(context, state, const ReportProblemView()),
+      ),
+
+      // Materiales — detalle de producto (push, fuera del shell)
+      GoRoute(
+        path: RouteNames.materialesProductDetail,
+        pageBuilder: (context, state) {
+          final productId = state.pathParameters['id']!;
+          return _sharedAxisBuild(
+            context,
+            state,
+            DetalleProductoScreen(productId: productId),
+          );
+        },
+      ),
+
+      // Materiales — carrito (push, fuera del shell)
+      GoRoute(
+        path: RouteNames.materialesCarrito,
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const CarritoScreen()),
       ),
 
       // OAuth callback deep link — io.sacdia.app://auth/callback?session_token=...&provider=...

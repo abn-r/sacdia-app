@@ -122,6 +122,14 @@ final List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
     route: RouteNames.homeInventory,
     requiredPermissions: {'inventory:read'},
   ),
+  // Pedidos de materiales — materiales:create es el permiso de directores
+  _QuickAccessItemConfig(
+    labelKey: 'dashboard.quick_access.materiales',
+    icon: HugeIcons.strokeRoundedShoppingCart01,
+    color: AppColors.info,
+    route: RouteNames.homeMateriales,
+    requiredPermissions: {'materiales:create'},
+  ),
   // Club-wide shared resources — folders:read is granted to every club role.
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.resources',

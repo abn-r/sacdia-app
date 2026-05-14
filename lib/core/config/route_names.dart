@@ -175,6 +175,15 @@ class RouteNames {
   static String camporeeEnrollClubPath(int camporeeId) =>
       '/camporee/$camporeeId/enroll-club';
 
+  // Materiales (pedidos)
+  static const String homeMateriales = '/home/materiales';
+  static const String materialesProductDetail = '/home/materiales/producto/:id';
+  static const String materialesCarrito = '/home/materiales/carrito';
+
+  // Helpers para materiales
+  static String materialesProductDetailPath(String id) =>
+      '/home/materiales/producto/$id';
+
   // Rankings
   static const String homeMyRanking = '/home/my-ranking';
   static const String sectionRanking = '/section-ranking/:sectionId';
