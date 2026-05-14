@@ -53,13 +53,10 @@ class ComprobanteModel extends Comprobante {
       status: MaterialComprobanteStatusX.fromString(
         (json['status'] ?? 'pendiente').toString(),
       ),
-      signedUrl:
-          (json['signed_url'] ?? json['signedUrl'])?.toString(),
+      signedUrl: (json['signed_url'] ?? json['signedUrl'])?.toString(),
       uploadedBy: (json['uploaded_by'] ?? json['uploadedBy'] ?? '').toString(),
-      validatedBy:
-          (json['validated_by'] ?? json['validatedBy'])?.toString(),
-      rejectReason:
-          (json['reject_reason'] ?? json['rejectReason'])?.toString(),
+      validatedBy: (json['validated_by'] ?? json['validatedBy'])?.toString(),
+      rejectReason: (json['reject_reason'] ?? json['rejectReason'])?.toString(),
       createdAt: DateTime.tryParse(
               (json['created_at'] ?? json['createdAt'] ?? '').toString()) ??
           DateTime.now(),

@@ -300,8 +300,8 @@ class _FormBody extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               fileError!,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: AppColors.error),
+              style:
+                  theme.textTheme.bodySmall?.copyWith(color: AppColors.error),
             ),
           ],
 
@@ -344,8 +344,7 @@ class _FormBody extends StatelessWidget {
           GestureDetector(
             onTap: onPickDate,
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.lightBorder),
                 borderRadius: BorderRadius.circular(4),

@@ -106,8 +106,7 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
         children: [
           // ── Search ──
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: TextField(
               controller: _searchController,
               onChanged: _onSearchChanged,
@@ -116,16 +115,13 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                      const BorderSide(color: AppColors.lightBorder),
+                  borderSide: const BorderSide(color: AppColors.lightBorder),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                      const BorderSide(color: AppColors.lightBorder),
+                  borderSide: const BorderSide(color: AppColors.lightBorder),
                 ),
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 10),
+                contentPadding: const EdgeInsets.symmetric(vertical: 10),
               ),
             ),
           ),
@@ -145,15 +141,13 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
                     _FilterChip(
                       label: 'Todos',
                       selected: _selectedProgramaId == null,
-                      onTap: () =>
-                          setState(() => _selectedProgramaId = null),
+                      onTap: () => setState(() => _selectedProgramaId = null),
                     ),
                     ...programas.map(
                       (p) => _FilterChip(
                         label: p.label,
                         selected: _selectedProgramaId == p.id,
-                        onTap: () =>
-                            setState(() => _selectedProgramaId = p.id),
+                        onTap: () => setState(() => _selectedProgramaId = p.id),
                       ),
                     ),
                   ],
@@ -174,21 +168,18 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
                   height: 36,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     children: [
                       _FilterChip(
                         label: 'Categorías',
                         selected: _selectedCat == null,
-                        onTap: () =>
-                            setState(() => _selectedCat = null),
+                        onTap: () => setState(() => _selectedCat = null),
                       ),
                       ...cats.map(
                         (c) => _FilterChip(
                           label: c.label,
                           selected: _selectedCat == c.slug,
-                          onTap: () =>
-                              setState(() => _selectedCat = c.slug),
+                          onTap: () => setState(() => _selectedCat = c.slug),
                         ),
                       ),
                     ],
@@ -218,21 +209,18 @@ class _CatalogoScreenState extends ConsumerState<CatalogoScreen> {
                 if (state.items.isEmpty && state.errorMessage != null) {
                   return _ErrorState(
                     message: state.errorMessage!,
-                    onRetry: () =>
-                        ref.invalidate(catalogProvider(_query)),
+                    onRetry: () => ref.invalidate(catalogProvider(_query)),
                   );
                 }
                 return GridView.builder(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisSpacing: 12,
                     crossAxisSpacing: 12,
                     childAspectRatio: 0.75,
                   ),
-                  itemCount:
-                      state.items.length + (state.hasMore ? 1 : 0),
+                  itemCount: state.items.length + (state.hasMore ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (index == state.items.length) {
                       return _LoadMoreButton(
@@ -281,15 +269,12 @@ class _FilterChip extends StatelessWidget {
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          padding:
-              const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
             color: selected ? AppColors.primary : AppColors.lightSurface,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: selected
-                  ? AppColors.primary
-                  : AppColors.lightBorder,
+              color: selected ? AppColors.primary : AppColors.lightBorder,
             ),
           ),
           child: Text(
@@ -315,7 +300,8 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.inventory_2_outlined, size: 56, color: AppColors.lightTextTertiary),
+          Icon(Icons.inventory_2_outlined,
+              size: 56, color: AppColors.lightTextTertiary),
           SizedBox(height: 16),
           Text(
             'No hay productos disponibles',

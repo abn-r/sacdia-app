@@ -50,9 +50,7 @@ class ProductCard extends StatelessWidget {
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  item.title.isNotEmpty
-                      ? item.title[0].toUpperCase()
-                      : '?',
+                  item.title.isNotEmpty ? item.title[0].toUpperCase() : '?',
                   style: TextStyle(
                     fontSize: 36,
                     fontWeight: FontWeight.bold,
@@ -64,8 +62,7 @@ class ProductCard extends StatelessWidget {
 
             // Info section
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

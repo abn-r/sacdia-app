@@ -43,6 +43,16 @@ class MaterialItem extends Equatable {
   bool get hasStock => stock > 0;
 
   @override
-  List<Object?> get props =>
-      [id, sku, title, description, category, programa, priceCentavos, stock, active, variant];
+  List<Object?> get props => [
+        id,
+        sku,
+        title,
+        description,
+        category,
+        programa,
+        priceCentavos,
+        stock,
+        active,
+        variant
+      ];
 }

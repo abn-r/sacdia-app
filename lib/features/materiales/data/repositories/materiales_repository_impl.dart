@@ -192,8 +192,7 @@ class MaterialesRepositoryImpl implements MaterialesRepository {
   Future<Either<Failure, Orden>> cancelOrder(
       String folioOrId, String reason) async {
     try {
-      final model =
-          await remoteDataSource.cancelOrder(folioOrId, reason);
+      final model = await remoteDataSource.cancelOrder(folioOrId, reason);
       return Right(model.toEntity());
     } on NotFoundException catch (e) {
       return Left(NotFoundFailure(message: e.message, code: e.code));
@@ -212,8 +211,7 @@ class MaterialesRepositoryImpl implements MaterialesRepository {
   Future<Either<Failure, List<Comprobante>>> listComprobantes(
       String folioOrId) async {
     try {
-      final models =
-          await remoteDataSource.listComprobantes(folioOrId);
+      final models = await remoteDataSource.listComprobantes(folioOrId);
       return Right(models.map((m) => m.toEntity()).toList());
     } on NotFoundException catch (e) {
       return Left(NotFoundFailure(message: e.message, code: e.code));

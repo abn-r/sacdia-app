@@ -7,8 +7,7 @@ import 'materiales_providers.dart';
 ///
 /// keepAlive: los datos de catálogo son estables durante la sesión — se
 /// evita re-fetching innecesario cuando el usuario navega entre pantallas.
-final categoriasProvider =
-    FutureProvider<List<MaterialCategory>>((ref) async {
+final categoriasProvider = FutureProvider<List<MaterialCategory>>((ref) async {
   ref.keepAlive();
 
   final repo = ref.read(materialesRepositoryProvider);

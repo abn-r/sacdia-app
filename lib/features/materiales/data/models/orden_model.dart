@@ -57,16 +57,11 @@ class OrdenModel extends Orden {
       clubSectionId:
           (json['club_section_id'] ?? json['clubSectionId'] as num? ?? 0)
               .toInt(),
-      createdBy:
-          (json['created_by'] ?? json['createdBy'] ?? '').toString(),
-      approvedBy:
-          (json['approved_by'] ?? json['approvedBy'])?.toString(),
-      validatedBy:
-          (json['validated_by'] ?? json['validatedBy'])?.toString(),
-      deliveredBy:
-          (json['delivered_by'] ?? json['deliveredBy'])?.toString(),
-      cancelledBy:
-          (json['cancelled_by'] ?? json['cancelledBy'])?.toString(),
+      createdBy: (json['created_by'] ?? json['createdBy'] ?? '').toString(),
+      approvedBy: (json['approved_by'] ?? json['approvedBy'])?.toString(),
+      validatedBy: (json['validated_by'] ?? json['validatedBy'])?.toString(),
+      deliveredBy: (json['delivered_by'] ?? json['deliveredBy'])?.toString(),
+      cancelledBy: (json['cancelled_by'] ?? json['cancelledBy'])?.toString(),
       subtotalCentavos:
           (json['subtotal_centavos'] ?? json['subtotalCentavos'] ?? 0) as int,
       envioCentavos:
@@ -77,31 +72,25 @@ class OrdenModel extends Orden {
         (json['entrega'] ?? 'recoger').toString(),
       ),
       notas: json['notas']?.toString(),
-      cancelReason:
-          (json['cancel_reason'] ?? json['cancelReason'])?.toString(),
-      bankName:
-          (json['bank_name'] ?? json['bankName'])?.toString(),
+      cancelReason: (json['cancel_reason'] ?? json['cancelReason'])?.toString(),
+      bankName: (json['bank_name'] ?? json['bankName'])?.toString(),
       bankAccountClabe:
           (json['bank_account_clabe'] ?? json['bankAccountClabe'])?.toString(),
       accountHolder:
           (json['account_holder'] ?? json['accountHolder'])?.toString(),
       pickupAddress:
           (json['pickup_address'] ?? json['pickupAddress'])?.toString(),
-      createdAt: parseDate(json['created_at'] ?? json['createdAt']) ??
-          DateTime.now(),
-      approvedAt:
-          parseDate(json['approved_at'] ?? json['approvedAt']),
+      createdAt:
+          parseDate(json['created_at'] ?? json['createdAt']) ?? DateTime.now(),
+      approvedAt: parseDate(json['approved_at'] ?? json['approvedAt']),
       paidAt: parseDate(json['paid_at'] ?? json['paidAt']),
-      deliveredAt:
-          parseDate(json['delivered_at'] ?? json['deliveredAt']),
-      cancelledAt:
-          parseDate(json['cancelled_at'] ?? json['cancelledAt']),
+      deliveredAt: parseDate(json['delivered_at'] ?? json['deliveredAt']),
+      cancelledAt: parseDate(json['cancelled_at'] ?? json['cancelledAt']),
       lines: rawLines
           .map((l) => OrdenLineModel.fromJson(l as Map<String, dynamic>))
           .toList(),
       comprobantes: rawComprobantes
-          .map((c) =>
-              ComprobanteModel.fromJson(c as Map<String, dynamic>))
+          .map((c) => ComprobanteModel.fromJson(c as Map<String, dynamic>))
           .toList(),
     );
   }

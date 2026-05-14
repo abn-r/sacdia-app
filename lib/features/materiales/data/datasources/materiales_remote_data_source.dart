@@ -272,8 +272,7 @@ class MaterialesRemoteDataSourceImpl implements MaterialesRemoteDataSource {
         final body = response.data as Map<String, dynamic>;
         final rawData = _extractData(body) as List<dynamic>;
         return rawData
-            .map((item) =>
-                OrdenModel.fromJson(item as Map<String, dynamic>))
+            .map((item) => OrdenModel.fromJson(item as Map<String, dynamic>))
             .toList();
       }
 
@@ -307,8 +306,7 @@ class MaterialesRemoteDataSourceImpl implements MaterialesRemoteDataSource {
         final body = response.data as Map<String, dynamic>;
         final rawData = _extractData(body) as List<dynamic>;
         return rawData
-            .map((item) =>
-                OrdenModel.fromJson(item as Map<String, dynamic>))
+            .map((item) => OrdenModel.fromJson(item as Map<String, dynamic>))
             .toList();
       }
 

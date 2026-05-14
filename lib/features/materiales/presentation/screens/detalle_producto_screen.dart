@@ -20,8 +20,7 @@ class DetalleProductoScreen extends ConsumerStatefulWidget {
       _DetalleProductoScreenState();
 }
 
-class _DetalleProductoScreenState
-    extends ConsumerState<DetalleProductoScreen> {
+class _DetalleProductoScreenState extends ConsumerState<DetalleProductoScreen> {
   MaterialVariantOption? _selectedVariant;
   int _qty = 1;
 
@@ -42,21 +41,19 @@ class _DetalleProductoScreenState
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline,
-                  size: 48, color: AppColors.error),
+              const Icon(Icons.error_outline, size: 48, color: AppColors.error),
               const SizedBox(height: 12),
               Text(
                 e.toString(),
                 textAlign: TextAlign.center,
-                style:
-                    const TextStyle(color: AppColors.lightTextSecondary),
+                style: const TextStyle(color: AppColors.lightTextSecondary),
               ),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () =>
                     ref.invalidate(productDetailProvider(widget.productId)),
-                style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary),
+                style:
+                    FilledButton.styleFrom(backgroundColor: AppColors.primary),
                 child: const Text('Reintentar'),
               ),
             ],
@@ -81,9 +78,7 @@ class _DetalleProductoScreenState
                   ),
                   alignment: Alignment.center,
                   child: Text(
-                    item.title.isNotEmpty
-                        ? item.title[0].toUpperCase()
-                        : '?',
+                    item.title.isNotEmpty ? item.title[0].toUpperCase() : '?',
                     style: const TextStyle(
                       fontSize: 72,
                       fontWeight: FontWeight.bold,
@@ -115,12 +110,9 @@ class _DetalleProductoScreenState
                   spacing: 8,
                   runSpacing: 4,
                   children: [
+                    _Badge(label: item.category.label, color: AppColors.info),
                     _Badge(
-                        label: item.category.label,
-                        color: AppColors.info),
-                    _Badge(
-                        label: item.programa.label,
-                        color: AppColors.secondary),
+                        label: item.programa.label, color: AppColors.secondary),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -257,15 +249,13 @@ class _DetalleProductoScreenState
                       backgroundColor: maxQty > 0
                           ? AppColors.primary
                           : AppColors.lightTextTertiary,
-                      padding:
-                          const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    onPressed: maxQty > 0
-                        ? () => _addToCart(item, context)
-                        : null,
+                    onPressed:
+                        maxQty > 0 ? () => _addToCart(item, context) : null,
                   ),
                 ),
 

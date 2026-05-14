@@ -8,8 +8,7 @@ import 'materiales_providers.dart';
 ///
 /// Carga la primera página (20 registros). autoDispose para limpiar al salir.
 /// Usar [ref.invalidateSelf()] para hacer pull-to-refresh.
-final historialProvider =
-    FutureProvider.autoDispose<List<Orden>>((ref) async {
+final historialProvider = FutureProvider.autoDispose<List<Orden>>((ref) async {
   final useCase = ref.read(getOrderHistoryUseCaseProvider);
   final result = await useCase(
     const GetOrderHistoryParams(page: 1, pageSize: 20),

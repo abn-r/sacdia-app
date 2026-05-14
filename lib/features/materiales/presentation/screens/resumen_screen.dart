@@ -241,9 +241,8 @@ class _ResumenScreenState extends ConsumerState<ResumenScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                onPressed: createState.isLoading
-                    ? null
-                    : () => _confirm(context, ref),
+                onPressed:
+                    createState.isLoading ? null : () => _confirm(context, ref),
                 child: createState.isLoading
                     ? const SizedBox(
                         width: 20,

@@ -67,14 +67,12 @@ abstract class MaterialesRepository {
   Future<Either<Failure, Orden>> getOrderByFolio(String folioOrId);
 
   /// Cancela una orden con un motivo.
-  Future<Either<Failure, Orden>> cancelOrder(
-      String folioOrId, String reason);
+  Future<Either<Failure, Orden>> cancelOrder(String folioOrId, String reason);
 
   // ── Comprobantes ──────────────────────────────────────────────────────────
 
   /// Lista los comprobantes de una orden.
-  Future<Either<Failure, List<Comprobante>>> listComprobantes(
-      String folioOrId);
+  Future<Either<Failure, List<Comprobante>>> listComprobantes(String folioOrId);
 
   /// Sube un comprobante de pago para una orden aprobada.
   Future<Either<Failure, Comprobante>> uploadComprobante({

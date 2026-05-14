@@ -73,9 +73,7 @@ class _StepButton extends StatelessWidget {
         width: 32,
         height: 32,
         decoration: BoxDecoration(
-          color: enabled
-              ? AppColors.primaryLight
-              : AppColors.lightBorder,
+          color: enabled ? AppColors.primaryLight : AppColors.lightBorder,
           borderRadius: BorderRadius.circular(8),
         ),
         alignment: Alignment.center,

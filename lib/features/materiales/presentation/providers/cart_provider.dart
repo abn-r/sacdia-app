@@ -113,9 +113,8 @@ class CartNotifier extends AutoDisposeNotifier<CartState> {
   void removeLine(String productId, [String? variantOptionId]) {
     state = CartState(
       lines: state.lines
-          .where((l) =>
-              !(l.productId == productId &&
-                  l.variantOptionId == variantOptionId))
+          .where((l) => !(l.productId == productId &&
+              l.variantOptionId == variantOptionId))
           .toList(),
     );
   }
@@ -137,8 +136,7 @@ class CartNotifier extends AutoDisposeNotifier<CartState> {
   CartLine? _findLine(String productId, String? variantOptionId) {
     try {
       return state.lines.firstWhere(
-        (l) =>
-            l.productId == productId && l.variantOptionId == variantOptionId,
+        (l) => l.productId == productId && l.variantOptionId == variantOptionId,
       );
     } catch (_) {
       return null;
@@ -148,8 +146,7 @@ class CartNotifier extends AutoDisposeNotifier<CartState> {
   void _updateQty(String productId, String? variantOptionId, int qty) {
     state = CartState(
       lines: state.lines.map((l) {
-        if (l.productId == productId &&
-            l.variantOptionId == variantOptionId) {
+        if (l.productId == productId && l.variantOptionId == variantOptionId) {
           return l.copyWith(qty: qty);
         }
         return l;

@@ -29,10 +29,10 @@ class OrdenLineModel extends OrdenLine {
       disponibilidad: MaterialDisponibilidadX.fromString(
         (json['disponibilidad'] ?? 'pendiente').toString(),
       ),
-      qtyDisponible:
-          (json['qty_disponible'] ?? json['qtyDisponible']) as int?,
-      lineTotalCentavos:
-          (json['line_total_centavos'] ?? json['lineTotalCentavos'] ?? 0) as int,
+      qtyDisponible: (json['qty_disponible'] ?? json['qtyDisponible']) as int?,
+      lineTotalCentavos: (json['line_total_centavos'] ??
+          json['lineTotalCentavos'] ??
+          0) as int,
       product: productJson != null
           ? _productFromJson(productJson)
           : OrdenLineProduct(

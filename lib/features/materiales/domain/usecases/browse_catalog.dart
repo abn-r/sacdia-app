@@ -26,13 +26,14 @@ class BrowseCatalogParams extends Equatable {
 }
 
 /// Caso de uso: obtener catálogo de productos con filtros opcionales.
-class BrowseCatalog implements UseCase<List<MaterialItem>, BrowseCatalogParams> {
+class BrowseCatalog
+    implements UseCase<List<MaterialItem>, BrowseCatalogParams> {
   BrowseCatalog(this._repo);
   final MaterialesRepository _repo;
 
   @override
   Future<Either<Failure, List<MaterialItem>>> call(
-      BrowseCatalogParams params) =>
+          BrowseCatalogParams params) =>
       _repo.browseCatalog(
         cat: params.cat,
         programaId: params.programaId,

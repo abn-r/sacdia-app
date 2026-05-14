@@ -37,8 +37,7 @@ class UploadComprobante
   final MaterialesRepository _repo;
 
   @override
-  Future<Either<Failure, Comprobante>> call(
-          UploadComprobanteParams params) =>
+  Future<Either<Failure, Comprobante>> call(UploadComprobanteParams params) =>
       _repo.uploadComprobante(
         folioOrId: params.folioOrId,
         file: params.file,

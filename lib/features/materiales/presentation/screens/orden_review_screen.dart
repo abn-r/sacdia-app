@@ -50,8 +50,7 @@ class _OrdenReviewScreenState extends ConsumerState<OrdenReviewScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => _ErrorBody(
           message: e.toString(),
-          onRetry: () =>
-              ref.invalidate(ordenDetailProvider(widget.folioOrId)),
+          onRetry: () => ref.invalidate(ordenDetailProvider(widget.folioOrId)),
         ),
         data: (orden) => _OrdenBody(orden: orden),
       ),
@@ -70,8 +69,8 @@ class _OrdenBody extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return RefreshIndicator(
-      onRefresh: () async =>
-          ref.invalidate(ordenDetailProvider(orden.folioReferencia ?? orden.id)),
+      onRefresh: () async => ref
+          .invalidate(ordenDetailProvider(orden.folioReferencia ?? orden.id)),
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [
@@ -189,8 +188,7 @@ class _OrdenBody extends ConsumerWidget {
               orden.estado == MaterialEstado.entregada) ...[
             _SectionHeader(title: 'Comprobantes'),
             const SizedBox(height: 8),
-            _ComprobantesSection(
-                folioOrId: orden.folioReferencia ?? orden.id),
+            _ComprobantesSection(folioOrId: orden.folioReferencia ?? orden.id),
             const SizedBox(height: 24),
           ],
 
@@ -261,8 +259,8 @@ class _ActionCard extends ConsumerWidget {
               decoration: BoxDecoration(
                 color: AppColors.accentLight,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                    color: AppColors.accent.withValues(alpha: 0.3)),
+                border:
+                    Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -635,7 +633,8 @@ class _TotalRow extends StatelessWidget {
         Text(
           label,
           style: isTotal
-              ? theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)
+              ? theme.textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w700)
               : theme.textTheme.bodyMedium?.copyWith(
                   color: AppColors.lightTextSecondary,
                 ),
@@ -694,7 +693,8 @@ class _ComprobantesSection extends ConsumerWidget {
           children: [
             for (int i = 0; i < comprobantes.length; i++)
               Padding(
-                padding: EdgeInsets.only(bottom: i < comprobantes.length - 1 ? 8 : 0),
+                padding: EdgeInsets.only(
+                    bottom: i < comprobantes.length - 1 ? 8 : 0),
                 child: _ComprobanteCard(comprobante: comprobantes[i]),
               ),
           ],

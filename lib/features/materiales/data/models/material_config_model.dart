@@ -27,15 +27,14 @@ class MaterialConfigModel extends MaterialConfig {
     }
 
     return MaterialConfigModel(
-      bankName:
-          (json['bank_name'] ?? json['bankName'])?.toString(),
+      bankName: (json['bank_name'] ?? json['bankName'])?.toString(),
       bankAccountClabe:
           (json['bank_account_clabe'] ?? json['bankAccountClabe'])?.toString(),
       accountHolder:
           (json['account_holder'] ?? json['accountHolder'])?.toString(),
-      envioCentavosDefault:
-          (json['envio_centavos_default'] ?? json['envioCentavosDefault'] ?? 0)
-              as int,
+      envioCentavosDefault: (json['envio_centavos_default'] ??
+          json['envioCentavosDefault'] ??
+          0) as int,
       pickupAddress:
           (json['pickup_address'] ?? json['pickupAddress'])?.toString(),
       deliveryOptions: deliveryOptions,
@@ -52,8 +51,7 @@ class MaterialConfigModel extends MaterialConfig {
       if (accountHolder != null) 'account_holder': accountHolder,
       'envio_centavos_default': envioCentavosDefault,
       if (pickupAddress != null) 'pickup_address': pickupAddress,
-      'delivery_options':
-          deliveryOptions.map((o) => o.toApiString()).toList(),
+      'delivery_options': deliveryOptions.map((o) => o.toApiString()).toList(),
       'updated_at': updatedAt.toIso8601String(),
     };
   }

@@ -36,9 +36,7 @@ class CreateOrderNotifier extends AutoDisposeNotifier<CreateOrderState> {
   /// [errorMessage] se rellena y el caller muestra el snackbar adecuado.
   Future<Either<Failure, Orden>> confirm({
     required int clubSectionId,
-    required List<
-            ({String productId, String? variantOptionId, int qty})>
-        lines,
+    required List<({String productId, String? variantOptionId, int qty})> lines,
     required MaterialEntrega entrega,
     String? notas,
   }) async {

@@ -101,8 +101,7 @@ class CarritoScreen extends ConsumerWidget {
                     child: FilledButton(
                       style: FilledButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -129,8 +128,8 @@ class CarritoScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Vaciar carrito'),
-        content: const Text(
-            '¿Querés eliminar todos los productos del carrito?'),
+        content:
+            const Text('¿Querés eliminar todos los productos del carrito?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),

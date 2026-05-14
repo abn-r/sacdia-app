@@ -22,7 +22,6 @@ class GetProductDetail
   final MaterialesRepository _repo;
 
   @override
-  Future<Either<Failure, MaterialItem>> call(
-          GetProductDetailParams params) =>
+  Future<Either<Failure, MaterialItem>> call(GetProductDetailParams params) =>
       _repo.getProductDetail(params.id);
 }

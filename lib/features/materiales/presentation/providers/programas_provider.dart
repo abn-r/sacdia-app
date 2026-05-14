@@ -7,8 +7,7 @@ import 'materiales_providers.dart';
 ///
 /// keepAlive: los programas son estables durante la sesión de usuario — se
 /// evita re-fetching innecesario al navegar entre pantallas.
-final programasProvider =
-    FutureProvider<List<MaterialPrograma>>((ref) async {
+final programasProvider = FutureProvider<List<MaterialPrograma>>((ref) async {
   ref.keepAlive();
 
   final repo = ref.read(materialesRepositoryProvider);
