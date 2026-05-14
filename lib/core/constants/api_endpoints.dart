@@ -104,4 +104,7 @@ class ApiEndpoints {
   // ── Rankings ─────────────────────────────────────────────────────────────
   static const String memberRankings = '/member-rankings';
   static const String sectionRankings = '/section-rankings';
+
+  // ── Materiales ────────────────────────────────────────────────────────────
+  static const String materiales = '/materiales';
 }
