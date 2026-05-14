@@ -43,6 +43,9 @@ class RouteNames {
   // Información médica del usuario (detalle fuera del shell)
   static const String homeMedicalInfo = '/home/medical-info';
 
+  // SOS / Modo emergencia — sub-ruta de información médica
+  static const String medicalSos = '/profile/medical/sos';
+
   // Rutas de detalle fuera del shell
   static const String certificationDetail = '/certification/:certificationId';
   static const String certificationProgress =

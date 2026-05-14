@@ -2669,6 +2669,69 @@
         "leve": "Leve",
         "media": "Média",
         "alta": "Alta"
+      },
+      "hero": {
+        "eyebrow": "TIPO SANGUÍNEO",
+        "completeness_title": "Ficha completa",
+        "completeness_format": "{filled} de {total}",
+        "empty_blood": "—",
+        "rh_positive": "Rh positivo",
+        "rh_negative": "Rh negativo"
+      },
+      "appbar": {
+        "eyebrow": "PERFIL"
+      },
+      "contact": {
+        "call_aria": "Ligar",
+        "sms_aria": "Enviar mensagem"
+      },
+      "sos": {
+        "button": "SOS",
+        "coming_soon": "Modo emergência · em breve",
+        "title": "EMERGÊNCIA SOS",
+        "live_badge": "AO VIVO",
+        "hero": {
+          "age_years": "{age} anos",
+          "blood_label": "Tipo sanguíneo: {blood}",
+          "blood_unknown_label": "Tipo sanguíneo não registrado",
+          "blood_unknown_desc": "Tipo sanguíneo não registrado"
+        },
+        "critical_allergies_label": "ALERGIAS GRAVES",
+        "no_severe_allergies": "Nenhuma alergia grave registrada",
+        "actions": {
+          "call_primary": "LIGAR PARA {name}",
+          "call_first_contact": "LIGAR PARA PRIMEIRO CONTATO",
+          "call_911": "LIGAR 911",
+          "share_gps": "COMPARTILHAR LOCALIZAÇÃO POR SMS",
+          "gps_acquiring": "Obtendo localização…",
+          "gps_launching": "Abrindo SMS…",
+          "gps_sent": "Localização enviada",
+          "gps_failed": "Não foi possível obter a localização"
+        },
+        "contacts_section_title": "CONTATOS",
+        "more_contacts": "Mais contatos ({count})",
+        "empty": {
+          "no_contacts": "Adicione um contato no seu perfil",
+          "go_to_profile": "Ir para meu perfil",
+          "no_primary_contact": "Sem contato principal"
+        },
+        "gps": {
+          "sms_body": "EMERGÊNCIA — {name}. Localização: {url} (precisão ±{accuracy}m, {time})",
+          "permission_title": "Permissão de localização necessária",
+          "permission_body": "Precisamos de acesso à sua localização para compartilhar sua posição exata na emergência.",
+          "permission_open_settings": "Abrir configurações",
+          "permission_cancel": "Cancelar"
+        },
+        "errors": {
+          "load_failed": "Erro ao carregar dados médicos",
+          "call_failed": "Ligação falhou. Verifique o sinal ou o modo avião.",
+          "retry": "Tentar novamente",
+          "dismiss": "Fechar"
+        }
+      },
+      "empty": {
+        "add_contact_cta": "Adicionar o primeiro",
+        "no_blood": "Nenhum tipo sanguíneo registrado · toque para completar"
       }
     },
     "settings": {

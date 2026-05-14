@@ -73,6 +73,7 @@ import '../../features/classes/presentation/views/roadmap_full_screen_view.dart'
 import '../../features/members/presentation/views/members_view.dart';
 import '../../features/profile/presentation/views/profile_view.dart';
 import '../../features/profile/presentation/views/medical_info_view.dart';
+import '../../features/profile/presentation/views/medical_sos_view.dart';
 import '../animations/page_transitions.dart';
 import '../utils/responsive.dart';
 import '../../features/auth/domain/entities/authorization_snapshot.dart';
@@ -550,6 +551,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RouteNames.homeMedicalInfo,
         pageBuilder: (context, state) =>
             _sharedAxisBuild(context, state, const MedicalInfoView()),
+      ),
+
+      // SOS / Modo emergencia (fullscreen, deep-linkable)
+      GoRoute(
+        path: RouteNames.medicalSos,
+        pageBuilder: (context, state) =>
+            _slideUpBuild(context, state, const MedicalSosView()),
       ),
 
       // Detalle de club
