@@ -2889,7 +2889,8 @@
       "inventory": "Inventory",
       "resources": "Resources",
       "my_ranking": "My ranking",
-      "section_ranking": "Section ranking"
+      "section_ranking": "Section ranking",
+      "materiales": "Orders"
     },
     "stats": {
       "honors_completed": "Honors completed",

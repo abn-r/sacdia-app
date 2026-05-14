@@ -2889,7 +2889,8 @@
       "inventory": "Inventario",
       "resources": "Recursos",
       "my_ranking": "Mi ranking",
-      "section_ranking": "Ranking de sección"
+      "section_ranking": "Ranking de sección",
+      "materiales": "Pedidos"
     },
     "stats": {
       "honors_completed": "Esp. completadas",
