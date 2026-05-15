@@ -702,8 +702,8 @@ class _ComprobantesSection extends ConsumerWidget {
           children: [
             for (int i = 0; i < receipts.length; i++)
               Padding(
-                padding: EdgeInsets.only(
-                    bottom: i < receipts.length - 1 ? 8 : 0),
+                padding:
+                    EdgeInsets.only(bottom: i < receipts.length - 1 ? 8 : 0),
                 child: _ComprobanteCard(comprobante: receipts[i]),
               ),
           ],

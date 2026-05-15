@@ -17,8 +17,7 @@ class ProductDetailView extends ConsumerStatefulWidget {
   const ProductDetailView({super.key, required this.productId});
 
   @override
-  ConsumerState<ProductDetailView> createState() =>
-      _ProductDetailViewState();
+  ConsumerState<ProductDetailView> createState() => _ProductDetailViewState();
 }
 
 class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
@@ -247,7 +246,8 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
-                    icon: const HugeIcon(icon: HugeIcons.strokeRoundedShoppingCartAdd01),
+                    icon: const HugeIcon(
+                        icon: HugeIcons.strokeRoundedShoppingCartAdd01),
                     label: const Text('Agregar al carrito'),
                     style: FilledButton.styleFrom(
                       backgroundColor: maxQty > 0

@@ -12,16 +12,17 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 
-const Map<String, IconData> _categoryIcons = {
-  'ADRA': Icons.volunteer_activism,
-  'Actividades Agropecuarias': Icons.agriculture,
-  'Ciencias de la Salud': Icons.medical_services,
-  'Artes Domésticas': Icons.home,
-  'Artes y Actividades Manuales': Icons.handyman,
-  'Crecimiento Espiritual, Actividades Misioneras y Herencia': Icons.public,
-  'Estudio de la Naturaleza': Icons.forest,
-  'Actividades Vocacionales': Icons.work,
-  'Actividades Recreativas': Icons.sports_handball,
+const Map<String, List<List<dynamic>>> _categoryIcons = {
+  'ADRA': HugeIcons.strokeRoundedCharity,
+  'Actividades Agropecuarias': HugeIcons.strokeRoundedPlant03,
+  'Ciencias de la Salud': HugeIcons.strokeRoundedFirstAidKit,
+  'Artes Domésticas': HugeIcons.strokeRoundedHome01,
+  'Artes y Actividades Manuales': HugeIcons.strokeRoundedTools,
+  'Crecimiento Espiritual, Actividades Misioneras y Herencia':
+      HugeIcons.strokeRoundedGlobe02,
+  'Estudio de la Naturaleza': HugeIcons.strokeRoundedTree01,
+  'Actividades Vocacionales': HugeIcons.strokeRoundedBriefcase01,
+  'Actividades Recreativas': HugeIcons.strokeRoundedFootball,
 };
 
 /// Section of the profile view that shows the user's earned / in-progress
@@ -148,7 +149,8 @@ class _CategorySection extends StatelessWidget {
       categoryId: categoryId,
       categoryName: categoryName,
     );
-    final categoryIcon = _categoryIcons[categoryName] ?? Icons.star;
+    final categoryIcon =
+        _categoryIcons[categoryName] ?? HugeIcons.strokeRoundedStar;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -179,8 +181,8 @@ class _CategorySection extends StatelessWidget {
                     color: categoryColor,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
-                    categoryIcon,
+                  child: HugeIcon(
+                    icon: categoryIcon,
                     color: Colors.white,
                     size: 22,
                   ),
@@ -308,8 +310,8 @@ class _HonorGridItem extends StatelessWidget {
                           color: AppColors.secondary,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
-                          Icons.check,
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedTick02,
                           color: Colors.white,
                           size: 10,
                         ),

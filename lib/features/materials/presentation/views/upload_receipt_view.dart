@@ -28,12 +28,10 @@ class UploadReceiptView extends ConsumerStatefulWidget {
   const UploadReceiptView({super.key, required this.folioOrId});
 
   @override
-  ConsumerState<UploadReceiptView> createState() =>
-      _UploadReceiptViewState();
+  ConsumerState<UploadReceiptView> createState() => _UploadReceiptViewState();
 }
 
-class _UploadReceiptViewState
-    extends ConsumerState<UploadReceiptView> {
+class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
   final _formKey = GlobalKey<FormState>();
 
   File? _selectedFile;

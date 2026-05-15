@@ -103,7 +103,8 @@ class _EmptyHistorial extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              icon: const HugeIcon(icon: HugeIcons.strokeRoundedStoreManagement01),
+              icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedStoreManagement01),
               label: const Text('Ir al catálogo'),
               onPressed: onGoCatalog,
             ),

@@ -163,8 +163,8 @@ class _InfoItemWidget extends StatelessWidget {
               ),
             ),
             if (item.onTap != null)
-              Icon(
-                Icons.chevron_right,
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
                 color: context.sac.textTertiary,
                 size: 18,
               ),

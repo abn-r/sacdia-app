@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'medico_tokens.dart';
 
 /// Tarjeta hero con tipo de sangre + barra de completitud.
@@ -109,25 +110,36 @@ class BloodHeroCard extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(
-              bloodType ?? 'profile.medical_info.hero.empty_blood'.tr(),
-              style: const TextStyle(
-                fontSize: 44,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-                height: 1,
-                letterSpacing: -1.3,
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.bottomLeft,
+                child: Text(
+                  bloodType ?? 'profile.medical_info.hero.empty_blood'.tr(),
+                  maxLines: 1,
+                  style: const TextStyle(
+                    fontSize: 44,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    height: 1,
+                    letterSpacing: -1.3,
+                  ),
+                ),
               ),
             ),
             if (rhLabel != null) ...[
               const SizedBox(width: 8),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(
-                  rhLabel,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xD9FFFFFF),
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    rhLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xD9FFFFFF),
+                    ),
                   ),
                 ),
               ),
@@ -146,8 +158,8 @@ class BloodHeroCard extends StatelessWidget {
         color: const Color(0x2EFFFFFF), // 18% white
         borderRadius: BorderRadius.circular(16),
       ),
-      child: const Icon(
-        Icons.water_drop_outlined,
+      child: HugeIcon(
+        icon: HugeIcons.strokeRoundedBlood,
         color: Colors.white,
         size: 28,
       ),

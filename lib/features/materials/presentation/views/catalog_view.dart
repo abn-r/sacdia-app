@@ -74,7 +74,8 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
             alignment: Alignment.topRight,
             children: [
               IconButton(
-                icon: const HugeIcon(icon: HugeIcons.strokeRoundedShoppingCart01),
+                icon:
+                    const HugeIcon(icon: HugeIcons.strokeRoundedShoppingCart01),
                 onPressed: () => context.push(RouteNames.materialsCart),
               ),
               if (cartState.itemCount > 0)
@@ -113,7 +114,8 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
               onChanged: _onSearchChanged,
               decoration: InputDecoration(
                 hintText: 'Buscar productos...',
-                prefixIcon: const HugeIcon(icon: HugeIcons.strokeRoundedSearch01),
+                prefixIcon:
+                    const HugeIcon(icon: HugeIcons.strokeRoundedSearch01),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(color: AppColors.lightBorder),

@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -156,7 +157,7 @@ class MedicalInfoView extends ConsumerWidget {
 
                     // ── Contactos de emergencia ─────────────────────────────
                     MedicoSectionCard(
-                      icon: Icons.contact_phone_outlined,
+                      icon: HugeIcons.strokeRoundedContactBook,
                       iconBg: MedicoTokens.coral100,
                       iconFg: MedicoTokens.coral600,
                       title: 'profile.medical_info.emergency_contacts'.tr(),
@@ -209,7 +210,7 @@ class MedicalInfoView extends ConsumerWidget {
 
                     // ── Alergias ────────────────────────────────────────────
                     MedicoSectionCard(
-                      icon: Icons.medical_services_outlined,
+                      icon: HugeIcons.strokeRoundedFirstAidKit,
                       iconBg: MedicoTokens.rose50,
                       iconFg: MedicoTokens.rose500,
                       title: 'profile.medical_info.allergies'.tr(),
@@ -258,7 +259,7 @@ class MedicalInfoView extends ConsumerWidget {
 
                     // ── Enfermedades ────────────────────────────────────────
                     MedicoSectionCard(
-                      icon: Icons.favorite_border,
+                      icon: HugeIcons.strokeRoundedHealth,
                       iconBg: MedicoTokens.amber50,
                       iconFg: MedicoTokens.amber500,
                       title: 'profile.medical_info.diseases'.tr(),
@@ -307,7 +308,7 @@ class MedicalInfoView extends ConsumerWidget {
 
                     // ── Medicamentos ────────────────────────────────────────
                     MedicoSectionCard(
-                      icon: Icons.medication_outlined,
+                      icon: HugeIcons.strokeRoundedMedicine01,
                       iconBg: MedicoTokens.mint50,
                       iconFg: MedicoTokens.mint500,
                       title: 'profile.medical_info.medicines'.tr(),
@@ -360,7 +361,7 @@ class MedicalInfoView extends ConsumerWidget {
                       data: (isRequired) {
                         if (!isRequired) return const SizedBox.shrink();
                         return MedicoSectionCard(
-                          icon: Icons.shield_outlined,
+                          icon: HugeIcons.strokeRoundedSecurityCheck,
                           iconBg: MedicoTokens.lavender100,
                           iconFg: MedicoTokens.lavender500,
                           title: 'profile.medical_info.legal_rep'.tr(),
@@ -445,7 +446,7 @@ class _MedicoAppBar extends StatelessWidget {
           _circleBtn(
             color: MedicoTokens.ink100,
             iconColor: MedicoTokens.ink800,
-            icon: Icons.chevron_left_rounded,
+            icon: HugeIcons.strokeRoundedArrowLeft01,
             onTap: onBack,
           ),
           Expanded(
@@ -483,7 +484,7 @@ class _MedicoAppBar extends StatelessWidget {
   Widget _circleBtn({
     required Color color,
     required Color iconColor,
-    required IconData icon,
+    required List<List<dynamic>> icon,
     VoidCallback? onTap,
   }) {
     return Material(
@@ -495,7 +496,7 @@ class _MedicoAppBar extends StatelessWidget {
         child: SizedBox(
           width: 38,
           height: 38,
-          child: Icon(icon, color: iconColor, size: 22),
+          child: HugeIcon(icon: icon, color: iconColor, size: 22),
         ),
       ),
     );
@@ -513,8 +514,8 @@ class _MedicoAppBar extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.emergency_outlined,
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedAlert02,
                 color: MedicoTokens.rose500,
                 size: 16,
               ),
@@ -548,8 +549,8 @@ class _SectionError extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Icon(
-          Icons.error_outline_rounded,
+        HugeIcon(
+          icon: HugeIcons.strokeRoundedAlert02,
           size: 16,
           color: AppColors.error,
         ),
