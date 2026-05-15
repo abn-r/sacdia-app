@@ -384,8 +384,7 @@ class MaterialsRemoteDataSourceImpl implements MaterialsRemoteDataSource {
         final body = response.data as Map<String, dynamic>;
         final rawData = _extractData(body) as List<dynamic>;
         return rawData
-            .map((item) =>
-                ReceiptModel.fromJson(item as Map<String, dynamic>))
+            .map((item) => ReceiptModel.fromJson(item as Map<String, dynamic>))
             .toList();
       }
 

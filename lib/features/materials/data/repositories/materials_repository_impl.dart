@@ -208,8 +208,7 @@ class MaterialsRepositoryImpl implements MaterialsRepository {
   // ── Receipts ──────────────────────────────────────────────────────────────
 
   @override
-  Future<Either<Failure, List<Receipt>>> listReceipts(
-      String folioOrId) async {
+  Future<Either<Failure, List<Receipt>>> listReceipts(String folioOrId) async {
     try {
       final models = await remoteDataSource.listReceipts(folioOrId);
       return Right(models.map((m) => m.toEntity()).toList());

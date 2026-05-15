@@ -113,6 +113,6 @@ class UploadReceiptNotifier extends AutoDisposeNotifier<UploadReceiptState> {
   }
 }
 
-final uploadReceiptNotifierProvider = AutoDisposeNotifierProvider<
-    UploadReceiptNotifier,
-    UploadReceiptState>(UploadReceiptNotifier.new);
+final uploadReceiptNotifierProvider =
+    AutoDisposeNotifierProvider<UploadReceiptNotifier, UploadReceiptState>(
+        UploadReceiptNotifier.new);
