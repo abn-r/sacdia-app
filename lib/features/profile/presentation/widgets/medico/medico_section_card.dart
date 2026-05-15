@@ -5,15 +5,23 @@ import 'medico_tokens.dart';
 /// Wrapper común para cada sección (Alergias, Enfermedades, etc.).
 ///
 /// Header: icono coloreado + título + acción opcional ("Editar" / "Administrar").
+///
+/// Supports two icon modes:
+/// - [icon] + [iconBg] + [iconFg]: classic Material IconData badge.
+/// - [iconWidget]: arbitrary widget placed inside the badge box (e.g. HugeIcon).
+///   When [iconWidget] is provided, [icon], [iconBg] and [iconFg] are ignored.
 class MedicoSectionCard extends StatelessWidget {
   /// Icono HugeIcons a mostrar dentro del badge coloreado.
-  final List<List<dynamic>> icon;
+  final List<List<dynamic>>? icon;
 
   /// Color de fondo del badge.
   final Color iconBg;
 
   /// Color del icono.
   final Color iconFg;
+
+  /// Widget alternativo para el área de icono (reemplaza icon+iconBg+iconFg).
+  final Widget? iconWidget;
 
   /// Título de la sección.
   final String title;
@@ -28,14 +36,16 @@ class MedicoSectionCard extends StatelessWidget {
 
   const MedicoSectionCard({
     super.key,
-    required this.icon,
-    required this.iconBg,
-    required this.iconFg,
+    this.icon,
+    this.iconBg = MedicoTokens.coral100,
+    this.iconFg = MedicoTokens.coral600,
+    this.iconWidget,
     required this.title,
     required this.child,
     this.actionLabel,
     this.onAction,
-  });
+  }) : assert(icon != null || iconWidget != null,
+            'Provide either icon or iconWidget');
 
   @override
   Widget build(BuildContext context) {
@@ -59,17 +69,32 @@ class MedicoSectionCard extends StatelessWidget {
   }
 
   Widget _header() {
+    final badge = iconWidget != null
+        ? Container(
+            width: MedicoTokens.sectionIconBox,
+            height: MedicoTokens.sectionIconBox,
+            decoration: BoxDecoration(
+              color: iconBg,
+              borderRadius:
+                  BorderRadius.circular(MedicoTokens.sectionIconRadius),
+            ),
+            alignment: Alignment.center,
+            child: iconWidget,
+          )
+        : Container(
+            width: MedicoTokens.sectionIconBox,
+            height: MedicoTokens.sectionIconBox,
+            decoration: BoxDecoration(
+              color: iconBg,
+              borderRadius:
+                  BorderRadius.circular(MedicoTokens.sectionIconRadius),
+            ),
+            child: HugeIcon(icon: icon!, color: iconFg, size: 20),
+          );
+
     return Row(
       children: [
-        Container(
-          width: MedicoTokens.sectionIconBox,
-          height: MedicoTokens.sectionIconBox,
-          decoration: BoxDecoration(
-            color: iconBg,
-            borderRadius: BorderRadius.circular(MedicoTokens.sectionIconRadius),
-          ),
-          child: HugeIcon(icon: icon, color: iconFg, size: 20),
-        ),
+        badge,
         const SizedBox(width: 12),
         Expanded(
           child: Text(

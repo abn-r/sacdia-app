@@ -1,18 +1,19 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/sac_colors.dart';
-import '../providers/personal_info_providers.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../../data/models/medicine_model.dart';
-import '../widgets/searchable_selection_list.dart';
+import '../providers/personal_info_providers.dart';
+import '../../../profile/presentation/widgets/medico/medico_tokens.dart';
+import '../../../profile/presentation/widgets/medico/medico_section_card.dart';
+import '../../../profile/presentation/widgets/medico/medical_chip.dart';
+import '../../../profile/presentation/widgets/medico/empty_hint.dart';
 
-/// Vista para seleccionar y gestionar medicamentos del usuario.
-/// Pre-carga los medicamentos existentes del usuario al inicializarse.
-/// Cada medicamento seleccionado muestra un input inline para la dosis.
+/// Redesigned view for managing user medicines.
+/// Mint tone. Inline dose editor. None toggle above search.
 class MedicinesSelectionView extends ConsumerStatefulWidget {
   const MedicinesSelectionView({super.key});
 
@@ -23,9 +24,27 @@ class MedicinesSelectionView extends ConsumerStatefulWidget {
 
 class _MedicinesSelectionViewState
     extends ConsumerState<MedicinesSelectionView> {
-  /// Mapa local id → dosis para los medicamentos seleccionados.
-  final Map<int, String?> _doseMap = {};
-  bool _doseSeeded = false;
+  // ── Server state ─────────────────────────────────────────────────────────
+  Set<int> _serverIds = {};
+  bool _serverSeeded = false;
+  final Map<int, String?> _serverDoseMap = {};
+  final Map<int, String?> _modifiedRegistered = {};
+
+  // ── Pending new ──────────────────────────────────────────────────────────
+  final Set<int> _selectedIds = {};
+  final Map<int, String?> _pendingDoseMap = {};
+
+  // ── UI state ─────────────────────────────────────────────────────────────
+  int? _expandedAvailableId;
+  int? _expandedRegisteredId;
+  bool _noneExplicit = false;
+  bool _isSaving = false;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  final Map<int, GlobalKey> _tileKeys = {};
+
+  final Map<int, TextEditingController> _availableDoseControllers = {};
+  final Map<int, TextEditingController> _registeredDoseControllers = {};
 
   @override
   void initState() {
@@ -35,12 +54,218 @@ class _MedicinesSelectionViewState
     });
   }
 
-  void _seedDose(List<MedicineModel> serverMedicines) {
-    if (_doseSeeded) return;
-    _doseSeeded = true;
-    for (final m in serverMedicines) {
-      if (m.dose != null) _doseMap[m.id] = m.dose;
+  @override
+  void dispose() {
+    _searchController.dispose();
+    for (final c in _availableDoseControllers.values) {
+      c.dispose();
     }
+    for (final c in _registeredDoseControllers.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  // ── Seeding ──────────────────────────────────────────────────────────────
+
+  void _seedFromServer(List<MedicineModel> items) {
+    if (_serverSeeded) return;
+    _serverSeeded = true;
+    _serverIds = items.map((m) => m.id).toSet();
+    for (final m in items) {
+      _serverDoseMap[m.id] = m.dose;
+    }
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+
+  String? _doseFor(int id) => _pendingDoseMap[id];
+  String? _registeredDoseFor(int id) => _modifiedRegistered.containsKey(id)
+      ? _modifiedRegistered[id]
+      : _serverDoseMap[id];
+
+  bool get _hasPendingChanges {
+    if (_selectedIds.isNotEmpty) return true;
+    if (_modifiedRegistered.isNotEmpty) return true;
+    if (_noneExplicit && _serverIds.isNotEmpty) return true;
+    return false;
+  }
+
+  int get _pendingCount => _selectedIds.length + _modifiedRegistered.length;
+
+  TextEditingController _availableControllerFor(int id) {
+    return _availableDoseControllers.putIfAbsent(
+      id,
+      () => TextEditingController(text: _pendingDoseMap[id] ?? ''),
+    );
+  }
+
+  TextEditingController _registeredControllerFor(int id) {
+    return _registeredDoseControllers.putIfAbsent(
+      id,
+      () => TextEditingController(text: _registeredDoseFor(id) ?? ''),
+    );
+  }
+
+  // ── None toggle ───────────────────────────────────────────────────────────
+
+  Future<void> _handleNoneToggle(BuildContext context) async {
+    if (_noneExplicit) {
+      setState(() => _noneExplicit = false);
+      return;
+    }
+
+    if (_selectedIds.isNotEmpty) {
+      final confirmed = await SacDialog.show(
+        context,
+        title: 'post_registration.health.medicines.no_medicines_confirm_title'
+            .tr(),
+        content:
+            'post_registration.health.medicines.no_medicines_confirm_content'
+                .tr(),
+        confirmLabel: 'common.confirm'.tr(),
+      );
+      if (confirmed != true) return;
+      setState(() {
+        _selectedIds.clear();
+        _pendingDoseMap.clear();
+        _expandedAvailableId = null;
+        _noneExplicit = true;
+      });
+      return;
+    }
+
+    if (_serverIds.isNotEmpty) {
+      final count = _serverIds.length;
+      final confirmed = await SacDialog.show(
+        context,
+        title: 'post_registration.health.medicines.no_medicines_confirm_title'
+            .tr(),
+        content:
+            'post_registration.health.medicines.no_medicines_destructive_content'
+                .tr(namedArgs: {'count': '$count'}),
+        confirmLabel: 'common.confirm'.tr(),
+        confirmIsDestructive: true,
+      );
+      if (confirmed != true) return;
+    }
+
+    setState(() {
+      _selectedIds.clear();
+      _pendingDoseMap.clear();
+      _expandedAvailableId = null;
+      _noneExplicit = true;
+    });
+  }
+
+  // ── Available list ────────────────────────────────────────────────────────
+
+  void _handleAvailableTap(int id) {
+    if (_noneExplicit) {
+      if (_serverIds.isEmpty) setState(() => _noneExplicit = false);
+      return;
+    }
+
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+        _pendingDoseMap.remove(id);
+        _availableDoseControllers[id]?.dispose();
+        _availableDoseControllers.remove(id);
+        if (_expandedAvailableId == id) _expandedAvailableId = null;
+      } else {
+        _selectedIds.add(id);
+        _expandedAvailableId = id;
+      }
+    });
+
+    if (_selectedIds.contains(id)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final key = _tileKeys[id];
+        if (key?.currentContext != null) {
+          Scrollable.ensureVisible(
+            key!.currentContext!,
+            alignment: 0.1,
+            duration: const Duration(milliseconds: 240),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    }
+  }
+
+  void _removeAvailable(int id) {
+    setState(() {
+      _selectedIds.remove(id);
+      _pendingDoseMap.remove(id);
+      _availableDoseControllers[id]?.dispose();
+      _availableDoseControllers.remove(id);
+      if (_expandedAvailableId == id) _expandedAvailableId = null;
+    });
+  }
+
+  // ── Registered ────────────────────────────────────────────────────────────
+
+  void _handleRegisteredChipTap(int id) {
+    setState(() {
+      _expandedRegisteredId = _expandedRegisteredId == id ? null : id;
+    });
+  }
+
+  Future<void> _handleRegisteredLongPress(
+    BuildContext context,
+    int id,
+    String name,
+  ) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: MedicoTokens.paper,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedEdit02,
+                    size: 22,
+                    color: MedicoTokens.ink700,
+                  ),
+                  title: Text(
+                    'post_registration.health.medicines.edit_chip_a11y'.tr(),
+                    style: const TextStyle(color: MedicoTokens.ink900),
+                  ),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    setState(() => _expandedRegisteredId = id);
+                  },
+                ),
+                ListTile(
+                  leading: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedDelete02,
+                    size: 22,
+                    color: MedicoTokens.coral600,
+                  ),
+                  title: Text(
+                    'post_registration.health.medicines.remove_selection'.tr(),
+                    style: const TextStyle(color: MedicoTokens.coral600),
+                  ),
+                  onTap: () async {
+                    Navigator.of(ctx).pop();
+                    await _showDeleteConfirmation(context, id, name);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _showDeleteConfirmation(
@@ -63,22 +288,27 @@ class _MedicinesSelectionViewState
             .read(userMedicinesProvider.notifier)
             .deleteMedicine(medicineId);
         setState(() {
-          _doseMap.remove(medicineId);
+          _serverIds.remove(medicineId);
+          _serverDoseMap.remove(medicineId);
+          _modifiedRegistered.remove(medicineId);
+          _registeredDoseControllers[medicineId]?.dispose();
+          _registeredDoseControllers.remove(medicineId);
+          if (_expandedRegisteredId == medicineId) _expandedRegisteredId = null;
         });
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                   'post_registration.health.medicines.delete_success'.tr()),
-              backgroundColor: AppColors.secondary,
+              backgroundColor: MedicoTokens.mint500,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+                  borderRadius: BorderRadius.circular(10)),
             ),
           );
         }
       } catch (e) {
+        AppLogger.e('Delete medicine error', tag: 'MedicinesView', error: e);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -86,11 +316,10 @@ class _MedicinesSelectionViewState
                 'post_registration.health.medicines.delete_error'
                     .tr(namedArgs: {'error': e.toString()}),
               ),
-              backgroundColor: AppColors.error,
+              backgroundColor: MedicoTokens.coral600,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+                  borderRadius: BorderRadius.circular(10)),
             ),
           );
         }
@@ -98,191 +327,436 @@ class _MedicinesSelectionViewState
     }
   }
 
+  // ── Pull-to-refresh ───────────────────────────────────────────────────────
+
+  Future<void> _onRefresh() async {
+    setState(() => _serverSeeded = false);
+    await ref.read(userMedicinesProvider.notifier).refresh();
+  }
+
+  // ── Save ──────────────────────────────────────────────────────────────────
+
+  Future<void> _save(BuildContext context) async {
+    if (_isSaving || !_hasPendingChanges) return;
+
+    setState(() => _isSaving = true);
+
+    try {
+      final List<MedicineEntry> entries = [];
+
+      if (!_noneExplicit) {
+        for (final id in _serverIds) {
+          entries.add(MedicineEntry(id: id, dose: _registeredDoseFor(id)));
+        }
+        for (final id in _selectedIds) {
+          entries.add(MedicineEntry(id: id, dose: _doseFor(id)));
+        }
+      }
+
+      await ref.read(userMedicinesProvider.notifier).saveAll(entries);
+
+      final updated = ref.read(userMedicinesProvider).valueOrNull ?? [];
+      setState(() {
+        _serverSeeded = false;
+        _selectedIds.clear();
+        _pendingDoseMap.clear();
+        _modifiedRegistered.clear();
+        _expandedAvailableId = null;
+        _expandedRegisteredId = null;
+        _isSaving = false;
+        _noneExplicit = false;
+        for (final c in _availableDoseControllers.values) {
+          c.dispose();
+        }
+        _availableDoseControllers.clear();
+        for (final c in _registeredDoseControllers.values) {
+          c.dispose();
+        }
+        _registeredDoseControllers.clear();
+      });
+      _seedFromServer(updated);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('common.save'.tr()),
+            backgroundColor: MedicoTokens.mint500,
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+        await Future.delayed(const Duration(milliseconds: 300));
+        if (context.mounted) Navigator.of(context).pop();
+      }
+    } catch (e) {
+      AppLogger.e('Save medicines error', tag: 'MedicinesView', error: e);
+      setState(() => _isSaving = false);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('common.save_error_retry'.tr()),
+            backgroundColor: MedicoTokens.coral600,
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            action: SnackBarAction(
+              label: 'common.retry'.tr(),
+              textColor: MedicoTokens.paper,
+              onPressed: () => _save(context),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  // ── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     ref.listen<AsyncValue<List<MedicineModel>>>(
       userMedicinesProvider,
       (prev, next) {
-        if (prev?.value == null && next.value != null) {
+        if (next.value != null && !_serverSeeded) {
+          _seedFromServer(next.value!);
           ref.read(selectedMedicinesProvider.notifier).state =
               next.value!.map((m) => m.id).toList();
-          _seedDose(next.value!);
         }
       },
     );
 
-    final medicinesAsync = ref.watch(medicinesCatalogProvider);
-    final userMedicinesAsync = ref.watch(userMedicinesProvider);
-    final selectedIds = ref.watch(selectedMedicinesProvider);
+    final catalogAsync = ref.watch(medicinesCatalogProvider);
+    final userAsync = ref.watch(userMedicinesProvider);
 
     return Scaffold(
+      backgroundColor: MedicoTokens.canvas,
       appBar: AppBar(
-        title: Text('post_registration.health.medicines.title'.tr()),
-        actions: [
-          IconButton(
-            icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 24),
-            onPressed: () {
-              setState(() => _doseSeeded = false);
-              ref.read(userMedicinesProvider.notifier).refresh();
-            },
-            tooltip: 'post_registration.health.medicines.refresh_tooltip'.tr(),
-          ),
-          TextButton.icon(
-            onPressed: () async {
-              final ids = ref.read(selectedMedicinesProvider);
-              final entries = ids
-                  .map((id) => MedicineEntry(
-                        id: id,
-                        dose: _doseMap[id],
-                      ))
-                  .toList();
-              await ref.read(userMedicinesProvider.notifier).saveAll(entries);
-              if (context.mounted) Navigator.of(context).pop();
-            },
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedTick02,
-              size: 20,
-            ),
-            label: Text('common.save'.tr()),
-          ),
-        ],
-      ),
-      body: medicinesAsync.when(
-        loading: () => const Center(child: SacLoading()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              HugeIcon(
-                  icon: HugeIcons.strokeRoundedAlert02,
-                  size: 48,
-                  color: AppColors.error),
-              const SizedBox(height: 16),
-              Text('post_registration.health.medicines.load_error'
-                  .tr(namedArgs: {'error': error.toString()})),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 20),
-                label: Text('common.retry'.tr()),
-                onPressed: () => ref.refresh(medicinesCatalogProvider),
-              ),
-            ],
+        backgroundColor: MedicoTokens.paper,
+        surfaceTintColor: Colors.transparent,
+        title: Text(
+          'post_registration.health.medicines.title'.tr(),
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: MedicoTokens.ink900,
           ),
         ),
-        data: (medicines) {
-          final items = medicines
-              .map((medicine) => SelectableItem(
-                    id: medicine.id,
-                    name: medicine.name,
-                    isSelected: selectedIds.contains(medicine.id),
-                  ))
-              .toList();
+        leading: IconButton(
+          icon: const HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowLeft01,
+            size: 24,
+            color: MedicoTokens.ink700,
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(height: 1, color: MedicoTokens.ink150),
+        ),
+      ),
+      body: catalogAsync.when(
+        loading: () => const Center(child: SacLoading()),
+        error: (error, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const HugeIcon(
+                  icon: HugeIcons.strokeRoundedAlert02,
+                  size: 48,
+                  color: MedicoTokens.coral600,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'post_registration.health.medicines.load_error'
+                      .tr(namedArgs: {'error': error.toString()}),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                FilledButton.icon(
+                  onPressed: () => ref.refresh(medicinesCatalogProvider),
+                  style: FilledButton.styleFrom(
+                      backgroundColor: MedicoTokens.coral500),
+                  icon: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedRefresh,
+                    size: 20,
+                    color: MedicoTokens.paper,
+                  ),
+                  label: Text('common.retry'.tr()),
+                ),
+              ],
+            ),
+          ),
+        ),
+        data: (catalog) {
+          final serverItems = userAsync.valueOrNull ?? [];
+          if (!_serverSeeded && serverItems.isNotEmpty) {
+            _seedFromServer(serverItems);
+          }
 
-          final savedMedicines = userMedicinesAsync.valueOrNull ?? [];
+          final available = catalog
+              .where((m) => !_serverIds.contains(m.id))
+              .where((m) =>
+                  _searchQuery.isEmpty ||
+                  m.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+              .toList();
 
           return Column(
             children: [
-              // Información
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                color: AppColors.secondaryLight,
-                child: Row(
-                  children: [
-                    HugeIcon(
-                        icon: HugeIcons.strokeRoundedInformationCircle,
-                        color: AppColors.secondaryDark),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'post_registration.health.medicines.info_text'.tr(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.secondaryDark,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              Expanded(
+                child: RefreshIndicator(
+                  color: MedicoTokens.coral500,
+                  onRefresh: _onRefresh,
+                  child: CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Info banner (mint)
+                              _InfoBanner(
+                                text:
+                                    'post_registration.health.medicines.info_text'
+                                        .tr(),
+                                bgColor: MedicoTokens.mint50,
+                                fgColor: MedicoTokens.mintInk,
+                                iconWidget: const HugeIcon(
+                                  icon: HugeIcons.strokeRoundedMedicine01,
+                                  size: 20,
+                                  color: MedicoTokens.mint500,
+                                ),
+                              ),
 
-              // Medicamentos guardados con botón de eliminar
-              if (userMedicinesAsync.isLoading)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  child: SacLoadingSmall(),
-                )
-              else if (savedMedicines.isNotEmpty) ...[
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'post_registration.health.medicines.registered_label'
-                            .tr(),
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: context.sac.textSecondary,
+                              const SizedBox(height: 20),
+
+                              // Ya registrados
+                              if (userAsync.isLoading)
+                                const Center(child: SacLoading())
+                              else if (_serverIds.isNotEmpty) ...[
+                                MedicoSectionCard(
+                                  iconWidget: const HugeIcon(
+                                    icon: HugeIcons.strokeRoundedMedicine01,
+                                    size: 20,
+                                    color: MedicoTokens.mint500,
+                                  ),
+                                  iconBg: MedicoTokens.mint50,
+                                  title: _serverIds.length == 1
+                                      ? 'post_registration.health.medicines.registered_count_one'
+                                          .tr()
+                                      : 'post_registration.health.medicines.registered_count'
+                                          .tr(namedArgs: {
+                                          'count': '${_serverIds.length}'
+                                        }),
+                                  child: _RegisteredMedicinesSection(
+                                    serverItems: serverItems,
+                                    expandedId: _expandedRegisteredId,
+                                    modifiedMap: _modifiedRegistered,
+                                    onChipTap: _handleRegisteredChipTap,
+                                    onChipLongPress: (id, name) =>
+                                        _handleRegisteredLongPress(
+                                            context, id, name),
+                                    onDoseChange: (id, dose) {
+                                      setState(
+                                          () => _modifiedRegistered[id] = dose);
+                                    },
+                                    onRemove: (id, name) =>
+                                        _showDeleteConfirmation(
+                                            context, id, name),
+                                    registeredDoseFor: _registeredDoseFor,
+                                    controllerFor: _registeredControllerFor,
+                                  ),
+                                ),
+                              ] else
+                                EmptyHint(
+                                  label:
+                                      'post_registration.health.medicines.empty_registered'
+                                          .tr(),
+                                ),
+
+                              const SizedBox(height: 24),
+
+                              // "Agregar nuevos"
+                              Text(
+                                'post_registration.health.medicines.add_new_section'
+                                    .tr(),
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: MedicoTokens.ink600,
+                                ),
+                              ),
+
+                              const SizedBox(height: 8),
+
+                              // Search bar
+                              TextField(
+                                controller: _searchController,
+                                onChanged: (v) =>
+                                    setState(() => _searchQuery = v),
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                  color: MedicoTokens.ink900,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText:
+                                      'post_registration.health.medicines.search_hint'
+                                          .tr(),
+                                  hintStyle: const TextStyle(
+                                      color: MedicoTokens.ink400, fontSize: 15),
+                                  prefixIcon: const HugeIcon(
+                                    icon: HugeIcons.strokeRoundedSearch01,
+                                    size: 22,
+                                    color: MedicoTokens.ink400,
+                                  ),
+                                  suffixIcon: _searchQuery.isNotEmpty
+                                      ? IconButton(
+                                          icon: const HugeIcon(
+                                            icon:
+                                                HugeIcons.strokeRoundedCancel01,
+                                            size: 20,
+                                            color: MedicoTokens.ink400,
+                                          ),
+                                          onPressed: () => setState(() {
+                                            _searchController.clear();
+                                            _searchQuery = '';
+                                          }),
+                                        )
+                                      : null,
+                                  filled: true,
+                                  fillColor: MedicoTokens.ink100,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 14),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                        color: MedicoTokens.coral500,
+                                        width: 1.5),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 12),
+
+                              // None toggle
+                              _NoneToggleCard(
+                                isActive: _noneExplicit,
+                                label:
+                                    'post_registration.health.medicines.no_medicines_toggle_label'
+                                        .tr(),
+                                helper:
+                                    'post_registration.health.medicines.no_medicines_toggle_helper'
+                                        .tr(),
+                                onTap: () => _handleNoneToggle(context),
+                              ),
+
+                              const SizedBox(height: 12),
+                            ],
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: savedMedicines.map((medicine) {
-                          return Chip(
-                            label: Text(medicine.name),
-                            backgroundColor: AppColors.secondaryLight,
-                            labelStyle: TextStyle(
-                              color: AppColors.secondaryDark,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
+
+                      // Available list
+                      if (_noneExplicit)
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                            child: Opacity(
+                              opacity: 0.4,
+                              child: IgnorePointer(
+                                child: Text(
+                                  'post_registration.health.medicines.none_active_caption'
+                                      .tr(),
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: MedicoTokens.ink500,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ),
                             ),
-                            side: BorderSide(
-                              color: AppColors.secondary.withValues(alpha: 0.4),
+                          ),
+                        )
+                      else if (available.isEmpty && _searchQuery.isNotEmpty)
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 48),
+                            child: Column(
+                              children: [
+                                const HugeIcon(
+                                  icon: HugeIcons.strokeRoundedSearchMinus,
+                                  size: 64,
+                                  color: MedicoTokens.ink300,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'common.no_results'.tr(),
+                                  style: const TextStyle(
+                                      color: MedicoTokens.ink500),
+                                ),
+                              ],
                             ),
-                            deleteIcon: HugeIcon(
-                              icon: HugeIcons.strokeRoundedDelete02,
-                              size: 16,
-                              color: AppColors.secondary,
-                            ),
-                            onDeleted: () => _showDeleteConfirmation(
-                              context,
-                              medicine.id,
-                              medicine.name,
-                            ),
-                          );
-                        }).toList(),
-                      ),
+                          ),
+                        )
+                      else
+                        SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              if (index >= available.length) return null;
+                              final item = available[index];
+                              final isSelected = _selectedIds.contains(item.id);
+                              final isExpanded =
+                                  _expandedAvailableId == item.id;
+
+                              _tileKeys[item.id] ??= GlobalKey();
+
+                              return _MedicineTile(
+                                key: ValueKey(item.id),
+                                tileKey: _tileKeys[item.id]!,
+                                name: item.name,
+                                isSelected: isSelected,
+                                isExpanded: isExpanded,
+                                controller: isSelected
+                                    ? _availableControllerFor(item.id)
+                                    : TextEditingController(),
+                                onTap: () => _handleAvailableTap(item.id),
+                                onDoseChanged: (dose) {
+                                  setState(
+                                      () => _pendingDoseMap[item.id] = dose);
+                                },
+                                onRemove: () => _removeAvailable(item.id),
+                              );
+                            },
+                            childCount: available.length,
+                          ),
+                        ),
+
+                      const SliverToBoxAdapter(child: SizedBox(height: 8)),
                     ],
                   ),
                 ),
-                const Divider(height: 1),
-              ],
+              ),
 
-              // Lista de selección con editor inline de dosis
-              Expanded(
-                child: _MedicinesListWithDose(
-                  items: items,
-                  selectedIds: selectedIds,
-                  doseMap: _doseMap,
-                  onSelectionChanged: (ids) {
-                    ref.read(selectedMedicinesProvider.notifier).state = ids;
-                  },
-                  onDoseChanged: (id, dose) {
-                    setState(() {
-                      _doseMap[id] = dose;
-                    });
-                  },
-                  searchHint:
-                      'post_registration.health.medicines.search_hint'.tr(),
-                  hasNoneOption: true,
-                  noneOptionLabel:
-                      'post_registration.health.medicines.none_option'.tr(),
-                ),
+              // Sticky footer
+              _StickyFooter(
+                registeredCount: _serverIds.length,
+                pendingCount: _pendingCount,
+                isSaving: _isSaving,
+                canSave: _hasPendingChanges,
+                onSave: () => _save(context),
               ),
             ],
           );
@@ -292,284 +766,203 @@ class _MedicinesSelectionViewState
   }
 }
 
-/// Lista con búsqueda + input inline de dosis para medicamentos seleccionados.
-class _MedicinesListWithDose extends StatefulWidget {
-  final List<SelectableItem> items;
-  final List<int> selectedIds;
-  final Map<int, String?> doseMap;
-  final Function(List<int>) onSelectionChanged;
-  final Function(int, String?) onDoseChanged;
-  final String? searchHint;
-  final bool hasNoneOption;
-  final String noneOptionLabel;
+// ─────────────────────────────────────────────────────────────────────────────
+// Registered medicines section
+// ─────────────────────────────────────────────────────────────────────────────
 
-  const _MedicinesListWithDose({
-    required this.items,
-    required this.selectedIds,
-    required this.doseMap,
-    required this.onSelectionChanged,
-    required this.onDoseChanged,
-    this.searchHint,
-    this.hasNoneOption = true,
-    this.noneOptionLabel = 'Ninguno',
+class _RegisteredMedicinesSection extends StatelessWidget {
+  final List<MedicineModel> serverItems;
+  final int? expandedId;
+  final Map<int, String?> modifiedMap;
+  final void Function(int id) onChipTap;
+  final void Function(int id, String name) onChipLongPress;
+  final void Function(int id, String? dose) onDoseChange;
+  final void Function(int id, String name) onRemove;
+  final String? Function(int) registeredDoseFor;
+  final TextEditingController Function(int) controllerFor;
+
+  const _RegisteredMedicinesSection({
+    required this.serverItems,
+    required this.expandedId,
+    required this.modifiedMap,
+    required this.onChipTap,
+    required this.onChipLongPress,
+    required this.onDoseChange,
+    required this.onRemove,
+    required this.registeredDoseFor,
+    required this.controllerFor,
   });
 
   @override
-  State<_MedicinesListWithDose> createState() => _MedicinesListWithDoseState();
-}
-
-class _MedicinesListWithDoseState extends State<_MedicinesListWithDose> {
-  final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
-  late List<SelectableItem> _items;
-  final Map<int, TextEditingController> _doseControllers = {};
-
-  static const int _noneOptionId = -1;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeItems();
-  }
-
-  void _initializeItems() {
-    _items = widget.items.map((item) {
-      return SelectableItem(
-        id: item.id,
-        name: item.name,
-        isSelected: widget.selectedIds.contains(item.id),
-      );
-    }).toList();
-
-    if (widget.hasNoneOption) {
-      _items.insert(
-        0,
-        SelectableItem(
-          id: _noneOptionId,
-          name: widget.noneOptionLabel,
-          isSelected: widget.selectedIds.isEmpty,
-        ),
-      );
-    }
-  }
-
-  @override
-  void didUpdateWidget(_MedicinesListWithDose oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.selectedIds != widget.selectedIds ||
-        oldWidget.items != widget.items) {
-      _initializeItems();
-    }
-  }
-
-  TextEditingController _controllerFor(int id) {
-    return _doseControllers.putIfAbsent(id, () {
-      final existing = widget.doseMap[id];
-      return TextEditingController(text: existing ?? '');
-    });
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    for (final c in _doseControllers.values) {
-      c.dispose();
-    }
-    super.dispose();
-  }
-
-  List<SelectableItem> get _filteredItems {
-    if (_searchQuery.isEmpty) return _items;
-    return _items
-        .where((item) =>
-            item.name.toLowerCase().contains(_searchQuery.toLowerCase()))
-        .toList();
-  }
-
-  void _handleItemToggle(SelectableItem item) {
-    setState(() {
-      if (item.id == _noneOptionId) {
-        for (var i in _items) {
-          i.isSelected = i.id == _noneOptionId;
-        }
-      } else {
-        item.isSelected = !item.isSelected;
-        final noneItem = _items.firstWhere(
-          (i) => i.id == _noneOptionId,
-          orElse: () => item,
-        );
-        if (noneItem.id == _noneOptionId) noneItem.isSelected = false;
-      }
-
-      final selectedIds = _items
-          .where((i) => i.isSelected && i.id != _noneOptionId)
-          .map((i) => i.id)
-          .toList();
-
-      widget.onSelectionChanged(selectedIds);
-    });
-  }
-
-  String _getSelectionCountText() {
-    final count =
-        _items.where((i) => i.isSelected && i.id != _noneOptionId).length;
-    if (count == 0) return tr('common.none_selected');
-    if (count == 1) return tr('common.items_selected_one');
-    return tr('common.items_selected_other', namedArgs: {'count': '$count'});
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final filteredItems = _filteredItems;
-
     return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: widget.searchHint ?? tr('common.search'),
-              prefixIcon:
-                  HugeIcon(icon: HugeIcons.strokeRoundedSearch01, size: 22),
-              suffixIcon: _searchQuery.isNotEmpty
-                  ? IconButton(
-                      icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedCancel01, size: 22),
-                      onPressed: () {
-                        setState(() {
-                          _searchController.clear();
-                          _searchQuery = '';
-                        });
-                      },
-                    )
-                  : null,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              filled: true,
-              fillColor: context.sac.surfaceVariant,
-            ),
-            onChanged: (value) {
-              setState(() {
-                _searchQuery = value;
-              });
-            },
-          ),
-        ),
-        Expanded(
-          child: filteredItems.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedSearchMinus,
-                        size: 64,
-                        color: context.sac.textTertiary,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        tr('common.no_results'),
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: context.sac.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : ListView.builder(
-                  itemCount: filteredItems.length,
-                  itemBuilder: (context, index) {
-                    final item = filteredItems[index];
-                    final isNoneOption = item.id == _noneOptionId;
-                    final isSelected = item.isSelected && !isNoneOption;
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: serverItems.map((item) {
+        final dose = registeredDoseFor(item.id);
+        final isExpanded = expandedId == item.id;
 
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ListTile(
-                          title: Text(
-                            item.name,
-                            style: TextStyle(
-                              fontWeight: isNoneOption
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                            ),
-                          ),
-                          leading: Checkbox(
-                            value: item.isSelected,
-                            onChanged: (_) => _handleItemToggle(item),
-                          ),
-                          onTap: () => _handleItemToggle(item),
-                        ),
-                        // Inline dose input cuando está seleccionado
-                        if (isSelected)
-                          _DoseInlineEditor(
-                            controller: _controllerFor(item.id),
-                            onChanged: (dose) =>
-                                widget.onDoseChanged(item.id, dose),
-                          ),
-                      ],
-                    );
-                  },
-                ),
-        ),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: context.sac.surfaceVariant,
-            border: Border(top: BorderSide(color: context.sac.border)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                _getSelectionCountText(),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: context.sac.textSecondary,
-                  fontWeight: FontWeight.w500,
+              GestureDetector(
+                onTap: () => onChipTap(item.id),
+                onLongPress: () => onChipLongPress(item.id, item.name),
+                child: Semantics(
+                  label:
+                      '${item.name}${dose != null ? ', $dose' : ''}, ${tr('post_registration.health.medicines.edit_chip_a11y')}',
+                  button: true,
+                  child: MedicalChip(
+                    label: item.name,
+                    tone: SeverityTone.mint,
+                    sub: dose,
+                  ),
                 ),
               ),
-              if (_items.any((i) => i.isSelected && i.id != _noneOptionId))
-                TextButton.icon(
-                  icon:
-                      HugeIcon(icon: HugeIcons.strokeRoundedCancel02, size: 20),
-                  label: Text(tr('common.clear')),
-                  onPressed: () {
-                    setState(() {
-                      for (var item in _items) {
-                        item.isSelected = item.id == _noneOptionId;
-                      }
-                      widget.onSelectionChanged([]);
-                    });
-                  },
+              if (isExpanded) ...[
+                const SizedBox(height: 8),
+                _DoseEditor(
+                  controller: controllerFor(item.id),
+                  onChanged: (d) => onDoseChange(item.id, d),
                 ),
+                const SizedBox(height: 4),
+              ],
             ],
           ),
-        ),
-      ],
+        );
+      }).toList(),
     );
   }
 }
 
-/// Editor inline de dosis (TextField libre, max 255 chars, opcional).
-class _DoseInlineEditor extends StatefulWidget {
+// ─────────────────────────────────────────────────────────────────────────────
+// Medicine available tile
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _MedicineTile extends StatelessWidget {
+  final Key tileKey;
+  final String name;
+  final bool isSelected;
+  final bool isExpanded;
+  final TextEditingController controller;
+  final VoidCallback onTap;
+  final ValueChanged<String?> onDoseChanged;
+  final VoidCallback onRemove;
+
+  const _MedicineTile({
+    super.key,
+    required this.tileKey,
+    required this.name,
+    required this.isSelected,
+    required this.isExpanded,
+    required this.controller,
+    required this.onTap,
+    required this.onDoseChanged,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: tileKey,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
+      decoration: BoxDecoration(
+        color: isSelected ? MedicoTokens.mint50 : MedicoTokens.paper,
+        borderRadius: BorderRadius.circular(12),
+        border: Border(
+          left: isSelected
+              ? const BorderSide(color: MedicoTokens.mint500, width: 3)
+              : BorderSide.none,
+        ),
+      ),
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        name,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w500,
+                          color: MedicoTokens.ink900,
+                        ),
+                      ),
+                    ),
+                    if (isSelected)
+                      const HugeIcon(
+                        icon: HugeIcons.strokeRoundedTick02,
+                        size: 20,
+                        color: MedicoTokens.mint500,
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            if (isExpanded)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _DoseEditor(
+                      controller: controller,
+                      onChanged: onDoseChanged,
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: onRemove,
+                      style: TextButton.styleFrom(
+                        foregroundColor: MedicoTokens.ink600,
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        'post_registration.health.medicines.remove_selection'
+                            .tr(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Dose editor
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _DoseEditor extends StatefulWidget {
   final TextEditingController controller;
   final ValueChanged<String?> onChanged;
 
-  const _DoseInlineEditor({
+  const _DoseEditor({
     required this.controller,
     required this.onChanged,
   });
 
   @override
-  State<_DoseInlineEditor> createState() => _DoseInlineEditorState();
+  State<_DoseEditor> createState() => _DoseEditorState();
 }
 
-class _DoseInlineEditorState extends State<_DoseInlineEditor> {
+class _DoseEditorState extends State<_DoseEditor> {
   String? _errorText;
 
   void _validate(String value) {
@@ -579,12 +972,10 @@ class _DoseInlineEditorState extends State<_DoseInlineEditor> {
       widget.onChanged(null);
       return;
     }
-
     if (trimmed.length > 255) {
       setState(() {
         _errorText = 'post_registration.medicines.dose_too_long'.tr();
       });
-      // Still notify with truncated value to avoid silent data loss
       widget.onChanged(null);
     } else {
       setState(() => _errorText = null);
@@ -594,31 +985,253 @@ class _DoseInlineEditorState extends State<_DoseInlineEditor> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 56, right: 16, bottom: 8),
-      child: TextField(
-        controller: widget.controller,
-        decoration: InputDecoration(
-          labelText: 'post_registration.medicines.dose_label'.tr(),
-          hintText: 'post_registration.medicines.dose_hint'.tr(),
-          errorText: _errorText,
-          isDense: true,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+    return TextField(
+      controller: widget.controller,
+      maxLength: 255,
+      buildCounter: (context,
+              {required currentLength,
+              required isFocused,
+              required maxLength}) =>
+          Text(
+        '$currentLength/255',
+        style: TextStyle(
+          fontSize: 11,
+          color:
+              currentLength > 240 ? MedicoTokens.coral500 : MedicoTokens.ink400,
+        ),
+      ),
+      decoration: InputDecoration(
+        labelText: 'post_registration.medicines.dose_label'.tr(),
+        hintText: 'post_registration.medicines.dose_hint'.tr(),
+        errorText: _errorText,
+        isDense: true,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: MedicoTokens.ink200),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: MedicoTokens.coral500),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: MedicoTokens.coral600),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: MedicoTokens.coral600),
+        ),
+      ),
+      onChanged: _validate,
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Info banner
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _InfoBanner extends StatelessWidget {
+  final String text;
+  final Color bgColor;
+  final Color fgColor;
+  final Widget iconWidget;
+
+  const _InfoBanner({
+    required this.text,
+    required this.bgColor,
+    required this.fgColor,
+    required this.iconWidget,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          iconWidget,
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 14,
+                color: fgColor,
+                height: 1.4,
+              ),
+            ),
           ),
-          suffixText: 'common.optional'.tr(),
-          suffixStyle: TextStyle(
-            fontSize: 11,
-            color: context.sac.textTertiary,
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// None toggle card
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _NoneToggleCard extends StatelessWidget {
+  final bool isActive;
+  final String label;
+  final String helper;
+  final VoidCallback onTap;
+
+  const _NoneToggleCard({
+    required this.isActive,
+    required this.label,
+    required this.helper,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: isActive ? MedicoTokens.mint50 : MedicoTokens.paper,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isActive ? MedicoTokens.mint500 : MedicoTokens.ink150,
           ),
         ),
-        maxLength: 255,
-        buildCounter: (context,
-                {required currentLength,
-                required isFocused,
-                required maxLength}) =>
-            null, // hide the counter
-        onChanged: _validate,
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: MedicoTokens.ink900,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    helper,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: MedicoTokens.ink500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Switch(
+              value: isActive,
+              onChanged: (_) => onTap(),
+              activeThumbColor: MedicoTokens.mint500,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sticky footer
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _StickyFooter extends StatelessWidget {
+  final int registeredCount;
+  final int pendingCount;
+  final bool isSaving;
+  final bool canSave;
+  final VoidCallback onSave;
+
+  const _StickyFooter({
+    required this.registeredCount,
+    required this.pendingCount,
+    required this.isSaving,
+    required this.canSave,
+    required this.onSave,
+  });
+
+  String _counterText() {
+    if (pendingCount == 0) {
+      return 'common.no_pending_changes'
+          .tr(namedArgs: {'count': '$registeredCount'});
+    }
+    if (pendingCount == 1) {
+      return 'common.pending_changes_one'
+          .tr(namedArgs: {'registered': '$registeredCount'});
+    }
+    return 'common.pending_changes_other'.tr(namedArgs: {
+      'registered': '$registeredCount',
+      'pending': '$pendingCount',
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 12,
+        bottom: 12 + MediaQuery.of(context).padding.bottom,
+      ),
+      decoration: const BoxDecoration(
+        color: MedicoTokens.paper,
+        border: Border(top: BorderSide(color: MedicoTokens.ink150)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              _counterText(),
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: MedicoTokens.ink600,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          FilledButton(
+            onPressed: canSave && !isSaving ? onSave : null,
+            style: FilledButton.styleFrom(
+              backgroundColor: MedicoTokens.coral500,
+              disabledBackgroundColor: MedicoTokens.ink150,
+              minimumSize: const Size(0, 48),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+            ),
+            child: isSaving
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: MedicoTokens.paper,
+                    ),
+                  )
+                : Text(
+                    'common.save'.tr(),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.1,
+                      color: MedicoTokens.paper,
+                    ),
+                  ),
+          ),
+        ],
       ),
     );
   }
