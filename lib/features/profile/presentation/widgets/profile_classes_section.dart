@@ -102,8 +102,8 @@ class ProfileClassesSection extends ConsumerWidget {
                         color: AppColors.primary,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(
-                        Icons.school,
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedSchool,
                         color: Colors.white,
                         size: 22,
                       ),
@@ -224,14 +224,14 @@ class _ClassGridItem extends StatelessWidget {
                       ? Image.asset(
                           logoAsset,
                           fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) => Icon(
-                            Icons.school,
+                          errorBuilder: (_, __, ___) => HugeIcon(
+                            icon: HugeIcons.strokeRoundedSchool,
                             size: 30,
                             color: classColor,
                           ),
                         )
-                      : Icon(
-                          Icons.school,
+                      : HugeIcon(
+                          icon: HugeIcons.strokeRoundedSchool,
                           size: 30,
                           color: classColor,
                         ),
@@ -271,8 +271,8 @@ class _ClassGridItem extends StatelessWidget {
                         color: classColor,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.check,
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedTick02,
                         color: Colors.white,
                         size: 12,
                       ),

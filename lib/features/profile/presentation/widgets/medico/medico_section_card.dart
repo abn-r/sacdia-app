@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'medico_tokens.dart';
 
 /// Wrapper común para cada sección (Alergias, Enfermedades, etc.).
 ///
 /// Header: icono coloreado + título + acción opcional ("Editar" / "Administrar").
 class MedicoSectionCard extends StatelessWidget {
-  /// Icono Material a mostrar dentro del badge coloreado.
-  final IconData icon;
+  /// Icono HugeIcons a mostrar dentro del badge coloreado.
+  final List<List<dynamic>> icon;
 
   /// Color de fondo del badge.
   final Color iconBg;
@@ -67,7 +68,7 @@ class MedicoSectionCard extends StatelessWidget {
             color: iconBg,
             borderRadius: BorderRadius.circular(MedicoTokens.sectionIconRadius),
           ),
-          child: Icon(icon, color: iconFg, size: 20),
+          child: HugeIcon(icon: icon, color: iconFg, size: 20),
         ),
         const SizedBox(width: 12),
         Expanded(

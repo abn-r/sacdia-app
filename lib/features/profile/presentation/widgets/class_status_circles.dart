@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../classes/domain/entities/progressive_class.dart';
@@ -317,8 +318,8 @@ class _ClassLogo extends StatelessWidget {
       return Image.asset(
         assetPath,
         fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => Icon(
-          Icons.shield_outlined,
+        errorBuilder: (_, __, ___) => HugeIcon(
+          icon: HugeIcons.strokeRoundedSecurityCheck,
           color: color,
           size: 24,
         ),
@@ -335,8 +336,8 @@ class _ClassLogo extends StatelessWidget {
       child: Image.asset(
         assetPath,
         fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => Icon(
-          Icons.shield_outlined,
+        errorBuilder: (_, __, ___) => HugeIcon(
+          icon: HugeIcons.strokeRoundedSecurityCheck,
           color: c.textTertiary,
           size: 24,
         ),

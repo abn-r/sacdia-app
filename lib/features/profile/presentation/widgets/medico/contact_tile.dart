@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/features/post_registration/data/models/emergency_contact_model.dart';
 import 'medico_tokens.dart';
 
@@ -71,14 +72,14 @@ class ContactTile extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           _quickButton(
-            icon: Icons.phone_outlined,
+            icon: HugeIcons.strokeRoundedCall,
             bg: MedicoTokens.mint50,
             fg: MedicoTokens.mint500,
             onTap: () => onCall?.call(_cleanedPhone),
           ),
           const SizedBox(width: 6),
           _quickButton(
-            icon: Icons.chat_bubble_outline,
+            icon: HugeIcons.strokeRoundedMessage01,
             bg: MedicoTokens.ink100,
             fg: MedicoTokens.ink600,
             onTap: () => onSms?.call(_cleanedPhone),
@@ -109,7 +110,7 @@ class ContactTile extends StatelessWidget {
   }
 
   Widget _quickButton({
-    required IconData icon,
+    required List<List<dynamic>> icon,
     required Color bg,
     required Color fg,
     required VoidCallback onTap,
@@ -123,7 +124,7 @@ class ContactTile extends StatelessWidget {
         child: SizedBox(
           width: 36,
           height: 36,
-          child: Icon(icon, color: fg, size: 16),
+          child: HugeIcon(icon: icon, color: fg, size: 16),
         ),
       ),
     );

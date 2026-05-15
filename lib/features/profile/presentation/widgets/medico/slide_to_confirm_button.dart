@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import 'medico_tokens.dart';
 
@@ -236,8 +237,8 @@ class _SlideToConfirmButtonState extends State<SlideToConfirmButton>
                           ),
                         ],
                       ),
-                      child: Icon(
-                        Icons.chevron_right_rounded,
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedArrowRight01,
                         color: widget.thumbIconColor,
                         size: 30,
                       ),

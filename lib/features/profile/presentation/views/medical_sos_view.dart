@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:screen_brightness/screen_brightness.dart';
@@ -441,11 +442,11 @@ class _SosAppBarState extends State<_SosAppBar>
               button: true,
               child: GestureDetector(
                 onTap: widget.onClose,
-                child: const SizedBox(
+                child: SizedBox(
                   width: 44,
                   height: 44,
-                  child: Icon(
-                    Icons.close_rounded,
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedCancel01,
                     color: MedicoTokens.sosInkOnCoral,
                     size: 24,
                   ),
@@ -561,7 +562,7 @@ class _BloodHeroCard extends StatelessWidget {
               .tr(namedArgs: {'blood': blood})
           : 'profile.medical_info.sos.hero.blood_unknown_label'.tr(),
       child: Container(
-        height: 240,
+        constraints: const BoxConstraints(minHeight: 240),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
@@ -592,6 +593,7 @@ class _BloodHeroCard extends StatelessWidget {
               padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   // Blood glyph — monospace, 140pt
                   Text(
@@ -607,7 +609,7 @@ class _BloodHeroCard extends StatelessWidget {
                           : MedicoTokens.ink400,
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(height: 12),
 
                   // Name
                   if (name.isNotEmpty)
@@ -813,8 +815,8 @@ class _PrimaryContactCta extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.phone_rounded,
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedCall,
                     color: MedicoTokens.sosInkOnCoral,
                     size: 22,
                   ),
@@ -931,13 +933,15 @@ class _GpsCta extends StatelessWidget {
         bg = MedicoTokens.mint50;
         fg = MedicoTokens.mintInk;
         label = 'profile.medical_info.sos.actions.gps_sent'.tr();
-        trailing = Icon(Icons.check_rounded, color: fg, size: 18);
+        trailing =
+            HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: fg, size: 18);
         break;
       case _GpsState.error:
         bg = MedicoTokens.rose500;
         fg = MedicoTokens.paper;
         label = 'profile.medical_info.sos.actions.gps_failed'.tr();
-        trailing = Icon(Icons.refresh_rounded, color: fg, size: 18);
+        trailing =
+            HugeIcon(icon: HugeIcons.strokeRoundedRefresh, color: fg, size: 18);
         break;
       case _GpsState.idle:
         bg = MedicoTokens.mint500;
@@ -963,7 +967,7 @@ class _GpsCta extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.location_on_rounded, size: 20),
+              HugeIcon(icon: HugeIcons.strokeRoundedLocation01, size: 20),
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
@@ -1040,10 +1044,10 @@ class _ContactsList extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(
                 children: [
-                  Icon(
-                    showAll
-                        ? Icons.keyboard_arrow_up_rounded
-                        : Icons.keyboard_arrow_down_rounded,
+                  HugeIcon(
+                    icon: showAll
+                        ? HugeIcons.strokeRoundedArrowUp01
+                        : HugeIcons.strokeRoundedArrowDown01,
                     size: 20,
                     color: MedicoTokens.ink500,
                   ),
@@ -1154,8 +1158,8 @@ class _ContactTileRow extends StatelessWidget {
               ),
 
               // Phone icon
-              const Icon(
-                Icons.phone_rounded,
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedCall,
                 color: MedicoTokens.mint500,
                 size: 22,
               ),
