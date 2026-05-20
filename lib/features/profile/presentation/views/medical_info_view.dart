@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
@@ -25,7 +24,6 @@ import '../widgets/medico/medical_chip.dart';
 import '../widgets/medico/contact_tile.dart';
 import '../widgets/medico/medicament_tile.dart';
 import '../widgets/medico/empty_hint.dart';
-import 'medical_sos_view.dart';
 
 /// Mapea [AllergySeverity] a [SeverityTone] para renderizar chips.
 SeverityTone _severityTone(AllergySeverity severity) => switch (severity) {
@@ -130,7 +128,6 @@ class MedicalInfoView extends ConsumerWidget {
             children: [
               _MedicoAppBar(
                 onBack: () => Navigator.of(context).maybePop(),
-                onSOS: () => context.push(MedicalSosView.routeName),
               ),
               Expanded(
                 child: ListView(
@@ -429,9 +426,8 @@ class MedicalInfoView extends ConsumerWidget {
 
 class _MedicoAppBar extends StatelessWidget {
   final VoidCallback? onBack;
-  final VoidCallback? onSOS;
 
-  const _MedicoAppBar({this.onBack, this.onSOS});
+  const _MedicoAppBar({this.onBack});
 
   @override
   Widget build(BuildContext context) {
@@ -475,7 +471,6 @@ class _MedicoAppBar extends StatelessWidget {
               ],
             ),
           ),
-          _sosBtn(onTap: onSOS),
         ],
       ),
     );
@@ -502,39 +497,6 @@ class _MedicoAppBar extends StatelessWidget {
     );
   }
 
-  Widget _sosBtn({VoidCallback? onTap}) {
-    return Material(
-      color: MedicoTokens.rose50,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedAlert02,
-                color: MedicoTokens.rose500,
-                size: 16,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                'profile.medical_info.sos.button'.tr(),
-                style: const TextStyle(
-                  color: MedicoTokens.rose500,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.4,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 // ─────────── Error inline ──────────────────────────────────────────────────────

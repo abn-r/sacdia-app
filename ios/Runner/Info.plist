@@ -9,6 +9,11 @@
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
+		<!-- Allow plain HTTP to RFC1918 LAN addresses (192.168.x.x, 10.x.x.x,
+		     172.16-31.x.x) so physical devices can hit dev backend on Mac LAN IP.
+		     iOS rejects HTTP to public internet regardless. Production uses HTTPS. -->
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
 	</dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
