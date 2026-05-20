@@ -1,3 +1,5 @@
+export '../../domain/entities/certificate_import_item.dart';
+
 import 'package:equatable/equatable.dart';
 import '../../../../core/utils/json_helpers.dart';
 import '../../domain/entities/certificate_import_item.dart';
