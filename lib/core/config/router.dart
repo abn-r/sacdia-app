@@ -11,6 +11,12 @@ import 'package:sacdia_app/features/activities/presentation/views/activities_lis
 import 'package:sacdia_app/features/certifications/presentation/views/certifications_list_view.dart';
 import 'package:sacdia_app/features/certifications/presentation/views/certification_detail_view.dart';
 import 'package:sacdia_app/features/certifications/presentation/views/certification_progress_view.dart';
+import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_item.dart';
+import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_processing_view.dart';
+import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_review_view.dart';
+import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_status_view.dart';
+import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_upload_view.dart';
+import 'package:sacdia_app/features/certificate_import/presentation/widgets/certificate_import_proof_card.dart';
 import 'package:sacdia_app/features/investiture/presentation/views/investiture_pending_list_view.dart';
 import 'package:sacdia_app/features/investiture/presentation/views/investiture_history_view.dart';
 import 'package:sacdia_app/features/evidence_folder/presentation/views/evidence_folder_view.dart';
@@ -720,6 +726,77 @@ final routerProvider = Provider<GoRouter>((ref) {
             context,
             state,
             InvestitureHistoryView(enrollmentId: enrollmentId),
+          );
+        },
+      ),
+
+      // Carga masiva por certificado OCR (member flow).
+      //
+      // TODO(certificate-import-entrypoint): conectar el acceso visible desde
+      // el módulo de evidencias/progreso cuando producto defina el punto exacto.
+      // Por ahora dejamos rutas profundas estables sin tocar la navegación
+      // principal ni romper el shell existente.
+      GoRoute(
+        path: RouteNames.certificateImportUpload,
+        pageBuilder: (context, state) => _sharedAxisBuild(
+          context,
+          state,
+          const CertificateImportUploadRouteView(),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.certificateImportProcessing,
+        pageBuilder: (context, state) {
+          final batchId = state.pathParameters['batchId']!;
+          return _sharedAxisBuild(
+            context,
+            state,
+            CertificateImportProcessingRouteView(batchId: batchId),
+          );
+        },
+      ),
+      GoRoute(
+        path: RouteNames.certificateImportReview,
+        pageBuilder: (context, state) {
+          final batchId = state.pathParameters['batchId']!;
+          return _sharedAxisBuild(
+            context,
+            state,
+            CertificateImportReviewRouteView(batchId: batchId),
+          );
+        },
+      ),
+      GoRoute(
+        path: RouteNames.certificateImportStatus,
+        pageBuilder: (context, state) {
+          final batchId = state.pathParameters['batchId']!;
+          return _sharedAxisBuild(
+            context,
+            state,
+            CertificateImportStatusRouteView(batchId: batchId),
+          );
+        },
+      ),
+      GoRoute(
+        path: RouteNames.certificateImportProof,
+        pageBuilder: (context, state) {
+          final item = state.extra is CertificateImportItem
+              ? state.extra as CertificateImportItem
+              : null;
+          return _sharedAxisBuild(
+            context,
+            state,
+            Scaffold(
+              appBar: AppBar(title: const Text('Registro importado')),
+              body: Padding(
+                padding: const EdgeInsets.all(16),
+                child: item == null
+                    ? const Text(
+                        'Detalle no disponible. Abrilo desde un registro importado.',
+                      )
+                    : CertificateImportProofCard(item: item),
+              ),
+            ),
           );
         },
       ),

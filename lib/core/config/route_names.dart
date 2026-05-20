@@ -66,6 +66,17 @@ class RouteNames {
   static const String investitureHistory =
       '/investiture/enrollment/:enrollmentId/history';
 
+  // Carga masiva por comprobante/certificado OCR
+  static const String certificateImportUpload = '/certificate-import';
+  static const String certificateImportProcessing =
+      '/certificate-import/:batchId/processing';
+  static const String certificateImportReview =
+      '/certificate-import/:batchId/review';
+  static const String certificateImportStatus =
+      '/certificate-import/:batchId/status';
+  static const String certificateImportProof =
+      '/certificate-import/item/:itemId/proof';
+
   // Helpers para paths con parámetros
   static String clubDetailPath(String clubId) => '/club/$clubId';
   static String classDetailPath(String classId) => '/class/$classId';
@@ -77,6 +88,14 @@ class RouteNames {
       '/certification/$certificationId/progress/$enrollmentId';
   static String investitureHistoryPath(String enrollmentId) =>
       '/investiture/enrollment/$enrollmentId/history';
+  static String certificateImportProcessingPath(String batchId) =>
+      '/certificate-import/$batchId/processing';
+  static String certificateImportReviewPath(String batchId) =>
+      '/certificate-import/$batchId/review';
+  static String certificateImportStatusPath(String batchId) =>
+      '/certificate-import/$batchId/status';
+  static String certificateImportProofPath(String itemId) =>
+      '/certificate-import/item/$itemId/proof';
 
   // Camporees helpers
   static String camporeeDetailPath(String camporeeId) =>
