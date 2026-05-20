@@ -106,6 +106,7 @@ class _ImageThumbnail extends StatelessWidget {
           child: Image.network(
             file.url,
             fit: BoxFit.cover,
+            cacheWidth: 400,
             errorBuilder: (_, __, ___) => Container(
               color: c.surfaceVariant,
               child: HugeIcon(
@@ -277,6 +278,7 @@ class _FullscreenImageViewerState extends State<_FullscreenImageViewer> {
               child: Image.network(
                 file.url,
                 fit: BoxFit.contain,
+                cacheWidth: 1600,
                 errorBuilder: (_, __, ___) => const Icon(
                   Icons.broken_image,
                   color: Colors.white54,

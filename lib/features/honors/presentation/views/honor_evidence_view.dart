@@ -1176,6 +1176,7 @@ class _EvidenceThumbnail extends StatelessWidget {
               CachedNetworkImage(
                 imageUrl: imageUrl,
                 fit: BoxFit.cover,
+                memCacheWidth: 400,
                 placeholder: (_, __) => Builder(
                   builder: (context) => Container(
                     color: context.sac.surfaceVariant,

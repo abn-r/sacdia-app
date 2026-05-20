@@ -77,16 +77,14 @@ class HonorDetailView extends ConsumerWidget {
       return _HonorDetailContent(honor: initialHonor!, honorId: honorId);
     }
 
-    final honorAsync = ref.watch(allHonorsProvider);
+    final honorAsync = ref.watch(honorByIdProvider(honorId));
     return honorAsync.when(
-      data: (honors) {
-        try {
-          final honor = honors.firstWhere((h) => h.id == honorId);
-          return _HonorDetailContent(honor: honor, honorId: honorId);
-        } catch (_) {
+      data: (honor) {
+        if (honor == null) {
           return _ErrorScaffold(
               onRetry: () => ref.invalidate(allHonorsProvider));
         }
+        return _HonorDetailContent(honor: honor, honorId: honorId);
       },
       loading: () => const _LoadingScaffold(),
       error: (_, __) =>
@@ -177,20 +175,12 @@ class _HonorDetailContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userHonor = ref.watch(userHonorForHonorProvider(honorId));
-    final userHonorsLoading = ref.watch(userHonorsProvider).isLoading;
+    final userHonorsLoading =
+        ref.watch(userHonorsProvider.select((s) => s.isLoading));
     final enrollAsync = ref.watch(honorEnrollmentNotifierProvider);
-    final categoriesAsync = ref.watch(honorCategoriesProvider);
 
-    final categoryName = categoriesAsync.maybeWhen(
-      data: (cats) {
-        try {
-          return cats.firstWhere((c) => c.id == honor.categoryId).name;
-        } catch (_) {
-          return null;
-        }
-      },
-      orElse: () => null,
-    );
+    final categoryName =
+        ref.watch(categoryByIdProvider(honor.categoryId))?.name;
 
     final categoryColor = getCategoryColor(categoryId: honor.categoryId);
     final isEnrolled = userHonor != null;
@@ -306,7 +296,7 @@ class _HonorDetailContent extends ConsumerWidget {
 
 // ── Hero Section ───────────────────────────────────────────────────────────────
 
-class _HeroSection extends StatefulWidget {
+class _HeroSection extends ConsumerStatefulWidget {
   final Honor honor;
   final Color categoryColor;
   final UserHonor? userHonor;
@@ -322,10 +312,10 @@ class _HeroSection extends StatefulWidget {
   });
 
   @override
-  State<_HeroSection> createState() => _HeroSectionState();
+  ConsumerState<_HeroSection> createState() => _HeroSectionState();
 }
 
-class _HeroSectionState extends State<_HeroSection>
+class _HeroSectionState extends ConsumerState<_HeroSection>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _badgeScale;
@@ -363,116 +353,103 @@ class _HeroSectionState extends State<_HeroSection>
 
   @override
   Widget build(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, _) {
-        final progressStats = widget.isEnrolled
-            ? ref.watch(honorProgressStatsProvider(widget.honorId))
-            : null;
-        final progressPercent = progressStats?.percentage ?? 0.0;
+    final progressStats = widget.isEnrolled
+        ? ref.watch(honorProgressStatsProvider(widget.honorId))
+        : null;
+    final progressPercent = progressStats?.percentage ?? 0.0;
 
-        return Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                widget.categoryColor,
-                widget.categoryColor.withValues(alpha: 0.72),
-              ],
-            ),
-          ),
-          child: SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  // Badge with optional progress ring
-                  ScaleTransition(
-                    scale: _badgeScale,
-                    child: widget.isEnrolled
-                        ? _ProgressBadge(
-                            honor: widget.honor,
-                            categoryColor: widget.categoryColor,
-                            progressValue: _progressValue,
-                            progressPercent: progressPercent,
-                          )
-                        : _SimpleBadge(honor: widget.honor),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Honor name
-                  Text(
-                    widget.honor.name,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
-                      height: 1.2,
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  if (widget.isEnrolled && progressStats != null) ...[
-                    // Progress summary text
-                    Text(
-                      'honors.detail.progress_summary'.tr(namedArgs: {
-                        'completed': '${progressStats.completed}',
-                        'total': '${progressStats.total}',
-                      }),
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.85),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    // Thin progress bar
-                    AnimatedBuilder(
-                      animation: _progressValue,
-                      builder: (context, _) {
-                        return ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: _progressValue.value * progressPercent,
-                            minHeight: 4,
-                            backgroundColor:
-                                Colors.white.withValues(alpha: 0.25),
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ] else ...[
-                    // Skill level + approval pills
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      alignment: WrapAlignment.center,
-                      children: [
-                        if (widget.honor.skillLevel != null)
-                          _FrostedPill(
-                              label: _skillLevelLabel(widget.honor.skillLevel)),
-                        _FrostedPill(
-                            label: _approvalLabel(widget.honor.approval)),
-                      ],
-                    ),
-                  ],
-                ],
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            widget.categoryColor,
+            widget.categoryColor.withValues(alpha: 0.72),
+          ],
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              ScaleTransition(
+                scale: _badgeScale,
+                child: widget.isEnrolled
+                    ? _ProgressBadge(
+                        honor: widget.honor,
+                        categoryColor: widget.categoryColor,
+                        progressValue: _progressValue,
+                        progressPercent: progressPercent,
+                      )
+                    : _SimpleBadge(honor: widget.honor),
               ),
-            ),
+              const SizedBox(height: 16),
+              Text(
+                widget.honor.name,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                  height: 1.2,
+                ),
+              ),
+              const SizedBox(height: 10),
+              if (widget.isEnrolled && progressStats != null) ...[
+                Text(
+                  'honors.detail.progress_summary'.tr(namedArgs: {
+                    'completed': '${progressStats.completed}',
+                    'total': '${progressStats.total}',
+                  }),
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.85),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                AnimatedBuilder(
+                  animation: _progressValue,
+                  builder: (context, _) {
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: _progressValue.value * progressPercent,
+                        minHeight: 4,
+                        backgroundColor:
+                            Colors.white.withValues(alpha: 0.25),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Colors.white,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ] else ...[
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    if (widget.honor.skillLevel != null)
+                      _FrostedPill(
+                          label: _skillLevelLabel(widget.honor.skillLevel)),
+                    _FrostedPill(
+                        label: _approvalLabel(widget.honor.approval)),
+                  ],
+                ),
+              ],
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
@@ -673,53 +650,55 @@ class _StaggeredCards extends StatefulWidget {
 }
 
 class _StaggeredCardsState extends State<_StaggeredCards>
-    with TickerProviderStateMixin {
-  late List<AnimationController> _controllers;
-  late List<Animation<double>> _fadeAnims;
-  late List<Animation<Offset>> _slideAnims;
+    with SingleTickerProviderStateMixin {
+  // Single controller drives all stagger animations via per-card Intervals.
+  // Saves N-1 controllers vs the previous design (one per card).
+  static const int _count = 4;
+  static const Duration _totalDuration = Duration(milliseconds: 800);
+  static const double _cardWindow = 350 / 800; // 0.4375
+  static const double _cardOffset = 100 / 800; // 0.125 between starts
+  static const double _baseStart = 150 / 800; // first card kickoff
+
+  late final AnimationController _controller;
+  late final List<Animation<double>> _fadeAnims;
+  late final List<Animation<Offset>> _slideAnims;
 
   @override
   void initState() {
     super.initState();
-    // 4 cards max
-    const count = 4;
-    _controllers = List.generate(
-      count,
-      (i) => AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 350),
-      ),
-    );
-    _fadeAnims = _controllers
-        .map((c) => Tween<double>(begin: 0, end: 1).animate(
-              CurvedAnimation(parent: c, curve: Curves.easeOut),
-            ))
-        .toList();
-    _slideAnims = _controllers
-        .map((c) => Tween<Offset>(
-              begin: const Offset(0, 0.08),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(parent: c, curve: Curves.easeOut)))
-        .toList();
-
-    // Stagger cards with 100ms delay each
-    for (var i = 0; i < count; i++) {
-      Future.delayed(Duration(milliseconds: 150 + i * 100), () {
-        if (mounted) _controllers[i].forward();
-      });
-    }
+    _controller = AnimationController(vsync: this, duration: _totalDuration);
+    _fadeAnims = List.generate(_count, (i) {
+      final start = _baseStart + i * _cardOffset;
+      final end = (start + _cardWindow).clamp(0.0, 1.0);
+      return Tween<double>(begin: 0, end: 1).animate(
+        CurvedAnimation(
+          parent: _controller,
+          curve: Interval(start, end, curve: Curves.easeOut),
+        ),
+      );
+    });
+    _slideAnims = List.generate(_count, (i) {
+      final start = _baseStart + i * _cardOffset;
+      final end = (start + _cardWindow).clamp(0.0, 1.0);
+      return Tween<Offset>(
+        begin: const Offset(0, 0.08),
+        end: Offset.zero,
+      ).animate(CurvedAnimation(
+        parent: _controller,
+        curve: Interval(start, end, curve: Curves.easeOut),
+      ));
+    });
+    _controller.forward();
   }
 
   @override
   void dispose() {
-    for (final c in _controllers) {
-      c.dispose();
-    }
+    _controller.dispose();
     super.dispose();
   }
 
   Widget _animated(int index, Widget child) {
-    final idx = index.clamp(0, _controllers.length - 1);
+    final idx = index.clamp(0, _count - 1);
     return FadeTransition(
       opacity: _fadeAnims[idx],
       child: SlideTransition(position: _slideAnims[idx], child: child),

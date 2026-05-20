@@ -94,6 +94,22 @@ final honorCategoriesProvider =
   );
 });
 
+/// Lookup a category by id from the cached [honorCategoriesProvider].
+/// Avoids repeating `firstWhere` over the full list inside widget builds.
+final categoryByIdProvider =
+    Provider.autoDispose.family<HonorCategory?, int>((ref, categoryId) {
+  final categoriesAsync = ref.watch(honorCategoriesProvider);
+  return categoriesAsync.maybeWhen(
+    data: (cats) {
+      for (final c in cats) {
+        if (c.id == categoryId) return c;
+      }
+      return null;
+    },
+    orElse: () => null,
+  );
+});
+
 /// Provider para especialidades filtradas
 final honorsProvider = FutureProvider.autoDispose
     .family<List<Honor>, GetHonorsParams>((ref, params) async {
@@ -387,6 +403,20 @@ final allHonorsProvider = FutureProvider.autoDispose<List<Honor>>((ref) async {
   ref.keepAlive();
   final groupsAsync = await ref.watch(honorsGroupedByCategoryProvider.future);
   return groupsAsync.expand((group) => group.honors).toList();
+});
+
+/// Lookup a honor by id from the cached [allHonorsProvider].
+/// Replaces O(n) `firstWhere` calls inside widget builds with a derived
+/// AsyncValue that re-runs only when the underlying catalog changes.
+final honorByIdProvider =
+    Provider.autoDispose.family<AsyncValue<Honor?>, int>((ref, honorId) {
+  final honorsAsync = ref.watch(allHonorsProvider);
+  return honorsAsync.whenData((honors) {
+    for (final h in honors) {
+      if (h.id == honorId) return h;
+    }
+    return null;
+  });
 });
 
 /// All honors filtered by search query and selected category.

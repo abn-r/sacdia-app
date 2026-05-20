@@ -16,13 +16,11 @@ import '../widgets/evidence_review_card.dart';
 /// Lista de evidencias pendientes de revisión con filtros por tipo.
 ///
 /// Requiere GlobalRolesGuard (coordinator, admin) en el backend.
-class EvidenceReviewListView extends ConsumerWidget {
+class EvidenceReviewListView extends StatelessWidget {
   const EvidenceReviewListView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final activeFilter = ref.watch(evidenceTypeFilterProvider);
-    final evidenceAsync = ref.watch(pendingEvidenceProvider(activeFilter));
+  Widget build(BuildContext context) {
     final hPad = Responsive.horizontalPadding(context);
     final c = context.sac;
 
@@ -31,44 +29,51 @@ class EvidenceReviewListView extends ConsumerWidget {
       appBar: AppBar(
         title: Text('coordinator.evidence_review.list.title'.tr()),
         actions: [
-          IconButton(
-            onPressed: () =>
-                ref.invalidate(pendingEvidenceProvider(activeFilter)),
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedRefresh,
-              size: 22,
+          Consumer(
+            builder: (_, ref, __) => IconButton(
+              onPressed: () {
+                final filter = ref.read(evidenceTypeFilterProvider);
+                ref.invalidate(pendingEvidenceProvider(filter));
+              },
+              icon: const HugeIcon(
+                icon: HugeIcons.strokeRoundedRefresh,
+                size: 22,
+              ),
+              tooltip: 'coordinator.evidence_review.list.refresh_tooltip'.tr(),
             ),
-            tooltip: 'coordinator.evidence_review.list.refresh_tooltip'.tr(),
           ),
         ],
       ),
       body: SafeArea(
         child: Column(
           children: [
-            // ── Filter chips ─────────────────────────────────────────────
             Padding(
               padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 0),
-              child: _FilterChips(
-                activeFilter: activeFilter,
-                onFilterChanged: (type) {
-                  ref.read(evidenceTypeFilterProvider.notifier).state = type;
-                },
-              ),
+              child: const _FilterChips(),
             ),
-
-            // ── List ──────────────────────────────────────────────────────
-            Expanded(
-              child: evidenceAsync.when(
-                data: (list) =>
-                    _buildList(context, ref, list, hPad, c, activeFilter),
-                loading: () => const Center(child: SacLoading()),
-                error: (error, _) =>
-                    _buildError(context, ref, error, activeFilter),
-              ),
-            ),
+            Expanded(child: _EvidenceList(hPad: hPad)),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _EvidenceList extends ConsumerWidget {
+  final double hPad;
+
+  const _EvidenceList({required this.hPad});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activeFilter = ref.watch(evidenceTypeFilterProvider);
+    final evidenceAsync = ref.watch(pendingEvidenceProvider(activeFilter));
+    final c = context.sac;
+
+    return evidenceAsync.when(
+      data: (list) => _buildList(context, ref, list, hPad, c, activeFilter),
+      loading: () => const Center(child: SacLoading()),
+      error: (error, _) => _buildError(context, ref, error, activeFilter),
     );
   }
 
@@ -223,17 +228,12 @@ class EvidenceReviewListView extends ConsumerWidget {
 
 // ── Filter chips ──────────────────────────────────────────────────────────────
 
-class _FilterChips extends StatelessWidget {
-  final EvidenceReviewType? activeFilter;
-  final ValueChanged<EvidenceReviewType?> onFilterChanged;
-
-  const _FilterChips({
-    required this.activeFilter,
-    required this.onFilterChanged,
-  });
+class _FilterChips extends ConsumerWidget {
+  const _FilterChips();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activeFilter = ref.watch(evidenceTypeFilterProvider);
     final filters = <({String label, EvidenceReviewType? value})>[
       (label: 'coordinator.evidence_review.list.filter_all'.tr(), value: null),
       (
@@ -258,7 +258,9 @@ class _FilterChips extends StatelessWidget {
           return FilterChip(
             label: Text(filter.label),
             selected: isSelected,
-            onSelected: (_) => onFilterChanged(filter.value),
+            onSelected: (_) =>
+                ref.read(evidenceTypeFilterProvider.notifier).state =
+                    filter.value,
             selectedColor: AppColors.primaryLight,
             checkmarkColor: AppColors.primary,
             labelStyle: TextStyle(

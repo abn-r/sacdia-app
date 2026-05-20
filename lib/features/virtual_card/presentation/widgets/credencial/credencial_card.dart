@@ -193,6 +193,7 @@ class CredencialCard extends StatelessWidget {
                   ? Image.network(
                       vm.fotoUrl!,
                       fit: BoxFit.cover,
+                      cacheWidth: 200,
                       errorBuilder: (_, __, ___) => _avatarFallback(sec),
                     )
                   : _avatarFallback(sec),

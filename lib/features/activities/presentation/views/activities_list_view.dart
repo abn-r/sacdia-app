@@ -50,6 +50,21 @@ class ActivitiesListView extends ConsumerStatefulWidget {
   ConsumerState<ActivitiesListView> createState() => _ActivitiesListViewState();
 }
 
+/// Cached year strip — shared across [_ActivitiesListViewState] instances so
+/// rebuilding the view doesn't reallocate ~366 DateTime objects per mount.
+List<DateTime>? _cachedYearDays;
+int? _cachedYear;
+
+List<DateTime> _yearDays(int year) {
+  if (_cachedYearDays != null && _cachedYear == year) return _cachedYearDays!;
+  final start = DateTime(year, 1, 1);
+  final end = DateTime(year, 12, 31);
+  final count = end.difference(start).inDays + 1;
+  _cachedYearDays = List.generate(count, (i) => start.add(Duration(days: i)));
+  _cachedYear = year;
+  return _cachedYearDays!;
+}
+
 class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
   int? _selectedFilter;
   DateTime? _selectedDate;
@@ -59,8 +74,8 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
   late final int _todayIndex;
   late final ScrollController _dateScrollController;
   late final ScrollController _chronoScrollController;
-  late DateTime _visibleMonth;
-  bool _showTodayButton = false;
+  late final ValueNotifier<DateTime> _visibleMonth;
+  final ValueNotifier<bool> _showTodayButton = ValueNotifier<bool>(false);
 
   static const double _dateItemWidth = 52.0;
   static const double _dateItemHorizontalMargin = 4.0;
@@ -68,10 +83,10 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
   @override
   void initState() {
     super.initState();
-    _days = _buildDays();
     final now = DateTime.now();
+    _days = _yearDays(now.year);
     _selectedDate = DateTime(now.year, now.month, now.day);
-    _visibleMonth = DateTime(now.year, now.month);
+    _visibleMonth = ValueNotifier<DateTime>(DateTime(now.year, now.month));
     _todayIndex = _days.indexWhere((d) => _isSameDay(d, now));
     _dateScrollController = ScrollController();
     _chronoScrollController = ScrollController();
@@ -82,6 +97,8 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
   void dispose() {
     _dateScrollController.dispose();
     _chronoScrollController.dispose();
+    _visibleMonth.dispose();
+    _showTodayButton.dispose();
     super.dispose();
   }
 
@@ -90,14 +107,6 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
     final user = authState.valueOrNull;
     if (user == null) return false;
     return hasAnyPermission(user, const {'activities:create'});
-  }
-
-  List<DateTime> _buildDays() {
-    final now = DateTime.now();
-    final start = DateTime(now.year, 1, 1);
-    final end = DateTime(now.year, 12, 31);
-    final count = end.difference(start).inDays + 1;
-    return List.generate(count, (i) => start.add(Duration(days: i)));
   }
 
   double _offsetForIndex(int index) {
@@ -153,11 +162,9 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
     final isAwayFromToday =
         (scrollOffset - todayOffset).abs() > itemTotalWidth * 1.5;
 
-    if (newMonth != _visibleMonth || isAwayFromToday != _showTodayButton) {
-      setState(() {
-        _visibleMonth = newMonth;
-        _showTodayButton = isAwayFromToday;
-      });
+    if (newMonth != _visibleMonth.value) _visibleMonth.value = newMonth;
+    if (isAwayFromToday != _showTodayButton.value) {
+      _showTodayButton.value = isAwayFromToday;
     }
   }
 
@@ -307,13 +314,16 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                               .headlineSmall
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
-                        Text(
-                          _capitalizeFirst(
-                            DateFormat('MMMM yyyy', 'es').format(_visibleMonth),
-                          ),
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: c.textSecondary,
+                        ValueListenableBuilder<DateTime>(
+                          valueListenable: _visibleMonth,
+                          builder: (_, month, __) => Text(
+                            _capitalizeFirst(
+                              DateFormat('MMMM yyyy', 'es').format(month),
+                            ),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: c.textSecondary,
+                            ),
                           ),
                         ),
                       ],
@@ -591,48 +601,60 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                         ),
                                       ),
                                     ),
-                                    if (_showTodayButton) ...[
-                                      const SizedBox(height: 4),
-                                      SizedBox(
-                                        width: 60,
-                                        height: 44,
-                                        child: Material(
-                                          color: AppColors.primary,
-                                          borderRadius:
-                                              BorderRadius.circular(22),
-                                          child: InkWell(
-                                            borderRadius:
-                                                BorderRadius.circular(22),
-                                            splashColor: Colors.white
-                                                .withValues(alpha: 0.2),
-                                            onTap: () {
-                                              final now = DateTime.now();
-                                              setState(() {
-                                                _selectedDate = DateTime(
-                                                    now.year,
-                                                    now.month,
-                                                    now.day);
-                                                _showTodayButton = false;
-                                                _visibleMonth = DateTime(
-                                                    now.year, now.month);
-                                              });
-                                              _scrollToToday(animate: true);
-                                            },
-                                            child: Center(
-                                              child: Text(
-                                                'activities.list.today_label'
-                                                    .tr(),
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w600,
+                                    ValueListenableBuilder<bool>(
+                                      valueListenable: _showTodayButton,
+                                      builder: (_, show, __) {
+                                        if (!show) {
+                                          return const SizedBox.shrink();
+                                        }
+                                        return Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 4),
+                                          child: SizedBox(
+                                            width: 60,
+                                            height: 44,
+                                            child: Material(
+                                              color: AppColors.primary,
+                                              borderRadius:
+                                                  BorderRadius.circular(22),
+                                              child: InkWell(
+                                                borderRadius:
+                                                    BorderRadius.circular(22),
+                                                splashColor: Colors.white
+                                                    .withValues(alpha: 0.2),
+                                                onTap: () {
+                                                  final now = DateTime.now();
+                                                  setState(() {
+                                                    _selectedDate = DateTime(
+                                                        now.year,
+                                                        now.month,
+                                                        now.day);
+                                                  });
+                                                  _showTodayButton.value =
+                                                      false;
+                                                  _visibleMonth.value =
+                                                      DateTime(now.year,
+                                                          now.month);
+                                                  _scrollToToday(animate: true);
+                                                },
+                                                child: Center(
+                                                  child: Text(
+                                                    'activities.list.today_label'
+                                                        .tr(),
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                  ),
                                                 ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ),
-                                    ],
+                                        );
+                                      },
+                                    ),
                                   ],
                                 ),
                               ),
