@@ -57,3 +57,6 @@ dist/
 node_modules/
 
 sentry.properties
+
+# Local Codex worktrees
+.worktrees/
