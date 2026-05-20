@@ -496,7 +496,6 @@ class _MedicoAppBar extends StatelessWidget {
       ),
     );
   }
-
 }
 
 // ─────────── Error inline ──────────────────────────────────────────────────────
