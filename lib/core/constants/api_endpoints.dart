@@ -95,6 +95,9 @@ class ApiEndpoints {
   // ── Evidence Review ────────────────────────────────────────────────────────
   static const String evidenceReview = '/evidence-review';
 
+  // ── Certificate Bulk Imports ─────────────────────────────────────────────
+  static const String certificateBulkImports = '/certificate-bulk-imports';
+
   // ── Admin Analytics ───────────────────────────────────────────────────────
   static const String adminAnalytics = '/admin/analytics';
 
