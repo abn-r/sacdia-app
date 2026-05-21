@@ -32,11 +32,16 @@ class ClassCard extends StatelessWidget {
     final progressPercent = (progress * 100).toInt();
     final classColor = AppColors.classColor(progressiveClass.name);
     final logoAsset = AppColors.classLogoAsset(progressiveClass.name);
+    final isExpired = progressiveClass.isExpired;
 
     return SacCard(
       onTap: onTap,
       accentColor: classColor,
-      borderColor: isCurrent ? classColor : null,
+      borderColor: isExpired
+          ? AppColors.error.withValues(alpha: 0.45)
+          : isCurrent
+              ? classColor
+              : null,
       margin: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,9 +116,25 @@ class ClassCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (isCurrent) const SacBadge(label: 'Clase actual'),
+                        if (isExpired)
+                          const SacBadge(label: 'Vencida')
+                        else if (isCurrent)
+                          const SacBadge(label: 'Clase actual'),
                       ],
                     ),
+                    if (isExpired) ...[
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Esta clase se conserva en tu trayectoria, pero ya no puede completarse para investidura.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.errorDark,
+                          height: 1.25,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                     if (progressiveClass.description != null) ...[
                       const SizedBox(height: 2),
                       Text(

@@ -30,11 +30,13 @@ import '../sheets/requirement_status_history_sheet.dart';
 class RequirementDetailView extends ConsumerStatefulWidget {
   final ClassRequirement requirement;
   final int classId;
+  final bool isClassExpired;
 
   const RequirementDetailView({
     super.key,
     required this.requirement,
     required this.classId,
+    this.isClassExpired = false,
   });
 
   @override
@@ -125,7 +127,9 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
         ref.watch(requirementNotifierProvider(widget.classId));
     final classAsync = ref.watch(classWithProgressProvider(widget.classId));
     final requirement = _liveRequirement(classAsync);
-    final canModify = requirement.canUpload;
+    final isClassExpired =
+        widget.isClassExpired || (classAsync.valueOrNull?.isExpired ?? false);
+    final canModify = !isClassExpired && requirement.canUpload;
     final isLoading = notifierState.isLoading;
 
     // Find module index for eyebrow "X / Y"
@@ -218,6 +222,9 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                             ),
 
                             const SizedBox(height: 16),
+
+                            if (isClassExpired)
+                              const _ExpiredRequirementBanner(),
 
                             // Status banner (observed / rejected only)
                             if (requirement.status ==
@@ -490,6 +497,33 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
       // ignore: use_build_context_synchronously
       Navigator.pop(context);
     }
+  }
+}
+
+class _ExpiredRequirementBanner extends StatelessWidget {
+  const _ExpiredRequirementBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF1F2),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.35)),
+      ),
+      child: const Text(
+        'Vencida · Esta clase se conserva en tu trayectoria, pero ya no puede completarse para investidura.',
+        style: TextStyle(
+          fontSize: 12.5,
+          fontWeight: FontWeight.w600,
+          color: AppColors.errorDark,
+          height: 1.35,
+        ),
+      ),
+    );
   }
 }
 

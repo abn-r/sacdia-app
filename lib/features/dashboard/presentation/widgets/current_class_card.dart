@@ -86,6 +86,7 @@ class CurrentClassCard extends ConsumerWidget {
 
     final int progressPercentage = (progress * 100).toInt();
     final bool isComplete = progress >= 1.0;
+    final bool isExpired = classState?.valueOrNull?.isExpired ?? false;
 
     return SacCard(
       child: Row(
@@ -125,7 +126,9 @@ class CurrentClassCard extends ConsumerWidget {
           const SizedBox(width: 12),
 
           // Small progress ring + percentage, OR "Completada" badge
-          if (isComplete)
+          if (isExpired)
+            const _ExpiredBadge()
+          else if (isComplete)
             const _CompletadaBadge()
           else
             SacProgressRing(
@@ -202,6 +205,41 @@ class CurrentClassCard extends ConsumerWidget {
                     size: 20,
                   ),
                 ),
+    );
+  }
+}
+
+class _ExpiredBadge extends StatelessWidget {
+  const _ExpiredBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF1F2),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedClock04,
+            size: 14,
+            color: AppColors.errorDark,
+          ),
+          const SizedBox(width: 4),
+          const Text(
+            'Vencida',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.errorDark,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -170,10 +170,12 @@ List<TrackData> buildRoadmapTracks({
 
 /// Deriva el [ClassStatus] desde el valor de investitureStatus del backend.
 ///
-/// Valores observados: null, 'PENDIENTE', 'INVESTIDO'.
+/// Valores observados: null, 'PENDIENTE', 'INVESTIDO', 'EXPIRED'.
 /// Cualquier estado activo no-investido se trata como [ClassStatus.current].
 ClassStatus _deriveStatus(String? investitureStatus) {
   if (investitureStatus == null) return ClassStatus.locked;
-  if (investitureStatus.toUpperCase() == 'INVESTIDO') return ClassStatus.done;
+  final normalized = investitureStatus.toUpperCase();
+  if (normalized == 'INVESTIDO') return ClassStatus.done;
+  if (normalized == 'EXPIRED') return ClassStatus.expired;
   return ClassStatus.current;
 }

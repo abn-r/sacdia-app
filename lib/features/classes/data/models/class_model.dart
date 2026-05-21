@@ -21,6 +21,11 @@ class ClassModel extends Equatable {
   /// Mapeado desde el campo snake_case `asset_code` del backend.
   final String? assetCode;
 
+  final int? availableFromYearId;
+  final int? availableUntilYearId;
+  final int minDurationYears;
+  final int maxDurationYears;
+
   const ClassModel({
     required this.id,
     required this.name,
@@ -30,6 +35,10 @@ class ClassModel extends Equatable {
     this.investitureStatus,
     this.overallProgress,
     this.assetCode,
+    this.availableFromYearId,
+    this.availableUntilYearId,
+    this.minDurationYears = 1,
+    this.maxDurationYears = 1,
   });
 
   /// Crea una instancia desde JSON.
@@ -48,6 +57,14 @@ class ClassModel extends Equatable {
       investitureStatus: safeStringOrNull(json['investiture_status']),
       overallProgress: safeIntOrNull(json['overall_progress']),
       assetCode: safeStringOrNull(json['asset_code']),
+      availableFromYearId: safeIntOrNull(
+          json['available_from_year_id'] ?? json['availableFromYearId']),
+      availableUntilYearId: safeIntOrNull(
+          json['available_until_year_id'] ?? json['availableUntilYearId']),
+      minDurationYears:
+          safeInt(json['min_duration_years'] ?? json['minDurationYears'], 1),
+      maxDurationYears:
+          safeInt(json['max_duration_years'] ?? json['maxDurationYears'], 1),
     );
   }
 
@@ -62,6 +79,10 @@ class ClassModel extends Equatable {
       'investiture_status': investitureStatus,
       'overall_progress': overallProgress,
       'asset_code': assetCode,
+      'available_from_year_id': availableFromYearId,
+      'available_until_year_id': availableUntilYearId,
+      'min_duration_years': minDurationYears,
+      'max_duration_years': maxDurationYears,
     };
   }
 
@@ -76,6 +97,10 @@ class ClassModel extends Equatable {
       investitureStatus: investitureStatus,
       overallProgress: overallProgress,
       assetCode: assetCode,
+      availableFromYearId: availableFromYearId,
+      availableUntilYearId: availableUntilYearId,
+      minDurationYears: minDurationYears,
+      maxDurationYears: maxDurationYears,
     );
   }
 
@@ -89,6 +114,10 @@ class ClassModel extends Equatable {
     String? investitureStatus,
     int? overallProgress,
     String? assetCode,
+    int? availableFromYearId,
+    int? availableUntilYearId,
+    int? minDurationYears,
+    int? maxDurationYears,
   }) {
     return ClassModel(
       id: id ?? this.id,
@@ -99,6 +128,10 @@ class ClassModel extends Equatable {
       investitureStatus: investitureStatus ?? this.investitureStatus,
       overallProgress: overallProgress ?? this.overallProgress,
       assetCode: assetCode ?? this.assetCode,
+      availableFromYearId: availableFromYearId ?? this.availableFromYearId,
+      availableUntilYearId: availableUntilYearId ?? this.availableUntilYearId,
+      minDurationYears: minDurationYears ?? this.minDurationYears,
+      maxDurationYears: maxDurationYears ?? this.maxDurationYears,
     );
   }
 
@@ -112,5 +145,9 @@ class ClassModel extends Equatable {
         investitureStatus,
         overallProgress,
         assetCode,
+        availableFromYearId,
+        availableUntilYearId,
+        minDurationYears,
+        maxDurationYears,
       ];
 }

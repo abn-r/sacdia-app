@@ -13,6 +13,11 @@ class ClassWithProgress extends Equatable {
   final String? description;
   final int clubTypeId;
   final String? imageUrl;
+  final String? investitureStatus;
+  final int? availableFromYearId;
+  final int? availableUntilYearId;
+  final int minDurationYears;
+  final int maxDurationYears;
 
   // Progreso del usuario
   final List<ClassModuleDetail> modules;
@@ -23,10 +28,17 @@ class ClassWithProgress extends Equatable {
     this.description,
     required this.clubTypeId,
     this.imageUrl,
+    this.investitureStatus,
+    this.availableFromYearId,
+    this.availableUntilYearId,
+    this.minDurationYears = 1,
+    this.maxDurationYears = 1,
     this.modules = const [],
   });
 
   // Computed helpers
+
+  bool get isExpired => investitureStatus?.toUpperCase() == 'EXPIRED';
 
   /// Total de requerimientos en todos los modulos.
   int get totalRequirements =>
@@ -58,6 +70,17 @@ class ClassWithProgress extends Equatable {
       modules.expand((m) => m.requirements).toList();
 
   @override
-  List<Object?> get props =>
-      [id, name, description, clubTypeId, imageUrl, modules];
+  List<Object?> get props => [
+        id,
+        name,
+        description,
+        clubTypeId,
+        imageUrl,
+        investitureStatus,
+        availableFromYearId,
+        availableUntilYearId,
+        minDurationYears,
+        maxDurationYears,
+        modules,
+      ];
 }

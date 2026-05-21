@@ -353,6 +353,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
           // Construir JSON combinado
           final combined = {
             ...classJson,
+            ...body,
             'modules': modulesJson,
           };
 

@@ -13,6 +13,7 @@ class RoadmapTokens {
   // Estados
   static const Color statusDone = Color(0xFF4FB37C);
   static const Color statusCurrent = Color(0xFFE57460);
+  static const Color statusExpired = Color(0xFFBE123C);
   static const Color statusLocked = Color(0xFFB0B5BF);
 
   // Texto (hardcoded — el roadmap tiene fondo propio con gradiente de cielo

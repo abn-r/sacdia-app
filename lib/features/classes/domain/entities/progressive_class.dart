@@ -21,6 +21,20 @@ class ProgressiveClass extends Equatable {
   /// Null hasta que el backend esté desplegado con el campo poblado.
   final String? assetCode;
 
+  /// Año eclesiástico desde el que se puede iniciar la clase.
+  final int? availableFromYearId;
+
+  /// Año eclesiástico hasta el que se puede iniciar la clase.
+  ///
+  /// Null significa que no tiene expiración programada.
+  final int? availableUntilYearId;
+
+  /// Duración mínima requerida, en años eclesiásticos.
+  final int minDurationYears;
+
+  /// Duración máxima permitida, en años eclesiásticos.
+  final int maxDurationYears;
+
   const ProgressiveClass({
     required this.id,
     required this.name,
@@ -30,7 +44,13 @@ class ProgressiveClass extends Equatable {
     this.investitureStatus,
     this.overallProgress,
     this.assetCode,
+    this.availableFromYearId,
+    this.availableUntilYearId,
+    this.minDurationYears = 1,
+    this.maxDurationYears = 1,
   });
+
+  bool get isExpired => investitureStatus?.toUpperCase() == 'EXPIRED';
 
   @override
   List<Object?> get props => [
@@ -42,5 +62,9 @@ class ProgressiveClass extends Equatable {
         investitureStatus,
         overallProgress,
         assetCode,
+        availableFromYearId,
+        availableUntilYearId,
+        minDurationYears,
+        maxDurationYears,
       ];
 }

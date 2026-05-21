@@ -125,10 +125,14 @@ class ClassesListViewBody extends ConsumerWidget {
           );
         }
 
-        // Split: current class (index 0) vs others
-        final currentClass = classes.first;
-        final otherClasses =
-            classes.length > 1 ? classes.sublist(1) : <dynamic>[];
+        final activeClasses = classes.where((c) => !c.isExpired).toList();
+        final expiredClasses = classes.where((c) => c.isExpired).toList();
+        final currentClass =
+            activeClasses.isNotEmpty ? activeClasses.first : null;
+        final otherClasses = [
+          if (activeClasses.length > 1) ...activeClasses.sublist(1),
+          ...expiredClasses,
+        ];
 
         return RefreshIndicator(
           color: AppColors.primary,
@@ -142,49 +146,51 @@ class ClassesListViewBody extends ConsumerWidget {
               _RoadmapChip(hPad: hPad),
               const SizedBox(height: 20),
 
-              // ── Section: Clase actual ──────────────────────────────────────
-              Text(
-                'classes.list.section_current'.tr(),
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: c.textSecondary,
+              if (currentClass != null) ...[
+                // ── Section: Clase actual ────────────────────────────────────
+                Text(
+                  'classes.list.section_current'.tr(),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: c.textSecondary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              StaggeredListItem(
-                index: 0,
-                initialDelay: const Duration(milliseconds: 80),
-                staggerDelay: const Duration(milliseconds: 65),
-                child: Consumer(
-                  builder: (context, progressRef, _) {
-                    final progressAsync = progressRef
-                        .watch(classWithProgressProvider(currentClass.id));
-                    final progress = progressAsync.whenOrNull(
-                          data: (cwp) => cwp.completionRatio,
-                        ) ??
-                        0.0;
-                    return ClassCard(
-                      progressiveClass: currentClass,
-                      progress: progress,
-                      isCurrent: true,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ClassDetailWithProgressView(
-                              classId: currentClass.id,
+                const SizedBox(height: 8),
+                StaggeredListItem(
+                  index: 0,
+                  initialDelay: const Duration(milliseconds: 80),
+                  staggerDelay: const Duration(milliseconds: 65),
+                  child: Consumer(
+                    builder: (context, progressRef, _) {
+                      final progressAsync = progressRef
+                          .watch(classWithProgressProvider(currentClass.id));
+                      final progress = progressAsync.whenOrNull(
+                            data: (cwp) => cwp.completionRatio,
+                          ) ??
+                          0.0;
+                      return ClassCard(
+                        progressiveClass: currentClass,
+                        progress: progress,
+                        isCurrent: true,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ClassDetailWithProgressView(
+                                classId: currentClass.id,
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    );
-                  },
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
-              ),
+              ],
 
               // ── Section: Otras clases ──────────────────────────────────────
               if (otherClasses.isNotEmpty) ...[
-                const SizedBox(height: 16),
+                SizedBox(height: currentClass == null ? 0 : 16),
                 Text(
                   'classes.list.section_others'.tr(),
                   style: theme.textTheme.titleSmall?.copyWith(
