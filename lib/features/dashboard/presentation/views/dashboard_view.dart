@@ -126,6 +126,7 @@ class DashboardView extends ConsumerWidget {
                           CurrentClassCard(
                             currentClassName: dashboard.currentClassName,
                             currentClassId: dashboard.currentClassId,
+                            initialIsExpired: dashboard.isCurrentClassExpired,
                             fallbackProgress: dashboard.classProgress,
                           ),
                           const SizedBox(height: 16),

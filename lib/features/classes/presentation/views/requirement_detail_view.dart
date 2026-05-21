@@ -129,7 +129,8 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
     final requirement = _liveRequirement(classAsync);
     final isClassExpired =
         widget.isClassExpired || (classAsync.valueOrNull?.isExpired ?? false);
-    final canModify = !isClassExpired && requirement.canUpload;
+    final canModify =
+        requirement.canUploadForClass(isClassExpired: isClassExpired);
     final isLoading = notifierState.isLoading;
 
     // Find module index for eyebrow "X / Y"
@@ -336,6 +337,11 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                                 maxFiles: requirement.maxFiles,
                                 isLoading: notifierState.isLoading,
                                 onUpload: (xFile, mimeType, onProgress) async {
+                                  if (isClassExpired) {
+                                    throw StateError(
+                                      'Cannot upload evidence for an expired class',
+                                    );
+                                  }
                                   final success = await ref
                                       .read(requirementNotifierProvider(
                                               widget.classId)
@@ -353,6 +359,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                                   }
                                 },
                                 onDeleteRemote: (fileId) async {
+                                  if (isClassExpired) return;
                                   await ref
                                       .read(requirementNotifierProvider(
                                               widget.classId)
@@ -363,6 +370,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                                       );
                                 },
                                 onSubmit: () async {
+                                  if (isClassExpired) return;
                                   final success = await ref
                                       .read(requirementNotifierProvider(
                                               widget.classId)
@@ -472,6 +480,11 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
   }
 
   Future<void> _handleSubmit(ClassRequirement req) async {
+    final classAsync = ref.read(classWithProgressProvider(widget.classId));
+    final isClassExpired =
+        widget.isClassExpired || (classAsync.valueOrNull?.isExpired ?? false);
+    if (!req.canSubmitForClass(isClassExpired: isClassExpired)) return;
+
     final success = await ref
         .read(requirementNotifierProvider(widget.classId).notifier)
         .submit(req.id);
@@ -514,8 +527,8 @@ class _ExpiredRequirementBanner extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.error.withValues(alpha: 0.35)),
       ),
-      child: const Text(
-        'Vencida · Esta clase se conserva en tu trayectoria, pero ya no puede completarse para investidura.',
+      child: Text(
+        'classes.requirement_detail.expired_banner'.tr(),
         style: TextStyle(
           fontSize: 12.5,
           fontWeight: FontWeight.w600,

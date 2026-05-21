@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -12,7 +13,7 @@ import '../../domain/entities/progressive_class.dart';
 /// Card de clase progresiva - Estilo "Scout Vibrante"
 ///
 /// SacCard con barra de acento lateral (color de clase),
-/// progress bar lineal indigo→emerald, badge "Clase actual".
+/// progress bar lineal indigo→emerald y badge de estado.
 class ClassCard extends StatelessWidget {
   final ProgressiveClass progressiveClass;
   final double progress;
@@ -117,15 +118,19 @@ class ClassCard extends StatelessWidget {
                           ),
                         ),
                         if (isExpired)
-                          const SacBadge(label: 'Vencida')
+                          SacBadge(
+                            label: 'classes.class_card.expired_badge'.tr(),
+                          )
                         else if (isCurrent)
-                          const SacBadge(label: 'Clase actual'),
+                          SacBadge(
+                            label: 'classes.class_card.current_badge'.tr(),
+                          ),
                       ],
                     ),
                     if (isExpired) ...[
                       const SizedBox(height: 4),
-                      const Text(
-                        'Esta clase se conserva en tu trayectoria, pero ya no puede completarse para investidura.',
+                      Text(
+                        'classes.class_card.expired_description'.tr(),
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.errorDark,

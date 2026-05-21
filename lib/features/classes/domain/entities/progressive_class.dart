@@ -50,7 +50,7 @@ class ProgressiveClass extends Equatable {
     this.maxDurationYears = 1,
   });
 
-  bool get isExpired => investitureStatus?.toUpperCase() == 'EXPIRED';
+  bool get isExpired => investitureStatus?.trim().toUpperCase() == 'EXPIRED';
 
   @override
   List<Object?> get props => [

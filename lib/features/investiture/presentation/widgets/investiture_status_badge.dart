@@ -65,7 +65,7 @@ class InvestitureStatusBadge extends StatelessWidget {
       case InvestitureStatus.investido:
         return 'investiture.status.investido'.tr();
       case InvestitureStatus.expired:
-        return 'Vencida';
+        return 'investiture.status.expired'.tr();
     }
   }
 

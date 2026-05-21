@@ -38,7 +38,7 @@ class ClassWithProgress extends Equatable {
 
   // Computed helpers
 
-  bool get isExpired => investitureStatus?.toUpperCase() == 'EXPIRED';
+  bool get isExpired => investitureStatus?.trim().toUpperCase() == 'EXPIRED';
 
   /// Total de requerimientos en todos los modulos.
   int get totalRequirements =>

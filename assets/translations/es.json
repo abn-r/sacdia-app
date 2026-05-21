@@ -1325,7 +1325,9 @@
       "percent": "{percent}%"
     },
     "class_card": {
-      "current_badge": "Clase actual"
+      "current_badge": "Clase actual",
+      "expired_badge": "Vencida",
+      "expired_description": "Esta clase se conserva en tu trayectoria, pero ya no puede completarse para investidura."
     },
     "requirement_card": {
       "files_label": "{count} / {max} archivos",
@@ -1350,7 +1352,8 @@
       "linked_honor_title": "Especialidad requerida",
       "honor_completed": "Completada",
       "honor_pending": "Pendiente",
-      "semantics_status": "Estado del requisito: {status}. Tocar para ver historial."
+      "semantics_status": "Estado del requisito: {status}. Tocar para ver historial.",
+      "expired_banner": "Vencida · Esta clase se conserva en tu trayectoria, pero ya no puede completarse para investidura."
     },
     "section_detail": {
       "title": "Detalle de Sección",
@@ -2288,7 +2291,8 @@
       "field_approved": "Aprobado por campo",
       "approved": "Aprobado",
       "rejected": "Rechazado",
-      "investido": "Investido"
+      "investido": "Investido",
+      "expired": "Vencida"
     }
   },
   "annual_folders": {
@@ -2909,7 +2913,9 @@
     "class_card": {
       "label": "Mi Clase Actual",
       "no_class": "Sin clase asignada",
-      "completed": "Completada"
+      "completed": "Completada",
+      "expired_label": "Clase vencida",
+      "expired_badge": "Vencida"
     },
     "banner": {
       "pending_title": "Tu solicitud de membresía está pendiente de aprobación",

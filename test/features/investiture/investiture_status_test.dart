@@ -1,27 +1,27 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
+
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/investiture/domain/entities/investiture_status.dart';
-import 'package:sacdia_app/features/investiture/presentation/widgets/investiture_status_badge.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('InvestitureStatus', () {
-    test('parses EXPIRED from backend', () {
-      final status = InvestitureStatus.fromString('EXPIRED');
+    test('parses EXPIRED from backend after trimming whitespace', () {
+      final status = InvestitureStatus.fromString(' expired ');
 
       expect(status, InvestitureStatus.expired);
       expect(status.backendValue, 'EXPIRED');
     });
 
-    testWidgets('expired status badge renders Vencida label', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: InvestitureStatusBadge(status: InvestitureStatus.expired),
-          ),
-        ),
-      );
+    test('defines expired status label in translation assets', () async {
+      final raw = await rootBundle.loadString('assets/translations/es.json');
+      final json = jsonDecode(raw) as Map<String, dynamic>;
+      final investiture = json['investiture'] as Map<String, dynamic>;
+      final status = investiture['status'] as Map<String, dynamic>;
 
-      expect(find.text('Vencida'), findsOneWidget);
+      expect(status['expired'], 'Vencida');
     });
   });
 }
