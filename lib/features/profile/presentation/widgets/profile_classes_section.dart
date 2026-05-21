@@ -255,9 +255,9 @@ class _ClassGridItem extends StatelessWidget {
                         color: AppColors.error,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text(
-                        'Vencida',
-                        style: TextStyle(
+                      child: Text(
+                        'classes.class_card.expired_badge'.tr(),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 8,
                           fontWeight: FontWeight.w700,

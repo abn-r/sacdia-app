@@ -633,8 +633,8 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                                   _showTodayButton.value =
                                                       false;
                                                   _visibleMonth.value =
-                                                      DateTime(now.year,
-                                                          now.month);
+                                                      DateTime(
+                                                          now.year, now.month);
                                                   _scrollToToday(animate: true);
                                                 },
                                                 child: Center(

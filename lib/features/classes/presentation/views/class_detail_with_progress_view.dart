@@ -238,9 +238,9 @@ class _ExpiredTrajectoryBanner extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.error.withValues(alpha: 0.35)),
       ),
-      child: const Text(
-        'Vencida · Esta clase se conserva en tu trayectoria, pero ya no puede completarse para investidura.',
-        style: TextStyle(
+      child: Text(
+        'classes.requirement_detail.expired_banner'.tr(),
+        style: const TextStyle(
           fontSize: 12.5,
           fontWeight: FontWeight.w600,
           color: AppColors.errorDark,

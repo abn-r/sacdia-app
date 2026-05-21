@@ -258,9 +258,9 @@ class _FilterChips extends ConsumerWidget {
           return FilterChip(
             label: Text(filter.label),
             selected: isSelected,
-            onSelected: (_) =>
-                ref.read(evidenceTypeFilterProvider.notifier).state =
-                    filter.value,
+            onSelected: (_) => ref
+                .read(evidenceTypeFilterProvider.notifier)
+                .state = filter.value,
             selectedColor: AppColors.primaryLight,
             checkmarkColor: AppColors.primary,
             labelStyle: TextStyle(
