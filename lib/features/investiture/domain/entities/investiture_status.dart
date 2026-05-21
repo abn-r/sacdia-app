@@ -13,7 +13,8 @@ enum InvestitureStatus {
   fieldApproved,
   approved,
   rejected,
-  investido;
+  investido,
+  expired;
 
   /// Etiqueta localizada para mostrar al usuario.
   String get label {
@@ -34,12 +35,14 @@ enum InvestitureStatus {
         return tr('investiture.status.rejected');
       case InvestitureStatus.investido:
         return tr('investiture.status.investido');
+      case InvestitureStatus.expired:
+        return tr('investiture.status.expired');
     }
   }
 
   /// Parsea la cadena que devuelve el backend.
   static InvestitureStatus fromString(String value) {
-    switch (value.toUpperCase()) {
+    switch (value.trim().toUpperCase()) {
       case 'IN_PROGRESS':
         return InvestitureStatus.inProgress;
       case 'SUBMITTED_FOR_VALIDATION':
@@ -56,6 +59,8 @@ enum InvestitureStatus {
         return InvestitureStatus.rejected;
       case 'INVESTIDO':
         return InvestitureStatus.investido;
+      case 'EXPIRED':
+        return InvestitureStatus.expired;
       default:
         return InvestitureStatus.inProgress;
     }
@@ -80,6 +85,8 @@ enum InvestitureStatus {
         return 'REJECTED';
       case InvestitureStatus.investido:
         return 'INVESTIDO';
+      case InvestitureStatus.expired:
+        return 'EXPIRED';
     }
   }
 }

@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -12,7 +13,7 @@ import '../../domain/entities/progressive_class.dart';
 /// Card de clase progresiva - Estilo "Scout Vibrante"
 ///
 /// SacCard con barra de acento lateral (color de clase),
-/// progress bar lineal indigo→emerald, badge "Clase actual".
+/// progress bar lineal indigo→emerald y badge de estado.
 class ClassCard extends StatelessWidget {
   final ProgressiveClass progressiveClass;
   final double progress;
@@ -32,11 +33,16 @@ class ClassCard extends StatelessWidget {
     final progressPercent = (progress * 100).toInt();
     final classColor = AppColors.classColor(progressiveClass.name);
     final logoAsset = AppColors.classLogoAsset(progressiveClass.name);
+    final isExpired = progressiveClass.isExpired;
 
     return SacCard(
       onTap: onTap,
       accentColor: classColor,
-      borderColor: isCurrent ? classColor : null,
+      borderColor: isExpired
+          ? AppColors.error.withValues(alpha: 0.45)
+          : isCurrent
+              ? classColor
+              : null,
       margin: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,9 +117,29 @@ class ClassCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (isCurrent) const SacBadge(label: 'Clase actual'),
+                        if (isExpired)
+                          SacBadge(
+                            label: 'classes.class_card.expired_badge'.tr(),
+                          )
+                        else if (isCurrent)
+                          SacBadge(
+                            label: 'classes.class_card.current_badge'.tr(),
+                          ),
                       ],
                     ),
+                    if (isExpired) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        'classes.class_card.expired_description'.tr(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.errorDark,
+                          height: 1.25,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                     if (progressiveClass.description != null) ...[
                       const SizedBox(height: 2),
                       Text(

@@ -184,6 +184,12 @@ class ClassRequirement extends Equatable {
           status == RequirementStatus.observado) &&
       files.isNotEmpty;
 
+  bool canUploadForClass({required bool isClassExpired}) =>
+      !isClassExpired && canUpload;
+
+  bool canSubmitForClass({required bool isClassExpired}) =>
+      !isClassExpired && canSubmit;
+
   @override
   List<Object?> get props => [
         id,

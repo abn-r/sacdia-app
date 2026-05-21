@@ -10,6 +10,11 @@ class ClassWithProgressModel extends ClassWithProgress {
     super.description,
     required super.clubTypeId,
     super.imageUrl,
+    super.investitureStatus,
+    super.availableFromYearId,
+    super.availableUntilYearId,
+    super.minDurationYears,
+    super.maxDurationYears,
     super.modules,
   });
 
@@ -27,6 +32,16 @@ class ClassWithProgressModel extends ClassWithProgress {
       description: json['description']?.toString(),
       clubTypeId: safeInt(json['club_type_id'] ?? json['clubTypeId']),
       imageUrl: json['image_url']?.toString() ?? json['imageUrl']?.toString(),
+      investitureStatus: json['investiture_status']?.toString() ??
+          json['investitureStatus']?.toString(),
+      availableFromYearId: safeIntOrNull(
+          json['available_from_year_id'] ?? json['availableFromYearId']),
+      availableUntilYearId: safeIntOrNull(
+          json['available_until_year_id'] ?? json['availableUntilYearId']),
+      minDurationYears:
+          safeInt(json['min_duration_years'] ?? json['minDurationYears'], 1),
+      maxDurationYears:
+          safeInt(json['max_duration_years'] ?? json['maxDurationYears'], 1),
       modules: modules,
     );
   }
@@ -37,6 +52,11 @@ class ClassWithProgressModel extends ClassWithProgress {
         description: description,
         clubTypeId: clubTypeId,
         imageUrl: imageUrl,
+        investitureStatus: investitureStatus,
+        availableFromYearId: availableFromYearId,
+        availableUntilYearId: availableUntilYearId,
+        minDurationYears: minDurationYears,
+        maxDurationYears: maxDurationYears,
         modules: modules,
       );
 }

@@ -423,8 +423,7 @@ class _HeroSectionState extends ConsumerState<_HeroSection>
                       child: LinearProgressIndicator(
                         value: _progressValue.value * progressPercent,
                         minHeight: 4,
-                        backgroundColor:
-                            Colors.white.withValues(alpha: 0.25),
+                        backgroundColor: Colors.white.withValues(alpha: 0.25),
                         valueColor: const AlwaysStoppedAnimation<Color>(
                           Colors.white,
                         ),
@@ -441,8 +440,7 @@ class _HeroSectionState extends ConsumerState<_HeroSection>
                     if (widget.honor.skillLevel != null)
                       _FrostedPill(
                           label: _skillLevelLabel(widget.honor.skillLevel)),
-                    _FrostedPill(
-                        label: _approvalLabel(widget.honor.approval)),
+                    _FrostedPill(label: _approvalLabel(widget.honor.approval)),
                   ],
                 ),
               ],

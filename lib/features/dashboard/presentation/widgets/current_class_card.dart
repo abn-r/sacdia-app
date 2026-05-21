@@ -11,7 +11,7 @@ import 'package:sacdia_app/features/classes/presentation/providers/classes_provi
 
 /// Card de clase actual con SacProgressRing - Estilo "Scout Vibrante"
 ///
-/// Fixed compact header row showing the school icon, "Mi Clase" label,
+/// Fixed compact header row showing the school icon, localized status label,
 /// the class name below, a small progress ring with the percentage, and
 /// the "Completada" badge when progress reaches 100%.
 ///
@@ -31,12 +31,14 @@ class CurrentClassCard extends ConsumerWidget {
   /// Se muestra mientras [classWithProgressProvider] carga o cuando
   /// [currentClassId] es null.
   final double fallbackProgress;
+  final bool initialIsExpired;
 
   const CurrentClassCard({
     super.key,
     this.currentClassName,
     this.currentClassId,
     this.fallbackProgress = 0.0,
+    this.initialIsExpired = false,
   });
 
   // ─── Build ────────────────────────────────────────────────────────────────
@@ -86,6 +88,8 @@ class CurrentClassCard extends ConsumerWidget {
 
     final int progressPercentage = (progress * 100).toInt();
     final bool isComplete = progress >= 1.0;
+    final bool isExpired =
+        initialIsExpired || (classState?.valueOrNull?.isExpired ?? false);
 
     return SacCard(
       child: Row(
@@ -102,7 +106,9 @@ class CurrentClassCard extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  tr('dashboard.class_card.label'),
+                  tr(isExpired
+                      ? 'dashboard.class_card.expired_label'
+                      : 'dashboard.class_card.label'),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: context.sac.textSecondary,
@@ -125,7 +131,9 @@ class CurrentClassCard extends ConsumerWidget {
           const SizedBox(width: 12),
 
           // Small progress ring + percentage, OR "Completada" badge
-          if (isComplete)
+          if (isExpired)
+            const _ExpiredBadge()
+          else if (isComplete)
             const _CompletadaBadge()
           else
             SacProgressRing(
@@ -202,6 +210,41 @@ class CurrentClassCard extends ConsumerWidget {
                     size: 20,
                   ),
                 ),
+    );
+  }
+}
+
+class _ExpiredBadge extends StatelessWidget {
+  const _ExpiredBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF1F2),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedClock04,
+            size: 14,
+            color: AppColors.errorDark,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            tr('dashboard.class_card.expired_badge'),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.errorDark,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

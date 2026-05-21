@@ -193,6 +193,7 @@ class _ClassGridItem extends StatelessWidget {
     final progress = progressiveClass.overallProgress ?? 0;
 
     final isInvested = progressiveClass.investitureStatus == 'INVESTIDO';
+    final isExpired = progressiveClass.isExpired;
 
     return Column(
       children: [
@@ -215,8 +216,12 @@ class _ClassGridItem extends StatelessWidget {
                     color: classColor.withAlpha(20),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: isInvested ? classColor : classColor.withAlpha(50),
-                      width: isInvested ? 2 : 1,
+                      color: isExpired
+                          ? AppColors.error.withAlpha(120)
+                          : isInvested
+                              ? classColor
+                              : classColor.withAlpha(50),
+                      width: isInvested || isExpired ? 2 : 1,
                     ),
                   ),
                   padding: const EdgeInsets.all(10),
@@ -237,7 +242,30 @@ class _ClassGridItem extends StatelessWidget {
                         ),
                 ),
                 // Progress badge (top-right)
-                if (progress > 0 && !isInvested)
+                if (isExpired)
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.error,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'classes.class_card.expired_badge'.tr(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  )
+                else if (progress > 0 && !isInvested)
                   Positioned(
                     top: -2,
                     right: -2,

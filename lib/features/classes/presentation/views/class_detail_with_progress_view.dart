@@ -138,6 +138,7 @@ class _ClassBodyState extends State<_ClassBody> {
         builder: (_) => RequirementDetailView(
           requirement: requirement,
           classId: widget.classId,
+          isClassExpired: widget.classWithProgress.isExpired,
         ),
       ),
     );
@@ -168,6 +169,7 @@ class _ClassBodyState extends State<_ClassBody> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _HeroCard(classData: classData),
+                  if (classData.isExpired) const _ExpiredTrajectoryBanner(),
                   _PillsRow(classData: classData),
                   _SearchBar(
                     controller: _searchController,
@@ -217,6 +219,33 @@ class _ClassBodyState extends State<_ClassBody> {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _ExpiredTrajectoryBanner extends StatelessWidget {
+  const _ExpiredTrajectoryBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF1F2),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.35)),
+      ),
+      child: Text(
+        'classes.requirement_detail.expired_banner'.tr(),
+        style: const TextStyle(
+          fontSize: 12.5,
+          fontWeight: FontWeight.w600,
+          color: AppColors.errorDark,
+          height: 1.35,
+        ),
       ),
     );
   }

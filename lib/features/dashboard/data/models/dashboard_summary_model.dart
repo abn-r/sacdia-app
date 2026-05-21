@@ -73,6 +73,7 @@ class DashboardSummaryModel extends DashboardSummary {
     super.clubType,
     super.userRole,
     super.currentClassName,
+    super.currentClassInvestitureStatus,
     super.currentClassId,
     required super.classProgress,
     required super.honorsCompleted,
@@ -95,6 +96,10 @@ class DashboardSummaryModel extends DashboardSummary {
       clubType: json['club_type'] as String?,
       userRole: json['user_role'] as String?,
       currentClassName: json['current_class_name'] as String?,
+      currentClassInvestitureStatus: (json['investiture_status'] ??
+              json['current_class_investiture_status'] ??
+              json['current_class_status'])
+          ?.toString(),
       currentClassId: json['current_class_id'] as int?,
       // Backend sends class_progress as an integer percentage (0–100).
       // The domain entity and all widgets expect a fraction (0.0–1.0),
@@ -116,6 +121,7 @@ class DashboardSummaryModel extends DashboardSummary {
       'club_type': clubType,
       'user_role': userRole,
       'current_class_name': currentClassName,
+      'investiture_status': currentClassInvestitureStatus,
       'current_class_id': currentClassId,
       // Serialize back to the API contract format (integer percentage 0–100)
       'class_progress': (classProgress * 100).round(),
@@ -142,6 +148,7 @@ class DashboardSummaryModel extends DashboardSummary {
     String? clubType,
     String? userRole,
     String? currentClassName,
+    String? currentClassInvestitureStatus,
     int? currentClassId,
     double? classProgress,
     int? honorsCompleted,
@@ -155,6 +162,8 @@ class DashboardSummaryModel extends DashboardSummary {
       clubType: clubType ?? this.clubType,
       userRole: userRole ?? this.userRole,
       currentClassName: currentClassName ?? this.currentClassName,
+      currentClassInvestitureStatus:
+          currentClassInvestitureStatus ?? this.currentClassInvestitureStatus,
       currentClassId: currentClassId ?? this.currentClassId,
       classProgress: classProgress ?? this.classProgress,
       honorsCompleted: honorsCompleted ?? this.honorsCompleted,

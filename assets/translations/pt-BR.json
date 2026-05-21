@@ -1325,7 +1325,9 @@
       "percent": "{percent}%"
     },
     "class_card": {
-      "current_badge": "Classe atual"
+      "current_badge": "Classe atual",
+      "expired_badge": "Expirada",
+      "expired_description": "Esta classe permanece no seu histórico, mas não pode mais ser concluída para investidura."
     },
     "requirement_card": {
       "files_label": "{count} / {max} arquivos",
@@ -1350,7 +1352,8 @@
       "linked_honor_title": "Especialidade requerida",
       "honor_completed": "Concluída",
       "honor_pending": "Pendente",
-      "semantics_status": "Status do requisito: {status}. Toque para ver o histórico."
+      "semantics_status": "Status do requisito: {status}. Toque para ver o histórico.",
+      "expired_banner": "Expirada · Esta classe permanece no seu histórico, mas não pode mais ser concluída para investidura."
     },
     "section_detail": {
       "title": "Detalhe da Seção",
@@ -2288,7 +2291,8 @@
       "field_approved": "Aprovado pelo campo",
       "approved": "Aprovado",
       "rejected": "Rejeitado",
-      "investido": "Investido"
+      "investido": "Investido",
+      "expired": "Expirada"
     }
   },
   "annual_folders": {
@@ -2909,7 +2913,9 @@
     "class_card": {
       "label": "Minha Classe Atual",
       "no_class": "Nenhuma classe atribuída",
-      "completed": "Concluída"
+      "completed": "Concluída",
+      "expired_label": "Classe expirada",
+      "expired_badge": "Expirada"
     },
     "banner": {
       "pending_title": "Sua solicitação de associação está pendente de aprovação",

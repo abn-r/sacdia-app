@@ -1325,7 +1325,9 @@
       "percent": "{percent}%"
     },
     "class_card": {
-      "current_badge": "Classe actuelle"
+      "current_badge": "Classe actuelle",
+      "expired_badge": "Expirée",
+      "expired_description": "Cette classe reste dans votre parcours, mais elle ne peut plus être terminée pour l’investiture."
     },
     "requirement_card": {
       "files_label": "{count} / {max} fichiers",
@@ -1350,7 +1352,8 @@
       "linked_honor_title": "Spécialité requise",
       "honor_completed": "Terminée",
       "honor_pending": "En attente",
-      "semantics_status": "Statut de l'exigence : {status}. Appuyez pour voir l'historique."
+      "semantics_status": "Statut de l'exigence : {status}. Appuyez pour voir l'historique.",
+      "expired_banner": "Expirée · Cette classe reste dans votre parcours, mais elle ne peut plus être terminée pour l’investiture."
     },
     "section_detail": {
       "title": "Détail de la section",
@@ -2288,7 +2291,8 @@
       "field_approved": "Approuvé par le champ",
       "approved": "Approuvé",
       "rejected": "Rejeté",
-      "investido": "Investi"
+      "investido": "Investi",
+      "expired": "Expirée"
     }
   },
   "annual_folders": {
@@ -2909,7 +2913,9 @@
     "class_card": {
       "label": "Ma classe actuelle",
       "no_class": "Aucune classe assignée",
-      "completed": "Terminée"
+      "completed": "Terminée",
+      "expired_label": "Classe expirée",
+      "expired_badge": "Expirée"
     },
     "banner": {
       "pending_title": "Votre demande d'adhésion est en attente d'approbation",

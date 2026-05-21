@@ -9,7 +9,7 @@
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
-enum ClassStatus { done, current, locked }
+enum ClassStatus { done, current, expired, locked }
 
 class ClassItem {
   final String id;

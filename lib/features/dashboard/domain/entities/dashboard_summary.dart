@@ -33,6 +33,7 @@ class DashboardSummary extends Equatable {
   final String? clubType;
   final String? userRole;
   final String? currentClassName;
+  final String? currentClassInvestitureStatus;
 
   /// ID de la clase actual del usuario, usado para obtener el progreso
   /// detallado desde [classWithProgressProvider].
@@ -49,12 +50,16 @@ class DashboardSummary extends Equatable {
     this.clubType,
     this.userRole,
     this.currentClassName,
+    this.currentClassInvestitureStatus,
     this.currentClassId,
     required this.classProgress,
     required this.honorsCompleted,
     required this.honorsInProgress,
     required this.upcomingActivities,
   });
+
+  bool get isCurrentClassExpired =>
+      currentClassInvestitureStatus?.trim().toUpperCase() == 'EXPIRED';
 
   @override
   List<Object?> get props => [
@@ -64,6 +69,7 @@ class DashboardSummary extends Equatable {
         clubType,
         userRole,
         currentClassName,
+        currentClassInvestitureStatus,
         currentClassId,
         classProgress,
         honorsCompleted,

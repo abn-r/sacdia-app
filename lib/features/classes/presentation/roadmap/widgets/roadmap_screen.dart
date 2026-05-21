@@ -175,6 +175,9 @@ class _LegendPills extends StatelessWidget {
                   _Pill(label: 'Actual', color: RoadmapTokens.statusCurrent)),
           Expanded(
               child:
+                  _Pill(label: 'Vencida', color: RoadmapTokens.statusExpired)),
+          Expanded(
+              child:
                   _Pill(label: 'Bloqueada', color: RoadmapTokens.statusLocked)),
         ],
       ),

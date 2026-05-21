@@ -64,6 +64,8 @@ class InvestitureStatusBadge extends StatelessWidget {
         return 'investiture.status.rejected'.tr();
       case InvestitureStatus.investido:
         return 'investiture.status.investido'.tr();
+      case InvestitureStatus.expired:
+        return 'investiture.status.expired'.tr();
     }
   }
 
@@ -84,6 +86,8 @@ class InvestitureStatusBadge extends StatelessWidget {
         return AppColors.errorLight;
       case InvestitureStatus.investido:
         return AppColors.secondaryLight;
+      case InvestitureStatus.expired:
+        return isDark ? const Color(0xFF3A2F2F) : const Color(0xFFFFF1F2);
     }
   }
 
@@ -102,6 +106,8 @@ class InvestitureStatusBadge extends StatelessWidget {
         return AppColors.error.withValues(alpha: 0.4);
       case InvestitureStatus.investido:
         return AppColors.secondary.withValues(alpha: 0.4);
+      case InvestitureStatus.expired:
+        return AppColors.error.withValues(alpha: 0.35);
     }
   }
 
@@ -120,6 +126,8 @@ class InvestitureStatusBadge extends StatelessWidget {
         return AppColors.errorDark;
       case InvestitureStatus.investido:
         return AppColors.secondaryDark;
+      case InvestitureStatus.expired:
+        return AppColors.errorDark;
     }
   }
 
@@ -138,6 +146,8 @@ class InvestitureStatusBadge extends StatelessWidget {
         return HugeIcons.strokeRoundedCancel01;
       case InvestitureStatus.investido:
         return HugeIcons.strokeRoundedAward01;
+      case InvestitureStatus.expired:
+        return HugeIcons.strokeRoundedClock04;
     }
   }
 }

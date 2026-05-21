@@ -1325,7 +1325,9 @@
       "percent": "{percent}%"
     },
     "class_card": {
-      "current_badge": "Current class"
+      "current_badge": "Current class",
+      "expired_badge": "Expired",
+      "expired_description": "This class remains in your history, but it can no longer be completed for investiture."
     },
     "requirement_card": {
       "files_label": "{count} / {max} files",
@@ -1350,7 +1352,8 @@
       "linked_honor_title": "Required honor",
       "honor_completed": "Completed",
       "honor_pending": "Pending",
-      "semantics_status": "Requirement status: {status}. Tap to view history."
+      "semantics_status": "Requirement status: {status}. Tap to view history.",
+      "expired_banner": "Expired · This class remains in your history, but it can no longer be completed for investiture."
     },
     "section_detail": {
       "title": "Section Detail",
@@ -2288,7 +2291,8 @@
       "field_approved": "Approved by field",
       "approved": "Approved",
       "rejected": "Rejected",
-      "investido": "Invested"
+      "investido": "Invested",
+      "expired": "Expired"
     }
   },
   "annual_folders": {
@@ -2909,7 +2913,9 @@
     "class_card": {
       "label": "My Current Class",
       "no_class": "No class assigned",
-      "completed": "Completed"
+      "completed": "Completed",
+      "expired_label": "Expired class",
+      "expired_badge": "Expired"
     },
     "banner": {
       "pending_title": "Your membership request is pending approval",

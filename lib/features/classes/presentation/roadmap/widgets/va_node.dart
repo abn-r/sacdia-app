@@ -45,6 +45,7 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
     final isCurrent = item.status == ClassStatus.current;
     final isLocked = item.status == ClassStatus.locked;
     final isDone = item.status == ClassStatus.done;
+    final isExpired = item.status == ClassStatus.expired;
     final isLeft = widget.side == 'left';
 
     return Padding(
@@ -187,7 +188,7 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
                               ),
                             ),
                           // Done check
-                          if (isDone)
+                          if (isDone || isExpired)
                             Positioned(
                               right: 6,
                               bottom: -2,
@@ -195,7 +196,9 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
                                 width: 30,
                                 height: 30,
                                 decoration: BoxDecoration(
-                                  color: RoadmapTokens.statusDone,
+                                  color: isExpired
+                                      ? RoadmapTokens.statusExpired
+                                      : RoadmapTokens.statusDone,
                                   shape: BoxShape.circle,
                                   border:
                                       Border.all(color: Colors.white, width: 3),
@@ -208,8 +211,11 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
                                     ),
                                   ],
                                 ),
-                                child: const Icon(Icons.check,
-                                    size: 14, color: Colors.white),
+                                child: Icon(
+                                  isExpired ? Icons.history : Icons.check,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                         ],
@@ -269,6 +275,27 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
                       child: Text(
                         'ACTUAL · ${item.progress!.toStringAsFixed(0)}%',
                         style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ),
+                  ),
+                if (isExpired)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: RoadmapTokens.statusExpired,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: const Text(
+                        'VENCIDA',
+                        style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
