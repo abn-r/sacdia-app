@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/route_names.dart';
@@ -171,9 +172,9 @@ class PushNotificationService {
         await _dio.delete('/users/me/fcm-tokens/$tokenId');
       } else if (token != null && token.isNotEmpty) {
         // Fallback para tokens registrados antes de persistir el ID:
-        // DELETE /users/me/fcm-tokens/by-token con el token en el body.
+        // DELETE /fcm-tokens/by-token con el token en el body.
         await _dio.delete(
-          '/users/me/fcm-tokens/by-token',
+          '/fcm-tokens/by-token',
           data: {'token': token},
         );
       }
@@ -518,6 +519,28 @@ class PushNotificationService {
     return false;
   }
 
+  void _pushRoute(String route) {
+    final context = navigatorKey?.currentContext;
+    if (context == null) {
+      AppLogger.w(
+        'No hay BuildContext disponible para navegar desde push notification',
+        tag: _tag,
+      );
+      return;
+    }
+
+    final router = GoRouter.maybeOf(context);
+    if (router == null) {
+      AppLogger.w(
+        'No hay GoRouter disponible para navegar desde push notification',
+        tag: _tag,
+      );
+      return;
+    }
+
+    router.push(route);
+  }
+
   void _handleNotificationTap(RemoteMessage message) {
     AppLogger.i(
       'Notificación tapeada: ${message.data}',
@@ -549,13 +572,7 @@ class PushNotificationService {
       return;
     }
 
-    final navigator = navigatorKey?.currentState;
-    if (navigator == null) return;
-
-    // Use pushNamed so the GoRouter handles the route resolution.
-    // The payload 'route' must match a registered GoRouter path
-    // (e.g. '/home/dashboard', '/home/classes', '/camporee/42').
-    navigator.pushNamed(route);
+    _pushRoute(route);
   }
 
   /// Handles notification types that require custom navigation logic.
@@ -566,9 +583,6 @@ class PushNotificationService {
   /// - `member_of_month_director`: navigate to the section's units list.
   ///   Payload: `{ type, club_id, section_id, month, year }`
   void _handleTypedNotification(String type, Map<String, dynamic> data) {
-    final navigator = navigatorKey?.currentState;
-    if (navigator == null) return;
-
     AppLogger.i('Manejando notificación tipada: $type', tag: _tag);
 
     switch (type) {
@@ -583,13 +597,15 @@ class PushNotificationService {
           );
           return;
         }
-        navigator.pushNamed(
+        _pushRoute(
           RouteNames.memberOfMonthHistoryPath(clubId, sectionId),
         );
+        return;
 
       case 'member_of_month_director':
         // Navigate to the units list for the section
-        navigator.pushNamed(RouteNames.homeUnits);
+        _pushRoute(RouteNames.homeUnits);
+        return;
 
       case 'achievement_unlocked':
         // Navigate to the achievements screen, optionally deep-linking to
@@ -597,13 +613,14 @@ class PushNotificationService {
         // Payload: { type, achievement_id, achievement_name }
         final achievementId = _parseInt(data['achievement_id']);
         if (achievementId != null) {
-          navigator.pushNamed(
+          _pushRoute(
             RouteNames.achievementDetailPath(achievementId),
           );
         } else {
           // Fallback: open the achievements list
-          navigator.pushNamed(RouteNames.homeAchievements);
+          _pushRoute(RouteNames.homeAchievements);
         }
+        return;
 
       default:
         AppLogger.w('Tipo de notificación no manejado: $type', tag: _tag);
