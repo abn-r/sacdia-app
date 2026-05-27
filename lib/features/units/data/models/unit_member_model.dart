@@ -19,11 +19,8 @@ import '../../domain/entities/unit_member.dart';
 /// }
 /// ```
 class UnitMemberModel extends UnitMember {
-  /// ID del registro en la tabla `unit_members`.
-  final int unitMemberId;
-
   const UnitMemberModel({
-    required this.unitMemberId,
+    super.unitMemberId,
     required super.id,
     required super.name,
     required super.surname,
@@ -43,7 +40,7 @@ class UnitMemberModel extends UnitMember {
     final surname = [paternal, maternal].where((s) => s.isNotEmpty).join(' ');
 
     final avatar = (users['user_image'] ?? users['avatar'])?.toString();
-    final unitMemberId = _parseInt(json['unit_member_id']) ?? 0;
+    final unitMemberId = _parseInt(json['unit_member_id']);
 
     return UnitMemberModel(
       unitMemberId: unitMemberId,
@@ -63,6 +60,7 @@ class UnitMemberModel extends UnitMember {
       };
 
   UnitMember toEntity() => UnitMember(
+        unitMemberId: unitMemberId,
         id: id,
         name: name,
         surname: surname,

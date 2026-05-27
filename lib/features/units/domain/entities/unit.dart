@@ -23,6 +23,9 @@ class Unit {
   /// ID de la sección del club a la que pertenece.
   final int? clubSectionId;
 
+  /// ID del campo local del club, usado para cargar categorías de puntuación.
+  final int? localFieldId;
+
   /// UUID del capitán.
   final String? captainId;
 
@@ -46,6 +49,7 @@ class Unit {
     this.leaderName,
     this.clubTypeId,
     this.clubSectionId,
+    this.localFieldId,
     this.captainId,
     this.secretaryId,
     this.advisorId,

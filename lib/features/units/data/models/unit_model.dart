@@ -44,6 +44,7 @@ class UnitModel extends Unit {
     super.leaderName,
     super.clubTypeId,
     super.clubSectionId,
+    super.localFieldId,
     super.captainId,
     super.secretaryId,
     super.advisorId,
@@ -68,6 +69,7 @@ class UnitModel extends Unit {
 
     // Sección
     final sectionData = json['club_sections'] as Map<String, dynamic>?;
+    final clubData = sectionData?['clubs'] as Map<String, dynamic>?;
 
     // Miembros
     final rawMembers = json['unit_members'] as List<dynamic>? ?? [];
@@ -87,6 +89,9 @@ class UnitModel extends Unit {
           _parseInt(json['club_type_id'] ?? clubTypeData?['club_type_id']),
       clubSectionId:
           _parseInt(json['club_section_id'] ?? sectionData?['club_section_id']),
+      localFieldId: _parseInt(
+        json['local_field_id'] ?? clubData?['local_field_id'],
+      ),
       captainId: json['captain_id']?.toString(),
       secretaryId: json['secretary_id']?.toString(),
       advisorId: json['advisor_id']?.toString(),
@@ -103,6 +108,7 @@ class UnitModel extends Unit {
         'leader_name': leaderName,
         'club_type_id': clubTypeId,
         'club_section_id': clubSectionId,
+        'local_field_id': localFieldId,
         'captain_id': captainId,
         'secretary_id': secretaryId,
         'advisor_id': advisorId,
@@ -117,6 +123,7 @@ class UnitModel extends Unit {
         leaderName: leaderName,
         clubTypeId: clubTypeId,
         clubSectionId: clubSectionId,
+        localFieldId: localFieldId,
         captainId: captainId,
         secretaryId: secretaryId,
         advisorId: advisorId,
