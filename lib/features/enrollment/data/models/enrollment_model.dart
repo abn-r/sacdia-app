@@ -10,6 +10,7 @@ import '../../domain/entities/enrollment.dart';
 class EnrollmentModel extends Enrollment {
   const EnrollmentModel({
     required super.id,
+    super.enrollmentUuid,
     required super.userId,
     required super.clubSectionId,
     required super.year,
@@ -34,6 +35,8 @@ class EnrollmentModel extends Enrollment {
     final rawId =
         json['id'] ?? json['enrollment_id'] ?? json['club_enrollment_id'];
     final id = rawId is int ? rawId : int.tryParse(rawId.toString()) ?? 0;
+    final enrollmentUuid =
+        rawId is String && rawId.contains('-') ? rawId : null;
 
     final rawSectionId = json['club_section_id'] ?? json['section_id'];
     final sectionId = rawSectionId is int
@@ -125,6 +128,7 @@ class EnrollmentModel extends Enrollment {
 
     return EnrollmentModel(
       id: id,
+      enrollmentUuid: enrollmentUuid,
       userId: (json['user_id'] ?? json['created_by'] ?? '').toString(),
       clubSectionId: sectionId,
       year: year,

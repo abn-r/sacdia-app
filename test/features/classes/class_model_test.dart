@@ -42,5 +42,19 @@ void main() {
       expect(model.toJson(), containsPair('min_duration_years', 2));
       expect(model.toJson(), containsPair('max_duration_years', 3));
     });
+
+    test('preserves enrollment id from user enrollment responses', () {
+      final model = ClassModel.fromJson(const {
+        'class_id': 13,
+        'name': 'Guía',
+        'club_type_id': 2,
+        'enrollment_id': 901,
+        'investiture_status': 'EXPIRED',
+      });
+
+      expect(model.enrollmentId, 901);
+      expect(model.toEntity().enrollmentId, 901);
+      expect(model.toJson(), containsPair('enrollment_id', 901));
+    });
   });
 }

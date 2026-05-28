@@ -29,6 +29,7 @@ class MeetingSchedule extends Equatable {
 /// Entidad de dominio para la inscripción anual de un miembro al club.
 class Enrollment extends Equatable {
   final int id;
+  final String? enrollmentUuid;
   final String userId;
   final int clubSectionId;
   final int year;
@@ -54,6 +55,7 @@ class Enrollment extends Equatable {
 
   const Enrollment({
     required this.id,
+    this.enrollmentUuid,
     required this.userId,
     required this.clubSectionId,
     required this.year,
@@ -74,9 +76,12 @@ class Enrollment extends Equatable {
     this.secretaryTreasurerId,
   });
 
+  String get endpointId => enrollmentUuid ?? id.toString();
+
   @override
   List<Object?> get props => [
         id,
+        enrollmentUuid,
         userId,
         clubSectionId,
         year,

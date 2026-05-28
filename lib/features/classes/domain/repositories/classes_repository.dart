@@ -28,14 +28,12 @@ abstract class ClassesRepository {
   /// Obtiene el progreso de una clase de un usuario.
   Future<Either<Failure, ClassProgress>> getUserClassProgress(
       String userId, int classId,
-      {CancelToken? cancelToken});
+      {int? enrollmentId, CancelToken? cancelToken});
 
   /// Actualiza el progreso de una clase de un usuario.
   Future<Either<Failure, ClassProgress>> updateUserClassProgress(
-    String userId,
-    int classId,
-    Map<String, dynamic> progressData,
-  );
+      String userId, int classId, Map<String, dynamic> progressData,
+      {int? enrollmentId});
 
   // ── Inscripcion en clases anteriores ─────────────────────────────────────
 
@@ -48,11 +46,12 @@ abstract class ClassesRepository {
   /// Obtiene la clase con progreso detallado por modulos y requerimientos.
   Future<Either<Failure, ClassWithProgress>> getClassWithProgress(
       String userId, int classId,
-      {CancelToken? cancelToken});
+      {int? enrollmentId, CancelToken? cancelToken});
 
   /// Envia un requerimiento a validacion (pendiente -> enviado).
   Future<Either<Failure, void>> submitRequirement(
-      String userId, int classId, int requirementId);
+      String userId, int classId, int requirementId,
+      {int? enrollmentId});
 
   /// Sube un archivo de evidencia a un requerimiento.
   Future<Either<Failure, RequirementEvidence>> uploadRequirementFile({
@@ -62,6 +61,7 @@ abstract class ClassesRepository {
     required String filePath,
     required String fileName,
     required String mimeType,
+    int? enrollmentId,
     void Function(double)? onProgress,
   });
 
@@ -71,5 +71,6 @@ abstract class ClassesRepository {
     required int classId,
     required int requirementId,
     required String fileId,
+    int? enrollmentId,
   });
 }

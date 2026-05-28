@@ -7,6 +7,7 @@ class ProgressiveClass extends Equatable {
   final String? description;
   final int clubTypeId;
   final String? imageUrl;
+  final int? enrollmentId;
 
   /// Estado de investidura proveniente del enrollment.
   /// Valores posibles: null (no inscrito), 'PENDIENTE', 'INVESTIDO', etc.
@@ -41,6 +42,7 @@ class ProgressiveClass extends Equatable {
     this.description,
     required this.clubTypeId,
     this.imageUrl,
+    this.enrollmentId,
     this.investitureStatus,
     this.overallProgress,
     this.assetCode,
@@ -59,6 +61,7 @@ class ProgressiveClass extends Equatable {
         description,
         clubTypeId,
         imageUrl,
+        enrollmentId,
         investitureStatus,
         overallProgress,
         assetCode,

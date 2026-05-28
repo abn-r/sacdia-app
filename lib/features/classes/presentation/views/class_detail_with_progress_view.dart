@@ -23,15 +23,21 @@ import 'requirement_detail_view.dart';
 /// Pull-to-refresh, skeleton loading, empty/error states.
 class ClassDetailWithProgressView extends ConsumerWidget {
   final int classId;
+  final int? enrollmentId;
 
   const ClassDetailWithProgressView({
     super.key,
     required this.classId,
+    this.enrollmentId,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final classAsync = ref.watch(classWithProgressProvider(classId));
+    final progressQuery = ClassProgressQuery(
+      classId: classId,
+      enrollmentId: enrollmentId,
+    );
+    final classAsync = ref.watch(classWithProgressProvider(progressQuery));
 
     return Scaffold(
       backgroundColor: AppColors.canvas,
@@ -40,13 +46,15 @@ class ClassDetailWithProgressView extends ConsumerWidget {
           loading: () => const _SkeletonBody(),
           error: (error, _) => _ErrorBody(
             message: error.toString().replaceFirst('Exception: ', ''),
-            onRetry: () => ref.invalidate(classWithProgressProvider(classId)),
+            onRetry: () =>
+                ref.invalidate(classWithProgressProvider(progressQuery)),
           ),
           data: (classWithProgress) => _ClassBody(
             classWithProgress: classWithProgress,
             classId: classId,
+            enrollmentId: enrollmentId ?? classWithProgress.enrollmentId,
             onRefresh: () async =>
-                ref.invalidate(classWithProgressProvider(classId)),
+                ref.invalidate(classWithProgressProvider(progressQuery)),
           ),
         ),
       ),
@@ -59,11 +67,13 @@ class ClassDetailWithProgressView extends ConsumerWidget {
 class _ClassBody extends StatefulWidget {
   final ClassWithProgress classWithProgress;
   final int classId;
+  final int? enrollmentId;
   final Future<void> Function() onRefresh;
 
   const _ClassBody({
     required this.classWithProgress,
     required this.classId,
+    this.enrollmentId,
     required this.onRefresh,
   });
 
@@ -138,6 +148,8 @@ class _ClassBodyState extends State<_ClassBody> {
         builder: (_) => RequirementDetailView(
           requirement: requirement,
           classId: widget.classId,
+          enrollmentId:
+              widget.enrollmentId ?? widget.classWithProgress.enrollmentId,
           isClassExpired: widget.classWithProgress.isExpired,
         ),
       ),

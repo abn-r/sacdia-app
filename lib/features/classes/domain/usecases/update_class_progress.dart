@@ -18,6 +18,7 @@ class UpdateClassProgress
       params.userId,
       params.classId,
       params.progressData,
+      enrollmentId: params.enrollmentId,
     );
   }
 }
@@ -27,10 +28,12 @@ class UpdateClassProgressParams {
   final String userId;
   final int classId;
   final Map<String, dynamic> progressData;
+  final int? enrollmentId;
 
   const UpdateClassProgressParams({
     required this.userId,
     required this.classId,
     required this.progressData,
+    this.enrollmentId,
   });
 }

@@ -1001,7 +1001,10 @@
     "errors": {
       "fetch_preview": "Erreur lors de la récupération de l'aperçu du rapport",
       "fetch_list": "Erreur lors de la récupération des rapports mensuels",
-      "fetch_detail": "Erreur lors de la récupération du détail du rapport"
+      "fetch_detail": "Erreur lors de la récupération du détail du rapport",
+      "create_draft": "Could not prepare report",
+      "save_manual_data": "Could not save report data",
+      "generate": "Could not generate report"
     },
     "list": {
       "title": "Rapports mensuels",
@@ -1011,6 +1014,7 @@
     },
     "detail": {
       "title": "Détail du rapport",
+      "report_heading": "Résumé du rapport mensuel",
       "download_pdf_tooltip": "Télécharger le PDF",
       "downloading_pdf": "Téléchargement du PDF…",
       "pdf_viewer_title": "Rapport mensuel",
@@ -1024,7 +1028,108 @@
       "stat_attendance_rate": "Taux de présence",
       "label_new_members": "Nouveaux membres",
       "label_dropped_members": "Départs",
-      "label_notes": "Notes"
+      "label_notes": "Notes",
+      "section_administration": "Administration",
+      "section_honors": "Honors and learning",
+      "section_activities": "Activities",
+      "section_finances": "Finances",
+      "section_mission": "Missionary activity",
+      "section_service": "Service and materials",
+      "meeting_days": "Meeting days",
+      "planning_meetings": "Planning meetings",
+      "parent_meetings": "Parent meetings",
+      "youth_council_attendance": "Youth council",
+      "church_board_attendance": "Church board",
+      "honors_started": "Honors started",
+      "honors_completed": "Honors completed",
+      "income": "Monthly income",
+      "expenses": "Monthly expenses",
+      "month_balance": "Monthly balance",
+      "club_total_balance": "Club total balance",
+      "transactions": "Transactions",
+      "soul_target": "Soul target",
+      "unbaptized_members": "Unbaptized members",
+      "bible_studies_receiving": "Bible studies",
+      "weekly_instruction": "Weekly Bible instruction",
+      "studies_given": "Bible studies given",
+      "literature": "Literature distributed",
+      "baptized_this_month": "Baptisms this month",
+      "total_baptized": "Total baptisms",
+      "club_participation": "Club participation",
+      "community_service": "Community service",
+      "certificates": "Certificates delivered",
+      "booklets": "Members with booklet",
+      "booklets_signed": "Booklet requirements signed",
+      "edit_manual_data": "Complete manual data"
+    },
+    "visible": {
+      "title": "Rapports",
+      "generated_on": "Généré le {date}",
+      "empty_title": "Aucun rapport généré",
+      "empty_subtitle": "Les rapports apparaîtront ici lorsque le système les générera.",
+      "hero_title": "Prepare the monthly report",
+      "hero_subtitle": "Complete the manual data for {month} {year}. The system will add members, activities, honors, and finances automatically.",
+      "prepare_report": "Prepare report",
+      "preparing": "Preparing…",
+      "prepare_error": "Could not prepare the report",
+      "no_enrollment": "No active enrollment was found for your club."
+    },
+    "form": {
+      "title": "Report data",
+      "meetings_title": "Meetings",
+      "mission_title": "Missionary activity",
+      "service_title": "Service",
+      "materials_title": "Certificates and booklets",
+      "planning_meetings": "Planning",
+      "parent_meetings": "Parents",
+      "youth_council_attendance": "Youth council",
+      "church_board_attendance": "Church board",
+      "soul_target": "Soul target",
+      "unbaptized_members": "Unbaptized members",
+      "bible_studies_receiving": "Receiving Bible studies",
+      "weekly_instruction": "Weekly Bible instruction",
+      "studies_given": "Bible studies were given",
+      "literature": "Literature was distributed",
+      "baptized_this_month": "Baptized this month",
+      "total_baptized": "Total baptized",
+      "club_participation": "Club participation description",
+      "community_service": "Community service description",
+      "certificates": "Certificates delivered",
+      "booklets": "Members have booklet",
+      "booklets_signed": "Booklet requirements signed",
+      "save": "Save draft",
+      "saved": "Data saved successfully",
+      "save_error": "Could not save data",
+      "number_error": "Enter a valid number greater than or equal to 0",
+      "intro_title": "Complete only what happened this month",
+      "intro_body": "These values are saved as a draft. You can come back and edit them until the system generates the report at monthly closing.",
+      "meetings_eyebrow": "Administration",
+      "meetings_description": "Enter how many formal meetings or attendances the leadership had this month.",
+      "planning_helper": "Number of planning meetings held this month.",
+      "parents_helper": "Number of meetings with parents or guardians.",
+      "youth_helper": "Times the club participated in youth council.",
+      "church_helper": "Times the club presented or participated in church board.",
+      "mission_eyebrow": "Mission",
+      "mission_description": "Spiritual and missionary indicators for this month.",
+      "soul_target_helper": "Target number of people the club hopes to reach.",
+      "unbaptized_helper": "Active club members who are not baptized yet.",
+      "studies_helper": "People currently receiving Bible studies.",
+      "weekly_instruction_helper": "Enable if there was consistent weekly Bible instruction.",
+      "studies_given_helper": "Enable if the club gave Bible studies this month.",
+      "literature_helper": "Enable if missionary literature was distributed.",
+      "baptized_month_helper": "Number of baptisms during this month.",
+      "baptized_total_helper": "Accumulated total of baptisms reported by the club.",
+      "service_eyebrow": "Narrative evidence",
+      "service_description": "Write a short, concrete description. This helps explain the club impact.",
+      "club_participation_hint": "Example: We participated in the district youth program...",
+      "club_participation_helper": "Summary of club participation in events, church, or district.",
+      "community_service_hint": "Example: Park cleanup, elderly visits...",
+      "community_service_helper": "Describe the most relevant community service this month.",
+      "materials_eyebrow": "Follow-up",
+      "materials_description": "Mark only what was already completed or delivered.",
+      "certificates_helper": "Certificates or recognitions delivered to members.",
+      "booklets_helper": "Members have their booklet or physical record.",
+      "booklets_signed_helper": "Booklet requirements were reviewed and signed."
     }
   },
   "units": {
@@ -1886,11 +1991,22 @@
     },
     "action": {
       "watch_video": "Ver video",
+      "play_audio": "Lire audio",
+      "view_image": "Voir image",
+      "view_pdf": "Voir PDF",
       "download": "Descargar",
       "opening": "Abriendo..."
     },
+    "audio": {
+      "player_title": "Lecteur audio",
+      "loading": "Chargement de l'audio...",
+      "pause": "Pause",
+      "resume": "Reprendre"
+    },
     "error": {
       "download_url": "No se pudo obtener la URL de descarga",
+      "media_url": "Impossible d'obtenir l'URL de la ressource",
+      "audio_playback": "Impossible de lire l'audio",
       "video_url_missing": "URL de video no disponible",
       "invalid_url": "URL no válida",
       "open_url_failed": "No se pudo abrir la URL"
@@ -2936,8 +3052,10 @@
       "insurance": "Assurances du club",
       "inventory": "Inventaire",
       "resources": "Ressources",
+      "reports": "Rapports",
       "my_ranking": "Mon classement",
-      "section_ranking": "Classement de section"
+      "section_ranking": "Classement de section",
+      "club_rankings": "Classement des clubs"
     },
     "stats": {
       "honors_completed": "Spéc. terminées",
@@ -2983,6 +3101,7 @@
       "approved": "Approuvé",
       "rejected": "Rejeté",
       "submitted": "Soumis",
+      "generated": "Généré",
       "draft": "Brouillon",
       "verified": "Vérifié",
       "cancelled": "Annulé",
@@ -3248,7 +3367,17 @@
       "title": "Classement de section",
       "subtitle": "Registre de progression",
       "subtitle_with_year": "Registre de progression — {year}",
-      "invalid_section": "Section invalide"
+      "invalid_section": "Section invalide",
+      "ranked_members": "Membres classés",
+      "explainer": "Affiche uniquement les membres dont le score est déjà calculé pour cette année ; ce n'est pas la liste complète de la section.",
+      "classified": "Classés",
+      "best_score": "Meilleur score",
+      "tap_hint": "Touchez un membre pour voir le détail du score.",
+      "score_short": "pts",
+      "score_unavailable": "score indisponible",
+      "section_unknown": "Section sans nom",
+      "member_semantics": "Position {position}, {name}, section {section}, score {score}",
+      "header_semantics": "{count} membres classés pour {year}"
     },
     "annual_progress": {
       "title": "Progression annuelle",
@@ -3276,6 +3405,23 @@
       },
       "errors": {
         "get_progress": "Impossible de charger votre progression annuelle"
+      }
+    },
+    "club_rankings": {
+      "title": "Classement des clubs",
+      "header_title": "Clubs par champ local",
+      "header_body": "Compare les clubs de votre champ local par type de club pendant {year}. C'est un classement institutionnel ; il ne remplace pas le membre du mois.",
+      "clubs_ranked": "Clubs classés",
+      "best_score": "Meilleur score",
+      "score": "Score",
+      "folder": "Dossier",
+      "finance": "Finances",
+      "camporee": "Camporees",
+      "evidence": "Preuves",
+      "no_award_yet": "Aucune catégorie pour l'instant",
+      "club_semantics": "Position {position}, club {club}, score {score}",
+      "errors": {
+        "get_rankings": "Impossible de charger le classement des clubs"
       }
     },
     "empty_state": {
@@ -3311,7 +3457,12 @@
       "camporee_participated": "A participé au camporee",
       "camporee_not_participated": "N'a pas participé au camporee",
       "camporee_total": "{total} camporee(s) disponible(s)",
-      "weight_pct": "{pct}%"
+      "weight_pct": "{pct}%",
+      "overview_title": "Mode de calcul",
+      "formula_hint": "Le score combine classe, investiture et camporees avec les pondérations configurées pour l'année.",
+      "score_pending_hint": "Il manque encore des données pour calculer le score composite de ce membre.",
+      "rank_position": "Position n°{position}",
+      "section_name": "Section : {name}"
     }
   }
 }

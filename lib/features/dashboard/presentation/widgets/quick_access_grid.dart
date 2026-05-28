@@ -8,7 +8,6 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
-import 'package:sacdia_app/features/members/presentation/providers/members_providers.dart';
 
 class _QuickAccessItemConfig {
   /// Translation key resolved at render time via tr(labelKey).
@@ -16,14 +15,8 @@ class _QuickAccessItemConfig {
   final List<List<dynamic>> icon;
   final Color? color;
 
-  /// Static route path. Use this for routes that do not depend on runtime
-  /// context. For dynamic routes, leave empty and provide [routeResolver].
+  /// Static route path.
   final String route;
-
-  /// Optional resolver for routes that need runtime data (e.g. sectionId from
-  /// clubContextProvider). Called at render time with a [WidgetRef]. Return
-  /// null to hide the card when context data is unavailable.
-  final String? Function(WidgetRef ref)? routeResolver;
 
   final Set<String> requiredPermissions;
 
@@ -38,7 +31,6 @@ class _QuickAccessItemConfig {
     required this.icon,
     this.color,
     this.route = '',
-    this.routeResolver,
     this.requiredPermissions = const {},
     this.requiredRoles = const {},
   });
@@ -137,31 +129,22 @@ final List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
     route: RouteNames.homeResources,
     requiredPermissions: {'folders:read'},
   ),
-  // Mi ranking — only visible to roles that hold member_rankings:read_self
-  // (MEMBER club-scope, ADMIN global, SUPER_ADMIN global). Other club roles
-  // (director, counselor, secretary, treasurer…) do not have this permission
-  // and must not see the entry.
+  // Reportes institucionales — backend scopes directors/secretaries to their
+  // active club section and higher roles to their hierarchy.
   _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.my_ranking',
-    icon: HugeIcons.strokeRoundedRanking,
-    color: AppColors.accent,
-    route: RouteNames.homeMyRanking,
-    requiredPermissions: {'member_rankings:read_self'},
+    labelKey: 'dashboard.quick_access.reports',
+    icon: HugeIcons.strokeRoundedAnalytics01,
+    color: AppColors.info,
+    route: RouteNames.homeReports,
+    requiredPermissions: reportReadPermissions,
   ),
-  // Ranking de sección — gated by units:update (counselor+). Route is
-  // resolved at render time because it requires the active sectionId from
-  // clubContextProvider. Card is hidden when context is unavailable.
+  // Ranking institucional — clubes por tipo dentro del campo local autorizado.
   _QuickAccessItemConfig(
-    labelKey: 'dashboard.quick_access.section_ranking',
+    labelKey: 'dashboard.quick_access.club_rankings',
     icon: HugeIcons.strokeRoundedAward01,
     color: AppColors.primary,
-    routeResolver: (ref) {
-      final ctxAsync = ref.watch(clubContextProvider);
-      final sectionId = ctxAsync.valueOrNull?.sectionId;
-      if (sectionId == null) return null;
-      return RouteNames.sectionRankingPath(sectionId);
-    },
-    requiredPermissions: {'units:update'},
+    route: RouteNames.homeClubRankings,
+    requiredPermissions: clubRankingReadPermissions,
   ),
 ];
 
@@ -211,13 +194,6 @@ class QuickAccessGrid extends ConsumerWidget {
         return true;
       }
       return false;
-    }).where((item) {
-      // For items with a dynamic routeResolver, hide the card when the
-      // resolved route is null (context data not yet available or missing).
-      if (item.routeResolver != null) {
-        return item.routeResolver!(ref) != null;
-      }
-      return true;
     }).toList();
 
     if (filteredItems.isEmpty) {
@@ -235,9 +211,9 @@ class QuickAccessGrid extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         GridView.builder(
-          // shrinkWrap OK: filteredItems is permission-gated from a compile-time
-          // constant list (max ~8 items). Lives inside SingleChildScrollView >
-          // Column — intrinsic height is required.
+          // shrinkWrap OK: filteredItems is permission-gated from a small
+          // compile-time list. Lives inside SingleChildScrollView > Column —
+          // intrinsic height is required.
           physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -249,12 +225,7 @@ class QuickAccessGrid extends ConsumerWidget {
           itemCount: filteredItems.length,
           itemBuilder: (context, index) {
             final item = filteredItems[index];
-            final resolvedRoute = item.routeResolver != null
-                ? item.routeResolver!(ref)
-                : item.route;
-            // resolvedRoute is guaranteed non-null here: items with null
-            // resolution were already filtered out above.
-            return _QuickAccessTile(item: item, resolvedRoute: resolvedRoute!);
+            return _QuickAccessTile(item: item, resolvedRoute: item.route);
           },
         ),
       ],

@@ -13,6 +13,7 @@ class ClassWithProgress extends Equatable {
   final String? description;
   final int clubTypeId;
   final String? imageUrl;
+  final int? enrollmentId;
   final String? investitureStatus;
   final int? availableFromYearId;
   final int? availableUntilYearId;
@@ -28,6 +29,7 @@ class ClassWithProgress extends Equatable {
     this.description,
     required this.clubTypeId,
     this.imageUrl,
+    this.enrollmentId,
     this.investitureStatus,
     this.availableFromYearId,
     this.availableUntilYearId,
@@ -76,6 +78,7 @@ class ClassWithProgress extends Equatable {
         description,
         clubTypeId,
         imageUrl,
+        enrollmentId,
         investitureStatus,
         availableFromYearId,
         availableUntilYearId,

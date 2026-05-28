@@ -28,7 +28,7 @@ final monthlyReportsRepositoryProvider =
 // ── Preview params ────────────────────────────────────────────────────────────
 
 class MonthlyReportPreviewParams {
-  final int enrollmentId;
+  final String enrollmentId;
   final int month;
   final int year;
 
@@ -72,7 +72,7 @@ final monthlyReportPreviewProvider = FutureProvider.autoDispose
 
 /// Lista de informes mensuales de un enrollment.
 final monthlyReportsByEnrollmentProvider = FutureProvider.autoDispose
-    .family<List<MonthlyReport>, int>((ref, enrollmentId) async {
+    .family<List<MonthlyReport>, String>((ref, enrollmentId) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final repo = ref.read(monthlyReportsRepositoryProvider);
@@ -86,7 +86,7 @@ final monthlyReportsByEnrollmentProvider = FutureProvider.autoDispose
 
 /// Detalle de un informe mensual.
 final monthlyReportDetailProvider = FutureProvider.autoDispose
-    .family<MonthlyReport, int>((ref, reportId) async {
+    .family<MonthlyReport, String>((ref, reportId) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final repo = ref.read(monthlyReportsRepositoryProvider);
@@ -97,17 +97,134 @@ final monthlyReportDetailProvider = FutureProvider.autoDispose
   );
 });
 
-/// Descarga el PDF de un informe mensual y devuelve la ruta local del archivo
-/// temporal. El token JWT se envía en el header Authorization — nunca en la URL.
-final monthlyReportPdfProvider =
-    FutureProvider.autoDispose.family<String, int>((ref, reportId) async {
+/// Reportes visibles para el usuario autenticado según su jerarquía/rol.
+final visibleMonthlyReportsProvider =
+    FutureProvider.autoDispose<VisibleMonthlyReportsPage>((ref) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
   final repo = ref.read(monthlyReportsRepositoryProvider);
-  final result =
-      await repo.downloadReportPdf(reportId, cancelToken: cancelToken);
+  final result = await repo.getVisibleReports(cancelToken: cancelToken);
   return result.fold(
     (failure) => throw Exception(failure.message),
-    (localPath) => localPath,
+    (page) => page,
   );
 });
+
+/// Descarga el PDF de un informe mensual y devuelve la ruta local del archivo
+/// temporal. El token JWT se envía en el header Authorization — nunca en la URL.
+final monthlyReportPdfProvider =
+    FutureProvider.autoDispose.family<String, String>((ref, reportId) async {
+  // This provider is triggered imperatively from button taps via
+  // `ref.read(provider.future)`, not watched by the widget tree. Without a
+  // temporary keepAlive, Riverpod may auto-dispose it on the next frame and
+  // cancel the in-flight Dio download before the PDF is saved.
+  final keepAlive = ref.keepAlive();
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  try {
+    final repo = ref.read(monthlyReportsRepositoryProvider);
+    final result =
+        await repo.downloadReportPdf(reportId, cancelToken: cancelToken);
+    return result.fold(
+      (failure) => throw Exception(failure.message),
+      (localPath) => localPath,
+    );
+  } finally {
+    keepAlive.close();
+  }
+});
+
+// ── Mutation params/state ────────────────────────────────────────────────────
+
+class MonthlyReportDraftParams {
+  final String enrollmentId;
+  final int month;
+  final int year;
+
+  const MonthlyReportDraftParams({
+    required this.enrollmentId,
+    required this.month,
+    required this.year,
+  });
+}
+
+class MonthlyReportMutationState {
+  final bool isLoading;
+  final MonthlyReport? report;
+  final String? errorMessage;
+
+  const MonthlyReportMutationState({
+    this.isLoading = false,
+    this.report,
+    this.errorMessage,
+  });
+
+  MonthlyReportMutationState copyWith({
+    bool? isLoading,
+    MonthlyReport? report,
+    String? errorMessage,
+    bool clearError = false,
+  }) {
+    return MonthlyReportMutationState(
+      isLoading: isLoading ?? this.isLoading,
+      report: report ?? this.report,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+    );
+  }
+}
+
+final monthlyReportMutationProvider = NotifierProvider.autoDispose<
+    MonthlyReportMutationNotifier, MonthlyReportMutationState>(
+  MonthlyReportMutationNotifier.new,
+);
+
+class MonthlyReportMutationNotifier
+    extends AutoDisposeNotifier<MonthlyReportMutationState> {
+  @override
+  MonthlyReportMutationState build() => const MonthlyReportMutationState();
+
+  Future<MonthlyReport?> getOrCreateDraft(
+      MonthlyReportDraftParams params) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    final repo = ref.read(monthlyReportsRepositoryProvider);
+    final result = await repo.getOrCreateDraft(
+      params.enrollmentId,
+      month: params.month,
+      year: params.year,
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
+        return null;
+      },
+      (report) {
+        state = state.copyWith(isLoading: false, report: report);
+        ref.invalidate(visibleMonthlyReportsProvider);
+        return report;
+      },
+    );
+  }
+
+  Future<bool> saveManualData(
+    String reportId,
+    MonthlyReportManualData manualData,
+  ) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    final repo = ref.read(monthlyReportsRepositoryProvider);
+    final result = await repo.updateManualData(reportId, manualData);
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(isLoading: false, errorMessage: failure.message);
+        return false;
+      },
+      (report) {
+        state = state.copyWith(isLoading: false, report: report);
+        ref.invalidate(monthlyReportDetailProvider(reportId));
+        ref.invalidate(visibleMonthlyReportsProvider);
+        return true;
+      },
+    );
+  }
+}

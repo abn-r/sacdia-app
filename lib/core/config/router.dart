@@ -45,6 +45,7 @@ import 'package:sacdia_app/features/camporees/presentation/views/camporee_paymen
 import 'package:sacdia_app/features/camporees/presentation/views/camporee_enroll_club_view.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_reports_list_view.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_report_detail_view.dart';
+import 'package:sacdia_app/features/monthly_reports/presentation/views/monthly_reports_visible_list_view.dart';
 import 'package:sacdia_app/features/role_assignments/presentation/views/role_assignments_view.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_hub_view.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/sla_dashboard_view.dart';
@@ -69,6 +70,7 @@ import 'package:sacdia_app/features/materials/presentation/views/order_summary_v
 import 'package:sacdia_app/features/materials/presentation/views/upload_receipt_view.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/member_breakdown_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/my_ranking_screen.dart';
+import 'package:sacdia_app/features/rankings/presentation/screens/club_rankings_screen.dart';
 import 'package:sacdia_app/features/rankings/presentation/screens/section_ranking_screen.dart';
 
 import '../../features/auth/presentation/providers/auth_providers.dart';
@@ -557,7 +559,21 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // ── Branch 18: Materiales / Pedidos (quick-access, no nav bar) ────
+          // ── Branch 18: Ranking institucional de clubes ───────────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeClubRankings,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const ClubRankingsScreen(),
+                ),
+              ),
+            ],
+          ),
+
+          // ── Branch 19: Materiales / Pedidos (quick-access, no nav bar) ────
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -566,6 +582,20 @@ final routerProvider = Provider<GoRouter>((ref) {
                   context,
                   state,
                   const CatalogView(),
+                ),
+              ),
+            ],
+          ),
+
+          // ── Branch 20: Reportes (quick-access, no nav bar) ────────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeReports,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const MonthlyReportsVisibleListView(),
                 ),
               ),
             ],
@@ -923,8 +953,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.monthlyReports,
         pageBuilder: (context, state) {
-          final enrollmentId =
-              int.tryParse(state.pathParameters['enrollmentId']!) ?? 0;
+          final enrollmentId = state.pathParameters['enrollmentId']!;
           return _sharedAxisBuild(
             context,
             state,
@@ -937,7 +966,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.monthlyReportDetail,
         pageBuilder: (context, state) {
-          final reportId = int.tryParse(state.pathParameters['reportId']!) ?? 0;
+          final reportId = state.pathParameters['reportId']!;
           return _sharedAxisBuild(
             context,
             state,

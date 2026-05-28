@@ -1,25 +1,27 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_card.dart';
 import '../../domain/entities/resource.dart';
 
 /// Retorna el color asociado al tipo de recurso
-Color resourceTypeColor(String resourceType) {
+Color resourceTypeColor(BuildContext context, String resourceType) {
+  final c = context.sac;
+
   switch (resourceType) {
     case 'audio':
-      return AppColors.accent;
+      return c.warning;
     case 'image':
-      return AppColors.secondary;
+      return c.success;
     case 'video_link':
-      return const Color(0xFFE53935);
+      return c.error;
     case 'text':
-      return AppColors.info;
+      return c.info;
     case 'document':
     default:
-      return AppColors.primary;
+      return Theme.of(context).colorScheme.primary;
   }
 }
 
@@ -71,141 +73,159 @@ String _formatFileSize(int? bytes) {
 class ResourceCard extends StatelessWidget {
   final Resource resource;
   final VoidCallback onTap;
+  final Duration animationDelay;
 
   const ResourceCard({
     super.key,
     required this.resource,
     required this.onTap,
+    this.animationDelay = Duration.zero,
   });
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final color = resourceTypeColor(resource.resourceType);
+    final color = resourceTypeColor(context, resource.resourceType);
     final icon = resourceTypeIcon(resource.resourceType);
     final label = resourceTypeLabel(resource.resourceType);
     final sizeStr = _formatFileSize(resource.fileSize);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-        border: Border.all(color: c.border, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: c.shadow,
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              children: [
-                // ── Type icon ──────────────────────────────────────
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+    return Semantics(
+      button: true,
+      label: resource.title,
+      child: SacCard(
+        onTap: onTap,
+        accentColor: color,
+        animate: true,
+        animationDelay: animationDelay,
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            // ── Type icon ──────────────────────────────────────────
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(AppTheme.radiusLG),
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  HugeIcon(
+                    icon: icon,
+                    size: 24,
+                    color: color,
                   ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      HugeIcon(
-                        icon: icon,
-                        size: 22,
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
                         color: color,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusXS),
                       ),
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 3, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: color,
-                            borderRadius:
-                                BorderRadius.circular(AppTheme.radiusXS),
-                          ),
-                          child: Text(
-                            label,
-                            style: const TextStyle(
-                              fontSize: 6,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
+                      child: Text(
+                        label,
+                        style: const TextStyle(
+                          fontSize: 7,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-
-                // ── Content ────────────────────────────────────────
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        resource.title,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: c.text,
-                          height: 1.3,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (resource.categoryName != null) ...[
-                        const SizedBox(height: 3),
-                        Text(
-                          resource.categoryName!,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: c.textSecondary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                      if (sizeStr.isNotEmpty) ...[
-                        const SizedBox(height: 3),
-                        Text(
-                          sizeStr,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: c.textTertiary,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-
-                // ── Chevron ────────────────────────────────────────
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowRight01,
-                  size: 18,
-                  color: c.textTertiary,
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+            const SizedBox(width: 12),
+
+            // ── Content ────────────────────────────────────────────
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    resource.title,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: c.text,
+                      height: 1.25,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (resource.categoryName != null || sizeStr.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        if (resource.categoryName != null)
+                          _ResourceMetaPill(
+                            label: resource.categoryName!,
+                            color: color,
+                          ),
+                        if (sizeStr.isNotEmpty)
+                          _ResourceMetaPill(
+                            label: sizeStr,
+                            color: c.textTertiary,
+                          ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // ── Chevron ────────────────────────────────────────────
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              size: 18,
+              color: c.textTertiary,
+            ),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+class _ResourceMetaPill extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _ResourceMetaPill({
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          color: color == c.textTertiary ? c.textSecondary : color,
+          fontWeight: FontWeight.w700,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }

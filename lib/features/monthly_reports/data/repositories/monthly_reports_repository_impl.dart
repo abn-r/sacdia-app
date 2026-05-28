@@ -28,7 +28,7 @@ class MonthlyReportsRepositoryImpl implements MonthlyReportsRepository {
 
   @override
   Future<Either<Failure, MonthlyReportPreview>> getPreview(
-    int enrollmentId, {
+    String enrollmentId, {
     required int month,
     required int year,
     CancelToken? cancelToken,
@@ -52,7 +52,7 @@ class MonthlyReportsRepositoryImpl implements MonthlyReportsRepository {
 
   @override
   Future<Either<Failure, List<MonthlyReport>>> getReportsByEnrollment(
-      int enrollmentId,
+      String enrollmentId,
       {CancelToken? cancelToken}) async {
     try {
       final models = await remoteDataSource.getReportsByEnrollment(enrollmentId,
@@ -68,7 +68,7 @@ class MonthlyReportsRepositoryImpl implements MonthlyReportsRepository {
   }
 
   @override
-  Future<Either<Failure, MonthlyReport>> getReportDetail(int reportId,
+  Future<Either<Failure, MonthlyReport>> getReportDetail(String reportId,
       {CancelToken? cancelToken}) async {
     try {
       final model = await remoteDataSource.getReportDetail(reportId,
@@ -84,7 +84,75 @@ class MonthlyReportsRepositoryImpl implements MonthlyReportsRepository {
   }
 
   @override
-  Future<Either<Failure, String>> downloadReportPdf(int reportId,
+  Future<Either<Failure, MonthlyReport>> getOrCreateDraft(
+    String enrollmentId, {
+    required int month,
+    required int year,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final model = await remoteDataSource.getOrCreateDraft(
+        enrollmentId,
+        month: month,
+        year: year,
+        cancelToken: cancelToken,
+      );
+      return Right(model.toEntity());
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, MonthlyReport>> updateManualData(
+    String reportId,
+    MonthlyReportManualData manualData, {
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final model = await remoteDataSource.updateManualData(
+        reportId,
+        manualData,
+        cancelToken: cancelToken,
+      );
+      return Right(model.toEntity());
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, VisibleMonthlyReportsPage>> getVisibleReports({
+    int page = 1,
+    int limit = 25,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final model = await remoteDataSource.getVisibleReports(
+        page: page,
+        limit: limit,
+        cancelToken: cancelToken,
+      );
+      return Right(model.toEntity());
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> downloadReportPdf(String reportId,
       {CancelToken? cancelToken}) async {
     try {
       final localPath = await remoteDataSource.downloadReportPdf(reportId,

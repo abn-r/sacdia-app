@@ -113,10 +113,10 @@ class ClassesRepositoryImpl implements ClassesRepository {
   @override
   Future<Either<Failure, ClassProgress>> getUserClassProgress(
       String userId, int classId,
-      {CancelToken? cancelToken}) async {
+      {int? enrollmentId, CancelToken? cancelToken}) async {
     try {
       final model = await remoteDataSource.getUserClassProgress(userId, classId,
-          cancelToken: cancelToken);
+          enrollmentId: enrollmentId, cancelToken: cancelToken);
       return Right(model.toEntity());
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
@@ -132,13 +132,12 @@ class ClassesRepositoryImpl implements ClassesRepository {
 
   @override
   Future<Either<Failure, ClassProgress>> updateUserClassProgress(
-    String userId,
-    int classId,
-    Map<String, dynamic> progressData,
-  ) async {
+      String userId, int classId, Map<String, dynamic> progressData,
+      {int? enrollmentId}) async {
     try {
       final model = await remoteDataSource.updateUserClassProgress(
-          userId, classId, progressData);
+          userId, classId, progressData,
+          enrollmentId: enrollmentId);
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return _serverFailure(e);
@@ -171,10 +170,10 @@ class ClassesRepositoryImpl implements ClassesRepository {
   @override
   Future<Either<Failure, ClassWithProgress>> getClassWithProgress(
       String userId, int classId,
-      {CancelToken? cancelToken}) async {
+      {int? enrollmentId, CancelToken? cancelToken}) async {
     try {
       final model = await remoteDataSource.getClassWithProgress(userId, classId,
-          cancelToken: cancelToken);
+          enrollmentId: enrollmentId, cancelToken: cancelToken);
       return Right(model.toEntity());
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
@@ -190,9 +189,11 @@ class ClassesRepositoryImpl implements ClassesRepository {
 
   @override
   Future<Either<Failure, void>> submitRequirement(
-      String userId, int classId, int requirementId) async {
+      String userId, int classId, int requirementId,
+      {int? enrollmentId}) async {
     try {
-      await remoteDataSource.submitRequirement(userId, classId, requirementId);
+      await remoteDataSource.submitRequirement(userId, classId, requirementId,
+          enrollmentId: enrollmentId);
       return const Right(null);
     } on ServerException catch (e) {
       return _serverFailure(e);
@@ -211,6 +212,7 @@ class ClassesRepositoryImpl implements ClassesRepository {
     required String filePath,
     required String fileName,
     required String mimeType,
+    int? enrollmentId,
     void Function(double)? onProgress,
   }) async {
     try {
@@ -221,6 +223,7 @@ class ClassesRepositoryImpl implements ClassesRepository {
         filePath: filePath,
         fileName: fileName,
         mimeType: mimeType,
+        enrollmentId: enrollmentId,
         onProgress: onProgress,
       );
       return Right(model.toEntity());
@@ -239,6 +242,7 @@ class ClassesRepositoryImpl implements ClassesRepository {
     required int classId,
     required int requirementId,
     required String fileId,
+    int? enrollmentId,
   }) async {
     try {
       await remoteDataSource.deleteRequirementFile(
@@ -246,6 +250,7 @@ class ClassesRepositoryImpl implements ClassesRepository {
         classId: classId,
         requirementId: requirementId,
         fileId: fileId,
+        enrollmentId: enrollmentId,
       );
       return const Right(null);
     } on ServerException catch (e) {

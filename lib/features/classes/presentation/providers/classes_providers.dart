@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -169,8 +170,28 @@ final classModulesProvider = FutureProvider.autoDispose
 /// Provider para la clase con progreso detallado.
 ///
 /// autoDispose para liberar memoria al salir de la pantalla.
+class ClassProgressQuery extends Equatable {
+  final int classId;
+  final int? enrollmentId;
+
+  const ClassProgressQuery({
+    required this.classId,
+    this.enrollmentId,
+  });
+
+  factory ClassProgressQuery.fromClass(ProgressiveClass progressiveClass) {
+    return ClassProgressQuery(
+      classId: progressiveClass.id,
+      enrollmentId: progressiveClass.enrollmentId,
+    );
+  }
+
+  @override
+  List<Object?> get props => [classId, enrollmentId];
+}
+
 final classWithProgressProvider = FutureProvider.autoDispose
-    .family<ClassWithProgress, int>((ref, classId) async {
+    .family<ClassWithProgress, ClassProgressQuery>((ref, query) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
 
@@ -184,7 +205,11 @@ final classWithProgressProvider = FutureProvider.autoDispose
 
   final useCase = ref.read(getClassWithProgressUseCaseProvider);
   final result = await useCase(
-    GetClassWithProgressParams(userId: userId, classId: classId),
+    GetClassWithProgressParams(
+      userId: userId,
+      classId: query.classId,
+      enrollmentId: query.enrollmentId,
+    ),
     cancelToken: cancelToken,
   );
 
@@ -226,10 +251,10 @@ class RequirementOperationState {
 /// Maneja operaciones de subida de archivos, eliminacion y envio a validacion.
 /// Al completar con exito cualquier mutacion, invalida [classWithProgressProvider]
 /// para refrescar datos frescos del backend.
-class RequirementNotifier
-    extends AutoDisposeFamilyNotifier<RequirementOperationState, int> {
+class RequirementNotifier extends AutoDisposeFamilyNotifier<
+    RequirementOperationState, ClassProgressQuery> {
   @override
-  RequirementOperationState build(int classId) =>
+  RequirementOperationState build(ClassProgressQuery query) =>
       const RequirementOperationState();
 
   String get _userId {
@@ -237,7 +262,9 @@ class RequirementNotifier
     return authState.value?.id ?? '';
   }
 
-  int get _classId => arg;
+  ClassProgressQuery get _query => arg;
+  int get _classId => arg.classId;
+  int? get _enrollmentId => arg.enrollmentId;
 
   /// Envia un requerimiento a validacion (pendiente -> enviado).
   Future<bool> submit(int requirementId) async {
@@ -248,6 +275,7 @@ class RequirementNotifier
         userId: _userId,
         classId: _classId,
         requirementId: requirementId,
+        enrollmentId: _enrollmentId,
       ),
     );
 
@@ -258,7 +286,7 @@ class RequirementNotifier
         // end-state was already reached.
         if (failure.message.contains("already in status 'VALIDATED'")) {
           state = state.copyWith(isLoading: false, success: true);
-          ref.invalidate(classWithProgressProvider(_classId));
+          ref.invalidate(classWithProgressProvider(_query));
           return true;
         }
         state = state.copyWith(
@@ -269,7 +297,7 @@ class RequirementNotifier
       },
       (_) {
         state = state.copyWith(isLoading: false, success: true);
-        ref.invalidate(classWithProgressProvider(_classId));
+        ref.invalidate(classWithProgressProvider(_query));
         return true;
       },
     );
@@ -298,6 +326,7 @@ class RequirementNotifier
         filePath: pickedFile.path,
         fileName: pickedFile.name,
         mimeType: mimeType,
+        enrollmentId: _enrollmentId,
         onProgress: onProgress,
       ),
     );
@@ -313,7 +342,7 @@ class RequirementNotifier
       (_) {
         state = state.copyWith(isLoading: false, success: true);
         if (!skipInvalidation) {
-          ref.invalidate(classWithProgressProvider(_classId));
+          ref.invalidate(classWithProgressProvider(_query));
         }
         return true;
       },
@@ -333,6 +362,7 @@ class RequirementNotifier
         classId: _classId,
         requirementId: requirementId,
         fileId: fileId,
+        enrollmentId: _enrollmentId,
       ),
     );
 
@@ -346,7 +376,7 @@ class RequirementNotifier
       },
       (_) {
         state = state.copyWith(isLoading: false, success: true);
-        ref.invalidate(classWithProgressProvider(_classId));
+        ref.invalidate(classWithProgressProvider(_query));
         return true;
       },
     );
@@ -361,7 +391,7 @@ class RequirementNotifier
 /// Es un family por [classId] para que cada clase tenga su propio estado.
 /// Resuelve el userId internamente desde el authNotifier.
 final requirementNotifierProvider = NotifierProvider.autoDispose
-    .family<RequirementNotifier, RequirementOperationState, int>(
+    .family<RequirementNotifier, RequirementOperationState, ClassProgressQuery>(
   RequirementNotifier.new,
 );
 
@@ -376,10 +406,8 @@ class ClassProgressNotifier extends AutoDisposeAsyncNotifier<ClassProgress?> {
 
   /// Actualizar progreso de una seccion
   Future<void> updateProgress(
-    String userId,
-    int classId,
-    Map<String, dynamic> progressData,
-  ) async {
+      String userId, int classId, Map<String, dynamic> progressData,
+      {int? enrollmentId}) async {
     state = const AsyncValue.loading();
 
     final result = await ref.read(updateClassProgressProvider)(
@@ -387,6 +415,7 @@ class ClassProgressNotifier extends AutoDisposeAsyncNotifier<ClassProgress?> {
         userId: userId,
         classId: classId,
         progressData: progressData,
+        enrollmentId: enrollmentId,
       ),
     );
 

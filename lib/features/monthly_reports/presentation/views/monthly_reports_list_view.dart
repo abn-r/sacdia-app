@@ -13,7 +13,7 @@ import 'monthly_report_detail_view.dart';
 
 /// Vista de lista de informes mensuales de un enrollment.
 class MonthlyReportsListView extends ConsumerWidget {
-  final int enrollmentId;
+  final String enrollmentId;
 
   const MonthlyReportsListView({
     super.key,
@@ -253,9 +253,9 @@ class _ReportCard extends StatelessWidget {
   _StatusConfig _statusConfig(MonthlyReportStatus status) {
     switch (status) {
       case MonthlyReportStatus.approved:
-        return _StatusConfig(
-          bg: AppColors.secondaryLight,
-          fg: AppColors.secondaryDark,
+        return const _StatusConfig(
+          bg: Color(0xFFD1FAE5),
+          fg: Color(0xFF047857),
         );
       case MonthlyReportStatus.rejected:
         return _StatusConfig(
@@ -263,9 +263,14 @@ class _ReportCard extends StatelessWidget {
           fg: AppColors.errorDark,
         );
       case MonthlyReportStatus.submitted:
-        return _StatusConfig(
-          bg: AppColors.primaryLight,
-          fg: AppColors.primaryDark,
+        return const _StatusConfig(
+          bg: Color(0xFFDBEAFE),
+          fg: Color(0xFF1D4ED8),
+        );
+      case MonthlyReportStatus.generated:
+        return const _StatusConfig(
+          bg: Color(0xFFDCFCE7),
+          fg: Color(0xFF15803D),
         );
       case MonthlyReportStatus.draft:
         return _StatusConfig(

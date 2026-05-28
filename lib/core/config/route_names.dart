@@ -36,6 +36,7 @@ class RouteNames {
   static const String homeInsurance = '/home/insurance';
   static const String homeInventory = '/home/inventory';
   static const String homeResources = '/home/resources';
+  static const String homeReports = '/home/reports';
   static const String homeHonors = '/home/honors';
   static const String homeCertifications = '/home/certifications';
   static const String homeAchievements = '/home/achievements';
@@ -134,9 +135,9 @@ class RouteNames {
   static const String monthlyReports = '/monthly-reports/:enrollmentId';
   static const String monthlyReportDetail = '/monthly-report/:reportId';
 
-  static String monthlyReportsPath(int enrollmentId) =>
+  static String monthlyReportsPath(String enrollmentId) =>
       '/monthly-reports/$enrollmentId';
-  static String monthlyReportDetailPath(int reportId) =>
+  static String monthlyReportDetailPath(String reportId) =>
       '/monthly-report/$reportId';
 
   // Asignaciones de rol
@@ -221,6 +222,7 @@ class RouteNames {
       '/home/materials/order/$folioOrId/receipt';
 
   // Rankings
+  static const String homeClubRankings = '/home/club-rankings';
   static const String homeMyRanking = '/home/my-ranking';
   static const String sectionRanking = '/section-ranking/:sectionId';
   static const String memberBreakdown = '/rankings/breakdown/:enrollmentId';

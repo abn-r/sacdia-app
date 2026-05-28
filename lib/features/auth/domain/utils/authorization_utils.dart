@@ -40,6 +40,24 @@ const Map<SensitiveUserFamily, Set<String>> _sensitiveFamilyUpdatePermissions =
   },
 };
 
+const Set<String> memberRankingReadSelfPermissions = {
+  'member_rankings:read_self',
+};
+
+const Set<String> sectionRankingReadPermissions = {
+  'section_rankings:read_club',
+  'section_rankings:read_lf',
+  'section_rankings:read_global',
+};
+
+const Set<String> clubRankingReadPermissions = {
+  'rankings:read',
+};
+
+const Set<String> reportReadPermissions = {
+  'reports:read',
+};
+
 Set<String> _normalize(Iterable<dynamic> values) {
   return values
       .map((value) => value?.toString().trim().toLowerCase())
@@ -89,6 +107,18 @@ bool hasAnyRole(UserEntity? user, Iterable<String> roles) {
     }
   }
   return false;
+}
+
+bool canViewMyRanking(UserEntity? user) {
+  return hasAnyPermission(user, memberRankingReadSelfPermissions);
+}
+
+bool canViewSectionRankings(UserEntity? user) {
+  return hasAnyPermission(user, sectionRankingReadPermissions);
+}
+
+bool canViewClubRankings(UserEntity? user) {
+  return hasAnyPermission(user, clubRankingReadPermissions);
 }
 
 bool isUserOwner(UserEntity? user, String targetUserId) {

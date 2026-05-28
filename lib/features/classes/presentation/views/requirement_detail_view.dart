@@ -30,12 +30,14 @@ import '../sheets/requirement_status_history_sheet.dart';
 class RequirementDetailView extends ConsumerStatefulWidget {
   final ClassRequirement requirement;
   final int classId;
+  final int? enrollmentId;
   final bool isClassExpired;
 
   const RequirementDetailView({
     super.key,
     required this.requirement,
     required this.classId,
+    this.enrollmentId,
     this.isClassExpired = false,
   });
 
@@ -46,6 +48,11 @@ class RequirementDetailView extends ConsumerStatefulWidget {
 
 class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
   bool _hasUnsavedFiles = false;
+
+  ClassProgressQuery get _progressQuery => ClassProgressQuery(
+        classId: widget.classId,
+        enrollmentId: widget.enrollmentId,
+      );
 
   ClassRequirement _liveRequirement(AsyncValue<dynamic> classAsync) {
     return classAsync.whenData((classWithProgress) {
@@ -60,7 +67,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
   }
 
   String _resolveModuleName(int moduleId) {
-    final classAsync = ref.read(classWithProgressProvider(widget.classId));
+    final classAsync = ref.read(classWithProgressProvider(_progressQuery));
     return classAsync.whenData((cp) {
           for (final m in cp.modules) {
             if (m.id == moduleId) return m.name;
@@ -124,8 +131,8 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
   @override
   Widget build(BuildContext context) {
     final notifierState =
-        ref.watch(requirementNotifierProvider(widget.classId));
-    final classAsync = ref.watch(classWithProgressProvider(widget.classId));
+        ref.watch(requirementNotifierProvider(_progressQuery));
+    final classAsync = ref.watch(classWithProgressProvider(_progressQuery));
     final requirement = _liveRequirement(classAsync);
     final isClassExpired =
         widget.isClassExpired || (classAsync.valueOrNull?.isExpired ?? false);
@@ -139,7 +146,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
     final moduleName = _resolveModuleName(requirement.moduleId);
 
     ref.listen(
-      requirementNotifierProvider(widget.classId),
+      requirementNotifierProvider(_progressQuery),
       (prev, next) {
         if (next.errorMessage != null && next.errorMessage!.isNotEmpty) {
           _showErrorSnackbar(context, next.errorMessage!);
@@ -344,7 +351,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                                   }
                                   final success = await ref
                                       .read(requirementNotifierProvider(
-                                              widget.classId)
+                                              _progressQuery)
                                           .notifier)
                                       .uploadFile(
                                         requirementId: requirement.id,
@@ -362,7 +369,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                                   if (isClassExpired) return;
                                   await ref
                                       .read(requirementNotifierProvider(
-                                              widget.classId)
+                                              _progressQuery)
                                           .notifier)
                                       .deleteFile(
                                         requirementId: requirement.id,
@@ -373,7 +380,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                                   if (isClassExpired) return;
                                   final success = await ref
                                       .read(requirementNotifierProvider(
-                                              widget.classId)
+                                              _progressQuery)
                                           .notifier)
                                       .submit(requirement.id);
                                   if (success && mounted) {
@@ -480,13 +487,13 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
   }
 
   Future<void> _handleSubmit(ClassRequirement req) async {
-    final classAsync = ref.read(classWithProgressProvider(widget.classId));
+    final classAsync = ref.read(classWithProgressProvider(_progressQuery));
     final isClassExpired =
         widget.isClassExpired || (classAsync.valueOrNull?.isExpired ?? false);
     if (!req.canSubmitForClass(isClassExpired: isClassExpired)) return;
 
     final success = await ref
-        .read(requirementNotifierProvider(widget.classId).notifier)
+        .read(requirementNotifierProvider(_progressQuery).notifier)
         .submit(req.id);
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

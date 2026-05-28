@@ -26,7 +26,9 @@ class ClassDetailView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final classDetailAsync = ref.watch(classDetailProvider(classId));
-    final classProgressAsync = ref.watch(classWithProgressProvider(classId));
+    final classProgressAsync = ref.watch(
+      classWithProgressProvider(ClassProgressQuery(classId: classId)),
+    );
     final progressRatio = classProgressAsync.whenOrNull(
           data: (cwp) => cwp.completionRatio,
         ) ??

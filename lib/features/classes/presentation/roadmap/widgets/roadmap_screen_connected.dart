@@ -39,7 +39,10 @@ class RoadmapScreenConnected extends ConsumerWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ClassDetailWithProgressView(classId: classId),
+        builder: (_) => ClassDetailWithProgressView(
+          classId: classId,
+          enrollmentId: item.enrollmentId,
+        ),
       ),
     );
   }

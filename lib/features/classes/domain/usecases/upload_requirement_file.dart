@@ -13,6 +13,7 @@ class UploadRequirementFileParams extends Equatable {
   final String filePath;
   final String fileName;
   final String mimeType;
+  final int? enrollmentId;
   final void Function(double)? onProgress;
 
   const UploadRequirementFileParams({
@@ -22,12 +23,20 @@ class UploadRequirementFileParams extends Equatable {
     required this.filePath,
     required this.fileName,
     required this.mimeType,
+    this.enrollmentId,
     this.onProgress,
   });
 
   @override
-  List<Object?> get props =>
-      [userId, classId, requirementId, filePath, fileName, mimeType];
+  List<Object?> get props => [
+        userId,
+        classId,
+        requirementId,
+        filePath,
+        fileName,
+        mimeType,
+        enrollmentId
+      ];
 }
 
 /// Caso de uso: sube un archivo de evidencia a un requerimiento de clase.
@@ -47,6 +56,7 @@ class UploadRequirementFile
       filePath: params.filePath,
       fileName: params.fileName,
       mimeType: params.mimeType,
+      enrollmentId: params.enrollmentId,
       onProgress: params.onProgress,
     );
   }
