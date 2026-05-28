@@ -3250,6 +3250,34 @@
       "subtitle_with_year": "Registre de progression — {year}",
       "invalid_section": "Section invalide"
     },
+    "annual_progress": {
+      "title": "Progression annuelle",
+      "header_title": "Votre section cette année",
+      "header_body": "{club} · {type} · {year}",
+      "points_value": "{points} pts",
+      "points_of_total": "sur {total} points disponibles",
+      "progress_percentage": "{percent}% de l'objectif annuel",
+      "no_tier_yet": "Aucun niveau pour l'instant",
+      "next_tier": "Prochain niveau",
+      "points_to_reach": "Il manque {points} pts pour l'atteindre",
+      "top_tier_reached": "Vous êtes déjà au niveau le plus élevé configuré pour cette année.",
+      "components_title": "D'où viennent vos points",
+      "component_points": "{earned} / {max} pts",
+      "pending": {
+        "title": "Éléments en attente pouvant ajouter des points",
+        "empty": "Aucun élément critique en attente pour ce classement.",
+        "due_date": "Échéance {date}",
+        "status": {
+          "pending_delivery": "En attente de livraison",
+          "pending_validation": "En validation",
+          "pending_union_validation": "Validation de l'union",
+          "pending_review": "En révision"
+        }
+      },
+      "errors": {
+        "get_progress": "Impossible de charger votre progression annuelle"
+      }
+    },
     "empty_state": {
       "unavailable_title": "Classement indisponible",
       "unavailable_subtitle": "Votre directeur peut activer la visibilité du classement lorsqu'il sera prêt.",

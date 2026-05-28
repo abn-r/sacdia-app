@@ -3250,6 +3250,34 @@
       "subtitle_with_year": "Registro de progresso — {year}",
       "invalid_section": "Seção inválida"
     },
+    "annual_progress": {
+      "title": "Progresso anual",
+      "header_title": "Sua seção neste ano",
+      "header_body": "{club} · {type} · {year}",
+      "points_value": "{points} pts",
+      "points_of_total": "de {total} pontos disponíveis",
+      "progress_percentage": "{percent}% do objetivo anual",
+      "no_tier_yet": "Ainda sem nível",
+      "next_tier": "Próximo nível",
+      "points_to_reach": "Faltam {points} pts para alcançá-lo",
+      "top_tier_reached": "Você já está no nível mais alto configurado para este ano.",
+      "components_title": "De onde vêm seus pontos",
+      "component_points": "{earned} / {max} pts",
+      "pending": {
+        "title": "Pendências que podem somar pontos",
+        "empty": "Não há pendências críticas para este ranking.",
+        "due_date": "Vence em {date}",
+        "status": {
+          "pending_delivery": "Pendente de entrega",
+          "pending_validation": "Em validação",
+          "pending_union_validation": "Validação da união",
+          "pending_review": "Em revisão"
+        }
+      },
+      "errors": {
+        "get_progress": "Não foi possível carregar seu progresso anual"
+      }
+    },
     "empty_state": {
       "unavailable_title": "Ranking indisponível",
       "unavailable_subtitle": "Seu diretor pode ativar a visibilidade do ranking quando estiver pronto.",

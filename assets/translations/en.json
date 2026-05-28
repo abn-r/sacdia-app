@@ -3251,6 +3251,34 @@
       "subtitle_with_year": "Progress record — {year}",
       "invalid_section": "Invalid section"
     },
+    "annual_progress": {
+      "title": "Annual progress",
+      "header_title": "Your section this year",
+      "header_body": "{club} · {type} · {year}",
+      "points_value": "{points} pts",
+      "points_of_total": "of {total} available points",
+      "progress_percentage": "{percent}% of the annual goal",
+      "no_tier_yet": "No tier yet",
+      "next_tier": "Next tier",
+      "points_to_reach": "{points} pts left to reach it",
+      "top_tier_reached": "You are already in the highest tier configured for this year.",
+      "components_title": "Where your points come from",
+      "component_points": "{earned} / {max} pts",
+      "pending": {
+        "title": "Pending items that can add points",
+        "empty": "There are no critical pending items for this ranking.",
+        "due_date": "Due {date}",
+        "status": {
+          "pending_delivery": "Pending delivery",
+          "pending_validation": "In validation",
+          "pending_union_validation": "Union validation",
+          "pending_review": "In review"
+        }
+      },
+      "errors": {
+        "get_progress": "We could not load your annual progress"
+      }
+    },
     "empty_state": {
       "unavailable_title": "Ranking unavailable",
       "unavailable_subtitle": "Your director can enable ranking visibility when ready.",
