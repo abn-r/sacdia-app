@@ -2236,7 +2236,7 @@
   },
   "evidence_folder": {
     "errors": {
-      "get_folder": "Error al obtener la carpeta de evidencias",
+      "get_folder": "Error al obtener la Carpeta Anual de Evidencias",
       "submit_folder": "Error al enviar la carpeta a validación",
       "submit_section": "Error al enviar la sección a validación",
       "upload_file": "Error al subir el archivo",
@@ -2245,7 +2245,7 @@
       "folder_not_exists": "La carpeta no existe aún. No se pueden realizar operaciones sin una carpeta creada.",
       "folder_not_loaded": "La carpeta no está cargada. Asegúrese de que evidenceFolderProvider haya completado antes de invocar operaciones de mutación."
     },
-    "title": "Carpeta de Evidencias",
+    "title": "Carpeta Anual de Evidencias",
     "section_title": "Sección",
     "send": "Enviar",
     "stay": "Quedarme",
@@ -2300,11 +2300,11 @@
     },
     "closed_banner": {
       "title": "Carpeta cerrada",
-      "description": "La carpeta de evidencias ha sido cerrada. Para modificar sus evidencias, contacte a la administración del campo local."
+      "description": "La Carpeta Anual de Evidencias ha sido cerrada. Para modificar sus evidencias, contacte a la administración del campo local."
     },
     "no_folder": {
       "title": "Carpeta no disponible",
-      "description1": "La carpeta anual de evidencias aún no ha sido creada para esta sección.",
+      "description1": "La Carpeta Anual de Evidencias aún no ha sido creada para esta sección.",
       "description2": "Contactá a la administración del campo local para consultar el estatus."
     },
     "error_load_title": "Error al cargar la carpeta",
@@ -2413,12 +2413,12 @@
   },
   "annual_folders": {
     "errors": {
-      "get_folder": "Error al obtener la carpeta anual",
+      "get_folder": "Error al obtener la Carpeta Anual de Evidencias",
       "upload_evidence": "Error al subir la evidencia",
       "delete_evidence": "Error al eliminar la evidencia",
       "submit_folder": "Error al enviar la carpeta"
     },
-    "title": "Carpeta Anual",
+    "title": "Carpeta Anual de Evidencias",
     "sections": "Secciones",
     "no_sections": "No hay secciones definidas para esta carpeta.",
     "submit_for_review": "Enviar carpeta para revisión",
@@ -3045,7 +3045,7 @@
       "coordination": "Coordinación",
       "members": "Miembros",
       "club": "Club",
-      "evidence_folder": "Carpeta de Evidencias",
+      "evidence_folder": "Carpeta Anual de Evidencias",
       "finances": "Finanzas",
       "units": "Unidades",
       "grouped_class": "Clase Agrupada",
@@ -3266,7 +3266,7 @@
       "profile": "Perfil"
     },
     "evidence_folder": {
-      "title": "Carpeta de Evidencias",
+      "title": "Carpeta Anual de Evidencias",
       "context_error": "No se pudo cargar el contexto del club.\n{error}",
       "no_active_club": "No hay un club activo seleccionado. Por favor selecciona un club desde tu perfil."
     },

@@ -16,6 +16,16 @@ void main() {
       expect(find.text('Oro'), findsOneWidget);
     });
 
+    testWidgets('renders annual ranking axes with canonical evidence label',
+        (tester) async {
+      await _pumpProgress(tester);
+
+      expect(find.text('Cumplimiento Administrativo'), findsOneWidget);
+      expect(find.text('Vida Operativa del Club'), findsOneWidget);
+      expect(find.text('Carpeta Anual de Evidencias'), findsOneWidget);
+      expect(find.text('Carpeta anual'), findsNothing);
+    });
+
     testWidgets('renders i18n status labels instead of raw backend statuses',
         (tester) async {
       await _pumpProgress(tester);
@@ -75,7 +85,7 @@ AnnualRankingProgress _progress() {
     components: const [
       RankingComponentProgress(
         key: 'annual_folder',
-        label: 'Carpeta anual',
+        label: 'Carpeta Anual de Evidencias',
         earnedPoints: 4200,
         maxPoints: 6000,
         progressPercentage: 70,
@@ -86,6 +96,40 @@ AnnualRankingProgress _progress() {
         earnedPoints: 3000,
         maxPoints: 6000,
         progressPercentage: 50,
+      ),
+    ],
+    axes: const [
+      RankingAxisProgress(
+        key: 'administrative_compliance',
+        label: 'Cumplimiento Administrativo',
+        earnedPoints: 4200,
+        maxPoints: 6000,
+        progressPercentage: 70,
+        components: [
+          RankingComponentProgress(
+            key: 'annual_folder',
+            label: 'Carpeta Anual de Evidencias',
+            earnedPoints: 4200,
+            maxPoints: 6000,
+            progressPercentage: 70,
+          ),
+        ],
+      ),
+      RankingAxisProgress(
+        key: 'club_life',
+        label: 'Vida Operativa del Club',
+        earnedPoints: 3000,
+        maxPoints: 6000,
+        progressPercentage: 50,
+        components: [
+          RankingComponentProgress(
+            key: 'monthly_reports',
+            label: 'Reportes mensuales',
+            earnedPoints: 3000,
+            maxPoints: 6000,
+            progressPercentage: 50,
+          ),
+        ],
       ),
     ],
     pendingItems: [

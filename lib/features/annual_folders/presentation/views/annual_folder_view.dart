@@ -11,7 +11,7 @@ import '../../domain/entities/annual_folder.dart';
 import '../providers/annual_folders_providers.dart';
 import '../widgets/annual_folder_loading_skeleton.dart';
 
-/// Vista principal de la carpeta anual de un enrollment.
+/// Vista principal de la Carpeta Anual de Evidencias de un enrollment.
 class AnnualFolderView extends ConsumerWidget {
   final int enrollmentId;
 

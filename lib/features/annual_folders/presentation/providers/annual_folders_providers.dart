@@ -27,7 +27,7 @@ final annualFoldersRepositoryProvider =
 
 // ── Data providers ────────────────────────────────────────────────────────────
 
-/// Provider de la carpeta anual por enrollment.
+/// Provider de la Carpeta Anual de Evidencias por enrollment.
 final annualFolderByEnrollmentProvider = FutureProvider.autoDispose
     .family<AnnualFolder, int>((ref, enrollmentId) async {
   ref.keepAlive();

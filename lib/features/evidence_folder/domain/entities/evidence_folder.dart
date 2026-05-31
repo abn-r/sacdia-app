@@ -2,9 +2,9 @@ import 'package:equatable/equatable.dart';
 
 import 'evidence_section.dart';
 
-/// Representa el estado general de la carpeta de evidencias del club.
+/// Representa el estado general de la Carpeta Anual de Evidencias del club.
 class EvidenceFolder extends Equatable {
-  /// UUID de la carpeta anual (annual_folder_id). Necesario para operaciones
+  /// UUID de la Carpeta Anual de Evidencias (annual_folder_id). Necesario para operaciones
   /// de subida, envío y eliminación contra los endpoints de AnnualFolders.
   final String folderId;
 

@@ -16,7 +16,7 @@ class GetEvidenceFolderParams extends Equatable {
   List<Object?> get props => [clubSectionId];
 }
 
-/// Caso de uso: obtener la carpeta de evidencias de una sección de club.
+/// Caso de uso: obtener la Carpeta Anual de Evidencias de una sección de club.
 ///
 /// Retorna `Right(null)` cuando la carpeta no existe (válido de negocio).
 /// Retorna `Left(Failure)` solo ante errores reales de red o servidor.

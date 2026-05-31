@@ -2236,7 +2236,7 @@
   },
   "evidence_folder": {
     "errors": {
-      "get_folder": "Erro ao obter a pasta de evidências",
+      "get_folder": "Erro ao obter a pasta anual de evidências",
       "submit_folder": "Erro ao enviar a pasta para validação",
       "submit_section": "Erro ao enviar a seção para validação",
       "upload_file": "Erro ao fazer upload do arquivo",
@@ -2245,7 +2245,7 @@
       "folder_not_exists": "A pasta ainda não existe. Não é possível realizar operações sem uma pasta criada.",
       "folder_not_loaded": "A pasta não está carregada. Certifique-se de que evidenceFolderProvider foi concluído antes de invocar operações de mutação."
     },
-    "title": "Pasta de Evidências",
+    "title": "Pasta Anual de Evidências",
     "section_title": "Seção",
     "send": "Enviar",
     "stay": "Ficar",
@@ -2300,7 +2300,7 @@
     },
     "closed_banner": {
       "title": "Pasta fechada",
-      "description": "A pasta de evidências foi fechada. Para modificar suas evidências, entre em contato com a administração do campo local."
+      "description": "A pasta anual de evidências foi fechada. Para modificar suas evidências, entre em contato com a administração do campo local."
     },
     "no_folder": {
       "title": "Pasta não disponível",
@@ -2413,12 +2413,12 @@
   },
   "annual_folders": {
     "errors": {
-      "get_folder": "Erro ao obter a pasta anual",
+      "get_folder": "Erro ao obter a pasta anual de evidências",
       "upload_evidence": "Erro ao enviar a evidência",
       "delete_evidence": "Erro ao excluir a evidência",
       "submit_folder": "Erro ao enviar a pasta"
     },
-    "title": "Pasta Anual",
+    "title": "Pasta Anual de Evidências",
     "sections": "Seções",
     "no_sections": "Não há seções definidas para esta pasta.",
     "submit_for_review": "Enviar pasta para revisão",
@@ -3045,7 +3045,7 @@
       "coordination": "Coordenação",
       "members": "Membros",
       "club": "Clube",
-      "evidence_folder": "Pasta de Evidências",
+      "evidence_folder": "Pasta Anual de Evidências",
       "finances": "Finanças",
       "units": "Unidades",
       "grouped_class": "Aula em Grupo",
@@ -3265,7 +3265,7 @@
       "profile": "Perfil"
     },
     "evidence_folder": {
-      "title": "Pasta de Evidências",
+      "title": "Pasta Anual de Evidências",
       "context_error": "Não foi possível carregar o contexto do clube.\n{error}",
       "no_active_club": "Nenhum clube ativo selecionado. Por favor, selecione um clube no seu perfil."
     },

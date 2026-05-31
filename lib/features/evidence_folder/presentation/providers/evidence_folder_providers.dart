@@ -18,7 +18,7 @@ import '../../domain/usecases/upload_evidence_file.dart';
 
 // ── Infrastructure providers ──────────────────────────────────────────────────
 
-/// Provider para el datasource remoto de carpeta de evidencias.
+/// Provider para el datasource remoto de Carpeta Anual de Evidencias.
 final evidenceFolderRemoteDataSourceProvider =
     Provider<EvidenceFolderRemoteDataSource>((ref) {
   return EvidenceFolderRemoteDataSourceImpl(
@@ -27,7 +27,7 @@ final evidenceFolderRemoteDataSourceProvider =
   );
 });
 
-/// Provider para el repositorio de carpeta de evidencias.
+/// Provider para el repositorio de Carpeta Anual de Evidencias.
 final evidenceFolderRepositoryProvider =
     Provider<EvidenceFolderRepository>((ref) {
   return EvidenceFolderRepositoryImpl(
@@ -60,7 +60,7 @@ final deleteEvidenceFileUseCaseProvider = Provider<DeleteEvidenceFile>((ref) {
 
 // ── Data providers ────────────────────────────────────────────────────────────
 
-/// Provider que carga la carpeta de evidencias para una sección de club.
+/// Provider que carga la Carpeta Anual de Evidencias para una sección de club.
 ///
 /// autoDispose para liberar memoria al salir de la pantalla.
 ///
@@ -198,7 +198,7 @@ class EvidenceSectionNotifier
 
   /// Envía una sección individual a validación.
   ///
-  /// [sectionId] es el UUID de la sección dentro de la carpeta anual.
+  /// [sectionId] es el UUID de la sección dentro de la Carpeta Anual de Evidencias.
   Future<bool> submitSection(String sectionId) async {
     state = state.copyWith(isLoading: true, errorMessage: null, success: false);
 
@@ -235,7 +235,7 @@ class EvidenceSectionNotifier
 
   /// Sube un archivo a la sección indicada.
   ///
-  /// [sectionId] es el UUID de la sección dentro de la carpeta anual.
+  /// [sectionId] es el UUID de la sección dentro de la Carpeta Anual de Evidencias.
   /// [pickedFile] proviene de [ImagePicker] o [FilePicker].
   /// [onProgress] callback opcional que recibe la fracción de progreso (0.0 – 1.0).
   /// [skipInvalidation] si es `true`, omite el invalidate de [evidenceFolderProvider]

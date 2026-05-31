@@ -2236,7 +2236,7 @@
   },
   "evidence_folder": {
     "errors": {
-      "get_folder": "Error getting evidence folder",
+      "get_folder": "Error getting annual evidence folder",
       "submit_folder": "Error sending folder for validation",
       "submit_section": "Error sending section for validation",
       "upload_file": "Error uploading file",
@@ -2245,7 +2245,7 @@
       "folder_not_exists": "The folder does not exist yet. Operations cannot be performed without a created folder.",
       "folder_not_loaded": "The folder is not loaded. Make sure evidenceFolderProvider has completed before invoking mutation operations."
     },
-    "title": "Evidence Folder",
+    "title": "Annual Evidence Folder",
     "section_title": "Section",
     "send": "Send",
     "stay": "Stay",
@@ -2300,7 +2300,7 @@
     },
     "closed_banner": {
       "title": "Folder closed",
-      "description": "The evidence folder has been closed. To modify your evidence, please contact your local field administration."
+      "description": "The annual evidence folder has been closed. To modify your evidence, please contact your local field administration."
     },
     "no_folder": {
       "title": "Folder not available",
@@ -2413,12 +2413,12 @@
   },
   "annual_folders": {
     "errors": {
-      "get_folder": "Error fetching annual folder",
+      "get_folder": "Error fetching annual evidence folder",
       "upload_evidence": "Error uploading evidence",
       "delete_evidence": "Error deleting evidence",
       "submit_folder": "Error submitting folder"
     },
-    "title": "Annual Folder",
+    "title": "Annual Evidence Folder",
     "sections": "Sections",
     "no_sections": "No sections defined for this folder.",
     "submit_for_review": "Submit folder for review",
@@ -3045,7 +3045,7 @@
       "coordination": "Coordination",
       "members": "Members",
       "club": "Club",
-      "evidence_folder": "Evidence Folder",
+      "evidence_folder": "Annual Evidence Folder",
       "finances": "Finances",
       "units": "Units",
       "grouped_class": "Group Class",
@@ -3266,7 +3266,7 @@
       "profile": "Profile"
     },
     "evidence_folder": {
-      "title": "Evidence Folder",
+      "title": "Annual Evidence Folder",
       "context_error": "Could not load club context.\n{error}",
       "no_active_club": "No active club selected. Please select a club from your profile."
     },

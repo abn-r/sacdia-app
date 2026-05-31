@@ -11,6 +11,7 @@ class AnnualRankingProgress extends Equatable {
   final double progressPercentage;
   final RankingTier? currentTier;
   final RankingTier? nextTier;
+  final List<RankingAxisProgress> axes;
   final List<RankingComponentProgress> components;
   final List<RankingPendingItem> pendingItems;
 
@@ -25,6 +26,7 @@ class AnnualRankingProgress extends Equatable {
     required this.progressPercentage,
     required this.currentTier,
     required this.nextTier,
+    required this.axes,
     required this.components,
     required this.pendingItems,
   });
@@ -41,6 +43,7 @@ class AnnualRankingProgress extends Equatable {
         progressPercentage,
         currentTier,
         nextTier,
+        axes,
         components,
         pendingItems,
       ];
@@ -115,6 +118,34 @@ class RankingComponentProgress extends Equatable {
         earnedPoints,
         maxPoints,
         progressPercentage,
+      ];
+}
+
+class RankingAxisProgress extends Equatable {
+  final String key;
+  final String label;
+  final int earnedPoints;
+  final int maxPoints;
+  final double progressPercentage;
+  final List<RankingComponentProgress> components;
+
+  const RankingAxisProgress({
+    required this.key,
+    required this.label,
+    required this.earnedPoints,
+    required this.maxPoints,
+    required this.progressPercentage,
+    required this.components,
+  });
+
+  @override
+  List<Object?> get props => [
+        key,
+        label,
+        earnedPoints,
+        maxPoints,
+        progressPercentage,
+        components,
       ];
 }
 

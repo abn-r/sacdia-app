@@ -6,9 +6,9 @@ import '../../../../core/utils/app_logger.dart';
 import '../models/evidence_file_model.dart';
 import '../models/evidence_folder_model.dart';
 
-/// Interfaz para la fuente de datos remota de carpeta de evidencias.
+/// Interfaz para la fuente de datos remota de Carpeta Anual de Evidencias.
 abstract class EvidenceFolderRemoteDataSource {
-  /// Obtiene la carpeta anual de una sección de club.
+  /// Obtiene la Carpeta Anual de Evidencias de una sección de club.
   ///
   /// Usa el endpoint de conveniencia que acepta [clubSectionId] como integer.
   ///
@@ -25,7 +25,7 @@ abstract class EvidenceFolderRemoteDataSource {
   /// Envía una sección individual a validación.
   ///
   /// [folderId] es el UUID de annual_folder_id.
-  /// [sectionId] es el UUID de la sección dentro de la carpeta anual.
+  /// [sectionId] es el UUID de la sección dentro de la Carpeta Anual de Evidencias.
   Future<void> submitSection({
     required String folderId,
     required String sectionId,
@@ -34,7 +34,7 @@ abstract class EvidenceFolderRemoteDataSource {
   /// Sube un archivo de evidencia a la sección especificada.
   ///
   /// [folderId] es el UUID de annual_folder_id.
-  /// [sectionId] es el UUID de la sección dentro de la carpeta anual.
+  /// [sectionId] es el UUID de la sección dentro de la Carpeta Anual de Evidencias.
   Future<EvidenceFileModel> uploadFile({
     required String folderId,
     required String sectionId,
@@ -51,7 +51,7 @@ abstract class EvidenceFolderRemoteDataSource {
   Future<void> deleteFile({required String evidenceId});
 }
 
-/// Implementación de la fuente de datos remota de carpeta de evidencias.
+/// Implementación de la fuente de datos remota de Carpeta Anual de Evidencias.
 ///
 /// Consume los endpoints del módulo AnnualFolders en el backend SACDIA.
 /// Auth token es inyectado automáticamente por [AuthInterceptor].

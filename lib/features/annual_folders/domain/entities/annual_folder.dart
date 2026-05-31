@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 
-/// Estado de la carpeta anual
+/// Estado de la Carpeta Anual de Evidencias
 enum AnnualFolderStatus { open, submitted, closed }
 
 extension AnnualFolderStatusX on AnnualFolderStatus {
@@ -28,7 +28,7 @@ extension AnnualFolderStatusX on AnnualFolderStatus {
   }
 }
 
-/// Evidencia de una sección de la carpeta anual
+/// Evidencia de una sección de la Carpeta Anual de Evidencias
 class FolderEvidence extends Equatable {
   final int id;
   final int folderId;
@@ -53,7 +53,7 @@ class FolderEvidence extends Equatable {
       [id, folderId, sectionId, fileUrl, fileName, notes, uploadedAt];
 }
 
-/// Sección de la carpeta anual con evidencias
+/// Sección de la Carpeta Anual de Evidencias con evidencias
 class FolderSection extends Equatable {
   final int id;
   final String name;
@@ -74,7 +74,7 @@ class FolderSection extends Equatable {
   List<Object?> get props => [id, name, description, evidences];
 }
 
-/// Carpeta anual de un enrollment
+/// Carpeta Anual de Evidencias de un enrollment
 class AnnualFolder extends Equatable {
   final int id;
   final int enrollmentId;

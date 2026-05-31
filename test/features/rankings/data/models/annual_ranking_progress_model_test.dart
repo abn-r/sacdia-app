@@ -15,6 +15,11 @@ void main() {
       expect(entity.maxPoints, 10000);
       expect(entity.currentTier?.slug, 'plata');
       expect(entity.nextTier?.pointsToReach, 1300);
+      expect(entity.axes, hasLength(2));
+      expect(entity.axes.first.key, 'administrative_compliance');
+      expect(entity.axes.first.label, 'Cumplimiento Administrativo');
+      expect(entity.axes.first.components.first.label,
+          'Carpeta Anual de Evidencias');
       expect(entity.components.first.key, 'annual_folder');
       expect(entity.pendingItems.first.statusLabelKey,
           'rankings.annual_progress.pending.status.pending_validation');
@@ -90,10 +95,44 @@ Map<String, dynamic> _progressJson() => {
       'components': [
         {
           'key': 'annual_folder',
-          'label': 'Carpeta anual',
+          'label': 'Carpeta Anual de Evidencias',
           'earned_points': 4200,
           'max_points': 6000,
           'progress_percentage': 70,
+        },
+      ],
+      'axes': [
+        {
+          'key': 'administrative_compliance',
+          'label': 'Cumplimiento Administrativo',
+          'earned_points': 4200,
+          'max_points': 5000,
+          'progress_percentage': 84,
+          'components': [
+            {
+              'key': 'annual_folder',
+              'label': 'Carpeta Anual de Evidencias',
+              'earned_points': 4200,
+              'max_points': 5000,
+              'progress_percentage': 84,
+            },
+          ],
+        },
+        {
+          'key': 'club_life',
+          'label': 'Vida Operativa del Club',
+          'earned_points': 3000,
+          'max_points': 5000,
+          'progress_percentage': 60,
+          'components': [
+            {
+              'key': 'monthly_reports',
+              'label': 'Reportes mensuales',
+              'earned_points': 3000,
+              'max_points': 5000,
+              'progress_percentage': 60,
+            },
+          ],
         },
       ],
       'pending_items': [

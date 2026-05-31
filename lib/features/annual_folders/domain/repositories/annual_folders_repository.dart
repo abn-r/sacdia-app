@@ -3,9 +3,9 @@ import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
 import '../entities/annual_folder.dart';
 
-/// Repositorio de carpetas anuales (interfaz del dominio)
+/// Repositorio de Carpetas Anuales de Evidencias (interfaz del dominio)
 abstract class AnnualFoldersRepository {
-  /// Obtiene la carpeta anual de un enrollment.
+  /// Obtiene la Carpeta Anual de Evidencias de un enrollment.
   /// GET /api/v1/annual-folders/enrollment/:enrollmentId
   Future<Either<Failure, AnnualFolder>> getFolderByEnrollment(int enrollmentId,
       {CancelToken? cancelToken});

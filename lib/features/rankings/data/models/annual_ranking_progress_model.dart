@@ -12,6 +12,7 @@ class AnnualRankingProgressModel {
   final double progressPercentage;
   final RankingTierModel? currentTier;
   final RankingTierModel? nextTier;
+  final List<RankingAxisProgressModel> axes;
   final List<RankingComponentProgressModel> components;
   final List<RankingPendingItemModel> pendingItems;
 
@@ -26,6 +27,7 @@ class AnnualRankingProgressModel {
     required this.progressPercentage,
     required this.currentTier,
     required this.nextTier,
+    required this.axes,
     required this.components,
     required this.pendingItems,
   });
@@ -46,6 +48,13 @@ class AnnualRankingProgressModel {
       nextTier: json['next_tier'] == null
           ? null
           : RankingTierModel.fromJson(_requiredMap(json, 'next_tier')),
+      axes: _optionalList(json, 'axes')
+          .map(
+            (item) => RankingAxisProgressModel.fromJson(
+              _asMap(item, 'axes[]'),
+            ),
+          )
+          .toList(),
       components: _requiredList(json, 'components')
           .map(
             (item) => RankingComponentProgressModel.fromJson(
@@ -75,6 +84,7 @@ class AnnualRankingProgressModel {
       progressPercentage: progressPercentage,
       currentTier: currentTier?.toEntity(),
       nextTier: nextTier?.toEntity(),
+      axes: axes.map((axis) => axis.toEntity()).toList(),
       components: components.map((component) => component.toEntity()).toList(),
       pendingItems: pendingItems.map((item) => item.toEntity()).toList(),
     );
@@ -189,6 +199,52 @@ class RankingComponentProgressModel {
       earnedPoints: earnedPoints,
       maxPoints: maxPoints,
       progressPercentage: progressPercentage,
+    );
+  }
+}
+
+class RankingAxisProgressModel {
+  final String key;
+  final String label;
+  final int earnedPoints;
+  final int maxPoints;
+  final double progressPercentage;
+  final List<RankingComponentProgressModel> components;
+
+  const RankingAxisProgressModel({
+    required this.key,
+    required this.label,
+    required this.earnedPoints,
+    required this.maxPoints,
+    required this.progressPercentage,
+    required this.components,
+  });
+
+  factory RankingAxisProgressModel.fromJson(Map<String, dynamic> json) {
+    return RankingAxisProgressModel(
+      key: _requiredString(json, 'key'),
+      label: _requiredString(json, 'label'),
+      earnedPoints: _requiredInt(json, 'earned_points'),
+      maxPoints: _requiredInt(json, 'max_points'),
+      progressPercentage: _requiredDouble(json, 'progress_percentage'),
+      components: _optionalList(json, 'components')
+          .map(
+            (item) => RankingComponentProgressModel.fromJson(
+              _asMap(item, 'axes[].components[]'),
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  RankingAxisProgress toEntity() {
+    return RankingAxisProgress(
+      key: key,
+      label: label,
+      earnedPoints: earnedPoints,
+      maxPoints: maxPoints,
+      progressPercentage: progressPercentage,
+      components: components.map((component) => component.toEntity()).toList(),
     );
   }
 }

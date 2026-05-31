@@ -2236,7 +2236,7 @@
   },
   "evidence_folder": {
     "errors": {
-      "get_folder": "Erreur lors de l'obtention du dossier de preuves",
+      "get_folder": "Erreur lors de l'obtention du dossier annuel de preuves",
       "submit_folder": "Erreur lors de l'envoi du dossier pour validation",
       "submit_section": "Erreur lors de l'envoi de la section pour validation",
       "upload_file": "Erreur lors du téléversement du fichier",
@@ -2245,7 +2245,7 @@
       "folder_not_exists": "Le dossier n'existe pas encore. Les opérations ne peuvent pas être effectuées sans dossier créé.",
       "folder_not_loaded": "Le dossier n'est pas chargé. Assurez-vous que evidenceFolderProvider est terminé avant d'invoquer des opérations de mutation."
     },
-    "title": "Dossier de Preuves",
+    "title": "Dossier Annuel de Preuves",
     "section_title": "Section",
     "send": "Envoyer",
     "stay": "Rester",
@@ -2300,11 +2300,11 @@
     },
     "closed_banner": {
       "title": "Dossier fermé",
-      "description": "Le dossier de preuves a été fermé. Pour modifier vos preuves, veuillez contacter l'administration du terrain local."
+      "description": "Le dossier annuel de preuves a été fermé. Pour modifier vos preuves, veuillez contacter l'administration du terrain local."
     },
     "no_folder": {
       "title": "Dossier non disponible",
-      "description1": "Le dossier de preuves annuel n'a pas encore été créé pour cette section.",
+      "description1": "Le dossier annuel de preuves n'a pas encore été créé pour cette section.",
       "description2": "Contactez l'administration du terrain local pour connaître le statut."
     },
     "error_load_title": "Erreur lors du chargement du dossier",
@@ -2413,12 +2413,12 @@
   },
   "annual_folders": {
     "errors": {
-      "get_folder": "Erreur lors de la récupération du dossier annuel",
+      "get_folder": "Erreur lors de la récupération du dossier annuel de preuves",
       "upload_evidence": "Erreur lors de l'envoi de la preuve",
       "delete_evidence": "Erreur lors de la suppression de la preuve",
       "submit_folder": "Erreur lors de la soumission du dossier"
     },
-    "title": "Dossier Annuel",
+    "title": "Dossier Annuel de Preuves",
     "sections": "Sections",
     "no_sections": "Aucune section définie pour ce dossier.",
     "submit_for_review": "Envoyer le dossier pour révision",
@@ -3045,7 +3045,7 @@
       "coordination": "Coordination",
       "members": "Membres",
       "club": "Club",
-      "evidence_folder": "Dossier de preuves",
+      "evidence_folder": "Dossier annuel de preuves",
       "finances": "Finances",
       "units": "Unités",
       "grouped_class": "Classe groupée",
@@ -3265,7 +3265,7 @@
       "profile": "Profil"
     },
     "evidence_folder": {
-      "title": "Dossier de preuves",
+      "title": "Dossier annuel de preuves",
       "context_error": "Impossible de charger le contexte du club.\n{error}",
       "no_active_club": "Aucun club actif sélectionné. Veuillez sélectionner un club depuis votre profil."
     },

@@ -141,7 +141,10 @@ class AnnualRankingProgressContent extends StatelessWidget {
             _NextTierCard(tier: progress.nextTier!)
           else
             const _TopTierCard(),
-          _ComponentsCard(components: progress.components),
+          if (progress.axes.isNotEmpty)
+            _AxesCard(axes: progress.axes)
+          else
+            _ComponentsCard(components: progress.components),
           _PendingItemsCard(items: progress.pendingItems),
         ],
       ),
@@ -422,6 +425,107 @@ class _ComponentsCard extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+class _AxesCard extends StatelessWidget {
+  final List<RankingAxisProgress> axes;
+
+  const _AxesCard({required this.axes});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return SacCard(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionHeading(
+            icon: HugeIcons.strokeRoundedChartBarLine,
+            title: tr('rankings.annual_progress.components_title'),
+          ),
+          const SizedBox(height: 14),
+          for (final axis in axes) ...[
+            _AxisSection(axis: axis),
+            if (axis != axes.last)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                child: Divider(height: 1, color: c.divider),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _AxisSection extends StatelessWidget {
+  final RankingAxisProgress axis;
+
+  const _AxisSection({required this.axis});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final percent = (axis.progressPercentage / 100).clamp(0.0, 1.0);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                axis.label,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: c.text,
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              tr(
+                'rankings.annual_progress.component_points',
+                namedArgs: {
+                  'earned': _formatPoints(axis.earnedPoints),
+                  'max': _formatPoints(axis.maxPoints),
+                },
+              ),
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: LinearProgressIndicator(
+            minHeight: 8,
+            value: percent,
+            backgroundColor: c.surfaceVariant,
+            color: AppColors.primary,
+          ),
+        ),
+        if (axis.components.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          for (final component in axis.components) ...[
+            _ComponentRow(component: component),
+            if (component != axis.components.last)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Divider(height: 1, color: c.divider),
+              ),
+          ],
+        ],
+      ],
     );
   }
 }
