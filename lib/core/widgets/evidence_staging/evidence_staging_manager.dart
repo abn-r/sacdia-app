@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
@@ -64,14 +65,26 @@ class EvidenceStagingManager extends StatefulWidget {
   final void Function(bool hasLocalFiles)? onLocalFilesChanged;
 
   /// When true, the widget renders WITHOUT its own [Expanded] /
-  /// [SingleChildScrollView] wrapper and WITHOUT the action bar.
+  /// [SingleChildScrollView] wrapper.
   ///
   /// Use this when embedding the staging manager inside a parent scroll view.
-  /// The parent is responsible for providing scrolling and for placing the
-  /// action bar (via [buildActionBar]) wherever it belongs in the layout.
+  /// The parent is responsible for providing scrolling.
   ///
   /// Defaults to false for backward compatibility.
   final bool embeddedMode;
+
+  /// Whether this manager should render its own action bar.
+  ///
+  /// Set this to false when the parent needs to pin the action bar in a
+  /// [Scaffold.bottomNavigationBar] while keeping the staging content inside
+  /// the scrollable body.
+  final bool showActionBar;
+
+  /// Notifies the parent when action-bar derived state changes.
+  ///
+  /// Useful when [showActionBar] is false and the parent renders
+  /// [EvidenceStagingActionBar] outside this widget.
+  final VoidCallback? onActionStateChanged;
 
   const EvidenceStagingManager({
     super.key,
@@ -85,6 +98,8 @@ class EvidenceStagingManager extends StatefulWidget {
     this.isLoading = false,
     this.onLocalFilesChanged,
     this.embeddedMode = false,
+    this.showActionBar = true,
+    this.onActionStateChanged,
   });
 
   @override
@@ -100,11 +115,16 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
   late List<StagedFile> _allFiles;
 
   bool _isUploading = false;
+  bool? _lastNotifiedCanSubmit;
+  bool? _lastNotifiedIsLoading;
 
   @override
   void initState() {
     super.initState();
     _allFiles = List.from(widget.existingFiles);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _notifyActionStateChanged();
+    });
   }
 
   @override
@@ -121,11 +141,14 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
     // _allFiles the moment the notifier emitted isLoading:true and the
     // parent rebuilt — making _queueFiles return [] and the sheet show the
     // premature "all done" state (Bug B).
-    if (oldWidget.existingFiles != widget.existingFiles) {
+    if (!listEquals(oldWidget.existingFiles, widget.existingFiles)) {
       final queueFiles = _allFiles
           .where((f) => f.status != StagedFileStatus.uploaded)
           .toList();
       _allFiles = [...widget.existingFiles, ...queueFiles];
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _notifyActionStateChanged();
+      });
     }
   }
 
@@ -151,10 +174,38 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
   bool get _canSubmit =>
       widget.canModify && !_isUploading && _hasAnyFiles && !_isOverLimit;
 
+  /// Public view of submit availability for externally pinned action bars.
+  bool get canSubmitForActionBar => _canSubmit;
+
+  /// Public view of busy state for externally pinned action bars.
+  bool get isLoadingForActionBar => widget.isLoading || _isUploading;
+
+  /// Triggers image picking from an externally rendered action bar.
+  Future<void> pickImages() => _pickImages(context);
+
+  /// Triggers PDF picking from an externally rendered action bar.
+  Future<void> pickPdfs() => _pickPdfs(context);
+
+  /// Triggers upload + submit from an externally rendered action bar.
+  Future<void> submitForValidation() => _submitForValidation(context);
+
   /// Notifies the parent whenever the local file count changes.
   /// Used for PopScope without GlobalKey (I-2 fix).
   void _notifyLocalFilesChanged() {
     widget.onLocalFilesChanged?.call(_hasLocalFiles);
+    _notifyActionStateChanged();
+  }
+
+  void _notifyActionStateChanged() {
+    final canSubmit = _canSubmit;
+    final isLoading = isLoadingForActionBar;
+    if (_lastNotifiedCanSubmit == canSubmit &&
+        _lastNotifiedIsLoading == isLoading) {
+      return;
+    }
+    _lastNotifiedCanSubmit = canSubmit;
+    _lastNotifiedIsLoading = isLoading;
+    widget.onActionStateChanged?.call();
   }
 
   // ── File picking ──────────────────────────────────────────────────────────
@@ -298,6 +349,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
         setState(() {
           _allFiles = _allFiles.where((f) => f.id != file.id).toList();
         });
+        _notifyActionStateChanged();
       }
     } catch (e) {
       AppLogger.e('Error al eliminar archivo', error: e);
@@ -338,6 +390,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
   Future<void> _executeUploadQueue(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _isUploading = true);
+    _notifyActionStateChanged();
 
     // Prepare the upload stream controller
     final streamController = StreamController<List<StagedFile>>.broadcast();
@@ -416,6 +469,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
     if (!mounted) return;
 
     setState(() => _isUploading = false);
+    _notifyActionStateChanged();
 
     // I-3: Never mutate _allFiles in place — always create a new list.
     switch (sheetResult) {
@@ -619,10 +673,9 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
 
   // ── Build ──────────────────────────────────────────────────────────────────
 
-  // I-2: The action bar is built directly inside this widget's build method,
-  // eliminating the need for a GlobalKey<EvidenceStagingManagerState> in the
-  // parent. The parent Scaffold should NOT use bottomNavigationBar — instead,
-  // this widget outputs both the grid and the action bar in a single Column.
+  // I-2: By default the action bar is built directly inside this widget's
+  // build method. Screens that need fixed placement can set showActionBar:false
+  // and render EvidenceStagingActionBar in Scaffold.bottomNavigationBar.
   // I-5: No mid-batch invalidation issue since C-2 (skipInvalidation) ensures
   // providers are not invalidated during batch uploads. A single invalidation
   // happens after the full batch via the onSubmit callback.
@@ -646,15 +699,13 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
   Widget build(BuildContext context) {
     // Embedded mode: no Expanded, no SingleChildScrollView.
     // The parent provides scrolling via its own SingleChildScrollView.
-    // The action bar is included at the bottom of the Column so it remains
-    // co-located with the content — the user scrolls down to reach it.
     if (widget.embeddedMode) {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildContent(),
-          if (widget.canModify)
-            _EvidenceStagingActionBar(
+          if (widget.showActionBar && widget.canModify)
+            EvidenceStagingActionBar(
               onPickImages: () => _pickImages(context),
               onPickPdfs: () => _pickPdfs(context),
               onSubmit: () => _submitForValidation(context),
@@ -685,8 +736,8 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
         ),
 
         // Action bar — always at the bottom, no GlobalKey needed
-        if (widget.canModify)
-          _EvidenceStagingActionBar(
+        if (widget.showActionBar && widget.canModify)
+          EvidenceStagingActionBar(
             onPickImages: () => _pickImages(context),
             onPickPdfs: () => _pickPdfs(context),
             onSubmit: () => _submitForValidation(context),
@@ -735,17 +786,20 @@ class _EmptyFiles extends StatelessWidget {
   }
 }
 
-/// I-2: Bottom action bar is now a private widget inside the manager file.
-/// It takes simple callbacks instead of requiring access to the manager's state
-/// via a GlobalKey. The parent screen never needs to reference the manager state.
-class _EvidenceStagingActionBar extends StatelessWidget {
+/// Reusable bottom action bar for evidence staging flows.
+///
+/// The manager renders this internally by default. Screens that need fixed
+/// placement can render it in [Scaffold.bottomNavigationBar] and delegate the
+/// callbacks back to [EvidenceStagingManagerState].
+class EvidenceStagingActionBar extends StatelessWidget {
   final VoidCallback onPickImages;
   final VoidCallback onPickPdfs;
   final VoidCallback onSubmit;
   final bool canSubmit;
   final bool isLoading;
 
-  const _EvidenceStagingActionBar({
+  const EvidenceStagingActionBar({
+    super.key,
     required this.onPickImages,
     required this.onPickPdfs,
     required this.onSubmit,
