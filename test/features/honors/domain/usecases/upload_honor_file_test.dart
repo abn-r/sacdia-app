@@ -104,7 +104,8 @@ class _FakeHonorsRepository implements HonorsRepository {
   @override
   Future<Either<Failure, UserHonorRequirementProgress>>
       updateRequirementProgress(
-              {required int honorId,
+              {required String userId,
+              required int honorId,
               required int requirementId,
               required bool completed,
               String? notes}) =>

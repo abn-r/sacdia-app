@@ -74,6 +74,7 @@ abstract class HonorsRepository {
   /// Actualiza el progreso de un requisito individual.
   Future<Either<Failure, UserHonorRequirementProgress>>
       updateRequirementProgress({
+    required String userId,
     required int honorId,
     required int requirementId,
     required bool completed,
