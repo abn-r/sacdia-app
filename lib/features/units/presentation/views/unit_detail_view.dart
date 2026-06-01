@@ -103,9 +103,9 @@ class UnitDetailView extends ConsumerWidget {
                         ? 'units.detail.scores_title'.tr()
                         : 'units.detail.read_only_scores_title'.tr(),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: c.textSecondary,
-                      fontWeight: FontWeight.w600,
-                    ),
+                          color: c.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                 ),
 
@@ -220,9 +220,9 @@ class _UnitHeader extends StatelessWidget {
                 Text(
                   unit.type,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -273,9 +273,9 @@ class _SavedTodayBanner extends StatelessWidget {
             child: Text(
               'units.detail.saved_today_banner'.tr(),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.secondaryDark,
-                fontWeight: FontWeight.w600,
-              ),
+                    color: AppColors.secondaryDark,
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
           ),
         ],
@@ -339,9 +339,9 @@ class _MemberCategoryScoreCard extends StatelessWidget {
                 child: Text(
                   member.fullName,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: c.text,
-                    fontWeight: FontWeight.w600,
-                  ),
+                        color: c.text,
+                        fontWeight: FontWeight.w600,
+                      ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -351,9 +351,9 @@ class _MemberCategoryScoreCard extends StatelessWidget {
                   namedArgs: {'total': '$total', 'max': '$totalMax'},
                 ),
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
-                ),
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
               ),
             ],
           ),
@@ -424,9 +424,9 @@ class _CategoryRow extends StatelessWidget {
           child: Text(
             category.name,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: c.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
+                  color: c.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -439,9 +439,9 @@ class _CategoryRow extends StatelessWidget {
           Text(
             '$points / ${category.maxPoints}',
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w600,
-            ),
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
           ),
         ] else ...[
           // Controles: -1 | valor/max | +1
@@ -486,11 +486,11 @@ class _CategoryRow extends StatelessWidget {
                         },
                       ),
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: isDisabled
-                            ? AppColors.primary.withValues(alpha: 0.4)
-                            : AppColors.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
+                            color: isDisabled
+                                ? AppColors.primary.withValues(alpha: 0.4)
+                                : AppColors.primary,
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                   ),
                 ),
@@ -654,9 +654,8 @@ class _SmallAdjustButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           child: Ink(
             decoration: BoxDecoration(
-              color: isDisabled
-                  ? resolvedBg.withValues(alpha: 0.5)
-                  : resolvedBg,
+              color:
+                  isDisabled ? resolvedBg.withValues(alpha: 0.5) : resolvedBg,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Center(
