@@ -46,8 +46,12 @@ class UnitDetailView extends ConsumerWidget {
         if (ctx == null) return false;
         final role = ctx.roleName?.toLowerCase() ?? '';
         // Club directors
-        if (['director', 'sub_director', 'secretario', 'secretario_tesorero']
-            .contains(role)) {
+        if ([
+          'director',
+          'sub_director',
+          'secretario',
+          'secretario_tesorero',
+        ].contains(role)) {
           return true;
         }
         // Consejeros o capitán de esta unidad
@@ -99,9 +103,9 @@ class UnitDetailView extends ConsumerWidget {
                         ? 'units.detail.scores_title'.tr()
                         : 'units.detail.read_only_scores_title'.tr(),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: c.textSecondary,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      color: c.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
 
@@ -122,11 +126,17 @@ class UnitDetailView extends ConsumerWidget {
                       isReadOnly: !canRegisterPoints,
                       onAdjust: (categoryId, delta) {
                         notifier.adjustCategoryPoints(
-                            member.id, categoryId, delta);
+                          member.id,
+                          categoryId,
+                          delta,
+                        );
                       },
                       onSetValue: (categoryId, value) {
                         notifier.setCategoryPoints(
-                            member.id, categoryId, value);
+                          member.id,
+                          categoryId,
+                          value,
+                        );
                       },
                     ),
                   );
@@ -155,9 +165,7 @@ class UnitDetailView extends ConsumerWidget {
       if (!saved) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'units.detail.save_error_all_or_none'.tr(),
-            ),
+            content: Text('units.detail.save_error_all_or_none'.tr()),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -212,25 +220,27 @@ class _UnitHeader extends StatelessWidget {
                 Text(
                   unit.type,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'units.detail.members_count'
-                      .tr(namedArgs: {'count': '${unit.memberCount}'}),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: c.textSecondary,
-                      ),
+                  'units.detail.members_count'.tr(
+                    namedArgs: {'count': '${unit.memberCount}'},
+                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: c.textSecondary),
                 ),
                 if (unit.leaderName != null)
                   Text(
-                    'units.detail.leader_label'
-                        .tr(namedArgs: {'name': unit.leaderName!}),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: c.textTertiary,
-                        ),
+                    'units.detail.leader_label'.tr(
+                      namedArgs: {'name': unit.leaderName!},
+                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: c.textTertiary),
                   ),
               ],
             ),
@@ -263,9 +273,9 @@ class _SavedTodayBanner extends StatelessWidget {
             child: Text(
               'units.detail.saved_today_banner'.tr(),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.secondaryDark,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: AppColors.secondaryDark,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -329,20 +339,21 @@ class _MemberCategoryScoreCard extends StatelessWidget {
                 child: Text(
                   member.fullName,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: c.text,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    color: c.text,
+                    fontWeight: FontWeight.w600,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               Text(
-                'units.detail.points_total'
-                    .tr(namedArgs: {'total': '$total', 'max': '$totalMax'}),
+                'units.detail.points_total'.tr(
+                  namedArgs: {'total': '$total', 'max': '$totalMax'},
+                ),
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),
@@ -403,6 +414,7 @@ class _CategoryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final canEditManually = !isReadOnly && !isDisabled;
 
     return Row(
       children: [
@@ -412,9 +424,9 @@ class _CategoryRow extends StatelessWidget {
           child: Text(
             category.name,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: c.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
+              color: c.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -427,9 +439,9 @@ class _CategoryRow extends StatelessWidget {
           Text(
             '$points / ${category.maxPoints}',
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: AppColors.primary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ] else ...[
           // Controles: -1 | valor/max | +1
@@ -446,27 +458,41 @@ class _CategoryRow extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               // Valor actual / max
-              Container(
-                constraints: const BoxConstraints(minWidth: 52),
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: isDisabled
-                      ? AppColors.primarySurface.withValues(alpha: 0.4)
-                      : AppColors.primarySurface,
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: canEditManually
+                      ? () => _openManualPointsDialog(context)
+                      : null,
                   borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'units.detail.category_points'.tr(namedArgs: {
-                    'points': '$points',
-                    'max': '${category.maxPoints}',
-                  }),
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  child: Container(
+                    constraints: const BoxConstraints(minWidth: 52),
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDisabled
+                          ? AppColors.primarySurface.withValues(alpha: 0.4)
+                          : AppColors.primarySurface,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'units.detail.category_points'.tr(
+                        namedArgs: {
+                          'points': '$points',
+                          'max': '${category.maxPoints}',
+                        },
+                      ),
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: isDisabled
                             ? AppColors.primary.withValues(alpha: 0.4)
                             : AppColors.primary,
                         fontWeight: FontWeight.w700,
                       ),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 6),
@@ -481,6 +507,76 @@ class _CategoryRow extends StatelessWidget {
         ],
       ],
     );
+  }
+
+  Future<void> _openManualPointsDialog(BuildContext context) async {
+    final controller = TextEditingController(text: '$points');
+    String? errorText;
+    final material = MaterialLocalizations.of(context);
+
+    final result = await showDialog<int>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(category.name),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('0 - ${category.maxPoints}'),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controller,
+                    autofocus: true,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    onChanged: (_) {
+                      if (errorText != null) {
+                        setState(() => errorText = null);
+                      }
+                    },
+                    decoration: InputDecoration(
+                      isDense: true,
+                      errorText: errorText,
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(material.cancelButtonLabel),
+                ),
+                TextButton(
+                  onPressed: () {
+                    final value = int.tryParse(controller.text);
+                    if (value == null ||
+                        value < 0 ||
+                        value > category.maxPoints) {
+                      setState(
+                        () => errorText =
+                            'Ingresá un entero entre 0 y ${category.maxPoints}.',
+                      );
+                      return;
+                    }
+                    Navigator.of(dialogContext).pop(value);
+                  },
+                  child: Text(material.okButtonLabel),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    controller.dispose();
+
+    if (result != null) {
+      onSetValue(result);
+    }
   }
 }
 
@@ -558,8 +654,9 @@ class _SmallAdjustButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           child: Ink(
             decoration: BoxDecoration(
-              color:
-                  isDisabled ? resolvedBg.withValues(alpha: 0.5) : resolvedBg,
+              color: isDisabled
+                  ? resolvedBg.withValues(alpha: 0.5)
+                  : resolvedBg,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Center(
@@ -601,9 +698,7 @@ class _SaveFooter extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       decoration: BoxDecoration(
         color: c.surface,
-        border: Border(
-          top: BorderSide(color: c.border, width: 1),
-        ),
+        border: Border(top: BorderSide(color: c.border, width: 1)),
       ),
       child: isSavedToday
           ? SacButton.outline(
