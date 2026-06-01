@@ -638,10 +638,10 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                             child: _buildHeroAction(
                               context: context,
                               onPressed: () => Navigator.of(context).pop(),
-                              child: const Icon(
-                                Icons.arrow_back_ios_new_rounded,
+                              child: const HugeIcon(
+                                icon: HugeIcons.strokeRoundedArrowLeft01,
                                 color: Colors.white,
-                                size: 18,
+                                size: 22,
                               ),
                             ),
                           ),

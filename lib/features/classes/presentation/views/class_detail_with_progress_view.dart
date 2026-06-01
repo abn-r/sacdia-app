@@ -8,6 +8,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
 import '../../domain/entities/class_module_detail.dart';
 import '../../domain/entities/class_requirement.dart';
 import '../../domain/entities/class_with_progress.dart';
@@ -41,7 +42,14 @@ class ClassDetailWithProgressView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.canvas,
+      appBar: const SacTopBar(
+        title: 'Clase',
+        centerTitle: true,
+        backgroundColor: AppColors.canvas,
+        borderColor: AppColors.ink150,
+      ),
       body: SafeArea(
+        top: false,
         child: classAsync.when(
           loading: () => const _SkeletonBody(),
           error: (error, _) => _ErrorBody(
@@ -170,9 +178,6 @@ class _ClassBodyState extends State<_ClassBody> {
         physics: const BouncingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics()),
         slivers: [
-          // ── NavBar ────────────────────────────────────────────────────────
-          SliverToBoxAdapter(child: _NavBar()),
-
           // ── HeroCard + PillsRow + SearchBar + SectionLabel ────────────────
           SliverToBoxAdapter(
             child: Padding(
@@ -258,53 +263,6 @@ class _ExpiredTrajectoryBanner extends StatelessWidget {
           color: AppColors.errorDark,
           height: 1.35,
         ),
-      ),
-    );
-  }
-}
-
-// ── NavBar ─────────────────────────────────────────────────────────────────────
-
-class _NavBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 50,
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-      color: AppColors.canvas,
-      child: Row(
-        children: [
-          // Back button 36×36
-          SizedBox(
-            width: 36,
-            height: 36,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () => Navigator.maybePop(context),
-              child: Center(
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowLeft01,
-                  size: 20,
-                  color: AppColors.ink800,
-                ),
-              ),
-            ),
-          ),
-          // Title centered
-          const Expanded(
-            child: Text(
-              'Clase',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-                color: AppColors.ink900,
-              ),
-            ),
-          ),
-          // Spacer to balance back button
-          const SizedBox(width: 36, height: 36),
-        ],
       ),
     );
   }
@@ -901,8 +859,6 @@ class _SkeletonBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _NavBar(),
-          const SizedBox(height: 8),
           _SkeletonBox(height: 108, radius: 20),
           const SizedBox(height: 12),
           Row(

@@ -56,7 +56,11 @@ class _CamporeeApprovalsViewState extends ConsumerState<CamporeeApprovalsView>
             : Text(selected.name, overflow: TextOverflow.ellipsis),
         leading: selected != null
             ? IconButton(
-                icon: const Icon(Icons.arrow_back),
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowLeft01,
+                  size: 22,
+                  color: context.sac.text,
+                ),
                 onPressed: () =>
                     ref.read(selectedCamporeeProvider.notifier).state = null,
               )

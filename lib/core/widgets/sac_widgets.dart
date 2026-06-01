@@ -18,6 +18,7 @@ export 'sac_pdf_viewer.dart';
 export 'sac_progress_bar.dart';
 export 'sac_progress_ring.dart';
 export 'sac_text_field.dart';
+export 'sac_top_bar.dart';
 export 'section_switcher_sheet.dart';
 
 // NOTE: sac_image_viewer.dart is intentionally not exported here because

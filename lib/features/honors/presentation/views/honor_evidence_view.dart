@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -439,10 +440,10 @@ class _EvidenceBody extends StatelessWidget {
                       color: Colors.white.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
+                    child: const HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowLeft01,
                       color: Colors.white,
-                      size: 18,
+                      size: 22,
                     ),
                   ),
                 ),

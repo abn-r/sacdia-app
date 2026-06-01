@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
 import '../../../../core/widgets/evidence_staging/staged_file.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/class_requirement.dart';
 import '../providers/classes_providers.dart';
@@ -185,20 +186,39 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
       },
       child: Scaffold(
         backgroundColor: AppColors.canvas,
+        appBar: SacTopBar(
+          title: 'Requerimiento',
+          centerTitle: true,
+          backgroundColor: AppColors.canvas,
+          borderColor: AppColors.ink150,
+          leading: IconButton(
+            onPressed: isLoading ? null : () => Navigator.pop(context),
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowLeft01,
+              size: 22,
+              color: AppColors.ink800,
+            ),
+          ),
+          actions: [
+            IconButton(
+              onPressed: () => showRequirementStatusHistorySheet(
+                context,
+                requirement: requirement,
+              ),
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedMoreHorizontal,
+                size: 20,
+                color: AppColors.ink600,
+              ),
+            ),
+          ],
+        ),
         body: SafeArea(
+          top: false,
           child: Stack(
             children: [
               Column(
                 children: [
-                  // NavBar
-                  _ReqNavBar(
-                    onBack: isLoading ? null : () => Navigator.pop(context),
-                    onMore: () => showRequirementStatusHistorySheet(
-                      context,
-                      requirement: requirement,
-                    ),
-                  ),
-
                   Expanded(
                     child: SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
@@ -542,69 +562,6 @@ class _ExpiredRequirementBanner extends StatelessWidget {
           color: AppColors.errorDark,
           height: 1.35,
         ),
-      ),
-    );
-  }
-}
-
-// ── NavBar ─────────────────────────────────────────────────────────────────────
-
-class _ReqNavBar extends StatelessWidget {
-  final VoidCallback? onBack;
-  final VoidCallback onMore;
-
-  const _ReqNavBar({required this.onBack, required this.onMore});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 50,
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-      color: AppColors.canvas,
-      child: Row(
-        children: [
-          SizedBox(
-            width: 36,
-            height: 36,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: onBack,
-              child: Center(
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowLeft01,
-                  size: 20,
-                  color: AppColors.ink800,
-                ),
-              ),
-            ),
-          ),
-          const Expanded(
-            child: Text(
-              'Requerimiento',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-                color: AppColors.ink900,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: 36,
-            height: 36,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: onMore,
-              child: Center(
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedMoreHorizontal,
-                  size: 20,
-                  color: AppColors.ink600,
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
