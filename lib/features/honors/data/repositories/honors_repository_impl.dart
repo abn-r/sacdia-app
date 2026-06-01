@@ -242,6 +242,7 @@ class HonorsRepositoryImpl implements HonorsRepository {
   @override
   Future<Either<Failure, UserHonorRequirementProgress>>
       updateRequirementProgress({
+    required String userId,
     required int honorId,
     required int requirementId,
     required bool completed,
@@ -249,6 +250,7 @@ class HonorsRepositoryImpl implements HonorsRepository {
   }) async {
     try {
       final model = await remoteDataSource.updateRequirementProgress(
+        userId: userId,
         honorId: honorId,
         requirementId: requirementId,
         completed: completed,

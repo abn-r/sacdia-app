@@ -117,6 +117,7 @@ class _StubHonorsRepository implements HonorsRepository {
   @override
   Future<Either<Failure, UserHonorRequirementProgress>>
       updateRequirementProgress({
+    required String userId,
     required int honorId,
     required int requirementId,
     required bool completed,
