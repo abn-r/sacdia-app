@@ -3349,7 +3349,8 @@
       "not_authenticated": "You must be signed in to view the credential.",
       "offline": "No connection available for the live credential.",
       "empty_card": "Empty virtual card response from the server.",
-      "load_failed": "We could not load your credential right now."
+      "load_failed": "We could not load your credential right now.",
+      "rate_limited": "Too many requests. Please wait a moment before refreshing the credential again."
     }
   },
   "rankings": {

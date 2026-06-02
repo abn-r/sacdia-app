@@ -60,6 +60,14 @@ final virtualCardFetcherProvider =
         return cached.copyWith(isOffline: true);
       }
       return _buildFallbackCard(ref, user, isOffline: true);
+    } on ServerException catch (error) {
+      if (!isVirtualCardRateLimit(error)) rethrow;
+
+      _notifyVirtualCardRateLimit(ref);
+      if (cached != null) {
+        return cached.copyWith(isOffline: true);
+      }
+      return _buildFallbackCard(ref, user, isOffline: true);
     }
   }
 
@@ -73,6 +81,8 @@ final virtualCardFetcherProvider =
 final virtualCardProvider = Provider<AsyncValue<VirtualCard>>(
   (ref) => ref.watch(virtualCardFetcherProvider),
 );
+
+final virtualCardRateLimitNoticeProvider = StateProvider<int>((ref) => 0);
 
 Future<VirtualCard> _buildFallbackCard(
   Ref ref,
@@ -140,4 +150,13 @@ String? _pickNonEmpty(Iterable<String?> values) {
     }
   }
   return null;
+}
+
+bool isVirtualCardRateLimit(Object error) {
+  return error is ServerException && error.code == 429;
+}
+
+void _notifyVirtualCardRateLimit(Ref ref) {
+  final notifier = ref.read(virtualCardRateLimitNoticeProvider.notifier);
+  notifier.state = notifier.state + 1;
 }

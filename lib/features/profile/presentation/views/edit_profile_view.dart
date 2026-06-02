@@ -18,6 +18,7 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../post_registration/presentation/providers/post_registration_providers.dart';
 import '../providers/profile_providers.dart';
 import '../widgets/gender_selector.dart';
+import '../utils/profile_update_payload.dart';
 
 /// Vista para editar el perfil del usuario.
 ///
@@ -39,8 +40,6 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
   final _nameController = TextEditingController();
   final _paternalSurnameController = TextEditingController();
   final _maternalSurnameController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _addressController = TextEditingController();
 
   // State — personal info fields (F3)
   Gender? _selectedGender;
@@ -73,8 +72,6 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
       _nameController.text = profile.name;
       _paternalSurnameController.text = profile.paternalSurname ?? '';
       _maternalSurnameController.text = profile.maternalSurname ?? '';
-      _phoneController.text = profile.phone ?? '';
-      _addressController.text = profile.address ?? '';
 
       // Pre-populate personal info fields (F3)
       setState(() {
@@ -91,8 +88,6 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     _nameController.dispose();
     _paternalSurnameController.dispose();
     _maternalSurnameController.dispose();
-    _phoneController.dispose();
-    _addressController.dispose();
     super.dispose();
   }
 
@@ -219,24 +214,16 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
     bool success = false;
 
-    // Unified update: all fields in a single PATCH /users/:userId
-    final data = <String, dynamic>{
-      'name': _nameController.text.trim(),
-      'paternal_last_name': _paternalSurnameController.text.trim(),
-      'maternal_last_name': _maternalSurnameController.text.trim(),
-      'phone': _phoneController.text.trim(),
-      'address': _addressController.text.trim(),
-    };
-
-    // Add personal info fields (F3)
-    if (_selectedGender != null) data['gender'] = _selectedGender!.apiKey;
-    if (_birthdate != null) {
-      data['birthday'] = _birthdate!.toUtc().toIso8601String();
-    }
-    data['baptism'] = _baptized;
-    if (_baptized && _baptismDate != null) {
-      data['baptism_date'] = _baptismDate!.toUtc().toIso8601String();
-    }
+    // Unified update: only fields backed by the effective users contract.
+    final data = buildProfileUpdatePayload(
+      name: _nameController.text,
+      paternalLastName: _paternalSurnameController.text,
+      maternalLastName: _maternalSurnameController.text,
+      gender: _selectedGender?.apiKey,
+      birthday: _birthdate,
+      baptism: _baptized,
+      baptismDate: _baptismDate,
+    );
 
     success =
         await ref.read(profileNotifierProvider.notifier).updateProfile(data);

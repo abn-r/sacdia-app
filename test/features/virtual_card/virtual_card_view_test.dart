@@ -21,4 +21,13 @@ void main() {
       'virtual_card.errors.load_failed',
     );
   });
+
+  test('maps rate limit errors to the wait-and-retry copy', () {
+    expect(
+      virtualCardErrorMessageKey(
+        ServerException(message: 'Too many requests', code: 429),
+      ),
+      'virtual_card.errors.rate_limited',
+    );
+  });
 }
