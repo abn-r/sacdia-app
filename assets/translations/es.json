@@ -706,6 +706,7 @@
       "upload_profile_photo": "Error al subir foto de perfil",
       "delete_profile_photo": "Error al eliminar foto de perfil",
       "complete_step_1": "Error al completar el paso 1 del post-registro",
+      "cancel_membership_request": "Error al cancelar la solicitud de membresía",
       "max_emergency_contacts": "Máximo 5 contactos de emergencia permitidos"
     },
     "personal_info": {
@@ -3039,7 +3040,13 @@
       "pending_expires": "Expira el {date}",
       "rejected_title": "Tu solicitud de membresía fue rechazada",
       "expired_title": "Tu solicitud de membresía expiró",
-      "reapply": "Volver a solicitar"
+      "reapply": "Volver a solicitar",
+      "upload_certificates": "Cargar certificados",
+      "cancel_request": "Cancelar solicitud",
+      "cancel_request_title": "¿Cancelar solicitud?",
+      "cancel_request_body": "Vas a volver a la selección de club y sección. Tu perfil y tu información personal se conservan.",
+      "cancel_request_confirm": "Sí, cancelar",
+      "cancel_request_success": "Solicitud cancelada"
     },
     "quick_access": {
       "title": "Acceso rápido",

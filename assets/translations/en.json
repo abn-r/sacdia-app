@@ -706,6 +706,7 @@
       "upload_profile_photo": "Error uploading profile photo",
       "delete_profile_photo": "Error deleting profile photo",
       "complete_step_1": "Error completing post-registration step 1",
+      "cancel_membership_request": "Error cancelling membership request",
       "max_emergency_contacts": "Maximum 5 emergency contacts allowed"
     },
     "personal_info": {
@@ -3039,7 +3040,13 @@
       "pending_expires": "Expires on {date}",
       "rejected_title": "Your membership request was rejected",
       "expired_title": "Your membership request has expired",
-      "reapply": "Re-apply"
+      "reapply": "Re-apply",
+      "upload_certificates": "Upload certificates",
+      "cancel_request": "Cancel request",
+      "cancel_request_title": "Cancel request?",
+      "cancel_request_body": "You will return to club and section selection. Your profile and personal information will be kept.",
+      "cancel_request_confirm": "Yes, cancel",
+      "cancel_request_success": "Request cancelled"
     },
     "quick_access": {
       "title": "Quick access",

@@ -68,6 +68,41 @@ final profilePhotoUploadNotifierProvider =
   ProfilePhotoUploadNotifier.new,
 );
 
+class CancelPendingMembershipRequestNotifier
+    extends AutoDisposeAsyncNotifier<void> {
+  @override
+  Future<void> build() async {}
+
+  Future<String?> cancel({required String userId}) async {
+    state = const AsyncValue.loading();
+
+    final result = await ref
+        .read(postRegistrationRepositoryProvider)
+        .cancelPendingMembershipRequest(userId: userId);
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return failure.message;
+      },
+      (_) async {
+        state = const AsyncValue.data(null);
+        ref.read(authNotifierProvider.notifier).markPostRegisterIncomplete();
+        await ref
+            .read(authNotifierProvider.notifier)
+            .refreshCurrentUser(keepCurrentOnFailure: true);
+        ref.invalidate(completionStatusProvider);
+        return null;
+      },
+    );
+  }
+}
+
+final cancelPendingMembershipRequestProvider = AsyncNotifierProvider
+    .autoDispose<CancelPendingMembershipRequestNotifier, void>(
+  CancelPendingMembershipRequestNotifier.new,
+);
+
 /// Provider para el estado de completitud del post-registro
 final completionStatusProvider = AsyncNotifierProvider.autoDispose<
     CompletionStatusNotifier, CompletionStatus?>(() {

@@ -183,6 +183,10 @@ class QuickAccessGrid extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
+    if (!canAccessClubOperationalSurface(user)) {
+      return const SizedBox.shrink();
+    }
+
     final filteredItems = _quickAccessItemsConfig.where((item) {
       // Ungated items (no permissions AND no roles) are visible to every
       // authenticated user — used only when authorization is not a concern.

@@ -1,3 +1,4 @@
+import '../entities/authorization_snapshot.dart';
 import '../entities/user_entity.dart';
 
 enum SensitiveUserFamily {
@@ -119,6 +120,29 @@ bool canViewSectionRankings(UserEntity? user) {
 
 bool canViewClubRankings(UserEntity? user) {
   return hasAnyPermission(user, clubRankingReadPermissions);
+}
+
+AuthorizationGrant? membershipGrantForDisplay(
+  AuthorizationSnapshot? authorization,
+) {
+  if (authorization == null) return null;
+
+  final activeGrant = authorization.activeGrant;
+  if (activeGrant != null) {
+    return activeGrant.isActive ? null : activeGrant;
+  }
+
+  for (final grant in authorization.clubAssignments) {
+    if (!grant.isActive) return grant;
+  }
+
+  return null;
+}
+
+bool canAccessClubOperationalSurface(UserEntity? user) {
+  final authorization = user?.authorization;
+  if (authorization == null) return false;
+  return membershipGrantForDisplay(authorization) == null;
 }
 
 bool isUserOwner(UserEntity? user, String targetUserId) {

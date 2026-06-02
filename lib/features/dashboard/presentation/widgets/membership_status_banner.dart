@@ -9,7 +9,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
 import '../../../auth/domain/entities/authorization_snapshot.dart';
+import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../post_registration/presentation/providers/post_registration_providers.dart';
 
 /// Banner that shows the membership status of the user's active club assignment.
 ///
@@ -22,23 +24,23 @@ class MembershipStatusBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
-    final activeGrant = user?.authorization?.activeGrant;
+    final user = ref.watch(authNotifierProvider).valueOrNull;
+    final statusGrant = membershipGrantForDisplay(user?.authorization);
 
     // Nothing to show if there's no grant or grant is active.
-    if (activeGrant == null || activeGrant.isActive) {
+    if (statusGrant == null || statusGrant.isActive) {
       return const SizedBox.shrink();
     }
 
-    if (activeGrant.isPending) {
-      return _PendingBanner(grant: activeGrant);
+    if (statusGrant.isPending) {
+      return _PendingBanner(grant: statusGrant);
     }
 
-    if (activeGrant.isRejected) {
-      return _RejectedBanner(grant: activeGrant);
+    if (statusGrant.isRejected) {
+      return _RejectedBanner(grant: statusGrant);
     }
 
-    if (activeGrant.isExpired) {
+    if (statusGrant.isExpired) {
       return const _ExpiredBanner();
     }
 
@@ -48,14 +50,16 @@ class MembershipStatusBanner extends ConsumerWidget {
 
 // ── Pending ──────────────────────────────────────────────────────────────────
 
-class _PendingBanner extends StatelessWidget {
+class _PendingBanner extends ConsumerWidget {
   final AuthorizationGrant grant;
 
   const _PendingBanner({required this.grant});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final expiresAt = grant.expiresAt;
+    final cancelState = ref.watch(cancelPendingMembershipRequestProvider);
+    final isCancelling = cancelState.isLoading;
     String? expiryLabel;
     if (expiresAt != null) {
       final localDate = expiresAt.toLocal();
@@ -75,6 +79,28 @@ class _PendingBanner extends StatelessWidget {
       titleColor: AppColors.accentDark,
       subtitle: expiryLabel,
       subtitleColor: AppColors.accentDark.withValues(alpha: 0.8),
+      action: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          SacButton(
+            text: tr('dashboard.banner.upload_certificates'),
+            variant: SacButtonVariant.primary,
+            size: SacButtonSize.small,
+            backgroundColor: AppColors.accent,
+            textColor: Colors.white,
+            onPressed: () => context.push(RouteNames.certificateImportUpload),
+          ),
+          SacButton(
+            text: tr('dashboard.banner.cancel_request'),
+            variant: SacButtonVariant.outline,
+            size: SacButtonSize.small,
+            isLoading: isCancelling,
+            isEnabled: !isCancelling,
+            onPressed: () => _cancelPendingRequest(context, ref),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -232,5 +258,53 @@ class _BannerContainer extends StatelessWidget {
 // ── Navigation helper ────────────────────────────────────────────────────────
 
 void _navigateToReapply(BuildContext context) {
+  context.go(RouteNames.postRegistration);
+}
+
+Future<void> _cancelPendingRequest(BuildContext context, WidgetRef ref) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(tr('dashboard.banner.cancel_request_title')),
+      content: Text(tr('dashboard.banner.cancel_request_body')),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: Text(tr('common.cancel')),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: Text(tr('dashboard.banner.cancel_request_confirm')),
+        ),
+      ],
+    ),
+  );
+
+  if (confirmed != true || !context.mounted) return;
+
+  final userId = ref.read(authNotifierProvider).valueOrNull?.id;
+  if (userId == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(tr('errors.user_not_authenticated'))),
+    );
+    return;
+  }
+
+  final error = await ref
+      .read(cancelPendingMembershipRequestProvider.notifier)
+      .cancel(userId: userId);
+
+  if (!context.mounted) return;
+
+  if (error != null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(error)),
+    );
+    return;
+  }
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(tr('dashboard.banner.cancel_request_success'))),
+  );
   context.go(RouteNames.postRegistration);
 }

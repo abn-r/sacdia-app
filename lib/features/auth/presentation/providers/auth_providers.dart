@@ -378,6 +378,50 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
     _cacheUser(updatedUser);
   }
 
+  void markPostRegisterIncomplete() {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    final updatedUser = UserEntity(
+      id: current.id,
+      email: current.email,
+      name: current.name,
+      avatar: current.avatar,
+      metadata: current.metadata,
+      authorization: current.authorization,
+      lastSignInAt: current.lastSignInAt,
+      createdAt: current.createdAt,
+      postRegisterComplete: false,
+    );
+    state = AsyncValue.data(updatedUser);
+    _cacheUser(updatedUser);
+  }
+
+  Future<UserEntity?> refreshCurrentUser({
+    bool keepCurrentOnFailure = false,
+  }) async {
+    final result = await ref.read(getCurrentUserProvider)(NoParams());
+
+    return result.fold(
+      (failure) {
+        final errorMessage = failure is AuthFailure
+            ? failure.message
+            : 'common.error_generic'.tr();
+        AppLogger.w('Error al refrescar usuario: $errorMessage', tag: _tag);
+        if (!keepCurrentOnFailure) {
+          state = AsyncValue.error(errorMessage, StackTrace.current);
+        }
+        return null;
+      },
+      (user) {
+        if (user != null) {
+          _cacheUser(user);
+        }
+        state = AsyncValue.data(user);
+        return user;
+      },
+    );
+  }
+
   /// Procesa el callback OAuth recibido por deep link.
   ///
   /// Llamar desde el router cuando se intercepta

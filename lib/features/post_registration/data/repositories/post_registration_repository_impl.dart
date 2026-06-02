@@ -106,4 +106,20 @@ class PostRegistrationRepositoryImpl implements PostRegistrationRepository {
       return Left(ServerFailure(message: e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> cancelPendingMembershipRequest({
+    required String userId,
+  }) async {
+    try {
+      await remoteDataSource.cancelPendingMembershipRequest(userId: userId);
+      return const Right(null);
+    } on core_exceptions.ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on core_exceptions.AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
 }

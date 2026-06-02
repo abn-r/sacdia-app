@@ -1375,6 +1375,7 @@ List<_NavItemConfig> _filterNavItems(
 
   return items.where((item) {
     if (item.requiredPermissions.isEmpty) return true;
+    if (!canAccessClubOperationalSurface(user)) return false;
     return hasAnyPermission(user, item.requiredPermissions);
   }).toList();
 }
