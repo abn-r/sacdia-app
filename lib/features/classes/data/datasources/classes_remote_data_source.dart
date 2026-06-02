@@ -19,9 +19,10 @@ abstract class ClassesRemoteDataSource {
   Future<List<ClassModel>> getUserClasses(String userId,
       {CancelToken? cancelToken});
   Future<ClassProgressModel> getUserClassProgress(String userId, int classId,
-      {CancelToken? cancelToken});
+      {int? enrollmentId, CancelToken? cancelToken});
   Future<ClassProgressModel> updateUserClassProgress(
-      String userId, int classId, Map<String, dynamic> progressData);
+      String userId, int classId, Map<String, dynamic> progressData,
+      {int? enrollmentId});
 
   // ── Inscripción en clases anteriores ─────────────────────────────────────
 
@@ -33,10 +34,11 @@ abstract class ClassesRemoteDataSource {
   /// Obtiene la clase con progreso detallado (modulos + requerimientos + evidencias).
   Future<ClassWithProgressModel> getClassWithProgress(
       String userId, int classId,
-      {CancelToken? cancelToken});
+      {int? enrollmentId, CancelToken? cancelToken});
 
   /// Envia un requerimiento a validacion.
-  Future<void> submitRequirement(String userId, int classId, int requirementId);
+  Future<void> submitRequirement(String userId, int classId, int requirementId,
+      {int? enrollmentId});
 
   /// Sube un archivo de evidencia a un requerimiento.
   Future<RequirementEvidenceModel> uploadRequirementFile({
@@ -46,6 +48,7 @@ abstract class ClassesRemoteDataSource {
     required String filePath,
     required String fileName,
     required String mimeType,
+    int? enrollmentId,
     void Function(double)? onProgress,
   });
 
@@ -55,6 +58,7 @@ abstract class ClassesRemoteDataSource {
     required int classId,
     required int requirementId,
     required String fileId,
+    int? enrollmentId,
   });
 }
 
@@ -96,6 +100,9 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     }
     return e.message ?? tr('common.error_network');
   }
+
+  Map<String, dynamic>? _enrollmentQuery(int? enrollmentId) =>
+      enrollmentId == null ? null : {'enrollmentId': enrollmentId};
 
   // ── POST /users/:userId/classes/enroll ──────────────────────────────────────
 
@@ -240,6 +247,9 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
           if (e.containsKey('overall_progress')) {
             classJson['overall_progress'] = e['overall_progress'];
           }
+          if (e.containsKey('enrollment_id')) {
+            classJson['enrollment_id'] = e['enrollment_id'];
+          }
           return ClassModel.fromJson(classJson);
         }).toList();
       }
@@ -257,10 +267,11 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
 
   @override
   Future<ClassProgressModel> getUserClassProgress(String userId, int classId,
-      {CancelToken? cancelToken}) async {
+      {int? enrollmentId, CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/progress',
+        queryParameters: _enrollmentQuery(enrollmentId),
         cancelToken: cancelToken,
       );
 
@@ -282,14 +293,17 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
 
   @override
   Future<ClassProgressModel> updateUserClassProgress(
-    String userId,
-    int classId,
-    Map<String, dynamic> progressData,
-  ) async {
+      String userId, int classId, Map<String, dynamic> progressData,
+      {int? enrollmentId}) async {
     try {
+      final payload = Map<String, dynamic>.from(progressData);
+      if (enrollmentId != null) {
+        payload['enrollment_id'] = enrollmentId;
+      }
+
       final response = await _dio.patch(
         '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/progress',
-        data: progressData,
+        data: payload,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -318,11 +332,12 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   @override
   Future<ClassWithProgressModel> getClassWithProgress(
       String userId, int classId,
-      {CancelToken? cancelToken}) async {
+      {int? enrollmentId, CancelToken? cancelToken}) async {
     try {
       // Intentar obtener progreso detallado en un solo endpoint
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/progress',
+        queryParameters: _enrollmentQuery(enrollmentId),
         cancelToken: cancelToken,
       );
 
@@ -373,11 +388,12 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
   // ── POST /users/:userId/classes/:classId/sections/:sectionId/submit ─────────
 
   @override
-  Future<void> submitRequirement(
-      String userId, int classId, int requirementId) async {
+  Future<void> submitRequirement(String userId, int classId, int requirementId,
+      {int? enrollmentId}) async {
     try {
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/sections/$requirementId/submit',
+        queryParameters: _enrollmentQuery(enrollmentId),
       );
 
       if (response.statusCode == 200 ||
@@ -405,6 +421,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     required String filePath,
     required String fileName,
     required String mimeType,
+    int? enrollmentId,
     void Function(double)? onProgress,
   }) async {
     try {
@@ -418,6 +435,7 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
 
       final response = await _dio.post(
         '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/sections/$requirementId/files',
+        queryParameters: _enrollmentQuery(enrollmentId),
         data: formData,
         options: Options(
           headers: {
@@ -464,10 +482,12 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
     required int classId,
     required int requirementId,
     required String fileId,
+    int? enrollmentId,
   }) async {
     try {
       final response = await _dio.delete(
         '$_baseUrl${ApiEndpoints.users}/$userId/classes/$classId/sections/$requirementId/files/$fileId',
+        queryParameters: _enrollmentQuery(enrollmentId),
       );
 
       if (response.statusCode == 200 ||

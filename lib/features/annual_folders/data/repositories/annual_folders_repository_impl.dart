@@ -7,7 +7,7 @@ import '../../domain/entities/annual_folder.dart';
 import '../../domain/repositories/annual_folders_repository.dart';
 import '../datasources/annual_folders_remote_data_source.dart';
 
-/// Implementación del repositorio de carpetas anuales
+/// Implementación del repositorio de Carpetas Anuales de Evidencias
 class AnnualFoldersRepositoryImpl implements AnnualFoldersRepository {
   final AnnualFoldersRemoteDataSource remoteDataSource;
   final NetworkInfo networkInfo;

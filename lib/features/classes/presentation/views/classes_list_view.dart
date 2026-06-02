@@ -162,8 +162,10 @@ class ClassesListViewBody extends ConsumerWidget {
                   staggerDelay: const Duration(milliseconds: 65),
                   child: Consumer(
                     builder: (context, progressRef, _) {
+                      final progressQuery =
+                          ClassProgressQuery.fromClass(currentClass);
                       final progressAsync = progressRef
-                          .watch(classWithProgressProvider(currentClass.id));
+                          .watch(classWithProgressProvider(progressQuery));
                       final progress = progressAsync.whenOrNull(
                             data: (cwp) => cwp.completionRatio,
                           ) ??
@@ -178,6 +180,7 @@ class ClassesListViewBody extends ConsumerWidget {
                             MaterialPageRoute(
                               builder: (context) => ClassDetailWithProgressView(
                                 classId: currentClass.id,
+                                enrollmentId: currentClass.enrollmentId,
                               ),
                             ),
                           );
@@ -207,8 +210,10 @@ class ClassesListViewBody extends ConsumerWidget {
                     child: Consumer(
                       builder: (context, progressRef, _) {
                         final progressiveClass = otherClasses[i];
-                        final progressAsync = progressRef.watch(
-                            classWithProgressProvider(progressiveClass.id));
+                        final progressQuery =
+                            ClassProgressQuery.fromClass(progressiveClass);
+                        final progressAsync = progressRef
+                            .watch(classWithProgressProvider(progressQuery));
                         final progress = progressAsync.whenOrNull(
                               data: (cwp) => cwp.completionRatio,
                             ) ??
@@ -224,6 +229,7 @@ class ClassesListViewBody extends ConsumerWidget {
                                 builder: (context) =>
                                     ClassDetailWithProgressView(
                                   classId: progressiveClass.id,
+                                  enrollmentId: progressiveClass.enrollmentId,
                                 ),
                               ),
                             );

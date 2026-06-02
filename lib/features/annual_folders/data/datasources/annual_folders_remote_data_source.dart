@@ -5,7 +5,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../models/annual_folder_model.dart';
 
-/// Interfaz para el data source remoto de carpetas anuales
+/// Interfaz para el data source remoto de Carpetas Anuales de Evidencias
 abstract class AnnualFoldersRemoteDataSource {
   Future<AnnualFolderModel> getFolderByEnrollment(int enrollmentId,
       {CancelToken? cancelToken});
@@ -23,7 +23,7 @@ abstract class AnnualFoldersRemoteDataSource {
   Future<AnnualFolderModel> submitFolder(int folderId);
 }
 
-/// Implementación del data source remoto de carpetas anuales
+/// Implementación del data source remoto de Carpetas Anuales de Evidencias
 class AnnualFoldersRemoteDataSourceImpl
     implements AnnualFoldersRemoteDataSource {
   final Dio _dio;

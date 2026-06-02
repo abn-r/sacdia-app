@@ -1,9 +1,15 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/media/sac_audio_player_controller.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
+import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../domain/entities/resource.dart';
 import '../providers/resources_providers.dart';
@@ -12,7 +18,9 @@ import 'resource_card.dart';
 /// Bottom sheet con el detalle completo de un recurso.
 ///
 /// Comportamiento según tipo:
-/// - document / audio / image: botón "Descargar" que obtiene signed URL
+/// - audio: reproductor embebido + "Descargar" con signed URL
+/// - image: botón "Ver imagen" + "Descargar" con signed URL
+/// - document: botón "Ver PDF" cuando aplica + "Descargar" con signed URL
 /// - video_link: botón "Ver video" que abre [externalUrl]
 /// - text: muestra el contenido inline
 class ResourceDetailSheet extends ConsumerStatefulWidget {
@@ -36,23 +44,58 @@ class ResourceDetailSheet extends ConsumerStatefulWidget {
 }
 
 class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
-  bool _isOpeningUrl = false;
+  _ResourceAction? _loadingAction;
 
   Resource get _resource => widget.resource;
 
   Future<void> _openDownload() async {
-    setState(() => _isOpeningUrl = true);
+    setState(() => _loadingAction = _ResourceAction.download);
 
-    final notifier = ref.read(signedUrlNotifierProvider.notifier);
-    final url = await notifier.fetchSignedUrl(_resource.resourceId);
+    final url = await _resolveSignedUrl();
 
     if (url != null && mounted) {
-      await _launchUrl(url);
+      await _launchUrl(url, mode: LaunchMode.externalApplication);
     } else if (mounted) {
       _showError('resources.error.download_url'.tr());
     }
 
-    if (mounted) setState(() => _isOpeningUrl = false);
+    if (mounted) setState(() => _loadingAction = null);
+  }
+
+  Future<void> _viewPdf() async {
+    setState(() => _loadingAction = _ResourceAction.viewPdf);
+
+    final url = await _resolveSignedUrl();
+
+    if (url != null && mounted) {
+      SacPdfViewer.show(context, pdfSource: url, title: _resource.title);
+    } else if (mounted) {
+      _showError('resources.error.media_url'.tr());
+    }
+
+    if (mounted) setState(() => _loadingAction = null);
+  }
+
+  Future<void> _viewImage() async {
+    setState(() => _loadingAction = _ResourceAction.viewImage);
+
+    final url = await _resolveSignedUrl();
+
+    if (url != null && mounted) {
+      SacImageViewer.show(context, imageUrl: url, title: _resource.title);
+    } else if (mounted) {
+      _showError('resources.error.media_url'.tr());
+    }
+
+    if (mounted) setState(() => _loadingAction = null);
+  }
+
+  Future<String?> _resolveSignedUrl() async {
+    final cachedUrl = _resource.signedUrl;
+    if (cachedUrl != null && cachedUrl.isNotEmpty) return cachedUrl;
+
+    final notifier = ref.read(signedUrlNotifierProvider.notifier);
+    return notifier.fetchSignedUrl(_resource.resourceId);
   }
 
   Future<void> _openExternalUrl() async {
@@ -61,12 +104,15 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
       _showError('resources.error.video_url_missing'.tr());
       return;
     }
-    setState(() => _isOpeningUrl = true);
-    await _launchUrl(rawUrl);
-    if (mounted) setState(() => _isOpeningUrl = false);
+    setState(() => _loadingAction = _ResourceAction.openVideo);
+    await _launchUrl(rawUrl, mode: LaunchMode.externalApplication);
+    if (mounted) setState(() => _loadingAction = null);
   }
 
-  Future<void> _launchUrl(String rawUrl) async {
+  Future<void> _launchUrl(
+    String rawUrl, {
+    required LaunchMode mode,
+  }) async {
     final uri = Uri.tryParse(rawUrl);
     if (uri == null || !['http', 'https'].contains(uri.scheme)) {
       _showError('resources.error.invalid_url'.tr());
@@ -74,7 +120,10 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
     }
     final canLaunch = await canLaunchUrl(uri);
     if (canLaunch) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      final launched = await launchUrl(uri, mode: mode);
+      if (!launched && mounted) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
     } else if (mounted) {
       _showError('resources.error.open_url_failed'.tr());
     }
@@ -91,11 +140,17 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
   Widget build(BuildContext context) {
     final c = context.sac;
     final signedUrlState = ref.watch(signedUrlNotifierProvider);
-    final color = resourceTypeColor(_resource.resourceType);
+    final color = resourceTypeColor(context, _resource.resourceType);
     final icon = resourceTypeIcon(_resource.resourceType);
+    final initialChildSize = switch (_resource.resourceType) {
+      'text' => 0.75,
+      'image' => 0.68,
+      'audio' => 0.72,
+      _ => 0.55,
+    };
 
     return DraggableScrollableSheet(
-      initialChildSize: _resource.resourceType == 'text' ? 0.75 : 0.55,
+      initialChildSize: initialChildSize,
       minChildSize: 0.35,
       maxChildSize: 0.92,
       builder: (context, scrollController) {
@@ -230,6 +285,16 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
                         ),
                       ],
 
+                      if (_resource.resourceType == 'audio') ...[
+                        const SizedBox(height: 16),
+                        _ResourceAudioPlayer(
+                          resource: _resource,
+                          accentColor: color,
+                          resolveSignedUrl: _resolveSignedUrl,
+                          onError: _showError,
+                        ),
+                      ],
+
                       const SizedBox(height: 24),
 
                       // ── Error from signed URL ────────────────────
@@ -238,15 +303,15 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
                           padding: const EdgeInsets.only(bottom: 12),
                           child: Text(
                             signedUrlState.error.toString(),
-                            style: const TextStyle(
-                              color: Colors.red,
+                            style: TextStyle(
+                              color: c.error,
                               fontSize: 13,
                             ),
                           ),
                         ),
 
-                      // ── Action button ────────────────────────────
-                      _buildActionButton(context, color),
+                      // ── Action buttons ───────────────────────────
+                      _buildActionButtons(context, color),
                     ],
                   ),
                 ),
@@ -258,63 +323,65 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
     );
   }
 
-  Widget _buildActionButton(BuildContext context, Color color) {
+  Widget _buildActionButtons(BuildContext context, Color color) {
     final type = _resource.resourceType;
     final bool isText = type == 'text';
 
     // Sin acción de apertura para texto (ya se muestra inline)
     if (isText) return const SizedBox.shrink();
 
-    final bool isVideo = type == 'video_link';
-    final label = isVideo
-        ? 'resources.action.watch_video'.tr()
-        : 'resources.action.download'.tr();
-    final icon = isVideo
-        ? HugeIcons.strokeRoundedPlayCircle
-        : HugeIcons.strokeRoundedDownload01;
+    if (type == 'video_link') {
+      return _ResourceActionButton(
+        text: 'resources.action.watch_video'.tr(),
+        loadingText: 'resources.action.opening'.tr(),
+        icon: HugeIcons.strokeRoundedPlayCircle,
+        color: color,
+        isLoading: _loadingAction == _ResourceAction.openVideo,
+        disabled: _loadingAction != null,
+        onPressed: _openExternalUrl,
+      );
+    }
 
-    return SizedBox(
-      width: double.infinity,
-      child: FilledButton.icon(
-        onPressed: _isOpeningUrl
-            ? null
-            : () {
-                if (isVideo) {
-                  _openExternalUrl();
-                } else {
-                  _openDownload();
-                }
-              },
-        style: FilledButton.styleFrom(
-          backgroundColor: color,
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-          ),
+    final actions = <Widget>[
+      if (type == 'image')
+        _ResourceActionButton(
+          text: 'resources.action.view_image'.tr(),
+          loadingText: 'resources.action.opening'.tr(),
+          icon: HugeIcons.strokeRoundedImage01,
+          color: color,
+          isLoading: _loadingAction == _ResourceAction.viewImage,
+          disabled: _loadingAction != null,
+          onPressed: _viewImage,
         ),
-        icon: _isOpeningUrl
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
-              )
-            : HugeIcon(
-                icon: icon,
-                size: 18,
-                color: Colors.white,
-              ),
-        label: Text(
-          _isOpeningUrl ? 'resources.action.opening'.tr() : label,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
+      if (_isPdfDocument)
+        _ResourceActionButton(
+          text: 'resources.action.view_pdf'.tr(),
+          loadingText: 'resources.action.opening'.tr(),
+          icon: HugeIcons.strokeRoundedFile01,
+          color: color,
+          isLoading: _loadingAction == _ResourceAction.viewPdf,
+          disabled: _loadingAction != null,
+          onPressed: _viewPdf,
         ),
+      _ResourceActionButton(
+        text: 'resources.action.download'.tr(),
+        loadingText: 'resources.action.opening'.tr(),
+        icon: HugeIcons.strokeRoundedDownload01,
+        color: color,
+        isLoading: _loadingAction == _ResourceAction.download,
+        disabled: _loadingAction != null,
+        onPressed: _openDownload,
+        secondary: type == 'audio' || type == 'image' || _isPdfDocument,
       ),
+    ];
+
+    return Column(
+      children: [
+        for (var i = 0; i < actions.length; i++) ...[
+          if (i > 0) const SizedBox(height: 10),
+          actions[i],
+        ],
+      ],
     );
   }
 
@@ -325,5 +392,263 @@ class _ResourceDetailSheetState extends ConsumerState<ResourceDetailSheet> {
       return '${(bytes / 1024).toStringAsFixed(1)} KB';
     }
     return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
+  bool get _isPdfDocument {
+    if (_resource.resourceType != 'document') return false;
+    final mime = _resource.fileMimeType?.toLowerCase() ?? '';
+    final name = _resource.fileName?.toLowerCase() ?? '';
+    return mime.contains('pdf') || name.endsWith('.pdf');
+  }
+}
+
+enum _ResourceAction { viewImage, viewPdf, download, openVideo }
+
+class _ResourceActionButton extends StatelessWidget {
+  final String text;
+  final String loadingText;
+  final List<List<dynamic>> icon;
+  final Color color;
+  final bool isLoading;
+  final bool disabled;
+  final VoidCallback onPressed;
+  final bool secondary;
+
+  const _ResourceActionButton({
+    required this.text,
+    required this.loadingText,
+    required this.icon,
+    required this.color,
+    required this.isLoading,
+    required this.disabled,
+    required this.onPressed,
+    this.secondary = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return SacButton(
+      text: isLoading ? loadingText : text,
+      icon: icon,
+      isLoading: isLoading,
+      fullWidth: true,
+      backgroundColor: secondary ? c.surface : color,
+      textColor: secondary ? color : Colors.white,
+      borderRadius: AppTheme.radiusMD,
+      onPressed: disabled ? null : onPressed,
+      variant: secondary ? SacButtonVariant.outline : SacButtonVariant.primary,
+    );
+  }
+}
+
+enum _AudioStatus { idle, loading, playing, paused, error }
+
+class _ResourceAudioPlayer extends StatefulWidget {
+  final Resource resource;
+  final Color accentColor;
+  final Future<String?> Function() resolveSignedUrl;
+  final ValueChanged<String> onError;
+
+  const _ResourceAudioPlayer({
+    required this.resource,
+    required this.accentColor,
+    required this.resolveSignedUrl,
+    required this.onError,
+  });
+
+  @override
+  State<_ResourceAudioPlayer> createState() => _ResourceAudioPlayerState();
+}
+
+class _ResourceAudioPlayerState extends State<_ResourceAudioPlayer> {
+  final SacAudioPlayerController _player = SacAudioPlayerController();
+  _AudioStatus _status = _AudioStatus.idle;
+  Duration _position = Duration.zero;
+  Duration _duration = Duration.zero;
+  Timer? _positionTimer;
+
+  bool get _isBusy => _status == _AudioStatus.loading;
+  bool get _isPlaying => _status == _AudioStatus.playing;
+  bool get _hasStarted =>
+      _status == _AudioStatus.playing || _status == _AudioStatus.paused;
+
+  @override
+  void dispose() {
+    _positionTimer?.cancel();
+    _player.stop();
+    super.dispose();
+  }
+
+  Future<void> _toggle() async {
+    if (_isBusy) return;
+
+    if (_isPlaying) {
+      await _pause();
+      return;
+    }
+
+    if (_hasStarted) {
+      await _resume();
+      return;
+    }
+
+    await _start();
+  }
+
+  Future<void> _start() async {
+    setState(() => _status = _AudioStatus.loading);
+
+    try {
+      final url = await widget.resolveSignedUrl();
+      if (url == null || url.isEmpty) {
+        _fail('resources.error.media_url'.tr());
+        return;
+      }
+
+      await _player.playUrl(url);
+      if (!mounted) return;
+      setState(() => _status = _AudioStatus.playing);
+      _startPositionTimer();
+      await _refreshPosition();
+    } catch (_) {
+      _fail('resources.error.audio_playback'.tr());
+    }
+  }
+
+  Future<void> _pause() async {
+    try {
+      await _player.pause();
+      if (mounted) setState(() => _status = _AudioStatus.paused);
+      _positionTimer?.cancel();
+      await _refreshPosition();
+    } catch (_) {
+      _fail('resources.error.audio_playback'.tr());
+    }
+  }
+
+  Future<void> _resume() async {
+    try {
+      await _player.resume();
+      if (mounted) setState(() => _status = _AudioStatus.playing);
+      _startPositionTimer();
+      await _refreshPosition();
+    } catch (_) {
+      _fail('resources.error.audio_playback'.tr());
+    }
+  }
+
+  void _fail(String message) {
+    if (mounted) setState(() => _status = _AudioStatus.error);
+    _positionTimer?.cancel();
+    widget.onError(message);
+  }
+
+  void _startPositionTimer() {
+    _positionTimer?.cancel();
+    _positionTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => _refreshPosition(),
+    );
+  }
+
+  Future<void> _refreshPosition() async {
+    try {
+      final playback = await _player.position();
+      if (!mounted) return;
+      setState(() {
+        _position = playback.position;
+        _duration = playback.duration;
+        if (_status == _AudioStatus.playing && !playback.isPlaying) {
+          _status = _AudioStatus.paused;
+          _positionTimer?.cancel();
+        }
+      });
+    } catch (_) {
+      // Position polling is best-effort; do not interrupt playback UI.
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final progress = _duration.inMilliseconds <= 0
+        ? 0.0
+        : (_position.inMilliseconds / _duration.inMilliseconds).clamp(0.0, 1.0);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+        border: Border.all(color: widget.accentColor.withValues(alpha: 0.24)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'resources.audio.player_title'.tr(),
+            style: TextStyle(
+              color: c.text,
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+            child: LinearProgressIndicator(
+              minHeight: 6,
+              value: progress,
+              backgroundColor: c.border,
+              valueColor: AlwaysStoppedAnimation<Color>(widget.accentColor),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Text(
+                _formatDuration(_position),
+                style: TextStyle(fontSize: 12, color: c.textTertiary),
+              ),
+              const Spacer(),
+              Text(
+                _duration == Duration.zero
+                    ? '--:--'
+                    : _formatDuration(_duration),
+                style: TextStyle(fontSize: 12, color: c.textTertiary),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SacButton(
+            text: _buttonLabel,
+            icon: _isPlaying
+                ? HugeIcons.strokeRoundedPause
+                : HugeIcons.strokeRoundedPlayCircle,
+            isLoading: _isBusy,
+            fullWidth: true,
+            backgroundColor: widget.accentColor,
+            borderRadius: AppTheme.radiusMD,
+            onPressed: _isBusy ? null : _toggle,
+          ),
+        ],
+      ),
+    );
+  }
+
+  String get _buttonLabel {
+    if (_isBusy) return 'resources.audio.loading'.tr();
+    if (_isPlaying) return 'resources.audio.pause'.tr();
+    if (_hasStarted) return 'resources.audio.resume'.tr();
+    return 'resources.action.play_audio'.tr();
+  }
+
+  String _formatDuration(Duration value) {
+    final minutes = value.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = value.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
   }
 }

@@ -436,7 +436,7 @@ class _MedicoAppBar extends StatelessWidget {
         color: MedicoTokens.paper,
         border: Border(bottom: BorderSide(color: MedicoTokens.ink150)),
       ),
-      padding: const EdgeInsets.fromLTRB(18, 8, 18, 14),
+      padding: const EdgeInsets.fromLTRB(18, 0, 18, 8),
       child: Row(
         children: [
           _circleBtn(
@@ -449,15 +449,15 @@ class _MedicoAppBar extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'profile.medical_info.appbar.eyebrow'.tr(),
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: MedicoTokens.ink400,
-                    letterSpacing: 1.32,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                // Text(
+                //   'profile.medical_info.appbar.eyebrow'.tr(),
+                //   style: const TextStyle(
+                //     fontSize: 11,
+                //     color: MedicoTokens.ink400,
+                //     letterSpacing: 1.32,
+                //     fontWeight: FontWeight.w600,
+                //   ),
+                // ),
                 const SizedBox(height: 1),
                 Text(
                   'profile.medical_info.title'.tr(),

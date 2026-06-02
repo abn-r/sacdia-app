@@ -8,7 +8,7 @@ abstract class MonthlyReportsRepository {
   /// Preview del informe para un mes/año dado.
   /// GET /api/v1/monthly-reports/preview/:enrollmentId?month=&year=
   Future<Either<Failure, MonthlyReportPreview>> getPreview(
-    int enrollmentId, {
+    String enrollmentId, {
     required int month,
     required int year,
     CancelToken? cancelToken,
@@ -17,13 +17,38 @@ abstract class MonthlyReportsRepository {
   /// Lista de informes de un enrollment.
   /// GET /api/v1/monthly-reports/enrollment/:enrollmentId
   Future<Either<Failure, List<MonthlyReport>>> getReportsByEnrollment(
-      int enrollmentId,
+      String enrollmentId,
       {CancelToken? cancelToken});
 
   /// Detalle de un informe.
   /// GET /api/v1/monthly-reports/:reportId
-  Future<Either<Failure, MonthlyReport>> getReportDetail(int reportId,
+  Future<Either<Failure, MonthlyReport>> getReportDetail(String reportId,
       {CancelToken? cancelToken});
+
+  /// Obtiene o crea el borrador de un informe mensual.
+  /// POST /api/v1/monthly-reports/:enrollmentId?month=&year=
+  Future<Either<Failure, MonthlyReport>> getOrCreateDraft(
+    String enrollmentId, {
+    required int month,
+    required int year,
+    CancelToken? cancelToken,
+  });
+
+  /// Guarda los campos manuales del informe.
+  /// PATCH /api/v1/monthly-reports/:reportId/manual-data
+  Future<Either<Failure, MonthlyReport>> updateManualData(
+    String reportId,
+    MonthlyReportManualData manualData, {
+    CancelToken? cancelToken,
+  });
+
+  /// Listado jerárquico de reportes visibles para el usuario autenticado.
+  /// GET /api/v1/monthly-reports/admin/list
+  Future<Either<Failure, VisibleMonthlyReportsPage>> getVisibleReports({
+    int page,
+    int limit,
+    CancelToken? cancelToken,
+  });
 
   /// Downloads the monthly report PDF via the authenticated HTTP client and
   /// returns the local file path of the saved temporary file.
@@ -33,6 +58,6 @@ abstract class MonthlyReportsRepository {
   /// This call is intentionally separate from getReportDetail because the
   /// detail response contains no pdfUrl field; the PDF is generated on demand
   /// server-side.
-  Future<Either<Failure, String>> downloadReportPdf(int reportId,
+  Future<Either<Failure, String>> downloadReportPdf(String reportId,
       {CancelToken? cancelToken});
 }

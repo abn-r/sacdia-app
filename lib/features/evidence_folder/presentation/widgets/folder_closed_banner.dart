@@ -5,7 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/evidence_folder.dart';
 
-/// Banner prominente que se muestra cuando la carpeta de evidencias no está abierta.
+/// Banner prominente que se muestra cuando la Carpeta Anual de Evidencias no está abierta.
 ///
 /// Muestra dos variantes:
 /// - **evaluated** → carpeta evaluada con puntos totales y fecha.

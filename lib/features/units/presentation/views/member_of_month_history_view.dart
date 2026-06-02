@@ -73,7 +73,11 @@ class _MemberOfMonthHistoryViewState
       appBar: AppBar(
         title: Text('units.member_of_month.history_title'.tr()),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          icon: HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowLeft01,
+            color: context.sac.text,
+            size: 22,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),

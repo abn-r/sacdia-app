@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import '../../domain/entities/annual_folder.dart';
 import '../../../../core/utils/json_helpers.dart';
 
-/// Modelo de evidencia de la carpeta anual
+/// Modelo de evidencia de la Carpeta Anual de Evidencias
 class FolderEvidenceModel extends Equatable {
   final int id;
   final int folderId;
@@ -53,7 +53,7 @@ class FolderEvidenceModel extends Equatable {
       [id, folderId, sectionId, fileUrl, fileName, notes, uploadedAt];
 }
 
-/// Modelo de sección de la carpeta anual
+/// Modelo de sección de la Carpeta Anual de Evidencias
 class FolderSectionModel extends Equatable {
   final int id;
   final String name;
@@ -92,7 +92,7 @@ class FolderSectionModel extends Equatable {
   List<Object?> get props => [id, name, description, evidences];
 }
 
-/// Modelo de la carpeta anual
+/// Modelo de la Carpeta Anual de Evidencias
 class AnnualFolderModel extends Equatable {
   final int id;
   final int enrollmentId;

@@ -288,6 +288,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
         secretaryId: _secretary!.userId,
         advisorId: _advisor!.userId,
         substituteAdvisorId: _substituteAdvisor?.userId,
+        memberUserIds: memberIds,
       );
     } else {
       // clubTypeId and clubSectionId are resolved inside the notifier

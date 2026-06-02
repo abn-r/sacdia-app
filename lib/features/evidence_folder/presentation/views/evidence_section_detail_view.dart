@@ -44,6 +44,8 @@ class EvidenceSectionDetailView extends ConsumerStatefulWidget {
 
 class _EvidenceSectionDetailViewState
     extends ConsumerState<EvidenceSectionDetailView> {
+  final _stagingManagerKey = GlobalKey<EvidenceStagingManagerState>();
+
   /// Tracks whether there are locally staged files (for PopScope).
   bool _hasUnsavedFiles = false;
 
@@ -113,6 +115,23 @@ class _EvidenceSectionDetailViewState
             const SizedBox(width: 16),
           ],
         ),
+        bottomNavigationBar: canModify
+            ? EvidenceStagingActionBar(
+                onPickImages: () {
+                  _stagingManagerKey.currentState?.pickImages();
+                },
+                onPickPdfs: () {
+                  _stagingManagerKey.currentState?.pickPdfs();
+                },
+                onSubmit: () {
+                  _stagingManagerKey.currentState?.submitForValidation();
+                },
+                canSubmit: _canSubmitFromStagingManager(canModify),
+                isLoading: notifierState.isLoading ||
+                    (_stagingManagerKey.currentState?.isLoadingForActionBar ??
+                        false),
+              )
+            : null,
         body: Stack(
           children: [
             SingleChildScrollView(
@@ -221,7 +240,9 @@ class _EvidenceSectionDetailViewState
                   // EvidenceStagingManager en modo embebido — crece con su
                   // contenido sin reclamar su propia área de scroll.
                   EvidenceStagingManager(
+                    key: _stagingManagerKey,
                     embeddedMode: true,
+                    showActionBar: false,
                     existingFiles: widget.section.files
                         .map(StagedFile.fromEvidenceFile)
                         .toList(),
@@ -230,6 +251,9 @@ class _EvidenceSectionDetailViewState
                     canModify: canModify,
                     onLocalFilesChanged: (hasLocal) {
                       setState(() => _hasUnsavedFiles = hasLocal);
+                    },
+                    onActionStateChanged: () {
+                      if (mounted) setState(() {});
                     },
                     // C-1: Pass onProgress to the notifier so Dio
                     // reports progress.
@@ -331,6 +355,15 @@ class _EvidenceSectionDetailViewState
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
+
+  bool _canSubmitFromStagingManager(bool canModify) {
+    final stagingState = _stagingManagerKey.currentState;
+    if (stagingState != null) return stagingState.canSubmitForActionBar;
+
+    return canModify &&
+        widget.section.files.isNotEmpty &&
+        widget.section.files.length <= widget.section.maxFiles;
+  }
 
   void _showErrorSnackbar(BuildContext context, String message) {
     if (!mounted) return;

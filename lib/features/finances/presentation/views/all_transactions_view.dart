@@ -6,6 +6,7 @@ import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_loading.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
 import '../../domain/entities/transaction.dart';
 import '../providers/finances_providers.dart';
 import '../widgets/date_group_header.dart';
@@ -148,18 +149,34 @@ class _AllTransactionsViewState extends ConsumerState<AllTransactionsView> {
 
     return Scaffold(
       backgroundColor: context.sac.background,
+      appBar: SacTopBar(
+        title: 'finances.all_transactions.title'.tr(),
+        subtitle: rangeLabel,
+        actions: [
+          IconButton(
+            onPressed: _openSortSheet,
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedSortByDown02,
+              size: 22,
+              color: context.sac.textSecondary,
+            ),
+          ),
+          IconButton(
+            onPressed: _openRangeSheet,
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedCalendar03,
+              size: 22,
+              color: context.sac.textSecondary,
+            ),
+          ),
+        ],
+      ),
       floatingActionButton: showFab ? _AddFab(onTap: _openAddSheet) : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: SafeArea(
+        top: false,
         child: Column(
           children: [
-            // ── Custom App Bar ────────────────────────────────────────
-            _AllTransactionsAppBar(
-              rangeLabel: rangeLabel,
-              onSortTap: _openSortSheet,
-              onRangeTap: _openRangeSheet,
-            ),
-
             // ── Search field (always visible) ─────────────────────────
             TransactionSearchField(
               initialValue: txState.filter.search ?? '',
@@ -194,83 +211,6 @@ class _AllTransactionsViewState extends ConsumerState<AllTransactionsView> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// ── App Bar ────────────────────────────────────────────────────────────────────
-
-class _AllTransactionsAppBar extends StatelessWidget {
-  final String rangeLabel;
-  final VoidCallback onSortTap;
-  final VoidCallback onRangeTap;
-
-  const _AllTransactionsAppBar({
-    required this.rangeLabel,
-    required this.onSortTap,
-    required this.onRangeTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: context.sac.background,
-      padding: const EdgeInsets.only(right: 8),
-      child: Row(
-        children: [
-          // Back button
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedArrowLeft01,
-              size: 22,
-              color: context.sac.text,
-            ),
-          ),
-          // Title + range subtitle
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'finances.all_transactions.title'.tr(),
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: context.sac.text,
-                  ),
-                ),
-                Text(
-                  rangeLabel,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    color: context.sac.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Sort icon
-          IconButton(
-            onPressed: onSortTap,
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedSortByDown02,
-              size: 22,
-              color: context.sac.textSecondary,
-            ),
-          ),
-          // Range icon
-          IconButton(
-            onPressed: onRangeTap,
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedCalendar03,
-              size: 22,
-              color: context.sac.textSecondary,
-            ),
-          ),
-        ],
       ),
     );
   }

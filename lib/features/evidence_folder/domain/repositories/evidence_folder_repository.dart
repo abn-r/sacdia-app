@@ -5,12 +5,12 @@ import '../../../../core/errors/failures.dart';
 import '../entities/evidence_folder.dart';
 import '../entities/evidence_file.dart';
 
-/// Contrato del repositorio de Carpeta de Evidencias.
+/// Contrato del repositorio de Carpeta Anual de Evidencias.
 ///
 /// Todas las operaciones devuelven [Either<Failure, T>] para manejar
 /// errores de forma funcional sin excepciones sin tratar.
 abstract class EvidenceFolderRepository {
-  /// Obtiene la carpeta de evidencias de una sección de club.
+  /// Obtiene la Carpeta Anual de Evidencias de una sección de club.
   ///
   /// Retorna `Right(null)` cuando la carpeta aún no fue creada (estado de
   /// negocio válido). Retorna `Left(Failure)` solo para errores reales.
@@ -27,7 +27,7 @@ abstract class EvidenceFolderRepository {
   /// Envía una sección individual a validación.
   ///
   /// [folderId] es el UUID de annual_folder_id.
-  /// [sectionId] es el UUID de la sección dentro de la carpeta anual.
+  /// [sectionId] es el UUID de la sección dentro de la Carpeta Anual de Evidencias.
   Future<Either<Failure, void>> submitSection({
     required String folderId,
     required String sectionId,
@@ -36,7 +36,7 @@ abstract class EvidenceFolderRepository {
   /// Sube un archivo de evidencia a la sección especificada.
   ///
   /// [folderId] es el UUID de annual_folder_id (necesario para la URL).
-  /// [sectionId] es el UUID de la sección dentro de la carpeta anual.
+  /// [sectionId] es el UUID de la sección dentro de la Carpeta Anual de Evidencias.
   /// [filePath] es la ruta local del archivo en el dispositivo.
   /// [fileName] es el nombre de archivo a usar en Storage.
   /// [mimeType] se usa para determinar si es imagen o PDF.

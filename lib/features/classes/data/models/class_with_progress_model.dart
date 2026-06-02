@@ -10,6 +10,7 @@ class ClassWithProgressModel extends ClassWithProgress {
     super.description,
     required super.clubTypeId,
     super.imageUrl,
+    super.enrollmentId,
     super.investitureStatus,
     super.availableFromYearId,
     super.availableUntilYearId,
@@ -32,6 +33,8 @@ class ClassWithProgressModel extends ClassWithProgress {
       description: json['description']?.toString(),
       clubTypeId: safeInt(json['club_type_id'] ?? json['clubTypeId']),
       imageUrl: json['image_url']?.toString() ?? json['imageUrl']?.toString(),
+      enrollmentId:
+          safeIntOrNull(json['enrollment_id'] ?? json['enrollmentId']),
       investitureStatus: json['investiture_status']?.toString() ??
           json['investitureStatus']?.toString(),
       availableFromYearId: safeIntOrNull(
@@ -52,6 +55,7 @@ class ClassWithProgressModel extends ClassWithProgress {
         description: description,
         clubTypeId: clubTypeId,
         imageUrl: imageUrl,
+        enrollmentId: enrollmentId,
         investitureStatus: investitureStatus,
         availableFromYearId: availableFromYearId,
         availableUntilYearId: availableUntilYearId,

@@ -99,48 +99,59 @@ class _FilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
+    final radius = BorderRadius.circular(AppTheme.radiusFull);
 
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive ? AppColors.primary : c.surface,
-          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-          border: Border.all(
-            color: isActive ? AppColors.primary : c.border,
-            width: 1.2,
-          ),
-          boxShadow: isActive
-              ? [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.25),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            HugeIcon(
-              icon: filter.icon,
-              size: 15,
-              color: isActive ? Colors.white : c.textSecondary,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              filter.label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: isActive ? Colors.white : c.textSecondary,
+    return Semantics(
+      button: true,
+      selected: isActive,
+      label: filter.label,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: radius,
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            constraints: const BoxConstraints(minHeight: 44),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: isActive ? AppColors.primary : c.surface,
+              borderRadius: radius,
+              border: Border.all(
+                color: isActive ? AppColors.primary : c.border,
+                width: 1.2,
               ),
+              boxShadow: isActive
+                  ? [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.25),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ]
+                  : null,
             ),
-          ],
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                HugeIcon(
+                  icon: filter.icon,
+                  size: 15,
+                  color: isActive ? Colors.white : c.textSecondary,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  filter.label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: isActive ? Colors.white : c.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

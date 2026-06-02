@@ -6,26 +6,46 @@ import 'package:path_provider/path_provider.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../../domain/entities/monthly_report.dart';
 import '../models/monthly_report_model.dart';
 
 /// Interfaz para el data source remoto de informes mensuales
 abstract class MonthlyReportsRemoteDataSource {
   Future<MonthlyReportPreviewModel> getPreview(
-    int enrollmentId, {
+    String enrollmentId, {
     required int month,
     required int year,
     CancelToken? cancelToken,
   });
 
-  Future<List<MonthlyReportModel>> getReportsByEnrollment(int enrollmentId,
+  Future<List<MonthlyReportModel>> getReportsByEnrollment(String enrollmentId,
       {CancelToken? cancelToken});
 
-  Future<MonthlyReportModel> getReportDetail(int reportId,
+  Future<MonthlyReportModel> getReportDetail(String reportId,
       {CancelToken? cancelToken});
+
+  Future<MonthlyReportModel> getOrCreateDraft(
+    String enrollmentId, {
+    required int month,
+    required int year,
+    CancelToken? cancelToken,
+  });
+
+  Future<MonthlyReportModel> updateManualData(
+    String reportId,
+    MonthlyReportManualData manualData, {
+    CancelToken? cancelToken,
+  });
+
+  Future<VisibleMonthlyReportsPageModel> getVisibleReports({
+    int page = 1,
+    int limit = 25,
+    CancelToken? cancelToken,
+  });
 
   /// Descarga el PDF del informe usando el cliente autenticado y devuelve
   /// la ruta local del archivo temporal.
-  Future<String> downloadReportPdf(int reportId, {CancelToken? cancelToken});
+  Future<String> downloadReportPdf(String reportId, {CancelToken? cancelToken});
 }
 
 /// Implementación del data source remoto de informes mensuales
@@ -88,7 +108,7 @@ class MonthlyReportsRemoteDataSourceImpl
 
   @override
   Future<MonthlyReportPreviewModel> getPreview(
-    int enrollmentId, {
+    String enrollmentId, {
     required int month,
     required int year,
     CancelToken? cancelToken,
@@ -117,7 +137,7 @@ class MonthlyReportsRemoteDataSourceImpl
   // ── GET /api/v1/monthly-reports/enrollment/:enrollmentId ────────────────
 
   @override
-  Future<List<MonthlyReportModel>> getReportsByEnrollment(int enrollmentId,
+  Future<List<MonthlyReportModel>> getReportsByEnrollment(String enrollmentId,
       {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
@@ -143,7 +163,7 @@ class MonthlyReportsRemoteDataSourceImpl
   // ── GET /api/v1/monthly-reports/:reportId ────────────────────────────────
 
   @override
-  Future<MonthlyReportModel> getReportDetail(int reportId,
+  Future<MonthlyReportModel> getReportDetail(String reportId,
       {CancelToken? cancelToken}) async {
     try {
       final response = await _dio.get(
@@ -165,10 +185,100 @@ class MonthlyReportsRemoteDataSourceImpl
     }
   }
 
+  // ── POST /api/v1/monthly-reports/:enrollmentId ─────────────────────────────
+
+  @override
+  Future<MonthlyReportModel> getOrCreateDraft(
+    String enrollmentId, {
+    required int month,
+    required int year,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.monthlyReports}/$enrollmentId',
+        queryParameters: {'month': month, 'year': year},
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return MonthlyReportModel.fromJson(_unwrapData(response.data));
+      }
+
+      throw ServerException(
+          message: tr('monthly_reports.errors.create_draft'),
+          code: response.statusCode);
+    } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
+      AppLogger.e('Error en getOrCreateDraft', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── PATCH /api/v1/monthly-reports/:reportId/manual-data ───────────────────
+
+  @override
+  Future<MonthlyReportModel> updateManualData(
+    String reportId,
+    MonthlyReportManualData manualData, {
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.patch(
+        '$_baseUrl${ApiEndpoints.monthlyReports}/$reportId/manual-data',
+        data: manualData.toJson(),
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return MonthlyReportModel.fromJson(_unwrapData(response.data));
+      }
+
+      throw ServerException(
+          message: tr('monthly_reports.errors.save_manual_data'),
+          code: response.statusCode);
+    } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
+      AppLogger.e('Error en updateManualData', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /api/v1/monthly-reports/admin/list ───────────────────────────────
+
+  @override
+  Future<VisibleMonthlyReportsPageModel> getVisibleReports({
+    int page = 1,
+    int limit = 25,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.monthlyReports}/admin/list',
+        queryParameters: {'page': page, 'limit': limit},
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return VisibleMonthlyReportsPageModel.fromJson(
+          _unwrapData(response.data),
+        );
+      }
+
+      throw ServerException(
+          message: tr('monthly_reports.errors.fetch_list'),
+          code: response.statusCode);
+    } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
+      AppLogger.e('Error en getVisibleReports', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
   // ── GET /api/v1/monthly-reports/:reportId/pdf ────────────────────────────
 
   @override
-  Future<String> downloadReportPdf(int reportId,
+  Future<String> downloadReportPdf(String reportId,
       {CancelToken? cancelToken}) async {
     try {
       final dir = await getTemporaryDirectory();

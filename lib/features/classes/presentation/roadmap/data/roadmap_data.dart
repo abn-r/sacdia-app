@@ -17,6 +17,7 @@ class ClassItem {
   final String age;
   final String img; // ej: 'assets/img/logos-clases/AV-01.png'
   final ClassStatus status;
+  final int? enrollmentId;
   final double? progress; // 0..100, solo para 'current'
 
   const ClassItem({
@@ -25,6 +26,7 @@ class ClassItem {
     required this.age,
     required this.img,
     required this.status,
+    this.enrollmentId,
     this.progress,
   });
 }

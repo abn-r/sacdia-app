@@ -1,45 +1,21 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/sac_card.dart';
 import '../../domain/entities/award_tier.dart';
 
-/// Fila de ranking de un miembro dentro de su sección.
+/// Fila-card de ranking de un miembro dentro de su sección.
 ///
-/// Layout:
-/// ```
-/// [rank 32dp]  [nombre + sección opcional]     [score badge]
-/// ```
-///
-/// Reglas visuales (según spec Task 26 / ui-ux-designer locked):
-/// - Top 3: posición en `headlineSmall` 18px w700 `sac.text`.
-/// - Resto:  posición en `titleSmall`   14px w500 `sac.textTertiary`.
-/// - Score badge: 48×24dp, border-radius 6, bg = tier @ 12%, border = tier @ 40%.
-/// - Sin score → bg = borderLight, text = textSecondary, guión "—".
-///
-/// NO usa [ListTile] nativo — el padding/height de ListTile no respeta el
-/// mínimo de 56dp sin comprometer la especificación visual.
+/// Diseño mobile-first: target táctil ≥64dp, jerarquía clara, score visible y
+/// sin depender de hover/gestos ocultos.
 class MemberRankingListTile extends StatelessWidget {
-  /// Posición 1-based del miembro en el ranking.
   final int rankPosition;
-
-  /// Nombre real del miembro (vista de director — server-side RBAC).
   final String memberName;
-
-  /// Nombre de la sección (opcional — solo se muestra si no es null).
   final String? sectionName;
-
-  /// Puntaje compuesto 0-100 con un decimal. Null si aún no calculado.
   final double? compositeScore;
-
-  /// Nombre de la categoría premiada (e.g. "Oro", "Plata"). Null si no asignada.
   final String? awardedCategoryName;
-
-  /// Tier tipado de la categoría — determina el color del score badge.
-  /// [AwardTier.unknown] cuando no hay categoría asignada (color neutro).
   final AwardTier awardedCategoryTier;
-
-  /// Optional tap callback — wired by [SectionRankingScreen] to push the
-  /// breakdown drill-down for this member.
   final VoidCallback? onTap;
 
   const MemberRankingListTile({
@@ -53,14 +29,13 @@ class MemberRankingListTile extends StatelessWidget {
     this.onTap,
   });
 
-  /// Resuelve el color del tier para el score badge desde el campo tipado.
-  /// Usa los mismos valores hex que [achievementTierColor] para consistencia visual.
-  Color _tierColor() {
+  Color _tierColor(BuildContext context) {
+    if (awardedCategoryTier == AwardTier.unknown) {
+      return context.sac.textTertiary;
+    }
     return awardedCategoryTier.color;
   }
 
-  /// Formatea el puntaje con 1 decimal fijo para alineación de columna.
-  // always 1 decimal — list column alignment vs single-value emphasis
   String _formatScore(double score) {
     return score.toStringAsFixed(1);
   }
@@ -68,148 +43,212 @@ class MemberRankingListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final tierColor = _tierColor();
+    final tierColor = _tierColor(context);
+    final hasScore = compositeScore != null;
     final isTop3 = rankPosition <= 3;
+    final scoreLabel = hasScore ? _formatScore(compositeScore!) : '—';
+    final progressValue =
+        hasScore ? (compositeScore! / 100).clamp(0.0, 1.0) : 0.0;
 
-    // Label de accesibilidad completo para VoiceOver/TalkBack.
-    final semanticsLabel = [
-      'Posición $rankPosition',
-      memberName,
-      if (sectionName != null) 'sección $sectionName',
-      compositeScore != null
-          ? 'puntaje ${_formatScore(compositeScore!)}'
-          : 'puntaje no disponible',
-      if (awardedCategoryName != null) 'categoría $awardedCategoryName',
-    ].join(', ');
-
-    final tile = Semantics(
-      label: semanticsLabel,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 56),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // ── Columna de posición ────────────────────────────────────
-            SizedBox(
-              width: 32,
-              child: Text(
-                '#$rankPosition',
-                textAlign: TextAlign.center,
-                style: isTop3
-                    ? (Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: c.text,
-                            ) ??
-                        const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w700))
-                    : (Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: c.textTertiary,
-                            ) ??
-                        const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w500)),
-              ),
-            ),
-
-            const SizedBox(width: 12),
-
-            // ── Columna central: nombre + sección ─────────────────────
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    memberName,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: c.text,
-                        ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (sectionName != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      sectionName!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: c.textTertiary,
-                          ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-
-            const SizedBox(width: 8),
-
-            // ── Score badge ───────────────────────────────────────────
-            _ScoreBadge(
-              score: compositeScore,
-              tierColor: tierColor,
-              formatScore: _formatScore,
-            ),
-          ],
-        ),
-      ),
+    final semanticsLabel = tr(
+      'rankings.section_ranking.member_semantics',
+      namedArgs: {
+        'position': rankPosition.toString(),
+        'name': memberName,
+        'score': hasScore
+            ? scoreLabel
+            : tr('rankings.section_ranking.score_unavailable'),
+        'section':
+            sectionName ?? tr('rankings.section_ranking.section_unknown'),
+      },
     );
 
-    if (onTap == null) return tile;
-
-    return InkWell(
-      onTap: onTap,
-      child: tile,
+    return Semantics(
+      button: onTap != null,
+      label: semanticsLabel,
+      child: SacCard(
+        onTap: onTap,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: const EdgeInsets.all(14),
+        borderColor: isTop3 ? tierColor.withValues(alpha: 0.35) : null,
+        backgroundColor: c.surface,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 72),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _RankBadge(
+                    rankPosition: rankPosition,
+                    color: isTop3 ? tierColor : c.border,
+                    foreground: isTop3 ? Colors.white : c.textSecondary,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          memberName,
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: c.text,
+                                  ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          sectionName ??
+                              tr('rankings.section_ranking.section_unknown'),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: c.textSecondary,
+                                  ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  _ScoreBadge(
+                    label: scoreLabel,
+                    color: tierColor,
+                    hasScore: hasScore,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: LinearProgressIndicator(
+                  value: progressValue,
+                  minHeight: 7,
+                  backgroundColor: c.borderLight,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    hasScore ? tierColor : c.textTertiary,
+                  ),
+                ),
+              ),
+              if (awardedCategoryName != null) ...[
+                const SizedBox(height: 10),
+                _CategoryChip(name: awardedCategoryName!, color: tierColor),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
 
-// ── Score badge ───────────────────────────────────────────────────────────────
+class _RankBadge extends StatelessWidget {
+  final int rankPosition;
+  final Color color;
+  final Color foreground;
+
+  const _RankBadge({
+    required this.rankPosition,
+    required this.color,
+    required this.foreground,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 42,
+      height: 42,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Text(
+        '#$rankPosition',
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: foreground,
+              fontWeight: FontWeight.w800,
+            ),
+      ),
+    );
+  }
+}
 
 class _ScoreBadge extends StatelessWidget {
-  final double? score;
-  final Color tierColor;
-  final String Function(double) formatScore;
+  final String label;
+  final Color color;
+  final bool hasScore;
 
   const _ScoreBadge({
-    required this.score,
-    required this.tierColor,
-    required this.formatScore,
+    required this.label,
+    required this.color,
+    required this.hasScore,
   });
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final hasScore = score != null;
-
-    final bgColor =
-        hasScore ? tierColor.withValues(alpha: 0.12) : c.borderLight;
-    final borderColor =
-        hasScore ? tierColor.withValues(alpha: 0.40) : c.borderLight;
-    final textColor = hasScore ? tierColor : c.textSecondary;
-    final label = hasScore ? formatScore(score!) : '—';
 
     return Container(
-      width: 48,
-      height: 24,
+      constraints: const BoxConstraints(minWidth: 58, minHeight: 36),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: borderColor, width: 1),
+        color: hasScore ? color.withValues(alpha: 0.12) : c.borderLight,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: hasScore ? color.withValues(alpha: 0.35) : c.border,
+        ),
       ),
-      alignment: Alignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: hasScore ? color : c.textSecondary,
+                ),
+          ),
+          Text(
+            tr('rankings.section_ranking.score_short'),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  fontSize: 9,
+                  color: c.textTertiary,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CategoryChip extends StatelessWidget {
+  final String name;
+  final Color color;
+
+  const _CategoryChip({required this.name, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
       child: Text(
-        label,
+        name,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: color,
               fontWeight: FontWeight.w700,
-              color: textColor,
             ),
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
       ),
     );
   }

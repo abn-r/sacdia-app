@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:secure_application/secure_application_native.dart';
 
@@ -7,8 +10,8 @@ import 'package:secure_application/secure_application_native.dart';
 ///   tree. Prevents screenshots, screen recording, and Recents thumbnails.
 ///   Satisfies MASVS-PLATFORM-3.
 /// - iOS: blurs the app snapshot shown in the app-switcher whenever the
-///   screen goes to background while this screen is mounted. Removes blur
-///   when the screen is disposed (user navigated away).
+///   screen goes to background while this screen is mounted. Removes the
+///   native blur when the app resumes or when the screen is disposed.
 ///
 /// The protection is scoped to the lifetime of this widget — it activates
 /// on [initState] and is released on [dispose], so non-sensitive screens
@@ -36,22 +39,72 @@ class SecureScreen extends StatefulWidget {
   State<SecureScreen> createState() => _SecureScreenState();
 }
 
-class _SecureScreenState extends State<SecureScreen> {
+class _SecureScreenState extends State<SecureScreen>
+    with WidgetsBindingObserver {
+  static int _activeSecureScreenCount = 0;
+
   @override
   void initState() {
     super.initState();
-    // Activates FLAG_SECURE (Android) and iOS app-switcher blur immediately.
-    SecureApplicationNative.secure();
+    WidgetsBinding.instance.addObserver(this);
+    _activeSecureScreenCount += 1;
+
+    // Clear any stale native overlay that may have survived an app resume/hot
+    // restart, then keep the current screen protected for the next background.
+    if (_activeSecureScreenCount == 1) {
+      _invokeNative('unlock', SecureApplicationNative.unlock);
+    }
+    _invokeNative('secure', SecureApplicationNative.secure);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+
+    // secure_application adds the iOS blur in applicationWillResignActive, but
+    // its low-level native API does not remove it automatically on resume.
+    // Removing it here fixes the "white/dimmed screen" after opening external
+    // apps (tel:, sms:, browser, maps, etc.) while keeping protection enabled.
+    _invokeNative('unlock', SecureApplicationNative.unlock);
+    if (_activeSecureScreenCount > 0) {
+      _invokeNative('secure', SecureApplicationNative.secure);
+    }
   }
 
   @override
   void dispose() {
-    // Lifts the FLAG_SECURE / blur when navigating away from this screen so
-    // non-sensitive screens are not affected.
-    SecureApplicationNative.open();
+    WidgetsBinding.instance.removeObserver(this);
+    if (_activeSecureScreenCount > 0) {
+      _activeSecureScreenCount -= 1;
+    }
+
+    // Remove the native overlay even when this route is destroyed while the
+    // blur is visible. Only disable protection after the last SecureScreen
+    // leaves the tree, because secure screens may be nested.
+    _invokeNative('unlock', SecureApplicationNative.unlock);
+    if (_activeSecureScreenCount == 0) {
+      _invokeNative('open', SecureApplicationNative.open);
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) => widget.child;
+
+  void _invokeNative(String action, Future<dynamic> Function() call) {
+    unawaited(_invokeNativeSafely(action, call));
+  }
+
+  Future<void> _invokeNativeSafely(
+    String action,
+    Future<dynamic> Function() call,
+  ) async {
+    try {
+      await call();
+    } catch (error) {
+      if (kDebugMode) {
+        debugPrint('SecureScreen native $action failed: $error');
+      }
+    }
+  }
 }

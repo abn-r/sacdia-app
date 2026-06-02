@@ -39,7 +39,7 @@ class EvidenceFolderModel extends EvidenceFolder {
     final name = (template?['name'] ??
             json['name'] ??
             json['folder_name'] ??
-            'Carpeta de Evidencias')
+            'Carpeta Anual de Evidencias')
         .toString();
 
     // ── Status ────────────────────────────────────────────────────────────────

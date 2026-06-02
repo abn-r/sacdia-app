@@ -18,7 +18,7 @@ import '../widgets/folder_closed_banner.dart';
 import '../widgets/section_card.dart';
 import 'evidence_section_detail_view.dart';
 
-/// Vista principal de la carpeta de evidencias.
+/// Vista principal de la Carpeta Anual de Evidencias.
 ///
 /// Muestra el encabezado de la carpeta (estado, progreso, puntos),
 /// el banner de carpeta cerrada cuando aplica, y la lista de secciones.

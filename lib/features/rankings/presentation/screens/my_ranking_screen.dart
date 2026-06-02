@@ -39,7 +39,7 @@ class MyRankingScreen extends ConsumerWidget {
     final user = ref.watch(
       authNotifierProvider.select((v) => v.valueOrNull),
     );
-    if (!hasAnyPermission(user, const {'member_rankings:read_self'})) {
+    if (!canViewMyRanking(user)) {
       return Scaffold(
         appBar: AppBar(
           title: Text(tr('rankings.my_ranking.title')),

@@ -7,6 +7,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../models/club_ranking_dto.dart';
 import '../models/member_breakdown_dto.dart';
 import '../models/member_ranking_dto.dart';
 import '../models/section_ranking_dto.dart';
@@ -59,6 +60,17 @@ abstract class RankingsRemoteDataSource {
   Future<List<SectionMemberDto>> getSectionMembers(
     int sectionId,
     int yearId, {
+    CancelToken? cancelToken,
+  });
+
+  /// `GET /annual-folders/rankings?club_type_id=[clubTypeId]&year_id=[yearId]`
+  ///
+  /// Backend scopes by RBAC when [localFieldId] is omitted.
+  Future<List<ClubRankingDto>> getClubRankings({
+    required int clubTypeId,
+    required int yearId,
+    int? localFieldId,
+    String? categoryId,
     CancelToken? cancelToken,
   });
 }
@@ -291,6 +303,53 @@ class RankingsRemoteDataSourceImpl implements RankingsRemoteDataSource {
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
       AppLogger.e('Error en getSectionMembers', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /annual-folders/rankings ───────────────────────────────────────────
+
+  @override
+  Future<List<ClubRankingDto>> getClubRankings({
+    required int clubTypeId,
+    required int yearId,
+    int? localFieldId,
+    String? categoryId,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{
+        'club_type_id': clubTypeId,
+        'year_id': yearId,
+      };
+
+      if (localFieldId != null) queryParams['local_field_id'] = localFieldId;
+      if (categoryId != null) queryParams['category_id'] = categoryId;
+
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.annualFolders}/rankings',
+        queryParameters: queryParams,
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200) {
+        final body = response.data;
+        final rawList = body is Map
+            ? (body['data'] as List<dynamic>? ?? <dynamic>[])
+            : (body as List<dynamic>? ?? <dynamic>[]);
+
+        return rawList
+            .map((e) => ClubRankingDto.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+
+      throw ServerException(
+        message: tr('rankings.club_rankings.errors.get_rankings'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) rethrow;
+      AppLogger.e('Error en getClubRankings', tag: _tag, error: e);
       _rethrow(e);
     }
   }

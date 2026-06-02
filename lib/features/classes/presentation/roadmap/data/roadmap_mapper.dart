@@ -151,6 +151,7 @@ List<TrackData> buildRoadmapTracks({
         status: enrolledCls != null
             ? _deriveStatus(enrolledCls.investitureStatus)
             : ClassStatus.locked,
+        enrollmentId: enrolledCls?.enrollmentId,
         progress: enrolledCls?.overallProgress?.toDouble(),
       );
     }).toList();

@@ -10,7 +10,6 @@ import '../../data/models/country_model.dart';
 import '../../data/models/union_model.dart';
 import '../../data/models/local_field_model.dart';
 import '../../data/models/club_model.dart';
-import '../../data/models/class_model.dart';
 import '../providers/club_selection_providers.dart';
 import '../widgets/bottom_sheet_picker.dart';
 import '../widgets/club_type_selector.dart';
@@ -394,31 +393,13 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                   return _buildEmptyText(
                       'post_registration.club_selection.no_classes'.tr());
                 }
-                final items = _toPickerItems<ClassModel>(
-                    classes, (c) => c.id, (c) => c.name);
                 return PickerField(
                   label:
                       'post_registration.club_selection.progressive_class'.tr(),
                   hint: 'post_registration.club_selection.select_class'.tr(),
                   icon: Icons.school_rounded,
                   selectedName: selectedClassName,
-                  enabled: !isSaving,
-                  onTap: () async {
-                    final picked = await showPickerSheet(
-                      context: context,
-                      title:
-                          'post_registration.club_selection.select_progressive_class'
-                              .tr(),
-                      items: items,
-                      selectedId: selectedClassId,
-                      searchHint:
-                          'post_registration.club_selection.search_class'.tr(),
-                      icon: Icons.school_rounded,
-                    );
-                    if (picked != null && picked != selectedClassId) {
-                      ref.read(selectedClassProvider.notifier).state = picked;
-                    }
-                  },
+                  enabled: false,
                 );
               },
               loading: () => PickerField(

@@ -29,7 +29,7 @@ abstract class ClubSelectionRemoteDataSource {
     required int unionId,
     required int localFieldId,
     required int clubSectionId,
-    required int classId,
+    int? classId,
   });
 }
 
@@ -246,7 +246,7 @@ class ClubSelectionRemoteDataSourceImpl
     required int unionId,
     required int localFieldId,
     required int clubSectionId,
-    required int classId,
+    int? classId,
   }) async {
     try {
       final response = await _dio.post(
@@ -256,7 +256,7 @@ class ClubSelectionRemoteDataSourceImpl
           'union_id': unionId,
           'local_field_id': localFieldId,
           'club_section_id': clubSectionId,
-          'class_id': classId,
+          if (classId != null) 'class_id': classId,
         },
       );
 

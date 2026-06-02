@@ -25,6 +25,7 @@ import '../../domain/usecases/get_weekly_records.dart';
 import '../../domain/usecases/remove_unit_member.dart';
 import '../../domain/usecases/update_unit.dart';
 import '../../domain/usecases/update_weekly_record.dart';
+import 'unit_member_delta.dart';
 
 // ── Infrastructure ─────────────────────────────────────────────────────────────
 
@@ -338,8 +339,15 @@ class UnitsNotifier extends Notifier<UnitsState> {
       clearError: true,
     );
 
+    var localFieldId = unit.localFieldId;
+
     if (unit.members.isEmpty) {
       await _loadUnitDetail(unit);
+      localFieldId = state.selectedUnit?.localFieldId ?? localFieldId;
+    }
+
+    if (localFieldId != null) {
+      await loadCategories(localFieldId);
     }
   }
 
@@ -613,6 +621,7 @@ class UnitsNotifier extends Notifier<UnitsState> {
     String? substituteAdvisorId,
     int? clubTypeId,
     int? clubSectionId,
+    List<String>? memberUserIds,
   }) async {
     final ctx = await ref.read(clubContextProvider.future);
     if (ctx == null) return false;
@@ -634,12 +643,24 @@ class UnitsNotifier extends Notifier<UnitsState> {
 
     bool success = false;
 
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: failure.message,
-      ),
-      (_) => success = true,
+    await result.fold<Future<void>>(
+      (failure) async {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+        );
+      },
+      (_) async {
+        if (memberUserIds != null) {
+          success = await _reconcileUnitMembers(
+            ctx.clubId,
+            unitId,
+            memberUserIds,
+          );
+        } else {
+          success = true;
+        }
+      },
     );
 
     if (success) {
@@ -647,6 +668,63 @@ class UnitsNotifier extends Notifier<UnitsState> {
     }
 
     return success;
+  }
+
+  Future<bool> _reconcileUnitMembers(
+    int clubId,
+    int unitId,
+    List<String> desiredUserIds,
+  ) async {
+    final currentUnit = selectUnitForMemberDelta(
+      units: state.units,
+      selectedUnit: state.selectedUnit,
+      unitId: unitId,
+    );
+
+    final delta = computeUnitMemberDelta(
+      currentMembers: currentUnit?.members ?? const [],
+      desiredUserIds: desiredUserIds,
+    );
+
+    if (delta.isEmpty) return true;
+
+    var ok = true;
+    final addMember = ref.read(addUnitMemberUseCaseProvider);
+    final removeMember = ref.read(removeUnitMemberUseCaseProvider);
+
+    for (final userId in delta.userIdsToAdd) {
+      final result = await addMember.call(AddUnitMemberParams(
+        clubId: clubId,
+        unitId: unitId,
+        userId: userId,
+      ));
+      result.fold((failure) {
+        ok = false;
+        state = state.copyWith(errorMessage: failure.message);
+      }, (_) {});
+    }
+
+    for (final member in delta.membersToRemove) {
+      final memberId = member.unitMemberId;
+      if (memberId == null) {
+        ok = false;
+        state = state.copyWith(
+          errorMessage: 'units.errors.remove_member'.tr(),
+        );
+        continue;
+      }
+      final result = await removeMember.call(RemoveUnitMemberParams(
+        clubId: clubId,
+        unitId: unitId,
+        memberId: memberId,
+      ));
+      result.fold((failure) {
+        ok = false;
+        state = state.copyWith(errorMessage: failure.message);
+      }, (_) {});
+    }
+
+    return ok;
   }
 
   /// Elimina (soft-delete) una unidad del club.

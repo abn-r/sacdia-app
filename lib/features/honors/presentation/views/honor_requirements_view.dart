@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -561,10 +562,10 @@ class _DarkHeader extends StatelessWidget {
                 },
                 child: const Padding(
                   padding: EdgeInsets.only(right: 12, top: 4, bottom: 4),
-                  child: Icon(
-                    Icons.arrow_back_ios_new_rounded,
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowLeft01,
                     color: Colors.white,
-                    size: 20,
+                    size: 22,
                   ),
                 ),
               ),

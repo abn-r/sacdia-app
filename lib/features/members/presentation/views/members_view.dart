@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_top_bar.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 
@@ -69,91 +70,40 @@ class _MembersViewState extends ConsumerState<MembersView>
 
     return Scaffold(
       backgroundColor: c.background,
+      appBar: SacTopBar(
+        title: 'members.view.title'.tr(),
+        onBack: () => Navigator.of(context).maybePop(),
+        titleIcon: HugeIcon(
+          icon: HugeIcons.strokeRoundedUserList,
+          size: 22,
+          color: AppColors.primary,
+        ),
+        actions: [
+          IconButton(
+            onPressed: membersAsync.isLoading
+                ? null
+                : () => ref.read(membersNotifierProvider.notifier).refresh(),
+            icon: membersAsync.isLoading
+                ? SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: c.textTertiary,
+                    ),
+                  )
+                : HugeIcon(
+                    icon: HugeIcons.strokeRoundedRefresh,
+                    color: c.textTertiary,
+                    size: 18,
+                  ),
+          ),
+        ],
+      ),
       body: SafeArea(
+        top: false,
         child: Column(
           children: [
-            // ── App bar ────────────────────────────────────────────────
-            Padding(
-              padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 4),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: HugeIcon(
-                      icon: HugeIcons.strokeRoundedArrowLeft01,
-                      color: c.text,
-                      size: 24,
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                    tooltip: 'common.back'.tr(),
-                  ),
-                  const SizedBox(width: 10),
-                  Container(
-                    padding: const EdgeInsets.all(9),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryLight,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedUserList,
-                      size: 22,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'members.view.title'.tr(),
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineSmall
-                        ?.copyWith(color: c.text),
-                  ),
-                  const Spacer(),
-                  // Refresh button
-                  SizedBox(
-                    width: 44,
-                    height: 44,
-                    child: Material(
-                      color: c.surface,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: BorderSide(color: c.border),
-                      ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(10),
-                        onTap: membersAsync.isLoading
-                            ? null
-                            : () {
-                                ref
-                                    .read(membersNotifierProvider.notifier)
-                                    .refresh();
-                              },
-                        child: Semantics(
-                          label: 'common.retry'.tr(),
-                          button: true,
-                          child: Center(
-                            child: membersAsync.isLoading
-                                ? SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: c.textTertiary,
-                                    ),
-                                  )
-                                : HugeIcon(
-                                    icon: HugeIcons.strokeRoundedRefresh,
-                                    color: c.textTertiary,
-                                    size: 18,
-                                  ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
             // ── Tab bar ────────────────────────────────────────────────
             Padding(
               padding: EdgeInsets.symmetric(horizontal: hPad, vertical: 8),

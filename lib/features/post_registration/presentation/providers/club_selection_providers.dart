@@ -255,14 +255,12 @@ final canCompleteStep3Provider = Provider.autoDispose<bool>((ref) {
   final union = ref.watch(selectedUnionProvider);
   final localField = ref.watch(selectedLocalFieldProvider);
   final clubSection = ref.watch(selectedClubSectionProvider);
-  final classId = ref.watch(selectedClassProvider);
   final clubTypeSlug = ref.watch(selectedClubTypeSlugProvider);
 
   return country != null &&
       union != null &&
       localField != null &&
       clubSection != null &&
-      classId != null &&
       clubTypeSlug != null;
 });
 

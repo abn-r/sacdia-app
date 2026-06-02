@@ -10,6 +10,7 @@ import '../../../../core/utils/icon_helper.dart';
 import '../../../../core/widgets/sac_card.dart';
 import '../../domain/entities/member_breakdown.dart';
 import '../providers/member_breakdown_provider.dart';
+import '../utils/ranking_status_labels.dart';
 import '../widgets/ranking_empty_state.dart';
 import '../widgets/ranking_skeleton.dart';
 
@@ -74,6 +75,10 @@ class _BreakdownBody extends StatelessWidget {
         // ── Hero ──────────────────────���─────────────────────��─────────────────
         SliverToBoxAdapter(
           child: _BreakdownHero(breakdown: breakdown),
+        ),
+
+        SliverToBoxAdapter(
+          child: _BreakdownExplainerCard(breakdown: breakdown),
         ),
 
         // ── Señal: Clase ─────────────────────────────────────────────��────────
@@ -141,7 +146,7 @@ class _BreakdownBody extends StatelessWidget {
     if (cb.folderStatus != null) {
       lines.add(
         tr('rankings.breakdown.class_folder_status',
-            namedArgs: {'status': cb.folderStatus!}),
+            namedArgs: {'status': _humanizeBackendValue(cb.folderStatus!)}),
       );
     }
     return lines;
@@ -152,8 +157,14 @@ class _BreakdownBody extends StatelessWidget {
     if (ib.status == null) return [];
     return [
       tr('rankings.breakdown.investiture_status',
-          namedArgs: {'status': ib.status!}),
+          namedArgs: {'status': rankingInvestitureStatusLabel(ib.status)}),
     ];
+  }
+
+  String _humanizeBackendValue(String raw) {
+    final normalized = raw.trim().toLowerCase().replaceAll('_', ' ');
+    if (normalized.isEmpty) return raw;
+    return normalized[0].toUpperCase() + normalized.substring(1);
   }
 
   List<String> _camporeeDetails(BuildContext context, CamporeeBreakdown cb) {
@@ -216,6 +227,7 @@ class _BreakdownHero extends StatelessWidget {
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             child: Text(
@@ -238,6 +250,33 @@ class _BreakdownHero extends StatelessWidget {
                             ),
                         ],
                       ),
+                      if (breakdown.rankPosition != null ||
+                          breakdown.sectionName != null) ...[
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            if (breakdown.rankPosition != null)
+                              _MetaPill(
+                                label: tr(
+                                  'rankings.breakdown.rank_position',
+                                  namedArgs: {
+                                    'position':
+                                        breakdown.rankPosition.toString(),
+                                  },
+                                ),
+                              ),
+                            if (breakdown.sectionName != null)
+                              _MetaPill(
+                                label: tr(
+                                  'rankings.breakdown.section_name',
+                                  namedArgs: {'name': breakdown.sectionName!},
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: 12),
                       if (hasComposite) ...[
                         Text(
@@ -275,6 +314,93 @@ class _BreakdownHero extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _MetaPill extends StatelessWidget {
+  final String label;
+
+  const _MetaPill({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: Colors.white.withValues(alpha: 0.78),
+              fontWeight: FontWeight.w600,
+            ),
+      ),
+    );
+  }
+}
+
+class _BreakdownExplainerCard extends StatelessWidget {
+  final MemberBreakdown breakdown;
+
+  const _BreakdownExplainerCard({required this.breakdown});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final hasComposite = breakdown.compositeScorePct != null;
+
+    return SacCard(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.all(16),
+      borderColor: AppColors.primary.withValues(alpha: 0.18),
+      backgroundColor: c.surface,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.primarySurface,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.insights_rounded,
+              color: AppColors.primary,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  tr('rankings.breakdown.overview_title'),
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: c.text,
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  hasComposite
+                      ? tr('rankings.breakdown.formula_hint')
+                      : tr('rankings.breakdown.score_pending_hint'),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: c.textSecondary,
+                        height: 1.35,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -332,11 +458,12 @@ class _SignalDetailCard extends StatelessWidget {
     final c = context.sac;
     final hasScore = scorePct != null;
     final scoreLabel = hasScore ? '${formatScore(scorePct!)}%' : '—';
+    final progress = hasScore ? (scorePct! / 100).clamp(0.0, 1.0) : 0.0;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: SacCard(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -365,12 +492,15 @@ class _SignalDetailCard extends StatelessWidget {
                   children: [
                     Text(
                       scoreLabel,
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: hasScore ? c.text : c.textTertiary,
-                              ),
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color:
+                                hasScore ? AppColors.primary : c.textTertiary,
+                          ),
                     ),
                     Text(
                       tr('rankings.breakdown.weight_pct',
@@ -384,22 +514,48 @@ class _SignalDetailCard extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 14),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 8,
+                backgroundColor: c.borderLight,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  hasScore ? AppColors.primary : c.textTertiary,
+                ),
+              ),
+            ),
 
             // Detail lines
             if (details.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              const Divider(height: 1),
-              const SizedBox(height: 10),
-              ...details.map(
-                (line) => Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Text(
-                    line,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: c.textSecondary,
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: details
+                    .map(
+                      (line) => Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
                         ),
-                  ),
-                ),
+                        decoration: BoxDecoration(
+                          color: c.surfaceVariant,
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: c.borderLight),
+                        ),
+                        child: Text(
+                          line,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: c.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                      ),
+                    )
+                    .toList(),
               ),
             ],
           ],

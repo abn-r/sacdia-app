@@ -49,8 +49,9 @@ abstract class HonorsRemoteDataSource {
       {CancelToken? cancelToken});
 
   /// Actualiza el progreso de un requisito individual.
-  /// PATCH /honors/:honorId/progress/:requirementId
+  /// PATCH /users/:userId/honors/:honorId/requirements/:requirementId/progress
   Future<UserHonorRequirementProgressModel> updateRequirementProgress({
+    required String userId,
     required int honorId,
     required int requirementId,
     required bool completed,
@@ -530,6 +531,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
 
   @override
   Future<UserHonorRequirementProgressModel> updateRequirementProgress({
+    required String userId,
     required int honorId,
     required int requirementId,
     required bool completed,
@@ -540,16 +542,17 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
         'completed': completed,
         if (notes != null) 'notes': notes,
       };
-      // New API: PATCH /honors/:honorId/progress/:requirementId
+      // Live API: PATCH /users/:userId/honors/:honorId/requirements/:requirementId/progress
       final response = await _dio.patch(
-        '$_baseUrl${ApiEndpoints.honors}/$honorId/progress/$requirementId',
+        '$_baseUrl${ApiEndpoints.users}/$userId${ApiEndpoints.honors}/$honorId/requirements/$requirementId/progress',
         data: body,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final raw = response.data as Map<String, dynamic>;
         final data = raw['data'] as Map<String, dynamic>;
-        return UserHonorRequirementProgressModel.fromJson(data);
+        final payload = (data['requirement'] as Map<String, dynamic>?) ?? data;
+        return UserHonorRequirementProgressModel.fromJson(payload);
       }
 
       throw ServerException(

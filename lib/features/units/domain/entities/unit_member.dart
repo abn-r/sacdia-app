@@ -1,11 +1,15 @@
 /// Representa un miembro de una unidad dentro de un club SACDIA.
 class UnitMember {
+  /// ID del registro `unit_members`, necesario para remover membresías.
+  final int? unitMemberId;
+
   final String id;
   final String name;
   final String surname;
   final String? avatar;
 
   const UnitMember({
+    this.unitMemberId,
     required this.id,
     required this.name,
     required this.surname,

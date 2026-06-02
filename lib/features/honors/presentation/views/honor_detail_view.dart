@@ -223,10 +223,10 @@ class _HonorDetailContent extends ConsumerWidget {
                       color: Colors.white.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
+                    child: const HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowLeft01,
                       color: Colors.white,
-                      size: 18,
+                      size: 22,
                     ),
                   ),
                 ),

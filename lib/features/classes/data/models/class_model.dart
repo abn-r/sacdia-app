@@ -10,6 +10,9 @@ class ClassModel extends Equatable {
   final int clubTypeId;
   final String? imageUrl;
 
+  /// Owner anual del progreso cuando el modelo viene de `GET /users/:id/classes`.
+  final int? enrollmentId;
+
   /// Estado de investidura proveniente del enrollment.
   /// Valores posibles: null (no inscrito), 'PENDIENTE', 'INVESTIDO', etc.
   final String? investitureStatus;
@@ -32,6 +35,7 @@ class ClassModel extends Equatable {
     this.description,
     required this.clubTypeId,
     this.imageUrl,
+    this.enrollmentId,
     this.investitureStatus,
     this.overallProgress,
     this.assetCode,
@@ -54,6 +58,8 @@ class ClassModel extends Equatable {
       // Enrollment response nests club type; catalog has flat club_type_id
       clubTypeId: safeInt(json['club_type_id']),
       imageUrl: safeStringOrNull(json['image_url']),
+      enrollmentId:
+          safeIntOrNull(json['enrollment_id'] ?? json['enrollmentId']),
       investitureStatus: safeStringOrNull(json['investiture_status']),
       overallProgress: safeIntOrNull(json['overall_progress']),
       assetCode: safeStringOrNull(json['asset_code']),
@@ -76,6 +82,7 @@ class ClassModel extends Equatable {
       'description': description,
       'club_type_id': clubTypeId,
       'image_url': imageUrl,
+      'enrollment_id': enrollmentId,
       'investiture_status': investitureStatus,
       'overall_progress': overallProgress,
       'asset_code': assetCode,
@@ -94,6 +101,7 @@ class ClassModel extends Equatable {
       description: description,
       clubTypeId: clubTypeId,
       imageUrl: imageUrl,
+      enrollmentId: enrollmentId,
       investitureStatus: investitureStatus,
       overallProgress: overallProgress,
       assetCode: assetCode,
@@ -111,6 +119,7 @@ class ClassModel extends Equatable {
     String? description,
     int? clubTypeId,
     String? imageUrl,
+    int? enrollmentId,
     String? investitureStatus,
     int? overallProgress,
     String? assetCode,
@@ -125,6 +134,7 @@ class ClassModel extends Equatable {
       description: description ?? this.description,
       clubTypeId: clubTypeId ?? this.clubTypeId,
       imageUrl: imageUrl ?? this.imageUrl,
+      enrollmentId: enrollmentId ?? this.enrollmentId,
       investitureStatus: investitureStatus ?? this.investitureStatus,
       overallProgress: overallProgress ?? this.overallProgress,
       assetCode: assetCode ?? this.assetCode,
@@ -142,6 +152,7 @@ class ClassModel extends Equatable {
         description,
         clubTypeId,
         imageUrl,
+        enrollmentId,
         investitureStatus,
         overallProgress,
         assetCode,

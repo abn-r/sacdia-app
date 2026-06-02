@@ -8,6 +8,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/animations/page_transitions.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/sac_top_bar.dart';
 import '../../domain/entities/class_module_detail.dart';
 import '../../domain/entities/class_requirement.dart';
 import '../../domain/entities/class_with_progress.dart';
@@ -23,30 +24,45 @@ import 'requirement_detail_view.dart';
 /// Pull-to-refresh, skeleton loading, empty/error states.
 class ClassDetailWithProgressView extends ConsumerWidget {
   final int classId;
+  final int? enrollmentId;
 
   const ClassDetailWithProgressView({
     super.key,
     required this.classId,
+    this.enrollmentId,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final classAsync = ref.watch(classWithProgressProvider(classId));
+    final progressQuery = ClassProgressQuery(
+      classId: classId,
+      enrollmentId: enrollmentId,
+    );
+    final classAsync = ref.watch(classWithProgressProvider(progressQuery));
 
     return Scaffold(
       backgroundColor: AppColors.canvas,
+      appBar: const SacTopBar(
+        title: 'Clase',
+        centerTitle: true,
+        backgroundColor: AppColors.canvas,
+        borderColor: AppColors.ink150,
+      ),
       body: SafeArea(
+        top: false,
         child: classAsync.when(
           loading: () => const _SkeletonBody(),
           error: (error, _) => _ErrorBody(
             message: error.toString().replaceFirst('Exception: ', ''),
-            onRetry: () => ref.invalidate(classWithProgressProvider(classId)),
+            onRetry: () =>
+                ref.invalidate(classWithProgressProvider(progressQuery)),
           ),
           data: (classWithProgress) => _ClassBody(
             classWithProgress: classWithProgress,
             classId: classId,
+            enrollmentId: enrollmentId ?? classWithProgress.enrollmentId,
             onRefresh: () async =>
-                ref.invalidate(classWithProgressProvider(classId)),
+                ref.invalidate(classWithProgressProvider(progressQuery)),
           ),
         ),
       ),
@@ -59,11 +75,13 @@ class ClassDetailWithProgressView extends ConsumerWidget {
 class _ClassBody extends StatefulWidget {
   final ClassWithProgress classWithProgress;
   final int classId;
+  final int? enrollmentId;
   final Future<void> Function() onRefresh;
 
   const _ClassBody({
     required this.classWithProgress,
     required this.classId,
+    this.enrollmentId,
     required this.onRefresh,
   });
 
@@ -138,6 +156,8 @@ class _ClassBodyState extends State<_ClassBody> {
         builder: (_) => RequirementDetailView(
           requirement: requirement,
           classId: widget.classId,
+          enrollmentId:
+              widget.enrollmentId ?? widget.classWithProgress.enrollmentId,
           isClassExpired: widget.classWithProgress.isExpired,
         ),
       ),
@@ -158,9 +178,6 @@ class _ClassBodyState extends State<_ClassBody> {
         physics: const BouncingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics()),
         slivers: [
-          // ── NavBar ────────────────────────────────────────────────────────
-          SliverToBoxAdapter(child: _NavBar()),
-
           // ── HeroCard + PillsRow + SearchBar + SectionLabel ────────────────
           SliverToBoxAdapter(
             child: Padding(
@@ -246,53 +263,6 @@ class _ExpiredTrajectoryBanner extends StatelessWidget {
           color: AppColors.errorDark,
           height: 1.35,
         ),
-      ),
-    );
-  }
-}
-
-// ── NavBar ─────────────────────────────────────────────────────────────────────
-
-class _NavBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 50,
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-      color: AppColors.canvas,
-      child: Row(
-        children: [
-          // Back button 36×36
-          SizedBox(
-            width: 36,
-            height: 36,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () => Navigator.maybePop(context),
-              child: Center(
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowLeft01,
-                  size: 20,
-                  color: AppColors.ink800,
-                ),
-              ),
-            ),
-          ),
-          // Title centered
-          const Expanded(
-            child: Text(
-              'Clase',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-                color: AppColors.ink900,
-              ),
-            ),
-          ),
-          // Spacer to balance back button
-          const SizedBox(width: 36, height: 36),
-        ],
       ),
     );
   }
@@ -889,8 +859,6 @@ class _SkeletonBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _NavBar(),
-          const SizedBox(height: 8),
           _SkeletonBox(height: 108, radius: 20),
           const SizedBox(height: 12),
           Row(
