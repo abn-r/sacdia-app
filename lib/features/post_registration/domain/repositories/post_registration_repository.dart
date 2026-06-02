@@ -29,4 +29,9 @@ abstract class PostRegistrationRepository {
 
   /// Completa el paso 1 del post-registro
   Future<Either<Failure, void>> completeStep1(String userId);
+
+  /// Cancela la solicitud pendiente de membresía y reabre selección de club.
+  Future<Either<Failure, void>> cancelPendingMembershipRequest({
+    required String userId,
+  });
 }

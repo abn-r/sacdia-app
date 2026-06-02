@@ -705,6 +705,7 @@
       "upload_profile_photo": "Erro ao enviar foto de perfil",
       "delete_profile_photo": "Erro ao excluir foto de perfil",
       "complete_step_1": "Erro ao concluir a etapa 1 do pós-cadastro",
+      "cancel_membership_request": "Erro ao cancelar solicitação de associação",
       "max_emergency_contacts": "Máximo de 5 contatos de emergência permitidos"
     },
     "personal_info": {
@@ -2922,7 +2923,13 @@
       "pending_expires": "Expira em {date}",
       "rejected_title": "Sua solicitação de associação foi rejeitada",
       "expired_title": "Sua solicitação de associação expirou",
-      "reapply": "Solicitar novamente"
+      "reapply": "Solicitar novamente",
+      "upload_certificates": "Enviar certificados",
+      "cancel_request": "Cancelar solicitação",
+      "cancel_request_title": "Cancelar solicitação?",
+      "cancel_request_body": "Você voltará para a seleção de clube e seção. Seu perfil e suas informações pessoais serão mantidos.",
+      "cancel_request_confirm": "Sim, cancelar",
+      "cancel_request_success": "Solicitação cancelada"
     },
     "quick_access": {
       "title": "Acesso rápido",

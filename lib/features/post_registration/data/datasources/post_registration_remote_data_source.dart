@@ -16,6 +16,7 @@ abstract class PostRegistrationRemoteDataSource {
   Future<bool> getPhotoStatus(
       {required String userId, CancelToken? cancelToken});
   Future<void> completeStep1(String userId);
+  Future<void> cancelPendingMembershipRequest({required String userId});
 }
 
 /// Implementación de la fuente de datos remota de post-registro
@@ -163,6 +164,28 @@ class PostRegistrationRemoteDataSourceImpl
       }
     } catch (e) {
       AppLogger.e('Error en completeStep1', tag: _tag, error: e);
+      if (e is DioException) {
+        throw ServerException(message: e.message ?? tr('common.error_network'));
+      }
+      if (e is AppException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<void> cancelPendingMembershipRequest({required String userId}) async {
+    try {
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.users}/$userId/post-registration/membership-request/cancel',
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw ServerException(
+          message: tr('post_registration.errors.cancel_membership_request'),
+        );
+      }
+    } catch (e) {
+      AppLogger.e('Error al cancelar solicitud pendiente', tag: _tag, error: e);
       if (e is DioException) {
         throw ServerException(message: e.message ?? tr('common.error_network'));
       }

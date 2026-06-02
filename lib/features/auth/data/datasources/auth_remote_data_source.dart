@@ -325,16 +325,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
               break;
             }
           }
-          // If no explicit-active grant found, fall back to the first available
-          // regardless of status (handles fresh accounts with no status yet).
-          fallbackAssignmentId ??= (() {
-            for (final grant
-                in user.authorization?.clubAssignments ?? const []) {
-              final candidate = grant.assignmentId?.trim();
-              if (candidate != null && candidate.isNotEmpty) return candidate;
-            }
-            return null;
-          })();
         }
 
         if (!_attemptedContextAutoActivation &&
