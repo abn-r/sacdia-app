@@ -3359,7 +3359,8 @@
       "not_authenticated": "Você precisa entrar para ver a credencial.",
       "offline": "Sem conexão disponível para a credencial ao vivo.",
       "empty_card": "Resposta vazia da credencial virtual do servidor.",
-      "load_failed": "Não foi possível carregar sua credencial agora."
+      "load_failed": "Não foi possível carregar sua credencial agora.",
+      "rate_limited": "Muitas solicitações. Aguarde um momento antes de atualizar a credencial novamente."
     }
   },
   "rankings": {

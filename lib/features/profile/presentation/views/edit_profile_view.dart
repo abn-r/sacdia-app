@@ -17,8 +17,8 @@ import '../../../../core/widgets/sac_text_field.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../post_registration/presentation/providers/post_registration_providers.dart';
 import '../providers/profile_providers.dart';
-import '../utils/edit_profile_payload_builder.dart';
 import '../widgets/gender_selector.dart';
+import '../utils/profile_update_payload.dart';
 
 /// Vista para editar el perfil del usuario.
 ///
@@ -40,8 +40,6 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
   final _nameController = TextEditingController();
   final _paternalSurnameController = TextEditingController();
   final _maternalSurnameController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _addressController = TextEditingController();
 
   // State — personal info fields (F3)
   Gender? _selectedGender;
@@ -74,8 +72,6 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
       _nameController.text = profile.name;
       _paternalSurnameController.text = profile.paternalSurname ?? '';
       _maternalSurnameController.text = profile.maternalSurname ?? '';
-      _phoneController.text = profile.phone ?? '';
-      _addressController.text = profile.address ?? '';
 
       // Pre-populate personal info fields (F3)
       setState(() {
@@ -92,8 +88,6 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
     _nameController.dispose();
     _paternalSurnameController.dispose();
     _maternalSurnameController.dispose();
-    _phoneController.dispose();
-    _addressController.dispose();
     super.dispose();
   }
 
@@ -220,18 +214,14 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
     bool success = false;
 
-    // Unified update: all fields in a single PATCH /users/:userId.
-    // Empty optional values must not be sent as empty strings: backend treats
-    // `phone: ''` as an invalid phone, not as "not provided".
-    final data = buildEditProfilePayload(
+    // Unified update: only fields backed by the effective users contract.
+    final data = buildProfileUpdatePayload(
       name: _nameController.text,
-      paternalSurname: _paternalSurnameController.text,
-      maternalSurname: _maternalSurnameController.text,
-      phone: _phoneController.text,
-      address: _addressController.text,
-      genderApiKey: _selectedGender?.apiKey,
-      birthdate: _birthdate,
-      baptized: _baptized,
+      paternalLastName: _paternalSurnameController.text,
+      maternalLastName: _maternalSurnameController.text,
+      gender: _selectedGender?.apiKey,
+      birthday: _birthdate,
+      baptism: _baptized,
       baptismDate: _baptismDate,
     );
 

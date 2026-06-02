@@ -3359,7 +3359,8 @@
       "not_authenticated": "Vous devez être connecté pour voir la carte.",
       "offline": "Aucune connexion disponible pour la carte en direct.",
       "empty_card": "Réponse vide de la carte virtuelle du serveur.",
-      "load_failed": "Impossible de charger votre carte pour le moment."
+      "load_failed": "Impossible de charger votre carte pour le moment.",
+      "rate_limited": "Trop de requêtes. Patientez un moment avant d’actualiser à nouveau la carte."
     }
   },
   "rankings": {

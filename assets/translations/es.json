@@ -3360,7 +3360,8 @@
       "not_authenticated": "Tenés que iniciar sesión para ver la credencial.",
       "offline": "No hay conexión disponible para la credencial en vivo.",
       "empty_card": "Respuesta vacía de tarjeta virtual desde el servidor.",
-      "load_failed": "No pudimos cargar tu credencial por ahora."
+      "load_failed": "No pudimos cargar tu credencial por ahora.",
+      "rate_limited": "Demasiadas solicitudes. Esperá un momento antes de volver a actualizar la credencial."
     }
   },
   "rankings": {

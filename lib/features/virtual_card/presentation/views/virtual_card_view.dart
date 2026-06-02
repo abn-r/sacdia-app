@@ -80,6 +80,19 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<int>(virtualCardRateLimitNoticeProvider, (previous, next) {
+      if (previous == null || next <= previous) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text('virtual_card.errors.rate_limited'.tr()),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+    });
+
     final state = ref.watch(virtualCardProvider);
 
     return SecureScreen(
@@ -333,6 +346,9 @@ class _StatusBanner extends StatelessWidget {
 String virtualCardErrorMessageKey(Object error) {
   if (error is ConnectionException) {
     return 'common.error_network';
+  }
+  if (isVirtualCardRateLimit(error)) {
+    return 'virtual_card.errors.rate_limited';
   }
   return 'virtual_card.errors.load_failed';
 }

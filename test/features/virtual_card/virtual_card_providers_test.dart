@@ -146,4 +146,29 @@ void main() {
       expect(repository.saveCalls, 0);
     },
   );
+
+  test(
+    'keeps showing cached card and emits notice when remote is rate limited',
+    () async {
+      final cached = _sampleCard();
+      final repository = _FakeVirtualCardRepository(
+        remoteError: ServerException(message: 'Too many requests', code: 429),
+        cachedCard: cached,
+      );
+      final container = _buildContainer(
+        repository: repository,
+        connected: true,
+      );
+      addTearDown(container.dispose);
+
+      final card = await container.read(virtualCardFetcherProvider.future);
+
+      expect(card.userId, cached.userId);
+      expect(card.isOffline, isTrue);
+      expect(container.read(virtualCardRateLimitNoticeProvider), 1);
+      expect(repository.remoteCalls, 1);
+      expect(repository.cachedCalls, 1);
+      expect(repository.saveCalls, 0);
+    },
+  );
 }
