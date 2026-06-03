@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 
 /// Tipos de sangre soportados por el backend (`enum blood_type` en Prisma).
 ///
-/// - [display] es el valor visible al usuario y el que vuelve del backend
-///   en GET (`'A+'`, `'O-'`, etc.) — ya viene mapeado por Prisma vía `@map`.
+/// - [display] es el valor visible al usuario (`'A+'`, `'O-'`, etc.).
 /// - [apiKey] es la key TypeScript del enum que el backend espera en PATCH
 ///   `/users/:id` con campo `blood` (validado por `@IsEnum(blood_type)`).
+///
+/// El backend puede devolver cualquiera de los dos formatos según el endpoint
+/// o la mutación (`'O+'` o `'O_POSITIVE'`). La UI SIEMPRE debe mostrar
+/// [display], nunca la key de base/API.
 enum BloodType {
   aPos('A+', 'A_POSITIVE'),
   aNeg('A-', 'A_NEGATIVE'),
@@ -24,10 +27,19 @@ enum BloodType {
 
   static BloodType? fromDisplay(String? value) {
     if (value == null || value.isEmpty) return null;
+    final normalized = value.trim().toUpperCase();
     for (final t in BloodType.values) {
-      if (t.display == value) return t;
+      if (t.display.toUpperCase() == normalized ||
+          t.apiKey.toUpperCase() == normalized) {
+        return t;
+      }
     }
     return null;
+  }
+
+  static String? displayFor(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+    return fromDisplay(value)?.display ?? value.trim();
   }
 }
 

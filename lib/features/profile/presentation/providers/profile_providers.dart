@@ -79,11 +79,19 @@ class ProfileNotifier extends AutoDisposeAsyncNotifier<UserDetail?> {
       return false;
     }
 
+    final profileUserId = currentProfile.id.trim();
+    final authUserId = (await ref.read(authNotifierProvider.future))?.id.trim();
+    final userId = profileUserId.isNotEmpty ? profileUserId : authUserId;
+
+    if (userId == null || userId.isEmpty) {
+      return false;
+    }
+
     state = const AsyncValue.loading();
 
     final result = await ref.read(updateUserProfileProvider)(
       UpdateUserProfileParams(
-        userId: currentProfile.id,
+        userId: userId,
         data: data,
       ),
     );

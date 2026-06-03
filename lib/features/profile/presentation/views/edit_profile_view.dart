@@ -17,6 +17,7 @@ import '../../../../core/widgets/sac_text_field.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../post_registration/presentation/providers/post_registration_providers.dart';
 import '../providers/profile_providers.dart';
+import '../utils/edit_profile_payload_builder.dart';
 import '../widgets/gender_selector.dart';
 
 /// Vista para editar el perfil del usuario.
@@ -219,24 +220,20 @@ class _EditProfileViewState extends ConsumerState<EditProfileView> {
 
     bool success = false;
 
-    // Unified update: all fields in a single PATCH /users/:userId
-    final data = <String, dynamic>{
-      'name': _nameController.text.trim(),
-      'paternal_last_name': _paternalSurnameController.text.trim(),
-      'maternal_last_name': _maternalSurnameController.text.trim(),
-      'phone': _phoneController.text.trim(),
-      'address': _addressController.text.trim(),
-    };
-
-    // Add personal info fields (F3)
-    if (_selectedGender != null) data['gender'] = _selectedGender!.apiKey;
-    if (_birthdate != null) {
-      data['birthday'] = _birthdate!.toUtc().toIso8601String();
-    }
-    data['baptism'] = _baptized;
-    if (_baptized && _baptismDate != null) {
-      data['baptism_date'] = _baptismDate!.toUtc().toIso8601String();
-    }
+    // Unified update: all fields in a single PATCH /users/:userId.
+    // Empty optional values must not be sent as empty strings: backend treats
+    // `phone: ''` as an invalid phone, not as "not provided".
+    final data = buildEditProfilePayload(
+      name: _nameController.text,
+      paternalSurname: _paternalSurnameController.text,
+      maternalSurname: _maternalSurnameController.text,
+      phone: _phoneController.text,
+      address: _addressController.text,
+      genderApiKey: _selectedGender?.apiKey,
+      birthdate: _birthdate,
+      baptized: _baptized,
+      baptismDate: _baptismDate,
+    );
 
     success =
         await ref.read(profileNotifierProvider.notifier).updateProfile(data);

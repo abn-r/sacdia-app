@@ -19,12 +19,10 @@ import 'package:sacdia_app/features/classes/presentation/providers/classes_provi
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/post_registration/presentation/providers/post_registration_providers.dart';
 
-import '../../../auth/domain/entities/user_entity.dart';
-import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../validation/presentation/widgets/eligibility_banner.dart';
 import '../../domain/entities/user_detail.dart';
 import '../providers/profile_providers.dart';
+import '../utils/profile_context_resolver.dart';
 import '../../../achievements/presentation/widgets/achievement_profile_summary.dart';
 import '../widgets/class_status_circles.dart';
 import '../widgets/profile_classes_section.dart';
@@ -176,13 +174,17 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               authNotifierProvider.select((v) => v.valueOrNull),
             );
 
-            final activeRoleName =
-                authUser?.authorization?.activeGrant?.roleName;
+            final activeGrant = authUser?.authorization?.activeGrant;
+            final activeRoleName = activeGrant?.roleName;
+            final resolvedClubType = resolveProfileClubType(
+              profileClubType: profile.clubType,
+              activeClubTypeName: activeGrant?.clubTypeName,
+            );
 
             return _ProfileScrollBody(
               profile: profile,
-              authUser: authUser,
               activeRoleName: activeRoleName,
+              resolvedClubType: resolvedClubType,
               isUploadingPhoto: _isUploadingPhoto,
               hPad: hPad,
               onChangePhoto: _isUploadingPhoto ? null : _changePhoto,
@@ -272,11 +274,14 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 /// focused on state routing.
 class _ProfileScrollBody extends StatelessWidget {
   final UserDetail profile;
-  final UserEntity? authUser;
 
   /// Raw club role name from the active grant (e.g. "director", "instructor").
   /// Null when the user has no active club assignment.
   final String? activeRoleName;
+
+  /// Club type resolved from the active grant first, then profile fallback.
+  final String? resolvedClubType;
+
   final bool isUploadingPhoto;
   final double hPad;
   final VoidCallback? onChangePhoto;
@@ -288,8 +293,8 @@ class _ProfileScrollBody extends StatelessWidget {
 
   const _ProfileScrollBody({
     required this.profile,
-    required this.authUser,
     required this.activeRoleName,
+    required this.resolvedClubType,
     required this.isUploadingPhoto,
     required this.hPad,
     required this.onRefresh,
@@ -376,7 +381,7 @@ class _ProfileScrollBody extends StatelessWidget {
                 clubRole: activeRoleName,
                 gender: profile.gender,
                 clubName: profile.clubName,
-                clubType: profile.clubType,
+                clubType: resolvedClubType,
                 currentClass: profile.currentClass,
                 isUploadingPhoto: isUploadingPhoto,
                 onEditPhoto: onChangePhoto,
@@ -423,18 +428,7 @@ class _ProfileScrollBody extends StatelessWidget {
                 initialDelay: const Duration(milliseconds: 100),
                 staggerDelay: const Duration(milliseconds: 65),
                 children: [
-                  // ── 4. Elegibilidad para investidura ─────────────
-                  // Only rendered for users with users:read_detail permission.
-                  // Regular members lack this permission and would receive a
-                  // 403 from GET /api/v1/validation/eligibility/{userId}.
-                  if (authUser != null &&
-                      hasAnyPermission(
-                          authUser, const {'users:read_detail'})) ...[
-                    EligibilityBanner(userId: authUser!.id),
-                    const SizedBox(height: 20),
-                  ],
-
-                  // ── 5. Clases Progresivas ─────────────────────────
+                  // ── 4. Clases Progresivas ─────────────────────────
                   _SectionLabel(
                       label: 'profile.view.section_progressive_classes'.tr()),
                   const SizedBox(height: 8),
@@ -451,7 +445,7 @@ class _ProfileScrollBody extends StatelessWidget {
                       horizontal: 8,
                       vertical: 16,
                     ),
-                    child: ClassStatusCircles(clubType: profile.clubType),
+                    child: ClassStatusCircles(clubType: resolvedClubType),
                   ),
                   const SizedBox(height: 20),
                 ],

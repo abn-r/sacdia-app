@@ -104,7 +104,8 @@ class MedicalInfoView extends ConsumerWidget {
     final profileAsync = ref.watch(profileNotifierProvider);
 
     // Extraer datos crudos para calcular la completitud
-    final blood = profileAsync.valueOrNull?.blood?.trim();
+    final rawBlood = profileAsync.valueOrNull?.blood?.trim();
+    final blood = BloodType.displayFor(rawBlood);
     final allergies = allergiesAsync.valueOrNull ?? [];
     final diseases = diseasesAsync.valueOrNull ?? [];
     final medicines = medicinesAsync.valueOrNull ?? [];
@@ -147,7 +148,7 @@ class MedicalInfoView extends ConsumerWidget {
                       onEditar: () => _handleEditBlood(
                         context,
                         ref,
-                        profileAsync.valueOrNull?.blood,
+                        rawBlood,
                       ),
                     ),
                     const SizedBox(height: 14),

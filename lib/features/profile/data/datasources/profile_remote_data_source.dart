@@ -81,7 +81,12 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         );
       }
 
-      return UserDetailModel.fromJson(response.data);
+      // API wraps response: { "status": "success", "data": { ... } }
+      final raw = response.data;
+      final json = (raw is Map && raw.containsKey('data'))
+          ? raw['data'] as Map<String, dynamic>
+          : raw as Map<String, dynamic>;
+      return UserDetailModel.fromJson(json);
     } on DioException catch (e) {
       AppLogger.e('Error al actualizar perfil', tag: _tag, error: e.message);
       throw ServerException(
