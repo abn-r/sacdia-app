@@ -62,7 +62,7 @@ class CelebrationOverlay extends StatefulWidget {
 class _CelebrationOverlayState extends State<CelebrationOverlay>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  late final List<_Particle> _particles;
+  List<_Particle> _particles = const [];
   final math.Random _rng = math.Random();
 
   // SACDIA Scout Vibrante palette + festive extras
@@ -96,8 +96,6 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
       _particles = _generateParticles(size);
       _controller.forward();
     });
-
-    _particles = [];
   }
 
   List<_Particle> _generateParticles(Size screenSize) {

@@ -21,6 +21,7 @@ import '../widgets/quick_stats_card.dart';
 import '../widgets/quick_access_grid.dart';
 import '../widgets/upcoming_activities_card.dart';
 import '../widgets/membership_status_banner.dart';
+import '../widgets/birthday_celebration.dart';
 import '../widgets/welcome_header.dart';
 import '../../../enrollment/presentation/widgets/enrollment_status_card.dart';
 
@@ -107,6 +108,10 @@ class DashboardView extends ConsumerWidget {
 
                           // Enrollment status banner
                           const EnrollmentStatusCard(),
+
+                          // Birthday celebration entry point
+                          const BirthdayCelebrationGate(),
+                          const SizedBox(height: 16),
 
                           // Club info
                           ClubInfoCard(

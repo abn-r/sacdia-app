@@ -3068,6 +3068,16 @@
       "empty": "Aucune activité programmée",
       "today": "Aujourd'hui",
       "tomorrow": "Demain"
+    },
+    "birthday": {
+      "title": "Joyeux anniversaire !",
+      "message": "Aujourd’hui, nous célébrons ta vie avec gratitude. Que cette nouvelle année soit remplie de sens, de paix et de joie.",
+      "bible_message": "« Que le Seigneur te bénisse et te garde. » — Nombres 6:24",
+      "thanks": "Merci",
+      "dismiss_today": "Ne plus afficher aujourd’hui",
+      "banner_title": "Ta journée spéciale est toujours active",
+      "banner_body": "Touche ici pour rouvrir ton message d’anniversaire.",
+      "banner_semantics": "Ouvrir le message d’anniversaire"
     }
   },
   "domain": {

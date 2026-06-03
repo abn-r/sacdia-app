@@ -3069,6 +3069,16 @@
       "empty": "No activities scheduled",
       "today": "Today",
       "tomorrow": "Tomorrow"
+    },
+    "birthday": {
+      "title": "Happy birthday!",
+      "message": "Today we celebrate your life with gratitude. May this new year be filled with purpose, peace, and joy.",
+      "bible_message": "“The Lord bless you and keep you.” — Numbers 6:24",
+      "thanks": "Thank you",
+      "dismiss_today": "Do not show again today",
+      "banner_title": "Your special day is still active",
+      "banner_body": "Tap to reopen your birthday greeting.",
+      "banner_semantics": "Open birthday greeting"
     }
   },
   "domain": {

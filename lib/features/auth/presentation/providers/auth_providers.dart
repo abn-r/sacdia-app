@@ -367,6 +367,7 @@ class AuthNotifier extends AsyncNotifier<UserEntity?> {
       email: current.email,
       name: current.name,
       avatar: current.avatar,
+      birthday: current.birthday,
       metadata: current.metadata,
       authorization: current.authorization,
       lastSignInAt: current.lastSignInAt,

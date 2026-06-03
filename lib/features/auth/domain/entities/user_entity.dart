@@ -8,6 +8,7 @@ class UserEntity extends Equatable {
   final String email;
   final String? name;
   final String? avatar;
+  final DateTime? birthday;
   final Map<String, dynamic>? metadata;
   final AuthorizationSnapshot? authorization;
   final DateTime? lastSignInAt;
@@ -19,6 +20,7 @@ class UserEntity extends Equatable {
     required this.email,
     this.name,
     this.avatar,
+    this.birthday,
     this.metadata,
     this.authorization,
     this.lastSignInAt,
@@ -32,6 +34,7 @@ class UserEntity extends Equatable {
         email,
         name,
         avatar,
+        birthday,
         metadata,
         authorization,
         lastSignInAt,
