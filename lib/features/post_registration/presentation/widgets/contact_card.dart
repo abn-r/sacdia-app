@@ -1,10 +1,12 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import '../../../../core/theme/app_colors.dart';
+
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../data/models/emergency_contact_model.dart';
 
-/// Card que muestra un contacto de emergencia con opciones de edición y eliminación
+/// Card que muestra un contacto de emergencia con opciones de edición y eliminación.
 class ContactCard extends StatelessWidget {
   final EmergencyContactModel contact;
   final VoidCallback onEdit;
@@ -19,93 +21,232 @@ class ContactCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 16, right: 16),
-        child: Row(
-          children: [
-            // Icono de contacto
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedUser,
-                  color: Theme.of(context).primaryColor,
-                  size: 28,
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+    final initials = _initialsFor(contact.name);
 
-            // Información del contacto
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: context.sac.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLG),
+        border: Border.all(color: context.sac.borderLight),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _ContactAvatar(initials: initials, color: primary),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    contact.name,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          contact.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: context.sac.text,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.2,
+                            height: 1.15,
+                          ),
+                        ),
+                      ),
+                      if (contact.primary) ...[
+                        const SizedBox(width: 8),
+                        _PrimaryBadge(color: primary),
+                      ],
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  if (contact.relationshipTypeName != null) ...[
+                  const SizedBox(height: 8),
+                  if (contact.relationshipTypeName != null &&
+                      contact.relationshipTypeName!.trim().isNotEmpty) ...[
                     Text(
                       contact.relationshipTypeName!,
-                      style: TextStyle(
-                        fontSize: 14,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
                         color: context.sac.textSecondary,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 10),
                   ],
                   Row(
                     children: [
                       HugeIcon(
                         icon: HugeIcons.strokeRoundedCall,
                         size: 16,
-                        color: context.sac.textSecondary,
+                        color: context.sac.textTertiary,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        contact.phone,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: context.sac.textSecondary,
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          contact.phone,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: context.sac.textSecondary,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
                         ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      _ActionPill(
+                        icon: HugeIcons.strokeRoundedEdit02,
+                        label: 'common.edit'.tr(),
+                        color: primary,
+                        onPressed: onEdit,
+                      ),
+                      const SizedBox(width: 8),
+                      _ActionPill(
+                        icon: HugeIcons.strokeRoundedDelete02,
+                        label: 'common.delete'.tr(),
+                        color: context.sac.error,
+                        onPressed: onDelete,
                       ),
                     ],
                   ),
                 ],
               ),
             ),
-
-            // Botones de acción
-            Column(
-              children: [
-                IconButton(
-                  icon: HugeIcon(icon: HugeIcons.strokeRoundedEdit02, size: 20),
-                  color: Theme.of(context).primaryColor,
-                  onPressed: onEdit,
-                  tooltip: 'Editar',
-                ),
-                IconButton(
-                  icon:
-                      HugeIcon(icon: HugeIcons.strokeRoundedDelete02, size: 20),
-                  color: AppColors.error,
-                  onPressed: onDelete,
-                  tooltip: 'Eliminar',
-                ),
-              ],
-            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  String _initialsFor(String name) {
+    final parts = name
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) return '?';
+    final first = parts.first.characters.first;
+    final second = parts.length > 1 ? parts.last.characters.first : '';
+    return '$first$second'.toUpperCase();
+  }
+}
+
+class _ContactAvatar extends StatelessWidget {
+  final String initials;
+  final Color color;
+
+  const _ContactAvatar({required this.initials, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 52,
+      height: 56,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.18)),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            right: -10,
+            bottom: -12,
+            child: Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Text(
+            initials,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.4,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PrimaryBadge extends StatelessWidget {
+  final Color color;
+
+  const _PrimaryBadge({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+        border: Border.all(color: color.withValues(alpha: 0.18)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Text(
+          'post_registration.contact_form.primary_title'.tr(),
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w800,
+              ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionPill extends StatelessWidget {
+  final List<List<dynamic>> icon;
+  final String label;
+  final Color color;
+  final VoidCallback onPressed;
+
+  const _ActionPill({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: SizedBox(
+        height: 44,
+        child: OutlinedButton.icon(
+          onPressed: onPressed,
+          icon: HugeIcon(icon: icon, size: 17, color: color),
+          label: Text(label),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: color,
+            side: BorderSide(color: color.withValues(alpha: 0.22)),
+            backgroundColor: color.withValues(alpha: 0.04),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            minimumSize: const Size(0, 44),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            textStyle: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
         ),
       ),
     );
