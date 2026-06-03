@@ -15,6 +15,7 @@ import '../realtime/feature_flags.dart';
 import '../realtime/realtime_invalidation_handler.dart';
 import '../realtime/realtime_ref.dart';
 import '../utils/app_logger.dart';
+import '../../features/achievements/presentation/providers/achievements_providers.dart';
 import '../../features/notifications/presentation/providers/notifications_providers.dart';
 import '../../features/notifications/presentation/providers/unread_notifications_count_provider.dart';
 
@@ -399,6 +400,12 @@ class PushNotificationService {
       return;
     }
 
+    final type = message.data['type'] as String?;
+    if (type == 'achievement_unlocked') {
+      _handleAchievementUnlockedForeground(message);
+      return;
+    }
+
     final notification = message.notification;
     if (notification == null) return;
 
@@ -432,6 +439,151 @@ class PushNotificationService {
         ),
       ),
     );
+  }
+
+  @visibleForTesting
+  void handleForegroundMessageForTesting(RemoteMessage message) {
+    _handleForegroundMessage(message);
+  }
+
+  @visibleForTesting
+  String achievementRouteForTesting(Map<String, dynamic> data) {
+    return _achievementUnlockedRoute(data);
+  }
+
+  void _handleAchievementUnlockedForeground(RemoteMessage message) {
+    final data = message.data;
+
+    _ref.read(unreadNotificationsCountProvider.notifier).increment();
+    _ref.invalidate(notificationsInboxProvider);
+    _ref.invalidate(userAchievementsProvider);
+
+    final context = navigatorKey?.currentContext;
+    if (context == null) return;
+
+    final achievementName = _achievementNameFromMessage(message);
+    final tier = data['tier'] as String?;
+    final points = data['points'] as String?;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        key: const Key('achievement-unlocked-snackbar'),
+        duration: const Duration(seconds: 6),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        backgroundColor: const Color(0xFF1C1C1E),
+        elevation: 8,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: _achievementTierColor(tier).withValues(alpha: 0.72),
+            width: 1.2,
+          ),
+        ),
+        content: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _achievementTierColor(tier).withValues(alpha: 0.16),
+                border: Border.all(
+                  color: _achievementTierColor(tier),
+                  width: 1.4,
+                ),
+              ),
+              child: Icon(
+                Icons.emoji_events_rounded,
+                color: _achievementTierColor(tier),
+                size: 24,
+                semanticLabel: 'Logro desbloqueado',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Logro desbloqueado',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    achievementName,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Color(0xFFE5E5EA)),
+                  ),
+                  if (tier != null || points != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      [
+                        if (tier != null) tier.toUpperCase(),
+                        if (points != null) '$points pts',
+                      ].join(' · '),
+                      style: TextStyle(
+                        color: _achievementTierColor(tier),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+        action: SnackBarAction(
+          label: 'Ver logro',
+          textColor: _achievementTierColor(tier),
+          onPressed: () => _pushRoute(_achievementUnlockedRoute(data)),
+        ),
+      ),
+    );
+  }
+
+  String _achievementNameFromMessage(RemoteMessage message) {
+    final fromData = message.data['achievement_name'] as String?;
+    if (fromData != null && fromData.trim().isNotEmpty) {
+      return fromData.trim();
+    }
+
+    final body = message.notification?.body;
+    if (body != null && body.trim().isNotEmpty) {
+      return body.replaceFirst(RegExp(r'^Completaste:\s*'), '').trim();
+    }
+
+    return 'Nuevo logro';
+  }
+
+  String _achievementUnlockedRoute(Map<String, dynamic> data) {
+    final achievementId = _parseInt(data['achievement_id']);
+    if (achievementId == null) return RouteNames.homeAchievements;
+    return RouteNames.achievementDetailPath(achievementId);
+  }
+
+  Color _achievementTierColor(String? tier) {
+    switch (tier?.toUpperCase()) {
+      case 'DIAMOND':
+        return const Color(0xFF7DD3FC);
+      case 'PLATINUM':
+        return const Color(0xFFE5E7EB);
+      case 'GOLD':
+        return const Color(0xFFFBBF24);
+      case 'SILVER':
+        return const Color(0xFFD1D5DB);
+      case 'BRONZE':
+        return const Color(0xFFD97706);
+      default:
+        return const Color(0xFFFBBF24);
+    }
   }
 
   // ── Notification route allowlist ─────────────────────────────────────────
@@ -611,15 +763,7 @@ class PushNotificationService {
         // Navigate to the achievements screen, optionally deep-linking to
         // the specific achievement detail.
         // Payload: { type, achievement_id, achievement_name }
-        final achievementId = _parseInt(data['achievement_id']);
-        if (achievementId != null) {
-          _pushRoute(
-            RouteNames.achievementDetailPath(achievementId),
-          );
-        } else {
-          // Fallback: open the achievements list
-          _pushRoute(RouteNames.homeAchievements);
-        }
+        _pushRoute(_achievementUnlockedRoute(data));
         return;
 
       default:
