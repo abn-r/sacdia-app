@@ -535,13 +535,14 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
                                 ),
                               ),
 
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 12),
 
                               // Ya registradas
                               if (userAsync.isLoading)
                                 const Center(child: SacLoading())
                               else if (_serverIds.isNotEmpty) ...[
                                 MedicoSectionCard(
+                                  dense: true,
                                   iconWidget: const HugeIcon(
                                     icon: HugeIcons.strokeRoundedHealth,
                                     size: 20,
@@ -581,15 +582,15 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
                                           .tr(),
                                 ),
 
-                              const SizedBox(height: 24),
+                              const SizedBox(height: 14),
 
                               // "Agregar nuevas"
                               Text(
                                 'post_registration.health.diseases.add_new_section'
                                     .tr(),
                                 style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
                                   color: MedicoTokens.ink600,
                                 ),
                               ),
@@ -798,43 +799,48 @@ class _RegisteredDiseasesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    DiseaseModel? expandedItem;
+    for (final item in serverItems) {
+      if (item.id == expandedId) {
+        expandedItem = item;
+        break;
+      }
+    }
+    final expanded = expandedItem;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: serverItems.map((item) {
-        final year = registeredYearFor(item.id);
-        final isExpanded = expandedId == item.id;
+      children: [
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: serverItems.map((item) {
+            final year = registeredYearFor(item.id);
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GestureDetector(
-                onTap: () => onChipTap(item.id),
-                onLongPress: () => onChipLongPress(item.id, item.name),
-                child: Semantics(
-                  label:
-                      '${item.name}${year != null ? ', $year' : ''}, ${tr('post_registration.health.diseases.edit_chip_a11y')}',
-                  button: true,
-                  child: MedicalChip(
-                    label: item.name,
-                    tone: SeverityTone.amber,
-                    sub: year != null ? '$year' : null,
-                  ),
+            return GestureDetector(
+              onTap: () => onChipTap(item.id),
+              onLongPress: () => onChipLongPress(item.id, item.name),
+              child: Semantics(
+                label:
+                    '${item.name}${year != null ? ', $year' : ''}, ${tr('post_registration.health.diseases.edit_chip_a11y')}',
+                button: true,
+                child: MedicalChip(
+                  label: item.name,
+                  tone: SeverityTone.amber,
+                  sub: year != null ? '$year' : null,
                 ),
               ),
-              if (isExpanded) ...[
-                const SizedBox(height: 8),
-                _YearEditor(
-                  controller: controllerFor(item.id),
-                  onChanged: (y) => onYearChange(item.id, y),
-                ),
-                const SizedBox(height: 4),
-              ],
-            ],
+            );
+          }).toList(),
+        ),
+        if (expanded != null) ...[
+          const SizedBox(height: 8),
+          _YearEditor(
+            controller: controllerFor(expanded.id),
+            onChanged: (y) => onYearChange(expanded.id, y),
           ),
-        );
-      }).toList(),
+        ],
+      ],
     );
   }
 }

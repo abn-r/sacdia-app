@@ -559,13 +559,14 @@ class _AllergiesSelectionViewState
                                 ),
                               ),
 
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 12),
 
                               // ── Ya registradas ───────────────────────
                               if (userAsync.isLoading)
                                 const Center(child: SacLoading())
                               else if (_serverIds.isNotEmpty) ...[
                                 MedicoSectionCard(
+                                  dense: true,
                                   iconWidget: const HugeIcon(
                                     icon: HugeIcons.strokeRoundedFirstAidKit,
                                     size: 20,
@@ -603,15 +604,15 @@ class _AllergiesSelectionViewState
                                 ),
                               ],
 
-                              const SizedBox(height: 24),
+                              const SizedBox(height: 14),
 
                               // ── "Agregar nuevas" label ────────────────
                               Text(
                                 'post_registration.health.allergies.add_new_section'
                                     .tr(),
                                 style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
                                   color: MedicoTokens.ink600,
                                 ),
                               ),
@@ -834,44 +835,49 @@ class _RegisteredChipsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AllergyModel? expandedItem;
+    for (final item in serverItems) {
+      if (item.id == expandedId) {
+        expandedItem = item;
+        break;
+      }
+    }
+    final expanded = expandedItem;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: serverItems.map((item) {
-        final sev = registeredSeverityFor(item.id);
-        final tone = toneForSeverity(sev);
-        final isExpanded = expandedId == item.id;
+      children: [
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: serverItems.map((item) {
+            final sev = registeredSeverityFor(item.id);
+            final tone = toneForSeverity(sev);
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GestureDetector(
-                onTap: () => onChipTap(item.id),
-                onLongPress: () => onChipLongPress(item.id, item.name),
-                child: Semantics(
-                  label:
-                      '${item.name}, ${sev.i18nKey.tr()}, ${tr('post_registration.health.allergies.edit_chip_a11y')}',
-                  button: true,
-                  child: MedicalChip(
-                    label: item.name,
-                    tone: tone,
-                    sub: sev.i18nKey.tr(),
-                  ),
+            return GestureDetector(
+              onTap: () => onChipTap(item.id),
+              onLongPress: () => onChipLongPress(item.id, item.name),
+              child: Semantics(
+                label:
+                    '${item.name}, ${sev.i18nKey.tr()}, ${tr('post_registration.health.allergies.edit_chip_a11y')}',
+                button: true,
+                child: MedicalChip(
+                  label: item.name,
+                  tone: tone,
+                  sub: sev.i18nKey.tr(),
                 ),
               ),
-              if (isExpanded) ...[
-                const SizedBox(height: 8),
-                _CompactSeverityEditor(
-                  selected: sev,
-                  onChanged: (s) => onSeverityChange(item.id, s),
-                ),
-                const SizedBox(height: 4),
-              ],
-            ],
+            );
+          }).toList(),
+        ),
+        if (expanded != null) ...[
+          const SizedBox(height: 8),
+          _CompactSeverityEditor(
+            selected: registeredSeverityFor(expanded.id),
+            onChanged: (s) => onSeverityChange(expanded.id, s),
           ),
-        );
-      }).toList(),
+        ],
+      ],
     );
   }
 }

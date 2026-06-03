@@ -532,13 +532,14 @@ class _MedicinesSelectionViewState
                                 ),
                               ),
 
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 12),
 
                               // Ya registrados
                               if (userAsync.isLoading)
                                 const Center(child: SacLoading())
                               else if (_serverIds.isNotEmpty) ...[
                                 MedicoSectionCard(
+                                  dense: true,
                                   iconWidget: const HugeIcon(
                                     icon: HugeIcons.strokeRoundedMedicine01,
                                     size: 20,
@@ -578,15 +579,15 @@ class _MedicinesSelectionViewState
                                           .tr(),
                                 ),
 
-                              const SizedBox(height: 24),
+                              const SizedBox(height: 14),
 
                               // "Agregar nuevos"
                               Text(
                                 'post_registration.health.medicines.add_new_section'
                                     .tr(),
                                 style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
                                   color: MedicoTokens.ink600,
                                 ),
                               ),
@@ -795,43 +796,48 @@ class _RegisteredMedicinesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    MedicineModel? expandedItem;
+    for (final item in serverItems) {
+      if (item.id == expandedId) {
+        expandedItem = item;
+        break;
+      }
+    }
+    final expanded = expandedItem;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: serverItems.map((item) {
-        final dose = registeredDoseFor(item.id);
-        final isExpanded = expandedId == item.id;
+      children: [
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: serverItems.map((item) {
+            final dose = registeredDoseFor(item.id);
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GestureDetector(
-                onTap: () => onChipTap(item.id),
-                onLongPress: () => onChipLongPress(item.id, item.name),
-                child: Semantics(
-                  label:
-                      '${item.name}${dose != null ? ', $dose' : ''}, ${tr('post_registration.health.medicines.edit_chip_a11y')}',
-                  button: true,
-                  child: MedicalChip(
-                    label: item.name,
-                    tone: SeverityTone.mint,
-                    sub: dose,
-                  ),
+            return GestureDetector(
+              onTap: () => onChipTap(item.id),
+              onLongPress: () => onChipLongPress(item.id, item.name),
+              child: Semantics(
+                label:
+                    '${item.name}${dose != null ? ', $dose' : ''}, ${tr('post_registration.health.medicines.edit_chip_a11y')}',
+                button: true,
+                child: MedicalChip(
+                  label: item.name,
+                  tone: SeverityTone.mint,
+                  sub: dose,
                 ),
               ),
-              if (isExpanded) ...[
-                const SizedBox(height: 8),
-                _DoseEditor(
-                  controller: controllerFor(item.id),
-                  onChanged: (d) => onDoseChange(item.id, d),
-                ),
-                const SizedBox(height: 4),
-              ],
-            ],
+            );
+          }).toList(),
+        ),
+        if (expanded != null) ...[
+          const SizedBox(height: 8),
+          _DoseEditor(
+            controller: controllerFor(expanded.id),
+            onChanged: (d) => onDoseChange(expanded.id, d),
           ),
-        );
-      }).toList(),
+        ],
+      ],
     );
   }
 }

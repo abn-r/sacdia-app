@@ -34,6 +34,9 @@ class MedicoSectionCard extends StatelessWidget {
   /// Contenido de la sección (chips, lista de contactos, etc.).
   final Widget child;
 
+  /// Variante compacta para secciones secundarias que no deben robar altura.
+  final bool dense;
+
   const MedicoSectionCard({
     super.key,
     this.icon,
@@ -44,24 +47,29 @@ class MedicoSectionCard extends StatelessWidget {
     required this.child,
     this.actionLabel,
     this.onAction,
+    this.dense = false,
   }) : assert(icon != null || iconWidget != null,
             'Provide either icon or iconWidget');
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 12, 18),
+      padding: dense
+          ? const EdgeInsets.fromLTRB(12, 10, 10, 12)
+          : const EdgeInsets.fromLTRB(16, 16, 12, 18),
       decoration: BoxDecoration(
         color: MedicoTokens.paper,
-        borderRadius: BorderRadius.circular(MedicoTokens.rCard),
+        borderRadius: BorderRadius.circular(
+          dense ? 16 : MedicoTokens.rCard,
+        ),
         border: Border.all(color: MedicoTokens.ink150),
-        boxShadow: MedicoTokens.shadowCard,
+        boxShadow: dense ? const [] : MedicoTokens.shadowCard,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _header(),
-          const SizedBox(height: 14),
+          SizedBox(height: dense ? 8 : 14),
           child,
         ],
       ),
@@ -71,25 +79,25 @@ class MedicoSectionCard extends StatelessWidget {
   Widget _header() {
     final badge = iconWidget != null
         ? Container(
-            width: MedicoTokens.sectionIconBox,
-            height: MedicoTokens.sectionIconBox,
+            width: dense ? 30 : MedicoTokens.sectionIconBox,
+            height: dense ? 30 : MedicoTokens.sectionIconBox,
             decoration: BoxDecoration(
               color: iconBg,
-              borderRadius:
-                  BorderRadius.circular(MedicoTokens.sectionIconRadius),
+              borderRadius: BorderRadius.circular(
+                  dense ? 10 : MedicoTokens.sectionIconRadius),
             ),
             alignment: Alignment.center,
             child: iconWidget,
           )
         : Container(
-            width: MedicoTokens.sectionIconBox,
-            height: MedicoTokens.sectionIconBox,
+            width: dense ? 30 : MedicoTokens.sectionIconBox,
+            height: dense ? 30 : MedicoTokens.sectionIconBox,
             decoration: BoxDecoration(
               color: iconBg,
-              borderRadius:
-                  BorderRadius.circular(MedicoTokens.sectionIconRadius),
+              borderRadius: BorderRadius.circular(
+                  dense ? 10 : MedicoTokens.sectionIconRadius),
             ),
-            child: HugeIcon(icon: icon!, color: iconFg, size: 20),
+            child: HugeIcon(icon: icon!, color: iconFg, size: dense ? 18 : 20),
           );
 
     return Row(
@@ -99,11 +107,11 @@ class MedicoSectionCard extends StatelessWidget {
         Expanded(
           child: Text(
             title,
-            style: const TextStyle(
-              fontSize: 16,
+            style: TextStyle(
+              fontSize: dense ? 14 : 16,
               fontWeight: FontWeight.w700,
               color: MedicoTokens.ink900,
-              letterSpacing: -0.16,
+              letterSpacing: dense ? -0.08 : -0.16,
             ),
           ),
         ),
