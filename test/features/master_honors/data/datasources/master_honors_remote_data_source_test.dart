@@ -41,8 +41,8 @@ void main() {
 
       final result = await dataSource.getUserMasterHonors('user-1');
 
-      expect(captured.path,
-          'https://api.test/api/v1/users/user-1/master-honors');
+      expect(
+          captured.path, 'https://api.test/api/v1/users/user-1/master-honors');
       expect(result, hasLength(1));
       expect(result.single.masterHonorId, 2);
       expect(result.single.displayStatusLabel, 'No vigente');
