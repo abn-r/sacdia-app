@@ -11,6 +11,7 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
+import 'package:sacdia_app/features/master_honors/presentation/widgets/master_honor_history_section.dart';
 
 const Map<String, List<List<dynamic>>> _categoryIcons = {
   'ADRA': HugeIcons.strokeRoundedCharity,
@@ -56,35 +57,42 @@ class ProfileHonorsSection extends ConsumerWidget {
         ),
         data: (userHonors) {
           if (userHonors.isEmpty) {
-            return Padding(
+            return Column(
               key: const ValueKey('honors-data'),
-              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
-              child: Column(
-                children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedAward01,
-                    size: 48,
-                    color: context.sac.textTertiary,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
+                  child: Column(
+                    children: [
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedAward01,
+                        size: 48,
+                        color: context.sac.textTertiary,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'profile.honors_section.no_honors'.tr(),
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: context.sac.textSecondary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 20),
+                      SacButton.outline(
+                        text: 'profile.honors_section.add_honor'.tr(),
+                        icon: HugeIcons.strokeRoundedAdd01,
+                        onPressed: () {
+                          context.push(RouteNames.homeHonors);
+                        },
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'profile.honors_section.no_honors'.tr(),
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: context.sac.textSecondary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 20),
-                  SacButton.outline(
-                    text: 'profile.honors_section.add_honor'.tr(),
-                    icon: HugeIcons.strokeRoundedAdd01,
-                    onPressed: () {
-                      context.push(RouteNames.homeHonors);
-                    },
-                  ),
-                ],
-              ),
+                ),
+                const MasterHonorHistorySection(),
+              ],
             );
           }
 
@@ -122,6 +130,7 @@ class ProfileHonorsSection extends ConsumerWidget {
                   },
                 ),
               ),
+              const MasterHonorHistorySection(),
             ],
           );
         },

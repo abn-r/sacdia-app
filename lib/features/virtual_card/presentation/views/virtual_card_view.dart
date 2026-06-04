@@ -16,6 +16,7 @@ import '../widgets/credencial/credencial_tokens.dart';
 import '../widgets/credencial/credencial_view_model.dart';
 import '../widgets/virtual_card_skeleton.dart';
 import 'virtual_card_photo_view.dart';
+import '../../../master_honors/presentation/widgets/master_honor_history_section.dart';
 
 class VirtualCardView extends ConsumerStatefulWidget {
   const VirtualCardView({super.key});
@@ -207,6 +208,7 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
                               ),
                             ],
                           ),
+                          const MasterHonorBadgeStrip(),
                           if (card.photoUrl?.trim().isNotEmpty == true) ...[
                             const SizedBox(height: 8),
                             Center(

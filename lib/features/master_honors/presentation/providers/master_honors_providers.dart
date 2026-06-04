@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 
 import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -51,6 +52,14 @@ final userMasterHonorsProvider =
     (failure) => throw Exception(failure.message),
     (masterHonors) => masterHonors,
   );
+});
+
+/// Ruta recomendada para abrir desde el tap de notificaciones de maestrías.
+///
+/// Home Profile concentra estado y acciones de perfil, incluyendo la sección de
+/// maestrías y acceso a la tarjeta virtual, sin introducir una nueva pantalla.
+final masterHonorsNotificationTapRouteProvider = Provider<String>((_) {
+  return RouteNames.homeProfile;
 });
 
 /// Hook estable para que notificaciones `master_honor_changed` invaliden cache.
