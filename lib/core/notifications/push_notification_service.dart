@@ -16,6 +16,9 @@ import '../realtime/realtime_invalidation_handler.dart';
 import '../realtime/realtime_ref.dart';
 import '../utils/app_logger.dart';
 import '../../features/achievements/presentation/providers/achievements_providers.dart';
+import '../../features/master_honors/presentation/providers/master_honor_modal_queue_provider.dart';
+import '../../features/master_honors/presentation/providers/master_honors_providers.dart';
+import '../../features/master_honors/presentation/widgets/master_honor_change_modal.dart';
 import '../../features/notifications/presentation/providers/notifications_providers.dart';
 import '../../features/notifications/presentation/providers/unread_notifications_count_provider.dart';
 
@@ -405,6 +408,10 @@ class PushNotificationService {
       _handleAchievementUnlockedForeground(message);
       return;
     }
+    if (type == 'master_honor_changed') {
+      _handleMasterHonorChangedForeground(message);
+      return;
+    }
 
     final notification = message.notification;
     if (notification == null) return;
@@ -449,6 +456,16 @@ class PushNotificationService {
   @visibleForTesting
   String achievementRouteForTesting(Map<String, dynamic> data) {
     return _achievementUnlockedRoute(data);
+  }
+
+  @visibleForTesting
+  String masterHonorChangedRouteForTesting(Map<String, dynamic> data) {
+    return _masterHonorsNotificationRoute();
+  }
+
+  @visibleForTesting
+  bool usesGoNavigationForTesting(String route) {
+    return _shouldUseGoNavigation(route);
   }
 
   void _handleAchievementUnlockedForeground(RemoteMessage message) {
@@ -549,6 +566,122 @@ class PushNotificationService {
     );
   }
 
+  void _handleMasterHonorChangedForeground(RemoteMessage message) {
+    final data = message.data;
+    final transition = _parseMasterHonorTransition(data['transition']);
+    final honorNames = _parseMasterHonorNames(data['master_honor_names']);
+
+    _ref.read(unreadNotificationsCountProvider.notifier).increment();
+    _ref.invalidate(notificationsInboxProvider);
+    _ref.read(masterHonorsInvalidationProvider)();
+
+    if (transition == null || honorNames.isEmpty) {
+      AppLogger.w(
+        'No se pudo parsear notificación master_honor_changed',
+        tag: _tag,
+      );
+      return;
+    }
+
+    _ref.read(masterHonorModalQueueProvider.notifier).enqueue(
+          MasterHonorModalEvent(
+            transition: transition,
+            masterHonorIds: _parseMasterHonorIds(data['master_honor_ids']),
+            masterHonorNames: honorNames,
+          ),
+        );
+    _processMasterHonorModalQueue();
+  }
+
+  void _processMasterHonorModalQueue() {
+    final context = navigatorKey?.currentContext;
+    if (context == null) return;
+
+    final queueState = _ref.read(masterHonorModalQueueProvider);
+    if (queueState.isShowingModal) return;
+
+    final nextEvent =
+        _ref.read(masterHonorModalQueueProvider.notifier).peekNext();
+    if (nextEvent == null) return;
+
+    _ref.read(masterHonorModalQueueProvider.notifier).markModalStarted();
+
+    if (!context.mounted) {
+      _discardCurrentMasterHonorModalEvent();
+      return;
+    }
+
+    try {
+      showDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (dialogContext) => MasterHonorChangeModal(
+          event: nextEvent,
+          onConfirm: () {
+            if (dialogContext.mounted) {
+              Navigator.of(dialogContext).pop();
+            }
+          },
+        ),
+      ).then((_) {
+        final notifier = _ref.read(masterHonorModalQueueProvider.notifier);
+        notifier.removeFirst();
+        notifier.markModalFinished();
+        _processMasterHonorModalQueue();
+      });
+    } catch (error) {
+      AppLogger.w(
+        'No fue posible mostrar el modal de maestrías en foreground',
+        tag: _tag,
+        error: error,
+      );
+      _discardCurrentMasterHonorModalEvent();
+    }
+  }
+
+  void _discardCurrentMasterHonorModalEvent() {
+    final notifier = _ref.read(masterHonorModalQueueProvider.notifier);
+    notifier.removeFirst();
+    notifier.markModalFinished();
+  }
+
+  MasterHonorChangeTransition? _parseMasterHonorTransition(
+      dynamic rawTransition) {
+    final transition = rawTransition?.toString().toLowerCase();
+    return switch (transition) {
+      'awarded' => MasterHonorChangeTransition.awarded,
+      'recovered' => MasterHonorChangeTransition.recovered,
+      'not_current' => MasterHonorChangeTransition.notCurrent,
+      _ => null,
+    };
+  }
+
+  List<String> _parseMasterHonorIds(dynamic rawIds) {
+    final ids = rawIds?.toString().trim();
+    if (ids == null || ids.isEmpty) return const [];
+
+    return ids
+        .split(',')
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toList();
+  }
+
+  List<String> _parseMasterHonorNames(dynamic rawNames) {
+    final names = rawNames?.toString().trim();
+    if (names == null || names.isEmpty) return const [];
+
+    return names
+        .split('|')
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toList();
+  }
+
+  String _masterHonorsNotificationRoute() {
+    return _ref.read(masterHonorsNotificationTapRouteProvider);
+  }
+
   String _achievementNameFromMessage(RemoteMessage message) {
     final fromData = message.data['achievement_name'] as String?;
     if (fromData != null && fromData.trim().isNotEmpty) {
@@ -587,6 +720,26 @@ class PushNotificationService {
   }
 
   // ── Notification route allowlist ─────────────────────────────────────────
+
+  /// Static shell branch routes that must switch tabs instead of stacking a page.
+  static const Set<String> _goNavigationRoutes = {
+    RouteNames.homeDashboard,
+    RouteNames.homeClasses,
+    RouteNames.homeActivities,
+    RouteNames.homeProfile,
+    RouteNames.homeMembers,
+    RouteNames.homeClub,
+    RouteNames.homeEvidences,
+    RouteNames.homeFinances,
+    RouteNames.homeUnits,
+    RouteNames.homeInsurance,
+    RouteNames.homeInventory,
+    RouteNames.homeResources,
+    RouteNames.homeHonors,
+    RouteNames.homeCertifications,
+    RouteNames.homeCamporees,
+    RouteNames.homeAchievements,
+  };
 
   /// Static routes (no path parameters) that a push notification payload is
   /// allowed to navigate to. Any route NOT in this set (or not matching one
@@ -633,6 +786,7 @@ class PushNotificationService {
     'member_of_month',
     'member_of_month_director',
     'achievement_unlocked',
+    'master_honor_changed',
   };
 
   /// RegExp patterns for routes that carry path parameters.
@@ -671,6 +825,10 @@ class PushNotificationService {
     return false;
   }
 
+  bool _shouldUseGoNavigation(String route) {
+    return _goNavigationRoutes.contains(route);
+  }
+
   void _pushRoute(String route) {
     final context = navigatorKey?.currentContext;
     if (context == null) {
@@ -687,6 +845,11 @@ class PushNotificationService {
         'No hay GoRouter disponible para navegar desde push notification',
         tag: _tag,
       );
+      return;
+    }
+
+    if (_shouldUseGoNavigation(route)) {
+      router.go(route);
       return;
     }
 
@@ -764,6 +927,9 @@ class PushNotificationService {
         // the specific achievement detail.
         // Payload: { type, achievement_id, achievement_name }
         _pushRoute(_achievementUnlockedRoute(data));
+        return;
+      case 'master_honor_changed':
+        _pushRoute(_masterHonorsNotificationRoute());
         return;
 
       default:
