@@ -244,7 +244,7 @@ class _CategorySection extends StatelessWidget {
               crossAxisCount: 3,
               childAspectRatio: 0.78,
               crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
+              mainAxisSpacing: 2.5,
             ),
             itemCount: userHonors.length,
             itemBuilder: (context, index) {
@@ -290,47 +290,48 @@ class _HonorGridItem extends StatelessWidget {
         ),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: AspectRatio(
-              aspectRatio: 1.0,
-              child: Stack(
-                children: [
-                  imageUrl != null && imageUrl.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: imageUrl,
-                          fit: BoxFit.contain,
-                          errorWidget: (_, __, ___) => _InitialsBox(
-                            initials: initials,
-                            categoryColor: categoryColor,
-                          ),
-                        )
-                      : _InitialsBox(
+          SizedBox(
+            height: 96,
+            width: double.infinity,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                imageUrl != null && imageUrl.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.contain,
+                        errorWidget: (_, __, ___) => _InitialsBox(
                           initials: initials,
                           categoryColor: categoryColor,
                         ),
-                  if (isCompleted)
-                    Positioned(
-                      top: 2,
-                      right: 2,
-                      child: Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: const BoxDecoration(
-                          color: AppColors.secondary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: HugeIcon(
-                          icon: HugeIcons.strokeRoundedTick02,
-                          color: Colors.white,
-                          size: 10,
-                        ),
+                      )
+                    : _InitialsBox(
+                        initials: initials,
+                        categoryColor: categoryColor,
+                      ),
+                if (isCompleted)
+                  Positioned(
+                    top: 2,
+                    right: 2,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(
+                        color: AppColors.secondary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedTick02,
+                        color: Colors.white,
+                        size: 10,
                       ),
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 4),
           Text(
             name,
             textAlign: TextAlign.center,

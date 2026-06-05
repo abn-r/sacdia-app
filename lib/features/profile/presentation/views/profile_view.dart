@@ -507,14 +507,13 @@ class _ProfileScrollBody extends StatelessWidget {
                     children: [
                       // Add honor button
                       SizedBox(
-                        width: 32,
                         height: 32,
                         child: Material(
-                          color: AppColors.info.withAlpha(20),
+                          color: AppColors.secondary.withAlpha(20),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                             side: BorderSide(
-                              color: AppColors.info.withAlpha(40),
+                              color: AppColors.secondary.withAlpha(40),
                             ),
                           ),
                           child: InkWell(
@@ -523,13 +522,31 @@ class _ProfileScrollBody extends StatelessWidget {
                               context.push(RouteNames.homeHonors);
                             },
                             child: Semantics(
-                              label: 'profile.view.section_honors'.tr(),
+                              label: 'profile.honors_section.add_honor'.tr(),
                               button: true,
-                              child: const Center(
-                                child: HugeIcon(
-                                  icon: HugeIcons.strokeRoundedAdd01,
-                                  color: AppColors.info,
-                                  size: 18,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const HugeIcon(
+                                      icon: HugeIcons.strokeRoundedAdd01,
+                                      color: AppColors.secondary,
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'common.add'.tr(),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.secondary,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
