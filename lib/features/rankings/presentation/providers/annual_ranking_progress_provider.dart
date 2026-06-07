@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'rankings_infrastructure_providers.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../data/datasources/annual_ranking_progress_remote_data_source.dart';
 import '../../data/repositories/annual_ranking_progress_repository_impl.dart';
 import '../../domain/entities/annual_ranking_progress.dart';
 import '../../domain/repositories/annual_ranking_progress_repository.dart';

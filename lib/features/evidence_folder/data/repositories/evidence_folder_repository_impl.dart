@@ -1,9 +1,10 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/evidence_file.dart';
 import '../../domain/entities/evidence_folder.dart';
 import '../../domain/repositories/evidence_folder_repository.dart';
@@ -25,10 +26,10 @@ class EvidenceFolderRepositoryImpl implements EvidenceFolderRepository {
   @override
   Future<Either<Failure, EvidenceFolder?>> getEvidenceFolder(
       String clubSectionId,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     try {
       final model = await remoteDataSource.getEvidenceFolder(clubSectionId,
-          cancelToken: cancelToken);
+          cancelToken: cancelToken.asDioCancelToken());
       // model == null → carpeta no existe (200 + data: null). Estado válido.
       if (model == null) return const Right(null);
       return Right(model.toEntity());

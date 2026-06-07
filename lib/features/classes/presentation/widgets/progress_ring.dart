@@ -72,11 +72,13 @@ class HeroDonut extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 56,
-      height: 56,
-      child: CustomPaint(
-        painter: _HeroDonutPainter(progress: progress.clamp(0.0, 1.0)),
+    return RepaintBoundary(
+      child: SizedBox(
+        width: 56,
+        height: 56,
+        child: CustomPaint(
+          painter: _HeroDonutPainter(progress: progress.clamp(0.0, 1.0)),
+        ),
       ),
     );
   }

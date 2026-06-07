@@ -4,15 +4,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/config/cache_config.dart';
-import '../../../../core/realtime/realtime_ref.dart';
-import '../../../../core/realtime/realtime_resource_registry.dart';
 import '../../../../core/storage/local_storage.dart';
-import '../../../../features/members/presentation/providers/members_providers.dart';
 import '../../domain/entities/cache_info.dart';
 import '../../domain/entities/sync_result.dart';
 import '../../domain/repositories/cache_repository.dart';
@@ -173,27 +169,15 @@ class CacheRepositoryImpl implements CacheRepository {
   // ── Force sync ─────────────────────────────────────────────────────────────
 
   @override
-  Future<SyncResult> forceSync(RealtimeRef ref) async {
+  Future<SyncResult> recordSuccessfulSync(DateTime syncedAt) async {
     try {
-      // Resolve the active club context for section-scoped handlers.
-      final ctx = ref.read(clubContextProvider).valueOrNull;
-
-      // Fire the registry + catalogs. Handlers that require a matching
-      // sectionId will no-op if ctx is null (we pass a sentinel -1).
-      RealtimeResourceRegistry.invalidateAll(
-        ref,
-        ctx?.sectionId ?? -1,
-      );
-
-      // Record timestamp ONLY on success.
-      final now = DateTime.now();
       await _localStorage.saveInt(
         kLastGlobalSyncAtKey,
-        now.millisecondsSinceEpoch,
+        syncedAt.millisecondsSinceEpoch,
       );
-      return SyncResult.ok(now);
+      return SyncResult.ok(syncedAt);
     } catch (e, st) {
-      debugPrint('[CacheRepo] forceSync threw: $e\n$st');
+      debugPrint('[CacheRepo] recordSuccessfulSync threw: $e\n$st');
       // Translated key — fallback to the raw message if translations are
       // not ready (e.g. running outside an app context in a test).
       String msg;

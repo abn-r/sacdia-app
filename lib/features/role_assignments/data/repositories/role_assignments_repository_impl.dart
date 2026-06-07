@@ -1,8 +1,9 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/role_assignment.dart';
 import '../../domain/repositories/role_assignments_repository.dart';
 import '../datasources/role_assignments_remote_data_source.dart';
@@ -28,11 +29,11 @@ class RoleAssignmentsRepositoryImpl implements RoleAssignmentsRepository {
 
   @override
   Future<Either<Failure, List<RoleAssignment>>> getAssignments({
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final models = await remoteDataSource.getAssignments(
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {

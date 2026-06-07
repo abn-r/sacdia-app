@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/club_member.dart';
 import '../repositories/members_repository.dart';
@@ -30,7 +30,7 @@ class GetClubMembers
 
   @override
   Future<Either<Failure, List<ClubMember>>> call(GetClubMembersParams params,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     return await repository.getClubMembers(
       clubId: params.clubId,
       sectionId: params.sectionId,

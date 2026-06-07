@@ -26,7 +26,9 @@ class ClassModulesView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final modulesAsync = ref.watch(classModulesProvider(classId));
-    final authState = ref.watch(authNotifierProvider);
+    final userId = ref.watch(
+      authNotifierProvider.select((v) => v.valueOrNull?.id),
+    );
 
     return Scaffold(
       backgroundColor: context.sac.background,
@@ -74,7 +76,6 @@ class ClassModulesView extends ConsumerWidget {
                 return ModuleExpansionTile(
                   module: module,
                   onSectionToggle: (sectionId, isCompleted) async {
-                    final userId = authState.value?.id;
                     if (userId == null) return;
 
                     await ref

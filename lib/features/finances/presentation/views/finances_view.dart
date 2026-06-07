@@ -360,9 +360,11 @@ class _DashedSeparator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-      child: CustomPaint(
-        size: const Size(double.infinity, 1.5),
-        painter: _DashedLinePainter(color: context.sac.border),
+      child: RepaintBoundary(
+        child: CustomPaint(
+          size: const Size(double.infinity, 1.5),
+          painter: _DashedLinePainter(color: context.sac.border),
+        ),
       ),
     );
   }

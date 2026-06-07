@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/club_member.dart';
 import '../../domain/entities/join_request.dart';
 import '../../domain/repositories/members_repository.dart';
@@ -23,13 +25,13 @@ class MembersRepositoryImpl implements MembersRepository {
   Future<Either<Failure, List<ClubMember>>> getClubMembers({
     required int clubId,
     required int sectionId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final members = await remoteDataSource.getClubMembers(
         clubId: clubId,
         sectionId: sectionId,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(members);
     } on DioException catch (e) {
@@ -46,10 +48,10 @@ class MembersRepositoryImpl implements MembersRepository {
 
   @override
   Future<Either<Failure, ClubMember>> getMemberDetail(String userId,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     try {
       final member = await remoteDataSource.getMemberDetail(userId,
-          cancelToken: cancelToken);
+          cancelToken: cancelToken.asDioCancelToken());
       return Right(member);
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
@@ -67,13 +69,13 @@ class MembersRepositoryImpl implements MembersRepository {
   Future<Either<Failure, List<JoinRequest>>> getJoinRequests({
     required int clubId,
     required int sectionId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final requests = await remoteDataSource.getJoinRequests(
         clubId: clubId,
         sectionId: sectionId,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(requests);
     } on DioException catch (e) {

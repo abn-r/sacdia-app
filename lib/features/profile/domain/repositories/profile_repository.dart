@@ -1,14 +1,14 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/user_detail.dart';
 
 /// Interfaz del repositorio de perfil
 abstract class ProfileRepository {
   /// Obtiene el perfil del usuario
   Future<Either<Failure, UserDetail>> getUserProfile(String userId,
-      {CancelToken? cancelToken});
+      {RequestCancelToken? cancelToken});
 
   /// Actualiza el perfil del usuario
   Future<Either<Failure, UserDetail>> updateUserProfile(

@@ -3,6 +3,8 @@ import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/progressive_class.dart';
 import '../../domain/entities/class_module.dart';
 import '../../domain/entities/class_progress.dart';
@@ -36,10 +38,10 @@ class ClassesRepositoryImpl implements ClassesRepository {
 
   @override
   Future<Either<Failure, List<ProgressiveClass>>> getClasses(
-      {int? clubTypeId, CancelToken? cancelToken}) async {
+      {int? clubTypeId, RequestCancelToken? cancelToken}) async {
     try {
       final models = await remoteDataSource.getClasses(
-          clubTypeId: clubTypeId, cancelToken: cancelToken);
+          clubTypeId: clubTypeId, cancelToken: cancelToken.asDioCancelToken());
       return Right(models.map((m) => m.toEntity()).toList());
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
@@ -55,10 +57,10 @@ class ClassesRepositoryImpl implements ClassesRepository {
 
   @override
   Future<Either<Failure, ProgressiveClass>> getClassById(int classId,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     try {
       final model = await remoteDataSource.getClassById(classId,
-          cancelToken: cancelToken);
+          cancelToken: cancelToken.asDioCancelToken());
       return Right(model.toEntity());
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
@@ -74,10 +76,10 @@ class ClassesRepositoryImpl implements ClassesRepository {
 
   @override
   Future<Either<Failure, List<ClassModule>>> getClassModules(int classId,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     try {
       final models = await remoteDataSource.getClassModules(classId,
-          cancelToken: cancelToken);
+          cancelToken: cancelToken.asDioCancelToken());
       return Right(models.map((m) => m.toEntity()).toList());
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
@@ -93,10 +95,10 @@ class ClassesRepositoryImpl implements ClassesRepository {
 
   @override
   Future<Either<Failure, List<ProgressiveClass>>> getUserClasses(String userId,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     try {
       final models = await remoteDataSource.getUserClasses(userId,
-          cancelToken: cancelToken);
+          cancelToken: cancelToken.asDioCancelToken());
       return Right(models.map((m) => m.toEntity()).toList());
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
@@ -113,10 +115,10 @@ class ClassesRepositoryImpl implements ClassesRepository {
   @override
   Future<Either<Failure, ClassProgress>> getUserClassProgress(
       String userId, int classId,
-      {int? enrollmentId, CancelToken? cancelToken}) async {
+      {int? enrollmentId, RequestCancelToken? cancelToken}) async {
     try {
       final model = await remoteDataSource.getUserClassProgress(userId, classId,
-          enrollmentId: enrollmentId, cancelToken: cancelToken);
+          enrollmentId: enrollmentId, cancelToken: cancelToken.asDioCancelToken());
       return Right(model.toEntity());
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
@@ -170,10 +172,10 @@ class ClassesRepositoryImpl implements ClassesRepository {
   @override
   Future<Either<Failure, ClassWithProgress>> getClassWithProgress(
       String userId, int classId,
-      {int? enrollmentId, CancelToken? cancelToken}) async {
+      {int? enrollmentId, RequestCancelToken? cancelToken}) async {
     try {
       final model = await remoteDataSource.getClassWithProgress(userId, classId,
-          enrollmentId: enrollmentId, cancelToken: cancelToken);
+          enrollmentId: enrollmentId, cancelToken: cancelToken.asDioCancelToken());
       return Right(model.toEntity());
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;

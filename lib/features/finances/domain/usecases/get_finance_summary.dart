@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/finance_summary.dart';
 import '../repositories/finances_repository.dart';
 
@@ -22,7 +22,7 @@ class GetFinanceSummary {
 
   Future<Either<Failure, FinanceSummary>> call(
     GetFinanceSummaryParams params, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) {
     return repository.getSummary(
       clubId: params.clubId,

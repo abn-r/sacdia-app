@@ -247,7 +247,8 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     }
 
     final currentStep = ref.watch(currentStepProvider);
-    final authUser = ref.watch(authNotifierProvider).valueOrNull;
+    final authUser =
+        ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
     final selectedPhoto = ref.watch(selectedPhotoPathProvider);
     final isUploading = ref.watch(isUploadingPhotoProvider);
     final isSavingStep3 = ref.watch(isSavingStep3Provider);

@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/progressive_class.dart';
 import '../entities/class_module.dart';
 import '../entities/class_progress.dart';
@@ -11,24 +11,24 @@ import '../entities/requirement_evidence.dart';
 abstract class ClassesRepository {
   /// Obtiene todas las clases progresivas del catalogo.
   Future<Either<Failure, List<ProgressiveClass>>> getClasses(
-      {int? clubTypeId, CancelToken? cancelToken});
+      {int? clubTypeId, RequestCancelToken? cancelToken});
 
   /// Obtiene el detalle de una clase especifica.
   Future<Either<Failure, ProgressiveClass>> getClassById(int classId,
-      {CancelToken? cancelToken});
+      {RequestCancelToken? cancelToken});
 
   /// Obtiene los modulos de una clase especifica.
   Future<Either<Failure, List<ClassModule>>> getClassModules(int classId,
-      {CancelToken? cancelToken});
+      {RequestCancelToken? cancelToken});
 
   /// Obtiene las clases de un usuario.
   Future<Either<Failure, List<ProgressiveClass>>> getUserClasses(String userId,
-      {CancelToken? cancelToken});
+      {RequestCancelToken? cancelToken});
 
   /// Obtiene el progreso de una clase de un usuario.
   Future<Either<Failure, ClassProgress>> getUserClassProgress(
       String userId, int classId,
-      {int? enrollmentId, CancelToken? cancelToken});
+      {int? enrollmentId, RequestCancelToken? cancelToken});
 
   /// Actualiza el progreso de una clase de un usuario.
   Future<Either<Failure, ClassProgress>> updateUserClassProgress(
@@ -46,7 +46,7 @@ abstract class ClassesRepository {
   /// Obtiene la clase con progreso detallado por modulos y requerimientos.
   Future<Either<Failure, ClassWithProgress>> getClassWithProgress(
       String userId, int classId,
-      {int? enrollmentId, CancelToken? cancelToken});
+      {int? enrollmentId, RequestCancelToken? cancelToken});
 
   /// Envia un requerimiento a validacion (pendiente -> enviado).
   Future<Either<Failure, void>> submitRequirement(

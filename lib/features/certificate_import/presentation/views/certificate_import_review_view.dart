@@ -7,7 +7,7 @@ import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
-import '../../data/datasources/certificate_import_remote_data_source.dart';
+import '../../domain/entities/certificate_import_payloads.dart';
 import '../../domain/entities/certificate_import_batch.dart';
 import '../../domain/entities/certificate_import_item.dart';
 import '../../domain/usecases/update_certificate_import_item.dart';

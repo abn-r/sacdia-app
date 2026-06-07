@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/coordinator_club.dart';
 import '../entities/sla_dashboard.dart';
 import '../entities/evidence_review_item.dart';
@@ -14,7 +14,7 @@ abstract class CoordinatorRepository {
   /// GET /clubs?localFieldId=... (coordinadores ven todos los clubs de su campo)
   Future<Either<Failure, List<CoordinatorClub>>> listClubs({
     int? localFieldId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   // ── SLA Dashboard ─────────────────────────────────────────────────────────
@@ -22,7 +22,7 @@ abstract class CoordinatorRepository {
   /// Devuelve el dashboard SLA operativo del coordinador.
   /// GET /admin/analytics/sla-dashboard
   Future<Either<Failure, SlaDashboard>> getSlaDashboard({
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   // ── Evidence Review ───────────────────────────────────────────────────────
@@ -33,7 +33,7 @@ abstract class CoordinatorRepository {
     int page = 1,
     int limit = 20,
     EvidenceReviewType? type,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   /// Devuelve el detalle de una evidencia con archivos e historial.
@@ -41,7 +41,7 @@ abstract class CoordinatorRepository {
   Future<Either<Failure, EvidenceReviewItem>> getEvidenceDetail({
     required EvidenceReviewType type,
     required String id,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   /// Aprueba una evidencia con comentario opcional.
@@ -81,13 +81,13 @@ abstract class CoordinatorRepository {
   /// GET /camporees?active=true
   Future<Either<Failure, List<CamporeeItem>>> listLocalCamporees({
     bool activeOnly = true,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   /// Devuelve la lista de camporees de unión activos.
   /// GET /camporees/union
   Future<Either<Failure, List<CamporeeItem>>> listUnionCamporees({
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   // ── Camporee pending approvals ────────────────────────────────────────────
@@ -96,14 +96,14 @@ abstract class CoordinatorRepository {
   /// GET /camporees/:camporeeId/pending
   Future<Either<Failure, CamporeePendingApprovals>> getLocalCamporeePending(
     int camporeeId, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   /// Devuelve las inscripciones pendientes de aprobación para un camporee de unión.
   /// GET /camporees/union/:camporeeId/pending
   Future<Either<Failure, CamporeePendingApprovals>> getUnionCamporeePending(
     int camporeeId, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   // ── Club enrollment approve/reject ────────────────────────────────────────

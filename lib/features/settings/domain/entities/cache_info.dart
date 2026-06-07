@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 /// Snapshot of the app's local cache footprint at a point in time.
 ///
 /// Produced by [CacheRepository.getCacheInfo]. All byte fields are
@@ -9,7 +7,6 @@ import 'package:flutter/foundation.dart';
 /// `RealtimeResourceRegistry.invalidateAll` + the `last_global_sync_at`
 /// SharedPreferences key). May be null if the user has never triggered
 /// a force-sync on this device.
-@immutable
 class CacheInfo {
   /// Total bytes across all app-managed caches (image cache + temp + memory).
   final int totalBytes;

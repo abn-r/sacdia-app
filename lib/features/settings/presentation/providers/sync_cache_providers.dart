@@ -1,7 +1,10 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/realtime/realtime_ref.dart';
+import '../../../../core/realtime/realtime_resource_registry.dart';
 import '../../../../providers/storage_provider.dart';
+import '../../../members/presentation/providers/members_providers.dart';
 import '../../data/repositories/cache_repository_impl.dart';
 import '../../domain/entities/cache_info.dart';
 import '../../domain/entities/sync_result.dart';
@@ -62,7 +65,20 @@ class SyncController extends AutoDisposeNotifier<SyncControllerState> {
     }
     state = state.copyWith(inProgress: true);
     final repo = ref.read(cacheRepositoryProvider);
-    final result = await repo.forceSync(rtRef);
+    SyncResult result;
+    try {
+      final ctx = rtRef.read(clubContextProvider).valueOrNull;
+      RealtimeResourceRegistry.invalidateAll(rtRef, ctx?.sectionId ?? -1);
+      result = await repo.recordSuccessfulSync(DateTime.now());
+    } catch (e) {
+      String message;
+      try {
+        message = 'settings.force_sync_error'.tr();
+      } catch (_) {
+        message = 'Force sync failed';
+      }
+      result = SyncResult.error(message);
+    }
     // Refresh the info tile so "Última sincronización" updates.
     ref.invalidate(cacheInfoProvider);
     state = SyncControllerState(inProgress: false, lastResult: result);

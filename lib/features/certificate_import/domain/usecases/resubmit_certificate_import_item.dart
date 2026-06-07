@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
-import '../../data/datasources/certificate_import_remote_data_source.dart';
+import '../entities/certificate_import_payloads.dart';
 import '../entities/certificate_import_item.dart';
 import '../repositories/certificate_import_repository.dart';
 

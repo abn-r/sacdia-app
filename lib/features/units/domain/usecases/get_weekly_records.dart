@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/weekly_record.dart';
 import '../repositories/units_repository.dart';
 
@@ -24,7 +24,7 @@ class GetWeeklyRecords {
 
   Future<Either<Failure, List<WeeklyRecord>>> call(
       GetWeeklyRecordsParams params,
-      {CancelToken? cancelToken}) {
+      {RequestCancelToken? cancelToken}) {
     return _repository.getWeeklyRecords(
       clubId: params.clubId,
       unitId: params.unitId,

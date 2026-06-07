@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/inventory_item.dart';
 import '../repositories/inventory_repository.dart';
 
@@ -26,7 +26,7 @@ class GetInventoryItems {
 
   Future<Either<Failure, List<InventoryItem>>> call(
     GetInventoryItemsParams params, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) {
     return repository.getItems(
       clubId: params.clubId,

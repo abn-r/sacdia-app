@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/validation.dart';
 
 abstract class ValidationRepository {
@@ -15,12 +15,12 @@ abstract class ValidationRepository {
   Future<Either<Failure, List<ValidationHistoryEntry>>> getValidationHistory({
     required ValidationEntityType entityType,
     required int entityId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   /// Comprueba elegibilidad para investidura de un usuario.
   Future<Either<Failure, EligibilityResult>> checkEligibility({
     required String userId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 }

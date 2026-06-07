@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/honor_requirement.dart';
 import '../repositories/honors_repository.dart';
@@ -15,7 +15,7 @@ class GetHonorRequirements
   @override
   Future<Either<Failure, List<HonorRequirement>>> call(
       GetHonorRequirementsParams params,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     return await repository.getHonorRequirements(params.honorId,
         cancelToken: cancelToken);
   }

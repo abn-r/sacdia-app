@@ -155,9 +155,11 @@ class _DashedGlyph extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size(size, size),
-      painter: _DashedCirclePainter(),
+    return RepaintBoundary(
+      child: CustomPaint(
+        size: Size(size, size),
+        painter: _DashedCirclePainter(),
+      ),
     );
   }
 }
@@ -203,9 +205,11 @@ class _CheckIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size(size * 0.55, size * 0.55),
-      painter: _CheckPainter(),
+    return RepaintBoundary(
+      child: CustomPaint(
+        size: Size(size * 0.55, size * 0.55),
+        painter: _CheckPainter(),
+      ),
     );
   }
 }
@@ -240,9 +244,11 @@ class _XIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size(size * 0.5, size * 0.5),
-      painter: _XPainter(),
+    return RepaintBoundary(
+      child: CustomPaint(
+        size: Size(size * 0.5, size * 0.5),
+        painter: _XPainter(),
+      ),
     );
   }
 }

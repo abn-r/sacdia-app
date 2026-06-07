@@ -22,7 +22,7 @@ class MembershipStatusBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authNotifierProvider).valueOrNull;
+    final user = ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
     final activeGrant = user?.authorization?.activeGrant;
 
     // Nothing to show if there's no grant or grant is active.

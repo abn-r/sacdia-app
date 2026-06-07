@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/notification_item.dart';
 
 /// Interfaz del repositorio de notificaciones (dominio).
@@ -14,7 +14,7 @@ abstract class NotificationsRepository {
       getHistory({
     int page = 1,
     int limit = 20,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   /// Obtiene el número de entregas no leídas del usuario actual.

@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/completion_status.dart';
 import '../repositories/post_registration_repository.dart';
 
@@ -10,7 +10,7 @@ class GetPostRegistrationStatus {
 
   GetPostRegistrationStatus(this.repository);
 
-  Future<Either<Failure, CompletionStatus>> call({CancelToken? cancelToken}) {
+  Future<Either<Failure, CompletionStatus>> call({RequestCancelToken? cancelToken}) {
     return repository.getCompletionStatus(cancelToken: cancelToken);
   }
 }

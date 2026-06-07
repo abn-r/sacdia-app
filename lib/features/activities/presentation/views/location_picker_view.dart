@@ -257,23 +257,25 @@ class _LocationPickerViewState extends ConsumerState<LocationPickerView> {
         body: Stack(
           children: [
             // ── Google Maps a pantalla completa ──────────────────────
-            GoogleMap(
-              initialCameraPosition: CameraPosition(
-                target: _currentCenter,
-                zoom: MapsConstants.defaultZoom,
+            RepaintBoundary(
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: _currentCenter,
+                  zoom: MapsConstants.defaultZoom,
+                ),
+                onMapCreated: (controller) {
+                  if (!_mapCompleter.isCompleted) {
+                    _mapCompleter.complete(controller);
+                  }
+                },
+                onCameraMove: _onCameraMove,
+                onCameraIdle: _onCameraIdle,
+                myLocationEnabled: true,
+                myLocationButtonEnabled: false,
+                zoomControlsEnabled: false,
+                mapToolbarEnabled: false,
+                compassEnabled: false,
               ),
-              onMapCreated: (controller) {
-                if (!_mapCompleter.isCompleted) {
-                  _mapCompleter.complete(controller);
-                }
-              },
-              onCameraMove: _onCameraMove,
-              onCameraIdle: _onCameraIdle,
-              myLocationEnabled: true,
-              myLocationButtonEnabled: false,
-              zoomControlsEnabled: false,
-              mapToolbarEnabled: false,
-              compassEnabled: false,
             ),
 
             // ── Pin central (fijo en el centro de la pantalla) ────────

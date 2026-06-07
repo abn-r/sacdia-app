@@ -45,7 +45,8 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
 
   @override
   Widget build(BuildContext context) {
-    final authUser = ref.watch(authNotifierProvider).valueOrNull;
+    final authUser =
+        ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
     final formState = ref.watch(personalInfoFormProvider);
     final contactsAsync = ref.watch(emergencyContactsProvider);
     final legalRepAsync = ref.watch(legalRepresentativeProvider);

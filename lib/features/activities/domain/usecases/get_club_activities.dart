@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/activity.dart';
 import '../repositories/activities_repository.dart';
@@ -15,7 +15,7 @@ class GetClubActivities
   @override
   Future<Either<Failure, List<Activity>>> call(
     GetClubActivitiesParams params, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     return await repository.getClubActivities(
       params.clubId,

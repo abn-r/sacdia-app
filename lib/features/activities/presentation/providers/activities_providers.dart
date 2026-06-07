@@ -7,8 +7,8 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../data/datasources/activities_remote_data_source.dart';
-import '../../data/models/club_section_model.dart';
-import '../../data/models/create_activity_request.dart';
+import '../../domain/entities/create_activity_request.dart';
+import '../../domain/entities/activity_club_section.dart';
 import '../../data/repositories/activities_repository_impl.dart';
 import '../../domain/entities/activity.dart';
 import '../../domain/repositories/activities_repository.dart';
@@ -440,13 +440,20 @@ final activityImageUploadNotifierProvider =
 ///
 /// Retorna la lista de secciones (incluye la sección propia del director).
 final clubSectionsForActivityProvider =
-    FutureProvider.autoDispose<List<ClubSectionModel>>((ref) async {
+    FutureProvider.autoDispose<List<ActivityClubSection>>((ref) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
 
   final ctx = await ref.watch(clubContextProvider.future);
   if (ctx == null) return const [];
 
-  final dataSource = ref.read(activitiesRemoteDataSourceProvider);
-  return dataSource.getClubSections(ctx.clubId, cancelToken: cancelToken);
+  final repository = ref.read(activitiesRepositoryProvider);
+  final result = await repository.getClubSections(
+    ctx.clubId,
+    cancelToken: cancelToken,
+  );
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (sections) => sections,
+  );
 });

@@ -218,7 +218,7 @@ class _AllTransactionsViewState extends ConsumerState<AllTransactionsView> {
 
 // ── Transaction list body ──────────────────────────────────────────────────────
 
-class _TransactionListBody extends StatelessWidget {
+class _TransactionListBody extends StatefulWidget {
   final AllTransactionsState txState;
   final ScrollController scrollController;
   final ValueChanged<FinanceTransaction> onTransactionTap;
@@ -230,7 +230,45 @@ class _TransactionListBody extends StatelessWidget {
   });
 
   @override
+  State<_TransactionListBody> createState() => _TransactionListBodyState();
+}
+
+class _TransactionListBodyState extends State<_TransactionListBody> {
+  List<FinanceTransaction>? _cachedTransactionsSource;
+  List<_ListItem>? _cachedItems;
+
+  List<_ListItem> _deriveListItems(List<FinanceTransaction> transactions) {
+    final cachedItems = _cachedItems;
+    if (cachedItems != null &&
+        identical(_cachedTransactionsSource, transactions)) {
+      return cachedItems;
+    }
+
+    final grouped = _groupByDate(transactions);
+    final sortedDates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
+
+    final items = <_ListItem>[];
+    for (final date in sortedDates) {
+      final dayTx = grouped[date]!;
+      final dailyTotal = dayTx.fold<double>(
+        0,
+        (sum, tx) => sum + (tx.type.isIncome ? tx.amount : -tx.amount),
+      );
+      items.add(_ListItem.header(date: date, dailyTotal: dailyTotal));
+      for (final tx in dayTx) {
+        items.add(_ListItem.transaction(tx));
+      }
+    }
+
+    _cachedTransactionsSource = transactions;
+    _cachedItems = items;
+    return items;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final txState = widget.txState;
+
     // Full-page loading (first page fetch)
     if (txState.isLoading) {
       return const Center(child: SacLoading());
@@ -252,25 +290,10 @@ class _TransactionListBody extends StatelessWidget {
       );
     }
 
-    // Build grouped list
-    final grouped = _groupByDate(txState.transactions);
-    final sortedDates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
-
-    final items = <_ListItem>[];
-    for (final date in sortedDates) {
-      final dayTx = grouped[date]!;
-      final dailyTotal = dayTx.fold<double>(
-        0,
-        (sum, tx) => sum + (tx.type.isIncome ? tx.amount : -tx.amount),
-      );
-      items.add(_ListItem.header(date: date, dailyTotal: dailyTotal));
-      for (final tx in dayTx) {
-        items.add(_ListItem.transaction(tx));
-      }
-    }
+    final items = _deriveListItems(txState.transactions);
 
     return ListView.builder(
-      controller: scrollController,
+      controller: widget.scrollController,
       physics: const BouncingScrollPhysics(
         parent: AlwaysScrollableScrollPhysics(),
       ),
@@ -294,7 +317,7 @@ class _TransactionListBody extends StatelessWidget {
         }
         return TransactionTile(
           transaction: item.transaction!,
-          onTap: () => onTransactionTap(item.transaction!),
+          onTap: () => widget.onTransactionTap(item.transaction!),
         );
       },
     );

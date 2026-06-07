@@ -1,13 +1,10 @@
-import '../../../../core/realtime/realtime_ref.dart';
 import '../entities/cache_info.dart';
 import '../entities/sync_result.dart';
 
 /// Read + mutate boundary for the app's local cache / last-sync surface.
 ///
-/// The implementation lives in
-/// `features/settings/data/repositories/cache_repository_impl.dart` and
-/// composes `path_provider`, `SacCacheManager`, `DefaultCacheManager` and
-/// `LocalStorage` — tests can supply a fake by overriding the provider.
+/// Concrete adapters compose filesystem/cache/storage dependencies; tests can
+/// supply a fake by overriding the provider at the composition boundary.
 abstract class CacheRepository {
   /// Computes the current cache footprint + reads the last-sync timestamp.
   ///
@@ -35,12 +32,9 @@ abstract class CacheRepository {
   ///   "never synced" right after a clear).
   Future<void> clearAllData();
 
-  /// Fires the cross-resource invalidation chain + updates the
-  /// `last_global_sync_at` SharedPreferences key on success.
+  /// Stores the timestamp for a successful force-sync.
   ///
-  /// Callers pass a [RealtimeRef] (usually via
-  /// `RealtimeRef.fromWidgetRef(ref)` from a Riverpod consumer) so the
-  /// repository can drive provider invalidations without reaching into
-  /// Flutter/Riverpod internals itself.
-  Future<SyncResult> forceSync(RealtimeRef ref);
+  /// Cross-provider invalidation belongs to presentation/composition code, not
+  /// to this data repository. This method only persists the result.
+  Future<SyncResult> recordSuccessfulSync(DateTime syncedAt);
 }

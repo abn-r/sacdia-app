@@ -31,7 +31,11 @@ class SectionRankingScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final yearAsync = ref.watch(currentEcclesiasticalYearProvider);
     final ctxAsync = ref.watch(clubContextProvider);
-    final authAsync = ref.watch(authNotifierProvider);
+    final authView = ref.watch(
+      authNotifierProvider.select(
+        (value) => (isLoading: value.isLoading, user: value.valueOrNull),
+      ),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -69,9 +73,9 @@ class SectionRankingScreen extends ConsumerWidget {
           }
 
           final ctx = ctxAsync.valueOrNull;
-          final user = authAsync.valueOrNull;
+          final user = authView.user;
           if (ctx == null || !canViewSectionRankings(user)) {
-            if (ctxAsync.isLoading || authAsync.isLoading) {
+            if (ctxAsync.isLoading || authView.isLoading) {
               return RankingSkeleton.sectionList();
             }
             return const RankingEmptyState(

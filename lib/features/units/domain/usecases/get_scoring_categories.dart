@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/scoring_category.dart';
 import '../repositories/units_repository.dart';
 
@@ -26,7 +26,7 @@ class GetScoringCategories {
 
   Future<Either<Failure, List<ScoringCategory>>> call(
     GetScoringCategoriesParams params, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) {
     return _repository.getScoringCategories(
       localFieldId: params.localFieldId,

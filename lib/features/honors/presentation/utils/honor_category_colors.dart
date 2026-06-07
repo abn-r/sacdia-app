@@ -15,7 +15,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 ///   9 → Actividades Recreativas
 const Map<int, Color> kCategoryColorById = {
   1: AppColors.catAdra,
-  2: AppColors.catagropecuarias,
+  2: AppColors.catAgropecuarias,
   3: AppColors.catCienciasSalud,
   4: AppColors.catDomesticas,
   5: AppColors.catHabilidadesManuales,
@@ -28,7 +28,7 @@ const Map<int, Color> kCategoryColorById = {
 /// Fallback lookup by category name — used when [honorCategoryId] is unavailable.
 const Map<String, Color> kCategoryColorByName = {
   'ADRA': AppColors.catAdra,
-  'Actividades Agropecuarias': AppColors.catagropecuarias,
+  'Actividades Agropecuarias': AppColors.catAgropecuarias,
   'Ciencias de la Salud': AppColors.catCienciasSalud,
   'Artes Domésticas': AppColors.catDomesticas,
   'Artes y Actividades Manuales': AppColors.catHabilidadesManuales,

@@ -6,7 +6,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
-import '../../data/datasources/certificate_import_remote_data_source.dart';
+import '../../domain/entities/certificate_import_payloads.dart';
 import '../../domain/usecases/create_certificate_import_batch.dart';
 import '../providers/certificate_import_providers.dart';
 

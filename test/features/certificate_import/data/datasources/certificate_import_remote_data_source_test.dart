@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/certificate_import/data/datasources/certificate_import_remote_data_source.dart';
+import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_payloads.dart';
 
 class _FakeAdapter implements HttpClientAdapter {
   _FakeAdapter(this._body);

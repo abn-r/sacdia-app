@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/section_ranking.dart';
 
 /// Abstract repository for section rankings domain operations.
@@ -14,13 +14,13 @@ abstract class SectionRankingsRepository {
     int? clubId,
     int page = 1,
     int limit = 20,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   /// Returns members ranked within a specific section for [yearId].
   Future<Either<Failure, List<SectionMember>>> getSectionMembers(
     int sectionId,
     int yearId, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 }

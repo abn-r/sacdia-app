@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor.dart';
+import '../utils/user_honor_presentation_extensions.dart';
 
 /// Unified honor card for both catalog and my-honors views.
 ///

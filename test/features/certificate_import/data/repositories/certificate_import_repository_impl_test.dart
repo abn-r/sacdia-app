@@ -1,8 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacdia_app/features/certificate_import/data/datasources/certificate_import_remote_data_source.dart';
 import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/network/network_info.dart';
-import 'package:sacdia_app/features/certificate_import/data/datasources/certificate_import_remote_data_source.dart';
+import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_payloads.dart';
 import 'package:sacdia_app/features/certificate_import/data/models/certificate_import_batch_model.dart';
 import 'package:sacdia_app/features/certificate_import/data/models/certificate_import_item_model.dart';
 import 'package:sacdia_app/features/certificate_import/data/repositories/certificate_import_repository_impl.dart';

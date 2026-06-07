@@ -242,15 +242,18 @@ class AppColors {
   // COLORES DE CATEGORÍAS DE HONORES
   // ═══════════════════════════════════════════════════════════
 
-  static const Color catAdra = Color.fromARGB(255, 70, 16, 150);
-  static const Color catagropecuarias = Color(0xFF8BC34A);
-  static const Color catCienciasSalud = Color(0xFF0288D1);
-  static const Color catDomesticas = Color(0xFFFF8F00);
+  static const Color catAdra = Color(0xFF4D3E83);
+  static const Color catAgropecuarias = Color(0xFF592F1B);
+  static const Color catAgropecuariasBorde = Color(0xFFDFBC2B);
+  static const Color catCienciasSalud = Color(0xFF6C3F81);
+  static const Color catDomesticas = Color(0xFFF59F08);
   static const Color catHabilidadesManuales = Color(0xFF6D4C41);
   static const Color catMisioneras = Color(0xFF7B1FA2);
-  static const Color catNaturaleza = Color(0xFF2E7D32);
-  static const Color catProfesionales = Color(0xFF37474F);
-  static const Color catRecreativas = Color(0xFFE91E63);
+  static const Color catNaturaleza = Color(0xFFF7F7F2);
+  static const Color catNaturalezaBorde = Color(0xFFCD8F71);
+  static const Color catProfesionales = Color(0xFFD01B30);
+  static const Color catRecreativas = Color(0xFF047648);
+  static const Color catRecreativasBorde = Color(0xFFEEF1F0);
 
   // ═══════════════════════════════════════════════════════════
   // HELPER: Resolución de color por nombre de clase progresiva

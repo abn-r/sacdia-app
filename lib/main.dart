@@ -3,7 +3,9 @@ import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' as rendering;
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart' as widgets;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -128,6 +130,28 @@ SentryEvent? _scrubEvent(SentryEvent event, Hint hint) {
   return event;
 }
 
+/// Debug-only profiling flags controlled by dart-defines.
+///
+/// Example:
+/// `flutter run --dart-define=SAC_DEBUG_PROFILE_BUILDS=true`
+/// `flutter run --dart-define=SAC_DEBUG_PROFILE_PAINTS=true`
+/// `flutter run --dart-define=SAC_DEBUG_REPAINT_RAINBOW=true`
+///
+/// The assignments live inside assert(), so release/profile builds keep the
+/// default Flutter behavior unless DevTools toggles these service extensions.
+void _configureDebugPerformanceFlags() {
+  assert(() {
+    const profileBuilds = bool.fromEnvironment('SAC_DEBUG_PROFILE_BUILDS');
+    widgets.debugProfileBuildsEnabled = profileBuilds;
+    widgets.debugProfileBuildsEnabledUserWidgets = profileBuilds;
+    rendering.debugProfilePaintsEnabled =
+        bool.fromEnvironment('SAC_DEBUG_PROFILE_PAINTS');
+    rendering.debugRepaintRainbowEnabled =
+        bool.fromEnvironment('SAC_DEBUG_REPAINT_RAINBOW');
+    return true;
+  }());
+}
+
 /// Punto de entrada principal de la aplicación
 Future<void> main() async {
   await SentryFlutter.init(
@@ -144,6 +168,7 @@ Future<void> main() async {
     appRunner: () async {
       // Aseguramos que las dependencias de Flutter estén inicializadas
       WidgetsFlutterBinding.ensureInitialized();
+      _configureDebugPerformanceFlags();
       // EasyLocalization lee los catálogos en assets/translations/* y expone
       // `context.tr` una vez que el widget se monta. ensureInitialized debe
       // ejecutarse antes del primer runApp para tener el locale resuelto.

@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
 import 'package:sacdia_app/core/notifications/push_notification_service.dart';
+import 'package:sacdia_app/core/usecases/cancellation_token.dart';
 import 'package:sacdia_app/features/master_honors/presentation/providers/master_honor_modal_queue_provider.dart';
 import 'package:sacdia_app/features/master_honors/presentation/providers/master_honors_providers.dart';
 import 'package:sacdia_app/features/notifications/domain/entities/notification_item.dart';
@@ -22,7 +23,7 @@ class _FakeNotificationsRepository implements NotificationsRepository {
       getHistory({
     int page = 1,
     int limit = 20,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     return right((items: <NotificationItem>[], total: 0, totalPages: 1));
   }

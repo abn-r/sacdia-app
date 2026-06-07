@@ -11,12 +11,44 @@ import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import '../../domain/entities/progressive_class.dart';
 import '../providers/classes_providers.dart';
 import '../sheets/enroll_previous_class_sheet.dart';
 import '../widgets/class_card.dart';
 import 'class_detail_with_progress_view.dart';
 
 // ── Top-level helper — reachable from AppBar and from ClassesListViewBody ───────
+
+class _ClassesListDerivation {
+  final ProgressiveClass? currentClass;
+  final List<ProgressiveClass> otherClasses;
+
+  const _ClassesListDerivation({
+    required this.currentClass,
+    required this.otherClasses,
+  });
+}
+
+_ClassesListDerivation _deriveClassesList(List<ProgressiveClass> classes) {
+  final activeClasses = <ProgressiveClass>[];
+  final expiredClasses = <ProgressiveClass>[];
+
+  for (final progressiveClass in classes) {
+    if (progressiveClass.isExpired) {
+      expiredClasses.add(progressiveClass);
+    } else {
+      activeClasses.add(progressiveClass);
+    }
+  }
+
+  return _ClassesListDerivation(
+    currentClass: activeClasses.isNotEmpty ? activeClasses.first : null,
+    otherClasses: [
+      if (activeClasses.length > 1) ...activeClasses.skip(1),
+      ...expiredClasses,
+    ],
+  );
+}
 
 void _openEnrollSheet(BuildContext context) {
   showModalBottomSheet(
@@ -125,14 +157,9 @@ class ClassesListViewBody extends ConsumerWidget {
           );
         }
 
-        final activeClasses = classes.where((c) => !c.isExpired).toList();
-        final expiredClasses = classes.where((c) => c.isExpired).toList();
-        final currentClass =
-            activeClasses.isNotEmpty ? activeClasses.first : null;
-        final otherClasses = [
-          if (activeClasses.length > 1) ...activeClasses.sublist(1),
-          ...expiredClasses,
-        ];
+        final derivation = _deriveClassesList(classes);
+        final currentClass = derivation.currentClass;
+        final otherClasses = derivation.otherClasses;
 
         return RefreshIndicator(
           color: AppColors.primary,

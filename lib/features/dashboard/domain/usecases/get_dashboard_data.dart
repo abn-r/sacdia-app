@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/dashboard_summary.dart';
 import '../repositories/dashboard_repository.dart';
@@ -14,7 +14,7 @@ class GetDashboardSummary implements UseCase<DashboardSummary, NoParams> {
 
   @override
   Future<Either<Failure, DashboardSummary>> call(NoParams params,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     return await repository.getDashboardSummary(cancelToken: cancelToken);
   }
 }

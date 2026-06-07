@@ -1,9 +1,10 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/member_breakdown.dart';
 import '../../domain/entities/member_ranking.dart';
 import '../../domain/repositories/member_rankings_repository.dart';
@@ -35,7 +36,7 @@ class MemberRankingsRepositoryImpl implements MemberRankingsRepository {
   @override
   Future<Either<Failure, MyRankingView?>> getMyRanking(
     int yearId, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     // Check connectivity; return NetworkFailure when offline.
     if (!await networkInfo.isConnected) {
@@ -47,7 +48,7 @@ class MemberRankingsRepositoryImpl implements MemberRankingsRepository {
     try {
       final dto = await remoteDataSource.getMyRanking(
         yearId,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(dto.toEntity());
     } on MemberRankingHiddenException {
@@ -66,7 +67,7 @@ class MemberRankingsRepositoryImpl implements MemberRankingsRepository {
   Future<Either<Failure, MemberBreakdown>> getBreakdown(
     int enrollmentId,
     int yearId, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     if (!await networkInfo.isConnected) {
       return const Left(
@@ -78,7 +79,7 @@ class MemberRankingsRepositoryImpl implements MemberRankingsRepository {
       final dto = await remoteDataSource.getBreakdown(
         enrollmentId,
         yearId,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(dto.toEntity());
     } on ServerException catch (e) {

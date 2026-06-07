@@ -1,9 +1,10 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/user_detail.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../datasources/profile_remote_data_source.dart';
@@ -20,10 +21,10 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
   @override
   Future<Either<Failure, UserDetail>> getUserProfile(String userId,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     try {
       final userDetail = await remoteDataSource.getUserProfile(userId,
-          cancelToken: cancelToken);
+          cancelToken: cancelToken.asDioCancelToken());
       return Right(userDetail);
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));

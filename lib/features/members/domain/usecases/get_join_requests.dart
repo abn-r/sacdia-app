@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/join_request.dart';
 import '../repositories/members_repository.dart';
@@ -30,7 +30,7 @@ class GetJoinRequests
 
   @override
   Future<Either<Failure, List<JoinRequest>>> call(GetJoinRequestsParams params,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     return await repository.getJoinRequests(
       clubId: params.clubId,
       sectionId: params.sectionId,

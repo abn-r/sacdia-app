@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/paginated_resources.dart';
 import '../repositories/resources_repository.dart';
@@ -15,7 +15,7 @@ class GetVisibleResources
   @override
   Future<Either<Failure, PaginatedResources>> call(
       GetVisibleResourcesParams params,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     return await repository.getVisibleResources(
       page: params.page,
       limit: params.limit,

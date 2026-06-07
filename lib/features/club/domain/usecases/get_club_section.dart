@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/club_info.dart';
 import '../repositories/club_repository.dart';
@@ -25,7 +25,7 @@ class GetClubSection implements UseCase<ClubSection, GetClubSectionParams> {
 
   @override
   Future<Either<Failure, ClubSection>> call(GetClubSectionParams params,
-      {CancelToken? cancelToken}) {
+      {RequestCancelToken? cancelToken}) {
     return _repository.getClubSection(
       clubId: params.clubId,
       sectionId: params.sectionId,

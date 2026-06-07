@@ -1,10 +1,11 @@
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/honor.dart';
 import '../../domain/entities/honor_category.dart';
 import '../../domain/entities/honor_group.dart';
@@ -28,10 +29,10 @@ class HonorsRepositoryImpl implements HonorsRepository {
 
   @override
   Future<Either<Failure, List<HonorCategory>>> getHonorCategories(
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     try {
       final categoryModels =
-          await remoteDataSource.getHonorCategories(cancelToken: cancelToken);
+          await remoteDataSource.getHonorCategories(cancelToken: cancelToken.asDioCancelToken());
       final categories =
           categoryModels.map((model) => model.toEntity()).toList();
       return Right(categories);
@@ -49,14 +50,14 @@ class HonorsRepositoryImpl implements HonorsRepository {
     int? categoryId,
     int? clubTypeId,
     int? skillLevel,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final honorModels = await remoteDataSource.getHonors(
         categoryId: categoryId,
         clubTypeId: clubTypeId,
         skillLevel: skillLevel,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       final honors = honorModels.map((model) => model.toEntity()).toList();
       return Right(honors);
@@ -71,10 +72,10 @@ class HonorsRepositoryImpl implements HonorsRepository {
 
   @override
   Future<Either<Failure, Honor>> getHonorById(int honorId,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     try {
       final honorModel = await remoteDataSource.getHonorById(honorId,
-          cancelToken: cancelToken);
+          cancelToken: cancelToken.asDioCancelToken());
       return Right(honorModel.toEntity());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
@@ -87,10 +88,10 @@ class HonorsRepositoryImpl implements HonorsRepository {
 
   @override
   Future<Either<Failure, List<UserHonor>>> getUserHonors(String userId,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     try {
       final userHonorModels = await remoteDataSource.getUserHonors(userId,
-          cancelToken: cancelToken);
+          cancelToken: cancelToken.asDioCancelToken());
       final userHonors =
           userHonorModels.map((model) => model.toEntity()).toList();
       return Right(userHonors);
@@ -105,10 +106,10 @@ class HonorsRepositoryImpl implements HonorsRepository {
 
   @override
   Future<Either<Failure, Map<String, dynamic>>> getUserHonorStats(String userId,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     try {
       final stats = await remoteDataSource.getUserHonorStats(userId,
-          cancelToken: cancelToken);
+          cancelToken: cancelToken.asDioCancelToken());
       return Right(stats);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
@@ -187,10 +188,10 @@ class HonorsRepositoryImpl implements HonorsRepository {
 
   @override
   Future<Either<Failure, List<HonorGroup>>> getHonorsGroupedByCategory(
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     try {
       final groupModels = await remoteDataSource.getHonorsGroupedByCategory(
-          cancelToken: cancelToken);
+          cancelToken: cancelToken.asDioCancelToken());
       final groups = groupModels.map((model) => model.toEntity()).toList();
       return Right(groups);
     } on ServerException catch (e) {
@@ -205,10 +206,10 @@ class HonorsRepositoryImpl implements HonorsRepository {
   @override
   Future<Either<Failure, List<HonorRequirement>>> getHonorRequirements(
       int honorId,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     try {
       final requirementModels = await remoteDataSource
-          .getHonorRequirements(honorId, cancelToken: cancelToken);
+          .getHonorRequirements(honorId, cancelToken: cancelToken.asDioCancelToken());
       final requirements =
           requirementModels.map((model) => model.toEntity()).toList();
       return Right(requirements);
@@ -224,10 +225,10 @@ class HonorsRepositoryImpl implements HonorsRepository {
   @override
   Future<Either<Failure, List<UserHonorRequirementProgress>>>
       getUserHonorProgress(String userId, int honorId,
-          {CancelToken? cancelToken}) async {
+          {RequestCancelToken? cancelToken}) async {
     try {
       final models = await remoteDataSource
-          .getUserHonorProgress(userId, honorId, cancelToken: cancelToken);
+          .getUserHonorProgress(userId, honorId, cancelToken: cancelToken.asDioCancelToken());
       final entities = models.map((m) => m.toEntity()).toList();
       return Right(entities);
     } on ServerException catch (e) {
@@ -355,12 +356,12 @@ class HonorsRepositoryImpl implements HonorsRepository {
     String userId,
     int honorId,
     int requirementId, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final models = await remoteDataSource.getRequirementEvidences(
           userId, honorId, requirementId,
-          cancelToken: cancelToken);
+          cancelToken: cancelToken.asDioCancelToken());
       final entities = models.map((m) => m.toEntity()).toList();
       return Right(entities);
     } on ServerException catch (e) {

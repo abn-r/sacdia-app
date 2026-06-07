@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/member_of_month.dart';
 import '../repositories/units_repository.dart';
 
@@ -29,7 +29,7 @@ class GetMemberOfMonth {
 
   Future<Either<Failure, MemberOfMonth?>> call(
     GetMemberOfMonthParams params, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) {
     return _repository.getMemberOfMonth(
       clubId: params.clubId,

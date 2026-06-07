@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
+import 'package:sacdia_app/core/usecases/cancellation_token.dart';
 import 'package:sacdia_app/features/monthly_reports/domain/entities/monthly_report.dart';
 import 'package:sacdia_app/features/monthly_reports/domain/repositories/monthly_reports_repository.dart';
 import 'package:sacdia_app/features/monthly_reports/presentation/providers/monthly_reports_providers.dart';
@@ -18,9 +19,9 @@ class _SlowPdfRepository implements MonthlyReportsRepository {
   @override
   Future<Either<Failure, String>> downloadReportPdf(
     String reportId, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
-    receivedCancelToken = cancelToken;
+    receivedCancelToken = cancelToken is CancelToken ? cancelToken : null;
     final path = await _downloadCompleter.future;
     return Right(path);
   }
@@ -28,14 +29,14 @@ class _SlowPdfRepository implements MonthlyReportsRepository {
   @override
   Future<Either<Failure, MonthlyReport>> getReportDetail(
     String reportId, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) =>
       throw UnimplementedError();
 
   @override
   Future<Either<Failure, List<MonthlyReport>>> getReportsByEnrollment(
     String enrollmentId, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) =>
       throw UnimplementedError();
 
@@ -44,7 +45,7 @@ class _SlowPdfRepository implements MonthlyReportsRepository {
     String enrollmentId, {
     required int month,
     required int year,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) =>
       throw UnimplementedError();
 
@@ -53,7 +54,7 @@ class _SlowPdfRepository implements MonthlyReportsRepository {
     String enrollmentId, {
     required int month,
     required int year,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) =>
       throw UnimplementedError();
 
@@ -61,7 +62,7 @@ class _SlowPdfRepository implements MonthlyReportsRepository {
   Future<Either<Failure, MonthlyReport>> updateManualData(
     String reportId,
     MonthlyReportManualData manualData, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) =>
       throw UnimplementedError();
 
@@ -69,7 +70,7 @@ class _SlowPdfRepository implements MonthlyReportsRepository {
   Future<Either<Failure, VisibleMonthlyReportsPage>> getVisibleReports({
     int page = 1,
     int limit = 25,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) =>
       throw UnimplementedError();
 }

@@ -21,11 +21,22 @@ class ActivityCard extends StatelessWidget {
   final Activity activity;
   final VoidCallback onTap;
 
+  static final Map<String, DateFormat> _dateFormatters = {};
+
   const ActivityCard({
     super.key,
     required this.activity,
     required this.onTap,
   });
+
+  String _formatActivityDate(BuildContext context, DateTime date) {
+    final locale = context.locale.toString();
+    final formatter = _dateFormatters.putIfAbsent(
+      locale,
+      () => DateFormat('d MMM yyyy', locale),
+    );
+    return formatter.format(date.toLocal());
+  }
 
   String _getTypeText(int type, [String? typeName]) {
     final normalizedName = typeName?.trim();
@@ -131,8 +142,7 @@ class ActivityCard extends StatelessWidget {
               if (activity.activityDate != null)
                 _MetaItem(
                   icon: HugeIcons.strokeRoundedCalendar01,
-                  label: DateFormat('d MMM yyyy', context.locale.toString())
-                      .format(activity.activityDate!.toLocal()),
+                  label: _formatActivityDate(context, activity.activityDate!),
                   c: c,
                 ),
               if (activity.activityTime != null &&

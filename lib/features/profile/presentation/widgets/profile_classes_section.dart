@@ -79,19 +79,19 @@ class ProfileClassesSection extends ConsumerWidget {
             children: [
               // Class header banner
               Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    top: BorderSide(
-                      color: AppColors.primary.withAlpha(80),
-                      width: 1.5,
-                    ),
-                    bottom: BorderSide(
-                      color: AppColors.primary.withAlpha(80),
-                      width: 1.5,
-                    ),
-                  ),
-                  color: AppColors.primary.withAlpha(10),
-                ),
+                // decoration: BoxDecoration(
+                //   border: Border(
+                //     top: BorderSide(
+                //       color: AppColors.primary.withAlpha(80),
+                //       width: 1.5,
+                //     ),
+                //     bottom: BorderSide(
+                //       color: AppColors.primary.withAlpha(80),
+                //       width: 1.5,
+                //     ),
+                //   ),
+                //   color: AppColors.primary.withAlpha(10),
+                // ),
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(

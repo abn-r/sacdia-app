@@ -1,19 +1,14 @@
-import 'package:equatable/equatable.dart';
+import '../../domain/entities/activity_club_section.dart';
 
 /// Modelo ligero de sección de club, usado en el picker de actividades conjuntas.
 ///
 /// Mapeado desde GET /api/v1/clubs/:clubId/sections
-class ClubSectionModel extends Equatable {
-  final int clubSectionId;
-  final int clubTypeId;
-  final String? clubTypeName;
-  final bool active;
-
+class ClubSectionModel extends ActivityClubSection {
   const ClubSectionModel({
-    required this.clubSectionId,
-    required this.clubTypeId,
-    this.clubTypeName,
-    required this.active,
+    required super.clubSectionId,
+    required super.clubTypeId,
+    super.clubTypeName,
+    required super.active,
   });
 
   factory ClubSectionModel.fromJson(Map<String, dynamic> json) {
@@ -25,7 +20,4 @@ class ClubSectionModel extends Equatable {
       active: (json['active'] as bool?) ?? false,
     );
   }
-
-  @override
-  List<Object?> get props => [clubSectionId, clubTypeId, clubTypeName, active];
 }

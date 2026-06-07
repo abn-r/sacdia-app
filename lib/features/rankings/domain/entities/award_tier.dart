@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 /// Tier de categoría de premiación en el sistema de rankings.
 ///
 /// Espeja el enum `AwardCategoryTier` del backend.
@@ -26,23 +24,6 @@ enum AwardTier {
         return AwardTier.diamond;
       default:
         return AwardTier.unknown;
-    }
-  }
-
-  /// Color representativo del tier — consistente con [achievementTierColor]
-  /// (mismos valores hex) para uniformidad visual en toda la app.
-  Color get color {
-    switch (this) {
-      case AwardTier.bronze:
-        return const Color(0xFFCD7F32);
-      case AwardTier.silver:
-        return const Color(0xFFC0C0C0);
-      case AwardTier.gold:
-        return const Color(0xFFFFD700);
-      case AwardTier.diamond:
-        return const Color(0xFFB9F2FF);
-      case AwardTier.unknown:
-        return const Color(0xFF303030); // AppColors.darkBorder
     }
   }
 }

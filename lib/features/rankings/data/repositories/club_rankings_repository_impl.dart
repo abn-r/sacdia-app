@@ -1,9 +1,10 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/club_ranking.dart';
 import '../../domain/repositories/club_rankings_repository.dart';
 import '../datasources/rankings_remote_data_source.dart';
@@ -23,7 +24,7 @@ class ClubRankingsRepositoryImpl implements ClubRankingsRepository {
     required int yearId,
     int? localFieldId,
     String? categoryId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure(message: 'Sin conexión a internet'));
@@ -35,7 +36,7 @@ class ClubRankingsRepositoryImpl implements ClubRankingsRepository {
         yearId: yearId,
         localFieldId: localFieldId,
         categoryId: categoryId,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(dtos.map((dto) => dto.toEntity()).toList());
     } on ServerException catch (e) {

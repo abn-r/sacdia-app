@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../providers/dio_provider.dart';
-import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/datasources/certificate_import_remote_data_source.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/repositories/certificate_import_repository_impl.dart';
 import '../../domain/entities/certificate_import_batch.dart';
 import '../../domain/repositories/certificate_import_repository.dart';

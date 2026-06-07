@@ -23,8 +23,9 @@ class ClubContextCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authNotifierProvider);
-    final user = authState.valueOrNull;
+    final user = ref.watch(
+      authNotifierProvider.select((v) => v.valueOrNull),
+    );
     final authorization = user?.authorization;
 
     // No renderizar si no hay assignments

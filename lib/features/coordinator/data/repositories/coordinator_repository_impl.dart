@@ -1,8 +1,9 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/coordinator_club.dart';
 import '../../domain/entities/sla_dashboard.dart';
 import '../../domain/entities/evidence_review_item.dart';
@@ -36,12 +37,12 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
   @override
   Future<Either<Failure, List<CoordinatorClub>>> listClubs({
     int? localFieldId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final models = await remoteDataSource.listClubs(
         localFieldId: localFieldId,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(models);
     } on ServerException catch (e) {
@@ -57,11 +58,11 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
 
   @override
   Future<Either<Failure, SlaDashboard>> getSlaDashboard({
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final model = await remoteDataSource.getSlaDashboard(
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(model.toEntity());
     } on ServerException catch (e) {
@@ -80,14 +81,14 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
     int page = 1,
     int limit = 20,
     EvidenceReviewType? type,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final models = await remoteDataSource.getPendingEvidence(
         page: page,
         limit: limit,
         type: type,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
@@ -103,13 +104,13 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
   Future<Either<Failure, EvidenceReviewItem>> getEvidenceDetail({
     required EvidenceReviewType type,
     required String id,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final model = await remoteDataSource.getEvidenceDetail(
         type: type,
         id: id,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(model.toEntity());
     } on ServerException catch (e) {
@@ -209,12 +210,12 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
   @override
   Future<Either<Failure, List<CamporeeItem>>> listLocalCamporees({
     bool activeOnly = true,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final models = await remoteDataSource.listLocalCamporees(
         activeOnly: activeOnly,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
@@ -228,11 +229,11 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
 
   @override
   Future<Either<Failure, List<CamporeeItem>>> listUnionCamporees({
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final models = await remoteDataSource.listUnionCamporees(
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
@@ -249,12 +250,12 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
   @override
   Future<Either<Failure, CamporeePendingApprovals>> getLocalCamporeePending(
     int camporeeId, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final model = await remoteDataSource.getLocalCamporeePending(
         camporeeId,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(model.toEntity());
     } on ServerException catch (e) {
@@ -269,12 +270,12 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
   @override
   Future<Either<Failure, CamporeePendingApprovals>> getUnionCamporeePending(
     int camporeeId, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final model = await remoteDataSource.getUnionCamporeePending(
         camporeeId,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(model.toEntity());
     } on ServerException catch (e) {

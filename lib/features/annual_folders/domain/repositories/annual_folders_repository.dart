@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/annual_folder.dart';
 
 /// Repositorio de Carpetas Anuales de Evidencias (interfaz del dominio)
@@ -8,7 +8,7 @@ abstract class AnnualFoldersRepository {
   /// Obtiene la Carpeta Anual de Evidencias de un enrollment.
   /// GET /api/v1/annual-folders/enrollment/:enrollmentId
   Future<Either<Failure, AnnualFolder>> getFolderByEnrollment(int enrollmentId,
-      {CancelToken? cancelToken});
+      {RequestCancelToken? cancelToken});
 
   /// Sube una evidencia a una sección de la carpeta.
   /// POST /api/v1/annual-folders/:folderId/evidences

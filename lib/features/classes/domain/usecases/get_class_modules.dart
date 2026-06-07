@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/class_module.dart';
 import '../repositories/classes_repository.dart';
@@ -14,7 +14,7 @@ class GetClassModules
 
   @override
   Future<Either<Failure, List<ClassModule>>> call(GetClassModulesParams params,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     return await repository.getClassModules(params.classId,
         cancelToken: cancelToken);
   }

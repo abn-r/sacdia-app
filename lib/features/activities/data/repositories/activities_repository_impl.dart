@@ -1,15 +1,17 @@
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/activity.dart';
+import '../../domain/entities/activity_club_section.dart';
 import '../../domain/entities/attendance.dart';
 import '../../domain/repositories/activities_repository.dart';
 import '../datasources/activities_remote_data_source.dart';
-import '../models/create_activity_request.dart';
+import '../../domain/entities/create_activity_request.dart';
 
 /// Implementación del repositorio de actividades
 class ActivitiesRepositoryImpl implements ActivitiesRepository {
@@ -25,13 +27,13 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
   Future<Either<Failure, List<Activity>>> getClubActivities(
     int clubId, {
     int? clubTypeId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final activityModels = await remoteDataSource.getClubActivities(
         clubId,
         clubTypeId: clubTypeId,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       final activities =
           activityModels.map((model) => model.toEntity()).toList();
@@ -48,12 +50,12 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
   @override
   Future<Either<Failure, Activity>> getActivityById(
     int activityId, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final activityModel = await remoteDataSource.getActivityById(
         activityId,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(activityModel.toEntity());
     } on ServerException catch (e) {
@@ -68,16 +70,36 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
   @override
   Future<Either<Failure, List<Attendance>>> getActivityAttendance(
     int activityId, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final attendanceModels = await remoteDataSource.getActivityAttendance(
         activityId,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       final attendances =
           attendanceModels.map((model) => model.toEntity()).toList();
       return Right(attendances);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<ActivityClubSection>>> getClubSections(
+    int clubId, {
+    RequestCancelToken? cancelToken,
+  }) async {
+    try {
+      final sections = await remoteDataSource.getClubSections(
+        clubId,
+        cancelToken: cancelToken.asDioCancelToken(),
+      );
+      return Right(sections);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on AuthException catch (e) {

@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/activity.dart';
 import '../repositories/activities_repository.dart';
@@ -14,7 +14,7 @@ class GetActivityDetail implements UseCase<Activity, GetActivityDetailParams> {
   @override
   Future<Either<Failure, Activity>> call(
     GetActivityDetailParams params, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     return await repository.getActivityById(
       params.activityId,

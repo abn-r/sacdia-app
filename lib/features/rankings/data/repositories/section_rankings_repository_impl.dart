@@ -1,9 +1,10 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/section_ranking.dart';
 import '../../domain/repositories/section_rankings_repository.dart';
 import '../datasources/rankings_remote_data_source.dart';
@@ -37,7 +38,7 @@ class SectionRankingsRepositoryImpl implements SectionRankingsRepository {
     int? clubId,
     int page = 1,
     int limit = 20,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure(message: 'Sin conexión a internet'));
@@ -49,7 +50,7 @@ class SectionRankingsRepositoryImpl implements SectionRankingsRepository {
         clubId: clubId,
         page: page,
         limit: limit,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(dtos.map((d) => d.toEntity()).toList());
     } on ServerException catch (e) {
@@ -65,7 +66,7 @@ class SectionRankingsRepositoryImpl implements SectionRankingsRepository {
   Future<Either<Failure, List<SectionMember>>> getSectionMembers(
     int sectionId,
     int yearId, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     if (!await networkInfo.isConnected) {
       return const Left(NetworkFailure(message: 'Sin conexión a internet'));
@@ -75,7 +76,7 @@ class SectionRankingsRepositoryImpl implements SectionRankingsRepository {
       final dtos = await remoteDataSource.getSectionMembers(
         sectionId,
         yearId,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(dtos.map((d) => d.toEntity()).toList());
     } on ServerException catch (e) {

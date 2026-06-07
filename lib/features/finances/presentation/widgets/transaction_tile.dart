@@ -43,6 +43,12 @@ class TransactionTile extends StatelessWidget {
 
   static const _defaultAccent = Color(0xFF6B7280);
   static const _defaultEmoji = '💵';
+  static final _currencyFormatter = NumberFormat.currency(
+    locale: 'en_US',
+    symbol: '\$',
+    decimalDigits: 2,
+  );
+  static final _timeFormatter = DateFormat('hh:mm a');
 
   @override
   Widget build(BuildContext context) {
@@ -59,15 +65,10 @@ class TransactionTile extends StatelessWidget {
         ? (isDark ? const Color(0xFF4FBF9F) : const Color(0xFF2D8A70))
         : const Color(0xFFDC2626);
 
-    final formatted = NumberFormat.currency(
-      locale: 'en_US',
-      symbol: '\$',
-      decimalDigits: 2,
-    ).format(transaction.amount);
+    final formatted = _currencyFormatter.format(transaction.amount);
 
     final sign = isIncome ? '+' : '-';
-    final timeStr =
-        DateFormat('hh:mm a').format(transaction.registeredAt.toLocal());
+    final timeStr = _timeFormatter.format(transaction.registeredAt.toLocal());
 
     return InkWell(
       onTap: onTap,

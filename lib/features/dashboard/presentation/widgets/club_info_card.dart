@@ -45,8 +45,9 @@ class ClubInfoCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authNotifierProvider);
-    final authorization = authState.valueOrNull?.authorization;
+    final authorization = ref.watch(
+      authNotifierProvider.select((v) => v.valueOrNull?.authorization),
+    );
     final assignments = authorization?.clubAssignments ?? const [];
     final hasMultiple = assignments.length > 1;
     final activeGrant = authorization?.activeGrant;

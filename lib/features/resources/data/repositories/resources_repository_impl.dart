@@ -3,6 +3,8 @@ import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/paginated_resources.dart';
 import '../../domain/entities/resource.dart';
 import '../../domain/entities/resource_category.dart';
@@ -26,7 +28,7 @@ class ResourcesRepositoryImpl implements ResourcesRepository {
     String? resourceType,
     int? categoryId,
     String? search,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final model = await remoteDataSource.getVisibleResources(
@@ -35,7 +37,7 @@ class ResourcesRepositoryImpl implements ResourcesRepository {
         resourceType: resourceType,
         categoryId: categoryId,
         search: search,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(model.toEntity());
     } on DioException catch (e) {
@@ -52,10 +54,10 @@ class ResourcesRepositoryImpl implements ResourcesRepository {
 
   @override
   Future<Either<Failure, Resource>> getResource(String id,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     try {
       final model =
-          await remoteDataSource.getResource(id, cancelToken: cancelToken);
+          await remoteDataSource.getResource(id, cancelToken: cancelToken.asDioCancelToken());
       return Right(model.toEntity());
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
@@ -71,10 +73,10 @@ class ResourcesRepositoryImpl implements ResourcesRepository {
 
   @override
   Future<Either<Failure, String>> getSignedUrl(String id,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     try {
       final url =
-          await remoteDataSource.getSignedUrl(id, cancelToken: cancelToken);
+          await remoteDataSource.getSignedUrl(id, cancelToken: cancelToken.asDioCancelToken());
       return Right(url);
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
@@ -90,10 +92,10 @@ class ResourcesRepositoryImpl implements ResourcesRepository {
 
   @override
   Future<Either<Failure, List<ResourceCategory>>> getCategories(
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     try {
       final categoryModels =
-          await remoteDataSource.getCategories(cancelToken: cancelToken);
+          await remoteDataSource.getCategories(cancelToken: cancelToken.asDioCancelToken());
       final categories =
           categoryModels.map((model) => model.toEntity()).toList();
       return Right(categories);

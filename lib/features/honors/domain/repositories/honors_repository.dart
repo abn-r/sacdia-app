@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/honor.dart';
 import '../entities/honor_category.dart';
 import '../entities/honor_group.dart';
@@ -16,27 +16,27 @@ import '../usecases/register_user_honor.dart';
 abstract class HonorsRepository {
   /// Obtiene todas las categorías de especialidades
   Future<Either<Failure, List<HonorCategory>>> getHonorCategories(
-      {CancelToken? cancelToken});
+      {RequestCancelToken? cancelToken});
 
   /// Obtiene especialidades filtradas
   Future<Either<Failure, List<Honor>>> getHonors({
     int? categoryId,
     int? clubTypeId,
     int? skillLevel,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   /// Obtiene el detalle de una especialidad
   Future<Either<Failure, Honor>> getHonorById(int honorId,
-      {CancelToken? cancelToken});
+      {RequestCancelToken? cancelToken});
 
   /// Obtiene las especialidades de un usuario
   Future<Either<Failure, List<UserHonor>>> getUserHonors(String userId,
-      {CancelToken? cancelToken});
+      {RequestCancelToken? cancelToken});
 
   /// Obtiene estadísticas de especialidades de un usuario
   Future<Either<Failure, Map<String, dynamic>>> getUserHonorStats(String userId,
-      {CancelToken? cancelToken});
+      {RequestCancelToken? cancelToken});
 
   /// Inscribe a un usuario en una especialidad
   Future<Either<Failure, UserHonor>> enrollUserInHonor(
@@ -59,17 +59,17 @@ abstract class HonorsRepository {
 
   /// Obtiene las especialidades agrupadas por categoría
   Future<Either<Failure, List<HonorGroup>>> getHonorsGroupedByCategory(
-      {CancelToken? cancelToken});
+      {RequestCancelToken? cancelToken});
 
   /// Obtiene los requisitos del catálogo para una especialidad
   Future<Either<Failure, List<HonorRequirement>>> getHonorRequirements(
       int honorId,
-      {CancelToken? cancelToken});
+      {RequestCancelToken? cancelToken});
 
   /// Obtiene el progreso del usuario por requisito para una especialidad inscrita.
   Future<Either<Failure, List<UserHonorRequirementProgress>>>
       getUserHonorProgress(String userId, int honorId,
-          {CancelToken? cancelToken});
+          {RequestCancelToken? cancelToken});
 
   /// Actualiza el progreso de un requisito individual.
   Future<Either<Failure, UserHonorRequirementProgress>>
@@ -118,7 +118,7 @@ abstract class HonorsRepository {
     String userId,
     int honorId,
     int requirementId, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   /// Elimina una evidencia de un requisito de especialidad.

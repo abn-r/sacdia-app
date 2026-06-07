@@ -132,18 +132,20 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
     }
 
     return IgnorePointer(
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
-          if (_particles.isEmpty) return const SizedBox.expand();
-          return CustomPaint(
-            painter: _ParticlePainter(
-              particles: _particles,
-              progress: _controller.value,
-            ),
-            size: Size.infinite,
-          );
-        },
+      child: RepaintBoundary(
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) {
+            if (_particles.isEmpty) return const SizedBox.expand();
+            return CustomPaint(
+              painter: _ParticlePainter(
+                particles: _particles,
+                progress: _controller.value,
+              ),
+              size: Size.infinite,
+            );
+          },
+        ),
       ),
     );
   }

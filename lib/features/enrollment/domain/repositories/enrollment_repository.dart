@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/enrollment.dart';
 
 /// Interfaz del repositorio de inscripciones anuales.
@@ -28,7 +28,7 @@ abstract class EnrollmentRepository {
   Future<Either<Failure, Enrollment?>> getCurrentEnrollment({
     required String clubId,
     required int sectionId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   /// Actualiza una inscripción existente.

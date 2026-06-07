@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/features/honors/domain/utils/honor_category_colors.dart';
+import 'package:sacdia_app/features/honors/presentation/utils/honor_category_colors.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -26,6 +26,55 @@ const Map<String, List<List<dynamic>>> _categoryIcons = {
   'Actividades Recreativas': HugeIcons.strokeRoundedFootball,
 };
 
+final _profileHonorsByCategoryProvider =
+    Provider.autoDispose<AsyncValue<List<_HonorCategoryGroup>>>((ref) {
+  final userHonorsAsync = ref.watch(userHonorsProvider);
+  return userHonorsAsync.whenData(_groupUserHonorsByCategory);
+});
+
+List<_HonorCategoryGroup> _groupUserHonorsByCategory(
+  List<UserHonor> userHonors,
+) {
+  final byCategory = <String, List<UserHonor>>{};
+  final categoryIds = <String, int?>{};
+
+  for (final userHonor in userHonors) {
+    final key = userHonor.honorCategoryName?.trim().isNotEmpty == true
+        ? userHonor.honorCategoryName!.trim()
+        : '';
+    byCategory.putIfAbsent(key, () => []).add(userHonor);
+    categoryIds.putIfAbsent(key, () => userHonor.honorCategoryId);
+  }
+
+  final sortedKeys = byCategory.keys.toList()
+    ..sort((a, b) {
+      if (a.isEmpty) return 1;
+      if (b.isEmpty) return -1;
+      return a.compareTo(b);
+    });
+
+  return [
+    for (final key in sortedKeys)
+      _HonorCategoryGroup(
+        categoryName: key.isEmpty ? null : key,
+        categoryId: categoryIds[key],
+        userHonors: byCategory[key]!,
+      ),
+  ];
+}
+
+class _HonorCategoryGroup {
+  final String? categoryName;
+  final int? categoryId;
+  final List<UserHonor> userHonors;
+
+  const _HonorCategoryGroup({
+    required this.categoryName,
+    required this.categoryId,
+    required this.userHonors,
+  });
+}
+
 /// Section of the profile view that shows the user's earned / in-progress
 /// specialities grouped by category.
 ///
@@ -39,7 +88,7 @@ class ProfileHonorsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userHonorsAsync = ref.watch(userHonorsProvider);
+    final userHonorsAsync = ref.watch(_profileHonorsByCategoryProvider);
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
@@ -55,8 +104,8 @@ class ProfileHonorsSection extends ConsumerWidget {
             ),
           ),
         ),
-        data: (userHonors) {
-          if (userHonors.isEmpty) {
+        data: (groups) {
+          if (groups.isEmpty) {
             return Column(
               key: const ValueKey('honors-data'),
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,27 +145,16 @@ class ProfileHonorsSection extends ConsumerWidget {
             );
           }
 
-          // Group userHonors by the category name embedded in the response.
-          final Map<String, List<UserHonor>> byCategory = {};
-          for (final uh in userHonors) {
-            final key = uh.honorCategoryName ??
-                'profile.honors_section.sin_categoria'.tr();
-            byCategory.putIfAbsent(key, () => []).add(uh);
-          }
-
-          // Sort category names alphabetically A→Z.
-          final sortedEntries = byCategory.entries.toList()
-            ..sort((a, b) => a.key.compareTo(b.key));
-
           return Column(
             key: const ValueKey('honors-data'),
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ...sortedEntries.map((entry) {
+              ...groups.map((group) {
                 return _CategorySection(
-                  categoryName: entry.key,
-                  categoryId: entry.value.first.honorCategoryId,
-                  userHonors: entry.value,
+                  categoryName: group.categoryName ??
+                      'profile.honors_section.sin_categoria'.tr(),
+                  categoryId: group.categoryId,
+                  userHonors: group.userHonors,
                 );
               }),
               Padding(
@@ -162,25 +200,25 @@ class _CategorySection extends StatelessWidget {
         _categoryIcons[categoryName] ?? HugeIcons.strokeRoundedStar;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Category header banner
           Container(
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(
-                  color: categoryColor.withAlpha(80),
-                  width: 1.5,
-                ),
-                bottom: BorderSide(
-                  color: categoryColor.withAlpha(80),
-                  width: 1.5,
-                ),
-              ),
-              color: categoryColor.withAlpha(10),
-            ),
+            // decoration: BoxDecoration(
+            //   border: Border(
+            //     top: BorderSide(
+            //       color: categoryColor.withAlpha(80),
+            //       width: 1.5,
+            //     ),
+            //     bottom: BorderSide(
+            //       color: categoryColor.withAlpha(80),
+            //       width: 1.5,
+            //     ),
+            //   ),
+            //   color: categoryColor.withAlpha(10),
+            // ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [

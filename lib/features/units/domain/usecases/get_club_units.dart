@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart' hide Unit;
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/unit.dart';
 import '../repositories/units_repository.dart';
 
@@ -22,7 +22,7 @@ class GetClubUnits {
   const GetClubUnits(this._repository);
 
   Future<Either<Failure, List<Unit>>> call(GetClubUnitsParams params,
-      {CancelToken? cancelToken}) {
+      {RequestCancelToken? cancelToken}) {
     return _repository.getClubUnits(
         clubId: params.clubId, cancelToken: cancelToken);
   }

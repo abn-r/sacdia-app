@@ -163,12 +163,18 @@ class _CamporeeCard extends StatelessWidget {
     required this.onTap,
   });
 
+  static final _dateFormatter = DateFormat('d MMM yyyy', 'es');
+  static final _currencyFormatter = NumberFormat.currency(
+    locale: 'es',
+    symbol: '\$',
+    decimalDigits: 0,
+  );
+
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final dateFormat = DateFormat('d MMM yyyy', 'es');
-    final startFormatted = dateFormat.format(camporee.startDate.toLocal());
-    final endFormatted = dateFormat.format(camporee.endDate.toLocal());
+    final startFormatted = _dateFormatter.format(camporee.startDate.toLocal());
+    final endFormatted = _dateFormatter.format(camporee.endDate.toLocal());
 
     return GestureDetector(
       onTap: onTap,
@@ -275,12 +281,7 @@ class _CamporeeCard extends StatelessWidget {
 
   String _formatCost(double cost) {
     if (cost == 0) return 'camporees.common.free'.tr();
-    final formatted = NumberFormat.currency(
-      locale: 'es',
-      symbol: '\$',
-      decimalDigits: 0,
-    ).format(cost);
-    return formatted;
+    return _currencyFormatter.format(cost);
   }
 }
 

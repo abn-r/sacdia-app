@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
-import '../../data/datasources/certificate_import_remote_data_source.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../entities/certificate_import_payloads.dart';
 import '../entities/certificate_import_batch.dart';
 import '../entities/certificate_import_item.dart';
 
@@ -14,7 +14,7 @@ abstract class CertificateImportRepository {
 
   Future<Either<Failure, CertificateImportBatch>> getBatch(
     String batchId, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   Future<Either<Failure, CertificateImportItem>> updateItem({

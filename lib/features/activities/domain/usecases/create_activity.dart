@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
-import '../../data/models/create_activity_request.dart';
+import '../entities/create_activity_request.dart';
 import '../entities/activity.dart';
 import '../repositories/activities_repository.dart';
 

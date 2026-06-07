@@ -35,7 +35,9 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authNotifierProvider);
+    final userId = ref.watch(
+      authNotifierProvider.select((v) => v.valueOrNull?.id),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -111,7 +113,6 @@ class _SectionDetailViewState extends ConsumerState<SectionDetailView> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () async {
-                  final userId = authState.value?.id;
                   if (userId == null) return;
 
                   final newStatus = !_isCompleted;

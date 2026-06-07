@@ -16,7 +16,7 @@ import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../domain/utils/honor_category_colors.dart';
+import '../utils/honor_category_colors.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../validation/domain/entities/validation.dart';

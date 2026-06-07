@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/club_member.dart';
 import '../entities/join_request.dart';
 
@@ -11,18 +11,18 @@ abstract class MembersRepository {
   Future<Either<Failure, List<ClubMember>>> getClubMembers({
     required int clubId,
     required int sectionId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   /// Obtiene el detalle de un miembro específico del club
   Future<Either<Failure, ClubMember>> getMemberDetail(String userId,
-      {CancelToken? cancelToken});
+      {RequestCancelToken? cancelToken});
 
   /// Obtiene la lista de solicitudes de ingreso al club
   Future<Either<Failure, List<JoinRequest>>> getJoinRequests({
     required int clubId,
     required int sectionId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   /// Aprueba una solicitud de ingreso

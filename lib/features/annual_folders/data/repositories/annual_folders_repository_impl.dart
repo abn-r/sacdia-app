@@ -1,8 +1,9 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/annual_folder.dart';
 import '../../domain/repositories/annual_folders_repository.dart';
 import '../datasources/annual_folders_remote_data_source.dart';
@@ -28,10 +29,10 @@ class AnnualFoldersRepositoryImpl implements AnnualFoldersRepository {
 
   @override
   Future<Either<Failure, AnnualFolder>> getFolderByEnrollment(int enrollmentId,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     try {
       final model = await remoteDataSource.getFolderByEnrollment(enrollmentId,
-          cancelToken: cancelToken);
+          cancelToken: cancelToken.asDioCancelToken());
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return _serverFailure(e);

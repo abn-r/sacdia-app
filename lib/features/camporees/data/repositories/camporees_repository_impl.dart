@@ -1,9 +1,10 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/models/paginated_result.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/camporee.dart';
 import '../../domain/entities/camporee_member.dart';
 import '../../domain/entities/camporee_payment.dart';
@@ -35,10 +36,10 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
 
   @override
   Future<Either<Failure, List<Camporee>>> getCamporees(
-      {bool? active, CancelToken? cancelToken}) async {
+      {bool? active, RequestCancelToken? cancelToken}) async {
     try {
       final models = await remoteDataSource.getCamporees(
-          active: active, cancelToken: cancelToken);
+          active: active, cancelToken: cancelToken.asDioCancelToken());
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return _serverFailure(e);
@@ -51,10 +52,10 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
 
   @override
   Future<Either<Failure, Camporee>> getCamporeeDetail(int camporeeId,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     try {
       final model = await remoteDataSource.getCamporeeDetail(camporeeId,
-          cancelToken: cancelToken);
+          cancelToken: cancelToken.asDioCancelToken());
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return _serverFailure(e);
@@ -97,7 +98,7 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
     int page = 1,
     int limit = 50,
     String? status,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final paginated = await remoteDataSource.getCamporeeMembers(
@@ -105,7 +106,7 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
         page: page,
         limit: limit,
         status: status,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       final entities = PaginatedResult<CamporeeMember>(
         data: paginated.data.map((m) => m.toEntity()).toList(),
@@ -161,10 +162,10 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
   @override
   Future<Either<Failure, List<CamporeeEnrolledClub>>> getEnrolledClubs(
       int camporeeId,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     try {
       final models = await remoteDataSource.getEnrolledClubs(camporeeId,
-          cancelToken: cancelToken);
+          cancelToken: cancelToken.asDioCancelToken());
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return _serverFailure(e);
@@ -209,11 +210,11 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
   Future<Either<Failure, List<CamporeePayment>>> getMemberPayments(
     int camporeeId,
     String memberId, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final models = await remoteDataSource
-          .getMemberPayments(camporeeId, memberId, cancelToken: cancelToken);
+          .getMemberPayments(camporeeId, memberId, cancelToken: cancelToken.asDioCancelToken());
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return _serverFailure(e);
@@ -227,10 +228,10 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
   @override
   Future<Either<Failure, List<CamporeePayment>>> getCamporeePayments(
       int camporeeId,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     try {
       final models = await remoteDataSource.getCamporeePayments(camporeeId,
-          cancelToken: cancelToken);
+          cancelToken: cancelToken.asDioCancelToken());
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return _serverFailure(e);

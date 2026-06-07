@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/user_honor_requirement_progress.dart';
 import '../repositories/honors_repository.dart';
@@ -20,7 +20,7 @@ class GetUserHonorProgress
   @override
   Future<Either<Failure, List<UserHonorRequirementProgress>>> call(
       GetUserHonorProgressParams params,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     return await repository.getUserHonorProgress(params.userId, params.honorId,
         cancelToken: cancelToken);
   }

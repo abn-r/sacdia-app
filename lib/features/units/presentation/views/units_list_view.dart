@@ -127,7 +127,8 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
 
     // Resolve club context for role-based features (non-blocking — async)
     final clubContextAsync = ref.watch(clubContextProvider);
-    final currentUser = ref.watch(authNotifierProvider).valueOrNull;
+    final currentUser =
+        ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
 
     final role = clubContextAsync.valueOrNull?.roleName;
     final userId = currentUser?.id;

@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/class_with_progress.dart';
 import '../repositories/classes_repository.dart';
@@ -32,7 +32,7 @@ class GetClassWithProgress
   @override
   Future<Either<Failure, ClassWithProgress>> call(
       GetClassWithProgressParams params,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     return _repository.getClassWithProgress(params.userId, params.classId,
         enrollmentId: params.enrollmentId, cancelToken: cancelToken);
   }

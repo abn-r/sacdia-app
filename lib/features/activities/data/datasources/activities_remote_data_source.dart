@@ -8,7 +8,7 @@ import '../../../../core/utils/app_logger.dart';
 import '../models/activity_model.dart';
 import '../models/attendance_model.dart';
 import '../models/club_section_model.dart';
-import '../models/create_activity_request.dart';
+import '../../domain/entities/create_activity_request.dart';
 
 /// Interfaz para la fuente de datos remota de actividades
 abstract class ActivitiesRemoteDataSource {

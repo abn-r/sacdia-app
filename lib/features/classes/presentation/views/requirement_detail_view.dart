@@ -945,50 +945,52 @@ class _EmptyFileSlot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _DashedBorderPainter(
-        color: AppColors.ink300,
-        strokeWidth: 1.5,
-        radius: 12,
-        dashLength: 6,
-        gapLength: 4,
-      ),
-      child: Material(
-        color: AppColors.paper,
-        borderRadius: BorderRadius.circular(12),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
+    return RepaintBoundary(
+      child: CustomPaint(
+        painter: _DashedBorderPainter(
+          color: AppColors.ink300,
+          strokeWidth: 1.5,
+          radius: 12,
+          dashLength: 6,
+          gapLength: 4,
+        ),
+        child: Material(
+          color: AppColors.paper,
           borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.ink100,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Center(
-                    child: HugeIcon(
-                      icon: HugeIcons.strokeRoundedAdd01,
-                      size: 18,
-                      color: AppColors.ink400,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppColors.ink100,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedAdd01,
+                        size: 18,
+                        color: AppColors.ink400,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                const Text(
-                  'Subir archivo',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.ink500,
+                  const SizedBox(width: 10),
+                  const Text(
+                    'Subir archivo',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.ink500,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

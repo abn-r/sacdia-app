@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/club_ranking.dart';
 
 abstract class ClubRankingsRepository {
@@ -10,6 +10,6 @@ abstract class ClubRankingsRepository {
     required int yearId,
     int? localFieldId,
     String? categoryId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 }

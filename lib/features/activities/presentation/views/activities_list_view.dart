@@ -65,17 +65,38 @@ List<DateTime> _yearDays(int year) {
   return _cachedYearDays!;
 }
 
+class _ActivitiesListDerivation {
+  final List<Activity> filtered;
+  final List<Object?> chronoItems;
+
+  const _ActivitiesListDerivation({
+    required this.filtered,
+    required this.chronoItems,
+  });
+}
+
 class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
-  int? _selectedFilter;
-  DateTime? _selectedDate;
-  bool _isChronologicalView = false;
   bool _shouldScrollToToday = false;
   late final List<DateTime> _days;
   late final int _todayIndex;
   late final ScrollController _dateScrollController;
   late final ScrollController _chronoScrollController;
+  late final ValueNotifier<int?> _selectedFilter;
+  late final ValueNotifier<DateTime?> _selectedDate;
+  late final ValueNotifier<bool> _isChronologicalView;
   late final ValueNotifier<DateTime> _visibleMonth;
+  late final DateFormat _monthFormatter;
+  late final DateFormat _dayHeaderFormatter;
+  late final DateFormat _daySemanticsFormatter;
+  late final DateFormat _weekdayFormatter;
+  late final DateFormat _dayNumberFormatter;
   final ValueNotifier<bool> _showTodayButton = ValueNotifier<bool>(false);
+
+  List<Activity>? _cachedActivitiesSource;
+  int? _cachedFilter;
+  DateTime? _cachedSelectedDate;
+  bool? _cachedChronologicalView;
+  _ActivitiesListDerivation? _cachedDerivation;
 
   static const double _dateItemWidth = 52.0;
   static const double _dateItemHorizontalMargin = 4.0;
@@ -85,8 +106,17 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
     super.initState();
     final now = DateTime.now();
     _days = _yearDays(now.year);
-    _selectedDate = DateTime(now.year, now.month, now.day);
+    _selectedFilter = ValueNotifier<int?>(null);
+    _selectedDate = ValueNotifier<DateTime?>(
+      DateTime(now.year, now.month, now.day),
+    );
+    _isChronologicalView = ValueNotifier<bool>(false);
     _visibleMonth = ValueNotifier<DateTime>(DateTime(now.year, now.month));
+    _monthFormatter = DateFormat('MMMM yyyy', 'es');
+    _dayHeaderFormatter = DateFormat('EEEE, d MMM', 'es');
+    _daySemanticsFormatter = DateFormat('EEEE d MMMM', 'es');
+    _weekdayFormatter = DateFormat('EEE', 'es');
+    _dayNumberFormatter = DateFormat('d');
     _todayIndex = _days.indexWhere((d) => _isSameDay(d, now));
     _dateScrollController = ScrollController();
     _chronoScrollController = ScrollController();
@@ -97,6 +127,9 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
   void dispose() {
     _dateScrollController.dispose();
     _chronoScrollController.dispose();
+    _selectedFilter.dispose();
+    _selectedDate.dispose();
+    _isChronologicalView.dispose();
     _visibleMonth.dispose();
     _showTodayButton.dispose();
     super.dispose();
@@ -172,7 +205,8 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
     final now = DateTime.now();
     final yearStart = DateTime(now.year, 1, 1);
     final yearEnd = DateTime(now.year, 12, 31);
-    final initial = _selectedDate ?? DateTime(now.year, now.month, now.day);
+    final initial =
+        _selectedDate.value ?? DateTime(now.year, now.month, now.day);
 
     final picked = await showDatePicker(
       context: context,
@@ -197,7 +231,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
     final pickedDay = DateTime(picked.year, picked.month, picked.day);
     final idx = _days.indexWhere((d) => _isSameDay(d, pickedDay));
     if (idx < 0) return;
-    setState(() => _selectedDate = pickedDay);
+    _selectedDate.value = pickedDay;
     _scrollToIndex(idx);
   }
 
@@ -207,12 +241,12 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
   String _capitalizeFirst(String s) =>
       s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
-  List<dynamic> _buildChronoItems(List<Activity> activities) {
+  List<Object?> _buildChronoItems(List<Activity> activities) {
     final withDates = activities.where((a) => a.activityDate != null).toList()
       ..sort((a, b) => a.activityDate!.compareTo(b.activityDate!));
     final noDates = activities.where((a) => a.activityDate == null).toList();
 
-    final items = <dynamic>[];
+    final items = <Object?>[];
     DateTime? lastDay;
 
     for (final a in withDates) {
@@ -232,7 +266,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
     return items;
   }
 
-  double _estimateTodayOffset(List<dynamic> items) {
+  double _estimateTodayOffset(List<Object?> items) {
     const headerH = 52.0;
     const cardH = 156.0;
     const topPad = 8.0;
@@ -250,6 +284,54 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
     return offset;
   }
 
+  _ActivitiesListDerivation _deriveActivities({
+    required List<Activity> activities,
+    required int? selectedFilter,
+    required DateTime? selectedDate,
+    required bool isChronologicalView,
+  }) {
+    final cached = _cachedDerivation;
+    if (cached != null &&
+        identical(_cachedActivitiesSource, activities) &&
+        _cachedFilter == selectedFilter &&
+        _cachedSelectedDate == selectedDate &&
+        _cachedChronologicalView == isChronologicalView) {
+      return cached;
+    }
+
+    var filtered = selectedFilter != null
+        ? activities.where((a) => a.activityType == selectedFilter).toList()
+        : List<Activity>.of(activities);
+
+    if (!isChronologicalView && selectedDate != null) {
+      final selectedDay = DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
+      );
+      filtered = filtered.where((a) {
+        if (a.activityDate == null) return false;
+        final start = a.activityDate!.toLocal();
+        final end = a.activityEndDate?.toLocal() ?? start;
+        final startDay = DateTime(start.year, start.month, start.day);
+        final endDay = DateTime(end.year, end.month, end.day);
+        return !selectedDay.isBefore(startDay) && !selectedDay.isAfter(endDay);
+      }).toList();
+    }
+
+    final derivation = _ActivitiesListDerivation(
+      filtered: filtered,
+      chronoItems:
+          isChronologicalView ? _buildChronoItems(filtered) : const <Object?>[],
+    );
+    _cachedActivitiesSource = activities;
+    _cachedFilter = selectedFilter;
+    _cachedSelectedDate = selectedDate;
+    _cachedChronologicalView = isChronologicalView;
+    _cachedDerivation = derivation;
+    return derivation;
+  }
+
   String _dayLabel(DateTime date) {
     final today = DateTime.now();
     if (_isSameDay(date, today)) return 'activities.list.today_label'.tr();
@@ -259,7 +341,214 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
     if (_isSameDay(date, today.add(const Duration(days: 1)))) {
       return 'activities.list.tomorrow'.tr();
     }
-    return _capitalizeFirst(DateFormat('EEEE, d MMM', 'es').format(date));
+    return _capitalizeFirst(_dayHeaderFormatter.format(date));
+  }
+
+  Widget _buildActivitiesList({
+    required AsyncValue<List<Activity>> activitiesAsync,
+    required SacColors c,
+    required DateTime today,
+  }) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: _isChronologicalView,
+      builder: (_, isChronologicalView, __) {
+        return ValueListenableBuilder<int?>(
+          valueListenable: _selectedFilter,
+          builder: (_, selectedFilter, __) {
+            return ValueListenableBuilder<DateTime?>(
+              valueListenable: _selectedDate,
+              builder: (_, selectedDate, __) {
+                return activitiesAsync.when(
+                  data: (activities) {
+                    final derivation = _deriveActivities(
+                      activities: activities,
+                      selectedFilter: selectedFilter,
+                      selectedDate: selectedDate,
+                      isChronologicalView: isChronologicalView,
+                    );
+                    final filtered = derivation.filtered;
+
+                    late final Widget content;
+                    if (filtered.isEmpty) {
+                      content = Center(
+                        key: ValueKey('empty-$isChronologicalView'),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            HugeIcon(
+                              icon: HugeIcons.strokeRoundedCalendar04,
+                              size: 56,
+                              color: c.textTertiary,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              !isChronologicalView && selectedDate != null
+                                  ? 'activities.list.empty_this_day'.tr()
+                                  : selectedFilter != null
+                                      ? 'activities.list.empty_this_type'.tr()
+                                      : 'activities.list.empty_general'.tr(),
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: c.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else if (isChronologicalView) {
+                      final chronoItems = derivation.chronoItems;
+
+                      if (_shouldScrollToToday) {
+                        _shouldScrollToToday = false;
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (_chronoScrollController.hasClients) {
+                            final offset = _estimateTodayOffset(chronoItems);
+                            _chronoScrollController.animateTo(
+                              offset.clamp(
+                                0.0,
+                                _chronoScrollController
+                                    .position.maxScrollExtent,
+                              ),
+                              duration: const Duration(milliseconds: 450),
+                              curve: Curves.easeOut,
+                            );
+                          }
+                        });
+                      }
+
+                      content = RefreshIndicator(
+                        key: const ValueKey('chrono'),
+                        color: AppColors.primary,
+                        onRefresh: () async {
+                          ref.invalidate(clubActivitiesProvider);
+                        },
+                        child: ListView.builder(
+                          controller: _chronoScrollController,
+                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                          itemCount: chronoItems.length,
+                          itemBuilder: (context, index) {
+                            final item = chronoItems[index];
+                            if (item is DateTime) {
+                              return _DayHeaderItem(
+                                label: _dayLabel(item),
+                                isToday: _isSameDay(item, today),
+                              );
+                            }
+                            if (item == null) {
+                              return _DayHeaderItem(
+                                label: 'activities.list.no_date'.tr(),
+                                isToday: false,
+                              );
+                            }
+                            final activity = item as Activity;
+                            return StaggeredListItem(
+                              index: index,
+                              child: ActivityCard(
+                                activity: activity,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    SacSharedAxisRoute(
+                                      builder: (context) => ActivityDetailView(
+                                        activityId: activity.id,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    } else {
+                      content = RefreshIndicator(
+                        key: const ValueKey('card'),
+                        color: AppColors.primary,
+                        onRefresh: () async {
+                          ref.invalidate(clubActivitiesProvider);
+                        },
+                        child: ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                          itemCount: filtered.length,
+                          itemBuilder: (context, index) {
+                            final activity = filtered[index];
+                            return StaggeredListItem(
+                              index: index,
+                              child: ActivityCard(
+                                activity: activity,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    SacSharedAxisRoute(
+                                      builder: (context) => ActivityDetailView(
+                                        activityId: activity.id,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    }
+
+                    return AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 320),
+                      switchInCurve: Curves.easeOut,
+                      switchOutCurve: Curves.easeIn,
+                      transitionBuilder: (child, animation) => FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0.04, 0),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        ),
+                      ),
+                      child: content,
+                    );
+                  },
+                  loading: () => const ActivitiesLoadingSkeleton(),
+                  error: (error, stack) => Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedAlert02,
+                            size: 56,
+                            color: AppColors.error,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'activities.list.error_load'.tr(),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 24),
+                          SacButton.primary(
+                            text: 'common.retry'.tr(),
+                            icon: HugeIcons.strokeRoundedRefresh,
+                            onPressed: () {
+                              ref.invalidate(clubActivitiesProvider);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -318,7 +607,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                           valueListenable: _visibleMonth,
                           builder: (_, month, __) => Text(
                             _capitalizeFirst(
-                              DateFormat('MMMM yyyy', 'es').format(month),
+                              _monthFormatter.format(month),
                             ),
                             style: TextStyle(
                               fontSize: 13,
@@ -375,55 +664,60 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                       ),
                     ),
                   const SizedBox(width: 8),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    decoration: BoxDecoration(
-                      color:
-                          _isChronologicalView ? AppColors.primary : c.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color:
-                            _isChronologicalView ? AppColors.primary : c.border,
-                      ),
-                      boxShadow: _isChronologicalView
-                          ? [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 3),
-                              )
-                            ]
-                          : null,
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        splashColor: _isChronologicalView
-                            ? Colors.white.withValues(alpha: 0.2)
-                            : null,
-                        onTap: () {
-                          setState(() {
-                            _isChronologicalView = !_isChronologicalView;
-                            if (_isChronologicalView) {
-                              _shouldScrollToToday = true;
-                            }
-                          });
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(9),
-                          child: HugeIcon(
-                            icon: _isChronologicalView
-                                ? HugeIcons.strokeRoundedCalendar01
-                                : HugeIcons.strokeRoundedListView,
-                            size: 20,
-                            color: _isChronologicalView
-                                ? Colors.white
-                                : c.textSecondary,
+                  ValueListenableBuilder<bool>(
+                    valueListenable: _isChronologicalView,
+                    builder: (_, isChronologicalView, __) {
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        decoration: BoxDecoration(
+                          color: isChronologicalView
+                              ? AppColors.primary
+                              : c.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isChronologicalView
+                                ? AppColors.primary
+                                : c.border,
+                          ),
+                          boxShadow: isChronologicalView
+                              ? [
+                                  BoxShadow(
+                                    color: AppColors.primary
+                                        .withValues(alpha: 0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  )
+                                ]
+                              : null,
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            splashColor: isChronologicalView
+                                ? Colors.white.withValues(alpha: 0.2)
+                                : null,
+                            onTap: () {
+                              final next = !_isChronologicalView.value;
+                              if (next) _shouldScrollToToday = true;
+                              _isChronologicalView.value = next;
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(9),
+                              child: HugeIcon(
+                                icon: isChronologicalView
+                                    ? HugeIcons.strokeRoundedCalendar01
+                                    : HugeIcons.strokeRoundedListView,
+                                size: 20,
+                                color: isChronologicalView
+                                    ? Colors.white
+                                    : c.textSecondary,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -431,288 +725,364 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
             const SizedBox(height: 20),
 
             // Date strip (solo en vista de tarjetas)
-            ClipRect(
-              child: AnimatedSize(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                child: _isChronologicalView
-                    ? const SizedBox(height: 0)
-                    : Column(
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                child: SizedBox(
-                                  height: 76,
-                                  child:
-                                      NotificationListener<ScrollNotification>(
-                                    onNotification: (notification) {
-                                      if (notification
-                                              is ScrollUpdateNotification ||
-                                          notification
-                                              is ScrollEndNotification) {
-                                        _onDateStripScroll();
-                                      }
-                                      return false;
-                                    },
-                                    child: ListView.builder(
-                                      controller: _dateScrollController,
-                                      scrollDirection: Axis.horizontal,
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16),
-                                      itemCount: _days.length,
-                                      itemBuilder: (context, index) {
-                                        final day = _days[index];
-                                        final isToday = _isSameDay(day, today);
-                                        final isSelected =
-                                            _selectedDate != null &&
-                                                _isSameDay(day, _selectedDate!);
-
-                                        return Semantics(
-                                          label: DateFormat('EEEE d MMMM', 'es')
-                                              .format(day),
-                                          button: true,
-                                          selected: isSelected,
-                                          child: AnimatedContainer(
-                                            duration: const Duration(
-                                                milliseconds: 200),
-                                            width: 52,
-                                            margin: const EdgeInsets.symmetric(
-                                                horizontal: 4, vertical: 2),
-                                            decoration: BoxDecoration(
-                                              color: isSelected
-                                                  ? AppColors.primary
-                                                  : isToday
-                                                      ? AppColors.primaryLight
-                                                      : c.surface,
-                                              borderRadius:
-                                                  BorderRadius.circular(16),
-                                              border: Border.all(
-                                                color: isToday && !isSelected
-                                                    ? AppColors.primary
-                                                        .withValues(alpha: 0.35)
-                                                    : Colors.transparent,
-                                                width: 1.5,
+            ValueListenableBuilder<bool>(
+              valueListenable: _isChronologicalView,
+              builder: (_, isChronologicalView, __) {
+                return ClipRect(
+                  child: AnimatedSize(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    child: isChronologicalView
+                        ? const SizedBox(height: 0)
+                        : ValueListenableBuilder<DateTime?>(
+                            valueListenable: _selectedDate,
+                            builder: (_, selectedDate, __) {
+                              return Column(
+                                children: [
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Expanded(
+                                        child: SizedBox(
+                                          height: 76,
+                                          child: NotificationListener<
+                                              ScrollNotification>(
+                                            onNotification: (notification) {
+                                              if (notification
+                                                      is ScrollUpdateNotification ||
+                                                  notification
+                                                      is ScrollEndNotification) {
+                                                _onDateStripScroll();
+                                              }
+                                              return false;
+                                            },
+                                            child: ListView.builder(
+                                              controller: _dateScrollController,
+                                              scrollDirection: Axis.horizontal,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 16,
                                               ),
-                                              boxShadow: isSelected
-                                                  ? [
-                                                      BoxShadow(
-                                                        color: AppColors.primary
-                                                            .withValues(
-                                                                alpha: 0.28),
-                                                        blurRadius: 8,
-                                                        offset:
-                                                            const Offset(0, 3),
-                                                      )
-                                                    ]
-                                                  : null,
-                                            ),
-                                            child: Material(
-                                              color: Colors.transparent,
-                                              child: InkWell(
-                                                borderRadius:
-                                                    BorderRadius.circular(16),
-                                                splashColor: isSelected
-                                                    ? Colors.white
-                                                        .withValues(alpha: 0.2)
-                                                    : null,
-                                                onTap: () => setState(() {
-                                                  _selectedDate = day;
-                                                }),
-                                                child: Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    Text(
-                                                      DateFormat('EEE', 'es')
-                                                          .format(day)
-                                                          .substring(0, 2)
-                                                          .toUpperCase(),
-                                                      style: TextStyle(
-                                                        fontSize: 10,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        color: isSelected
+                                              itemCount: _days.length,
+                                              itemBuilder: (context, index) {
+                                                final day = _days[index];
+                                                final isToday =
+                                                    _isSameDay(day, today);
+                                                final isSelected =
+                                                    selectedDate != null &&
+                                                        _isSameDay(
+                                                          day,
+                                                          selectedDate,
+                                                        );
+
+                                                return Semantics(
+                                                  label: _daySemanticsFormatter
+                                                      .format(day),
+                                                  button: true,
+                                                  selected: isSelected,
+                                                  child: AnimatedContainer(
+                                                    duration: const Duration(
+                                                      milliseconds: 200,
+                                                    ),
+                                                    width: 52,
+                                                    margin: const EdgeInsets
+                                                        .symmetric(
+                                                      horizontal: 4,
+                                                      vertical: 2,
+                                                    ),
+                                                    decoration: BoxDecoration(
+                                                      color: isSelected
+                                                          ? AppColors.primary
+                                                          : isToday
+                                                              ? AppColors
+                                                                  .primaryLight
+                                                              : c.surface,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                        16,
+                                                      ),
+                                                      border: Border.all(
+                                                        color: isToday &&
+                                                                !isSelected
+                                                            ? AppColors.primary
+                                                                .withValues(
+                                                                alpha: 0.35,
+                                                              )
+                                                            : Colors
+                                                                .transparent,
+                                                        width: 1.5,
+                                                      ),
+                                                      boxShadow: isSelected
+                                                          ? [
+                                                              BoxShadow(
+                                                                color: AppColors
+                                                                    .primary
+                                                                    .withValues(
+                                                                  alpha: 0.28,
+                                                                ),
+                                                                blurRadius: 8,
+                                                                offset:
+                                                                    const Offset(
+                                                                  0,
+                                                                  3,
+                                                                ),
+                                                              )
+                                                            ]
+                                                          : null,
+                                                    ),
+                                                    child: Material(
+                                                      color: Colors.transparent,
+                                                      child: InkWell(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(16),
+                                                        splashColor: isSelected
                                                             ? Colors.white
                                                                 .withValues(
-                                                                    alpha: 0.8)
-                                                            : c.textTertiary,
+                                                                alpha: 0.2,
+                                                              )
+                                                            : null,
+                                                        onTap: () {
+                                                          _selectedDate.value =
+                                                              day;
+                                                        },
+                                                        child: Column(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          children: [
+                                                            Text(
+                                                              _weekdayFormatter
+                                                                  .format(day)
+                                                                  .substring(
+                                                                    0,
+                                                                    2,
+                                                                  )
+                                                                  .toUpperCase(),
+                                                              style: TextStyle(
+                                                                fontSize: 10,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                color:
+                                                                    isSelected
+                                                                        ? Colors
+                                                                            .white
+                                                                            .withValues(
+                                                                            alpha:
+                                                                                0.8,
+                                                                          )
+                                                                        : c.textTertiary,
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                              height: 4,
+                                                            ),
+                                                            Text(
+                                                              _dayNumberFormatter
+                                                                  .format(day),
+                                                              style: TextStyle(
+                                                                fontSize: 20,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                                height: 1,
+                                                                color: isSelected
+                                                                    ? Colors.white
+                                                                    : isToday
+                                                                        ? AppColors.primary
+                                                                        : c.text,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
                                                       ),
                                                     ),
-                                                    const SizedBox(height: 4),
-                                                    Text(
-                                                      DateFormat('d')
-                                                          .format(day),
-                                                      style: TextStyle(
-                                                        fontSize: 20,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                        height: 1,
-                                                        color: isSelected
-                                                            ? Colors.white
-                                                            : isToday
-                                                                ? AppColors
-                                                                    .primary
-                                                                : c.text,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(right: 12),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    SizedBox(
-                                      width: 44,
-                                      height: 44,
-                                      child: Material(
-                                        color: AppColors.primaryLight,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                          side: BorderSide(
-                                            color: AppColors.primary
-                                                .withValues(alpha: 0.25),
-                                          ),
-                                        ),
-                                        child: InkWell(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                          onTap: () => _openDatePicker(context),
-                                          child: const Center(
-                                            child: HugeIcon(
-                                              icon: HugeIcons
-                                                  .strokeRoundedCalendar02,
-                                              size: 20,
-                                              color: AppColors.primary,
+                                                  ),
+                                                );
+                                              },
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                    ValueListenableBuilder<bool>(
-                                      valueListenable: _showTodayButton,
-                                      builder: (_, show, __) {
-                                        if (!show) {
-                                          return const SizedBox.shrink();
-                                        }
-                                        return Padding(
-                                          padding:
-                                              const EdgeInsets.only(top: 4),
-                                          child: SizedBox(
-                                            width: 60,
-                                            height: 44,
-                                            child: Material(
-                                              color: AppColors.primary,
-                                              borderRadius:
-                                                  BorderRadius.circular(22),
-                                              child: InkWell(
-                                                borderRadius:
-                                                    BorderRadius.circular(22),
-                                                splashColor: Colors.white
-                                                    .withValues(alpha: 0.2),
-                                                onTap: () {
-                                                  final now = DateTime.now();
-                                                  setState(() {
-                                                    _selectedDate = DateTime(
-                                                        now.year,
-                                                        now.month,
-                                                        now.day);
-                                                  });
-                                                  _showTodayButton.value =
-                                                      false;
-                                                  _visibleMonth.value =
-                                                      DateTime(
-                                                          now.year, now.month);
-                                                  _scrollToToday(animate: true);
-                                                },
-                                                child: Center(
-                                                  child: Text(
-                                                    'activities.list.today_label'
-                                                        .tr(),
-                                                    style: const TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 11,
-                                                      fontWeight:
-                                                          FontWeight.w600,
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 12),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            SizedBox(
+                                              width: 44,
+                                              height: 44,
+                                              child: Material(
+                                                color: AppColors.primaryLight,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  side: BorderSide(
+                                                    color: AppColors.primary
+                                                        .withValues(
+                                                      alpha: 0.25,
+                                                    ),
+                                                  ),
+                                                ),
+                                                child: InkWell(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  onTap: () =>
+                                                      _openDatePicker(context),
+                                                  child: const Center(
+                                                    child: HugeIcon(
+                                                      icon: HugeIcons
+                                                          .strokeRoundedCalendar02,
+                                                      size: 20,
+                                                      color: AppColors.primary,
                                                     ),
                                                   ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                                            ValueListenableBuilder<bool>(
+                                              valueListenable: _showTodayButton,
+                                              builder: (_, show, __) {
+                                                if (!show) {
+                                                  return const SizedBox
+                                                      .shrink();
+                                                }
+                                                return Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                    top: 4,
+                                                  ),
+                                                  child: SizedBox(
+                                                    width: 60,
+                                                    height: 44,
+                                                    child: Material(
+                                                      color: AppColors.primary,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                        22,
+                                                      ),
+                                                      child: InkWell(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(22),
+                                                        splashColor: Colors
+                                                            .white
+                                                            .withValues(
+                                                          alpha: 0.2,
+                                                        ),
+                                                        onTap: () {
+                                                          final now =
+                                                              DateTime.now();
+                                                          _selectedDate.value =
+                                                              DateTime(
+                                                            now.year,
+                                                            now.month,
+                                                            now.day,
+                                                          );
+                                                          _showTodayButton
+                                                              .value = false;
+                                                          _visibleMonth.value =
+                                                              DateTime(
+                                                            now.year,
+                                                            now.month,
+                                                          );
+                                                          _scrollToToday(
+                                                            animate: true,
+                                                          );
+                                                        },
+                                                        child: Center(
+                                                          child: Text(
+                                                            'activities.list.today_label'
+                                                                .tr(),
+                                                            style:
+                                                                const TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontSize: 11,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 14),
+                                ],
+                              );
+                            },
                           ),
-                          const SizedBox(height: 14),
-                        ],
-                      ),
-              ),
+                  ),
+                );
+              },
             ),
 
             // Filter chips - cargados dinámicamente desde el catálogo
             SizedBox(
               height: 36,
-              child: activityTypesAsync.when(
-                loading: () => ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: 4,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
-                  itemBuilder: (context, index) => _FilterChipSkeleton(c: c),
-                ),
-                error: (_, __) => ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  children: [
-                    _ActivityFilterChip(
-                      label: 'activities.list.all_filter'.tr(),
-                      isSelected: _selectedFilter == null,
-                      c: c,
-                      onTap: () => setState(() => _selectedFilter = null),
+              child: ValueListenableBuilder<int?>(
+                valueListenable: _selectedFilter,
+                builder: (_, selectedFilter, __) {
+                  return activityTypesAsync.when(
+                    loading: () => ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: 4,
+                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      itemBuilder: (context, index) =>
+                          _FilterChipSkeleton(c: c),
                     ),
-                  ],
-                ),
-                data: (types) {
-                  final chips = <Widget>[
-                    _ActivityFilterChip(
-                      label: 'activities.list.all_filter'.tr(),
-                      isSelected: _selectedFilter == null,
-                      c: c,
-                      onTap: () => setState(() => _selectedFilter = null),
+                    error: (_, __) => ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      children: [
+                        _ActivityFilterChip(
+                          label: 'activities.list.all_filter'.tr(),
+                          isSelected: selectedFilter == null,
+                          c: c,
+                          onTap: () => _selectedFilter.value = null,
+                        ),
+                      ],
                     ),
-                    ...types.map(
-                      (t) => _ActivityFilterChip(
-                        label: t.name,
-                        isSelected: _selectedFilter == t.activityTypeId,
-                        c: c,
-                        onTap: () =>
-                            setState(() => _selectedFilter = t.activityTypeId),
-                      ),
-                    ),
-                  ];
-                  return ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    itemCount: chips.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 8),
-                    itemBuilder: (_, i) => chips[i],
+                    data: (types) {
+                      final chips = <Widget>[
+                        _ActivityFilterChip(
+                          label: 'activities.list.all_filter'.tr(),
+                          isSelected: selectedFilter == null,
+                          c: c,
+                          onTap: () => _selectedFilter.value = null,
+                        ),
+                        ...types.map(
+                          (t) => _ActivityFilterChip(
+                            label: t.name,
+                            isSelected: selectedFilter == t.activityTypeId,
+                            c: c,
+                            onTap: () =>
+                                _selectedFilter.value = t.activityTypeId,
+                          ),
+                        ),
+                      ];
+                      return ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        itemCount: chips.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 8),
+                        itemBuilder: (_, i) => chips[i],
+                      );
+                    },
                   );
                 },
               ),
@@ -721,209 +1091,10 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
 
             // Activities list
             Expanded(
-              child: activitiesAsync.when(
-                data: (activities) {
-                  // Activity type filter is applied locally — no new request needed.
-                  // Date filter is also applied locally.
-                  var filtered = _selectedFilter != null
-                      ? activities
-                          .where((a) => a.activityType == _selectedFilter)
-                          .toList()
-                      : List.of(activities);
-
-                  if (!_isChronologicalView && _selectedDate != null) {
-                    filtered = filtered.where((a) {
-                      if (a.activityDate == null) return false;
-                      final start = a.activityDate!.toLocal();
-                      final end = a.activityEndDate?.toLocal() ?? start;
-                      final startDay =
-                          DateTime(start.year, start.month, start.day);
-                      final endDay = DateTime(end.year, end.month, end.day);
-                      final sel = DateTime(
-                        _selectedDate!.year,
-                        _selectedDate!.month,
-                        _selectedDate!.day,
-                      );
-                      return !sel.isBefore(startDay) && !sel.isAfter(endDay);
-                    }).toList();
-                  }
-
-                  late final Widget content;
-
-                  if (filtered.isEmpty) {
-                    content = Center(
-                      key: ValueKey('empty-$_isChronologicalView'),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedCalendar04,
-                            size: 56,
-                            color: c.textTertiary,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            !_isChronologicalView && _selectedDate != null
-                                ? 'activities.list.empty_this_day'.tr()
-                                : _selectedFilter != null
-                                    ? 'activities.list.empty_this_type'.tr()
-                                    : 'activities.list.empty_general'.tr(),
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: c.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  } else if (_isChronologicalView) {
-                    // ── Vista cronológica ─────────────────────────────
-                    final chronoItems = _buildChronoItems(filtered);
-
-                    if (_shouldScrollToToday) {
-                      _shouldScrollToToday = false;
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (_chronoScrollController.hasClients) {
-                          final offset = _estimateTodayOffset(chronoItems);
-                          _chronoScrollController.animateTo(
-                            offset.clamp(
-                                0.0,
-                                _chronoScrollController
-                                    .position.maxScrollExtent),
-                            duration: const Duration(milliseconds: 450),
-                            curve: Curves.easeOut,
-                          );
-                        }
-                      });
-                    }
-
-                    content = RefreshIndicator(
-                      key: const ValueKey('chrono'),
-                      color: AppColors.primary,
-                      onRefresh: () async {
-                        ref.invalidate(clubActivitiesProvider);
-                      },
-                      child: ListView.builder(
-                        controller: _chronoScrollController,
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                        itemCount: chronoItems.length,
-                        itemBuilder: (context, index) {
-                          final item = chronoItems[index];
-                          if (item is DateTime) {
-                            return _DayHeaderItem(
-                              label: _dayLabel(item),
-                              isToday: _isSameDay(item, today),
-                            );
-                          }
-                          if (item == null) {
-                            return _DayHeaderItem(
-                              label: 'activities.list.no_date'.tr(),
-                              isToday: false,
-                            );
-                          }
-                          final activity = item as Activity;
-                          return StaggeredListItem(
-                            index: index,
-                            child: ActivityCard(
-                              activity: activity,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  SacSharedAxisRoute(
-                                    builder: (context) => ActivityDetailView(
-                                      activityId: activity.id,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                  } else {
-                    // ── Vista de tarjetas (default) ───────────────────
-                    content = RefreshIndicator(
-                      key: const ValueKey('card'),
-                      color: AppColors.primary,
-                      onRefresh: () async {
-                        ref.invalidate(clubActivitiesProvider);
-                      },
-                      child: ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                        itemCount: filtered.length,
-                        itemBuilder: (context, index) {
-                          final activity = filtered[index];
-                          return StaggeredListItem(
-                            index: index,
-                            child: ActivityCard(
-                              activity: activity,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  SacSharedAxisRoute(
-                                    builder: (context) => ActivityDetailView(
-                                      activityId: activity.id,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                  }
-
-                  return AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 320),
-                    switchInCurve: Curves.easeOut,
-                    switchOutCurve: Curves.easeIn,
-                    transitionBuilder: (child, animation) => FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0.04, 0),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
-                      ),
-                    ),
-                    child: content,
-                  );
-                },
-                loading: () => const ActivitiesLoadingSkeleton(),
-                error: (error, stack) => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        HugeIcon(
-                          icon: HugeIcons.strokeRoundedAlert02,
-                          size: 56,
-                          color: AppColors.error,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'activities.list.error_load'.tr(),
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(height: 24),
-                        SacButton.primary(
-                          text: 'common.retry'.tr(),
-                          icon: HugeIcons.strokeRoundedRefresh,
-                          onPressed: () {
-                            ref.invalidate(clubActivitiesProvider);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              child: _buildActivitiesList(
+                activitiesAsync: activitiesAsync,
+                c: c,
+                today: today,
               ),
             ),
           ],

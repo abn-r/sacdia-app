@@ -11,6 +11,36 @@ import '../../domain/entities/monthly_report.dart';
 import '../providers/monthly_reports_providers.dart';
 import 'monthly_report_detail_view.dart';
 
+final _monthlyReportsByYearProvider = Provider.autoDispose
+    .family<AsyncValue<List<_YearReportsGroup>>, String>((ref, enrollmentId) {
+  final reportsAsync =
+      ref.watch(monthlyReportsByEnrollmentProvider(enrollmentId));
+  return reportsAsync.whenData(_groupReportsByYear);
+});
+
+List<_YearReportsGroup> _groupReportsByYear(List<MonthlyReport> reports) {
+  final byYear = <int, List<MonthlyReport>>{};
+  for (final report in reports) {
+    byYear.putIfAbsent(report.year, () => []).add(report);
+  }
+
+  final sortedYears = byYear.keys.toList()..sort((a, b) => b.compareTo(a));
+  return [
+    for (final year in sortedYears)
+      _YearReportsGroup(year: year, reports: byYear[year]!),
+  ];
+}
+
+class _YearReportsGroup {
+  final int year;
+  final List<MonthlyReport> reports;
+
+  const _YearReportsGroup({
+    required this.year,
+    required this.reports,
+  });
+}
+
 /// Vista de lista de informes mensuales de un enrollment.
 class MonthlyReportsListView extends ConsumerWidget {
   final String enrollmentId;
@@ -22,8 +52,7 @@ class MonthlyReportsListView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final reportsAsync =
-        ref.watch(monthlyReportsByEnrollmentProvider(enrollmentId));
+    final reportsAsync = ref.watch(_monthlyReportsByYearProvider(enrollmentId));
     final c = context.sac;
 
     return Scaffold(
@@ -56,18 +85,10 @@ class MonthlyReportsListView extends ConsumerWidget {
           onRetry: () =>
               ref.invalidate(monthlyReportsByEnrollmentProvider(enrollmentId)),
         ),
-        data: (reports) {
-          if (reports.isEmpty) {
+        data: (groups) {
+          if (groups.isEmpty) {
             return _EmptyBody();
           }
-
-          // Group reports by year
-          final byYear = <int, List<MonthlyReport>>{};
-          for (final r in reports) {
-            byYear.putIfAbsent(r.year, () => []).add(r);
-          }
-          final sortedYears = byYear.keys.toList()
-            ..sort((a, b) => b.compareTo(a));
 
           return RefreshIndicator(
             color: AppColors.primary,
@@ -76,10 +97,10 @@ class MonthlyReportsListView extends ConsumerWidget {
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                for (final year in sortedYears) ...[
-                  _YearHeader(year: year),
+                for (final group in groups) ...[
+                  _YearHeader(year: group.year),
                   const SizedBox(height: 8),
-                  ...byYear[year]!.map(
+                  ...group.reports.map(
                     (report) => Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: _ReportCard(

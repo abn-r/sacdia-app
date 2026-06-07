@@ -11,7 +11,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import '../../domain/entities/honor.dart';
-import '../../domain/utils/honor_category_colors.dart';
+import '../utils/honor_category_colors.dart';
 import '../../domain/entities/user_honor.dart';
 import '../providers/honors_providers.dart';
 import '../widgets/honor_card.dart';

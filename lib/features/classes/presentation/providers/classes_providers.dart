@@ -117,10 +117,15 @@ final classesByClubTypeProvider = FutureProvider.autoDispose
     .family<List<ProgressiveClass>, int>((ref, clubTypeId) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
-  final dataSource = ref.read(classesRemoteDataSourceProvider);
-  final models = await dataSource.getClasses(
-      clubTypeId: clubTypeId, cancelToken: cancelToken);
-  return models.map((m) => m.toEntity()).toList();
+  final repository = ref.read(classesRepositoryProvider);
+  final result = await repository.getClasses(
+    clubTypeId: clubTypeId,
+    cancelToken: cancelToken,
+  );
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (classes) => classes,
+  );
 });
 
 /// Provider para listar TODAS las clases del catálogo sin filtro por tipo de club.
@@ -132,9 +137,12 @@ final allClassesProvider =
     FutureProvider.autoDispose<List<ProgressiveClass>>((ref) async {
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
-  final dataSource = ref.read(classesRemoteDataSourceProvider);
-  final models = await dataSource.getClasses(cancelToken: cancelToken);
-  return models.map((m) => m.toEntity()).toList();
+  final repository = ref.read(classesRepositoryProvider);
+  final result = await repository.getClasses(cancelToken: cancelToken);
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (classes) => classes,
+  );
 });
 
 /// Provider para el detalle de una clase especifica.

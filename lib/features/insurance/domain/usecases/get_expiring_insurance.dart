@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/member_insurance.dart';
 import '../repositories/insurance_repository.dart';
 
@@ -27,7 +27,7 @@ class GetExpiringInsurance {
 
   Future<Either<Failure, List<MemberInsurance>>> call(
     GetExpiringInsuranceParams params, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) {
     return _repository.getExpiringInsurance(
       days: params.days,

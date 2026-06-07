@@ -1,9 +1,10 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/dashboard_summary.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../datasources/dashboard_remote_data_source.dart';
@@ -20,10 +21,10 @@ class DashboardRepositoryImpl implements DashboardRepository {
 
   @override
   Future<Either<Failure, DashboardSummary>> getDashboardSummary(
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     try {
       final dashboardData =
-          await remoteDataSource.getDashboardSummary(cancelToken: cancelToken);
+          await remoteDataSource.getDashboardSummary(cancelToken: cancelToken.asDioCancelToken());
       return Right(dashboardData);
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));

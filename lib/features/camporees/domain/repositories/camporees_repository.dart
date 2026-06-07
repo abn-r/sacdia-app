@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/models/paginated_result.dart';
 import '../entities/camporee.dart';
 import '../entities/camporee_member.dart';
@@ -10,11 +10,11 @@ import '../entities/camporee_payment.dart';
 abstract class CamporeesRepository {
   /// Obtiene la lista de camporees. Opcionalmente filtra por activos.
   Future<Either<Failure, List<Camporee>>> getCamporees(
-      {bool? active, CancelToken? cancelToken});
+      {bool? active, RequestCancelToken? cancelToken});
 
   /// Obtiene el detalle de un camporee por ID.
   Future<Either<Failure, Camporee>> getCamporeeDetail(int camporeeId,
-      {CancelToken? cancelToken});
+      {RequestCancelToken? cancelToken});
 
   /// Registra un miembro en un camporee.
   Future<Either<Failure, CamporeeMember>> registerMember(
@@ -31,7 +31,7 @@ abstract class CamporeesRepository {
     int page = 1,
     int limit = 50,
     String? status,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   /// Remueve un miembro de un camporee.
@@ -48,7 +48,7 @@ abstract class CamporeesRepository {
   /// Obtiene los clubes inscritos en un camporee.
   Future<Either<Failure, List<CamporeeEnrolledClub>>> getEnrolledClubs(
       int camporeeId,
-      {CancelToken? cancelToken});
+      {RequestCancelToken? cancelToken});
 
   /// Crea un pago para un miembro en un camporee.
   Future<Either<Failure, CamporeePayment>> createPayment(
@@ -65,11 +65,11 @@ abstract class CamporeesRepository {
   Future<Either<Failure, List<CamporeePayment>>> getMemberPayments(
     int camporeeId,
     String memberId, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   /// Obtiene todos los pagos de un camporee.
   Future<Either<Failure, List<CamporeePayment>>> getCamporeePayments(
       int camporeeId,
-      {CancelToken? cancelToken});
+      {RequestCancelToken? cancelToken});
 }

@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/resource_category.dart';
 import '../repositories/resources_repository.dart';
@@ -14,7 +14,7 @@ class GetResourceCategories
 
   @override
   Future<Either<Failure, List<ResourceCategory>>> call(NoParams params,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     return await repository.getCategories(cancelToken: cancelToken);
   }
 }

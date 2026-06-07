@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/evidence_folder.dart';
 import '../repositories/evidence_folder_repository.dart';
@@ -28,7 +28,7 @@ class GetEvidenceFolder
 
   @override
   Future<Either<Failure, EvidenceFolder?>> call(GetEvidenceFolderParams params,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     return _repository.getEvidenceFolder(params.clubSectionId,
         cancelToken: cancelToken);
   }

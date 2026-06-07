@@ -1,8 +1,9 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/validation.dart';
 import '../../domain/repositories/validation_repository.dart';
 import '../datasources/validation_remote_data_source.dart';
@@ -38,13 +39,13 @@ class ValidationRepositoryImpl implements ValidationRepository {
   Future<Either<Failure, List<ValidationHistoryEntry>>> getValidationHistory({
     required ValidationEntityType entityType,
     required int entityId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final models = await _remoteDataSource.getValidationHistory(
         entityType: entityType,
         entityId: entityId,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(models);
     } on AuthException catch (e) {
@@ -59,12 +60,12 @@ class ValidationRepositoryImpl implements ValidationRepository {
   @override
   Future<Either<Failure, EligibilityResult>> checkEligibility({
     required String userId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final model = await _remoteDataSource.checkEligibility(
         userId: userId,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(model);
     } on AuthException catch (e) {

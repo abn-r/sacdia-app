@@ -146,13 +146,15 @@ class _UnlockOverlayState extends State<_UnlockOverlay>
                   alignment: Alignment.center,
                   children: [
                     // Particle burst
-                    AnimatedBuilder(
-                      animation: _particleAnimation,
-                      builder: (context, _) => CustomPaint(
-                        size: const Size(200, 200),
-                        painter: _ParticlePainter(
-                          progress: _particleAnimation.value,
-                          color: tierColor,
+                    RepaintBoundary(
+                      child: AnimatedBuilder(
+                        animation: _particleAnimation,
+                        builder: (context, _) => CustomPaint(
+                          size: const Size(200, 200),
+                          painter: _ParticlePainter(
+                            progress: _particleAnimation.value,
+                            color: tierColor,
+                          ),
                         ),
                       ),
                     ),

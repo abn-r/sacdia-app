@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/enrollment.dart';
 import '../repositories/enrollment_repository.dart';
@@ -28,7 +28,7 @@ class GetCurrentEnrollment
 
   @override
   Future<Either<Failure, Enrollment?>> call(GetCurrentEnrollmentParams params,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     return repository.getCurrentEnrollment(
       clubId: params.clubId,
       sectionId: params.sectionId,

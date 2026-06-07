@@ -21,7 +21,15 @@ class ClubRankingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authAsync = ref.watch(authNotifierProvider);
+    final authView = ref.watch(
+      authNotifierProvider.select(
+        (value) => (
+          isLoading: value.isLoading,
+          hasError: value.hasError,
+          user: value.valueOrNull,
+        ),
+      ),
+    );
     final ctxAsync = ref.watch(clubContextProvider);
     final yearAsync = ref.watch(currentEcclesiasticalYearProvider);
 
@@ -29,18 +37,23 @@ class ClubRankingsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(tr('rankings.annual_progress.title')),
       ),
-      body: authAsync.when(
-        data: (user) {
-          if (!_canViewAnnualProgress(user)) {
+      body: Builder(
+        builder: (context) {
+          if (authView.isLoading) {
+            return RankingSkeleton.myRanking();
+          }
+          if (authView.hasError || !_canViewAnnualProgress(authView.user)) {
             return const RankingEmptyState(
-                reason: RankingEmptyReason.unauthorized);
+              reason: RankingEmptyReason.unauthorized,
+            );
           }
 
           return yearAsync.when(
             data: (year) {
               if (year == null) {
                 return const RankingEmptyState(
-                    reason: RankingEmptyReason.noData);
+                  reason: RankingEmptyReason.noData,
+                );
               }
 
               return ctxAsync.when(
@@ -71,10 +84,6 @@ class ClubRankingsScreen extends ConsumerWidget {
             ),
           );
         },
-        loading: () => RankingSkeleton.myRanking(),
-        error: (_, __) => const RankingEmptyState(
-          reason: RankingEmptyReason.unauthorized,
-        ),
       ),
     );
   }

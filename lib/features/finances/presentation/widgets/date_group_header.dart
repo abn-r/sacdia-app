@@ -19,16 +19,19 @@ class DateGroupHeader extends StatelessWidget {
     required this.dailyTotal,
   });
 
+  static final _dateFormatter = DateFormat('EEEE, d MMMM', 'es');
+  static final _currencyFormatter = NumberFormat.currency(
+    locale: 'en_US',
+    symbol: '\$',
+    decimalDigits: 2,
+  );
+
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final dateLabel = DateFormat('EEEE, d MMMM', 'es').format(date);
+    final dateLabel = _dateFormatter.format(date);
     final capitalizedDate = dateLabel[0].toUpperCase() + dateLabel.substring(1);
-    final totalFormatted = NumberFormat.currency(
-      locale: 'en_US',
-      symbol: '\$',
-      decimalDigits: 2,
-    ).format(dailyTotal.abs());
+    final totalFormatted = _currencyFormatter.format(dailyTotal.abs());
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),

@@ -1,9 +1,10 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart' as core_exceptions;
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/completion_status.dart';
 import '../../domain/repositories/post_registration_repository.dart';
 import '../datasources/post_registration_remote_data_source.dart';
@@ -20,11 +21,11 @@ class PostRegistrationRepositoryImpl implements PostRegistrationRepository {
 
   @override
   Future<Either<Failure, CompletionStatus>> getCompletionStatus({
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final status = await remoteDataSource.getCompletionStatus(
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(status);
     } on core_exceptions.ServerException catch (e) {
@@ -75,12 +76,12 @@ class PostRegistrationRepositoryImpl implements PostRegistrationRepository {
   @override
   Future<Either<Failure, bool>> getPhotoStatus({
     required String userId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final hasPhoto = await remoteDataSource.getPhotoStatus(
         userId: userId,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(hasPhoto);
     } on core_exceptions.ServerException catch (e) {

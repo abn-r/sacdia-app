@@ -284,12 +284,14 @@ class _AchievementBadgeState extends State<AchievementBadge>
           alignment: Alignment.center,
           children: [
             // Progress arc (drawn with CustomPaint)
-            CustomPaint(
-              size: Size(widget.size + 8, widget.size + 8),
-              painter: _ProgressArcPainter(
-                progress: widget.progress.clamp(0.0, 1.0),
-                color: Colors.amber.shade600,
-                trackColor: context.sac.border,
+            RepaintBoundary(
+              child: CustomPaint(
+                size: Size(widget.size + 8, widget.size + 8),
+                painter: _ProgressArcPainter(
+                  progress: widget.progress.clamp(0.0, 1.0),
+                  color: Colors.amber.shade600,
+                  trackColor: context.sac.border,
+                ),
               ),
             ),
             badge,

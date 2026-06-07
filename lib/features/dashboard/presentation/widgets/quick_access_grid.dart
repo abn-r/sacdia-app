@@ -161,16 +161,20 @@ class QuickAccessGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authAsync = ref.watch(authNotifierProvider);
+    final authView = ref.watch(
+      authNotifierProvider.select(
+        (value) => (isLoading: value.isLoading, user: value.valueOrNull),
+      ),
+    );
 
     // While the auth future is still resolving, show a placeholder that
     // occupies the same vertical space as the real grid would. This prevents
     // the layout from collapsing and then jumping when permissions arrive.
-    if (authAsync.isLoading) {
+    if (authView.isLoading) {
       return const _QuickAccessSkeleton();
     }
 
-    final user = authAsync.valueOrNull;
+    final user = authView.user;
     final authorization = user?.authorization;
 
     // Auth has settled but there is no authorization data — either the user

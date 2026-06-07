@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/evidence_folder.dart';
 import '../entities/evidence_file.dart';
 
@@ -16,7 +16,7 @@ abstract class EvidenceFolderRepository {
   /// negocio válido). Retorna `Left(Failure)` solo para errores reales.
   Future<Either<Failure, EvidenceFolder?>> getEvidenceFolder(
       String clubSectionId,
-      {CancelToken? cancelToken});
+      {RequestCancelToken? cancelToken});
 
   /// Envía la carpeta completa a validación.
   ///

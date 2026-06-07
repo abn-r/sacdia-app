@@ -104,6 +104,11 @@ class _ActivityRow extends StatelessWidget {
     this.showDivider = true,
   });
 
+  static final _weekdayFormatter = DateFormat('EEEE', 'es');
+  static final _shortDateFormatter = DateFormat('dd MMM', 'es');
+  static final _dayFormatter = DateFormat('dd');
+  static final _monthFormatter = DateFormat('MMM', 'es');
+
   String _formatRelativeDate(DateTime activityDate) {
     // activityDate ya es medianoche local — comparar solo por día.
     final now = DateTime.now();
@@ -111,8 +116,8 @@ class _ActivityRow extends StatelessWidget {
     final diff = activityDate.difference(today).inDays;
     if (diff == 0) return tr('dashboard.activities.today');
     if (diff == 1) return tr('dashboard.activities.tomorrow');
-    if (diff < 7) return DateFormat('EEEE', 'es').format(activityDate);
-    return DateFormat('dd MMM', 'es').format(activityDate);
+    if (diff < 7) return _weekdayFormatter.format(activityDate);
+    return _shortDateFormatter.format(activityDate);
   }
 
   @override
@@ -134,7 +139,7 @@ class _ActivityRow extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      DateFormat('dd').format(activity.activityDate),
+                      _dayFormatter.format(activity.activityDate),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -143,7 +148,7 @@ class _ActivityRow extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      DateFormat('MMM', 'es')
+                      _monthFormatter
                           .format(activity.activityDate)
                           .toUpperCase(),
                       style: TextStyle(

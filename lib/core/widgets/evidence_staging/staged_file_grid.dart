@@ -150,10 +150,11 @@ class _StagedFileCell extends StatelessWidget {
     required this.onDeleteRemote,
   });
 
+  static final _dateFormatter = DateFormat('d MMM', 'es');
+
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final dateFormat = DateFormat('d MMM', 'es');
 
     return GestureDetector(
       onTap: () => _openViewer(context),
@@ -205,7 +206,9 @@ class _StagedFileCell extends StatelessWidget {
                             ),
                             if (file.uploadedAt != null)
                               Text(
-                                dateFormat.format(file.uploadedAt!.toLocal()),
+                                _dateFormatter.format(
+                                  file.uploadedAt!.toLocal(),
+                                ),
                                 style: TextStyle(
                                   fontSize: 9,
                                   color: c.textTertiary,

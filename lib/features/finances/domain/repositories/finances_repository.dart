@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
-import '../../data/models/paginated_transactions_response.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../entities/paginated_transactions_response.dart';
 import '../entities/finance_category.dart';
 import '../entities/finance_month.dart';
 import '../entities/finance_summary.dart';
@@ -17,19 +17,19 @@ abstract class FinancesRepository {
     required int clubId,
     required int year,
     required int month,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   /// Devuelve el resumen financiero global del club.
   Future<Either<Failure, FinanceSummary>> getSummary({
     required int clubId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   /// Devuelve un movimiento por su ID.
   Future<Either<Failure, FinanceTransaction>> getTransaction({
     required int financeId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   /// Crea un nuevo movimiento financiero.
@@ -59,7 +59,7 @@ abstract class FinancesRepository {
 
   /// Devuelve las categorías disponibles.
   Future<Either<Failure, List<FinanceCategory>>> getCategories({
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   /// Devuelve una página de transacciones con filtros opcionales.
@@ -76,6 +76,6 @@ abstract class FinancesRepository {
     String? endDate,
     String? sortBy,
     String? sortOrder,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 }

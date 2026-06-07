@@ -1,12 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
-import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
-import '../../../../providers/dio_provider.dart';
 import '../models/annual_ranking_progress_model.dart';
 
 abstract class AnnualRankingProgressRemoteDataSource {
@@ -111,11 +108,3 @@ class AnnualRankingProgressRemoteDataSourceImpl
     return e.message ?? tr('common.error_network');
   }
 }
-
-final annualRankingProgressRemoteDataSourceProvider =
-    Provider<AnnualRankingProgressRemoteDataSource>((ref) {
-  return AnnualRankingProgressRemoteDataSourceImpl(
-    dio: ref.read(dioProvider),
-    baseUrl: AppConstants.baseUrl,
-  );
-});

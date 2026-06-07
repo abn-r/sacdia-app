@@ -1,14 +1,15 @@
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
+import 'package:sacdia_app/core/usecases/cancellation_token.dart';
 import 'package:sacdia_app/features/activities/domain/entities/activity.dart';
+import 'package:sacdia_app/features/activities/domain/entities/activity_club_section.dart';
 import 'package:sacdia_app/features/activities/domain/entities/attendance.dart';
 import 'package:sacdia_app/features/activities/domain/repositories/activities_repository.dart';
 import 'package:sacdia_app/features/activities/domain/usecases/upload_activity_image.dart';
-import 'package:sacdia_app/features/activities/data/models/create_activity_request.dart';
+import 'package:sacdia_app/features/activities/domain/entities/create_activity_request.dart';
 
 class _FakeActivitiesRepository implements ActivitiesRepository {
   int? capturedActivityId;
@@ -35,15 +36,22 @@ class _FakeActivitiesRepository implements ActivitiesRepository {
   @override
   Future<Either<Failure, List<Attendance>>> getActivityAttendance(
           int activityId,
-          {CancelToken? cancelToken}) =>
+          {RequestCancelToken? cancelToken}) =>
       throw UnimplementedError();
   @override
   Future<Either<Failure, Activity>> getActivityById(int activityId,
-          {CancelToken? cancelToken}) =>
+          {RequestCancelToken? cancelToken}) =>
       throw UnimplementedError();
   @override
   Future<Either<Failure, List<Activity>>> getClubActivities(int clubId,
-          {int? clubTypeId, CancelToken? cancelToken}) =>
+          {int? clubTypeId, RequestCancelToken? cancelToken}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Either<Failure, List<ActivityClubSection>>> getClubSections(
+    int clubId, {
+    RequestCancelToken? cancelToken,
+  }) =>
       throw UnimplementedError();
   @override
   Future<Either<Failure, int>> registerAttendance(

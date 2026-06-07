@@ -1,16 +1,17 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/finance_category.dart';
 import '../../domain/entities/finance_month.dart';
 import '../../domain/entities/finance_summary.dart';
 import '../../domain/entities/transaction.dart';
 import '../../domain/repositories/finances_repository.dart';
 import '../datasources/finances_remote_data_source.dart';
-import '../models/paginated_transactions_response.dart';
+import '../../domain/entities/paginated_transactions_response.dart';
 
 class FinancesRepositoryImpl implements FinancesRepository {
   final FinancesRemoteDataSource remoteDataSource;
@@ -26,14 +27,14 @@ class FinancesRepositoryImpl implements FinancesRepository {
     required int clubId,
     required int year,
     required int month,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final model = await remoteDataSource.getFinances(
         clubId: clubId,
         year: year,
         month: month,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(model.toEntity());
     } on ServerException catch (e) {
@@ -48,12 +49,12 @@ class FinancesRepositoryImpl implements FinancesRepository {
   @override
   Future<Either<Failure, FinanceSummary>> getSummary({
     required int clubId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final model = await remoteDataSource.getSummary(
         clubId: clubId,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(model.toEntity());
     } on ServerException catch (e) {
@@ -68,12 +69,12 @@ class FinancesRepositoryImpl implements FinancesRepository {
   @override
   Future<Either<Failure, FinanceTransaction>> getTransaction({
     required int financeId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final model = await remoteDataSource.getTransaction(
         financeId: financeId,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(model.toEntity());
     } on ServerException catch (e) {
@@ -162,11 +163,11 @@ class FinancesRepositoryImpl implements FinancesRepository {
 
   @override
   Future<Either<Failure, List<FinanceCategory>>> getCategories({
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final models = await remoteDataSource.getCategories(
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
@@ -190,7 +191,7 @@ class FinancesRepositoryImpl implements FinancesRepository {
     String? endDate,
     String? sortBy,
     String? sortOrder,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final response = await remoteDataSource.getTransactionsPaginated(
@@ -203,7 +204,7 @@ class FinancesRepositoryImpl implements FinancesRepository {
         endDate: endDate,
         sortBy: sortBy,
         sortOrder: sortOrder,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(response);
     } on ServerException catch (e) {

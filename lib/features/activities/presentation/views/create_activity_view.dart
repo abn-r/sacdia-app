@@ -12,7 +12,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:sacdia_app/features/post_registration/presentation/widgets/bottom_sheet_picker.dart';
 import 'package:sacdia_app/providers/catalogs_provider.dart';
-import '../../data/models/create_activity_request.dart';
+import '../../domain/entities/create_activity_request.dart';
 import '../providers/activities_providers.dart';
 import '../widgets/activity_form_widgets.dart';
 import 'location_picker_view.dart';

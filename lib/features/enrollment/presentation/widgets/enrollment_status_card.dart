@@ -27,7 +27,7 @@ class EnrollmentStatusCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final enrollmentAsync = ref.watch(currentEnrollmentProvider);
     final clubContextAsync = ref.watch(clubContextProvider);
-    final user = ref.watch(authNotifierProvider).valueOrNull;
+    final user = ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
     final canEnroll = hasAnyPermission(user, const {'enrollments:create'});
 
     return enrollmentAsync.when(

@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/honor_category.dart';
 import '../repositories/honors_repository.dart';
@@ -13,7 +13,7 @@ class GetHonorCategories implements UseCase<List<HonorCategory>, NoParams> {
 
   @override
   Future<Either<Failure, List<HonorCategory>>> call(NoParams params,
-      {CancelToken? cancelToken}) async {
+      {RequestCancelToken? cancelToken}) async {
     return await repository.getHonorCategories(cancelToken: cancelToken);
   }
 }

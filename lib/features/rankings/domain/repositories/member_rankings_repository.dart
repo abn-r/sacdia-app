@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/member_breakdown.dart';
 import '../entities/member_ranking.dart';
 
@@ -14,7 +14,7 @@ abstract class MemberRankingsRepository {
   /// - Other 403 / 4xx / 5xx → [Left<Failure>]
   Future<Either<Failure, MyRankingView?>> getMyRanking(
     int yearId, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 
   /// Returns the per-component score breakdown for a specific enrollment.
@@ -26,6 +26,6 @@ abstract class MemberRankingsRepository {
   Future<Either<Failure, MemberBreakdown>> getBreakdown(
     int enrollmentId,
     int yearId, {
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   });
 }

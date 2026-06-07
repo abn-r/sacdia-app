@@ -92,21 +92,26 @@ class _ClassBody extends StatefulWidget {
 class _ClassBodyState extends State<_ClassBody> {
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
-  String _query = '';
+  final _query = ValueNotifier<String>('');
+  final _searchFocused = ValueNotifier<bool>(false);
   Timer? _debounce;
-  bool _searchFocused = false;
+  List<ClassModuleDetail>? _cachedModulesSource;
+  String? _cachedQuery;
+  List<ClassModuleDetail>? _cachedFilteredModules;
 
   @override
   void initState() {
     super.initState();
     _searchFocusNode.addListener(() {
-      setState(() => _searchFocused = _searchFocusNode.hasFocus);
+      _searchFocused.value = _searchFocusNode.hasFocus;
     });
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
+    _query.dispose();
+    _searchFocused.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
@@ -115,18 +120,32 @@ class _ClassBodyState extends State<_ClassBody> {
   void _onSearchChanged(String value) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 200), () {
-      if (mounted) setState(() => _query = value);
+      if (mounted) _query.value = value;
     });
   }
 
   /// Filtra módulos + requerimientos según la query.
   /// Un módulo se incluye si su nombre coincide (con todos sus reqs)
   /// o si tiene requerimientos cuyo nombre / descripción coincida.
-  List<ClassModuleDetail> get _filteredModules {
-    if (_query.isEmpty) return widget.classWithProgress.modules;
-    final q = _query.toLowerCase();
+  List<ClassModuleDetail> _filteredModules(String query) {
+    final modules = widget.classWithProgress.modules;
+    final cached = _cachedFilteredModules;
+    if (cached != null &&
+        identical(_cachedModulesSource, modules) &&
+        _cachedQuery == query) {
+      return cached;
+    }
+
+    if (query.isEmpty) {
+      _cachedModulesSource = modules;
+      _cachedQuery = query;
+      _cachedFilteredModules = modules;
+      return modules;
+    }
+
+    final q = query.toLowerCase();
     final result = <ClassModuleDetail>[];
-    for (final module in widget.classWithProgress.modules) {
+    for (final module in modules) {
       if (module.name.toLowerCase().contains(q)) {
         result.add(module);
         continue;
@@ -140,6 +159,9 @@ class _ClassBodyState extends State<_ClassBody> {
         result.add(module.copyWithRequirements(matchingReqs));
       }
     }
+    _cachedModulesSource = modules;
+    _cachedQuery = query;
+    _cachedFilteredModules = result;
     return result;
   }
 
@@ -167,9 +189,6 @@ class _ClassBodyState extends State<_ClassBody> {
   @override
   Widget build(BuildContext context) {
     final classData = widget.classWithProgress;
-    final filteredModules = _filteredModules;
-    final hasQuery = _query.isNotEmpty;
-    final noResults = hasQuery && filteredModules.isEmpty;
 
     return RefreshIndicator(
       color: AppColors.coral500,
@@ -188,53 +207,83 @@ class _ClassBodyState extends State<_ClassBody> {
                   _HeroCard(classData: classData),
                   if (classData.isExpired) const _ExpiredTrajectoryBanner(),
                   _PillsRow(classData: classData),
-                  _SearchBar(
-                    controller: _searchController,
-                    focusNode: _searchFocusNode,
-                    isFocused: _searchFocused,
-                    hasQuery: hasQuery,
-                    onChanged: _onSearchChanged,
-                    onClear: () {
-                      _searchController.clear();
-                      setState(() => _query = '');
+                  ValueListenableBuilder<String>(
+                    valueListenable: _query,
+                    builder: (context, query, _) {
+                      return ValueListenableBuilder<bool>(
+                        valueListenable: _searchFocused,
+                        builder: (context, isFocused, _) {
+                          return _SearchBar(
+                            controller: _searchController,
+                            focusNode: _searchFocusNode,
+                            isFocused: isFocused,
+                            hasQuery: query.isNotEmpty,
+                            onChanged: _onSearchChanged,
+                            onClear: () {
+                              _searchController.clear();
+                              _query.value = '';
+                            },
+                          );
+                        },
+                      );
                     },
                   ),
-                  if (!noResults) const _SectionLabel(text: 'MÓDULOS'),
+                  ValueListenableBuilder<String>(
+                    valueListenable: _query,
+                    builder: (context, query, _) {
+                      final filteredModules = _filteredModules(query);
+                      final noResults =
+                          query.isNotEmpty && filteredModules.isEmpty;
+                      return noResults
+                          ? const SizedBox.shrink()
+                          : const _SectionLabel(text: 'MÓDULOS');
+                    },
+                  ),
                 ],
               ),
             ),
           ),
 
           // ── Empty search state ─────────────────────────────────────────────
-          if (noResults)
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                child: _NoResultsCard(
-                  query: _query,
-                  suggestions: _suggestions,
-                  onSuggestionTap: (term) {
-                    _searchController.text = term;
-                    setState(() => _query = term);
-                  },
-                ),
-              ),
-            )
+          ValueListenableBuilder<String>(
+            valueListenable: _query,
+            builder: (context, query, _) {
+              final filteredModules = _filteredModules(query);
+              final noResults = query.isNotEmpty && filteredModules.isEmpty;
 
-          // ── Modules list inside a single card ──────────────────────────────
-          else if (classData.modules.isEmpty)
-            const SliverToBoxAdapter(child: _EmptyModules())
-          else
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                child: _ModulesCard(
-                  modules: filteredModules,
-                  onRequirementTap: _openRequirementDetail,
+              if (noResults) {
+                return SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                    child: _NoResultsCard(
+                      query: query,
+                      suggestions: _suggestions,
+                      onSuggestionTap: (term) {
+                        _searchController.text = term;
+                        _query.value = term;
+                      },
+                    ),
+                  ),
+                );
+              }
+
+              // ── Modules list inside a single card ──────────────────────────
+              if (classData.modules.isEmpty) {
+                return const SliverToBoxAdapter(child: _EmptyModules());
+              }
+
+              return SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  child: _ModulesCard(
+                    modules: filteredModules,
+                    onRequirementTap: _openRequirementDetail,
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -701,9 +750,11 @@ class _NoResultsCard extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: Center(
-              child: CustomPaint(
-                size: const Size(64, 64),
-                painter: _SearchIllustrationPainter(),
+              child: RepaintBoundary(
+                child: CustomPaint(
+                  size: const Size(64, 64),
+                  painter: _SearchIllustrationPainter(),
+                ),
               ),
             ),
           ),

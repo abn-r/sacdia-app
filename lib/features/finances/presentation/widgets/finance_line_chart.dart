@@ -285,86 +285,88 @@ class _ChartView extends StatelessWidget {
         allValues.isEmpty ? 1.0 : allValues.reduce((a, b) => a > b ? a : b);
     final chartMaxY = maxValue <= 0 ? 1.0 : maxValue * 1.15;
 
-    return SizedBox(
-      height: 180,
-      child: LineChart(
-        LineChartData(
-          minY: 0,
-          maxY: chartMaxY,
-          clipData: const FlClipData.all(),
+    return RepaintBoundary(
+      child: SizedBox(
+        height: 180,
+        child: LineChart(
+          LineChartData(
+            minY: 0,
+            maxY: chartMaxY,
+            clipData: const FlClipData.all(),
 
-          // ── Grid ──────────────────────────────────────────────────────────
-          gridData: FlGridData(
-            show: true,
-            drawVerticalLine: false,
-            horizontalInterval: chartMaxY / 4,
-            getDrawingHorizontalLine: (_) => FlLine(
-              color: gridColor,
-              strokeWidth: 1,
-            ),
-          ),
-
-          // ── Borders ───────────────────────────────────────────────────────
-          borderData: FlBorderData(show: false),
-
-          // ── Axes ──────────────────────────────────────────────────────────
-          titlesData: FlTitlesData(
-            topTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 40,
-                interval: chartMaxY / 4,
-                getTitlesWidget: (value, meta) =>
-                    _yLabel(value, context, isDark),
+            // ── Grid ──────────────────────────────────────────────────────────
+            gridData: FlGridData(
+              show: true,
+              drawVerticalLine: false,
+              horizontalInterval: chartMaxY / 4,
+              getDrawingHorizontalLine: (_) => FlLine(
+                color: gridColor,
+                strokeWidth: 1,
               ),
             ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 22,
-                interval: _xInterval,
-                getTitlesWidget: (value, meta) =>
-                    _xLabel(value, context, isDark),
+
+            // ── Borders ───────────────────────────────────────────────────────
+            borderData: FlBorderData(show: false),
+
+            // ── Axes ──────────────────────────────────────────────────────────
+            titlesData: FlTitlesData(
+              topTitles:
+                  const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              rightTitles:
+                  const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              leftTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 40,
+                  interval: chartMaxY / 4,
+                  getTitlesWidget: (value, meta) =>
+                      _yLabel(value, context, isDark),
+                ),
+              ),
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 22,
+                  interval: _xInterval,
+                  getTitlesWidget: (value, meta) =>
+                      _xLabel(value, context, isDark),
+                ),
               ),
             ),
-          ),
 
-          // ── Touch ─────────────────────────────────────────────────────────
-          lineTouchData: LineTouchData(
-            touchTooltipData: LineTouchTooltipData(
-              getTooltipColor: (_) => tooltipBg,
-              getTooltipItems: (spots) => spots.map((spot) {
-                final isIncome = spot.barIndex == 0;
-                return LineTooltipItem(
-                  '\$${_formatAmount(spot.y)}',
-                  TextStyle(
-                    color: isIncome ? _incomeColor : _expenseColor,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                );
-              }).toList(),
+            // ── Touch ─────────────────────────────────────────────────────────
+            lineTouchData: LineTouchData(
+              touchTooltipData: LineTouchTooltipData(
+                getTooltipColor: (_) => tooltipBg,
+                getTooltipItems: (spots) => spots.map((spot) {
+                  final isIncome = spot.barIndex == 0;
+                  return LineTooltipItem(
+                    '\$${_formatAmount(spot.y)}',
+                    TextStyle(
+                      color: isIncome ? _incomeColor : _expenseColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  );
+                }).toList(),
+              ),
+              handleBuiltInTouches: true,
             ),
-            handleBuiltInTouches: true,
-          ),
 
-          // ── Lines ─────────────────────────────────────────────────────────
-          lineBarsData: [
-            _buildLine(
-              spots: incomeSpots,
-              color: _incomeColor,
-              fillOpacity: 0.30,
-            ),
-            _buildLine(
-              spots: expenseSpots,
-              color: _expenseColor,
-              fillOpacity: 0.25,
-            ),
-          ],
+            // ── Lines ─────────────────────────────────────────────────────────
+            lineBarsData: [
+              _buildLine(
+                spots: incomeSpots,
+                color: _incomeColor,
+                fillOpacity: 0.30,
+              ),
+              _buildLine(
+                spots: expenseSpots,
+                color: _expenseColor,
+                fillOpacity: 0.25,
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/failures.dart';
+import 'package:sacdia_app/core/usecases/cancellation_token.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_category.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_group.dart';
@@ -13,7 +14,6 @@ import 'package:sacdia_app/features/honors/domain/entities/user_honor_requiremen
 import 'package:sacdia_app/features/honors/domain/repositories/honors_repository.dart';
 import 'package:sacdia_app/features/honors/domain/usecases/register_user_honor.dart';
 import 'package:sacdia_app/features/honors/domain/usecases/upload_requirement_evidence.dart';
-import 'package:dio/dio.dart';
 
 // ── Stub repository ───────────────────────────────────────────────────────────
 
@@ -52,7 +52,7 @@ class _StubHonorsRepository implements HonorsRepository {
 
   @override
   Future<Either<Failure, List<HonorCategory>>> getHonorCategories(
-          {CancelToken? cancelToken}) =>
+          {RequestCancelToken? cancelToken}) =>
       throw UnimplementedError();
 
   @override
@@ -60,22 +60,22 @@ class _StubHonorsRepository implements HonorsRepository {
           {int? categoryId,
           int? clubTypeId,
           int? skillLevel,
-          CancelToken? cancelToken}) =>
+          RequestCancelToken? cancelToken}) =>
       throw UnimplementedError();
 
   @override
   Future<Either<Failure, Honor>> getHonorById(int honorId,
-          {CancelToken? cancelToken}) =>
+          {RequestCancelToken? cancelToken}) =>
       throw UnimplementedError();
 
   @override
   Future<Either<Failure, List<UserHonor>>> getUserHonors(String userId,
-          {CancelToken? cancelToken}) =>
+          {RequestCancelToken? cancelToken}) =>
       throw UnimplementedError();
 
   @override
   Future<Either<Failure, Map<String, dynamic>>> getUserHonorStats(String userId,
-          {CancelToken? cancelToken}) =>
+          {RequestCancelToken? cancelToken}) =>
       throw UnimplementedError();
 
   @override
@@ -99,19 +99,19 @@ class _StubHonorsRepository implements HonorsRepository {
 
   @override
   Future<Either<Failure, List<HonorGroup>>> getHonorsGroupedByCategory(
-          {CancelToken? cancelToken}) =>
+          {RequestCancelToken? cancelToken}) =>
       throw UnimplementedError();
 
   @override
   Future<Either<Failure, List<HonorRequirement>>> getHonorRequirements(
           int honorId,
-          {CancelToken? cancelToken}) =>
+          {RequestCancelToken? cancelToken}) =>
       throw UnimplementedError();
 
   @override
   Future<Either<Failure, List<UserHonorRequirementProgress>>>
       getUserHonorProgress(String userId, int honorId,
-              {CancelToken? cancelToken}) =>
+              {RequestCancelToken? cancelToken}) =>
           throw UnimplementedError();
 
   @override
@@ -139,7 +139,7 @@ class _StubHonorsRepository implements HonorsRepository {
   @override
   Future<Either<Failure, List<RequirementEvidence>>> getRequirementEvidences(
           String userId, int honorId, int requirementId,
-          {CancelToken? cancelToken}) =>
+          {RequestCancelToken? cancelToken}) =>
       throw UnimplementedError();
 
   @override

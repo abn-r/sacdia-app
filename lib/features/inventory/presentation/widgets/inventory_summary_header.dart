@@ -197,22 +197,24 @@ class _HealthRingChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            width: 28,
-            height: 28,
-            child: CustomPaint(
-              painter: _RingPainter(
-                ratio: ratio,
-                color: ringColor,
-                trackColor: ringColor.withValues(alpha: 0.18),
-              ),
-              child: Center(
-                child: Text(
-                  '$pct%',
-                  style: TextStyle(
-                    fontSize: 7,
-                    fontWeight: FontWeight.w800,
-                    color: ringColor,
+          RepaintBoundary(
+            child: SizedBox(
+              width: 28,
+              height: 28,
+              child: CustomPaint(
+                painter: _RingPainter(
+                  ratio: ratio,
+                  color: ringColor,
+                  trackColor: ringColor.withValues(alpha: 0.18),
+                ),
+                child: Center(
+                  child: Text(
+                    '$pct%',
+                    style: TextStyle(
+                      fontSize: 7,
+                      fontWeight: FontWeight.w800,
+                      color: ringColor,
+                    ),
                   ),
                 ),
               ),

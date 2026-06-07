@@ -8,6 +8,7 @@ import '../models/finance_category_model.dart';
 import '../models/finance_month_model.dart';
 import '../models/finance_summary_model.dart';
 import '../models/paginated_transactions_response.dart';
+import '../../domain/entities/paginated_transactions_response.dart';
 import '../models/transaction_model.dart';
 
 abstract class FinancesRemoteDataSource {
@@ -363,7 +364,7 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final body = response.data as Map<String, dynamic>;
-        return PaginatedTransactionsResponse.fromJson(body);
+        return parsePaginatedTransactionsResponse(body);
       }
 
       throw ServerException(

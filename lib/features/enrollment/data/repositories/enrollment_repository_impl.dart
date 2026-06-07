@@ -3,6 +3,8 @@ import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/enrollment.dart';
 import '../../domain/repositories/enrollment_repository.dart';
 import '../datasources/enrollment_remote_data_source.dart';
@@ -62,13 +64,13 @@ class EnrollmentRepositoryImpl implements EnrollmentRepository {
   Future<Either<Failure, Enrollment?>> getCurrentEnrollment({
     required String clubId,
     required int sectionId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final model = await _remoteDataSource.getCurrentEnrollment(
         clubId: clubId,
         sectionId: sectionId,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(model);
     } on DioException catch (e) {

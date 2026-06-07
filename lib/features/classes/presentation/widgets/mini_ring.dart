@@ -24,21 +24,23 @@ class MiniRing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pct = (progress.clamp(0.0, 1.0) * 100).round();
-    return SizedBox(
-      width: size,
-      height: size,
-      child: CustomPaint(
-        painter: _MiniRingPainter(progress: progress.clamp(0.0, 1.0)),
-        child: Center(
-          child: Text(
-            '$pct',
-            style: TextStyle(
-              fontSize: size * 0.25,
-              fontWeight: FontWeight.w700,
-              color: AppColors.ink800,
-              height: 1,
-              fontFeatures: const [FontFeature.tabularFigures()],
-              fontFamily: 'monospace',
+    return RepaintBoundary(
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: CustomPaint(
+          painter: _MiniRingPainter(progress: progress.clamp(0.0, 1.0)),
+          child: Center(
+            child: Text(
+              '$pct',
+              style: TextStyle(
+                fontSize: size * 0.25,
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink800,
+                height: 1,
+                fontFeatures: const [FontFeature.tabularFigures()],
+                fontFamily: 'monospace',
+              ),
             ),
           ),
         ),

@@ -124,13 +124,15 @@ class _SacProgressRingState extends State<SacProgressRing>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              CustomPaint(
-                size: Size(widget.size, widget.size),
-                painter: _ProgressRingPainter(
-                  progress: animatedProgress,
-                  strokeWidth: widget.strokeWidth,
-                  progressColor: widget.color ?? AppColors.primary,
-                  trackColor: widget.trackColor ?? context.sac.borderLight,
+              RepaintBoundary(
+                child: CustomPaint(
+                  size: Size(widget.size, widget.size),
+                  painter: _ProgressRingPainter(
+                    progress: animatedProgress,
+                    strokeWidth: widget.strokeWidth,
+                    progressColor: widget.color ?? AppColors.primary,
+                    trackColor: widget.trackColor ?? context.sac.borderLight,
+                  ),
                 ),
               ),
               if (widget.child != null)

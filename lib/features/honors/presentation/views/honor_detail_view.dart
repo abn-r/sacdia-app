@@ -17,7 +17,7 @@ import 'package:sacdia_app/core/utils/icon_helper.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor_requirement_progress.dart';
-import '../../domain/utils/honor_category_colors.dart';
+import '../utils/honor_category_colors.dart';
 import '../providers/honors_providers.dart';
 import '../../domain/entities/user_honor.dart';
 
@@ -1106,9 +1106,12 @@ class _StepItem extends StatelessWidget {
                     child: Container(
                       width: 2,
                       margin: const EdgeInsets.symmetric(vertical: 4),
-                      child: CustomPaint(
-                        painter: _DottedLinePainter(
-                            color: categoryColor.withValues(alpha: 0.35)),
+                      child: RepaintBoundary(
+                        child: CustomPaint(
+                          painter: _DottedLinePainter(
+                            color: categoryColor.withValues(alpha: 0.35),
+                          ),
+                        ),
                       ),
                     ),
                   ),

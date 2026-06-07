@@ -30,9 +30,11 @@ class ThemeSpritesBackground extends StatelessWidget {
               right: s.right,
               child: Opacity(
                 opacity: 0.55,
-                child: CustomPaint(
-                  size: Size(s.size, s.size * s.aspect),
-                  painter: _SpritePainter(kind: s.kind, color: s.color),
+                child: RepaintBoundary(
+                  child: CustomPaint(
+                    size: Size(s.size, s.size * s.aspect),
+                    painter: _SpritePainter(kind: s.kind, color: s.color),
+                  ),
                 ),
               ),
             );

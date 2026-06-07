@@ -40,8 +40,9 @@ class _EnrollPreviousClassSheetState
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authNotifierProvider);
-    final user = authState.value;
+    final user = ref.watch(
+      authNotifierProvider.select((v) => v.valueOrNull),
+    );
     final c = context.sac;
 
     // Si el usuario no está autenticado, mostrar mensaje informativo.

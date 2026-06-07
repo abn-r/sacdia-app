@@ -1,9 +1,10 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/usecases/cancellation_token.dart';
+import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/member_insurance.dart';
 import '../../domain/repositories/insurance_repository.dart';
 import '../datasources/insurance_remote_data_source.dart';
@@ -22,13 +23,13 @@ class InsuranceRepositoryImpl implements InsuranceRepository {
   Future<Either<Failure, List<MemberInsurance>>> getMembersInsurance({
     required int clubId,
     required int sectionId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final models = await remoteDataSource.getMembersInsurance(
         clubId: clubId,
         sectionId: sectionId,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
@@ -43,12 +44,12 @@ class InsuranceRepositoryImpl implements InsuranceRepository {
   @override
   Future<Either<Failure, MemberInsurance>> getMemberInsuranceDetail({
     required String memberId,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final model = await remoteDataSource.getMemberInsuranceDetail(
         memberId: memberId,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(model.toEntity());
     } on ServerException catch (e) {
@@ -135,12 +136,12 @@ class InsuranceRepositoryImpl implements InsuranceRepository {
   @override
   Future<Either<Failure, List<MemberInsurance>>> getExpiringInsurance({
     required int days,
-    CancelToken? cancelToken,
+    RequestCancelToken? cancelToken,
   }) async {
     try {
       final models = await remoteDataSource.getExpiringInsurance(
         days: days,
-        cancelToken: cancelToken,
+        cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {

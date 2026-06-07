@@ -23,11 +23,13 @@ class VAPathConnector extends StatelessWidget {
       top: RoadmapTokens.connectorSlotTopOffset,
       height: RoadmapTokens.pathHeight,
       child: IgnorePointer(
-        child: CustomPaint(
-          painter: _SerpentinePainter(
-            side: side,
-            prevSide: prevSide,
-            color: accentColor,
+        child: RepaintBoundary(
+          child: CustomPaint(
+            painter: _SerpentinePainter(
+              side: side,
+              prevSide: prevSide,
+              color: accentColor,
+            ),
           ),
         ),
       ),
