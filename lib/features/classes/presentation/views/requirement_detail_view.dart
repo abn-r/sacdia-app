@@ -8,7 +8,6 @@ import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart'
 import '../../../../core/widgets/evidence_staging/staged_file.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
-import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/class_requirement.dart';
 import '../providers/classes_providers.dart';
 import '../utils/status_meta.dart';
@@ -78,36 +77,12 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
         'módulo';
   }
 
-  String _resolveUserInitials() {
-    final user = ref.read(authNotifierProvider).valueOrNull;
-    if (user?.name == null || user!.name!.isEmpty) return 'NN';
-    final parts = user.name!.trim().split(RegExp(r'\s+'));
-    if (parts.length >= 2) {
-      return '${parts.first[0]}${parts[1][0]}'.toUpperCase();
-    }
-    return parts.first
-        .substring(0, parts.first.length.clamp(0, 2))
-        .toUpperCase();
-  }
-
-  String _sanitize(String text, int maxLen) {
-    final raw = text
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
-        .replaceAll(RegExp(r'_+'), '_')
-        .replaceAll(RegExp(r'^_|_$'), '');
-    return raw.substring(0, raw.length.clamp(0, maxLen));
-  }
-
-  String _buildFileNameWithIndex(
-      ClassRequirement req, String originalName, int index) {
+  String _buildFileNameWithIndex(String originalName, int index) {
     final ext = originalName.contains('.')
         ? originalName.split('.').last.toLowerCase()
         : 'bin';
-    final moduleName = _resolveModuleName(req.moduleId);
-    final sectionName = _sanitize(req.name, 30);
-    final initials = _resolveUserInitials();
-    return 'evidencia_${index}_${_sanitize(moduleName, 20)}_${sectionName}_$initials.$ext';
+    final displayIndex = index.toString().padLeft(2, '0');
+    return 'Evidencia $displayIndex.$ext';
   }
 
   void _showErrorSnackbar(BuildContext context, String message) {
@@ -433,9 +408,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                                     Navigator.pop(context);
                                   }
                                 },
-                                fileNameBuilder: (originalName, index) =>
-                                    _buildFileNameWithIndex(
-                                        requirement, originalName, index),
+                                fileNameBuilder: _buildFileNameWithIndex,
                                 canModify: canModify,
                                 onLocalFilesChanged: (hasLocal) =>
                                     setState(() => _hasUnsavedFiles = hasLocal),

@@ -208,6 +208,26 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
     widget.onActionStateChanged?.call();
   }
 
+  List<StagedFile> _renumberLocalFiles(List<StagedFile> files) {
+    var displayIndex = 0;
+
+    return files.map((file) {
+      if (file.status == StagedFileStatus.uploaded) {
+        displayIndex++;
+        return file;
+      }
+
+      if (file.status == StagedFileStatus.local) {
+        displayIndex++;
+        return file.copyWith(
+          name: widget.fileNameBuilder(file.name, displayIndex),
+        );
+      }
+
+      return file;
+    }).toList();
+  }
+
   // ── File picking ──────────────────────────────────────────────────────────
 
   Future<void> _pickImages(BuildContext context) async {
@@ -271,7 +291,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
             mimeType: mimeType,
           );
         }).toList();
-        _allFiles = [..._allFiles, ...newFiles];
+        _allFiles = _renumberLocalFiles([..._allFiles, ...newFiles]);
       });
       _notifyLocalFilesChanged();
     } catch (e) {
@@ -319,7 +339,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
                   mimeType: 'application/pdf',
                 ))
             .toList();
-        _allFiles = [..._allFiles, ...newFiles];
+        _allFiles = _renumberLocalFiles([..._allFiles, ...newFiles]);
       });
       _notifyLocalFilesChanged();
     } catch (e) {
@@ -334,7 +354,9 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
   // I-3: Never mutate _allFiles in place — always create a new list.
   void _removeLocalFile(StagedFile file) {
     setState(() {
-      _allFiles = _allFiles.where((f) => f.id != file.id).toList();
+      _allFiles = _renumberLocalFiles(
+        _allFiles.where((f) => f.id != file.id).toList(),
+      );
     });
     _notifyLocalFilesChanged();
   }
@@ -347,7 +369,9 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
       await widget.onDeleteRemote(file.id);
       if (mounted) {
         setState(() {
-          _allFiles = _allFiles.where((f) => f.id != file.id).toList();
+          _allFiles = _renumberLocalFiles(
+            _allFiles.where((f) => f.id != file.id).toList(),
+          );
         });
         _notifyActionStateChanged();
       }
@@ -389,15 +413,15 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
 
   Future<void> _executeUploadQueue(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
-    setState(() => _isUploading = true);
+    setState(() {
+      _allFiles = _renumberLocalFiles(_allFiles);
+      _isUploading = true;
+    });
     _notifyActionStateChanged();
 
     // Prepare the upload stream controller
     final streamController = StreamController<List<StagedFile>>.broadcast();
 
-    // Assign file names with proper indexes
-    final remoteCount =
-        _allFiles.where((f) => f.status == StagedFileStatus.uploaded).length;
     final localFiles = _localFiles;
 
     // Show the progress sheet
@@ -415,8 +439,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
     // Execute uploads sequentially
     for (int i = 0; i < localFiles.length; i++) {
       final file = localFiles[i];
-      final fileIndex = remoteCount + i + 1;
-      final fileName = widget.fileNameBuilder(file.name, fileIndex);
+      final fileName = file.name;
 
       // Transition to uploading
       _updateFileStatus(

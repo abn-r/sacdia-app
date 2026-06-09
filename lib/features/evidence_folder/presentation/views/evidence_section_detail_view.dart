@@ -324,14 +324,8 @@ class _EvidenceSectionDetailViewState
                       final ext = originalName.contains('.')
                           ? originalName.split('.').last.toLowerCase()
                           : 'bin';
-                      final sectionName = widget.section.name
-                          .toLowerCase()
-                          .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
-                          .replaceAll(RegExp(r'_+'), '_')
-                          .replaceAll(RegExp(r'^_|_$'), '');
-                      final truncated = sectionName.substring(
-                          0, sectionName.length.clamp(0, 30));
-                      return 'evidencia_${index}_$truncated.$ext';
+                      final displayIndex = index.toString().padLeft(2, '0');
+                      return 'Evidencia $displayIndex.$ext';
                     },
                   ),
 

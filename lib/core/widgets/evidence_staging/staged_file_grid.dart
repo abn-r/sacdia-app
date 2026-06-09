@@ -195,7 +195,7 @@ class _StagedFileCell extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              file.uploadedBy ?? '',
+                              file.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -204,11 +204,16 @@ class _StagedFileCell extends StatelessWidget {
                                 color: c.text,
                               ),
                             ),
-                            if (file.uploadedAt != null)
+                            if (file.uploadedBy != null ||
+                                file.uploadedAt != null)
                               Text(
-                                _dateFormatter.format(
-                                  file.uploadedAt!.toLocal(),
-                                ),
+                                [
+                                  if (file.uploadedBy != null) file.uploadedBy!,
+                                  if (file.uploadedAt != null)
+                                    _dateFormatter.format(
+                                      file.uploadedAt!.toLocal(),
+                                    ),
+                                ].join(' · '),
                                 style: TextStyle(
                                   fontSize: 9,
                                   color: c.textTertiary,
