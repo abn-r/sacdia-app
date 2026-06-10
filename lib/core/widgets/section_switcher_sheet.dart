@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
+import '../theme/club_type.dart';
 import '../theme/sac_colors.dart';
 import '../utils/role_utils.dart';
 import '../../features/auth/domain/entities/authorization_snapshot.dart';
@@ -44,17 +45,6 @@ Future<void> showSectionSwitcher({
 // ─────────────────────────────────────────────────────────────────────────────
 // Color helpers
 // ─────────────────────────────────────────────────────────────────────────────
-
-Color _sectionColor(String? clubTypeName) {
-  if (clubTypeName == null) return AppColors.primary;
-  final lower = clubTypeName.toLowerCase();
-  if (lower.contains('conquistador')) return AppColors.primary;
-  if (lower.contains('aventurer')) return AppColors.info;
-  if (lower.contains('guía') || lower.contains('guia')) {
-    return AppColors.secondary;
-  }
-  return AppColors.primary;
-}
 
 /// Returns (badgeBackground, badgeText) per section.
 (Color bg, Color fg) _sectionBadgeColors(String? clubTypeName) {
@@ -283,7 +273,8 @@ class _OptionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
-    final color = _sectionColor(grant.clubTypeName);
+    final color = clubColorFromName(grant.clubTypeName);
+    final logoAsset = clubLogoAssetFromName(grant.clubTypeName);
     final (badgeBg, badgeFg) = _sectionBadgeColors(grant.clubTypeName);
     final roleName = RoleUtils.translate(grant.roleName, gender: userGender);
     final isNonActive = !grant.isActive;
@@ -324,15 +315,12 @@ class _OptionCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Accent bar for inactive cards (same as SacCard pattern).
-                if (!isActive) Container(width: 4, color: color),
-
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(14),
                     child: Row(
                       children: [
-                        // ── Icon container ──────────────────────────
+                        // ── Logo container ──────────────────────────
                         Container(
                           width: 40,
                           height: 40,
@@ -341,11 +329,23 @@ class _OptionCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Center(
-                            child: HugeIcon(
-                              icon: HugeIcons.strokeRoundedUserGroup,
-                              color: color,
-                              size: 20,
-                            ),
+                            child: logoAsset != null
+                                ? Image.asset(
+                                    logoAsset,
+                                    width: 28,
+                                    height: 28,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (_, __, ___) => HugeIcon(
+                                      icon: HugeIcons.strokeRoundedUserGroup,
+                                      color: color,
+                                      size: 20,
+                                    ),
+                                  )
+                                : HugeIcon(
+                                    icon: HugeIcons.strokeRoundedUserGroup,
+                                    color: color,
+                                    size: 20,
+                                  ),
                           ),
                         ),
 

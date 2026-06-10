@@ -56,6 +56,7 @@ import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_c
 import 'package:sacdia_app/features/coordinator/domain/entities/evidence_review_item.dart';
 import 'package:sacdia_app/features/notifications/presentation/views/notifications_inbox_view.dart';
 import 'package:sacdia_app/features/achievements/presentation/views/achievements_view.dart';
+import 'package:sacdia_app/features/master_honors/presentation/views/master_honors_view.dart';
 import 'package:sacdia_app/features/support/presentation/views/support_view.dart';
 import 'package:sacdia_app/features/support/presentation/views/faq_view.dart';
 import 'package:sacdia_app/features/support/presentation/views/contact_view.dart';
@@ -556,7 +557,21 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // ── Branch 17: Mi Ranking (quick-access, no nav bar) ─────────────
+          // ── Branch 17: Maestrías (quick-access, no nav bar) ──────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.homeMasterHonors,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const MasterHonorsView(),
+                ),
+              ),
+            ],
+          ),
+
+          // ── Branch 18: Mi Ranking (quick-access, no nav bar) ─────────────
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -570,7 +585,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // ── Branch 18: Ranking institucional de clubes ───────────────────
+          // ── Branch 19: Ranking institucional de clubes ───────────────────
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -584,7 +599,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // ── Branch 19: Materiales / Pedidos (quick-access, no nav bar) ────
+          // ── Branch 20: Materiales / Pedidos (quick-access, no nav bar) ────
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -598,7 +613,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // ── Branch 20: Reportes (quick-access, no nav bar) ────────────────
+          // ── Branch 21: Reportes (quick-access, no nav bar) ────────────────
           StatefulShellBranch(
             routes: [
               GoRoute(

@@ -6,17 +6,15 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor.dart';
+import '../theme/honor_category_palette.dart';
 import '../utils/user_honor_presentation_extensions.dart';
 
 /// Unified honor card for both catalog and my-honors views.
 ///
 /// Renders all 6 states:
-/// - Available (not enrolled): no border-left, chevron-right
-/// - inscrito: blue border-left, "inscrita — sin evidencia"
-/// - En progreso: red border-left, "En progreso"
-/// - Enviado: yellow border-left, "Enviada — en revision"
-/// - Validado: green border-left, gold star badge
-/// - Rechazado: red border-left, "Rechazada"
+/// - Available (not enrolled): chevron-right
+/// - Enrolled states: status label and progress use the honor category color.
+/// - Validado: gold star badge.
 ///
 /// When [progressPercentage] is provided and the user is enrolled, a thin
 /// progress bar with an "X/Y" label is rendered at the bottom of the card.
@@ -49,7 +47,25 @@ class HonorCard extends StatelessWidget {
   bool get _isEnrolled => userHonor != null;
   bool get _isCompleted => userHonor?.isCompleted ?? false;
   String? get _displayStatus => userHonor?.displayStatus;
-  Color? get _statusColor => userHonor?.statusColor;
+  Color get _categoryColor => getCategoryColor(
+        categoryId: honor.categoryId != 0
+            ? honor.categoryId
+            : userHonor?.honorCategoryId,
+        categoryName: honor.categoryName ?? userHonor?.honorCategoryName,
+      );
+
+  Color get _categoryPaintColor {
+    final categoryColor = _categoryColor;
+    final isLight =
+        ThemeData.estimateBrightnessForColor(categoryColor) == Brightness.light;
+    if (!isLight) return categoryColor;
+
+    return getCategoryAccentColor(
+      categoryId:
+          honor.categoryId != 0 ? honor.categoryId : userHonor?.honorCategoryId,
+      categoryName: honor.categoryName ?? userHonor?.honorCategoryName,
+    );
+  }
 
   /// Whether the progress section should be shown.
   bool get _showProgress =>
@@ -74,85 +90,60 @@ class HonorCard extends StatelessWidget {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Stack(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Border-left indicator
-                  if (_isEnrolled)
-                    Positioned(
-                      left: 0,
-                      top: 0,
-                      bottom: 0,
-                      child: Container(
-                        width: 3,
-                        color: _statusColor,
-                      ),
-                    ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                    child: Row(
+                      children: [
+                        // Icon area: 44x44
+                        _buildIconArea(),
+                        const SizedBox(width: 12),
 
-                  // Card content
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          _isEnrolled
-                              ? 15
-                              : 12, // Extra left padding for border
-                          12,
-                          12,
-                          12,
-                        ),
-                        child: Row(
-                          children: [
-                            // Icon area: 44x44
-                            _buildIconArea(),
-                            const SizedBox(width: 12),
-
-                            // Text area
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    honor.name,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: context.sac.text,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  if (_isEnrolled &&
-                                      _displayStatus != null) ...[
-                                    const SizedBox(height: 3),
-                                    Text(
-                                      _isCompleted
-                                          ? 'honors.card.completed_label'.tr()
-                                          : userHonor!.statusLabel,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: _statusColor,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ],
+                        // Text area
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                honor.name,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: context.sac.text,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-
-                            const SizedBox(width: 8),
-
-                            // Trailing: gold star badge (validado) or chevron (available)
-                            _buildTrailing(),
-                          ],
+                              if (_isEnrolled && _displayStatus != null) ...[
+                                const SizedBox(height: 3),
+                                Text(
+                                  _isCompleted
+                                      ? 'honors.card.completed_label'.tr()
+                                      : userHonor!.statusLabel,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: _categoryPaintColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
-                      ),
 
-                      // Progress section — only for enrolled honors with data
-                      if (_showProgress) _buildProgressSection(),
-                    ],
+                        const SizedBox(width: 8),
+
+                        // Trailing: gold star badge (validado) or chevron (available)
+                        _buildTrailing(),
+                      ],
+                    ),
                   ),
+
+                  // Progress section — only for enrolled honors with data
+                  if (_showProgress) _buildProgressSection(),
                 ],
               ),
             ),
@@ -165,13 +156,9 @@ class HonorCard extends StatelessWidget {
   Widget _buildProgressSection() {
     final double clampedValue = progressPercentage!.clamp(0.0, 1.0);
     final String label = '$completedCount/$totalRequirements';
-    // Left offset matches the enrolled border (3px) so the bar starts at the
-    // same horizontal position as the card content.
-    const double leftPad = 15.0;
-
     return Padding(
       padding: const EdgeInsets.only(
-        left: leftPad,
+        left: 12,
         right: 12,
         bottom: 8,
       ),
@@ -184,19 +171,17 @@ class HonorCard extends StatelessWidget {
                 value: clampedValue,
                 minHeight: 3,
                 backgroundColor: const Color(0xFFE2E8F0),
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                  AppColors.secondary,
-                ),
+                valueColor: AlwaysStoppedAnimation<Color>(_categoryPaintColor),
               ),
             ),
           ),
           const SizedBox(width: 8),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: AppColors.secondaryDark,
+              color: _categoryPaintColor,
             ),
           ),
         ],
@@ -228,7 +213,7 @@ class HonorCard extends StatelessWidget {
                   color: const Color(0xFFF0F4F5),
                   child: Icon(
                     Icons.emoji_events_outlined,
-                    color: _statusColor ?? AppColors.pendingColor,
+                    color: _categoryPaintColor,
                     size: 24,
                   ),
                 ),
@@ -244,7 +229,7 @@ class HonorCard extends StatelessWidget {
             ),
             child: Icon(
               Icons.emoji_events_outlined,
-              color: _statusColor ?? AppColors.pendingColor,
+              color: _categoryPaintColor,
               size: 24,
             ),
           );

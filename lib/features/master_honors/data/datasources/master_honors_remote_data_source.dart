@@ -3,10 +3,16 @@ import 'package:dio/dio.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../models/master_honor_roadmap_model.dart';
 import '../models/user_master_honor_model.dart';
 
 abstract class MasterHonorsRemoteDataSource {
   Future<List<UserMasterHonorModel>> getUserMasterHonors(
+    String userId, {
+    CancelToken? cancelToken,
+  });
+
+  Future<List<MasterHonorRoadmapModel>> getUserMasterHonorRoadmap(
     String userId, {
     CancelToken? cancelToken,
   });
@@ -49,6 +55,43 @@ class MasterHonorsRemoteDataSourceImpl implements MasterHonorsRemoteDataSource {
       );
     } catch (e) {
       AppLogger.e('Error en getUserMasterHonors', tag: _tag, error: e);
+      if (e is DioException) {
+        if (e.type == DioExceptionType.cancel) rethrow;
+        throw ServerException(
+          message: e.message ?? 'Error de red',
+          code: e.response?.statusCode,
+        );
+      }
+      if (e is ServerException || e is AuthException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<List<MasterHonorRoadmapModel>> getUserMasterHonorRoadmap(
+    String userId, {
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.users}/$userId/master-honors/roadmap',
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = _extractList(response.data);
+        return data
+            .map((json) =>
+                MasterHonorRoadmapModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+
+      throw ServerException(
+        message: 'No se pudo obtener el roadmap de maestrías',
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getUserMasterHonorRoadmap', tag: _tag, error: e);
       if (e is DioException) {
         if (e.type == DioExceptionType.cancel) rethrow;
         throw ServerException(

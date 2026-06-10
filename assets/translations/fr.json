@@ -2756,6 +2756,8 @@
       "edit_profile_subtitle": "Mettez à jour vos informations personnelles",
       "medical_info_title": "Informations médicales",
       "medical_info_subtitle": "Allergies, maladies, médicaments et contacts d’urgence",
+      "certificate_import_title": "Import par certificat",
+      "certificate_import_subtitle": "Envoyez des justificatifs pour enregistrer spécialités et classes",
       "settings_tile_title": "Paramètres",
       "settings_tile_subtitle": "Thème, notifications et plus",
       "logout_title": "Se déconnecter",

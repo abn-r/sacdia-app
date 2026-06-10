@@ -6,6 +6,7 @@ class Honor extends Equatable {
   final String name;
   final String? description;
   final int categoryId;
+  final String? categoryName;
   final String? imageUrl;
   final int? skillLevel;
   final String? materialUrl;
@@ -19,6 +20,7 @@ class Honor extends Equatable {
     required this.name,
     this.description,
     required this.categoryId,
+    this.categoryName,
     this.imageUrl,
     this.skillLevel,
     this.materialUrl,
@@ -34,6 +36,7 @@ class Honor extends Equatable {
         name,
         description,
         categoryId,
+        categoryName,
         imageUrl,
         skillLevel,
         materialUrl,

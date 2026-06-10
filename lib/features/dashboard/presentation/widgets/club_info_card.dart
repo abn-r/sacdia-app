@@ -14,8 +14,7 @@ import '../../../profile/presentation/providers/profile_providers.dart';
 
 /// Card de información del club - Estilo "Scout Vibrante"
 ///
-/// SacCard con barra de acento lateral del color del club,
-/// badges para tipo y rol, icono de grupo.
+/// SacCard con badges para tipo y rol, y logo del tipo de club activo.
 ///
 /// Club type and role are derived from the auth state's active grant (the same
 /// source the section switcher sheet uses) so the card and the sheet always
@@ -64,9 +63,9 @@ class ClubInfoCard extends ConsumerWidget {
         : userRole;
 
     final Color clubColor = clubColorFromName(resolvedClubType);
+    final logoAsset = clubLogoAssetFromName(resolvedClubType);
 
     return SacCard(
-      accentColor: clubColor,
       onTap: hasMultiple
           ? () {
               showSectionSwitcher(
@@ -80,7 +79,7 @@ class ClubInfoCard extends ConsumerWidget {
           : null,
       child: Row(
         children: [
-          // Club icon
+          // Club logo
           Container(
             width: 44,
             height: 44,
@@ -89,11 +88,23 @@ class ClubInfoCard extends ConsumerWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
-              child: HugeIcon(
-                icon: HugeIcons.strokeRoundedUserGroup,
-                color: clubColor,
-                size: 24,
-              ),
+              child: logoAsset != null
+                  ? Image.asset(
+                      logoAsset,
+                      width: 30,
+                      height: 30,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => HugeIcon(
+                        icon: HugeIcons.strokeRoundedUserGroup,
+                        color: clubColor,
+                        size: 24,
+                      ),
+                    )
+                  : HugeIcon(
+                      icon: HugeIcons.strokeRoundedUserGroup,
+                      color: clubColor,
+                      size: 24,
+                    ),
             ),
           ),
           const SizedBox(width: 14),

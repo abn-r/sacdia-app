@@ -29,6 +29,17 @@ extension ClubColorX on ClubType {
         return AppColors.secondary; // SACDIA Green
     }
   }
+
+  String get logoAsset {
+    switch (this) {
+      case ClubType.conquistadores:
+        return 'assets/img/logo_conquistadores_color.png';
+      case ClubType.aventureros:
+        return 'assets/img/logo_aventureros_color.png';
+      case ClubType.guiasMayores:
+        return 'assets/img/logo-guias-mayores.png';
+    }
+  }
 }
 
 /// Resolves a raw club-type string (as it arrives from the API / grants) to a
@@ -57,3 +68,6 @@ ClubType? clubTypeFromName(String? name) {
 /// original private `_getClubColor` method in [ClubInfoCard].
 Color clubColorFromName(String? name) =>
     clubTypeFromName(name)?.color ?? AppColors.primary;
+
+String? clubLogoAssetFromName(String? name) =>
+    clubTypeFromName(name)?.logoAsset;

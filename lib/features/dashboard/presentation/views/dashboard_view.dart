@@ -17,7 +17,8 @@ import '../../../profile/presentation/providers/profile_providers.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/club_info_card.dart';
 import '../widgets/current_class_card.dart';
-import '../widgets/quick_stats_card.dart';
+// Stats card kept available for future dashboard experiments.
+// import '../widgets/quick_stats_card.dart';
 import '../widgets/quick_access_grid.dart';
 import '../widgets/upcoming_activities_card.dart';
 import '../widgets/membership_status_banner.dart';
@@ -100,11 +101,8 @@ class DashboardView extends ConsumerWidget {
                         staggerDelay: const Duration(milliseconds: 80),
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: 8),
-
                           // Membership status banner (pending/rejected/expired)
                           const MembershipStatusBanner(),
-                          const SizedBox(height: 16),
 
                           // Enrollment status banner
                           const EnrollmentStatusCard(),
@@ -136,12 +134,20 @@ class DashboardView extends ConsumerWidget {
                           ),
                           const SizedBox(height: 16),
 
-                          // Quick stats row (animated counters inside)
-                          QuickStatsCard(
-                            honorsCompleted: dashboard.honorsCompleted,
-                            honorsInProgress: dashboard.honorsInProgress,
-                          ),
-                          const SizedBox(height: 16),
+                          // Stats section intentionally hidden for now.
+                          // Current available metrics repeat information already
+                          // shown by CurrentClassCard or add little action value.
+                          // Keep this block as a future reactivation point if the
+                          // dashboard summary gains stronger metrics such as
+                          // pending validations, role-based tasks, or next-step
+                          // actions.
+                          //
+                          // QuickStatsCard(
+                          //   honorsCompleted: dashboard.honorsCompleted,
+                          //   honorsInProgress: dashboard.honorsInProgress,
+                          //   classProgress: dashboard.classProgress,
+                          // ),
+                          // const SizedBox(height: 16),
 
                           // Acceso rápido — launcher de módulos
                           const QuickAccessGrid(),

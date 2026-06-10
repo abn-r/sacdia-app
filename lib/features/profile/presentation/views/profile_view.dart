@@ -592,7 +592,28 @@ class _ProfileScrollBody extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // ── 7. Logros ─────────────────────────────────────────
+            // ── 7. Carga por certificado ─────────────────────────
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: hPad),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: c.surface,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: c.border, width: 1),
+                ),
+                child: SettingTile(
+                  icon: HugeIcons.strokeRoundedFileUpload,
+                  title: 'profile.view.certificate_import_title'.tr(),
+                  subtitle: 'profile.view.certificate_import_subtitle'.tr(),
+                  iconColor: AppColors.secondary,
+                  onTap: () => context.push(RouteNames.certificateImportUpload),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ── 8. Logros ─────────────────────────────────────────
             Padding(
               padding: EdgeInsets.symmetric(horizontal: hPad),
               child: _SectionLabel(

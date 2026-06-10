@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../theme/app_colors.dart';
@@ -39,6 +40,11 @@ class StagedFileGrid extends StatelessWidget {
     final c = context.sac;
     final totalFiles = files.length;
     final excess = totalFiles - maxFiles;
+    final remoteImageFiles = files
+        .where(
+          (file) => file.isRemote && file.isImage && file.remoteUrl != null,
+        )
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,6 +68,7 @@ class StagedFileGrid extends StatelessWidget {
 
             return _StagedFileCell(
               file: file,
+              remoteImageFiles: remoteImageFiles,
               isExcess: isExcess,
               canModify: canModify,
               onRemoveLocal: () => onRemoveLocal(file),
@@ -137,6 +144,7 @@ class StagedFileGrid extends StatelessWidget {
 
 class _StagedFileCell extends StatelessWidget {
   final StagedFile file;
+  final List<StagedFile> remoteImageFiles;
   final bool isExcess;
   final bool canModify;
   final VoidCallback onRemoveLocal;
@@ -144,6 +152,7 @@ class _StagedFileCell extends StatelessWidget {
 
   const _StagedFileCell({
     required this.file,
+    required this.remoteImageFiles,
     required this.isExcess,
     required this.canModify,
     required this.onRemoveLocal,
@@ -437,8 +446,17 @@ class _StagedFileCell extends StatelessWidget {
   void _openViewer(BuildContext context) {
     if (file.isRemote && file.remoteUrl != null) {
       if (file.isImage) {
-        SacImageViewer.show(context,
-            imageUrl: file.remoteUrl!, title: file.name);
+        final imageUrls =
+            remoteImageFiles.map((file) => file.remoteUrl!).toList();
+        final initialIndex =
+            remoteImageFiles.indexWhere((imageFile) => imageFile.id == file.id);
+
+        SacImageViewer.show(
+          context,
+          imageUrl: file.remoteUrl!,
+          imageUrls: imageUrls,
+          initialIndex: initialIndex < 0 ? 0 : initialIndex,
+        );
       } else if (file.isPdf) {
         SacPdfViewer.show(context,
             pdfSource: file.remoteUrl!, title: file.name);
@@ -451,6 +469,7 @@ class _StagedFileCell extends StatelessWidget {
             backgroundColor: Colors.black,
             appBar: AppBar(
               backgroundColor: Colors.transparent,
+              systemOverlayStyle: SystemUiOverlayStyle.light,
               iconTheme: const IconThemeData(color: Colors.white),
               title:
                   Text(file.name, style: const TextStyle(color: Colors.white)),

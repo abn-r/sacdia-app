@@ -8,7 +8,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_requirement.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor_requirement_progress.dart';
-import 'package:sacdia_app/features/honors/presentation/utils/honor_category_colors.dart';
+import 'package:sacdia_app/features/honors/presentation/theme/honor_category_palette.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/choice_group_header.dart';
 import 'package:sacdia_app/features/honors/presentation/widgets/requirement_tree_item.dart';
@@ -226,7 +226,14 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
         .valueOrNull
         ?.where((h) => h.id == widget.honorId)
         .firstOrNull;
-    final categoryColor = getCategoryColor(categoryId: honor?.categoryId);
+    final categoryName = honor?.categoryName ??
+        (honor?.categoryId != null
+            ? ref.read(categoryByIdProvider(honor!.categoryId))?.name
+            : null);
+    final categoryColor = getCategoryColor(
+      categoryId: honor?.categoryId,
+      categoryName: categoryName,
+    );
 
     setState(() => _saving = true);
 
@@ -288,7 +295,14 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
     final honor = honorsAsync.valueOrNull
         ?.where((h) => h.id == widget.honorId)
         .firstOrNull;
-    final categoryColor = getCategoryColor(categoryId: honor?.categoryId);
+    final categoryName = honor?.categoryName ??
+        (honor?.categoryId != null
+            ? ref.watch(categoryByIdProvider(honor!.categoryId))?.name
+            : null);
+    final categoryColor = getCategoryColor(
+      categoryId: honor?.categoryId,
+      categoryName: categoryName,
+    );
 
     return PopScope(
       canPop: !_hasUnsavedChanges,

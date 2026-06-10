@@ -41,6 +41,7 @@ class RouteNames {
   static const String homeHonors = '/home/honors';
   static const String homeCertifications = '/home/certifications';
   static const String homeAchievements = '/home/achievements';
+  static const String homeMasterHonors = '/home/master-honors';
 
   // Información médica del usuario (detalle fuera del shell)
   static const String homeMedicalInfo = '/home/medical-info';

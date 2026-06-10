@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -12,11 +13,13 @@ import 'package:image_picker/image_picker.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/evidence_staging/staged_file.dart';
+import 'package:sacdia_app/core/widgets/evidence_staging/upload_progress_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../utils/honor_category_colors.dart';
+import '../theme/honor_category_palette.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../validation/domain/entities/validation.dart';
@@ -206,6 +209,19 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     );
   }
 
+  String _buildEvidenceFileName(String originalName, int index) {
+    final extension = originalName.contains('.')
+        ? originalName.split('.').last.toLowerCase()
+        : 'bin';
+    final displayIndex = index.toString().padLeft(2, '0');
+    return 'Evidencia $displayIndex.$extension';
+  }
+
+  int _nextEvidenceIndex([int offset = 0]) {
+    final userHonor = ref.read(userHonorForHonorProvider(widget.honorId));
+    return (userHonor?.evidenceCount ?? 0) + offset + 1;
+  }
+
   Future<void> _pickFromCamera() async {
     final userHonor = ref.read(userHonorForHonorProvider(widget.honorId));
     if (userHonor != null && userHonor.evidenceCount >= _maxFiles) return;
@@ -218,7 +234,13 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
       imageQuality: 85,
     );
     if (image != null) {
-      await _uploadFile(File(image.path), image.name);
+      await _uploadPickedFiles([
+        StagedFile.local(
+          localPath: image.path,
+          name: _buildEvidenceFileName(image.name, _nextEvidenceIndex()),
+          mimeType: 'image/jpeg',
+        ),
+      ]);
     }
   }
 
@@ -232,9 +254,22 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
       maxHeight: 1920,
       imageQuality: 85,
     );
-    for (final image in images) {
-      await _uploadFile(File(image.path), image.name);
-    }
+    await _uploadPickedFiles(
+      images
+          .asMap()
+          .entries
+          .map(
+            (entry) => StagedFile.local(
+              localPath: entry.value.path,
+              name: _buildEvidenceFileName(
+                entry.value.name,
+                _nextEvidenceIndex(entry.key),
+              ),
+              mimeType: 'image/jpeg',
+            ),
+          )
+          .toList(),
+    );
   }
 
   Future<void> _pickPdf() async {
@@ -247,28 +282,168 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
       allowMultiple: true,
     );
     if (result != null) {
-      for (final file in result.files) {
-        if (file.path != null) {
-          await _uploadFile(File(file.path!), file.name);
-        }
-      }
+      await _uploadPickedFiles(
+        result.files
+            .where((file) => file.path != null)
+            .toList()
+            .asMap()
+            .entries
+            .map(
+              (entry) => StagedFile.local(
+                localPath: entry.value.path!,
+                name: _buildEvidenceFileName(
+                  entry.value.name,
+                  _nextEvidenceIndex(entry.key),
+                ),
+                mimeType: 'application/pdf',
+              ),
+            )
+            .toList(),
+      );
     }
   }
 
-  Future<void> _uploadFile(File file, String fileName) async {
-    final fileSize = await file.length();
-    if (fileSize > _maxFileSizeBytes) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('honors.evidence.file_size_error'
-                .tr(namedArgs: {'name': fileName})),
-            backgroundColor: AppColors.error,
-          ),
-        );
+  Future<void> _uploadPickedFiles(List<StagedFile> pickedFiles) async {
+    if (pickedFiles.isEmpty) return;
+
+    final validFiles = <StagedFile>[];
+    for (final pickedFile in pickedFiles) {
+      final localPath = pickedFile.localPath;
+      if (localPath == null) continue;
+
+      final fileSize = await File(localPath).length();
+      if (fileSize > _maxFileSizeBytes) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('honors.evidence.file_size_error'
+                  .tr(namedArgs: {'name': pickedFile.name})),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+        continue;
       }
-      return;
+
+      validFiles.add(pickedFile);
     }
+
+    if (validFiles.isEmpty) return;
+
+    final userHonor = ref.read(userHonorForHonorProvider(widget.honorId));
+    final availableSlots = _maxFiles - (userHonor?.evidenceCount ?? 0);
+    if (availableSlots <= 0) return;
+
+    final queuedFiles = validFiles.take(availableSlots).toList();
+    if (!mounted) return;
+
+    await _showUploadProgress(queuedFiles);
+  }
+
+  Future<void> _showUploadProgress(List<StagedFile> initialFiles) async {
+    var queueFiles = initialFiles;
+    var shouldRetry = true;
+    var completedAny = false;
+
+    while (shouldRetry && mounted) {
+      shouldRetry = false;
+
+      final streamController = StreamController<List<StagedFile>>.broadcast();
+      final sheetResultFuture = showUploadProgressSheet(
+        context: context,
+        initialFiles: queueFiles,
+        uploadStream: streamController.stream,
+      );
+
+      streamController.add(queueFiles);
+
+      for (final file in List<StagedFile>.from(queueFiles)) {
+        if (file.status != StagedFileStatus.local) continue;
+
+        queueFiles = _updateQueuedFile(
+          queueFiles,
+          file.id,
+          StagedFileStatus.uploading,
+          uploadProgress: 0,
+        );
+        streamController.add(queueFiles);
+
+        try {
+          await _uploadQueuedFile(file);
+          completedAny = true;
+          queueFiles = _updateQueuedFile(
+            queueFiles,
+            file.id,
+            StagedFileStatus.completed,
+            uploadProgress: 1,
+          );
+        } catch (error) {
+          queueFiles = _updateQueuedFile(
+            queueFiles,
+            file.id,
+            StagedFileStatus.error,
+            errorMessage: error.toString(),
+          );
+        }
+
+        streamController.add(queueFiles);
+      }
+
+      final sheetResult = await sheetResultFuture;
+      await streamController.close();
+
+      if (!mounted) return;
+
+      switch (sheetResult) {
+        case UploadSheetResult.retry:
+          queueFiles = queueFiles.map((file) {
+            if (file.status == StagedFileStatus.error) {
+              return file.copyWith(
+                status: StagedFileStatus.local,
+                uploadProgress: 0,
+                errorMessage: null,
+              );
+            }
+            return file;
+          }).toList();
+          shouldRetry = true;
+          break;
+        case UploadSheetResult.continueSubmit:
+        case UploadSheetResult.continuePartial:
+        case UploadSheetResult.cancelled:
+        case null:
+          shouldRetry = false;
+          break;
+      }
+    }
+
+    if (completedAny) {
+      ref
+          .read(honorEvidenceActionsNotifierProvider.notifier)
+          .invalidateHonorEvidence(widget.honorId);
+    }
+  }
+
+  List<StagedFile> _updateQueuedFile(
+    List<StagedFile> files,
+    String fileId,
+    StagedFileStatus status, {
+    double? uploadProgress,
+    String? errorMessage,
+  }) {
+    return files.map((file) {
+      if (file.id != fileId) return file;
+      return file.copyWith(
+        status: status,
+        uploadProgress: uploadProgress ?? file.uploadProgress,
+        errorMessage: errorMessage,
+      );
+    }).toList();
+  }
+
+  Future<void> _uploadQueuedFile(StagedFile stagedFile) async {
+    final localPath = stagedFile.localPath;
+    if (localPath == null) return;
 
     final userId = ref.read(authNotifierProvider).value?.id;
     if (userId == null) {
@@ -280,46 +455,22 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
           ),
         );
       }
-      return;
+      throw StateError('No active session');
     }
 
-    setState(() => _isUploading = true);
-
-    try {
-      final success = await ref
-          .read(honorEvidenceActionsNotifierProvider.notifier)
-          .uploadFile(
-            userId: userId,
-            honorId: widget.honorId,
-            file: file,
-            fileName: fileName,
-          );
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success
-                ? 'honors.evidence.upload_success'.tr()
-                : 'honors.evidence.upload_error'
-                    .tr(namedArgs: {'name': fileName}),
-          ),
-          backgroundColor: success ? AppColors.success : AppColors.error,
-        ),
-      );
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('honors.evidence.upload_error'
-                .tr(namedArgs: {'name': fileName})),
-            backgroundColor: AppColors.error,
-          ),
+    final success = await ref
+        .read(honorEvidenceActionsNotifierProvider.notifier)
+        .uploadFile(
+          userId: userId,
+          honorId: widget.honorId,
+          file: File(localPath),
+          fileName: stagedFile.name,
+          skipInvalidation: true,
         );
-      }
-    } finally {
-      if (mounted) setState(() => _isUploading = false);
+
+    if (!success) {
+      throw Exception('honors.evidence.upload_error'
+          .tr(namedArgs: {'name': stagedFile.name}));
     }
   }
 
@@ -362,13 +513,22 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     }
   }
 
-  void _openEvidenceFile(String url) {
+  void _openEvidenceFile(
+    String url,
+    List<String> imageUrls,
+    int initialIndex,
+  ) {
     final lower = url.toLowerCase();
     final isPdf = lower.endsWith('.pdf') || lower.contains('/pdf');
     if (isPdf) {
       _launchUrl(url);
     } else {
-      SacImageViewer.show(context, imageUrl: url);
+      SacImageViewer.show(
+        context,
+        imageUrl: url,
+        imageUrls: imageUrls,
+        initialIndex: initialIndex,
+      );
     }
   }
 
@@ -398,7 +558,8 @@ class _EvidenceBody extends StatelessWidget {
   final VoidCallback onSubmit;
   final VoidCallback onAddEvidence;
   final void Function(String imageUrl) onDeleteEvidence;
-  final void Function(String url) onViewEvidence;
+  final void Function(String url, List<String> imageUrls, int initialIndex)
+      onViewEvidence;
   final Future<void> Function(String url) onOpenMaterial;
 
   const _EvidenceBody({
@@ -413,7 +574,10 @@ class _EvidenceBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final categoryColor = getCategoryColor(categoryId: honor?.categoryId);
+    final categoryColor = getCategoryColor(
+      categoryId: honor?.categoryId ?? userHonor.honorCategoryId,
+      categoryName: honor?.categoryName ?? userHonor.honorCategoryName,
+    );
 
     return Scaffold(
       backgroundColor: context.sac.background,
@@ -799,7 +963,8 @@ class _EvidenceSectionCard extends StatelessWidget {
   final Color categoryColor;
   final VoidCallback onAddEvidence;
   final void Function(String imageUrl) onDeleteEvidence;
-  final void Function(String url) onViewEvidence;
+  final void Function(String url, List<String> imageUrls, int initialIndex)
+      onViewEvidence;
 
   const _EvidenceSectionCard({
     required this.userHonor,
@@ -992,7 +1157,8 @@ class _EvidenceGrid extends StatelessWidget {
   final Color categoryColor;
   final VoidCallback onAddEvidence;
   final void Function(String imageUrl) onDeleteEvidence;
-  final void Function(String url) onViewEvidence;
+  final void Function(String url, List<String> imageUrls, int initialIndex)
+      onViewEvidence;
 
   const _EvidenceGrid({
     required this.images,
@@ -1034,7 +1200,18 @@ class _EvidenceGrid extends StatelessWidget {
           imageUrl: imageUrl,
           canDelete: canDelete,
           onDelete: () => onDeleteEvidence(imageUrl),
-          onTap: () => onViewEvidence(imageUrl),
+          onTap: () {
+            final carouselImages = images.where((url) {
+              final lower = url.toLowerCase();
+              return !lower.endsWith('.pdf') && !lower.contains('/pdf');
+            }).toList();
+            final initialIndex = carouselImages.indexOf(imageUrl);
+            onViewEvidence(
+              imageUrl,
+              carouselImages,
+              initialIndex < 0 ? 0 : initialIndex,
+            );
+          },
         );
       },
     );

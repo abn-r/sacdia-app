@@ -17,7 +17,7 @@ import 'package:sacdia_app/core/utils/icon_helper.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor_requirement_progress.dart';
-import '../utils/honor_category_colors.dart';
+import '../theme/honor_category_palette.dart';
 import '../providers/honors_providers.dart';
 import '../../domain/entities/user_honor.dart';
 
@@ -182,7 +182,10 @@ class _HonorDetailContent extends ConsumerWidget {
     final categoryName =
         ref.watch(categoryByIdProvider(honor.categoryId))?.name;
 
-    final categoryColor = getCategoryColor(categoryId: honor.categoryId);
+    final categoryColor = getCategoryColor(
+      categoryId: honor.categoryId,
+      categoryName: honor.categoryName ?? categoryName,
+    );
     final isEnrolled = userHonor != null;
 
     // After enrollment, refresh providers so UI switches to enrolled state

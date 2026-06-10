@@ -1,6 +1,10 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -9,6 +13,12 @@ import 'package:sacdia_app/core/widgets/sac_card.dart';
 import '../../domain/entities/certificate_import_payloads.dart';
 import '../../domain/usecases/create_certificate_import_batch.dart';
 import '../providers/certificate_import_providers.dart';
+import '../widgets/certificate_import_back_button.dart';
+
+typedef CertificateImportSubmit = Future<void> Function(
+    List<CertificateImportFilePayload> files);
+typedef CertificateImportProofPicker = Future<CertificateImportFilePayload?>
+    Function();
 
 class CertificateImportUploadRouteView extends ConsumerWidget {
   const CertificateImportUploadRouteView({super.key});
@@ -16,18 +26,10 @@ class CertificateImportUploadRouteView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CertificateImportUploadView(
-      onCreateMockUpload: () async {
+      onSubmitProofs: (files) async {
         final result =
             await ref.read(createCertificateImportBatchProvider).call(
-                  const CreateCertificateImportBatchParams(
-                    files: [
-                      CertificateImportFilePayload(
-                        url: 'mock://certificate-import/pending-uploader.jpg',
-                        name: 'comprobante-pendiente.jpg',
-                        type: 'image/jpeg',
-                      ),
-                    ],
-                  ),
+                  CreateCertificateImportBatchParams(files: files),
                 );
         result.fold(
           (failure) => throw Exception(failure.message),
@@ -36,21 +38,76 @@ class CertificateImportUploadRouteView extends ConsumerWidget {
           ),
         );
       },
+      onPickCamera: _pickCameraProof,
+      onPickFile: _pickFileProof,
     );
+  }
+
+  static Future<CertificateImportFilePayload?> _pickCameraProof() async {
+    final image = await ImagePicker().pickImage(
+      source: ImageSource.camera,
+      maxWidth: 2048,
+      maxHeight: 2048,
+      imageQuality: 85,
+    );
+    if (image == null) return null;
+
+    return CertificateImportFilePayload(
+      url: image.path,
+      name: image.name.isNotEmpty ? image.name : 'comprobante.jpg',
+      type: image.mimeType ?? lookupMimeType(image.path) ?? 'image/jpeg',
+    );
+  }
+
+  static Future<CertificateImportFilePayload?> _pickFileProof() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png', 'webp'],
+      allowMultiple: false,
+      withData: false,
+    );
+    if (result == null || result.files.isEmpty) return null;
+
+    final file = result.files.first;
+    final path = file.path;
+    if (path == null || path.trim().isEmpty) return null;
+
+    return CertificateImportFilePayload(
+      url: path,
+      name: file.name,
+      type: lookupMimeType(path) ??
+          _mimeTypeFromExtension(file.extension) ??
+          'application/octet-stream',
+    );
+  }
+
+  static String? _mimeTypeFromExtension(String? extension) {
+    switch (extension?.toLowerCase()) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'webp':
+        return 'image/webp';
+    }
+    return null;
   }
 }
 
 class CertificateImportUploadView extends StatefulWidget {
   const CertificateImportUploadView({
     super.key,
-    this.onCreateMockUpload,
+    this.onSubmitProofs,
     this.onPickCamera,
     this.onPickFile,
   });
 
-  final Future<void> Function()? onCreateMockUpload;
-  final VoidCallback? onPickCamera;
-  final VoidCallback? onPickFile;
+  final CertificateImportSubmit? onSubmitProofs;
+  final CertificateImportProofPicker? onPickCamera;
+  final CertificateImportProofPicker? onPickFile;
 
   @override
   State<CertificateImportUploadView> createState() =>
@@ -60,14 +117,23 @@ class CertificateImportUploadView extends StatefulWidget {
 class _CertificateImportUploadViewState
     extends State<CertificateImportUploadView> {
   bool _loading = false;
+  bool _picking = false;
   String? _error;
+  List<CertificateImportFilePayload> _selectedFiles = const [];
+
+  bool get _hasFilesToAnalyze => _selectedFiles.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(title: const Text('Carga por certificado')),
+      appBar: AppBar(
+        leading: const CertificateImportBackButton(
+          fallbackLocation: RouteNames.homeProfile,
+        ),
+        title: const Text('Carga por certificado'),
+      ),
       body: Stack(
         children: [
           ListView(
@@ -83,7 +149,7 @@ class _CertificateImportUploadViewState
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Podés mezclar especialidades y clases. SACDIA detecta candidatos, pero vos confirmás antes de enviar.',
+                        'Puedes mezclar especialidades y clases. SACDIA detecta candidatos; confirma los datos antes de enviar.',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: c.textSecondary,
                             ),
@@ -101,6 +167,10 @@ class _CertificateImportUploadViewState
                         fontWeight: FontWeight.w600,
                       ),
                 ),
+              ],
+              if (_hasFilesToAnalyze) ...[
+                const SizedBox(height: 12),
+                _SelectedProofCard(files: _selectedFiles),
               ],
             ],
           ),
@@ -122,9 +192,11 @@ class _CertificateImportUploadViewState
                     children: [
                       SacButton.primary(
                         text: 'Subir comprobante',
-                        icon: Icons.upload_rounded,
+                        icon: HugeIcons.strokeRoundedFileUpload,
                         isLoading: _loading,
-                        onPressed: _loading ? null : _createMockUpload,
+                        isEnabled: _hasFilesToAnalyze,
+                        onPressed:
+                            _loading || !_hasFilesToAnalyze ? null : _submit,
                       ),
                       const SizedBox(height: 8),
                       Row(
@@ -132,17 +204,22 @@ class _CertificateImportUploadViewState
                           Expanded(
                             child: SacButton.outline(
                               text: 'Tomar foto',
-                              icon: Icons.camera_alt_outlined,
-                              onPressed:
-                                  widget.onPickCamera ?? _createMockUpload,
+                              icon: HugeIcons.strokeRoundedCamera01,
+                              isLoading: _picking,
+                              onPressed: _picking
+                                  ? null
+                                  : () => _pickProof(widget.onPickCamera),
                             ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: SacButton.outline(
                               text: 'Elegir archivo',
-                              icon: Icons.folder_outlined,
-                              onPressed: widget.onPickFile ?? _createMockUpload,
+                              icon: HugeIcons.strokeRoundedFolder01,
+                              isLoading: _picking,
+                              onPressed: _picking
+                                  ? null
+                                  : () => _pickProof(widget.onPickFile),
                             ),
                           ),
                         ],
@@ -158,18 +235,47 @@ class _CertificateImportUploadViewState
     );
   }
 
-  Future<void> _createMockUpload() async {
-    if (widget.onCreateMockUpload == null) {
-      setState(() => _error =
-          'Uploader real pendiente: seam preparado para metadata del archivo.');
+  Future<void> _pickProof(CertificateImportProofPicker? picker) async {
+    if (picker == null) {
+      setState(() => _error = 'No se pudo abrir el selector de comprobantes.');
       return;
     }
+
+    setState(() {
+      _picking = true;
+      _error = null;
+    });
+    try {
+      final file = await picker();
+      if (file == null) return;
+      if (!mounted) return;
+
+      setState(() {
+        _selectedFiles = [file];
+      });
+    } catch (error) {
+      setState(() => _error = error.toString());
+    } finally {
+      if (mounted) setState(() => _picking = false);
+    }
+  }
+
+  Future<void> _submit() async {
+    if (!_hasFilesToAnalyze) return;
+    if (widget.onSubmitProofs == null) {
+      setState(
+        () =>
+            _error = 'No hay un proceso configurado para enviar comprobantes.',
+      );
+      return;
+    }
+
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
-      await widget.onCreateMockUpload!();
+      await widget.onSubmitProofs!(_selectedFiles);
     } catch (error) {
       setState(() => _error = error.toString());
     } finally {
@@ -216,7 +322,7 @@ class _UploadHero extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Subí tus comprobantes y los leemos por vos',
+            'Carga tus comprobantes y SACDIA los leerá',
             style: Theme.of(context).textTheme.displaySmall?.copyWith(
                   color: c.text,
                   fontWeight: FontWeight.w700,
@@ -224,10 +330,62 @@ class _UploadHero extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'OCR asistido para honores y clases. Menos tipeo, misma responsabilidad: revisar antes de enviar.',
+            'OCR asistido para honores y clases. Menos captura manual, misma responsabilidad: revisar antes de enviar.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: c.textSecondary,
                 ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SelectedProofCard extends StatelessWidget {
+  const _SelectedProofCard({required this.files});
+
+  final List<CertificateImportFilePayload> files;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final fileCount = files.length;
+    final firstName = files.first.name;
+
+    return SacCard(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedFile01,
+            color: c.success,
+            size: 22,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  fileCount == 1
+                      ? 'Comprobante seleccionado'
+                      : '$fileCount comprobantes seleccionados',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: c.text,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  firstName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: c.textSecondary,
+                      ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

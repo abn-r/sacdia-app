@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
-import 'package:sacdia_app/core/utils/date_formatter.dart';
+import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/features/master_honors/domain/entities/master_honor_roadmap.dart';
 import 'package:sacdia_app/features/master_honors/domain/entities/user_master_honor.dart';
 import 'package:sacdia_app/features/master_honors/presentation/providers/master_honors_providers.dart';
 
 import 'master_honor_badge.dart';
+import 'master_honor_roadmap_grid.dart';
 
 /// Strip horizontal de maestrías para la Tarjeta Virtual.
 class MasterHonorBadgeStrip extends ConsumerWidget {
@@ -38,7 +43,7 @@ class MasterHonorBadgeStrip extends ConsumerWidget {
   }
 }
 
-/// Historial de maestrías con estado y fechas en perfil.
+/// Resumen de maestrías en perfil, con el mismo patrón visual de Logros.
 class MasterHonorHistorySection extends ConsumerWidget {
   final bool showHeader;
 
@@ -49,49 +54,206 @@ class MasterHonorHistorySection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final honorsAsync = ref.watch(userMasterHonorsProvider);
+    final roadmapAsync = ref.watch(userMasterHonorRoadmapProvider);
 
-    return honorsAsync.when(
-      loading: () => const _MasterHonorHistorySkeleton(),
-      error: (error, _) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-        child: Text(
-          'No fue posible cargar el historial de maestrías.',
-          style: const TextStyle(color: Colors.red, fontSize: 13),
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: roadmapAsync.when(
+        loading: () => _MasterHonorProfileSkeleton(
+          key: const ValueKey('master-honor-profile-skeleton'),
+          showHeader: showHeader,
+        ),
+        error: (_, __) => _MasterHonorProfileError(
+          key: const ValueKey('master-honor-profile-error'),
+          showHeader: showHeader,
+          onRetry: () => ref.invalidate(userMasterHonorRoadmapProvider),
+        ),
+        data: (items) => _MasterHonorProfileSummary(
+          key: const ValueKey('master-honor-profile-data'),
+          items: items,
+          showHeader: showHeader,
         ),
       ),
-      data: (honors) {
-        if (honors.isEmpty) {
-          return const SizedBox.shrink();
-        }
+    );
+  }
+}
 
-        final ordered = _orderedMasterHonors(honors);
-        return Padding(
-          key: const ValueKey('master-honor-history-data'),
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+class _MasterHonorProfileSummary extends StatelessWidget {
+  const _MasterHonorProfileSummary({
+    super.key,
+    required this.items,
+    required this.showHeader,
+  });
+
+  final List<MasterHonorRoadmap> items;
+  final bool showHeader;
+
+  @override
+  Widget build(BuildContext context) {
+    final awardedItems = items.where((item) => item.isAwarded).toList();
+    final totalAwarded = awardedItems.length;
+    final label = totalAwarded == 1 ? 'Maestría' : 'Maestrías';
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (showHeader) ...[
+            Text(
+              'MAESTRÍAS',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 2.2,
+                color: context.sac.textTertiary,
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              if (showHeader) ...[
-                Text(
-                  'Maestrías',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: _isDark(context)
-                        ? AppColors.darkText
-                        : AppColors.lightText,
+              Text(
+                '$totalAwarded',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: context.sac.text,
+                  height: 1,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400,
+                  color: context.sac.textSecondary,
+                  height: 1,
+                ),
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: () => context.push(RouteNames.homeMasterHonors),
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: context.sac.surfaceVariant,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedGridView,
+                    size: 18,
+                    color: context.sac.textSecondary,
                   ),
                 ),
-                const SizedBox(height: 8),
-              ],
-              ...ordered.map(
-                (honor) => _HistoryItem(honor: honor),
               ),
             ],
           ),
-        );
-      },
+          const SizedBox(height: 12),
+          if (awardedItems.isEmpty)
+            Text(
+              'Aún no tienes maestrías',
+              style: TextStyle(
+                fontSize: 13,
+                color: context.sac.textTertiary,
+              ),
+            )
+          else
+            SizedBox(
+              height: 52,
+              child: GestureDetector(
+                onTap: () => context.push(RouteNames.homeMasterHonors),
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.zero,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: awardedItems.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final item = awardedItems[index];
+                    return MasterHonorLogo(
+                      imageUrl: item.masterImage,
+                      name: item.name,
+                      size: 44,
+                      color: masterHonorAccentColor(item),
+                    );
+                  },
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MasterHonorProfileError extends StatelessWidget {
+  const _MasterHonorProfileError({
+    super.key,
+    required this.showHeader,
+    required this.onRetry,
+  });
+
+  final bool showHeader;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (showHeader) ...[
+            Text(
+              'MAESTRÍAS',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 2.2,
+                color: context.sac.textTertiary,
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+          Row(
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedAward01,
+                size: 18,
+                color: context.sac.textTertiary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'No pudimos cargar tus maestrías',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: context.sac.textTertiary,
+                ),
+              ),
+              const SizedBox(width: 4),
+              TextButton(
+                onPressed: onRetry,
+                style: TextButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  'Reintentar',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: context.sac.info,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -128,148 +290,6 @@ class _MasterHonorStripContent extends StatelessWidget {
   }
 }
 
-class _HistoryItem extends StatelessWidget {
-  const _HistoryItem({required this.honor});
-
-  final UserMasterHonor honor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Card(
-        elevation: 0,
-        color:
-            _isDark(context) ? AppColors.darkSurface : AppColors.lightSurface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color:
-                _isDark(context) ? AppColors.darkBorder : AppColors.lightBorder,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  MasterHonorBadge(
-                    honor: honor,
-                    compact: true,
-                    showStatus: false,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          honor.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 6),
-                        _StatusLine(honor: honor),
-                        const SizedBox(height: 2),
-                        if (_buildDateLines(honor).isNotEmpty)
-                          ..._buildDateLines(honor).map(
-                            (line) => Text(
-                              line,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: _isDark(context)
-                                    ? AppColors.darkTextSecondary
-                                    : AppColors.lightTextSecondary,
-                                height: 1.25,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  List<String> _buildDateLines(UserMasterHonor honor) {
-    final lines = <String>[];
-
-    if (honor.awardedAt != null) {
-      lines.add('Concedida: ${SacDateFormatter.date(honor.awardedAt)}');
-    }
-    if (honor.revokedAt != null) {
-      lines.add('Revocada: ${SacDateFormatter.date(honor.revokedAt)}');
-    }
-    if (honor.recoveredAt != null) {
-      lines.add('Recuperada: ${SacDateFormatter.date(honor.recoveredAt)}');
-    }
-
-    return lines;
-  }
-}
-
-class _StatusLine extends StatelessWidget {
-  const _StatusLine({required this.honor});
-
-  final UserMasterHonor honor;
-
-  @override
-  Widget build(BuildContext context) {
-    final isCurrent = honor.isCurrent;
-    final status = honor.displayStatusLabel.trim().isNotEmpty
-        ? honor.displayStatusLabel
-        : (isCurrent ? 'Vigente' : 'No vigente');
-    final statusColor = isCurrent ? AppColors.secondary : AppColors.error;
-
-    return Row(
-      children: [
-        Container(
-          height: 8,
-          width: 8,
-          decoration: BoxDecoration(
-            color: statusColor,
-            shape: BoxShape.circle,
-          ),
-        ),
-        const SizedBox(width: 6),
-        Text(
-          status,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        ),
-        if (honor.statusReason != null &&
-            honor.statusReason!.trim().isNotEmpty) ...[
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              honor.statusReason!,
-              style: TextStyle(
-                fontSize: 11,
-                color: _isDark(context)
-                    ? AppColors.darkTextSecondary
-                    : AppColors.lightTextSecondary,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
 class _MasterHonorStripSkeleton extends StatelessWidget {
   const _MasterHonorStripSkeleton();
 
@@ -298,38 +318,75 @@ class _MasterHonorStripSkeleton extends StatelessWidget {
   }
 }
 
-class _MasterHonorHistorySkeleton extends StatelessWidget {
-  const _MasterHonorHistorySkeleton();
+class _MasterHonorProfileSkeleton extends StatelessWidget {
+  const _MasterHonorProfileSkeleton({
+    super.key,
+    required this.showHeader,
+  });
+
+  final bool showHeader;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 110,
-            height: 18,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: _isDark(context)
-                  ? AppColors.darkSurfaceVariant
-                  : AppColors.lightSurfaceVariant,
+          if (showHeader) ...[
+            Container(
+              width: 92,
+              height: 12,
+              decoration: BoxDecoration(
+                color: context.sac.surfaceVariant,
+                borderRadius: BorderRadius.circular(4),
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
-          ...List.generate(
-            2,
-            (index) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Container(
-                height: 84,
+            const SizedBox(height: 16),
+          ],
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 22,
                 decoration: BoxDecoration(
-                  color: _isDark(context)
-                      ? AppColors.darkSurfaceVariant
-                      : AppColors.lightSurfaceVariant,
-                  borderRadius: BorderRadius.circular(12),
+                  color: context.sac.surfaceVariant,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                width: 80,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: context.sac.surfaceVariant,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const Spacer(),
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: context.sac.surfaceVariant,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: List.generate(
+              5,
+              (index) => Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: context.sac.surfaceVariant,
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ),
             ),

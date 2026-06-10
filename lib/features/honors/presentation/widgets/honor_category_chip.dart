@@ -12,6 +12,7 @@ class HonorCategoryChip extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
   final Color? activeColor;
+  final Color? activeBorderColor;
 
   const HonorCategoryChip({
     super.key,
@@ -19,11 +20,21 @@ class HonorCategoryChip extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
     this.activeColor,
+    this.activeBorderColor,
   });
 
   @override
   Widget build(BuildContext context) {
     final chipColor = activeColor ?? AppColors.info;
+    final activeColorIsLight =
+        ThemeData.estimateBrightnessForColor(chipColor) == Brightness.light;
+    final activeTextColor =
+        activeColorIsLight ? context.sac.text : Colors.white;
+    final borderColor = isSelected
+        ? activeBorderColor ??
+            (activeColorIsLight ? context.sac.border : Colors.transparent)
+        : Colors.transparent;
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -33,13 +44,14 @@ class HonorCategoryChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? chipColor : context.sac.surfaceVariant,
           borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: borderColor, width: isSelected ? 1.2 : 0),
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 13,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-            color: isSelected ? Colors.white : context.sac.textSecondary,
+            color: isSelected ? activeTextColor : context.sac.textSecondary,
           ),
         ),
       ),

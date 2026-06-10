@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_batch.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_file.dart';
 import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_item.dart';
+import 'package:sacdia_app/features/certificate_import/domain/entities/certificate_import_payloads.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_processing_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_review_view.dart';
 import 'package:sacdia_app/features/certificate_import/presentation/views/certificate_import_status_view.dart';
@@ -73,21 +74,73 @@ void main() {
   });
 
   group('CertificateImportUploadView', () {
-    testWidgets('shows upload, camera and file actions with accessible labels',
+    testWidgets('disables upload until a proof file is selected',
         (tester) async {
       var uploadCalls = 0;
       await tester.pumpWidget(_wrap(CertificateImportUploadView(
-        onCreateMockUpload: () async => uploadCalls++,
+        onSubmitProofs: (_) async => uploadCalls++,
+        onPickFile: () async => const CertificateImportFilePayload(
+          url: 'mock://proof.jpg',
+          name: 'comprobante.jpg',
+          type: 'image/jpeg',
+        ),
       )));
 
       expect(find.text('Subir comprobante'), findsOneWidget);
       expect(find.text('Tomar foto'), findsOneWidget);
       expect(find.text('Elegir archivo'), findsOneWidget);
 
+      final initialUpload = tester.widget<ElevatedButton>(
+        find.widgetWithText(ElevatedButton, 'Subir comprobante'),
+      );
+      expect(initialUpload.onPressed, isNull);
+
+      await tester.tap(find.text('Subir comprobante'));
+      await tester.pump();
+      expect(uploadCalls, 0);
+
+      await tester.tap(find.text('Elegir archivo'));
+      await tester.pump();
+
+      expect(find.text('Comprobante seleccionado'), findsOneWidget);
+      expect(find.text('comprobante.jpg'), findsOneWidget);
+
       await tester.tap(find.text('Subir comprobante'));
       await tester.pump();
 
       expect(uploadCalls, 1);
+    });
+
+    testWidgets('keeps upload disabled when proof selection is cancelled',
+        (tester) async {
+      var uploadCalls = 0;
+      await tester.pumpWidget(_wrap(CertificateImportUploadView(
+        onSubmitProofs: (_) async => uploadCalls++,
+        onPickFile: () async => null,
+        onPickCamera: () async => null,
+      )));
+
+      await tester.tap(find.text('Elegir archivo'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Comprobante seleccionado'), findsNothing);
+      var upload = tester.widget<ElevatedButton>(
+        find.widgetWithText(ElevatedButton, 'Subir comprobante'),
+      );
+      expect(upload.onPressed, isNull);
+
+      await tester.tap(find.text('Tomar foto'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Comprobante seleccionado'), findsNothing);
+      upload = tester.widget<ElevatedButton>(
+        find.widgetWithText(ElevatedButton, 'Subir comprobante'),
+      );
+      expect(upload.onPressed, isNull);
+
+      await tester.tap(find.text('Subir comprobante'));
+      await tester.pump();
+      expect(uploadCalls, 0);
     });
   });
 

@@ -288,15 +288,17 @@ class MyHonorsView extends ConsumerWidget {
           // Build a minimal Honor from the embedded data that UserHonor carries.
           // The backend GET /users/:userId/honors response includes a nested
           // `honors` object, which the model parses into honorName / honorImageUrl.
-          // categoryId defaults to 0 — only display fields matter here.
           final minimalHonor = Honor(
             id: userHonor.honorId,
             name: userHonor.honorName ?? 'honors.my_honors.honor_fallback'.tr(),
             imageUrl: userHonor.honorImageUrl,
             skillLevel: userHonor.honorSkillLevel,
-            categoryId: 0,
+            categoryId: userHonor.honorCategoryId ?? 0,
+            categoryName: userHonor.honorCategoryName,
             approval: 1,
           );
+          final stats =
+              ref.watch(honorProgressStatsProvider(userHonor.honorId));
 
           return StaggeredListItem(
             index: index,
@@ -305,6 +307,9 @@ class MyHonorsView extends ConsumerWidget {
             child: HonorCard(
               honor: minimalHonor,
               userHonor: userHonor,
+              progressPercentage: stats.total > 0 ? stats.percentage : null,
+              completedCount: stats.total > 0 ? stats.completed : null,
+              totalRequirements: stats.total > 0 ? stats.total : null,
               onTap: () => context.push(
                 RouteNames.honorEvidencePath(
                   userHonor.honorId.toString(),

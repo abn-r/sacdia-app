@@ -7,6 +7,7 @@ import '../../../../providers/dio_provider.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/datasources/master_honors_remote_data_source.dart';
 import '../../data/repositories/master_honors_repository_impl.dart';
+import '../../domain/entities/master_honor_roadmap.dart';
 import '../../domain/entities/user_master_honor.dart';
 import '../../domain/repositories/master_honors_repository.dart';
 
@@ -54,15 +55,43 @@ final userMasterHonorsProvider =
   );
 });
 
+final userMasterHonorRoadmapProvider =
+    FutureProvider.autoDispose<List<MasterHonorRoadmap>>((ref) async {
+  ref.keepAlive();
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
+  final userId = await ref.watch(
+    authNotifierProvider.selectAsync((user) => user?.id),
+  );
+
+  if (userId == null) {
+    throw Exception(tr('errors.user_not_authenticated'));
+  }
+
+  final repository = ref.read(masterHonorsRepositoryProvider);
+  final result = await repository.getUserMasterHonorRoadmap(
+    userId,
+    cancelToken: cancelToken,
+  );
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (roadmap) => roadmap,
+  );
+});
+
 /// Ruta recomendada para abrir desde el tap de notificaciones de maestrías.
 ///
-/// Home Profile concentra estado y acciones de perfil, incluyendo la sección de
-/// maestrías y acceso a la tarjeta virtual, sin introducir una nueva pantalla.
+/// La pantalla dedicada concentra el roadmap completo y los requisitos.
 final masterHonorsNotificationTapRouteProvider = Provider<String>((_) {
-  return RouteNames.homeProfile;
+  return RouteNames.homeMasterHonors;
 });
 
 /// Hook estable para que notificaciones `master_honor_changed` invaliden cache.
 final masterHonorsInvalidationProvider = Provider<void Function()>((ref) {
-  return () => ref.invalidate(userMasterHonorsProvider);
+  return () {
+    ref.invalidate(userMasterHonorsProvider);
+    ref.invalidate(userMasterHonorRoadmapProvider);
+  };
 });

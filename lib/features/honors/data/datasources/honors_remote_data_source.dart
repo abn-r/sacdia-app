@@ -15,6 +15,31 @@ import '../models/requirement_evidence_model.dart';
 import '../models/user_honor_requirement_progress_model.dart';
 import '../models/user_honor_model.dart';
 
+List<Map<String, dynamic>> _flattenRequirementProgressItems(
+    List<dynamic> items) {
+  final flattened = <Map<String, dynamic>>[];
+
+  void walk(Map<String, dynamic> item) {
+    flattened.add(item);
+    final children = item['children'];
+    if (children is List) {
+      for (final child in children) {
+        if (child is Map<String, dynamic>) {
+          walk(child);
+        }
+      }
+    }
+  }
+
+  for (final item in items) {
+    if (item is Map<String, dynamic>) {
+      walk(item);
+    }
+  }
+
+  return flattened;
+}
+
 /// Interfaz para la fuente de datos remota de especialidades
 abstract class HonorsRemoteDataSource {
   Future<List<HonorCategoryModel>> getHonorCategories(
@@ -506,9 +531,8 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
         final raw = response.data as Map<String, dynamic>;
         final data = raw['data'] as Map<String, dynamic>;
         final List<dynamic> items = data['requirements'] as List<dynamic>;
-        return items
-            .map((json) => UserHonorRequirementProgressModel.fromJson(
-                json as Map<String, dynamic>))
+        return _flattenRequirementProgressItems(items)
+            .map(UserHonorRequirementProgressModel.fromJson)
             .toList();
       }
 
@@ -586,9 +610,8 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
         final raw = response.data as Map<String, dynamic>;
         final data = raw['data'] as Map<String, dynamic>;
         final List<dynamic> items = data['requirements'] as List<dynamic>;
-        return items
-            .map((json) => UserHonorRequirementProgressModel.fromJson(
-                json as Map<String, dynamic>))
+        return _flattenRequirementProgressItems(items)
+            .map(UserHonorRequirementProgressModel.fromJson)
             .toList();
       }
 

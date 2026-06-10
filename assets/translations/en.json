@@ -2756,6 +2756,8 @@
       "edit_profile_subtitle": "Update your personal information",
       "medical_info_title": "Medical Info",
       "medical_info_subtitle": "Allergies, diseases, medicines and emergency contacts",
+      "certificate_import_title": "Certificate upload",
+      "certificate_import_subtitle": "Upload proof to register honors and classes",
       "settings_tile_title": "Settings",
       "settings_tile_subtitle": "Theme, notifications and more",
       "logout_title": "Sign out",

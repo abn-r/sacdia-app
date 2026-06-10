@@ -12,6 +12,7 @@ import '../../domain/entities/certificate_import_batch.dart';
 import '../../domain/entities/certificate_import_item.dart';
 import '../../domain/usecases/update_certificate_import_item.dart';
 import '../providers/certificate_import_providers.dart';
+import '../widgets/certificate_import_back_button.dart';
 import '../widgets/certificate_import_item_card.dart';
 import '../widgets/certificate_import_item_editor_sheet.dart';
 
@@ -27,7 +28,12 @@ class CertificateImportReviewRouteView extends ConsumerWidget {
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (error, _) => Scaffold(
-        appBar: AppBar(title: const Text('Revisá los datos')),
+        appBar: AppBar(
+          leading: const CertificateImportBackButton(
+            fallbackLocation: RouteNames.certificateImportUpload,
+          ),
+          title: const Text('Revisa los datos'),
+        ),
         body: Center(child: Text('No pudimos cargar el lote: $error')),
       ),
       data: (batch) => CertificateImportReviewView(
@@ -123,7 +129,12 @@ class _CertificateImportReviewViewState
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(title: const Text('Revisá los datos')),
+      appBar: AppBar(
+        leading: const CertificateImportBackButton(
+          fallbackLocation: RouteNames.certificateImportUpload,
+        ),
+        title: const Text('Revisa los datos'),
+      ),
       body: Stack(
         children: [
           CustomScrollView(

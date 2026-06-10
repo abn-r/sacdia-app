@@ -4,6 +4,19 @@ import '../../domain/entities/honor.dart';
 const String _honorImagesBase =
     'https://sacdia-files.s3.us-east-1.amazonaws.com/Especialidades/';
 
+String? _readCategoryName(Map<String, dynamic> json) {
+  final direct = json['category_name'] ?? json['honor_category_name'];
+  if (direct is String && direct.trim().isNotEmpty) return direct;
+
+  final nested = json['honors_categories'];
+  if (nested is Map<String, dynamic>) {
+    final name = nested['name'];
+    if (name is String && name.trim().isNotEmpty) return name;
+  }
+
+  return null;
+}
+
 String? _buildImageUrl(String? raw) {
   if (raw == null || raw.isEmpty) return null;
   if (raw.startsWith('http')) return raw;
@@ -16,6 +29,7 @@ class HonorModel extends Equatable {
   final String name;
   final String? description;
   final int categoryId;
+  final String? categoryName;
   final String? imageUrl;
   final int? skillLevel;
   final String? materialUrl;
@@ -29,6 +43,7 @@ class HonorModel extends Equatable {
     required this.name,
     this.description,
     required this.categoryId,
+    this.categoryName,
     this.imageUrl,
     this.skillLevel,
     this.materialUrl,
@@ -47,6 +62,7 @@ class HonorModel extends Equatable {
       description: json['description'] as String?,
       // Backend FK is 'honors_category_id'; 'category_id' is fallback
       categoryId: (json['honors_category_id'] ?? json['category_id']) as int,
+      categoryName: _readCategoryName(json),
       imageUrl: _buildImageUrl(
         json['honor_image'] as String? ?? json['image_url'] as String?,
       ),
@@ -66,6 +82,7 @@ class HonorModel extends Equatable {
       'name': name,
       'description': description,
       'category_id': categoryId,
+      'category_name': categoryName,
       'image_url': imageUrl,
       'skill_level': skillLevel,
       'material_url': materialUrl,
@@ -83,6 +100,7 @@ class HonorModel extends Equatable {
       name: name,
       description: description,
       categoryId: categoryId,
+      categoryName: categoryName,
       imageUrl: imageUrl,
       skillLevel: skillLevel,
       materialUrl: materialUrl,
@@ -99,6 +117,7 @@ class HonorModel extends Equatable {
     String? name,
     String? description,
     int? categoryId,
+    String? categoryName,
     String? imageUrl,
     int? skillLevel,
     String? materialUrl,
@@ -112,6 +131,7 @@ class HonorModel extends Equatable {
       name: name ?? this.name,
       description: description ?? this.description,
       categoryId: categoryId ?? this.categoryId,
+      categoryName: categoryName ?? this.categoryName,
       imageUrl: imageUrl ?? this.imageUrl,
       skillLevel: skillLevel ?? this.skillLevel,
       materialUrl: materialUrl ?? this.materialUrl,
@@ -128,6 +148,7 @@ class HonorModel extends Equatable {
         name,
         description,
         categoryId,
+        categoryName,
         imageUrl,
         skillLevel,
         materialUrl,

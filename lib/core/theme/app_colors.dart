@@ -242,18 +242,26 @@ class AppColors {
   // COLORES DE CATEGORÍAS DE HONORES
   // ═══════════════════════════════════════════════════════════
 
-  static const Color catAdra = Color(0xFF4D3E83);
   static const Color catAgropecuarias = Color(0xFF592F1B);
   static const Color catAgropecuariasBorde = Color(0xFFDFBC2B);
-  static const Color catCienciasSalud = Color(0xFF6C3F81);
-  static const Color catDomesticas = Color(0xFFF59F08);
-  static const Color catHabilidadesManuales = Color(0xFF6D4C41);
-  static const Color catMisioneras = Color(0xFF7B1FA2);
-  static const Color catNaturaleza = Color(0xFFF7F7F2);
-  static const Color catNaturalezaBorde = Color(0xFFCD8F71);
-  static const Color catProfesionales = Color(0xFFD01B30);
   static const Color catRecreativas = Color(0xFF047648);
   static const Color catRecreativasBorde = Color(0xFFEEF1F0);
+  static const Color catProfesionales = Color(0xFFCD2233);
+  static const Color catProfesionalesBorde = Color(0xFF3F3232);
+  static const Color catAdra = Color(0xFF514082);
+  static const Color catAdraBorde = Color(0xFFA4A3C9);
+  static const Color catHabilidadesManuales = Color(0xFF248ABA);
+  static const Color catHabilidadesManualesBorde = Color(0xFFE1CD4D);
+  static const Color catDomesticas = Color(0xFFF49D14);
+  static const Color catDomesticasBorde = Color(0xFF145089);
+  static const Color catMisioneras = Color(0xFF083F75);
+  static const Color catMisionerasBorde = Color(0xFFD8CB54);
+  static const Color catDoctrinales = Color(0xFF68C2AF);
+  static const Color catDoctrinalesBorde = Color(0xFFCFCF2A);
+  static const Color catNaturaleza = Color(0xFFF5F7F8);
+  static const Color catNaturalezaBorde = Color(0xFFC08659);
+  static const Color catCienciasSalud = Color(0xFF6D4280);
+  static const Color catCienciasSaludBorde = Color(0xFFDDE03B);
 
   // ═══════════════════════════════════════════════════════════
   // HELPER: Resolución de color por nombre de clase progresiva

@@ -11,7 +11,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import '../../domain/entities/honor.dart';
-import '../utils/honor_category_colors.dart';
+import '../theme/honor_category_palette.dart';
 import '../../domain/entities/user_honor.dart';
 import '../providers/honors_providers.dart';
 import '../widgets/honor_card.dart';
@@ -203,18 +203,19 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(20),
+                        color: context.sac.surfaceVariant,
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: context.sac.borderLight),
                       ),
                       child: RichText(
                         text: TextSpan(
                           children: [
                             TextSpan(
                               text: '$completed',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.white,
+                                color: context.sac.text,
                               ),
                             ),
                             TextSpan(
@@ -222,7 +223,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
-                                color: Colors.white.withAlpha(180),
+                                color: context.sac.textSecondary,
                               ),
                             ),
                           ],
@@ -237,23 +238,23 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
               TextField(
                 controller: _searchController,
                 onChanged: _onSearchChanged,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                style: TextStyle(color: context.sac.text, fontSize: 14),
                 decoration: InputDecoration(
                   hintText: 'honors.catalog.search_hint'.tr(),
                   hintStyle: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.78),
+                    color: context.sac.textTertiary,
                     fontSize: 14,
                   ),
                   prefixIcon: HugeIcon(
                     icon: HugeIcons.strokeRoundedSearch01,
-                    color: Colors.white.withValues(alpha: 0.85),
+                    color: context.sac.textSecondary,
                     size: 20,
                   ),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
                           icon: HugeIcon(
                             icon: HugeIcons.strokeRoundedCancel01,
-                            color: Colors.white.withValues(alpha: 0.85),
+                            color: context.sac.textSecondary,
                             size: 18,
                           ),
                           onPressed: () {
@@ -271,7 +272,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
-                  fillColor: Colors.white.withAlpha(20),
+                  fillColor: context.sac.surfaceVariant,
                 ),
               ),
             ],
@@ -313,6 +314,10 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
               label: category.name,
               isSelected: selectedCategory == category.id,
               activeColor: getCategoryColor(
+                categoryId: category.id,
+                categoryName: category.name,
+              ),
+              activeBorderColor: getCategoryAccentColor(
                 categoryId: category.id,
                 categoryName: category.name,
               ),

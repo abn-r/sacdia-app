@@ -235,6 +235,7 @@ class HonorEvidenceActionsNotifier extends AutoDisposeAsyncNotifier<void> {
     required int honorId,
     required File file,
     required String fileName,
+    bool skipInvalidation = false,
   }) async {
     state = const AsyncValue.loading();
 
@@ -254,11 +255,17 @@ class HonorEvidenceActionsNotifier extends AutoDisposeAsyncNotifier<void> {
       },
       (_) {
         state = const AsyncValue.data(null);
-        ref.invalidate(userHonorsProvider);
-        ref.invalidate(userHonorForHonorProvider(honorId));
+        if (!skipInvalidation) {
+          invalidateHonorEvidence(honorId);
+        }
         return true;
       },
     );
+  }
+
+  void invalidateHonorEvidence(int honorId) {
+    ref.invalidate(userHonorsProvider);
+    ref.invalidate(userHonorForHonorProvider(honorId));
   }
 
   Future<bool> deleteEvidenceFile({

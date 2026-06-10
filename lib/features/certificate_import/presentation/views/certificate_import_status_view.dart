@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
@@ -9,6 +10,7 @@ import '../../domain/entities/certificate_import_batch.dart';
 import '../../domain/entities/certificate_import_item.dart';
 import '../../domain/usecases/resubmit_certificate_import_item.dart';
 import '../providers/certificate_import_providers.dart';
+import '../widgets/certificate_import_back_button.dart';
 import '../widgets/certificate_import_item_card.dart';
 
 class CertificateImportStatusRouteView extends ConsumerWidget {
@@ -23,6 +25,12 @@ class CertificateImportStatusRouteView extends ConsumerWidget {
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (error, _) => Scaffold(
+          appBar: AppBar(
+            leading: const CertificateImportBackButton(
+              fallbackLocation: RouteNames.certificateImportUpload,
+            ),
+            title: const Text('Estado del envío'),
+          ),
           body: Center(child: Text('No pudimos cargar el estado: $error'))),
       data: (batch) => CertificateImportStatusView(
         batch: batch,
@@ -82,7 +90,12 @@ class CertificateImportStatusView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(title: const Text('Estado del envío')),
+      appBar: AppBar(
+        leading: CertificateImportBackButton(
+          fallbackLocation: RouteNames.certificateImportReviewPath(batch.id),
+        ),
+        title: const Text('Estado del envío'),
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
         children: [

@@ -2756,6 +2756,8 @@
       "edit_profile_subtitle": "Atualize suas informações pessoais",
       "medical_info_title": "Informações Médicas",
       "medical_info_subtitle": "Alergias, doenças, medicamentos e contatos de emergência",
+      "certificate_import_title": "Carga por certificado",
+      "certificate_import_subtitle": "Envie comprovantes para registrar especialidades e classes",
       "settings_tile_title": "Configurações",
       "settings_tile_subtitle": "Tema, notificações e mais",
       "logout_title": "Sair",
