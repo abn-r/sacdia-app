@@ -360,9 +360,9 @@ final requirementEvidenceActionsNotifierProvider = AsyncNotifierProvider
 // ── Honor completion mode actions ───────────────────────────────────────────
 
 class HonorCompletionModeActionsNotifier
-    extends AutoDisposeAsyncNotifier<void> {
+    extends AutoDisposeAsyncNotifier<UserHonor?> {
   @override
-  Future<void> build() async {}
+  Future<UserHonor?> build() async => null;
 
   Future<bool> updateCompletionMode({
     required String userId,
@@ -383,8 +383,8 @@ class HonorCompletionModeActionsNotifier
         state = AsyncValue.error(failure.message, StackTrace.current);
         return false;
       },
-      (_) {
-        state = const AsyncValue.data(null);
+      (updatedUserHonor) {
+        state = AsyncValue.data(updatedUserHonor);
         ref.invalidate(userHonorsProvider);
         ref.invalidate(userHonorForHonorProvider(honorId));
         return true;
@@ -393,8 +393,8 @@ class HonorCompletionModeActionsNotifier
   }
 }
 
-final honorCompletionModeActionsNotifierProvider =
-    AsyncNotifierProvider.autoDispose<HonorCompletionModeActionsNotifier, void>(
+final honorCompletionModeActionsNotifierProvider = AsyncNotifierProvider
+    .autoDispose<HonorCompletionModeActionsNotifier, UserHonor?>(
   HonorCompletionModeActionsNotifier.new,
 );
 

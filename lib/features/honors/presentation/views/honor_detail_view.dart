@@ -72,6 +72,17 @@ String _completionModeLabel(HonorCompletionMode mode) {
   }
 }
 
+String _completionModeConfirmationMessageKey(HonorCompletionMode mode) {
+  switch (mode) {
+    case HonorCompletionMode.inApp:
+      return 'honors.work_mode.confirm_in_app_message';
+    case HonorCompletionMode.external:
+      return 'honors.work_mode.confirm_external_message';
+    case HonorCompletionMode.undecided:
+      return 'honors.work_mode.confirm_message';
+  }
+}
+
 // ── Main View ─────────────────────────────────────────────────────────────────
 
 class HonorDetailView extends ConsumerWidget {
@@ -192,12 +203,16 @@ class _HonorDetailContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userHonor = ref.watch(userHonorForHonorProvider(honorId));
+    final cachedUserHonor = ref.watch(userHonorForHonorProvider(honorId));
     final userHonorsLoading =
         ref.watch(userHonorsProvider.select((s) => s.isLoading));
     final enrollAsync = ref.watch(honorEnrollmentNotifierProvider);
     final modeActionState =
         ref.watch(honorCompletionModeActionsNotifierProvider);
+    final modeActionUserHonor = modeActionState.valueOrNull;
+    final userHonor = modeActionUserHonor?.honorId == honorId
+        ? modeActionUserHonor
+        : cachedUserHonor;
 
     final categoryName =
         ref.watch(categoryByIdProvider(honor.categoryId))?.name;
@@ -335,6 +350,9 @@ class _HonorDetailContent extends ConsumerWidget {
       return;
     }
 
+    final confirmed = await _confirmCompletionModeSelection(context, mode);
+    if (!confirmed || !context.mounted) return;
+
     final success = await ref
         .read(honorCompletionModeActionsNotifierProvider.notifier)
         .updateCompletionMode(
@@ -357,6 +375,31 @@ class _HonorDetailContent extends ConsumerWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
+  }
+
+  Future<bool> _confirmCompletionModeSelection(
+    BuildContext context,
+    HonorCompletionMode mode,
+  ) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('honors.work_mode.confirm_title'.tr()),
+        content: Text(_completionModeConfirmationMessageKey(mode).tr()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text('common.cancel'.tr()),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text('common.confirm'.tr()),
+          ),
+        ],
+      ),
+    );
+
+    return result ?? false;
   }
 }
 

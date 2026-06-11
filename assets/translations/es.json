@@ -434,7 +434,11 @@
       "in_app_description": "Marca requisitos, responde preguntas y sube evidencia por requisito cuando aplique.",
       "external_title": "Completar fuera de la app",
       "external_description": "Descarga el formato, complétalo y sube el archivo final con evidencias generales.",
-      "saving": "Guardando tu elección..."
+      "saving": "Guardando tu elección...",
+      "confirm_title": "Confirmar modo de trabajo",
+      "confirm_message": "Confirma que quieres guardar este modo de trabajo para la especialidad.",
+      "confirm_in_app_message": "Vas a completar la especialidad dentro de la app. Se guardará este modo y se enviará la elección al sistema.",
+      "confirm_external_message": "Vas a completar la especialidad fuera de la app. Se guardará este modo y se enviará la elección al sistema."
     },
     "requirements": {
       "header_subtitle": "Requisitos",

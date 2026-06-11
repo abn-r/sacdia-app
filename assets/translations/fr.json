@@ -434,7 +434,11 @@
       "in_app_description": "Cochez les exigences, répondez aux questions et ajoutez une preuve par exigence si nécessaire.",
       "external_title": "Compléter hors de l'appli",
       "external_description": "Téléchargez le formulaire, complétez-le et téléversez le fichier final avec les preuves générales.",
-      "saving": "Enregistrement de votre choix..."
+      "saving": "Enregistrement de votre choix...",
+      "confirm_title": "Confirmer le mode de travail",
+      "confirm_message": "Confirmez que vous voulez enregistrer ce mode de travail pour cette spécialité.",
+      "confirm_in_app_message": "Vous allez compléter cette spécialité dans l'appli. Ce mode sera enregistré et envoyé au système.",
+      "confirm_external_message": "Vous allez compléter cette spécialité hors de l'appli. Ce mode sera enregistré et envoyé au système."
     },
     "requirements": {
       "header_subtitle": "Exigences",

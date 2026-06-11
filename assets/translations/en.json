@@ -434,7 +434,11 @@
       "in_app_description": "Check requirements, answer prompts, and upload requirement evidence when needed.",
       "external_title": "Complete outside the app",
       "external_description": "Download the form, complete it, and upload the final file with general evidence.",
-      "saving": "Saving your choice..."
+      "saving": "Saving your choice...",
+      "confirm_title": "Confirm work mode",
+      "confirm_message": "Confirm that you want to save this work mode for the honor.",
+      "confirm_in_app_message": "You will complete this honor inside the app. This mode will be saved and sent to the system.",
+      "confirm_external_message": "You will complete this honor outside the app. This mode will be saved and sent to the system."
     },
     "requirements": {
       "header_subtitle": "Requirements",

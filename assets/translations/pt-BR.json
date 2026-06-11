@@ -434,7 +434,11 @@
       "in_app_description": "Marque requisitos, responda perguntas e envie evidência por requisito quando necessário.",
       "external_title": "Concluir fora do app",
       "external_description": "Baixe o formulário, conclua-o e envie o arquivo final com evidências gerais.",
-      "saving": "Salvando sua escolha..."
+      "saving": "Salvando sua escolha...",
+      "confirm_title": "Confirmar modo de trabalho",
+      "confirm_message": "Confirme que você quer salvar este modo de trabalho para a especialidade.",
+      "confirm_in_app_message": "Você vai concluir esta especialidade dentro do app. Este modo será salvo e enviado ao sistema.",
+      "confirm_external_message": "Você vai concluir esta especialidade fora do app. Este modo será salvo e enviado ao sistema."
     },
     "requirements": {
       "header_subtitle": "Requisitos",
