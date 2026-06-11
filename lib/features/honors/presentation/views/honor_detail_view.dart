@@ -339,7 +339,15 @@ class _HonorDetailContent extends ConsumerWidget {
     WidgetRef ref,
     HonorCompletionMode mode,
   ) async {
-    final userId = ref.read(authNotifierProvider).value?.id;
+    final confirmed = await _confirmCompletionModeSelection(context, mode);
+    if (!confirmed || !context.mounted) return;
+
+    final user = ref.read(authNotifierProvider).valueOrNull ??
+        await ref.read(authNotifierProvider.future);
+
+    if (!context.mounted) return;
+
+    final userId = user?.id;
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -349,9 +357,6 @@ class _HonorDetailContent extends ConsumerWidget {
       );
       return;
     }
-
-    final confirmed = await _confirmCompletionModeSelection(context, mode);
-    if (!confirmed || !context.mounted) return;
 
     final success = await ref
         .read(honorCompletionModeActionsNotifierProvider.notifier)

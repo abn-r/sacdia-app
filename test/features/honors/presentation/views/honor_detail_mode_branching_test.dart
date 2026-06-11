@@ -161,7 +161,6 @@ void main() {
         ),
         honorCompletionModeActionsNotifierProvider.overrideWith(() => recorder),
       ],
-      watchAuth: true,
     );
 
     await tester.ensureVisible(find.text('honors.work_mode.in_app_title'));
