@@ -1,21 +1,25 @@
+import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:printing/printing.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../../../../core/widgets/secure_screen.dart';
 import '../providers/virtual_card_providers.dart';
 import '../widgets/credencial/action_pill.dart';
 import '../widgets/credencial/credencial_card.dart';
-import '../widgets/credencial/credencial_pdf.dart';
 import '../widgets/credencial/credencial_qr_fullscreen.dart';
 import '../widgets/credencial/credencial_tokens.dart';
 import '../widgets/credencial/credencial_view_model.dart';
+import '../widgets/credencial/credential_parallax.dart';
 import '../widgets/virtual_card_skeleton.dart';
-import 'virtual_card_photo_view.dart';
+import '../utils/credential_image_pdf.dart';
+import '../utils/credential_share_capture.dart';
+import '../utils/share_position_origin.dart';
 import '../../../master_honors/presentation/widgets/master_honor_history_section.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
@@ -28,7 +32,9 @@ class VirtualCardView extends ConsumerStatefulWidget {
 }
 
 class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
-  bool _downloadingPdf = false;
+  final GlobalKey _cardBoundaryKey = GlobalKey();
+  final GlobalKey _shareButtonKey = GlobalKey();
+  bool _sharingCredential = false;
 
   Future<void> _refresh() async {
     ref.invalidate(virtualCardFetcherProvider);
@@ -39,45 +45,51 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
     }
   }
 
-  Future<void> _share(CredencialViewModel vm) async {
-    await Share.share(
-      'Mi credencial SACDIA\nFolio: ${vm.folio}\nClub: ${vm.club}',
-      subject: 'Credencial Digital SACDIA',
-    );
-  }
-
-  Future<void> _downloadAndSharePdf(CredencialViewModel vm) async {
-    if (_downloadingPdf) return;
-    setState(() => _downloadingPdf = true);
+  Future<void> _shareCredential(CredencialViewModel vm) async {
+    if (_sharingCredential) return;
+    setState(() => _sharingCredential = true);
     final messenger = ScaffoldMessenger.of(context);
+    final sharePositionOrigin = sharePositionOriginForContext(
+      _shareButtonKey.currentContext ?? context,
+    );
     try {
-      final bytes = await buildCredencialPdf(vm);
-      await Printing.sharePdf(
-        bytes: bytes,
-        filename:
-            'credencial_${vm.folio.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_')}.pdf',
+      final pngBytes = await captureCredentialBoundaryPng(
+        boundaryKey: _cardBoundaryKey,
+        viewContext: context,
+      );
+      final pdfBytes = await buildCredentialImagePdf(pngBytes);
+
+      final safeFolio = vm.folio.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_');
+      final pngFileName = 'credencial_$safeFolio.png';
+      final pdfFileName = 'credencial_$safeFolio.pdf';
+      final tempDir = await getTemporaryDirectory();
+      final pngFile = File('${tempDir.path}/$pngFileName');
+      final pdfFile = File('${tempDir.path}/$pdfFileName');
+      await pngFile.writeAsBytes(pngBytes, flush: true);
+      await pdfFile.writeAsBytes(pdfBytes, flush: true);
+
+      await Share.shareXFiles(
+        [
+          XFile(pngFile.path, mimeType: 'image/png', name: pngFileName),
+          XFile(pdfFile.path, mimeType: 'application/pdf', name: pdfFileName),
+        ],
+        subject: 'Credencial Digital SACDIA',
+        text: 'Mi credencial SACDIA · ${vm.folio}',
+        sharePositionOrigin: sharePositionOrigin,
       );
     } catch (e) {
+      AppLogger.e('Error al compartir credencial',
+          tag: 'VirtualCard', error: e);
       messenger.showSnackBar(
         SnackBar(
-          content: Text('No se pudo generar el PDF: $e'),
+          content: Text('virtual_card.share_error'.tr()),
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.red.shade700,
         ),
       );
     } finally {
-      if (mounted) setState(() => _downloadingPdf = false);
+      if (mounted) setState(() => _sharingCredential = false);
     }
-  }
-
-  void _showComingSoon(String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$feature — Próximamente'),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
-    );
   }
 
   @override
@@ -140,112 +152,82 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
                       return Column(
                         key: ValueKey('virtual-card-${card.userId}'),
                         children: [
-                          Stack(
-                            children: [
-                              CredencialCard(
-                                vm: vm,
-                                onQrTap: card.canShowQr
-                                    ? () => Navigator.of(context).push(
-                                          _credencialQrFullscreenRoute(
-                                            vm,
-                                            heroTag,
+                          CredentialParallax(
+                            enabled: !_sharingCredential,
+                            child: RepaintBoundary(
+                              key: _cardBoundaryKey,
+                              child: Stack(
+                                children: [
+                                  CredencialCard(
+                                    vm: vm,
+                                    onQrTap: card.canShowQr
+                                        ? () => Navigator.of(context).push(
+                                              _credencialQrFullscreenRoute(
+                                                vm,
+                                                heroTag,
+                                              ),
+                                            )
+                                        : _refresh,
+                                  ),
+                                  if (card.isOffline)
+                                    Positioned(
+                                      top: 14,
+                                      left: 14,
+                                      right: 14,
+                                      child: _StatusBanner(
+                                        key: const Key(
+                                          'virtual-card-offline-banner',
+                                        ),
+                                        icon: HugeIcons.strokeRoundedWifiOff01,
+                                        text:
+                                            'virtual_card.offline_banner'.tr(),
+                                      ),
+                                    ),
+                                  if (card.isInactive)
+                                    Positioned.fill(
+                                      child: Container(
+                                        key: const Key(
+                                          'virtual-card-inactive-overlay',
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0x33C53D3D),
+                                          borderRadius: BorderRadius.circular(
+                                            CredencialTokens.rImmersive,
                                           ),
-                                        )
-                                    : _refresh,
-                              ),
-                              if (card.isOffline)
-                                Positioned(
-                                  top: 14,
-                                  left: 14,
-                                  right: 14,
-                                  child: _StatusBanner(
-                                    key: const Key(
-                                      'virtual-card-offline-banner',
-                                    ),
-                                    icon: HugeIcons.strokeRoundedWifiOff01,
-                                    text: 'virtual_card.offline_banner'.tr(),
-                                  ),
-                                ),
-                              if (card.isInactive)
-                                Positioned.fill(
-                                  child: Container(
-                                    key: const Key(
-                                      'virtual-card-inactive-overlay',
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0x33C53D3D),
-                                      borderRadius: BorderRadius.circular(
-                                        CredencialTokens.rImmersive,
+                                        ),
+                                        alignment: Alignment.center,
+                                        padding: const EdgeInsets.all(24),
+                                        child: Text(
+                                          'virtual_card.inactive_message'.tr(),
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                    alignment: Alignment.center,
-                                    padding: const EdgeInsets.all(24),
-                                    child: Text(
-                                      'virtual_card.inactive_message'.tr(),
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ActionPill(
-                                  label: 'Wallet',
-                                  icon: ActionIcon.wallet,
-                                  primary: true,
-                                  onTap: () => _showComingSoon('Wallet'),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: ActionPill(
-                                  label: 'Compartir',
-                                  icon: ActionIcon.share,
-                                  onTap: () => _share(vm),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: ActionPill(
-                                  label:
-                                      _downloadingPdf ? 'Descargando…' : 'PDF',
-                                  icon: ActionIcon.pdf,
-                                  onTap: _downloadingPdf
-                                      ? null
-                                      : () => _downloadAndSharePdf(vm),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const MasterHonorBadgeStrip(),
-                          if (card.photoUrl?.trim().isNotEmpty == true) ...[
-                            const SizedBox(height: 8),
-                            Center(
-                              child: TextButton.icon(
-                                onPressed: () => Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => VirtualCardPhotoView(
-                                      title: card.fullName,
-                                      photoUrl: card.photoUrl,
-                                    ),
-                                  ),
-                                ),
-                                icon: const HugeIcon(
-                                  icon: HugeIcons.strokeRoundedImage01,
-                                  size: 18,
-                                ),
-                                label: Text('virtual_card.view_photo'.tr()),
+                                ],
                               ),
                             ),
-                          ],
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            key: _shareButtonKey,
+                            width: double.infinity,
+                            child: ActionPill(
+                              label: _sharingCredential
+                                  ? 'virtual_card.share_preparing'.tr()
+                                  : 'virtual_card.share_card'.tr(),
+                              icon: ActionIcon.share,
+                              primary: true,
+                              onTap: _sharingCredential
+                                  ? null
+                                  : () => _shareCredential(vm),
+                            ),
+                          ),
+                          const MasterHonorBadgeStrip(),
                         ],
                       );
                     },

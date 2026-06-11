@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/sac_colors.dart';
 import '../../../profile/presentation/widgets/setting_tile.dart';
 import '../views/support_view.dart';
 
@@ -24,21 +25,22 @@ class SupportSettingsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
             'support.section_title'.tr().toUpperCase(),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.black54,
-                  letterSpacing: 0.6,
-                  fontWeight: FontWeight.w600,
-                ),
+            style: TextStyle(
+              fontSize: 11,
+              color: context.sac.textTertiary,
+              letterSpacing: 0.8,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
         Container(
-          margin: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
+            color: context.sac.surface,
             borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: context.sac.border, width: 1),
           ),
           child: SettingTile(
             icon: HugeIcons.strokeRoundedHelpCircle,

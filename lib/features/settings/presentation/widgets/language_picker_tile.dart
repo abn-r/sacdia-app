@@ -10,14 +10,14 @@ class LanguagePickerTile extends StatelessWidget {
   const LanguagePickerTile({super.key});
 
   static const _locales = <_LocaleOption>[
-    _LocaleOption(locale: Locale('es'), flag: '🇲🇽', label: 'Español'),
+    _LocaleOption(locale: Locale('es'), code: 'ES', label: 'Español'),
     _LocaleOption(
       locale: Locale('pt', 'BR'),
-      flag: '🇧🇷',
+      code: 'BR',
       label: 'Português (Brasil)',
     ),
-    _LocaleOption(locale: Locale('en'), flag: '🇺🇸', label: 'English'),
-    _LocaleOption(locale: Locale('fr'), flag: '🇫🇷', label: 'Français'),
+    _LocaleOption(locale: Locale('en'), code: 'EN', label: 'English'),
+    _LocaleOption(locale: Locale('fr'), code: 'FR', label: 'Français'),
   ];
 
   static _LocaleOption _currentOption(Locale current) {
@@ -55,7 +55,7 @@ class LanguagePickerTile extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            _FlagEmoji(flag: current.flag, compact: true),
+            _LanguageFlagBadge(option: current, compact: true),
             const SizedBox(width: 8),
             Flexible(
               child: Text(
@@ -79,36 +79,98 @@ class LanguagePickerTile extends StatelessWidget {
 
 class _LocaleOption {
   final Locale locale;
-  final String flag;
+  final String code;
   final String label;
   const _LocaleOption({
     required this.locale,
-    required this.flag,
+    required this.code,
     required this.label,
   });
 }
 
-class _FlagEmoji extends StatelessWidget {
-  const _FlagEmoji({required this.flag, this.compact = false});
+class _LanguageFlagBadge extends StatelessWidget {
+  const _LanguageFlagBadge({
+    required this.option,
+    this.compact = false,
+  });
 
-  static const _emojiFontFallback = <String>[
-    'Apple Color Emoji',
-    'Noto Color Emoji',
-    'Segoe UI Emoji',
-  ];
-
-  final String flag;
+  final _LocaleOption option;
   final bool compact;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      flag,
-      style: TextStyle(
-        fontSize: compact ? 17 : 24,
-        fontFamilyFallback: _emojiFontFallback,
+    final colors = _colorsFor(option.locale);
+    final width = compact ? 34.0 : 42.0;
+    final height = compact ? 22.0 : 28.0;
+
+    return Semantics(
+      label: option.label,
+      child: Container(
+        width: width,
+        height: height,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: context.sac.surface,
+          borderRadius: BorderRadius.circular(compact ? 8 : 10),
+          border: Border.all(color: context.sac.border),
+          boxShadow: [
+            BoxShadow(
+              color: context.sac.shadow,
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Row(
+              children: colors
+                  .map(
+                    (color) => Expanded(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(color: color),
+                      ),
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+            Center(
+              child: Text(
+                option.code,
+                style: TextStyle(
+                  color: _textColorFor(option.locale),
+                  fontSize: compact ? 9 : 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  static List<Color> _colorsFor(Locale locale) {
+    final language = locale.languageCode;
+    final country = locale.countryCode;
+
+    if (language == 'es') {
+      return const [Color(0xFFAA151B), Color(0xFFF1BF00), Color(0xFFAA151B)];
+    }
+    if (language == 'pt' && country == 'BR') {
+      return const [Color(0xFF009B3A), Color(0xFFFFDF00), Color(0xFF002776)];
+    }
+    if (language == 'fr') {
+      return const [Color(0xFF0055A4), Colors.white, Color(0xFFEF4135)];
+    }
+    return const [Color(0xFF1F3F8B), Colors.white, Color(0xFFB22234)];
+  }
+
+  static Color _textColorFor(Locale locale) {
+    if (locale.languageCode == 'fr') return const Color(0xFF111827);
+    return Colors.white;
   }
 }
 
@@ -157,7 +219,7 @@ class _LocalePickerSheet extends StatelessWidget {
             final isCurrent = o.locale.languageCode == current.languageCode &&
                 (o.locale.countryCode ?? '') == (current.countryCode ?? '');
             return ListTile(
-              leading: _FlagEmoji(flag: o.flag),
+              leading: _LanguageFlagBadge(option: o),
               title: Text(
                 o.label,
                 style: TextStyle(color: c.text),

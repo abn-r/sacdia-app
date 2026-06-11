@@ -447,7 +447,7 @@ class _ActionCard extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('¿Estás seguro de que querés cancelar este pedido?'),
+            const Text('¿Estás seguro de que deseas cancelar este pedido?'),
             const SizedBox(height: 12),
             TextField(
               controller: reasonController,

@@ -17,7 +17,7 @@ class NominatimRemoteDataSourceImpl implements NominatimRemoteDataSource {
                 connectTimeout: const Duration(seconds: 5),
                 receiveTimeout: const Duration(seconds: 5),
                 headers: const {
-                  'User-Agent': 'SACDIA App/1.0 (contact@sacdia.org)',
+                  'User-Agent': 'SACDIA App/1.0 (contact@sacdia.com)',
                   'Accept-Language': 'es',
                 },
               ),

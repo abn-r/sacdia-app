@@ -116,11 +116,16 @@ Future<VirtualCard> _buildFallbackCard(
     profile?.clubName,
     activeGrant?.clubTypeName,
   ]);
-  final sectionName = _pickNonEmpty([profile?.currentClass]);
+  final sectionName = _pickNonEmpty([
+    profile?.clubType,
+    activeGrant?.clubTypeName,
+  ]);
   final photoUrl = _pickNonEmpty([
     profile?.avatar,
     user.avatar,
   ]);
+  final currentClass = _pickNonEmpty([profile?.currentClass]);
+  final bloodType = _pickNonEmpty([profile?.blood]);
 
   return VirtualCard(
     userId: user.id,
@@ -139,6 +144,8 @@ Future<VirtualCard> _buildFallbackCard(
         DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
     isActive: user.authorization?.activeGrant?.isActive ?? true,
     isOffline: isOffline,
+    currentClass: currentClass,
+    bloodType: bloodType,
   );
 }
 

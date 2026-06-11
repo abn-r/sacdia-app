@@ -320,35 +320,13 @@ class _ProfileScrollBody extends StatelessWidget {
             // ── App bar row (Instagram style) ──────────────────
             Padding(
               padding: EdgeInsets.only(
-                left: hPad,
+                left: hPad / 2,
                 right: hPad / 2,
                 top: 8,
                 bottom: 4,
               ),
               child: Row(
                 children: [
-                  const Spacer(),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedLockKey,
-                        color: c.text,
-                        size: 14,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'profile.view.user_profile'.tr(),
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: c.text,
-                                ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
                   IconButton(
                     icon: HugeIcon(
                       icon: HugeIcons.strokeRoundedQrCode,
@@ -357,6 +335,34 @@ class _ProfileScrollBody extends StatelessWidget {
                     ),
                     onPressed: onQr,
                     tooltip: 'profile.view.qr_tooltip'.tr(),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedLockKey,
+                            color: c.text,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              'profile.view.user_profile'.tr(),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: c.text,
+                                  ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   IconButton(
                     icon: HugeIcon(

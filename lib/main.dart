@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/config/cache_config.dart';
 import 'core/config/router.dart';
+import 'core/onboarding/sac_onboarding.dart';
 import 'core/realtime/feature_flags.dart';
 import 'core/realtime/realtime_invalidation_handler.dart';
 import 'core/realtime/realtime_ref.dart';
@@ -361,8 +362,10 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
             // de AppLock se renderee por encima de TODAS las rutas cuando
             // biometría está habilitada y la sesión no ha sido desbloqueada
             // en este cold start. Si está deshabilitada, es un passthrough.
-            builder: (context, child) => BiometricGate(
-              child: child ?? const SizedBox.shrink(),
+            builder: (context, child) => SacOnboardingScope(
+              child: BiometricGate(
+                child: child ?? const SizedBox.shrink(),
+              ),
             ),
           ),
         ),

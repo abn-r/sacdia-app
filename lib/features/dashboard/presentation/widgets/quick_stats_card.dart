@@ -141,7 +141,7 @@ class _MissionStatsCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             honorsInProgress == 0
-                ? 'Buen trabajo. Ahora podés revisar tu próxima clase o nuevos honores.'
+                ? 'Buen trabajo. Ahora puedes revisar tu próxima clase o nuevos honores.'
                 : 'Tu foco está claro: avanzá una especialidad pendiente a la vez.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: helperColor,

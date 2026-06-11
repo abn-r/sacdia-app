@@ -213,11 +213,11 @@
     "section_title": "Help and support",
     "section_get_help": "Need help?",
     "settings_entry_title": "Help and support",
-    "settings_entry_subtitle": "FAQ, contact and reports",
+    "settings_entry_subtitle": "FAQ, email and reports",
     "faq_tile": "Frequently asked questions",
     "faq_tile_subtitle": "Quick answers to common questions",
     "contact_tile": "Contact support",
-    "contact_tile_subtitle": "Email and WhatsApp",
+    "contact_tile_subtitle": "Direct email",
     "report_tile": "Report a problem",
     "report_tile_subtitle": "Send bugs, suggestions or help requests",
     "faq_title": "Frequently asked questions",
@@ -225,12 +225,10 @@
     "faq_empty": "No questions available yet",
     "faq_no_results": "No results for \"{}\"",
     "contact_title": "Contact support",
-    "contact_intro": "We're here to help. Reach out through your preferred channel.",
+    "contact_intro": "We are here to help. Send us an email and we will reply during support hours.",
     "contact_email_title": "Send email",
-    "contact_whatsapp_title": "Chat on WhatsApp",
     "contact_hours": "Office hours: Mon–Fri 9:00 to 18:00 (CDMX)",
     "email_subject": "Inquiry from the SACDIA app",
-    "whatsapp_default_message": "Hi, I need help with the SACDIA app.",
     "channel_launch_failed": "We couldn't open this channel. Copy: {}",
     "report_title": "Report a problem",
     "report_intro": "Tell us what happened. Device info is sent automatically to help us resolve it faster.",
@@ -262,7 +260,26 @@
       "no_internet": "You need an internet connection to submit the report",
       "faq_load_failed": "We could not load the frequently asked questions"
     },
-    "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})"
+    "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})",
+    "hub_badge": "Help trail",
+    "hub_title": "Find the right trail for your question",
+    "hub_intro": "Get quick answers, email support, or send a report with technical context.",
+    "route_faq_label": "First stop",
+    "route_contact_label": "Direct channel",
+    "route_report_label": "Trail log",
+    "faq_hero_title": "Answer map",
+    "faq_hero_body": "Explore {} answers organized like a camp trail.",
+    "faq_card_badge": "Guided trail",
+    "faq_category": {
+      "all": "All",
+      "account": "Account",
+      "notifications": "Notifications",
+      "offline": "Offline",
+      "privacy": "Privacy",
+      "profile": "Profile",
+      "support": "Support",
+      "onboarding": "Start"
+    }
   },
   "biometric": {
     "tile_title": "Biometric unlock",
@@ -3346,14 +3363,13 @@
     "offline_banner": "Offline mode — cached data",
     "inactive_message": "This credential is not active.",
     "load_error": "Could not load the credential",
-    "photo_alt": "Profile photo of {name}",
-    "view_photo": "View photo",
     "qr_alt": "Credential QR code",
     "club_label": "Club",
     "section_label": "Section",
     "member_since_label": "Member since",
     "id_prefix": "ID #",
     "id_missing": "ID unavailable",
+    "current_class_label": "Current class",
     "qr_unavailable": "QR unavailable",
     "qr_expired": "QR expired",
     "expired_note": "Renew your credential when you are back online",
@@ -3371,7 +3387,10 @@
       "empty_card": "Empty virtual card response from the server.",
       "load_failed": "We could not load your credential right now.",
       "rate_limited": "Too many requests. Please wait a moment before refreshing the credential again."
-    }
+    },
+    "share_card": "Share credential",
+    "share_preparing": "Preparing…",
+    "share_error": "Could not prepare the credential for sharing."
   },
   "rankings": {
     "my_ranking": {

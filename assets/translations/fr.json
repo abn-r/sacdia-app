@@ -213,11 +213,11 @@
     "section_title": "Aide et support",
     "section_get_help": "Besoin d'aide ?",
     "settings_entry_title": "Aide et support",
-    "settings_entry_subtitle": "FAQ, contact et signalements",
+    "settings_entry_subtitle": "FAQ, e-mail et signalements",
     "faq_tile": "Questions fréquentes",
     "faq_tile_subtitle": "Réponses rapides aux questions courantes",
     "contact_tile": "Contacter le support",
-    "contact_tile_subtitle": "E-mail et WhatsApp",
+    "contact_tile_subtitle": "E-mail direct",
     "report_tile": "Signaler un problème",
     "report_tile_subtitle": "Envoyez bugs, suggestions ou demandes d'aide",
     "faq_title": "Questions fréquentes",
@@ -225,12 +225,10 @@
     "faq_empty": "Aucune question disponible pour le moment",
     "faq_no_results": "Aucun résultat pour « {} »",
     "contact_title": "Contacter le support",
-    "contact_intro": "Nous sommes là pour aider. Écrivez-nous par le canal de votre choix.",
+    "contact_intro": "Nous sommes là pour aider. Envoyez-nous un e-mail et nous répondrons pendant les horaires de support.",
     "contact_email_title": "Envoyer un e-mail",
-    "contact_whatsapp_title": "Chat WhatsApp",
     "contact_hours": "Horaires : lun-ven 9:00 à 18:00 (CDMX)",
     "email_subject": "Demande depuis l'application SACDIA",
-    "whatsapp_default_message": "Bonjour, j'ai besoin d'aide avec l'application SACDIA.",
     "channel_launch_failed": "Impossible d'ouvrir ce canal. Copier : {}",
     "report_title": "Signaler un problème",
     "report_intro": "Dites-nous ce qui s'est passé. Les informations de l'appareil sont envoyées automatiquement pour nous aider à résoudre plus vite.",
@@ -262,7 +260,26 @@
       "no_internet": "Vous avez besoin d'une connexion Internet pour envoyer le rapport",
       "faq_load_failed": "Nous n'avons pas pu charger la foire aux questions"
     },
-    "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})"
+    "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})",
+    "hub_badge": "Parcours d’aide",
+    "hub_title": "Trouvez le bon sentier pour votre question",
+    "hub_intro": "Consultez des réponses rapides, écrivez au support ou envoyez un signalement avec contexte technique.",
+    "route_faq_label": "Premier arrêt",
+    "route_contact_label": "Canal direct",
+    "route_report_label": "Carnet de route",
+    "faq_hero_title": "Carte des réponses",
+    "faq_hero_body": "Explorez {} réponses organisées comme un parcours de camp.",
+    "faq_card_badge": "Parcours guidé",
+    "faq_category": {
+      "all": "Tout",
+      "account": "Compte",
+      "notifications": "Notifications",
+      "offline": "Hors ligne",
+      "privacy": "Confidentialité",
+      "profile": "Profil",
+      "support": "Support",
+      "onboarding": "Départ"
+    }
   },
   "biometric": {
     "tile_title": "Déverrouillage biométrique",
@@ -3345,14 +3362,13 @@
     "offline_banner": "Mode hors ligne — données en cache",
     "inactive_message": "Cette carte n’est pas active. Contactez votre directeur.",
     "load_error": "Impossible de charger la carte",
-    "photo_alt": "Photo de profil de {name}",
-    "view_photo": "Voir la photo",
     "qr_alt": "Code QR de la carte",
     "club_label": "Club",
     "section_label": "Section",
     "member_since_label": "Membre depuis",
     "id_prefix": "ID #",
     "id_missing": "ID indisponible",
+    "current_class_label": "Classe actuelle",
     "qr_unavailable": "QR indisponible",
     "qr_expired": "QR expiré",
     "expired_note": "Renouvelez votre carte lorsque vous serez de nouveau en ligne",
@@ -3370,7 +3386,10 @@
       "empty_card": "Réponse vide de la carte virtuelle du serveur.",
       "load_failed": "Impossible de charger votre carte pour le moment.",
       "rate_limited": "Trop de requêtes. Patientez un moment avant d’actualiser à nouveau la carte."
-    }
+    },
+    "share_card": "Partager la carte",
+    "share_preparing": "Préparation…",
+    "share_error": "Impossible de préparer la carte pour le partage."
   },
   "rankings": {
     "my_ranking": {

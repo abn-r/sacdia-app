@@ -24,11 +24,6 @@ class _FakeVirtualCardRemoteDataSource implements VirtualCardRemoteDataSource {
   Future<VirtualCardModel> getVirtualCard({CancelToken? cancelToken}) async {
     throw error;
   }
-
-  @override
-  Future<List<int>> getVirtualCardPdf({CancelToken? cancelToken}) async {
-    throw error;
-  }
 }
 
 void main() {

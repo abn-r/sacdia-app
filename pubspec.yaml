@@ -22,11 +22,10 @@ dependencies:
   hugeicons: ^1.1.5
   loading_animation_widget: ^1.3.0
   mobile_scanner: ^7.2.0
+  showcaseview: ^5.0.2
   qr_flutter: ^4.1.0
-  share_plus: ^10.1.4    # Compartir credencial (action pill "Compartir")
-  pdf: ^3.11.1           # Client-side PDF rendering (pw.*)
-  printing: ^5.13.0      # Native print/share sheet for PDF bytes
-  http: ^1.2.2           # Lightweight HTTP for avatar image fetch in PDF builder
+  share_plus: ^10.1.4    # Compartir credencial desde el share sheet nativo
+  pdf: ^3.11.1           # PDF de credencial generado desde captura PNG
   screen_brightness: ^2.1.4  # Brillo máximo en QR fullscreen
   wakelock_plus: ^1.2.8      # Mantener pantalla encendida en SOS
   gal: ^2.3.0  # Guardar QR en galería desde long-press

@@ -4,8 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_text_field.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -81,11 +83,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     final currentCtrl = TextEditingController();
     final newCtrl = TextEditingController();
     final confirmCtrl = TextEditingController();
-    bool currentObscure = true;
-    bool newObscure = true;
-    bool confirmObscure = true;
     String? errorText;
-    bool isLoading = false;
 
     final submitted = await showDialog<bool>(
       context: context,
@@ -94,139 +92,147 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
-            return AlertDialog(
-              title: Text('profile.settings.change_password_dialog_title'.tr()),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: currentCtrl,
-                    obscureText: currentObscure,
-                    textInputAction: TextInputAction.next,
-                    enabled: !isLoading,
-                    decoration: InputDecoration(
-                      labelText: 'profile.settings.field_current_password'.tr(),
-                      suffixIcon: IconButton(
-                        icon: HugeIcon(
-                          icon: currentObscure
-                              ? HugeIcons.strokeRoundedViewOffSlash
-                              : HugeIcons.strokeRoundedView,
-                          size: 20,
-                          color: ctx.sac.textSecondary,
-                        ),
-                        onPressed: isLoading
-                            ? null
-                            : () => setDialogState(
-                                () => currentObscure = !currentObscure),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: newCtrl,
-                    obscureText: newObscure,
-                    textInputAction: TextInputAction.next,
-                    enabled: !isLoading,
-                    decoration: InputDecoration(
-                      labelText: 'profile.settings.field_new_password'.tr(),
-                      suffixIcon: IconButton(
-                        icon: HugeIcon(
-                          icon: newObscure
-                              ? HugeIcons.strokeRoundedViewOffSlash
-                              : HugeIcons.strokeRoundedView,
-                          size: 20,
-                          color: ctx.sac.textSecondary,
-                        ),
-                        onPressed: isLoading
-                            ? null
-                            : () =>
-                                setDialogState(() => newObscure = !newObscure),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: confirmCtrl,
-                    obscureText: confirmObscure,
-                    textInputAction: TextInputAction.done,
-                    enabled: !isLoading,
-                    decoration: InputDecoration(
-                      labelText: 'profile.settings.field_confirm_password'.tr(),
-                      suffixIcon: IconButton(
-                        icon: HugeIcon(
-                          icon: confirmObscure
-                              ? HugeIcons.strokeRoundedViewOffSlash
-                              : HugeIcons.strokeRoundedView,
-                          size: 20,
-                          color: ctx.sac.textSecondary,
-                        ),
-                        onPressed: isLoading
-                            ? null
-                            : () => setDialogState(
-                                () => confirmObscure = !confirmObscure),
-                      ),
-                    ),
-                  ),
-                  if (errorText != null) ...[
-                    const SizedBox(height: 10),
-                    Text(
-                      errorText!,
-                      style:
-                          const TextStyle(color: AppColors.error, fontSize: 13),
+            void submit() {
+              final current = currentCtrl.text.trim();
+              final next = newCtrl.text.trim();
+              final confirm = confirmCtrl.text.trim();
+
+              if (current.isEmpty || next.isEmpty || confirm.isEmpty) {
+                setDialogState(
+                    () => errorText = 'profile.settings.error_fill_all'.tr());
+                return;
+              }
+              if (next != confirm) {
+                setDialogState(() => errorText =
+                    'profile.settings.error_passwords_mismatch'.tr());
+                return;
+              }
+              if (next.length < 8) {
+                setDialogState(() => errorText =
+                    'profile.settings.error_password_too_short'.tr());
+                return;
+              }
+              setDialogState(() => errorText = null);
+              Navigator.pop(ctx, true);
+            }
+
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+                decoration: BoxDecoration(
+                  color: ctx.sac.surface,
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(color: ctx.sac.border),
+                  boxShadow: [
+                    BoxShadow(
+                      color: ctx.sac.shadow,
+                      blurRadius: 28,
+                      offset: const Offset(0, 14),
                     ),
                   ],
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: isLoading ? null : () => Navigator.pop(ctx, false),
-                  child: Text('common.cancel'.tr()),
                 ),
-                FilledButton(
-                  onPressed: isLoading
-                      ? null
-                      : () async {
-                          final current = currentCtrl.text.trim();
-                          final next = newCtrl.text.trim();
-                          final confirm = confirmCtrl.text.trim();
-
-                          if (current.isEmpty ||
-                              next.isEmpty ||
-                              confirm.isEmpty) {
-                            setDialogState(() => errorText =
-                                'profile.settings.error_fill_all'.tr());
-                            return;
-                          }
-                          if (next != confirm) {
-                            setDialogState(() => errorText =
-                                'profile.settings.error_passwords_mismatch'
-                                    .tr());
-                            return;
-                          }
-                          if (next.length < 8) {
-                            setDialogState(() => errorText =
-                                'profile.settings.error_password_too_short'
-                                    .tr());
-                            return;
-                          }
-                          setDialogState(() {
-                            errorText = null;
-                            isLoading = true;
-                          });
-                          Navigator.pop(ctx, true);
-                        },
-                  child: isLoading
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Align(
+                      alignment: Alignment.center,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 9,
+                        ),
+                        decoration: BoxDecoration(
+                          color: ctx.sac.surfaceVariant,
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: ctx.sac.border),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const HugeIcon(
+                              icon: HugeIcons.strokeRoundedLockPassword,
+                              color: AppColors.primary,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'profile.settings.change_password_dialog_title'
+                                  .tr(),
+                              style: TextStyle(
+                                color: ctx.sac.text,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    SacTextField(
+                      controller: currentCtrl,
+                      label: 'profile.settings.field_current_password'.tr(),
+                      obscureText: true,
+                      prefixIcon: HugeIcons.strokeRoundedLockKey,
+                      textInputAction: TextInputAction.next,
+                    ),
+                    const SizedBox(height: 12),
+                    SacTextField(
+                      controller: newCtrl,
+                      label: 'profile.settings.field_new_password'.tr(),
+                      obscureText: true,
+                      prefixIcon: HugeIcons.strokeRoundedLockPassword,
+                      textInputAction: TextInputAction.next,
+                    ),
+                    const SizedBox(height: 12),
+                    SacTextField(
+                      controller: confirmCtrl,
+                      label: 'profile.settings.field_confirm_password'.tr(),
+                      obscureText: true,
+                      prefixIcon: HugeIcons.strokeRoundedShieldKey,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => submit(),
+                    ),
+                    if (errorText != null) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.errorLight,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Text(
+                          errorText!,
+                          style: const TextStyle(
+                            color: AppColors.errorDark,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
                           ),
-                        )
-                      : Text('profile.settings.action_change'.tr()),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    SacButton.primary(
+                      text: 'profile.settings.action_change'.tr(),
+                      icon: HugeIcons.strokeRoundedTick02,
+                      borderRadius: 999,
+                      onPressed: submit,
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: Text('common.cancel'.tr()),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             );
           },
         );

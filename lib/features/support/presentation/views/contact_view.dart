@@ -11,7 +11,6 @@ import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 ///
 /// Canales disponibles:
 /// - Email: sacdia.app@gmail.com (mailto con asunto prellenado).
-/// - WhatsApp: wa.me link (el backend de WhatsApp Business se encarga del ruteo).
 class ContactView extends StatelessWidget {
   const ContactView({super.key});
 
@@ -19,9 +18,6 @@ class ContactView extends StatelessWidget {
 
   // Canales centralizados aquí para cambiarlos rápido sin tocar i18n.
   static const String _supportEmail = 'sacdia.app@gmail.com';
-  static const String _whatsappNumber =
-      '525555555555'; // TODO: actualizar al número oficial
-  static const String _whatsappDisplay = '+52 55 5555 5555';
 
   Future<void> _openEmail(BuildContext context) async {
     final uri = Uri(
@@ -34,15 +30,6 @@ class ContactView extends StatelessWidget {
     final ok = await _tryLaunch(uri);
     if (!ok && context.mounted) {
       _showFallback(context, _supportEmail);
-    }
-  }
-
-  Future<void> _openWhatsapp(BuildContext context) async {
-    final text = Uri.encodeComponent('support.whatsapp_default_message'.tr());
-    final uri = Uri.parse('https://wa.me/$_whatsappNumber?text=$text');
-    final ok = await _tryLaunch(uri);
-    if (!ok && context.mounted) {
-      _showFallback(context, _whatsappDisplay);
     }
   }
 
@@ -93,14 +80,6 @@ class ContactView extends StatelessWidget {
                 iconColor: AppColors.primary,
                 onTap: () => _openEmail(context),
               ),
-              const _Divider(),
-              SettingTile(
-                icon: HugeIcons.strokeRoundedWhatsapp,
-                title: 'support.contact_whatsapp_title'.tr(),
-                subtitle: _whatsappDisplay,
-                iconColor: Colors.green,
-                onTap: () => _openWhatsapp(context),
-              ),
             ]),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -131,13 +110,4 @@ class _Card extends StatelessWidget {
       child: Column(children: children),
     );
   }
-}
-
-class _Divider extends StatelessWidget {
-  const _Divider();
-  @override
-  Widget build(BuildContext context) => const Padding(
-        padding: EdgeInsets.only(left: 60),
-        child: Divider(height: 0, thickness: 0.5),
-      );
 }

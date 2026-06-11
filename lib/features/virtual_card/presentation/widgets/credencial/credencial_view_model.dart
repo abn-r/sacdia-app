@@ -14,7 +14,7 @@ import 'credencial_tokens.dart';
 class CredencialViewModel {
   final String nombre;
   final String cargo; // role label (e.g. 'Conquistador', 'Director')
-  final String etapa; // currentClass or empty — not yet in VirtualCard
+  final String etapa; // currentClass or empty
   final String club; // clubName or empty
   final String clubCorto; // 3-letter acronym
   final String sectionFull; // sectionName full (e.g. 'Guías Mayores')
@@ -27,9 +27,8 @@ class CredencialViewModel {
   final String? fotoUrl;
   final SeccionCode seccion;
 
-  // Fields with no VirtualCard source yet — shown as empty / hidden
-  final String tipoSangre; // TODO: plumb from backend medical profile
-  final String emergenciaNombre; // TODO: plumb from emergency contact
+  final String tipoSangre;
+  final String emergenciaNombre;
   final String emergenciaTel;
   final String emergenciaRelacion;
 
@@ -67,6 +66,33 @@ class CredencialViewModel {
     return '';
   }
 
+  /// Chip labels under the member name.
+  ///
+  /// If the backend exposes [etapa] (current class), the credential should
+  /// prioritize it and avoid repeating the section already shown in the header.
+  List<String> identityChipLabels({
+    required String currentClassLabel,
+    required String sectionDisplayName,
+  }) {
+    final currentClass = etapa.trim();
+    final normalizedCurrentClassLabel = currentClassLabel.trim();
+    if (currentClass.isNotEmpty) {
+      final label = normalizedCurrentClassLabel.isEmpty
+          ? currentClass
+          : '$normalizedCurrentClassLabel: $currentClass';
+      return [label];
+    }
+
+    final primary = identidadPrimaria.trim();
+    if (primary.isEmpty ||
+        _isRedundantSectionIdentity(primary, sectionDisplayName) ||
+        _isRedundantSectionIdentity(primary, sectionFull)) {
+      return const [];
+    }
+
+    return [primary];
+  }
+
   bool get hasEmergencia =>
       emergenciaNombre.isNotEmpty && emergenciaTel.isNotEmpty;
 
@@ -79,9 +105,8 @@ class CredencialViewModel {
 
   /// Creates a [CredencialViewModel] from a [VirtualCard].
   ///
-  /// All mappings are documented inline. Fields not yet exposed by the
-  /// VirtualCard entity are left as empty strings / sensible defaults and
-  /// annotated with TODO for the next backend phase.
+  /// All mappings are documented inline. Optional backend fields are left as
+  /// empty strings / sensible defaults when not present.
   factory CredencialViewModel.fromVirtualCard(VirtualCard card) {
     final seccion = _seccionFromCard(card);
     final qrToken = card.qrToken ?? '';
@@ -142,6 +167,35 @@ class CredencialViewModel {
     }
     // Default to CQ — the most common section in SACDIA clubs.
     return SeccionCode.CQ;
+  }
+
+  static bool _isRedundantSectionIdentity(String value, String section) {
+    final normalizedValue = _normalizeIdentity(value);
+    final normalizedSection = _normalizeIdentity(section);
+    if (normalizedValue.isEmpty || normalizedSection.isEmpty) return false;
+    if (normalizedValue == normalizedSection) return true;
+
+    final shorter = normalizedValue.length <= normalizedSection.length
+        ? normalizedValue
+        : normalizedSection;
+    final longer = normalizedValue.length > normalizedSection.length
+        ? normalizedValue
+        : normalizedSection;
+
+    return shorter.length >= 5 && longer.contains(shorter);
+  }
+
+  static String _normalizeIdentity(String value) {
+    return value
+        .trim()
+        .toLowerCase()
+        .replaceAll('á', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('ú', 'u')
+        .replaceAll('ü', 'u')
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '');
   }
 
   /// Derives a 3-letter uppercase acronym from [clubName].

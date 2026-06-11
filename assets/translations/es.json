@@ -213,11 +213,11 @@
     "section_title": "Ayuda y soporte",
     "section_get_help": "¿Necesitas ayuda?",
     "settings_entry_title": "Ayuda y soporte",
-    "settings_entry_subtitle": "FAQ, contacto y reportes",
+    "settings_entry_subtitle": "FAQ, correo y reportes",
     "faq_tile": "Preguntas frecuentes",
     "faq_tile_subtitle": "Respuestas rápidas a dudas comunes",
     "contact_tile": "Contactar a soporte",
-    "contact_tile_subtitle": "Correo y WhatsApp",
+    "contact_tile_subtitle": "Correo directo",
     "report_tile": "Reportar un problema",
     "report_tile_subtitle": "Envía bugs, sugerencias o ayuda",
     "faq_title": "Preguntas frecuentes",
@@ -225,12 +225,10 @@
     "faq_empty": "Aún no hay preguntas disponibles",
     "faq_no_results": "Sin resultados para \"{}\"",
     "contact_title": "Contactar a soporte",
-    "contact_intro": "Estamos aquí para ayudarte. Escríbenos por el canal que prefieras.",
+    "contact_intro": "Estamos aquí para ayudarte. Escríbenos por correo y te responderemos en horario de atención.",
     "contact_email_title": "Enviar correo",
-    "contact_whatsapp_title": "Chat por WhatsApp",
     "contact_hours": "Horario de atención: lun–vie 9:00 a 18:00 (CDMX)",
     "email_subject": "Consulta desde la app SACDIA",
-    "whatsapp_default_message": "Hola, necesito ayuda con la app SACDIA.",
     "channel_launch_failed": "No pudimos abrir este canal. Copia: {}",
     "report_title": "Reportar un problema",
     "report_intro": "Cuéntanos qué pasó. La info del dispositivo se envía automáticamente para ayudarnos a resolverlo más rápido.",
@@ -262,7 +260,26 @@
       "no_internet": "Necesitas conexión a internet para enviar el reporte",
       "faq_load_failed": "No pudimos cargar las preguntas frecuentes"
     },
-    "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})"
+    "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})",
+    "hub_badge": "Ruta de ayuda",
+    "hub_title": "Encuentra la ruta correcta para tu duda",
+    "hub_intro": "Encuentra respuestas rápidas, escríbenos por correo o envía un reporte con contexto técnico.",
+    "route_faq_label": "Primera parada",
+    "route_contact_label": "Canal directo",
+    "route_report_label": "Bitácora",
+    "faq_hero_title": "Mapa de respuestas",
+    "faq_hero_body": "Consulta {} respuestas organizadas como una ruta de campamento.",
+    "faq_card_badge": "Ruta guiada",
+    "faq_category": {
+      "all": "Todo",
+      "account": "Cuenta",
+      "notifications": "Notificaciones",
+      "offline": "Sin conexión",
+      "privacy": "Privacidad",
+      "profile": "Perfil",
+      "support": "Soporte",
+      "onboarding": "Inicio"
+    }
   },
   "biometric": {
     "tile_title": "Desbloqueo biométrico",
@@ -2712,7 +2729,7 @@
         "download_not_found": "Esta exportación ya no existe.",
         "download_conflict": "Tu exportación aún se está generando.",
         "download_gone": "Esta exportación expiró. Solicita una nueva.",
-        "download_invalid": "La exportación falló. Intentalo de nuevo.",
+        "download_invalid": "La exportación falló. Inténtalo de nuevo.",
         "download_failed": "Error al obtener URL de descarga",
         "unexpected": "Error inesperado: {detail}",
         "no_connection": "Sin conexión. Verifica tu red e intenta de nuevo."
@@ -3346,14 +3363,13 @@
     "offline_banner": "Modo sin conexión — datos en caché",
     "inactive_message": "Esta credencial no está activa. Comunícate con tu director.",
     "load_error": "No se pudo cargar la credencial",
-    "photo_alt": "Foto de perfil de {name}",
-    "view_photo": "Ver foto",
     "qr_alt": "Código QR de la credencial",
     "club_label": "Club",
     "section_label": "Sección",
     "member_since_label": "Miembro desde",
     "id_prefix": "ID #",
     "id_missing": "ID no disponible",
+    "current_class_label": "Clase actual",
     "qr_unavailable": "QR no disponible",
     "qr_expired": "QR vencido",
     "expired_note": "Renueva tu credencial cuando recuperes conexión",
@@ -3371,7 +3387,10 @@
       "empty_card": "Respuesta vacía de tarjeta virtual desde el servidor.",
       "load_failed": "No pudimos cargar tu credencial por ahora.",
       "rate_limited": "Demasiadas solicitudes. Espera un momento antes de volver a actualizar la credencial."
-    }
+    },
+    "share_card": "Compartir credencial",
+    "share_preparing": "Preparando…",
+    "share_error": "No se pudo preparar la credencial para compartir."
   },
   "rankings": {
     "my_ranking": {

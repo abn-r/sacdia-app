@@ -213,11 +213,11 @@
     "section_title": "Ajuda e suporte",
     "section_get_help": "Precisa de ajuda?",
     "settings_entry_title": "Ajuda e suporte",
-    "settings_entry_subtitle": "FAQ, contato e relatos",
+    "settings_entry_subtitle": "FAQ, e-mail e relatos",
     "faq_tile": "Perguntas frequentes",
     "faq_tile_subtitle": "Respostas rápidas para dúvidas comuns",
     "contact_tile": "Falar com o suporte",
-    "contact_tile_subtitle": "E-mail e WhatsApp",
+    "contact_tile_subtitle": "E-mail direto",
     "report_tile": "Relatar um problema",
     "report_tile_subtitle": "Envie bugs, sugestões ou pedidos de ajuda",
     "faq_title": "Perguntas frequentes",
@@ -225,12 +225,10 @@
     "faq_empty": "Ainda não há perguntas disponíveis",
     "faq_no_results": "Sem resultados para \"{}\"",
     "contact_title": "Falar com o suporte",
-    "contact_intro": "Estamos aqui para ajudar. Escreva pelo canal que preferir.",
+    "contact_intro": "Estamos aqui para ajudar. Envie um e-mail e responderemos durante o horário de atendimento.",
     "contact_email_title": "Enviar e-mail",
-    "contact_whatsapp_title": "Chat no WhatsApp",
     "contact_hours": "Horário de atendimento: seg–sex 9:00 às 18:00 (CDMX)",
     "email_subject": "Consulta do app SACDIA",
-    "whatsapp_default_message": "Olá, preciso de ajuda com o app SACDIA.",
     "channel_launch_failed": "Não conseguimos abrir este canal. Copie: {}",
     "report_title": "Relatar um problema",
     "report_intro": "Conte-nos o que aconteceu. As informações do dispositivo são enviadas automaticamente para nos ajudar a resolver mais rápido.",
@@ -262,7 +260,26 @@
       "no_internet": "Você precisa de conexão à internet para enviar o relatório",
       "faq_load_failed": "Não conseguimos carregar as perguntas frequentes"
     },
-    "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})"
+    "report_device_info": "{platform} {osVersion}\n{model}\nApp {appVersion} ({buildNumber})",
+    "hub_badge": "Trilha de ajuda",
+    "hub_title": "Encontre a trilha certa para sua dúvida",
+    "hub_intro": "Veja respostas rápidas, escreva ao suporte ou envie um relato com contexto técnico.",
+    "route_faq_label": "Primeira parada",
+    "route_contact_label": "Canal direto",
+    "route_report_label": "Diário de rota",
+    "faq_hero_title": "Mapa de respostas",
+    "faq_hero_body": "Explore {} respostas organizadas como uma trilha de acampamento.",
+    "faq_card_badge": "Trilha guiada",
+    "faq_category": {
+      "all": "Tudo",
+      "account": "Conta",
+      "notifications": "Notificações",
+      "offline": "Sem conexão",
+      "privacy": "Privacidade",
+      "profile": "Perfil",
+      "support": "Suporte",
+      "onboarding": "Início"
+    }
   },
   "biometric": {
     "tile_title": "Desbloqueio biométrico",
@@ -3345,14 +3362,13 @@
     "offline_banner": "Modo offline — dados em cache",
     "inactive_message": "Esta credencial não está ativa. Fale com o seu diretor.",
     "load_error": "Não foi possível carregar a credencial",
-    "photo_alt": "Foto de perfil de {name}",
-    "view_photo": "Ver foto",
     "qr_alt": "Código QR da credencial",
     "club_label": "Clube",
     "section_label": "Seção",
     "member_since_label": "Membro desde",
     "id_prefix": "ID #",
     "id_missing": "ID indisponível",
+    "current_class_label": "Classe atual",
     "qr_unavailable": "QR indisponível",
     "qr_expired": "QR expirado",
     "expired_note": "Renove sua credencial quando voltar a ficar online",
@@ -3370,7 +3386,10 @@
       "empty_card": "Resposta vazia da credencial virtual do servidor.",
       "load_failed": "Não foi possível carregar sua credencial agora.",
       "rate_limited": "Muitas solicitações. Aguarde um momento antes de atualizar a credencial novamente."
-    }
+    },
+    "share_card": "Compartilhar credencial",
+    "share_preparing": "Preparando…",
+    "share_error": "Não foi possível preparar a credencial para compartilhar."
   },
   "rankings": {
     "my_ranking": {

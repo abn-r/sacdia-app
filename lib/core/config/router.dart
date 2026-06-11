@@ -852,7 +852,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 padding: const EdgeInsets.all(16),
                 child: item == null
                     ? const Text(
-                        'Detalle no disponible. Abrilo desde un registro importado.',
+                        'Detalle no disponible. Ábrelo desde un registro importado.',
                       )
                     : CertificateImportProofCard(item: item),
               ),

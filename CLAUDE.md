@@ -87,6 +87,7 @@ dio                 # HTTP client
 hive                # Local storage
 google_maps_flutter # Mapas nativos (reemplaza flutter_map)
 geolocator          # Ubicacion del usuario
+showcaseview        # Onboarding contextual / coach marks
 # supabase_flutter removed in Wave 3 — auth is now handled via backend API
 ```
 

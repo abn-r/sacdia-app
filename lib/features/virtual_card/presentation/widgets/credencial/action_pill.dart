@@ -4,7 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'credencial_tokens.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 
-enum ActionIcon { wallet, share, pdf }
+enum ActionIcon { share }
 
 class ActionPill extends StatelessWidget {
   final String label;
@@ -66,12 +66,16 @@ class ActionPill extends StatelessWidget {
             children: [
               HugeIcon(icon: _iconFor(icon), size: 16, color: fg),
               const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                  color: fg,
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: fg,
+                  ),
                 ),
               ),
             ],
@@ -83,12 +87,8 @@ class ActionPill extends StatelessWidget {
 
   HugeIconData _iconFor(ActionIcon i) {
     switch (i) {
-      case ActionIcon.wallet:
-        return HugeIcons.strokeRoundedWallet01;
       case ActionIcon.share:
         return HugeIcons.strokeRoundedShare08;
-      case ActionIcon.pdf:
-        return HugeIcons.strokeRoundedPdf01;
     }
   }
 }

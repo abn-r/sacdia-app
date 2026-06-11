@@ -2,8 +2,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/core/errors/exceptions.dart';
 import 'package:sacdia_app/core/network/network_info.dart';
+import 'package:sacdia_app/features/auth/domain/entities/authorization_snapshot.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/features/profile/domain/entities/user_detail.dart';
+import 'package:sacdia_app/features/profile/presentation/providers/profile_providers.dart';
+import 'package:sacdia_app/features/qr/domain/entities/qr_member_token.dart';
+import 'package:sacdia_app/features/qr/presentation/providers/qr_member_token_provider.dart';
 import 'package:sacdia_app/features/virtual_card/domain/entities/virtual_card.dart';
 import 'package:sacdia_app/features/virtual_card/domain/repositories/virtual_card_repository.dart';
 import 'package:sacdia_app/features/virtual_card/presentation/providers/virtual_card_providers.dart';
@@ -24,6 +29,24 @@ class _FakeNetworkInfo implements NetworkInfo {
 
   @override
   Future<bool> get isConnected async => connected;
+}
+
+class _FakeProfileNotifier extends ProfileNotifier {
+  _FakeProfileNotifier(this.profile);
+
+  final UserDetail? profile;
+
+  @override
+  Future<UserDetail?> build() async => profile;
+}
+
+class _FakeQrMemberTokenNotifier extends QrMemberTokenNotifier {
+  _FakeQrMemberTokenNotifier(this.token);
+
+  final QrMemberToken token;
+
+  @override
+  Future<QrMemberToken> build() async => token;
 }
 
 class _FakeVirtualCardRepository implements VirtualCardRepository {
@@ -58,17 +81,15 @@ class _FakeVirtualCardRepository implements VirtualCardRepository {
   Future<void> saveCachedCard(VirtualCard card) async {
     saveCalls++;
   }
-
-  @override
-  Future<List<int>> getCardPdf() async => const <int>[];
 }
 
-UserEntity _sampleUser() {
-  return const UserEntity(
+UserEntity _sampleUser({AuthorizationSnapshot? authorization}) {
+  return UserEntity(
     id: 'user-123',
     email: 'ana@example.com',
     name: 'Ana Lopez',
     postRegisterComplete: true,
+    authorization: authorization,
   );
 }
 
@@ -86,12 +107,30 @@ VirtualCard _sampleCard({bool isOffline = false}) {
 ProviderContainer _buildContainer({
   required VirtualCardRepository repository,
   required bool connected,
+  UserEntity? user,
+  UserDetail? profile,
+  QrMemberToken? qrToken,
 }) {
   return ProviderContainer(
     overrides: [
-      authNotifierProvider.overrideWith(() => _FakeAuthNotifier(_sampleUser())),
+      authNotifierProvider.overrideWith(
+        () => _FakeAuthNotifier(user ?? _sampleUser()),
+      ),
       networkInfoProvider.overrideWithValue(_FakeNetworkInfo(connected)),
       virtualCardRepositoryProvider.overrideWithValue(repository),
+      profileNotifierProvider.overrideWith(
+        () => _FakeProfileNotifier(profile),
+      ),
+      qrMemberTokenProvider.overrideWith(
+        () => _FakeQrMemberTokenNotifier(
+          qrToken ??
+              QrMemberToken(
+                token: 'qr-token',
+                expiresAt: DateTime.utc(2099, 1, 1),
+                expiresIn: 300,
+              ),
+        ),
+      ),
     ],
   );
 }
@@ -169,6 +208,50 @@ void main() {
       expect(repository.remoteCalls, 1);
       expect(repository.cachedCalls, 1);
       expect(repository.saveCalls, 0);
+    },
+  );
+
+  test(
+    'builds offline fallback card with current class and blood type from profile',
+    () async {
+      final repository = _FakeVirtualCardRepository(
+        remoteError: ConnectionException(message: 'offline'),
+        cachedCard: null,
+      );
+      final user = _sampleUser(
+        authorization: const AuthorizationSnapshot(
+          clubAssignments: [
+            AuthorizationGrant(
+              assignmentId: 'assignment-1',
+              roleName: 'Conquistadores',
+              clubTypeName: 'Conquistadores',
+            ),
+          ],
+          activeAssignmentId: 'assignment-1',
+        ),
+      );
+      const profile = UserDetail(
+        id: 'user-123',
+        email: 'ana@example.com',
+        name: 'Ana',
+        paternalSurname: 'Lopez',
+        clubName: 'Aventuras de Oración',
+        currentClass: 'Guía',
+        blood: 'O_POSITIVE',
+      );
+      final container = _buildContainer(
+        repository: repository,
+        connected: false,
+        user: user,
+        profile: profile,
+      );
+      addTearDown(container.dispose);
+
+      final card = await container.read(virtualCardFetcherProvider.future);
+
+      expect(card.sectionName, 'Conquistadores');
+      expect(card.currentClass, 'Guía');
+      expect(card.bloodType, 'O_POSITIVE');
     },
   );
 }

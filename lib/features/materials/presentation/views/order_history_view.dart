@@ -94,7 +94,7 @@ class _EmptyHistorial extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Explorá el catálogo y hacé tu primer pedido.',
+              'Explora el catálogo y realiza tu primer pedido.',
               style: TextStyle(color: AppColors.lightTextTertiary),
               textAlign: TextAlign.center,
             ),

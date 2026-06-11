@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/animated_counter.dart';
 import 'package:sacdia_app/core/animations/celebration_overlay.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
+import 'package:sacdia_app/core/onboarding/sac_onboarding.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
@@ -427,12 +428,38 @@ class _DemoHero extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          SacButton(
-            text: 'Reiniciar demo',
-            variant: SacButtonVariant.secondary,
-            fullWidth: false,
-            icon: HugeIcons.strokeRoundedRefresh,
-            onPressed: onReplay,
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              SacOnboardingAnchor(
+                id: 'motion-demo-replay-button',
+                child: SacButton(
+                  text: 'Reiniciar demo',
+                  variant: SacButtonVariant.secondary,
+                  fullWidth: false,
+                  icon: HugeIcons.strokeRoundedRefresh,
+                  onPressed: onReplay,
+                ),
+              ),
+              SacButton(
+                text: 'Ver onboarding',
+                variant: SacButtonVariant.primary,
+                fullWidth: false,
+                icon: HugeIcons.strokeRoundedIdea01,
+                onPressed: () => SacOnboarding.showAnchoredHelper(
+                  context,
+                  anchorId: 'motion-demo-replay-button',
+                  title: 'Coach mark de ejemplo',
+                  description:
+                      'Este helper apunta a un widget real usando SacOnboarding. Así validamos la experiencia sin atarnos directamente a showcaseview.',
+                  primaryActionLabel: 'Entendido',
+                  secondaryActionLabel: 'Cerrar',
+                  alignment: SacOnboardingAlignment.bottom,
+                  anchorShape: SacOnboardingAnchorShape.rectangle,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -1229,7 +1256,7 @@ class _SwipeRevealPreviewState extends State<_SwipeRevealPreview> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    revealed ? 'Acción revelada' : 'Deslizá o tocá',
+                    revealed ? 'Acción revelada' : 'Desliza o toca',
                     style: TextStyle(
                       color: c.text,
                       fontWeight: FontWeight.w800,

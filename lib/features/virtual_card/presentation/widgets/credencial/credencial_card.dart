@@ -1,7 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../../../../../core/utils/blood_type.dart';
 import 'chip.dart';
 import 'credencial_tokens.dart';
 import 'credencial_view_model.dart';
@@ -166,6 +168,11 @@ class CredencialCard extends StatelessWidget {
 
   Widget _identidad(Sec sec) {
     final hasPhoto = vm.fotoUrl != null && vm.fotoUrl!.isNotEmpty;
+    final chipLabels = vm.identityChipLabels(
+      currentClassLabel: 'virtual_card.current_class_label'.tr(),
+      sectionDisplayName: sec.name,
+    );
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
       child: Row(
@@ -220,22 +227,9 @@ class CredencialCard extends StatelessWidget {
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
-                  children: [
-                    // Chip primario: cargo si existe, sino sectionFull.
-                    // Asegura que la zona de identidad nunca esté vacía cuando
-                    // el backend aún no expone roleLabel.
-                    if (vm.identidadPrimaria.isNotEmpty)
-                      CredChip(label: vm.identidadPrimaria),
-                    // Chip secundario: etapa si existe.
-                    // Si no hay etapa pero sí cargo + sectionFull distintos,
-                    // mostramos sectionFull como secundario (contexto extra).
-                    if (vm.etapa.isNotEmpty)
-                      CredChip(label: 'Etapa ${vm.etapa}')
-                    else if (vm.cargo.isNotEmpty &&
-                        vm.sectionFull.isNotEmpty &&
-                        vm.cargo.toLowerCase() != vm.sectionFull.toLowerCase())
-                      CredChip(label: vm.sectionFull),
-                  ],
+                  children: chipLabels
+                      .map((label) => CredChip(label: label))
+                      .toList(),
                 ),
               ],
             ),
@@ -269,6 +263,11 @@ class CredencialCard extends StatelessWidget {
   }
 
   Widget _zonaBlanca(BuildContext context, Sec sec) {
+    final displayBloodType = BloodType.localizedDisplayFor(
+      vm.tipoSangre,
+      languageCode: context.locale.languageCode,
+    );
+
     String fmt(DateTime d) {
       const meses = [
         'ENE',
@@ -381,9 +380,8 @@ class CredencialCard extends StatelessWidget {
                       const SizedBox(height: 10),
                     ],
                     // 2×2 mini-field grid per SPEC.
-                    // Slot 2: blood type when available (from backend medical
-                    // endpoint), otherwise section acronym as fallback.
-                    // TODO: plumb tipoSangre from medical profile endpoint.
+                    // Slot 2: blood type when available, otherwise section
+                    // acronym as fallback.
                     GridView.count(
                       crossAxisCount: 2,
                       mainAxisSpacing: 8,
@@ -397,10 +395,10 @@ class CredencialCard extends StatelessWidget {
                           value: fmt(vm.fechaVencimiento),
                         ),
                         // Slot 2: SANGRE if available, else SECCIÓN acronym.
-                        vm.tipoSangre.isNotEmpty
+                        displayBloodType != null && displayBloodType.isNotEmpty
                             ? MiniField(
                                 label: 'SANGRE',
-                                value: vm.tipoSangre,
+                                value: displayBloodType,
                                 highlight: CredencialTokens.danger,
                               )
                             : MiniField(
@@ -461,7 +459,7 @@ class CredencialCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     const Text(
-                      'sacdia.org',
+                      'sacdia.com',
                       style: TextStyle(
                         fontSize: 9,
                         fontFamily: 'monospace',

@@ -162,6 +162,63 @@ void main() {
     });
   });
 
+  group('CredencialViewModel.identityChipLabels', () {
+    test('shows only the current class chip when currentClass is available',
+        () {
+      final vm = CredencialViewModel.fromVirtualCard(
+        _card(
+          roleLabel: 'Conquistadores',
+          sectionName: 'Conquistadores',
+          currentClass: 'Guía',
+        ),
+      );
+
+      expect(
+        vm.identityChipLabels(
+          currentClassLabel: 'Clase actual',
+          sectionDisplayName: 'Conquistadores',
+        ),
+        ['Clase actual: Guía'],
+      );
+    });
+
+    test('hides redundant section labels when no currentClass is available',
+        () {
+      final vm = CredencialViewModel.fromVirtualCard(
+        _card(
+          roleLabel: 'Conquistadores',
+          sectionName: 'Conquistadores',
+        ),
+      );
+
+      expect(
+        vm.identityChipLabels(
+          currentClassLabel: 'Clase actual',
+          sectionDisplayName: 'Conquistadores',
+        ),
+        isEmpty,
+      );
+    });
+
+    test('keeps a non-section role as fallback when currentClass is missing',
+        () {
+      final vm = CredencialViewModel.fromVirtualCard(
+        _card(
+          roleLabel: 'Director',
+          sectionName: 'Conquistadores',
+        ),
+      );
+
+      expect(
+        vm.identityChipLabels(
+          currentClassLabel: 'Clase actual',
+          sectionDisplayName: 'Conquistadores',
+        ),
+        ['Director'],
+      );
+    });
+  });
+
   group('CredencialViewModel.iniciales', () {
     test('builds initials from first 2 words', () {
       final vm = CredencialViewModel.fromVirtualCard(
