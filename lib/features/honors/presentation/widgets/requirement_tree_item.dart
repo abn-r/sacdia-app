@@ -15,7 +15,7 @@ import 'package:sacdia_app/features/honors/domain/entities/honor_requirement.dar
 ///   - Display label badge ("1", "a", etc.)
 ///   - Expandable text (3-line clamp with "Ver más")
 ///   - Optional text-response text field (shown when requirement has or gains a response)
-///   - Subtle indicator when [requiresEvidence] is true (informational only, no blocking)
+///   - Per-requirement evidence action when [requiresEvidence] is true
 ///   - Optional reference text accordion
 ///
 /// Local expand/collapse and showNotes state live inside this widget.
@@ -41,6 +41,15 @@ class RequirementTreeItem extends StatefulWidget {
   /// Called when the user taps the checkbox.
   final VoidCallback onToggle;
 
+  /// Number of active evidence files already attached to this requirement.
+  final int evidenceCount;
+
+  /// Whether this requirement is currently uploading evidence.
+  final bool isUploadingEvidence;
+
+  /// Called when the user wants to attach evidence to this requirement.
+  final VoidCallback? onAddEvidence;
+
   const RequirementTreeItem({
     super.key,
     required this.requirement,
@@ -50,6 +59,9 @@ class RequirementTreeItem extends StatefulWidget {
     this.textResponse,
     this.responseController,
     required this.onToggle,
+    this.evidenceCount = 0,
+    this.isUploadingEvidence = false,
+    this.onAddEvidence,
   });
 
   @override
@@ -235,7 +247,7 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
                       ),
                     ),
 
-                    // requiresEvidence indicator (informational only)
+                    // requiresEvidence indicator
                     if (req.requiresEvidence)
                       Tooltip(
                         message: 'honors.requirements.requires_demo'.tr(),
@@ -253,6 +265,18 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
               ],
             ),
           ),
+
+          // ── Requirement evidence action ──────────────────────────────────
+          if (req.requiresEvidence)
+            Padding(
+              padding: const EdgeInsets.only(left: 40, bottom: 10),
+              child: _RequirementEvidenceAction(
+                evidenceCount: widget.evidenceCount,
+                isUploading: widget.isUploadingEvidence,
+                categoryColor: widget.categoryColor,
+                onAddEvidence: widget.onAddEvidence,
+              ),
+            ),
 
           // ── Text response field ───────────────────────────────────────────
           if (_showResponse)
@@ -314,6 +338,71 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
               indentLeft: 40,
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _RequirementEvidenceAction extends StatelessWidget {
+  final int evidenceCount;
+  final bool isUploading;
+  final Color categoryColor;
+  final VoidCallback? onAddEvidence;
+
+  const _RequirementEvidenceAction({
+    required this.evidenceCount,
+    required this.isUploading,
+    required this.categoryColor,
+    required this.onAddEvidence,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasEvidence = evidenceCount > 0;
+    final label = isUploading
+        ? 'honors.requirements.requirement_evidence_uploading'.tr()
+        : hasEvidence
+            ? 'honors.requirements.requirement_evidence_count'
+                .tr(namedArgs: {'count': '$evidenceCount'})
+            : 'honors.requirements.requirement_evidence_button'.tr();
+
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: isUploading ? null : onAddEvidence,
+        icon: isUploading
+            ? SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: categoryColor,
+                ),
+              )
+            : HugeIcon(
+                icon: hasEvidence
+                    ? HugeIcons.strokeRoundedCheckmarkCircle02
+                    : HugeIcons.strokeRoundedUpload01,
+                color: hasEvidence ? AppColors.success : categoryColor,
+                size: 18,
+              ),
+        label: Text(label),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: hasEvidence ? AppColors.success : categoryColor,
+          minimumSize: const Size.fromHeight(44),
+          alignment: Alignment.centerLeft,
+          side: BorderSide(
+            color: (hasEvidence ? AppColors.success : categoryColor)
+                .withValues(alpha: 0.45),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ),
     );
   }

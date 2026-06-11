@@ -19,6 +19,7 @@ import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor_requirement_progress.dart';
 import '../theme/honor_category_palette.dart';
 import '../providers/honors_providers.dart';
+import '../widgets/honor_work_mode_selector.dart';
 import '../../domain/entities/user_honor.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
@@ -57,6 +58,17 @@ String _skillLevelLabel(int? level) {
       return level != null
           ? 'honors.detail.skill_level_n'.tr(namedArgs: {'level': '$level'})
           : '';
+  }
+}
+
+String _completionModeLabel(HonorCompletionMode mode) {
+  switch (mode) {
+    case HonorCompletionMode.inApp:
+      return 'honors.detail.mode_in_app'.tr();
+    case HonorCompletionMode.external:
+      return 'honors.detail.mode_external'.tr();
+    case HonorCompletionMode.undecided:
+      return 'honors.detail.mode_undecided'.tr();
   }
 }
 
@@ -184,6 +196,8 @@ class _HonorDetailContent extends ConsumerWidget {
     final userHonorsLoading =
         ref.watch(userHonorsProvider.select((s) => s.isLoading));
     final enrollAsync = ref.watch(honorEnrollmentNotifierProvider);
+    final modeActionState =
+        ref.watch(honorCompletionModeActionsNotifierProvider);
 
     final categoryName =
         ref.watch(categoryByIdProvider(honor.categoryId))?.name;
@@ -276,6 +290,9 @@ class _HonorDetailContent extends ConsumerWidget {
                     isEnrolled: isEnrolled,
                     userHonorsLoading: userHonorsLoading,
                     enrollAsync: enrollAsync,
+                    modeActionState: modeActionState,
+                    onSelectCompletionMode: (mode) =>
+                        _selectCompletionMode(context, ref, mode),
                   ),
                 ),
               ),
@@ -298,6 +315,46 @@ class _HonorDetailContent extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _selectCompletionMode(
+    BuildContext context,
+    WidgetRef ref,
+    HonorCompletionMode mode,
+  ) async {
+    final userId = ref.read(authNotifierProvider).value?.id;
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('honors.detail.work_mode_no_session'.tr()),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    final success = await ref
+        .read(honorCompletionModeActionsNotifierProvider.notifier)
+        .updateCompletionMode(
+          userId: userId,
+          honorId: honorId,
+          completionMode: mode,
+        );
+
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? 'honors.detail.work_mode_saved'.tr()
+              : 'honors.detail.work_mode_error'.tr(),
+        ),
+        backgroundColor: success ? AppColors.success : AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -362,7 +419,9 @@ class _HeroSectionState extends ConsumerState<_HeroSection>
 
   @override
   Widget build(BuildContext context) {
-    final progressStats = widget.isEnrolled
+    final showInAppProgress = widget.isEnrolled &&
+        widget.userHonor?.completionMode == HonorCompletionMode.inApp;
+    final progressStats = showInAppProgress
         ? ref.watch(honorProgressStatsProvider(widget.honorId))
         : null;
     final progressPercent = progressStats?.percentage ?? 0.0;
@@ -411,7 +470,7 @@ class _HeroSectionState extends ConsumerState<_HeroSection>
                 ),
               ),
               const SizedBox(height: 10),
-              if (widget.isEnrolled && progressStats != null) ...[
+              if (showInAppProgress && progressStats != null) ...[
                 Text(
                   'honors.detail.progress_summary'.tr(namedArgs: {
                     'completed': '${progressStats.completed}',
@@ -439,6 +498,10 @@ class _HeroSectionState extends ConsumerState<_HeroSection>
                       ),
                     );
                   },
+                ),
+              ] else if (widget.isEnrolled && widget.userHonor != null) ...[
+                _FrostedPill(
+                  label: _completionModeLabel(widget.userHonor!.completionMode),
                 ),
               ] else ...[
                 Wrap(
@@ -641,6 +704,8 @@ class _StaggeredCards extends StatefulWidget {
   final bool isEnrolled;
   final bool userHonorsLoading;
   final AsyncValue<UserHonor?> enrollAsync;
+  final AsyncValue<void> modeActionState;
+  final ValueChanged<HonorCompletionMode> onSelectCompletionMode;
 
   const _StaggeredCards({
     required this.honor,
@@ -650,6 +715,8 @@ class _StaggeredCards extends StatefulWidget {
     required this.isEnrolled,
     required this.userHonorsLoading,
     required this.enrollAsync,
+    required this.modeActionState,
+    required this.onSelectCompletionMode,
   });
 
   @override
@@ -715,6 +782,63 @@ class _StaggeredCardsState extends State<_StaggeredCards>
   @override
   Widget build(BuildContext context) {
     if (widget.isEnrolled) {
+      final userHonor = widget.userHonor!;
+      final completionMode = userHonor.completionMode;
+
+      if (completionMode == HonorCompletionMode.undecided) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: _kSectionGap),
+            _animated(
+              0,
+              HonorWorkModeSelector(
+                categoryColor: widget.categoryColor,
+                isLoading: widget.modeActionState.isLoading,
+                onSelected: widget.onSelectCompletionMode,
+              ),
+            ),
+            const SizedBox(height: 120),
+          ],
+        );
+      }
+
+      if (completionMode == HonorCompletionMode.external) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: _kSectionGap),
+            _animated(
+              0,
+              _ExternalWorkflowInfoCard(
+                categoryColor: widget.categoryColor,
+              ),
+            ),
+            if (widget.honor.materialUrl != null &&
+                widget.honor.materialUrl!.isNotEmpty) ...[
+              const SizedBox(height: _kSectionGap),
+              _animated(
+                1,
+                _MaterialDownloadCard(
+                  materialUrl: widget.honor.materialUrl!,
+                  categoryColor: widget.categoryColor,
+                ),
+              ),
+            ],
+            const SizedBox(height: _kSectionGap),
+            _animated(
+              2,
+              _EvidenceSection(
+                userHonor: userHonor,
+                honorId: widget.honorId,
+                categoryColor: widget.categoryColor,
+              ),
+            ),
+            const SizedBox(height: 120),
+          ],
+        );
+      }
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -725,7 +849,7 @@ class _StaggeredCardsState extends State<_StaggeredCards>
             0,
             _QuickStatsRow(
               honorId: widget.honorId,
-              userHonor: widget.userHonor!,
+              userHonor: userHonor,
               categoryColor: widget.categoryColor,
             ),
           ),
@@ -736,36 +860,11 @@ class _StaggeredCardsState extends State<_StaggeredCards>
             1,
             _RequirementsPreviewCard(
               honorId: widget.honorId,
-              userHonorId: widget.userHonor!.id,
+              userHonorId: userHonor.id,
               honorName: widget.honor.name,
               categoryColor: widget.categoryColor,
             ),
           ),
-          const SizedBox(height: _kSectionGap),
-
-          // Evidence section
-          _animated(
-            2,
-            _EvidenceSection(
-              userHonor: widget.userHonor!,
-              honorId: widget.honorId,
-              categoryColor: widget.categoryColor,
-            ),
-          ),
-
-          // Material download (if available)
-          if (widget.honor.materialUrl != null &&
-              widget.honor.materialUrl!.isNotEmpty) ...[
-            const SizedBox(height: _kSectionGap),
-            _animated(
-              3,
-              _MaterialDownloadCard(
-                materialUrl: widget.honor.materialUrl!,
-                categoryColor: widget.categoryColor,
-              ),
-            ),
-            const SizedBox(height: 30),
-          ],
 
           // Bottom padding for CTA
           const SizedBox(height: 100),
@@ -1227,8 +1326,8 @@ class _QuickStatsRow extends ConsumerWidget {
         const SizedBox(width: 10),
         Expanded(
           child: _StatMiniCard(
-            value: '${userHonor.evidenceCount}',
-            label: 'honors.detail.stat_evidences'.tr(),
+            value: 'App',
+            label: 'honors.detail.stat_mode'.tr(),
             categoryColor: categoryColor,
           ),
         ),
@@ -1479,6 +1578,66 @@ class _RequirementPreviewItem extends StatelessWidget {
   }
 }
 
+// ── External Workflow Info (ENROLLED / EXTERNAL) ──────────────────────────────
+
+class _ExternalWorkflowInfoCard extends StatelessWidget {
+  final Color categoryColor;
+
+  const _ExternalWorkflowInfoCard({required this.categoryColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return _ShadowCard(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: categoryColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedPdf01,
+                color: categoryColor,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'honors.detail.external_mode_title'.tr(),
+                    style: TextStyle(
+                      color: context.sac.text,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'honors.detail.external_mode_subtitle'.tr(),
+                    style: TextStyle(
+                      color: context.sac.textSecondary,
+                      fontSize: 13,
+                      height: 1.45,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // ── Evidence Section (ENROLLED) ───────────────────────────────────────────────
 
 class _EvidenceSection extends StatelessWidget {
@@ -1509,10 +1668,9 @@ class _EvidenceSection extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  userHonor.evidenceCount > 0
-                      ? 'honors.detail.evidence_count'.tr(
-                          namedArgs: {'count': '${userHonor.evidenceCount}'})
-                      : 'honors.detail.evidence_empty'.tr(),
+                  userHonor.hasCompletedFormat
+                      ? 'honors.detail.completed_format_ready'.tr()
+                      : 'honors.detail.completed_format_missing'.tr(),
                   style: TextStyle(
                     color: context.sac.text,
                     fontSize: 16,
@@ -1559,6 +1717,17 @@ class _EvidenceSection extends StatelessWidget {
             ],
 
             const SizedBox(height: 14),
+            Text(
+              'honors.detail.general_evidence_count'.tr(
+                namedArgs: {'count': '${userHonor.generalEvidenceCount}'},
+              ),
+              style: TextStyle(
+                color: context.sac.textSecondary,
+                fontSize: 12,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 12),
 
             // Evidence button
             GestureDetector(
@@ -1582,7 +1751,7 @@ class _EvidenceSection extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'honors.detail.upload_evidence'.tr(),
+                      'honors.detail.external_flow_cta'.tr(),
                       style: TextStyle(
                         color: categoryColor,
                         fontSize: 14,
@@ -2013,39 +2182,65 @@ class _EnrolledCtaButton extends StatelessWidget {
       );
     }
 
-    // Can submit — show submit button (with evidence) or go to evidence (without)
-    final bool hasEvidence = userHonor.hasEvidence;
-    final label = hasEvidence
-        ? 'honors.detail.send_review_cta'.tr()
-        : 'honors.detail.my_progress_cta'.tr();
+    if (userHonor.completionMode == HonorCompletionMode.undecided) {
+      return Container(
+        width: double.infinity,
+        height: 48,
+        decoration: BoxDecoration(
+          color: context.sac.surfaceVariant,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: context.sac.border, width: 1.5),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          'honors.detail.select_mode_cta'.tr(),
+          style: TextStyle(
+            color: context.sac.textSecondary,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      );
+    }
+
+    final isInApp = userHonor.completionMode == HonorCompletionMode.inApp;
+    final label = isInApp
+        ? 'honors.detail.continue_requirements_cta'.tr()
+        : 'honors.detail.external_flow_cta'.tr();
 
     return GestureDetector(
       onTap: () {
         HapticFeedback.mediumImpact();
-        context.push(
-          RouteNames.honorEvidencePath(
-            honor.id.toString(),
-            userHonor.id.toString(),
-          ),
-        );
+        if (isInApp) {
+          context.push(
+            RouteNames.honorRequirementsPath(
+              honor.id.toString(),
+              userHonor.id.toString(),
+              honor.name,
+            ),
+          );
+        } else {
+          context.push(
+            RouteNames.honorEvidencePath(
+              honor.id.toString(),
+              userHonor.id.toString(),
+            ),
+          );
+        }
       },
       child: Container(
         width: double.infinity,
         height: 48,
         decoration: BoxDecoration(
-          color: hasEvidence
-              ? categoryColor
-              : categoryColor.withValues(alpha: 0.55),
+          color: categoryColor,
           borderRadius: BorderRadius.circular(14),
-          boxShadow: hasEvidence
-              ? [
-                  BoxShadow(
-                    color: categoryColor.withValues(alpha: 0.30),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : null,
+          boxShadow: [
+            BoxShadow(
+              color: categoryColor.withValues(alpha: 0.30),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         alignment: Alignment.center,
         child: Text(

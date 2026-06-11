@@ -125,6 +125,15 @@ class UserHonor extends Equatable {
   bool get hasEvidence =>
       images.isNotEmpty || (document != null && document!.isNotEmpty);
 
+  /// Whether the external completed format has been uploaded.
+  bool get hasCompletedFormat => document != null && document!.isNotEmpty;
+
+  /// General evidence files uploaded through the external workflow.
+  int get generalEvidenceCount => images.length;
+
+  /// Whether the external workflow has at least one general evidence file.
+  bool get hasGeneralEvidence => images.isNotEmpty;
+
   /// Total evidence file count.
   int get evidenceCount {
     int count = images.length;

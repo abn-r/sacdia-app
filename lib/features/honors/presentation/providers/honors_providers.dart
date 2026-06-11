@@ -24,6 +24,7 @@ import '../../domain/usecases/register_user_honor.dart';
 import '../../domain/usecases/start_honor.dart';
 import '../../domain/usecases/update_requirement_progress.dart';
 import '../../domain/usecases/upload_honor_file.dart';
+import '../../domain/usecases/upload_requirement_evidence.dart';
 
 /// Provider para el data source remoto de especialidades
 final honorsRemoteDataSourceProvider = Provider<HonorsRemoteDataSource>((ref) {
@@ -75,6 +76,12 @@ final registerUserHonorProvider = Provider<RegisterUserHonor>((ref) {
 /// Provider para el caso de uso de subir archivo de evidencia general
 final uploadHonorFileProvider = Provider<UploadHonorFile>((ref) {
   return UploadHonorFile(ref.read(honorsRepositoryProvider));
+});
+
+/// Provider para el caso de uso de subir evidencia puntual por requisito.
+final uploadRequirementEvidenceProvider =
+    Provider<UploadRequirementEvidence>((ref) {
+  return UploadRequirementEvidence(ref.read(honorsRepositoryProvider));
 });
 
 /// Provider para las categorías de especialidades
@@ -306,9 +313,54 @@ final honorEvidenceActionsNotifierProvider =
   HonorEvidenceActionsNotifier.new,
 );
 
+// ── Requirement evidence actions ───────────────────────────────────────────
+
+class RequirementEvidenceActionsNotifier
+    extends AutoDisposeFamilyAsyncNotifier<void, int> {
+  @override
+  Future<void> build(int arg) async {}
+
+  Future<bool> uploadRequirementEvidence({
+    required String userId,
+    required int honorId,
+    required int requirementId,
+    required File file,
+  }) async {
+    state = const AsyncValue.loading();
+
+    final result = await ref.read(uploadRequirementEvidenceProvider)(
+      UploadRequirementEvidenceParams(
+        userId: userId,
+        honorId: honorId,
+        requirementId: requirementId,
+        file: file,
+      ),
+    );
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (_) {
+        state = const AsyncValue.data(null);
+        ref.invalidate(userHonorProgressProvider(honorId));
+        return true;
+      },
+    );
+  }
+}
+
+final requirementEvidenceActionsNotifierProvider = AsyncNotifierProvider
+    .autoDispose
+    .family<RequirementEvidenceActionsNotifier, void, int>(
+  RequirementEvidenceActionsNotifier.new,
+);
+
 // ── Honor completion mode actions ───────────────────────────────────────────
 
-class HonorCompletionModeActionsNotifier extends AutoDisposeAsyncNotifier<void> {
+class HonorCompletionModeActionsNotifier
+    extends AutoDisposeAsyncNotifier<void> {
   @override
   Future<void> build() async {}
 

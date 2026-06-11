@@ -1,12 +1,18 @@
+import 'dart:io';
+
 import 'package:easy_localization/easy_localization.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_requirement.dart';
+import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor_requirement_progress.dart';
 import 'package:sacdia_app/features/honors/presentation/theme/honor_category_palette.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
@@ -86,6 +92,7 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
       _savedSnapshot = {};
 
   bool _saving = false;
+  int? _uploadingRequirementId;
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
 
@@ -283,6 +290,145 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
     }
   }
 
+  void _showRequirementEvidenceOptions(HonorRequirement requirement) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.pendingColor,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const HugeIcon(
+                icon: HugeIcons.strokeRoundedCamera01,
+                color: AppColors.info,
+              ),
+              title: Text('honors.requirements.pick_camera'.tr()),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickRequirementCamera(requirement);
+              },
+            ),
+            ListTile(
+              leading: const HugeIcon(
+                icon: HugeIcons.strokeRoundedImage01,
+                color: AppColors.success,
+              ),
+              title: Text('honors.requirements.pick_gallery'.tr()),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickRequirementGallery(requirement);
+              },
+            ),
+            ListTile(
+              leading: const HugeIcon(
+                icon: HugeIcons.strokeRoundedPdf01,
+                color: AppColors.error,
+              ),
+              title: Text('honors.requirements.pick_pdf'.tr()),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickRequirementPdf(requirement);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickRequirementCamera(HonorRequirement requirement) async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(
+      source: ImageSource.camera,
+      maxWidth: 1920,
+      maxHeight: 1920,
+      imageQuality: 85,
+    );
+    if (image == null) return;
+    await _uploadRequirementEvidence(requirement, File(image.path));
+  }
+
+  Future<void> _pickRequirementGallery(HonorRequirement requirement) async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1920,
+      maxHeight: 1920,
+      imageQuality: 85,
+    );
+    if (image == null) return;
+    await _uploadRequirementEvidence(requirement, File(image.path));
+  }
+
+  Future<void> _pickRequirementPdf(HonorRequirement requirement) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+      allowMultiple: false,
+    );
+    final path = result?.files.single.path;
+    if (path == null) return;
+    await _uploadRequirementEvidence(requirement, File(path));
+  }
+
+  Future<void> _uploadRequirementEvidence(
+    HonorRequirement requirement,
+    File file,
+  ) async {
+    final userId = ref.read(authNotifierProvider).valueOrNull?.id;
+    if (userId == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('honors.evidence.no_session'.tr()),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _uploadingRequirementId = requirement.id);
+
+    final success = await ref
+        .read(
+            requirementEvidenceActionsNotifierProvider(widget.honorId).notifier)
+        .uploadRequirementEvidence(
+          userId: userId,
+          honorId: widget.honorId,
+          requirementId: requirement.id,
+          file: file,
+        );
+
+    if (!mounted) return;
+
+    setState(() => _uploadingRequirementId = null);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? 'honors.requirements.requirement_evidence_success'.tr()
+              : 'honors.requirements.requirement_evidence_error'.tr(),
+        ),
+        backgroundColor: success ? AppColors.success : AppColors.error,
+      ),
+    );
+  }
+
   // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
@@ -290,6 +436,8 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
     final requirementsAsync =
         ref.watch(honorRequirementsProvider(widget.honorId));
     final progressAsync = ref.watch(userHonorProgressProvider(widget.honorId));
+    final userHonorsAsync = ref.watch(userHonorsProvider);
+    final userHonor = ref.watch(userHonorForHonorProvider(widget.honorId));
 
     final honorsAsync = ref.watch(allHonorsProvider);
     final honor = honorsAsync.valueOrNull
@@ -303,6 +451,41 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
       categoryId: honor?.categoryId,
       categoryName: categoryName,
     );
+
+    if (userHonorsAsync.isLoading) {
+      return Scaffold(
+        backgroundColor: context.sac.background,
+        body: Column(
+          children: [
+            _DarkHeader(
+              honorName: widget.honorName,
+              categoryColor: categoryColor,
+            ),
+            const Expanded(child: _LoadingBody()),
+          ],
+        ),
+      );
+    }
+
+    if (userHonorsAsync.hasError || userHonor == null) {
+      return _ModeGuardScaffold(
+        honorName: widget.honorName,
+        categoryColor: categoryColor,
+        title: 'honors.requirements.mode_guard_title'.tr(),
+        message: 'honors.requirements.mode_guard_not_found'.tr(),
+      );
+    }
+
+    if (userHonor.completionMode != HonorCompletionMode.inApp) {
+      return _ModeGuardScaffold(
+        honorName: widget.honorName,
+        categoryColor: categoryColor,
+        title: 'honors.requirements.mode_guard_title'.tr(),
+        message: userHonor.completionMode == HonorCompletionMode.external
+            ? 'honors.requirements.mode_guard_external'.tr()
+            : 'honors.requirements.mode_guard_undecided'.tr(),
+      );
+    }
 
     return PopScope(
       canPop: !_hasUnsavedChanges,
@@ -362,6 +545,10 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
                     ),
                     data: (progressList) {
                       _initLocalState(requirements, progressList);
+                      final progressByRequirementId = {
+                        for (final progress in progressList)
+                          progress.requirementId: progress,
+                      };
 
                       final totalAll = _localState.isNotEmpty
                           ? _countTotal(requirements)
@@ -396,6 +583,8 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
                                   requirements[index],
                                   depth: 0,
                                   categoryColor: categoryColor,
+                                  progressByRequirementId:
+                                      progressByRequirementId,
                                 );
                               },
                             ),
@@ -428,6 +617,7 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
     HonorRequirement req, {
     required int depth,
     required Color categoryColor,
+    required Map<int, UserHonorRequirementProgress> progressByRequirementId,
   }) {
     final state = _localState[req.id] ??
         const _RequirementState(
@@ -437,6 +627,8 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
         );
 
     final hasChildren = req.hasSubItems && req.children.isNotEmpty;
+    final evidenceCount =
+        progressByRequirementId[req.id]?.evidences.length ?? 0;
 
     // Count completed children for ChoiceGroupHeader.
     int completedChildCount = 0;
@@ -460,6 +652,11 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
               depth: depth,
               categoryColor: categoryColor,
               onToggle: () => _toggleRequirement(req.id),
+              evidenceCount: evidenceCount,
+              isUploadingEvidence: _uploadingRequirementId == req.id,
+              onAddEvidence: req.requiresEvidence
+                  ? () => _showRequirementEvidenceOptions(req)
+                  : null,
             ),
 
             // Expand/collapse chevron for items with children.
@@ -534,6 +731,7 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
                           req.children[i],
                           depth: depth + 1,
                           categoryColor: categoryColor,
+                          progressByRequirementId: progressByRequirementId,
                         ),
                       ],
                     ],
@@ -544,6 +742,80 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
           ),
         ],
       ],
+    );
+  }
+}
+
+class _ModeGuardScaffold extends StatelessWidget {
+  final String honorName;
+  final Color categoryColor;
+  final String title;
+  final String message;
+
+  const _ModeGuardScaffold({
+    required this.honorName,
+    required this.categoryColor,
+    required this.title,
+    required this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: context.sac.background,
+      body: Column(
+        children: [
+          _DarkHeader(
+            honorName: honorName,
+            categoryColor: categoryColor,
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedRoute01,
+                    size: 48,
+                    color: categoryColor,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: context.sac.text,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: context.sac.textSecondary,
+                      fontSize: 14,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  OutlinedButton(
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(44),
+                      foregroundColor: categoryColor,
+                      side: BorderSide(color: categoryColor),
+                    ),
+                    child: Text('honors.requirements.mode_guard_back'.tr()),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

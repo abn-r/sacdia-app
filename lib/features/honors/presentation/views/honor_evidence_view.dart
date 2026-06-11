@@ -37,6 +37,8 @@ const _kScreenPad = 20.0;
 const _kSectionGap = 16.0;
 const _kHeroHeight = 200.0;
 
+enum _ExternalUploadKind { completedFormat, generalEvidence }
+
 /// Evidence & progress screen for an enrolled honor.
 ///
 /// Minimalist gamified design (Duolingo-inspired) consistent with
@@ -95,6 +97,15 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
       );
     }
 
+    if (userHonor.completionMode != HonorCompletionMode.external) {
+      return _ModeGuardScaffold(
+        title: 'honors.evidence.mode_guard_title'.tr(),
+        message: userHonor.completionMode == HonorCompletionMode.inApp
+            ? 'honors.evidence.mode_guard_in_app'.tr()
+            : 'honors.evidence.mode_guard_undecided'.tr(),
+      );
+    }
+
     // Find the honor catalog entry for metadata (name, image, materialUrl).
     // Watching allHonorsProvider triggers the fetch if not already loaded
     // (e.g. when navigating from profile instead of catalog).
@@ -117,7 +128,12 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
           userHonor: userHonor,
           honor: honor,
           onSubmit: () => _submitForReview(userHonor),
-          onAddEvidence: _showFilePickerOptions,
+          onUploadCompletedFormat: () => _showFilePickerOptions(
+            kind: _ExternalUploadKind.completedFormat,
+          ),
+          onAddEvidence: () => _showFilePickerOptions(
+            kind: _ExternalUploadKind.generalEvidence,
+          ),
           onDeleteEvidence: (imageUrl) =>
               _deleteEvidenceFile(userHonor, imageUrl),
           onViewEvidence: _openEvidenceFile,
@@ -154,7 +170,9 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     }
   }
 
-  void _showFilePickerOptions() {
+  void _showFilePickerOptions({required _ExternalUploadKind kind}) {
+    final isCompletedFormat = kind == _ExternalUploadKind.completedFormat;
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -174,39 +192,42 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
               ),
             ),
             const SizedBox(height: 16),
-            ListTile(
-              leading: const HugeIcon(
-                icon: HugeIcons.strokeRoundedCamera01,
-                color: AppColors.info,
+            if (!isCompletedFormat) ...[
+              ListTile(
+                leading: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedCamera01,
+                  color: AppColors.info,
+                ),
+                title: Text('honors.evidence.pick_camera'.tr()),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickFromCamera();
+                },
               ),
-              title: Text('honors.evidence.pick_camera'.tr()),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickFromCamera();
-              },
-            ),
-            ListTile(
-              leading: const HugeIcon(
-                icon: HugeIcons.strokeRoundedImage01,
-                color: AppColors.success,
+              ListTile(
+                leading: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedImage01,
+                  color: AppColors.success,
+                ),
+                title: Text('honors.evidence.pick_gallery'.tr()),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickFromGallery();
+                },
               ),
-              title: Text('honors.evidence.pick_gallery'.tr()),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickFromGallery();
-              },
-            ),
-            ListTile(
-              leading: const HugeIcon(
-                icon: HugeIcons.strokeRoundedPdf01,
-                color: AppColors.error,
+            ],
+            if (isCompletedFormat)
+              ListTile(
+                leading: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedPdf01,
+                  color: AppColors.error,
+                ),
+                title: Text('honors.evidence.pick_completed_format'.tr()),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickCompletedFormat();
+                },
               ),
-              title: Text('honors.evidence.pick_pdf'.tr()),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickPdf();
-              },
-            ),
             const SizedBox(height: 8),
           ],
         ),
@@ -224,12 +245,14 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
 
   int _nextEvidenceIndex([int offset = 0]) {
     final userHonor = ref.read(userHonorForHonorProvider(widget.honorId));
-    return (userHonor?.evidenceCount ?? 0) + offset + 1;
+    return (userHonor?.generalEvidenceCount ?? 0) + offset + 1;
   }
 
   Future<void> _pickFromCamera() async {
     final userHonor = ref.read(userHonorForHonorProvider(widget.honorId));
-    if (userHonor != null && userHonor.evidenceCount >= _maxFiles) return;
+    if (userHonor != null && userHonor.generalEvidenceCount >= _maxFiles) {
+      return;
+    }
 
     final picker = ImagePicker();
     final image = await picker.pickImage(
@@ -251,7 +274,9 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
 
   Future<void> _pickFromGallery() async {
     final userHonor = ref.read(userHonorForHonorProvider(widget.honorId));
-    if (userHonor != null && userHonor.evidenceCount >= _maxFiles) return;
+    if (userHonor != null && userHonor.generalEvidenceCount >= _maxFiles) {
+      return;
+    }
 
     final picker = ImagePicker();
     final images = await picker.pickMultiImage(
@@ -277,38 +302,34 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     );
   }
 
-  Future<void> _pickPdf() async {
-    final userHonor = ref.read(userHonorForHonorProvider(widget.honorId));
-    if (userHonor != null && userHonor.evidenceCount >= _maxFiles) return;
-
+  Future<void> _pickCompletedFormat() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf'],
-      allowMultiple: true,
+      allowMultiple: false,
     );
-    if (result != null) {
-      await _uploadPickedFiles(
-        result.files
-            .where((file) => file.path != null)
-            .toList()
-            .asMap()
-            .entries
-            .map(
-              (entry) => StagedFile.local(
-                localPath: entry.value.path!,
-                name: _buildEvidenceFileName(
-                  entry.value.name,
-                  _nextEvidenceIndex(entry.key),
-                ),
-                mimeType: 'application/pdf',
-              ),
-            )
-            .toList(),
-      );
-    }
+
+    final pickedFile = result?.files.single;
+    if (pickedFile?.path == null) return;
+
+    await _uploadPickedFiles(
+      [
+        StagedFile.local(
+          localPath: pickedFile!.path!,
+          name: pickedFile.name,
+          mimeType: 'application/pdf',
+        ),
+      ],
+      uploadField: HonorFileUploadField.document,
+      countsAgainstGeneralCap: false,
+    );
   }
 
-  Future<void> _uploadPickedFiles(List<StagedFile> pickedFiles) async {
+  Future<void> _uploadPickedFiles(
+    List<StagedFile> pickedFiles, {
+    HonorFileUploadField uploadField = HonorFileUploadField.images,
+    bool countsAgainstGeneralCap = true,
+  }) async {
     if (pickedFiles.isEmpty) return;
 
     final validFiles = <StagedFile>[];
@@ -336,16 +357,21 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     if (validFiles.isEmpty) return;
 
     final userHonor = ref.read(userHonorForHonorProvider(widget.honorId));
-    final availableSlots = _maxFiles - (userHonor?.evidenceCount ?? 0);
-    if (availableSlots <= 0) return;
+    final availableSlots = _maxFiles - (userHonor?.generalEvidenceCount ?? 0);
+    if (countsAgainstGeneralCap && availableSlots <= 0) return;
 
-    final queuedFiles = validFiles.take(availableSlots).toList();
+    final queuedFiles = countsAgainstGeneralCap
+        ? validFiles.take(availableSlots).toList()
+        : validFiles.take(1).toList();
     if (!mounted) return;
 
-    await _showUploadProgress(queuedFiles);
+    await _showUploadProgress(queuedFiles, uploadField: uploadField);
   }
 
-  Future<void> _showUploadProgress(List<StagedFile> initialFiles) async {
+  Future<void> _showUploadProgress(
+    List<StagedFile> initialFiles, {
+    HonorFileUploadField uploadField = HonorFileUploadField.images,
+  }) async {
     var queueFiles = initialFiles;
     var shouldRetry = true;
     var completedAny = false;
@@ -374,7 +400,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
         streamController.add(queueFiles);
 
         try {
-          await _uploadQueuedFile(file);
+          await _uploadQueuedFile(file, uploadField: uploadField);
           completedAny = true;
           queueFiles = _updateQueuedFile(
             queueFiles,
@@ -446,7 +472,10 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     }).toList();
   }
 
-  Future<void> _uploadQueuedFile(StagedFile stagedFile) async {
+  Future<void> _uploadQueuedFile(
+    StagedFile stagedFile, {
+    HonorFileUploadField uploadField = HonorFileUploadField.images,
+  }) async {
     final localPath = stagedFile.localPath;
     if (localPath == null) return;
 
@@ -470,6 +499,7 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
           honorId: widget.honorId,
           file: File(localPath),
           fileName: stagedFile.name,
+          uploadField: uploadField,
           skipInvalidation: true,
         );
 
@@ -555,12 +585,78 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
   }
 }
 
+class _ModeGuardScaffold extends StatelessWidget {
+  final String title;
+  final String message;
+
+  const _ModeGuardScaffold({
+    required this.title,
+    required this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: context.sac.background,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
+        backgroundColor: AppColors.lightText,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const HugeIcon(
+              icon: HugeIcons.strokeRoundedRoute01,
+              size: 48,
+              color: AppColors.primary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: context.sac.text,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: context.sac.textSecondary,
+                fontSize: 14,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 20),
+            OutlinedButton(
+              onPressed: () => context.pop(),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(44),
+              ),
+              child: Text('honors.evidence.mode_guard_back'.tr()),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // ── Evidence Body ─────────────────────────────────────────────────────────────
 
 class _EvidenceBody extends StatelessWidget {
   final UserHonor userHonor;
   final Honor? honor;
   final VoidCallback onSubmit;
+  final VoidCallback onUploadCompletedFormat;
   final VoidCallback onAddEvidence;
   final void Function(String imageUrl) onDeleteEvidence;
   final void Function(String url, List<String> imageUrls, int initialIndex)
@@ -571,6 +667,7 @@ class _EvidenceBody extends StatelessWidget {
     required this.userHonor,
     this.honor,
     required this.onSubmit,
+    required this.onUploadCompletedFormat,
     required this.onAddEvidence,
     required this.onDeleteEvidence,
     required this.onViewEvidence,
@@ -660,6 +757,14 @@ class _EvidenceBody extends StatelessWidget {
                         const SizedBox(height: _kSectionGap),
                       ],
 
+                      _CompletedFormatCard(
+                        userHonor: userHonor,
+                        categoryColor: categoryColor,
+                        onUploadCompletedFormat: onUploadCompletedFormat,
+                        onOpenDocument: onOpenMaterial,
+                      ),
+                      const SizedBox(height: _kSectionGap),
+
                       // Evidence section card
                       _EvidenceSectionCard(
                         userHonor: userHonor,
@@ -696,6 +801,7 @@ class _EvidenceBody extends StatelessWidget {
               userHonor: userHonor,
               categoryColor: categoryColor,
               onSubmit: onSubmit,
+              onUploadCompletedFormat: onUploadCompletedFormat,
               onAddEvidence: onAddEvidence,
             ),
           ),
@@ -961,6 +1067,131 @@ class _MaterialCard extends StatelessWidget {
   }
 }
 
+// ── Completed Format Card ────────────────────────────────────────────────────
+
+class _CompletedFormatCard extends StatelessWidget {
+  final UserHonor userHonor;
+  final Color categoryColor;
+  final VoidCallback onUploadCompletedFormat;
+  final Future<void> Function(String url) onOpenDocument;
+
+  const _CompletedFormatCard({
+    required this.userHonor,
+    required this.categoryColor,
+    required this.onUploadCompletedFormat,
+    required this.onOpenDocument,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasDocument = userHonor.hasCompletedFormat;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.sac.surface,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: context.sac.shadow,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: (hasDocument ? AppColors.success : categoryColor)
+                      .withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: HugeIcon(
+                  icon: hasDocument
+                      ? HugeIcons.strokeRoundedCheckmarkCircle02
+                      : HugeIcons.strokeRoundedPdf01,
+                  color: hasDocument ? AppColors.success : categoryColor,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'honors.evidence.completed_format_title'.tr(),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: context.sac.text,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      hasDocument
+                          ? 'honors.evidence.completed_format_uploaded'.tr()
+                          : 'honors.evidence.completed_format_missing'.tr(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.sac.textSecondary,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onUploadCompletedFormat,
+                  icon: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedUpload01,
+                    size: 18,
+                  ),
+                  label: Text(hasDocument
+                      ? 'honors.evidence.replace_completed_format'.tr()
+                      : 'honors.evidence.upload_completed_format'.tr()),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(44),
+                    foregroundColor: categoryColor,
+                    side: BorderSide(color: categoryColor),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              if (hasDocument) ...[
+                const SizedBox(width: 10),
+                IconButton.filledTonal(
+                  onPressed: () => onOpenDocument(userHonor.document!),
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedView,
+                    color: categoryColor,
+                    size: 20,
+                  ),
+                  tooltip: 'honors.evidence.open_completed_format'.tr(),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ── Evidence Section Card ─────────────────────────────────────────────────────
 
 class _EvidenceSectionCard extends StatelessWidget {
@@ -983,7 +1214,7 @@ class _EvidenceSectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // canEdit: user may add or delete evidence (in_progress or rejected)
     final canEdit = userHonor.canSubmit;
-    final showAddCell = canEdit && userHonor.evidenceCount < 10;
+    final showAddCell = canEdit && userHonor.generalEvidenceCount < 10;
     final hasEvidence = userHonor.images.isNotEmpty;
 
     return Container(
@@ -1007,7 +1238,7 @@ class _EvidenceSectionCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'honors.evidence.section_title'.tr(),
+                'honors.evidence.general_section_title'.tr(),
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
@@ -1024,7 +1255,7 @@ class _EvidenceSectionCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  '${userHonor.evidenceCount}/10',
+                  '${userHonor.generalEvidenceCount}/10',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -1100,7 +1331,7 @@ class _EmptyEvidenceState extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'honors.evidence.empty_first'.tr(),
+            'honors.evidence.general_empty_first'.tr(),
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -1109,7 +1340,7 @@ class _EmptyEvidenceState extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'honors.evidence.empty_subtitle'.tr(),
+            'honors.evidence.general_empty_subtitle'.tr(),
             style: TextStyle(
               fontSize: 12,
               color: context.sac.textTertiary,
@@ -1508,12 +1739,14 @@ class _BottomCtaBar extends ConsumerWidget {
   final UserHonor userHonor;
   final Color categoryColor;
   final VoidCallback onSubmit;
+  final VoidCallback onUploadCompletedFormat;
   final VoidCallback onAddEvidence;
 
   const _BottomCtaBar({
     required this.userHonor,
     required this.categoryColor,
     required this.onSubmit,
+    required this.onUploadCompletedFormat,
     required this.onAddEvidence,
   });
 
@@ -1544,18 +1777,54 @@ class _BottomCtaBar extends ConsumerWidget {
 
   Widget _buildCtaButton(
       BuildContext context, SubmitValidationState submitState) {
+    if (userHonor.isUnderReview) {
+      return _CtaButton(
+        label: 'honors.evidence.cta_sent'.tr(),
+        icon: HugeIcons.strokeRoundedHourglass,
+        color: AppColors.pendingColor,
+        onPressed: null,
+      );
+    }
+
+    if (userHonor.isCompleted) {
+      return Builder(
+        builder: (context) => _CtaButton(
+          label: 'honors.evidence.cta_completed'.tr(),
+          icon: HugeIcons.strokeRoundedAward01,
+          color: AppColors.success,
+          onPressed: () {
+            context.push(
+              RouteNames.honorCompletionPath(
+                userHonor.honorId.toString(),
+                userHonor.id.toString(),
+              ),
+            );
+          },
+        ),
+      );
+    }
+
+    if (!userHonor.hasCompletedFormat) {
+      return _CtaButton(
+        label: 'honors.evidence.cta_upload_format'.tr(),
+        icon: HugeIcons.strokeRoundedPdf01,
+        color: categoryColor,
+        onPressed: onUploadCompletedFormat,
+      );
+    }
+
+    if (!userHonor.hasGeneralEvidence) {
+      return _CtaButton(
+        label: 'honors.evidence.cta_upload_general'.tr(),
+        icon: HugeIcons.strokeRoundedUpload01,
+        color: categoryColor,
+        onPressed: onAddEvidence,
+      );
+    }
+
     switch (userHonor.displayStatus) {
       case 'inscrito':
-        // No evidence yet — prompt to upload
-        return _CtaButton(
-          label: 'honors.evidence.cta_upload'.tr(),
-          icon: HugeIcons.strokeRoundedUpload01,
-          color: categoryColor,
-          onPressed: onAddEvidence,
-        );
-
       case 'en_progreso':
-        // Has evidence, not submitted — send for review
         return _CtaButton(
           label: 'honors.evidence.cta_send'.tr(),
           icon: HugeIcons.strokeRoundedSent,
@@ -1565,7 +1834,6 @@ class _BottomCtaBar extends ConsumerWidget {
         );
 
       case 'enviado':
-        // Under review — disabled
         return _CtaButton(
           label: 'honors.evidence.cta_sent'.tr(),
           icon: HugeIcons.strokeRoundedHourglass,
@@ -1574,7 +1842,6 @@ class _BottomCtaBar extends ConsumerWidget {
         );
 
       case 'validado':
-        // Completed — navigate to completion screen
         return Builder(
           builder: (context) => _CtaButton(
             label: 'honors.evidence.cta_completed'.tr(),
@@ -1592,12 +1859,12 @@ class _BottomCtaBar extends ConsumerWidget {
         );
 
       case 'rechazado':
-        // Rejected — correct and resubmit
         return _CtaButton(
-          label: 'honors.evidence.cta_fix'.tr(),
-          icon: HugeIcons.strokeRoundedRefresh,
+          label: 'honors.evidence.cta_send'.tr(),
+          icon: HugeIcons.strokeRoundedSent,
           color: categoryColor,
-          onPressed: onAddEvidence,
+          isLoading: submitState.isLoading,
+          onPressed: submitState.isLoading ? null : onSubmit,
         );
 
       default:
