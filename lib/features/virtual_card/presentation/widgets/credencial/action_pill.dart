@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import 'credencial_tokens.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 enum ActionIcon { wallet, share, pdf }
 
@@ -62,7 +64,7 @@ class ActionPill extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(_iconFor(icon), size: 16, color: fg),
+              HugeIcon(icon: _iconFor(icon), size: 16, color: fg),
               const SizedBox(width: 6),
               Text(
                 label,
@@ -79,14 +81,14 @@ class ActionPill extends StatelessWidget {
     );
   }
 
-  IconData _iconFor(ActionIcon i) {
+  HugeIconData _iconFor(ActionIcon i) {
     switch (i) {
       case ActionIcon.wallet:
-        return Icons.account_balance_wallet_outlined;
+        return HugeIcons.strokeRoundedWallet01;
       case ActionIcon.share:
-        return Icons.ios_share_rounded;
+        return HugeIcons.strokeRoundedShare08;
       case ActionIcon.pdf:
-        return Icons.picture_as_pdf_outlined;
+        return HugeIcons.strokeRoundedPdf01;
     }
   }
 }

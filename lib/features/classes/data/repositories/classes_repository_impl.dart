@@ -118,7 +118,8 @@ class ClassesRepositoryImpl implements ClassesRepository {
       {int? enrollmentId, RequestCancelToken? cancelToken}) async {
     try {
       final model = await remoteDataSource.getUserClassProgress(userId, classId,
-          enrollmentId: enrollmentId, cancelToken: cancelToken.asDioCancelToken());
+          enrollmentId: enrollmentId,
+          cancelToken: cancelToken.asDioCancelToken());
       return Right(model.toEntity());
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;
@@ -175,7 +176,8 @@ class ClassesRepositoryImpl implements ClassesRepository {
       {int? enrollmentId, RequestCancelToken? cancelToken}) async {
     try {
       final model = await remoteDataSource.getClassWithProgress(userId, classId,
-          enrollmentId: enrollmentId, cancelToken: cancelToken.asDioCancelToken());
+          enrollmentId: enrollmentId,
+          cancelToken: cancelToken.asDioCancelToken());
       return Right(model.toEntity());
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) rethrow;

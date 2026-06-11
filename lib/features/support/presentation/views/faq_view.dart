@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../domain/entities/faq_item.dart';
 import '../providers/support_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Lista de preguntas frecuentes con búsqueda + expansión inline.
 class FaqView extends ConsumerStatefulWidget {
@@ -31,7 +32,10 @@ class _FaqViewState extends ConsumerState<FaqView> {
     final filteredAsync = ref.watch(filteredFaqItemsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text('support.faq_title'.tr())),
+      appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: sacAutoBackButton(context),
+          title: Text('support.faq_title'.tr())),
       body: Column(
         children: [
           Padding(
@@ -43,11 +47,13 @@ class _FaqViewState extends ConsumerState<FaqView> {
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
                 hintText: 'support.faq_search_hint'.tr(),
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon:
+                    const HugeIcon(icon: HugeIcons.strokeRoundedSearch01),
                 suffixIcon: _searchCtrl.text.isEmpty
                     ? null
                     : IconButton(
-                        icon: const Icon(Icons.close),
+                        icon: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedCancel01),
                         onPressed: () {
                           _searchCtrl.clear();
                           ref.read(faqSearchQueryProvider.notifier).state = '';

@@ -471,10 +471,10 @@ class _HonorRequirementsViewState extends ConsumerState<HonorRequirementsView> {
                   onTap: () => _toggleChildrenExpand(req.id),
                   child: Padding(
                     padding: const EdgeInsets.all(4),
-                    child: Icon(
-                      state.childrenExpanded
-                          ? Icons.keyboard_arrow_up_rounded
-                          : Icons.keyboard_arrow_down_rounded,
+                    child: HugeIcon(
+                      icon: state.childrenExpanded
+                          ? HugeIcons.strokeRoundedArrowUp01
+                          : HugeIcons.strokeRoundedArrowDown01,
                       size: 20,
                       color: categoryColor,
                     ),
@@ -828,8 +828,8 @@ class _ErrorBody extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline_rounded,
+            const HugeIcon(
+              icon: HugeIcons.strokeRoundedAlert02,
               size: 48,
               color: AppColors.primary,
             ),

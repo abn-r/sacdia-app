@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
@@ -211,8 +212,8 @@ class HonorCard extends StatelessWidget {
                 fit: BoxFit.cover,
                 errorWidget: (_, __, ___) => Container(
                   color: const Color(0xFFF0F4F5),
-                  child: Icon(
-                    Icons.emoji_events_outlined,
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedAward01,
                     color: _categoryPaintColor,
                     size: 24,
                   ),
@@ -227,8 +228,8 @@ class HonorCard extends StatelessWidget {
               color: const Color(0xFFF0F4F5),
               borderRadius: borderRadius,
             ),
-            child: Icon(
-              Icons.emoji_events_outlined,
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedAward01,
               color: _categoryPaintColor,
               size: 24,
             ),
@@ -255,8 +256,8 @@ class HonorCard extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 1.5),
               ),
-              child: const Icon(
-                Icons.check_rounded,
+              child: const HugeIcon(
+                icon: HugeIcons.strokeRoundedTick02,
                 color: Colors.white,
                 size: 11,
               ),
@@ -277,8 +278,8 @@ class HonorCard extends StatelessWidget {
           color: AppColors.accent,
           shape: BoxShape.circle,
         ),
-        child: const Icon(
-          Icons.star_rounded,
+        child: const HugeIcon(
+          icon: HugeIcons.strokeRoundedStar,
           color: Colors.white,
           size: 16,
         ),
@@ -291,8 +292,8 @@ class HonorCard extends StatelessWidget {
     }
 
     // Available: chevron
-    return const Icon(
-      Icons.chevron_right_rounded,
+    return const HugeIcon(
+      icon: HugeIcons.strokeRoundedArrowRight01,
       color: AppColors.pendingColor,
       size: 24,
     );

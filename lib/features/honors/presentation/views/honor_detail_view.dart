@@ -20,6 +20,7 @@ import '../../domain/entities/user_honor_requirement_progress.dart';
 import '../theme/honor_category_palette.dart';
 import '../providers/honors_providers.dart';
 import '../../domain/entities/user_honor.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 
@@ -135,6 +136,8 @@ class _ErrorScaffold extends StatelessWidget {
     return Scaffold(
       backgroundColor: context.sac.background,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         backgroundColor: AppColors.lightText,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -143,7 +146,10 @@ class _ErrorScaffold extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 48, color: AppColors.primary),
+            const HugeIcon(
+                icon: HugeIcons.strokeRoundedAlert02,
+                size: 48,
+                color: AppColors.primary),
             const SizedBox(height: 16),
             Text(
               'honors.detail.error_load'.tr(),
@@ -846,8 +852,8 @@ class _JourneyPreviewCard extends ConsumerWidget {
               icon: HugeIcons.strokeRoundedPdf01,
               iconColor: categoryColor,
               label: 'honors.detail.material_available'.tr(),
-              trailing: Icon(
-                Icons.download_rounded,
+              trailing: HugeIcon(
+                icon: HugeIcons.strokeRoundedDownload01,
                 size: 16,
                 color: categoryColor,
               ),
@@ -1383,8 +1389,8 @@ class _RequirementsPreviewCard extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Icon(
-                          Icons.arrow_forward_rounded,
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedArrowRight01,
                           size: 16,
                           color: categoryColor,
                         ),
@@ -1447,8 +1453,8 @@ class _RequirementPreviewItem extends StatelessWidget {
               ),
             ),
             child: completed
-                ? const Icon(
-                    Icons.check_rounded,
+                ? const HugeIcon(
+                    icon: HugeIcons.strokeRoundedTick02,
                     size: 13,
                     color: AppColors.success,
                   )
@@ -1539,8 +1545,8 @@ class _EvidenceSection extends StatelessWidget {
                           width: 56,
                           height: 56,
                           color: context.sac.border,
-                          child: Icon(
-                            Icons.broken_image_rounded,
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedImageDelete01,
                             size: 20,
                             color: context.sac.textTertiary,
                           ),
@@ -1584,8 +1590,8 @@ class _EvidenceSection extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Icon(
-                      Icons.arrow_forward_rounded,
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowRight01,
                       size: 16,
                       color: categoryColor,
                     ),
@@ -1709,8 +1715,8 @@ class _MaterialDownloadCardState extends State<_MaterialDownloadCard> {
                   ),
                 )
               else
-                Icon(
-                  Icons.download_rounded,
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedDownload01,
                   color: widget.categoryColor,
                   size: 20,
                 ),
@@ -1957,8 +1963,10 @@ class _EnrolledCtaButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.hourglass_top_rounded,
-                size: 16, color: AppColors.accent),
+            const HugeIcon(
+                icon: HugeIcons.strokeRoundedHourglass,
+                size: 16,
+                color: AppColors.accent),
             const SizedBox(width: 8),
             Text(
               'honors.detail.under_review_cta'.tr(),
@@ -1987,8 +1995,10 @@ class _EnrolledCtaButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.check_circle_rounded,
-                size: 18, color: AppColors.success),
+            const HugeIcon(
+                icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                size: 18,
+                color: AppColors.success),
             const SizedBox(width: 8),
             Text(
               'honors.detail.completed_cta'.tr(),

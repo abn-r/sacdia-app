@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/features/camporees/domain/entities/camporee_member.dart';
 
 import '../providers/camporees_providers.dart';
@@ -34,6 +35,8 @@ class CamporeeMembersView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: c.background,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: Text(
           'camporees.members.title'.tr(),
           style: TextStyle(color: c.text),

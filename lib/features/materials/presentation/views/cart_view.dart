@@ -8,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../providers/cart_provider.dart';
 import '../utils/money_format.dart';
 import '../widgets/qty_stepper.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Pantalla del carrito de materiales.
 ///
@@ -24,6 +25,8 @@ class CartView extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: const Text('Carrito'),
         actions: [
           if (cart.lines.isNotEmpty)

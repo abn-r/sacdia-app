@@ -494,7 +494,7 @@ class _EditActivityViewState extends ConsumerState<EditActivityView> {
                   title: 'activities.form.type_picker_title'.tr(),
                   items: activityTypeItems,
                   selectedId: _selectedActivityType,
-                  icon: Icons.label_rounded,
+                  icon: HugeIcons.strokeRoundedLabel,
                 );
                 if (selected != null && mounted) {
                   setState(() {
@@ -880,8 +880,8 @@ class _SectionMultiPicker extends ConsumerWidget {
                         : c.border,
                   ),
                   avatar: isOwn
-                      ? Icon(
-                          Icons.star_rounded,
+                      ? HugeIcon(
+                          icon: HugeIcons.strokeRoundedStar,
                           size: 14,
                           color: AppColors.primary,
                         )

@@ -9,6 +9,7 @@ import '../../../../core/utils/icon_helper.dart';
 import '../../../profile/presentation/widgets/setting_tile.dart';
 import '../../domain/entities/accessibility_settings.dart';
 import '../providers/accessibility_provider.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 class AccessibilityView extends ConsumerWidget {
   const AccessibilityView({super.key});
@@ -22,6 +23,8 @@ class AccessibilityView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: c.surfaceVariant,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: Text('accessibility.title'.tr()),
         backgroundColor: c.surfaceVariant,
         foregroundColor: c.text,
@@ -201,7 +204,9 @@ class _TextSizePickerSheet extends StatelessWidget {
             return ListTile(
               title: Text(label),
               trailing: selected
-                  ? const Icon(Icons.check, color: AppColors.primary)
+                  ? const HugeIcon(
+                      icon: HugeIcons.strokeRoundedTick02,
+                      color: AppColors.primary)
                   : null,
               onTap: () => Navigator.of(context).pop(option),
             );

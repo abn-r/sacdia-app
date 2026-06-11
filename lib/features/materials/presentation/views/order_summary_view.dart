@@ -11,6 +11,7 @@ import '../providers/cart_provider.dart';
 import '../providers/config_provider.dart';
 import '../providers/create_order_provider.dart';
 import '../utils/money_format.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Pantalla de resumen y confirmación de pedido.
 ///
@@ -56,6 +57,8 @@ class _OrderSummaryViewState extends ConsumerState<OrderSummaryView> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: const Text('Confirmar pedido'),
       ),
       body: ListView(

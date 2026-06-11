@@ -98,7 +98,7 @@ class ActivityCard extends StatelessWidget {
                   if (activity.isJoint)
                     SacBadge(
                       label: 'activities.widgets.joint_badge_short'.tr(),
-                      icon: Icons.people_rounded,
+                      icon: HugeIcons.strokeRoundedUserGroup,
                       variant: SacBadgeVariant.neutral,
                     ),
                 ],

@@ -17,6 +17,7 @@ import 'package:sacdia_app/core/widgets/evidence_staging/staged_file.dart';
 import 'package:sacdia_app/core/widgets/evidence_staging/upload_progress_sheet.dart';
 import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../theme/honor_category_palette.dart';
@@ -28,6 +29,7 @@ import '../../../validation/presentation/providers/validation_providers.dart'
 import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor.dart';
 import '../providers/honors_providers.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 
@@ -79,7 +81,10 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     // Surface any hard error from userHonorsProvider
     if (userHonorsAsync.hasError) {
       return Scaffold(
-        appBar: AppBar(backgroundColor: AppColors.error),
+        appBar: AppBar(
+            automaticallyImplyLeading: false,
+            leading: sacAutoBackButton(context),
+            backgroundColor: AppColors.error),
         body: Center(child: Text('honors.evidence.error_load'.tr())),
       );
     }
@@ -170,8 +175,8 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
             ),
             const SizedBox(height: 16),
             ListTile(
-              leading: const Icon(
-                Icons.camera_alt_rounded,
+              leading: const HugeIcon(
+                icon: HugeIcons.strokeRoundedCamera01,
                 color: AppColors.info,
               ),
               title: Text('honors.evidence.pick_camera'.tr()),
@@ -181,8 +186,8 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
               },
             ),
             ListTile(
-              leading: const Icon(
-                Icons.photo_library_rounded,
+              leading: const HugeIcon(
+                icon: HugeIcons.strokeRoundedImage01,
                 color: AppColors.success,
               ),
               title: Text('honors.evidence.pick_gallery'.tr()),
@@ -192,8 +197,8 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
               },
             ),
             ListTile(
-              leading: const Icon(
-                Icons.picture_as_pdf_rounded,
+              leading: const HugeIcon(
+                icon: HugeIcons.strokeRoundedPdf01,
                 color: AppColors.error,
               ),
               title: Text('honors.evidence.pick_pdf'.tr()),
@@ -795,8 +800,8 @@ class _HonorBadge extends StatelessWidget {
                   memCacheHeight: 186,
                   errorWidget: (_, __, ___) => Container(
                     color: Colors.white.withValues(alpha: 0.20),
-                    child: const Icon(
-                      Icons.emoji_events_outlined,
+                    child: const HugeIcon(
+                      icon: HugeIcons.strokeRoundedAward01,
                       color: Colors.white,
                       size: 22,
                     ),
@@ -804,8 +809,8 @@ class _HonorBadge extends StatelessWidget {
                 )
               : Container(
                   color: Colors.white.withValues(alpha: 0.20),
-                  child: const Icon(
-                    Icons.emoji_events_outlined,
+                  child: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedAward01,
                     color: Colors.white,
                     size: 22,
                   ),
@@ -914,8 +919,8 @@ class _MaterialCard extends StatelessWidget {
                 color: categoryColor.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                Icons.picture_as_pdf_rounded,
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedPdf01,
                 color: categoryColor,
                 size: 22,
               ),
@@ -944,8 +949,8 @@ class _MaterialCard extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              Icons.download_rounded,
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedDownload01,
               color: categoryColor,
               size: 22,
             ),
@@ -1088,8 +1093,8 @@ class _EmptyEvidenceState extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(
-            Icons.photo_library_outlined,
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedImage01,
             color: context.sac.textTertiary,
             size: 40,
           ),
@@ -1126,8 +1131,10 @@ class _EmptyEvidenceState extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.add_rounded,
-                        color: Colors.white, size: 18),
+                    const HugeIcon(
+                        icon: HugeIcons.strokeRoundedAdd01,
+                        color: Colors.white,
+                        size: 18),
                     const SizedBox(width: 6),
                     Text(
                       'honors.evidence.add_button'.tr(),
@@ -1247,8 +1254,8 @@ class _AddEvidenceCell extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.add_rounded,
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedAdd01,
               color: categoryColor,
               size: 28,
             ),
@@ -1333,8 +1340,8 @@ class _EvidenceThumbnail extends StatelessWidget {
                 child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.picture_as_pdf_rounded,
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedPdf01,
                       color: AppColors.error,
                       size: 28,
                     ),
@@ -1370,8 +1377,8 @@ class _EvidenceThumbnail extends StatelessWidget {
                 errorWidget: (_, __, ___) => Builder(
                   builder: (context) => Container(
                     color: context.sac.surfaceVariant,
-                    child: Icon(
-                      Icons.broken_image_rounded,
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedImageDelete01,
                       color: context.sac.textTertiary,
                       size: 24,
                     ),
@@ -1391,8 +1398,8 @@ class _EvidenceThumbnail extends StatelessWidget {
                     color: AppColors.success,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.check_rounded,
+                  child: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedTick02,
                     color: Colors.white,
                     size: 12,
                   ),
@@ -1448,8 +1455,8 @@ class _RejectionCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.warning_amber_rounded,
+          const HugeIcon(
+            icon: HugeIcons.strokeRoundedAlert02,
             color: AppColors.error,
             size: 22,
           ),
@@ -1542,7 +1549,7 @@ class _BottomCtaBar extends ConsumerWidget {
         // No evidence yet — prompt to upload
         return _CtaButton(
           label: 'honors.evidence.cta_upload'.tr(),
-          icon: Icons.upload_rounded,
+          icon: HugeIcons.strokeRoundedUpload01,
           color: categoryColor,
           onPressed: onAddEvidence,
         );
@@ -1551,7 +1558,7 @@ class _BottomCtaBar extends ConsumerWidget {
         // Has evidence, not submitted — send for review
         return _CtaButton(
           label: 'honors.evidence.cta_send'.tr(),
-          icon: Icons.send_rounded,
+          icon: HugeIcons.strokeRoundedSent,
           color: categoryColor,
           isLoading: submitState.isLoading,
           onPressed: submitState.isLoading ? null : onSubmit,
@@ -1561,7 +1568,7 @@ class _BottomCtaBar extends ConsumerWidget {
         // Under review — disabled
         return _CtaButton(
           label: 'honors.evidence.cta_sent'.tr(),
-          icon: Icons.hourglass_top_rounded,
+          icon: HugeIcons.strokeRoundedHourglass,
           color: AppColors.pendingColor,
           onPressed: null,
         );
@@ -1571,7 +1578,7 @@ class _BottomCtaBar extends ConsumerWidget {
         return Builder(
           builder: (context) => _CtaButton(
             label: 'honors.evidence.cta_completed'.tr(),
-            icon: Icons.emoji_events_rounded,
+            icon: HugeIcons.strokeRoundedAward01,
             color: AppColors.success,
             onPressed: () {
               context.push(
@@ -1588,7 +1595,7 @@ class _BottomCtaBar extends ConsumerWidget {
         // Rejected — correct and resubmit
         return _CtaButton(
           label: 'honors.evidence.cta_fix'.tr(),
-          icon: Icons.refresh_rounded,
+          icon: HugeIcons.strokeRoundedRefresh,
           color: categoryColor,
           onPressed: onAddEvidence,
         );
@@ -1603,7 +1610,7 @@ class _BottomCtaBar extends ConsumerWidget {
 
 class _CtaButton extends StatelessWidget {
   final String label;
-  final IconData icon;
+  final HugeIconData icon;
   final Color color;
   final VoidCallback? onPressed;
   final bool isLoading;
@@ -1647,7 +1654,7 @@ class _CtaButton extends StatelessWidget {
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(icon, size: 18),
+                  HugeIcon(icon: icon, size: 18),
                   const SizedBox(width: 8),
                   Text(
                     label,

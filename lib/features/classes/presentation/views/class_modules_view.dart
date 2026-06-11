@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/classes_providers.dart';
@@ -33,6 +34,8 @@ class ClassModulesView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: context.sac.background,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: Text('classes.modules.title'.tr()),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,

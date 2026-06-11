@@ -14,6 +14,7 @@ import '../widgets/insurance_summary_header.dart';
 import '../widgets/member_insurance_card.dart';
 import 'insurance_detail_view.dart';
 import 'insurance_form_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Pantalla principal del módulo de Seguros del club.
 ///
@@ -60,6 +61,8 @@ class _InsuranceViewState extends ConsumerState<InsuranceView> {
             slivers: [
               // App bar
               SliverAppBar(
+                automaticallyImplyLeading: false,
+                leading: sacAutoBackButton(context),
                 pinned: true,
                 expandedHeight: 0,
                 backgroundColor: context.sac.background,

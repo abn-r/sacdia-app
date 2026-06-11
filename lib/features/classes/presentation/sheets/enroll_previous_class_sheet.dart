@@ -96,8 +96,8 @@ class _EnrollPreviousClassSheetState
             color: AppColors.primary.withAlpha(20),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Icon(
-            Icons.school,
+          child: const HugeIcon(
+            icon: HugeIcons.strokeRoundedSchool,
             color: AppColors.primary,
             size: 22,
           ),
@@ -155,7 +155,10 @@ class _EnrollPreviousClassSheetState
         ),
         child: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, size: 16, color: AppColors.error),
+            HugeIcon(
+                icon: HugeIcons.strokeRoundedAlert02,
+                size: 16,
+                color: AppColors.error),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -177,7 +180,10 @@ class _EnrollPreviousClassSheetState
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline, size: 16, color: AppColors.warning),
+                HugeIcon(
+                    icon: HugeIcons.strokeRoundedInformationCircle,
+                    size: 16,
+                    color: AppColors.warning),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -204,8 +210,10 @@ class _EnrollPreviousClassSheetState
           ),
           child: Row(
             children: [
-              Icon(Icons.calendar_today_rounded,
-                  size: 15, color: AppColors.secondary),
+              HugeIcon(
+                  icon: HugeIcons.strokeRoundedCalendar01,
+                  size: 15,
+                  color: AppColors.secondary),
               const SizedBox(width: 8),
               Text(
                 'Año eclesiástico: ',
@@ -336,10 +344,10 @@ class _EnrollPreviousClassSheetState
                       ),
                       child: Row(
                         children: [
-                          Icon(
-                            isSelected
-                                ? Icons.radio_button_checked
-                                : Icons.radio_button_unchecked,
+                          HugeIcon(
+                            icon: isSelected
+                                ? HugeIcons.strokeRoundedCheckmarkCircle02
+                                : HugeIcons.strokeRoundedCircle,
                             color:
                                 isSelected ? AppColors.primary : c.textTertiary,
                             size: 20,
@@ -428,7 +436,10 @@ class _EnrollPreviousClassSheetState
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.error_outline, size: 16, color: AppColors.error),
+                    HugeIcon(
+                        icon: HugeIcons.strokeRoundedAlert02,
+                        size: 16,
+                        color: AppColors.error),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(

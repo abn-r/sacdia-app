@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/animations/staggered_list_animation.dart';
@@ -303,7 +304,8 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
                     const SizedBox(width: 8),
                     IconButton(
                       onPressed: _showLogoutDialog,
-                      icon: const Icon(Icons.logout_rounded),
+                      icon:
+                          const HugeIcon(icon: HugeIcons.strokeRoundedLogout01),
                       color: context.sac.text,
                       tooltip: tr('post_registration.shell.logout_tooltip'),
                       padding: EdgeInsets.zero,

@@ -12,6 +12,7 @@ import '../providers/catalog_provider.dart';
 import '../providers/categories_provider.dart';
 import '../providers/programs_provider.dart';
 import '../widgets/product_card.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Pantalla principal del catálogo de materiales.
 ///
@@ -63,6 +64,8 @@ class _CatalogViewState extends ConsumerState<CatalogView> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: const Text('Materiales'),
         actions: [
           IconButton(

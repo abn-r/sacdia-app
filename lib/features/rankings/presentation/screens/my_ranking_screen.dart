@@ -17,6 +17,7 @@ import '../widgets/ranking_hero_card.dart';
 import '../widgets/ranking_skeleton.dart';
 import '../widgets/signal_score_row.dart';
 import '../widgets/top_n_section.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Pantalla principal de ranking individual del miembro.
 ///
@@ -42,6 +43,8 @@ class MyRankingScreen extends ConsumerWidget {
     if (!canViewMyRanking(user)) {
       return Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: sacAutoBackButton(context),
           title: Text(tr('rankings.my_ranking.title')),
         ),
         body: const Center(
@@ -54,6 +57,8 @@ class MyRankingScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: Text(tr('rankings.my_ranking.title')),
       ),
       body: yearAsync.when(

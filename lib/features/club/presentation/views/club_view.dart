@@ -810,8 +810,10 @@ class _LocationPickerField extends StatelessWidget {
                         ),
                 ),
                 const SizedBox(width: 8),
-                Icon(Icons.chevron_right_rounded,
-                    size: 22, color: c.textSecondary),
+                HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowRight01,
+                    size: 22,
+                    color: c.textSecondary),
               ],
             ),
           ),

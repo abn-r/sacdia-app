@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/sac_colors.dart';
@@ -170,8 +171,8 @@ class TransactionTile extends StatelessWidget {
                               ? (_, __) {}
                               : null,
                       child: transaction.registeredByPhoto == null
-                          ? Icon(
-                              Icons.person,
+                          ? HugeIcon(
+                              icon: HugeIcons.strokeRoundedUser,
                               size: 8,
                               color: context.sac.textTertiary,
                             )

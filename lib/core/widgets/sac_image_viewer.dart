@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
@@ -96,7 +97,7 @@ class _SacImageViewerState extends State<SacImageViewer> {
           foregroundColor: Colors.white,
           title: _buildTitle(),
           leading: IconButton(
-            icon: const Icon(Icons.close_rounded),
+            icon: const HugeIcon(icon: HugeIcons.strokeRoundedCancel01),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -173,8 +174,8 @@ class _SacImageViewerState extends State<SacImageViewer> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.broken_image_rounded,
+          const HugeIcon(
+            icon: HugeIcons.strokeRoundedImageDelete01,
             size: 48,
             color: Colors.white38,
           ),

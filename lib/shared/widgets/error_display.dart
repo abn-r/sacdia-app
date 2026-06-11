@@ -14,7 +14,7 @@ class ErrorDisplay extends StatelessWidget {
   /// Callback al presionar el botón de reintentar
   final VoidCallback? onRetry;
 
-  /// Icono a mostrar (IconData o HugeIcons)
+  /// Icono a mostrar (HugeIcons)
   final dynamic icon;
 
   /// Etiqueta del botón de reintentar

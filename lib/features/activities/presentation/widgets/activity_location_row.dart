@@ -125,8 +125,8 @@ class ActivityLocationRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              const Icon(
-                Icons.arrow_forward_ios_rounded,
+              const HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
                 size: 12,
                 color: AppColors.primary,
               ),

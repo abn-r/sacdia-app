@@ -10,7 +10,8 @@ class GetPostRegistrationStatus {
 
   GetPostRegistrationStatus(this.repository);
 
-  Future<Either<Failure, CompletionStatus>> call({RequestCancelToken? cancelToken}) {
+  Future<Either<Failure, CompletionStatus>> call(
+      {RequestCancelToken? cancelToken}) {
     return repository.getCompletionStatus(cancelToken: cancelToken);
   }
 }

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -167,7 +168,7 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
           ],
         ),
         leading: IconButton(
-          icon: const Icon(Icons.close_rounded),
+          icon: const HugeIcon(icon: HugeIcons.strokeRoundedCancel01),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -194,8 +195,10 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline_rounded,
-                size: 48, color: Colors.red),
+            const HugeIcon(
+                icon: HugeIcons.strokeRoundedAlert02,
+                size: 48,
+                color: Colors.red),
             const SizedBox(height: 8),
             Text(_error!),
             const SizedBox(height: 16),

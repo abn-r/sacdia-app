@@ -12,6 +12,7 @@ import '../../domain/entities/inventory_item.dart';
 import '../providers/inventory_providers.dart';
 import '../widgets/condition_badge.dart';
 import 'add_inventory_item_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Pantalla de detalle de un ítem del inventario.
 ///
@@ -31,6 +32,8 @@ class InventoryItemDetailView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: context.sac.background,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         backgroundColor: context.sac.background,
         surfaceTintColor: Colors.transparent,
         title: Text(

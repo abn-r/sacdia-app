@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -556,6 +557,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     return Scaffold(
       backgroundColor: c.surfaceVariant,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: Text('settings.title'.tr()),
         backgroundColor: c.surfaceVariant,
         foregroundColor: c.text,

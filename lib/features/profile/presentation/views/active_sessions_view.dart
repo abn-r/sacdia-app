@@ -11,6 +11,7 @@ import '../../../../core/utils/ip_masker.dart';
 import '../../../biometric/presentation/providers/biometric_provider.dart';
 import '../../domain/entities/active_session.dart';
 import '../providers/active_sessions_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -182,6 +183,8 @@ class _ActiveSessionsViewState extends ConsumerState<ActiveSessionsView> {
     return Scaffold(
       backgroundColor: c.surfaceVariant,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: Text('profile.active_sessions.ui.title'.tr()),
         backgroundColor: c.surfaceVariant,
         foregroundColor: c.text,

@@ -682,8 +682,10 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
     return SnackBar(
       content: Row(
         children: [
-          const Icon(Icons.error_outline_rounded,
-              color: Colors.white, size: 18),
+          const HugeIcon(
+              icon: HugeIcons.strokeRoundedAlert02,
+              color: Colors.white,
+              size: 18),
           const SizedBox(width: 8),
           Expanded(child: Text(message)),
         ],

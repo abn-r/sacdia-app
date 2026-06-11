@@ -116,7 +116,10 @@ class AchievementDetailSheet extends StatelessWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.circle, size: 8, color: tierColor),
+                                HugeIcon(
+                                    icon: HugeIcons.strokeRoundedCircle,
+                                    size: 8,
+                                    color: tierColor),
                                 const SizedBox(width: 4),
                                 Text(
                                   achievement.tier.displayName,
@@ -133,7 +136,7 @@ class AchievementDetailSheet extends StatelessWidget {
                           // Points badge
                           SacBadge.warning(
                             label: '${achievement.points} pts',
-                            icon: Icons.bolt,
+                            icon: HugeIcons.strokeRoundedFlash,
                           ),
                           if (achievement.repeatable) ...[
                             const SizedBox(width: 8),
@@ -346,10 +349,10 @@ class _CollectionContent extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 3),
             child: Row(
               children: [
-                Icon(
-                  isCollected
-                      ? Icons.check_circle
-                      : Icons.radio_button_unchecked,
+                HugeIcon(
+                  icon: isCollected
+                      ? HugeIcons.strokeRoundedCheckmarkCircle02
+                      : HugeIcons.strokeRoundedCircle,
                   size: 18,
                   color: isCollected
                       ? AppColors.secondary

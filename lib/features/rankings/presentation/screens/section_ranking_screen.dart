@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,6 +18,7 @@ import '../providers/section_ranking_provider.dart';
 import '../widgets/member_ranking_list_tile.dart';
 import '../widgets/ranking_empty_state.dart';
 import '../widgets/ranking_skeleton.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Pantalla de ranking de miembros clasificados dentro de una sección.
 ///
@@ -39,6 +41,8 @@ class SectionRankingScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -206,8 +210,8 @@ class _SectionRankingHeader extends StatelessWidget {
                     color: AppColors.primarySurface,
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Icon(
-                    Icons.leaderboard_rounded,
+                  child: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedAnalytics01,
                     color: AppColors.primary,
                     size: 24,
                   ),

@@ -1,10 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor.dart';
@@ -97,6 +99,8 @@ class _ErrorScaffold extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         backgroundColor: AppColors.success,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -105,8 +109,8 @@ class _ErrorScaffold extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline_rounded,
+            const HugeIcon(
+              icon: HugeIcons.strokeRoundedAlert02,
               size: 48,
               color: AppColors.success,
             ),
@@ -154,6 +158,8 @@ class _CompletionBody extends StatelessWidget {
         slivers: [
           // ── Green header SliverAppBar ──────────────────────────
           SliverAppBar(
+            automaticallyImplyLeading: false,
+            leading: sacAutoBackButton(context),
             expandedHeight: 210,
             pinned: true,
             backgroundColor: AppColors.success,
@@ -174,8 +180,8 @@ class _CompletionBody extends StatelessWidget {
                           color: Colors.white.withAlpha(51),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
-                          Icons.check_rounded,
+                        child: const HugeIcon(
+                          icon: HugeIcons.strokeRoundedTick02,
                           color: Colors.white,
                           size: 40,
                         ),
@@ -348,15 +354,15 @@ class _HonorBadge extends StatelessWidget {
                 fit: BoxFit.contain,
                 memCacheWidth: 264,
                 memCacheHeight: 264,
-                errorWidget: (_, __, ___) => const Icon(
-                  Icons.emoji_events_rounded,
+                errorWidget: (_, __, ___) => const HugeIcon(
+                  icon: HugeIcons.strokeRoundedAward01,
                   color: Colors.white,
                   size: 42,
                 ),
               ),
             )
-          : const Icon(
-              Icons.emoji_events_rounded,
+          : const HugeIcon(
+              icon: HugeIcons.strokeRoundedAward01,
               color: Colors.white,
               size: 42,
             ),

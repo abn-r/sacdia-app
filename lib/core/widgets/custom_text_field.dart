@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 @Deprecated(
     'Use SacTextField from sac_widgets.dart. Will be removed in a future release.')
@@ -13,7 +14,7 @@ class CustomTextField extends StatefulWidget {
   final bool obscureText;
   final String? Function(String?)? validator;
   final TextInputType keyboardType;
-  final dynamic prefixIcon; // Puede ser IconData o HugeIcons
+  final HugeIconData? prefixIcon;
   final bool isPrefixHugeIcon;
   final void Function(String?)? onChanged;
   final bool isNumber;
@@ -208,14 +209,10 @@ class CustomTextFieldState extends State<CustomTextField> {
       return null;
     }
 
-    if (widget.isPrefixHugeIcon) {
-      return HugeIcon(
-        icon: widget.prefixIcon,
-        color: context.sac.textSecondary,
-        size: 24,
-      );
-    } else {
-      return Icon(widget.prefixIcon, color: context.sac.textTertiary);
-    }
+    return HugeIcon(
+      icon: widget.prefixIcon!,
+      color: context.sac.textSecondary,
+      size: 24,
+    );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Shimmer-style skeleton that mirrors the ActivityDetailView layout structure.
 ///
@@ -44,6 +45,8 @@ class _ActivityDetailSkeletonState extends State<ActivityDetailSkeleton>
         slivers: [
           // AppBar placeholder (back button + title)
           SliverAppBar(
+            automaticallyImplyLeading: false,
+            leading: sacAutoBackButton(context),
             pinned: true,
             expandedHeight: 0,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,

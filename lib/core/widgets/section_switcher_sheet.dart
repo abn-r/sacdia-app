@@ -420,8 +420,8 @@ class _OptionCard extends StatelessWidget {
                               color: color.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(
-                              Icons.check_rounded,
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedTick02,
                               size: 14,
                               color: color,
                             ),

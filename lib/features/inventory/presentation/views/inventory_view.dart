@@ -15,6 +15,7 @@ import '../widgets/inventory_summary_header.dart';
 import 'add_inventory_item_sheet.dart';
 import 'inventory_filter_sheet.dart';
 import 'inventory_item_detail_view.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Pantalla principal del módulo de Inventario del club.
 ///
@@ -62,6 +63,8 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
             slivers: [
               // ── App bar ──────────────────────────────────────────────────
               SliverAppBar(
+                automaticallyImplyLeading: false,
+                leading: sacAutoBackButton(context),
                 pinned: true,
                 expandedHeight: 0,
                 backgroundColor: context.sac.background,
@@ -326,7 +329,8 @@ class _FilterTag extends StatelessWidget {
         style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
       ),
       onDeleted: onRemove,
-      deleteIcon: const Icon(Icons.close, size: 14),
+      deleteIcon:
+          const HugeIcon(icon: HugeIcons.strokeRoundedCancel01, size: 14),
       backgroundColor: AppColors.primarySurface,
       deleteIconColor: AppColors.primaryDark,
       labelStyle: const TextStyle(color: AppColors.primaryDark),

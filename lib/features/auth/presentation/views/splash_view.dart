@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -71,8 +72,8 @@ class _SplashViewState extends ConsumerState<SplashView>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          Icons.error_outline_rounded,
+        HugeIcon(
+          icon: HugeIcons.strokeRoundedAlert02,
           color: Theme.of(context).colorScheme.error,
           size: 40,
         ),
@@ -87,7 +88,7 @@ class _SplashViewState extends ConsumerState<SplashView>
         const SizedBox(height: 16),
         FilledButton.icon(
           onPressed: () => ref.read(appBootstrapProvider.notifier).retry(),
-          icon: const Icon(Icons.refresh_rounded),
+          icon: const HugeIcon(icon: HugeIcons.strokeRoundedRefresh),
           label: Text('common.retry'.tr()),
         ),
       ],

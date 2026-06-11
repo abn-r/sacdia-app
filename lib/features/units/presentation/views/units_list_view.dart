@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 import '../../../../core/auth/club_role_names.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -153,6 +154,8 @@ class _UnitsListViewState extends ConsumerState<UnitsListView> {
     return Scaffold(
       backgroundColor: c.background,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: Text('units.list.title'.tr()),
       ),
       floatingActionButton: canManage

@@ -9,6 +9,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_bar.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/certification_progress.dart';
 
 import '../providers/certifications_providers.dart';
@@ -85,6 +86,8 @@ class _ProgressBody extends ConsumerWidget {
         slivers: [
           // AppBar
           SliverAppBar(
+            automaticallyImplyLeading: false,
+            leading: sacAutoBackButton(context),
             pinned: true,
             expandedHeight: 0,
             backgroundColor: c.background,
@@ -508,8 +511,10 @@ class _SectionCheckTileState extends ConsumerState<_SectionCheckTile> {
                             color: Colors.white,
                           ),
                         )
-                      : const Icon(Icons.check_rounded,
-                          size: 14, color: Colors.white)
+                      : const HugeIcon(
+                          icon: HugeIcons.strokeRoundedTick02,
+                          size: 14,
+                          color: Colors.white)
                   : _isLoading
                       ? SizedBox(
                           width: 14,

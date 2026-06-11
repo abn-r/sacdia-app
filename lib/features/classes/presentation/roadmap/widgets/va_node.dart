@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../data/roadmap_data.dart';
 import '../theme/roadmap_tokens.dart';
 
@@ -183,8 +184,10 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
                                     ),
                                   ],
                                 ),
-                                child: const Icon(Icons.lock,
-                                    size: 18, color: Colors.black87),
+                                child: const HugeIcon(
+                                    icon: HugeIcons.strokeRoundedLocked,
+                                    size: 18,
+                                    color: Colors.black87),
                               ),
                             ),
                           // Done check
@@ -211,8 +214,11 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
                                     ),
                                   ],
                                 ),
-                                child: Icon(
-                                  isExpired ? Icons.history : Icons.check,
+                                child: HugeIcon(
+                                  icon: isExpired
+                                      ? HugeIcons
+                                          .strokeRoundedTransactionHistory
+                                      : HugeIcons.strokeRoundedTick02,
                                   size: 14,
                                   color: Colors.white,
                                 ),

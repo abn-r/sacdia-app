@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../profile/presentation/widgets/setting_tile.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Contacto directo con el equipo de SACDIA.
 ///
@@ -68,7 +69,10 @@ class ContactView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('support.contact_title'.tr())),
+      appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: sacAutoBackButton(context),
+          title: Text('support.contact_title'.tr())),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Column(

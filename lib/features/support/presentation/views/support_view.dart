@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../profile/presentation/widgets/setting_tile.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Hub principal de Soporte/Ayuda. Tres accesos:
 /// - FAQ (pantalla de preguntas frecuentes bundleadas)
@@ -19,6 +20,8 @@ class SupportView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: Text('support.title'.tr()),
       ),
       body: SingleChildScrollView(

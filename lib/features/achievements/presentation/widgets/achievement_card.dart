@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 
@@ -137,7 +138,10 @@ class AchievementCard extends StatelessWidget {
                   // Completed: show points
                   Row(
                     children: [
-                      Icon(Icons.bolt, size: 12, color: tierColor),
+                      HugeIcon(
+                          icon: HugeIcons.strokeRoundedFlash,
+                          size: 12,
+                          color: tierColor),
                       const SizedBox(width: 2),
                       Text(
                         '${achievement.points} pts',
@@ -156,8 +160,8 @@ class AchievementCard extends StatelessWidget {
           // Chevron
           Padding(
             padding: const EdgeInsets.only(left: 4),
-            child: Icon(
-              Icons.chevron_right,
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
               size: 18,
               color: context.sac.textTertiary,
             ),

@@ -9,6 +9,7 @@ import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/transaction.dart';
 import '../providers/finances_providers.dart';
 import 'add_transaction_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Vista de detalle de un movimiento financiero.
 ///
@@ -34,6 +35,8 @@ class TransactionDetailView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: context.sac.background,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         backgroundColor: context.sac.background,
         surfaceTintColor: Colors.transparent,
         title: Text('finances.transaction_detail.title'.tr()),

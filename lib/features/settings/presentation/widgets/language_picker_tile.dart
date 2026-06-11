@@ -163,7 +163,9 @@ class _LocalePickerSheet extends StatelessWidget {
                 style: TextStyle(color: c.text),
               ),
               trailing: isCurrent
-                  ? const Icon(Icons.check, color: AppColors.secondary)
+                  ? const HugeIcon(
+                      icon: HugeIcons.strokeRoundedTick02,
+                      color: AppColors.secondary)
                   : null,
               onTap: () => Navigator.of(context).pop(o.locale),
             );

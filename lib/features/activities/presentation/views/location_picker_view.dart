@@ -417,8 +417,8 @@ class _CenterPin extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Icon(
-              Icons.location_pin,
+            child: const HugeIcon(
+              icon: HugeIcons.strokeRoundedMapPin,
               color: Colors.white,
               size: 42,
             ),

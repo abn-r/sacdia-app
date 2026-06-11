@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 class SacTextField extends StatefulWidget {
   final TextEditingController? controller;
@@ -12,7 +13,7 @@ class SacTextField extends StatefulWidget {
   final bool obscureText;
   final String? Function(String?)? validator;
   final TextInputType keyboardType;
-  final dynamic prefixIcon;
+  final HugeIconData? prefixIcon;
   final Widget? suffix;
   final void Function(String)? onChanged;
   final void Function(String)? onSubmitted;
@@ -207,12 +208,11 @@ class _SacTextFieldState extends State<SacTextField> {
 
     return Padding(
       padding: const EdgeInsets.only(left: 15, right: 8),
-      child: widget.prefixIcon is IconData
-          ? Icon(widget.prefixIcon, size: 20, color: context.sac.textSecondary)
-          : HugeIcon(
-              icon: widget.prefixIcon,
-              size: 20,
-              color: context.sac.textSecondary),
+      child: HugeIcon(
+        icon: widget.prefixIcon!,
+        size: 20,
+        color: context.sac.textSecondary,
+      ),
     );
   }
 

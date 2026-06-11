@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_text_field.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 import '../../domain/entities/monthly_report.dart';
 import '../providers/monthly_reports_providers.dart';
@@ -148,6 +149,8 @@ class _MonthlyReportManualDataFormViewState
     return Scaffold(
       backgroundColor: c.background,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         backgroundColor: c.background,
         surfaceTintColor: Colors.transparent,
         title: Text(

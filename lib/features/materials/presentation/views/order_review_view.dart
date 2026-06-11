@@ -15,6 +15,7 @@ import '../providers/receipts_provider.dart';
 import '../providers/order_detail_provider.dart';
 import '../utils/money_format.dart';
 import '../widgets/material_status_badge.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Pantalla de revisión de una orden por folio o ID.
 ///
@@ -36,6 +37,8 @@ class _OrderReviewViewState extends ConsumerState<OrderReviewView> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: const Text('Detalle del pedido'),
         actions: [
           IconButton(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import 'chip.dart';
@@ -332,8 +333,8 @@ class CredencialCard extends StatelessWidget {
                           width: qrSize,
                           height: qrSize,
                           child: const Center(
-                            child: Icon(
-                              Icons.qr_code_2_rounded,
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedQrCode01,
                               size: 48,
                               color: Color(0xFF9AA0AB),
                             ),

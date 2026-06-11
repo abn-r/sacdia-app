@@ -10,6 +10,7 @@ import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/sla_dashboard.dart';
 import '../providers/coordinator_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Hub principal de coordinación.
 ///
@@ -38,6 +39,8 @@ class CoordinatorHubView extends ConsumerWidget {
           slivers: [
             // ── Hero AppBar ────────────────────────────────────────────────
             SliverAppBar(
+              automaticallyImplyLeading: false,
+              leading: sacAutoBackButton(context),
               expandedHeight: 140,
               floating: true,
               snap: true,

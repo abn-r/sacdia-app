@@ -9,6 +9,7 @@ import '../providers/cart_provider.dart';
 import '../providers/product_detail_provider.dart';
 import '../utils/money_format.dart';
 import '../widgets/qty_stepper.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Pantalla de detalle de producto del catálogo de materiales.
 class ProductDetailView extends ConsumerStatefulWidget {
@@ -31,6 +32,8 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: const Text('Detalle del producto'),
       ),
       body: itemAsync.when(

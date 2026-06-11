@@ -14,6 +14,7 @@ import '../providers/member_breakdown_provider.dart';
 import '../utils/ranking_status_labels.dart';
 import '../widgets/ranking_empty_state.dart';
 import '../widgets/ranking_skeleton.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Pantalla de desglose de puntaje por componente de un miembro.
 ///
@@ -42,6 +43,8 @@ class MemberBreakdownScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: Text(tr('rankings.breakdown.title')),
       ),
       body: breakdownAsync.when(
@@ -370,8 +373,8 @@ class _BreakdownExplainerCard extends StatelessWidget {
               color: AppColors.primarySurface,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(
-              Icons.insights_rounded,
+            child: const HugeIcon(
+              icon: HugeIcons.strokeRoundedAnalytics01,
               color: AppColors.primary,
               size: 22,
             ),

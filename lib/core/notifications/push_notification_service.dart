@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
@@ -510,11 +511,13 @@ class PushNotificationService {
                   width: 1.4,
                 ),
               ),
-              child: Icon(
-                Icons.emoji_events_rounded,
-                color: _achievementTierColor(tier),
-                size: 24,
-                semanticLabel: 'Logro desbloqueado',
+              child: Semantics(
+                label: 'Logro desbloqueado',
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedAward01,
+                  color: _achievementTierColor(tier),
+                  size: 24,
+                ),
               ),
             ),
             const SizedBox(width: 12),

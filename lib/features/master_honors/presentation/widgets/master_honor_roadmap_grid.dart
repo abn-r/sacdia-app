@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/features/master_honors/domain/entities/master_honor_roadmap.dart';
@@ -283,8 +284,10 @@ class _MasterHonorStatusBadge extends StatelessWidget {
               ),
             ],
           ),
-          child: Icon(
-            isAwarded ? Icons.check_rounded : Icons.circle_outlined,
+          child: HugeIcon(
+            icon: isAwarded
+                ? HugeIcons.strokeRoundedTick02
+                : HugeIcons.strokeRoundedCircle,
             color: isAwarded ? Colors.white : AppColors.pendingColor,
             size: 13,
           ),
@@ -444,10 +447,10 @@ class _RequirementDetailCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                group.passed
-                    ? Icons.check_circle_rounded
-                    : Icons.radio_button_unchecked,
+              HugeIcon(
+                icon: group.passed
+                    ? HugeIcons.strokeRoundedCheckmarkCircle02
+                    : HugeIcons.strokeRoundedCircle,
                 size: 18,
                 color: accent,
               ),
@@ -497,10 +500,10 @@ class _RequirementDetailCard extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      option.completed
-                          ? Icons.check_rounded
-                          : Icons.circle_outlined,
+                    HugeIcon(
+                      icon: option.completed
+                          ? HugeIcons.strokeRoundedTick02
+                          : HugeIcons.strokeRoundedCircle,
                       size: 14,
                       color: option.completed
                           ? AppColors.secondary

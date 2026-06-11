@@ -9,6 +9,7 @@ import '../../../../core/widgets/sac_button.dart';
 import '../providers/notifications_providers.dart';
 import '../providers/unread_notifications_count_provider.dart';
 import '../widgets/notification_card.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Pantalla de historial/bandeja de notificaciones.
 ///
@@ -80,6 +81,8 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
     return Scaffold(
       backgroundColor: c.background,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         backgroundColor: c.surface,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
@@ -318,8 +321,10 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
           child: TextButton.icon(
             onPressed: () =>
                 ref.read(notificationsInboxProvider.notifier).loadNextPage(),
-            icon:
-                Icon(Icons.refresh_rounded, size: 16, color: AppColors.primary),
+            icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedRefresh,
+                size: 16,
+                color: AppColors.primary),
             label: Text(
               'notifications.inbox.load_more_error'.tr(),
               style: TextStyle(fontSize: 13, color: c.textSecondary),

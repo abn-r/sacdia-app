@@ -11,6 +11,7 @@ import '../../domain/entities/investiture_pending.dart';
 import '../providers/investiture_providers.dart';
 import '../widgets/investiture_status_badge.dart';
 import 'investiture_history_view.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Vista para coordinadores/admins: lista de enrollments pendientes de validación.
 ///
@@ -29,6 +30,8 @@ class InvestiturePendingListView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: c.background,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: Text('investiture.pending.title'.tr()),
         actions: [
           IconButton(

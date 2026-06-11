@@ -11,6 +11,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../providers/receipts_provider.dart';
 import '../providers/order_detail_provider.dart';
 import '../widgets/price_input.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 // ── Constantes de validación ──────────────────────────────────────────────────
 
@@ -165,7 +166,10 @@ class _UploadReceiptViewState extends ConsumerState<UploadReceiptView> {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Subir comprobante')),
+      appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: sacAutoBackButton(context),
+          title: const Text('Subir comprobante')),
       body: uploadState.isLoading
           ? _UploadProgress(progress: uploadState.progress)
           : _FormBody(

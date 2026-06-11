@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -115,8 +116,8 @@ class NotificationCard extends ConsumerWidget {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Icon(
-                          Icons.person_outline_rounded,
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedUser,
                           size: 12,
                           color: c.textTertiary,
                         ),

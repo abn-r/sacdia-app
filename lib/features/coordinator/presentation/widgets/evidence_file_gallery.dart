@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../domain/entities/evidence_review_item.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Galería de archivos de evidencia.
 ///
@@ -260,6 +261,8 @@ class _FullscreenImageViewerState extends State<_FullscreenImageViewer> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         title: Text(
@@ -279,8 +282,8 @@ class _FullscreenImageViewerState extends State<_FullscreenImageViewer> {
                 file.url,
                 fit: BoxFit.contain,
                 cacheWidth: 1600,
-                errorBuilder: (_, __, ___) => const Icon(
-                  Icons.broken_image,
+                errorBuilder: (_, __, ___) => const HugeIcon(
+                  icon: HugeIcons.strokeRoundedImageDelete01,
                   color: Colors.white54,
                   size: 64,
                 ),

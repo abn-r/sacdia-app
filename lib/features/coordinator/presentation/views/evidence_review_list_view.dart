@@ -12,6 +12,7 @@ import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/evidence_review_item.dart';
 import '../providers/coordinator_providers.dart';
 import '../widgets/evidence_review_card.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Lista de evidencias pendientes de revisión con filtros por tipo.
 ///
@@ -27,6 +28,8 @@ class EvidenceReviewListView extends StatelessWidget {
     return Scaffold(
       backgroundColor: c.background,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: Text('coordinator.evidence_review.list.title'.tr()),
         actions: [
           Consumer(

@@ -170,8 +170,8 @@ class ActivityInfoStrip extends StatelessWidget {
     if (countdown != null) {
       items.add(_MetaItem(
         icon: countdown.isPast
-            ? Icons.check_circle_rounded
-            : Icons.schedule_rounded,
+            ? HugeIcons.strokeRoundedCheckmarkCircle02
+            : HugeIcons.strokeRoundedClock01,
         text: countdown.text,
         // Urgent: primary color to keep attention. Otherwise muted.
         color: countdown.isUrgent ? AppColors.primaryDark : sac.textSecondary,
@@ -186,7 +186,7 @@ class ActivityInfoStrip extends StatelessWidget {
             .tr(namedArgs: {'section': '${activity.clubSectionId}'});
 
     items.add(_MetaItem(
-      icon: Icons.groups_rounded,
+      icon: HugeIcons.strokeRoundedUserGroup,
       text: sectionLabel,
       color: sac.textSecondary,
       weight: FontWeight.w600,
@@ -223,7 +223,7 @@ class ActivityInfoStrip extends StatelessWidget {
 }
 
 class _MetaItem {
-  final IconData icon;
+  final HugeIconData icon;
   final String text;
   final Color color;
   final FontWeight weight;
@@ -240,7 +240,7 @@ class _MetaItem {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Icon(icon, size: 13, color: color),
+        HugeIcon(icon: icon, size: 13, color: color),
         const SizedBox(width: 5),
         Text(
           text,

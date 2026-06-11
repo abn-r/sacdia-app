@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart';
 
 import 'package:sacdia_app/core/theme/app_colors.dart';
@@ -222,10 +223,10 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
                           setState(() => _showResponse = !_showResponse),
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 4),
-                        child: Icon(
-                          _showResponse
-                              ? Icons.notes_rounded
-                              : Icons.notes_outlined,
+                        child: HugeIcon(
+                          icon: _showResponse
+                              ? HugeIcons.strokeRoundedNote
+                              : HugeIcons.strokeRoundedNote,
                           size: 18,
                           color: _showResponse
                               ? widget.categoryColor
@@ -240,8 +241,8 @@ class _RequirementTreeItemState extends State<RequirementTreeItem> {
                         message: 'honors.requirements.requires_demo'.tr(),
                         child: Padding(
                           padding: const EdgeInsets.all(2),
-                          child: Icon(
-                            Icons.camera_alt_outlined,
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedCamera01,
                             size: 16,
                             color: context.sac.textTertiary,
                           ),
@@ -347,8 +348,8 @@ class _ReferenceAccordion extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.menu_book_rounded,
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedBookOpen01,
                   size: 14,
                   color: categoryColor.withValues(alpha: 0.8),
                 ),
@@ -362,10 +363,10 @@ class _ReferenceAccordion extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 2),
-                Icon(
-                  expanded
-                      ? Icons.keyboard_arrow_up_rounded
-                      : Icons.keyboard_arrow_down_rounded,
+                HugeIcon(
+                  icon: expanded
+                      ? HugeIcons.strokeRoundedArrowUp01
+                      : HugeIcons.strokeRoundedArrowDown01,
                   size: 16,
                   color: categoryColor,
                 ),

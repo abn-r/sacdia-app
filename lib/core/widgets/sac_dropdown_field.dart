@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 class SacDropdownField<T> extends StatefulWidget {
   final T? value;
@@ -12,7 +13,7 @@ class SacDropdownField<T> extends StatefulWidget {
   final String? Function(T?)? validator;
   final void Function(T?)? onChanged;
   final bool enabled;
-  final dynamic prefixIcon;
+  final HugeIconData? prefixIcon;
   final EdgeInsetsGeometry? margin;
   final AutovalidateMode autovalidateMode;
 
@@ -113,8 +114,8 @@ class _SacDropdownFieldState<T> extends State<SacDropdownField<T>> {
               style: theme.textTheme.bodyMedium,
               icon: Padding(
                 padding: const EdgeInsets.only(right: 12),
-                child: Icon(
-                  Icons.keyboard_arrow_down_rounded,
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowDown01,
                   color: context.sac.textSecondary,
                   size: 22,
                 ),
@@ -178,12 +179,11 @@ class _SacDropdownFieldState<T> extends State<SacDropdownField<T>> {
 
     return Padding(
       padding: const EdgeInsets.only(left: 15, right: 8),
-      child: widget.prefixIcon is IconData
-          ? Icon(widget.prefixIcon, size: 20, color: context.sac.textSecondary)
-          : HugeIcon(
-              icon: widget.prefixIcon,
-              size: 20,
-              color: context.sac.textSecondary),
+      child: HugeIcon(
+        icon: widget.prefixIcon!,
+        size: 20,
+        color: context.sac.textSecondary,
+      ),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 
 import '../providers/master_honor_modal_queue_provider.dart';
@@ -97,7 +98,7 @@ class _SummaryLine extends StatelessWidget {
       children: [
         const Padding(
           padding: EdgeInsets.only(top: 7),
-          child: Icon(Icons.circle, size: 6),
+          child: HugeIcon(icon: HugeIcons.strokeRoundedCircle, size: 6),
         ),
         const SizedBox(width: 8),
         Expanded(

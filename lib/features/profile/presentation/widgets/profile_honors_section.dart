@@ -13,6 +13,7 @@ import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
 import 'package:sacdia_app/features/master_honors/presentation/widgets/master_honor_history_section.dart';
 import 'package:sacdia_app/features/honors/presentation/utils/user_honor_presentation_extensions.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 const Map<String, List<List<dynamic>>> _categoryIcons = {
   'ADRA': HugeIcons.strokeRoundedCharity,
@@ -418,8 +419,8 @@ class _HonorStatusBadge extends StatelessWidget {
               ),
             ],
           ),
-          child: Icon(
-            meta.icon,
+          child: HugeIcon(
+            icon: meta.icon,
             color: meta.iconColor,
             size: 13,
           ),
@@ -430,7 +431,7 @@ class _HonorStatusBadge extends StatelessWidget {
 }
 
 class _HonorStatusBadgeMeta {
-  final IconData icon;
+  final HugeIconData icon;
   final Color backgroundColor;
   final Color borderColor;
   final Color iconColor;
@@ -455,7 +456,7 @@ class _HonorStatusBadgeMeta {
     switch (status) {
       case 'validado':
         return _HonorStatusBadgeMeta(
-          icon: Icons.check_rounded,
+          icon: HugeIcons.strokeRoundedTick02,
           backgroundColor: AppColors.secondary,
           borderColor: Colors.white,
           iconColor: Colors.white,
@@ -463,7 +464,7 @@ class _HonorStatusBadgeMeta {
         );
       case 'enviado':
         return _HonorStatusBadgeMeta(
-          icon: Icons.hourglass_top_rounded,
+          icon: HugeIcons.strokeRoundedHourglass,
           backgroundColor: AppColors.info,
           borderColor: Colors.white,
           iconColor: Colors.white,
@@ -471,7 +472,7 @@ class _HonorStatusBadgeMeta {
         );
       case 'rechazado':
         return _HonorStatusBadgeMeta(
-          icon: Icons.priority_high_rounded,
+          icon: HugeIcons.strokeRoundedAlert02,
           backgroundColor: AppColors.error,
           borderColor: Colors.white,
           iconColor: Colors.white,
@@ -479,7 +480,7 @@ class _HonorStatusBadgeMeta {
         );
       case 'en_progreso':
         return _HonorStatusBadgeMeta(
-          icon: Icons.edit_rounded,
+          icon: HugeIcons.strokeRoundedEdit02,
           backgroundColor: categoryColor,
           borderColor: Colors.white,
           iconColor: Colors.white,
@@ -488,7 +489,7 @@ class _HonorStatusBadgeMeta {
       case 'inscrito':
       default:
         return _HonorStatusBadgeMeta(
-          icon: Icons.circle_outlined,
+          icon: HugeIcons.strokeRoundedCircle,
           backgroundColor: context.sac.surface,
           borderColor: AppColors.pendingColor.withValues(alpha: 0.65),
           iconColor: AppColors.pendingColor,

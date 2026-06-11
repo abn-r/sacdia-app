@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 import '../providers/certificate_import_providers.dart';
 
@@ -69,14 +71,20 @@ class _CertificateImportProcessingViewState
     final c = context.sac;
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(title: const Text('Leyendo comprobante')),
+      appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: sacAutoBackButton(context),
+          title: const Text('Leyendo comprobante')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
         children: [
           SacCard(
             child: Column(
               children: [
-                Icon(Icons.document_scanner_rounded, size: 72, color: c.info),
+                HugeIcon(
+                    icon: HugeIcons.strokeRoundedDocumentValidation,
+                    size: 72,
+                    color: c.info),
                 const SizedBox(height: 16),
                 Text(
                   _error == null
@@ -114,7 +122,7 @@ class _CertificateImportProcessingViewState
           const SizedBox(height: 22),
           SacButton.outline(
             text: 'Completar manualmente',
-            icon: Icons.edit_note_rounded,
+            icon: HugeIcons.strokeRoundedNoteEdit,
             onPressed: widget.onManualFallback,
           ),
           const SizedBox(height: 10),
@@ -162,7 +170,10 @@ class _Step extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 7),
       child: Row(
         children: [
-          Icon(done ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
+          HugeIcon(
+              icon: done
+                  ? HugeIcons.strokeRoundedCheckmarkCircle02
+                  : HugeIcons.strokeRoundedCircle,
               color: color),
           const SizedBox(width: 12),
           Expanded(child: Text(label)),

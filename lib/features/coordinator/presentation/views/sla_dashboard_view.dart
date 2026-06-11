@@ -11,6 +11,7 @@ import '../../../../core/widgets/sac_loading.dart';
 import '../providers/coordinator_providers.dart';
 import '../widgets/sla_stat_card.dart';
 import '../widgets/sla_pipeline_chart.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Dashboard SLA operativo del coordinador.
 ///
@@ -52,6 +53,8 @@ class _SLADashboardViewState extends ConsumerState<SLADashboardView> {
     return Scaffold(
       backgroundColor: c.background,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: Text('coordinator.sla.dashboard.title'.tr()),
         actions: [
           IconButton(

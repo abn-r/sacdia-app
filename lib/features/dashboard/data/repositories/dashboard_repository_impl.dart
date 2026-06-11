@@ -23,8 +23,8 @@ class DashboardRepositoryImpl implements DashboardRepository {
   Future<Either<Failure, DashboardSummary>> getDashboardSummary(
       {RequestCancelToken? cancelToken}) async {
     try {
-      final dashboardData =
-          await remoteDataSource.getDashboardSummary(cancelToken: cancelToken.asDioCancelToken());
+      final dashboardData = await remoteDataSource.getDashboardSummary(
+          cancelToken: cancelToken.asDioCancelToken());
       return Right(dashboardData);
     } on AuthException catch (e) {
       return Left(AuthFailure(message: e.message, code: e.code));

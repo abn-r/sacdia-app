@@ -527,7 +527,8 @@ class _AddFab extends StatelessWidget {
             ),
           ],
         ),
-        child: const Icon(Icons.add, color: Colors.white, size: 28),
+        child: const HugeIcon(
+            icon: HugeIcons.strokeRoundedAdd01, color: Colors.white, size: 28),
       ),
     );
   }

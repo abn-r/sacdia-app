@@ -373,8 +373,8 @@ class ActivityPickerField extends StatelessWidget {
                           ),
                         ),
                 ),
-                Icon(
-                  Icons.keyboard_arrow_down_rounded,
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowDown01,
                   size: 22,
                   color: enabled ? c.textSecondary : c.textTertiary,
                 ),
@@ -499,8 +499,8 @@ class ActivityLocationPickerField extends StatelessWidget {
                         ),
                 ),
                 const SizedBox(width: 8),
-                Icon(
-                  Icons.chevron_right_rounded,
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowRight01,
                   size: 22,
                   color: c.textSecondary,
                 ),
@@ -610,15 +610,15 @@ class ActivityDatePickerField extends StatelessWidget {
                 if (hasValue && onClear != null)
                   GestureDetector(
                     onTap: onClear,
-                    child: Icon(
-                      Icons.close_rounded,
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedCancel01,
                       size: 18,
                       color: c.textSecondary,
                     ),
                   )
                 else
-                  Icon(
-                    Icons.chevron_right_rounded,
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowRight01,
                     size: 22,
                     color: c.textSecondary,
                   ),
@@ -981,8 +981,8 @@ class _ActivityPreviewBody extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(
-                Icons.check_circle_rounded,
+              const HugeIcon(
+                icon: HugeIcons.strokeRoundedCheckmarkCircle02,
                 size: 16,
                 color: AppColors.secondary,
               ),

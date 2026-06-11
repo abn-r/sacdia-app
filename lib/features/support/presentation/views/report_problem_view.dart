@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/support_category.dart';
 import '../../domain/entities/support_report.dart';
 import '../providers/support_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Formulario "Reportar un problema".
 ///
@@ -121,7 +122,10 @@ class _ReportProblemViewState extends ConsumerState<ReportProblemView> {
     final deviceInfoAsync = ref.watch(deviceReportInfoProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text('support.report_title'.tr())),
+      appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: sacAutoBackButton(context),
+          title: Text('support.report_title'.tr())),
       body: AbsorbPointer(
         absorbing: submitState.isSubmitting,
         child: Form(

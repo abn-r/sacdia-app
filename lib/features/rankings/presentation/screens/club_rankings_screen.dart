@@ -15,6 +15,7 @@ import '../../domain/entities/annual_ranking_progress.dart';
 import '../providers/annual_ranking_progress_provider.dart';
 import '../widgets/ranking_empty_state.dart';
 import '../widgets/ranking_skeleton.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 class ClubRankingsScreen extends ConsumerWidget {
   const ClubRankingsScreen({super.key});
@@ -35,6 +36,8 @@ class ClubRankingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: Text(tr('rankings.annual_progress.title')),
       ),
       body: Builder(

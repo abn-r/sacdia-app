@@ -7,6 +7,7 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_progress_ring.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 import '../providers/classes_providers.dart';
 import 'class_modules_view.dart';
@@ -43,6 +44,8 @@ class ClassDetailView extends ConsumerWidget {
             slivers: [
               // Gradient header with progress ring
               SliverAppBar(
+                automaticallyImplyLeading: false,
+                leading: sacAutoBackButton(context),
                 expandedHeight: 260,
                 pinned: true,
                 backgroundColor: AppColors.primary,

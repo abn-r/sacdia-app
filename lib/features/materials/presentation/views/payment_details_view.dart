@@ -9,6 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/material_status.dart';
 import '../providers/order_detail_provider.dart';
 import '../utils/money_format.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Pantalla "Datos para pago" — muestra la CLABE, referencia bancaria y
 /// total a pagar una vez que la orden fue aprobada.
@@ -26,6 +27,8 @@ class PaymentDetailsView extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: const Text('Datos para pago'),
       ),
       body: ordenAsync.when(

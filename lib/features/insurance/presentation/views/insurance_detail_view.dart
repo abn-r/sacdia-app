@@ -11,6 +11,7 @@ import '../../domain/entities/member_insurance.dart';
 import '../providers/insurance_providers.dart';
 import '../widgets/insurance_status_badge.dart';
 import 'insurance_form_sheet.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Pantalla de detalle completo del seguro de un miembro.
 class InsuranceDetailView extends ConsumerWidget {
@@ -26,6 +27,8 @@ class InsuranceDetailView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: context.sac.background,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         backgroundColor: context.sac.background,
         surfaceTintColor: Colors.transparent,
         title: Text(

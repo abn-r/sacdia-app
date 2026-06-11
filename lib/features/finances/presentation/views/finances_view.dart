@@ -19,6 +19,7 @@ import '../widgets/transaction_tile.dart';
 import 'add_transaction_sheet.dart';
 import 'all_transactions_view.dart';
 import 'transaction_detail_view.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Pantalla principal del módulo de Finanzas.
 ///
@@ -58,6 +59,8 @@ class FinancesView extends ConsumerWidget {
               slivers: [
                 // ── App bar ───────────────────────────────────────────────────
                 SliverAppBar(
+                  automaticallyImplyLeading: false,
+                  leading: sacAutoBackButton(context),
                   pinned: true,
                   expandedHeight: 0,
                   backgroundColor: context.sac.background,
@@ -500,7 +503,8 @@ class _AddFab extends StatelessWidget {
             ),
           ],
         ),
-        child: const Icon(Icons.add, color: Colors.white, size: 28),
+        child: const HugeIcon(
+            icon: HugeIcons.strokeRoundedAdd01, color: Colors.white, size: 28),
       ),
     );
   }

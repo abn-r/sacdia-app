@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:gal/gal.dart';
@@ -176,7 +177,8 @@ class _CredencialQrFullscreenState extends State<CredencialQrFullscreen> {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close_rounded, size: 28),
+                      icon: const HugeIcon(
+                          icon: HugeIcons.strokeRoundedCancel01, size: 28),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                   ],

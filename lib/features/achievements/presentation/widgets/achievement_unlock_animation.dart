@@ -254,8 +254,10 @@ class _UnlockOverlayState extends State<_UnlockOverlay>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.bolt,
-                            size: 14, color: AppColors.accent),
+                        const HugeIcon(
+                            icon: HugeIcons.strokeRoundedFlash,
+                            size: 14,
+                            color: AppColors.accent),
                         const SizedBox(width: 4),
                         Text(
                           '${widget.achievement.points} puntos',

@@ -7,6 +7,7 @@ import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../providers/history_provider.dart';
 import '../widgets/order_card.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Pantalla de historial de pedidos del director.
 ///
@@ -21,6 +22,8 @@ class OrderHistoryView extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: const Text('Mis pedidos'),
       ),
       body: historialAsync.when(

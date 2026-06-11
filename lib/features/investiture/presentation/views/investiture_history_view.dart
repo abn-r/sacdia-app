@@ -9,6 +9,7 @@ import '../../../../core/widgets/sac_button.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/investiture_history_entry.dart';
 import '../providers/investiture_providers.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Vista de historial de acciones de investidura para un enrollment.
 ///
@@ -30,6 +31,8 @@ class InvestitureHistoryView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: c.background,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: Text('investiture.history.title'.tr()),
         actions: [
           IconButton(

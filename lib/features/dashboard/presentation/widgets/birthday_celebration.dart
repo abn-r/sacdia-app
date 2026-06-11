@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/animations/celebration_overlay.dart';
@@ -181,8 +182,8 @@ class _BirthdayCelebrationBannerState extends State<BirthdayCelebrationBanner>
                   ),
                 ),
                 const SizedBox(width: 10),
-                Icon(
-                  Icons.auto_awesome_rounded,
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedMagicWand01,
                   color: AppColors.accentDark,
                   size: 24,
                 ),
@@ -341,14 +342,14 @@ class _BirthdayCelebrationDialogState extends State<_BirthdayCelebrationDialog>
                     SacButton.primary(
                       text: tr('dashboard.birthday.thanks'),
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: Icons.favorite_rounded,
+                      icon: HugeIcons.strokeRoundedFavouriteCircle,
                       backgroundColor: AppColors.accentDark,
                     ),
                     const SizedBox(height: 6),
                     TextButton.icon(
                       onPressed: _dismissForToday,
-                      icon: const Icon(
-                        Icons.visibility_off_rounded,
+                      icon: const HugeIcon(
+                        icon: HugeIcons.strokeRoundedViewOff,
                         size: 13,
                         color: AppColors.accentDark,
                       ),
@@ -426,8 +427,8 @@ class _AnimatedBirthdayIcon extends StatelessWidget {
             ),
           ],
         ),
-        child: Icon(
-          Icons.cake_rounded,
+        child: HugeIcon(
+          icon: HugeIcons.strokeRoundedBirthdayCake,
           color: AppColors.accentDark,
           size: iconSize,
         ),

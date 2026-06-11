@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
@@ -50,10 +51,10 @@ class ChoiceGroupHeader extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            _isSatisfied
-                ? Icons.check_circle_rounded
-                : Icons.radio_button_unchecked_rounded,
+          HugeIcon(
+            icon: _isSatisfied
+                ? HugeIcons.strokeRoundedCheckmarkCircle02
+                : HugeIcons.strokeRoundedCircle,
             size: 14,
             color: accentColor,
           ),

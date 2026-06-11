@@ -7,7 +7,7 @@ import 'medico_tokens.dart';
 /// Header: icono coloreado + título + acción opcional ("Editar" / "Administrar").
 ///
 /// Supports two icon modes:
-/// - [icon] + [iconBg] + [iconFg]: classic Material IconData badge.
+/// - [icon] + [iconBg] + [iconFg]: HugeIcons badge.
 /// - [iconWidget]: arbitrary widget placed inside the badge box (e.g. HugeIcon).
 ///   When [iconWidget] is provided, [icon], [iconBg] and [iconFg] are ignored.
 class MedicoSectionCard extends StatelessWidget {

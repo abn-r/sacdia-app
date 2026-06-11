@@ -10,7 +10,7 @@ class EmptyStateWidget extends StatelessWidget {
   /// Mensaje a mostrar
   final String message;
 
-  /// Icono a mostrar (IconData o HugeIcons)
+  /// Icono a mostrar (HugeIcons)
   final dynamic icon;
 
   /// Etiqueta del botón de acción opcional

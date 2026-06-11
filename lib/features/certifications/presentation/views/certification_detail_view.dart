@@ -8,6 +8,7 @@ import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/certification_detail.dart';
 import 'package:sacdia_app/features/certifications/domain/entities/certification_module.dart';
 
@@ -73,6 +74,8 @@ class _DetailBody extends ConsumerWidget {
       slivers: [
         // Hero header
         SliverAppBar(
+          automaticallyImplyLeading: false,
+          leading: sacAutoBackButton(context),
           expandedHeight: 200,
           pinned: true,
           backgroundColor: AppColors.primary,

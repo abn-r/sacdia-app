@@ -7,6 +7,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../domain/entities/qr_scan_result.dart';
 import '../providers/qr_scan_provider.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 class QrScannerView extends ConsumerStatefulWidget {
   const QrScannerView({super.key, this.activityId});
@@ -69,6 +70,8 @@ class _QrScannerViewState extends ConsumerState<QrScannerView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: Text(
           widget.activityId != null
               ? 'qr.scan_attendance_title'.tr()

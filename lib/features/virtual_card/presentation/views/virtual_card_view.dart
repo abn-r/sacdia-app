@@ -17,6 +17,8 @@ import '../widgets/credencial/credencial_view_model.dart';
 import '../widgets/virtual_card_skeleton.dart';
 import 'virtual_card_photo_view.dart';
 import '../../../master_honors/presentation/widgets/master_honor_history_section.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 class VirtualCardView extends ConsumerStatefulWidget {
   const VirtualCardView({super.key});
@@ -98,6 +100,8 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
     return SecureScreen(
       child: Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: sacAutoBackButton(context),
           title: Text('virtual_card.title'.tr()),
           actions: [
             IconButton(
@@ -158,7 +162,7 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
                                     key: const Key(
                                       'virtual-card-offline-banner',
                                     ),
-                                    icon: Icons.wifi_off_outlined,
+                                    icon: HugeIcons.strokeRoundedWifiOff01,
                                     text: 'virtual_card.offline_banner'.tr(),
                                   ),
                                 ),
@@ -234,8 +238,8 @@ class _VirtualCardViewState extends ConsumerState<VirtualCardView> {
                                     ),
                                   ),
                                 ),
-                                icon: const Icon(
-                                  Icons.photo_outlined,
+                                icon: const HugeIcon(
+                                  icon: HugeIcons.strokeRoundedImage01,
                                   size: 18,
                                 ),
                                 label: Text('virtual_card.view_photo'.tr()),
@@ -311,7 +315,7 @@ class _ErrorState extends StatelessWidget {
 class _StatusBanner extends StatelessWidget {
   const _StatusBanner({super.key, required this.icon, required this.text});
 
-  final IconData icon;
+  final HugeIconData icon;
   final String text;
 
   @override
@@ -325,7 +329,7 @@ class _StatusBanner extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: Colors.white, size: 16),
+          HugeIcon(icon: icon, color: Colors.white, size: 16),
           const SizedBox(width: 8),
           Flexible(
             child: Text(

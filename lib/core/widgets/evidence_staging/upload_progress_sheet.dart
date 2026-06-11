@@ -464,24 +464,24 @@ class _FileProgressRow extends StatelessWidget {
 
       case StagedFileStatus.completed:
         // Completed: green check
-        return const Icon(
-          Icons.check_circle_rounded,
+        return const HugeIcon(
+          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
           size: 18,
           color: AppColors.secondary,
         );
 
       case StagedFileStatus.error:
         // Error: red X
-        return const Icon(
-          Icons.error_rounded,
+        return const HugeIcon(
+          icon: HugeIcons.strokeRoundedAlert02,
           size: 18,
           color: AppColors.error,
         );
 
       case StagedFileStatus.uploaded:
         // Should not appear in upload sheet, but handle gracefully
-        return const Icon(
-          Icons.check_circle_rounded,
+        return const HugeIcon(
+          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
           size: 18,
           color: AppColors.secondary,
         );

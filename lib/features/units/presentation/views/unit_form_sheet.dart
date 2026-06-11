@@ -571,8 +571,8 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
                                   onPressed: allMembers.isEmpty
                                       ? null
                                       : () => _pickMembers(allMembers),
-                                  icon: const Icon(
-                                    Icons.add_rounded,
+                                  icon: const HugeIcon(
+                                    icon: HugeIcons.strokeRoundedAdd01,
                                     size: 18,
                                   ),
                                   label:
@@ -731,10 +731,12 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
                 hintText: 'units.form.search_hint'.tr(),
-                prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                prefixIcon: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedSearch01, size: 20),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.close_rounded, size: 18),
+                        icon: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedCancel01, size: 18),
                         onPressed: _searchController.clear,
                         splashRadius: 16,
                       )
@@ -768,8 +770,10 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.search_off_rounded,
-                            size: 48, color: c.textTertiary),
+                        HugeIcon(
+                            icon: HugeIcons.strokeRoundedSearchRemove,
+                            size: 48,
+                            color: c.textTertiary),
                         const SizedBox(height: 12),
                         Text(
                           'common.no_results'.tr(),
@@ -804,8 +808,8 @@ class _MemberPickerSheetState extends State<_MemberPickerSheet> {
                               )
                             : null,
                         trailing: isSelected
-                            ? const Icon(
-                                Icons.check_rounded,
+                            ? const HugeIcon(
+                                icon: HugeIcons.strokeRoundedTick02,
                                 color: AppColors.primary,
                                 size: 20,
                               )
@@ -980,10 +984,12 @@ class _MultiMemberPickerSheetState extends State<_MultiMemberPickerSheet> {
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
                 hintText: 'units.form.search_hint'.tr(),
-                prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                prefixIcon: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedSearch01, size: 20),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.close_rounded, size: 18),
+                        icon: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedCancel01, size: 18),
                         onPressed: _searchController.clear,
                         splashRadius: 16,
                       )
@@ -1017,8 +1023,10 @@ class _MultiMemberPickerSheetState extends State<_MultiMemberPickerSheet> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.search_off_rounded,
-                            size: 48, color: c.textTertiary),
+                        HugeIcon(
+                            icon: HugeIcons.strokeRoundedSearchRemove,
+                            size: 48,
+                            color: c.textTertiary),
                         const SizedBox(height: 12),
                         Text(
                           'common.no_results'.tr(),
@@ -1158,8 +1166,8 @@ class _MemberPickerField extends StatelessWidget {
               _MemberAvatar(member: selected!, size: 32),
               const SizedBox(width: 12),
             ] else ...[
-              Icon(
-                Icons.person_outline_rounded,
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedUser,
                 size: 20,
                 color: c.textSecondary,
               ),
@@ -1187,15 +1195,15 @@ class _MemberPickerField extends StatelessWidget {
             if (hasValue && onClear != null)
               GestureDetector(
                 onTap: onClear,
-                child: Icon(
-                  Icons.close_rounded,
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedCancel01,
                   size: 18,
                   color: c.textTertiary,
                 ),
               )
             else
-              Icon(
-                Icons.keyboard_arrow_down_rounded,
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowDown01,
                 color: c.textSecondary,
                 size: 22,
               ),
@@ -1263,8 +1271,8 @@ class _EmptyMembersPlaceholder extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.group_add_outlined,
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedAddTeam,
               size: 36,
               color: c.textTertiary,
             ),
@@ -1308,7 +1316,8 @@ class _MembersChipGrid extends StatelessWidget {
             m.fullName,
             style: const TextStyle(fontSize: 13),
           ),
-          deleteIcon: const Icon(Icons.close_rounded, size: 16),
+          deleteIcon:
+              const HugeIcon(icon: HugeIcons.strokeRoundedCancel01, size: 16),
           onDeleted: () => onRemove(m),
           backgroundColor: AppColors.primaryLight,
           deleteIconColor: AppColors.primaryDark,

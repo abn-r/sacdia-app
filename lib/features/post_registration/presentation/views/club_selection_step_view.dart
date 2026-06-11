@@ -136,7 +136,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
               return PickerField(
                 label: 'post_registration.club_selection.country'.tr(),
                 hint: 'post_registration.club_selection.select_country'.tr(),
-                icon: Icons.public_rounded,
+                icon: HugeIcons.strokeRoundedGlobe02,
                 selectedName: selectedCountryName,
                 enabled: !isSaving,
                 onTap: () async {
@@ -148,7 +148,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                     selectedId: selectedCountryId,
                     searchHint:
                         'post_registration.club_selection.search_country'.tr(),
-                    icon: Icons.public_rounded,
+                    icon: HugeIcons.strokeRoundedGlobe02,
                   );
                   if (picked != null && picked != selectedCountryId) {
                     ref.read(selectedCountryProvider.notifier).state = picked;
@@ -164,7 +164,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
             loading: () => PickerField(
               label: 'post_registration.club_selection.country'.tr(),
               hint: 'post_registration.club_selection.loading_countries'.tr(),
-              icon: Icons.public_rounded,
+              icon: HugeIcons.strokeRoundedGlobe02,
               isLoading: true,
             ),
             error: (error, _) => _buildErrorText(
@@ -186,7 +186,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                 return PickerField(
                   label: 'post_registration.club_selection.union'.tr(),
                   hint: 'post_registration.club_selection.select_union'.tr(),
-                  icon: Icons.account_tree_rounded,
+                  icon: HugeIcons.strokeRoundedHierarchyCircle01,
                   selectedName: selectedUnionName,
                   enabled: !isSaving,
                   onTap: () async {
@@ -198,7 +198,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                       selectedId: selectedUnionId,
                       searchHint:
                           'post_registration.club_selection.search_union'.tr(),
-                      icon: Icons.account_tree_rounded,
+                      icon: HugeIcons.strokeRoundedHierarchyCircle01,
                     );
                     if (picked != null && picked != selectedUnionId) {
                       ref.read(selectedUnionProvider.notifier).state = picked;
@@ -215,7 +215,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
               loading: () => PickerField(
                 label: 'post_registration.club_selection.union'.tr(),
                 hint: 'post_registration.club_selection.loading_unions'.tr(),
-                icon: Icons.account_tree_rounded,
+                icon: HugeIcons.strokeRoundedHierarchyCircle01,
                 isLoading: true,
               ),
               error: (error, _) => _buildErrorText(
@@ -239,7 +239,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                   label: 'post_registration.club_selection.local_field'.tr(),
                   hint: 'post_registration.club_selection.select_local_field'
                       .tr(),
-                  icon: Icons.place_rounded,
+                  icon: HugeIcons.strokeRoundedLocation01,
                   selectedName: selectedLocalFieldName,
                   enabled: !isSaving,
                   onTap: () async {
@@ -253,7 +253,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                       searchHint:
                           'post_registration.club_selection.search_local_field'
                               .tr(),
-                      icon: Icons.place_rounded,
+                      icon: HugeIcons.strokeRoundedLocation01,
                     );
                     if (picked != null && picked != selectedLocalFieldId) {
                       ref.read(selectedLocalFieldProvider.notifier).state =
@@ -270,7 +270,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                 label: 'post_registration.club_selection.local_field'.tr(),
                 hint: 'post_registration.club_selection.loading_local_fields'
                     .tr(),
-                icon: Icons.place_rounded,
+                icon: HugeIcons.strokeRoundedLocation01,
                 isLoading: true,
               ),
               error: (error, _) => _buildErrorText(
@@ -309,7 +309,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                 return PickerField(
                   label: 'post_registration.club_selection.club'.tr(),
                   hint: 'post_registration.club_selection.select_club'.tr(),
-                  icon: Icons.groups_rounded,
+                  icon: HugeIcons.strokeRoundedUserGroup,
                   selectedName: selectedClubName,
                   enabled: !isSaving,
                   onTap: () async {
@@ -321,7 +321,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                       selectedId: selectedClubId,
                       searchHint:
                           'post_registration.club_selection.search_club'.tr(),
-                      icon: Icons.groups_rounded,
+                      icon: HugeIcons.strokeRoundedUserGroup,
                     );
                     if (picked != null && picked != selectedClubId) {
                       ref.read(selectedClubProvider.notifier).state = picked;
@@ -335,7 +335,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
               loading: () => PickerField(
                 label: 'post_registration.club_selection.club'.tr(),
                 hint: 'post_registration.club_selection.loading_clubs'.tr(),
-                icon: Icons.groups_rounded,
+                icon: HugeIcons.strokeRoundedUserGroup,
                 isLoading: true,
               ),
               error: (error, _) => _buildErrorText(
@@ -397,7 +397,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                   label:
                       'post_registration.club_selection.progressive_class'.tr(),
                   hint: 'post_registration.club_selection.select_class'.tr(),
-                  icon: Icons.school_rounded,
+                  icon: HugeIcons.strokeRoundedSchool,
                   selectedName: selectedClassName,
                   enabled: false,
                 );
@@ -406,7 +406,7 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
                 label:
                     'post_registration.club_selection.progressive_class'.tr(),
                 hint: 'post_registration.club_selection.loading_classes'.tr(),
-                icon: Icons.school_rounded,
+                icon: HugeIcons.strokeRoundedSchool,
                 isLoading: true,
               ),
               error: (error, _) => _buildErrorText(

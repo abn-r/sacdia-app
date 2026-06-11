@@ -90,8 +90,8 @@ class ActivityHeroSection extends StatelessWidget {
               color: AppColors.secondary.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.location_on_outlined,
+            child: const HugeIcon(
+              icon: HugeIcons.strokeRoundedLocation01,
               color: AppColors.secondary,
               size: 28,
             ),
@@ -117,7 +117,7 @@ class ActivityHeroSection extends StatelessWidget {
           const SizedBox(height: 16),
           TextButton.icon(
             onPressed: () => _openInMaps(),
-            icon: const Icon(Icons.map_outlined, size: 16),
+            icon: const HugeIcon(icon: HugeIcons.strokeRoundedMaps, size: 16),
             label: Text('activities.widgets.open_in_maps'.tr()),
             style: TextButton.styleFrom(
               foregroundColor: AppColors.secondaryDark,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
@@ -130,6 +131,8 @@ class _AddEditContactViewState extends ConsumerState<AddEditContactView> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         title: Text(_isEditing
             ? 'post_registration.contact_form.edit_title'.tr()
             : 'post_registration.contact_form.add_title'.tr()),
@@ -452,8 +455,8 @@ class _RelationshipPickerField extends StatelessWidget {
                     ),
                   ),
                 ),
-                Icon(
-                  Icons.keyboard_arrow_down_rounded,
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowDown01,
                   color: context.sac.textSecondary,
                   size: 22,
                 ),
@@ -581,7 +584,8 @@ class _RelationshipTypePickerSheetState
                 hintText:
                     'post_registration.contact_form.relationship_search_hint'
                         .tr(),
-                prefixIcon: const Icon(Icons.search, size: 20),
+                prefixIcon: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedSearch01, size: 20),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 12,
@@ -613,8 +617,8 @@ class _RelationshipTypePickerSheetState
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          Icons.search_off_rounded,
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedSearchRemove,
                           size: 48,
                           color: context.sac.textTertiary,
                         ),
@@ -640,8 +644,8 @@ class _RelationshipTypePickerSheetState
 
                       return ListTile(
                         minTileHeight: 48,
-                        leading: Icon(
-                          Icons.people_outline,
+                        leading: HugeIcon(
+                          icon: HugeIcons.strokeRoundedUserGroup,
                           size: 22,
                           color: isSelected
                               ? AppColors.primary
@@ -658,8 +662,8 @@ class _RelationshipTypePickerSheetState
                           ),
                         ),
                         trailing: isSelected
-                            ? const Icon(
-                                Icons.check_rounded,
+                            ? const HugeIcon(
+                                icon: HugeIcons.strokeRoundedTick02,
                                 color: AppColors.primary,
                                 size: 20,
                               )

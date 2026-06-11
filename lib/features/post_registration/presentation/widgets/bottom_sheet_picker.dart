@@ -1,9 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Generic item model
@@ -29,7 +31,7 @@ Future<int?> showPickerSheet({
   required List<PickerItem> items,
   int? selectedId,
   String? searchHint,
-  IconData icon = Icons.list_rounded,
+  HugeIconData icon = HugeIcons.strokeRoundedListView,
 }) {
   return showModalBottomSheet<int>(
     context: context,
@@ -66,7 +68,7 @@ class PickerField extends StatelessWidget {
   final String? selectedName;
 
   /// Icon shown on the left side of the field.
-  final IconData icon;
+  final HugeIconData icon;
 
   /// Called when the user taps the field (and enabled is true).
   final VoidCallback? onTap;
@@ -124,8 +126,8 @@ class PickerField extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
             child: Row(
               children: [
-                Icon(
-                  icon,
+                HugeIcon(
+                  icon: icon,
                   size: 20,
                   color:
                       hasValue ? AppColors.primary : context.sac.textSecondary,
@@ -153,8 +155,8 @@ class PickerField extends StatelessWidget {
                           ),
                         ),
                 ),
-                Icon(
-                  Icons.keyboard_arrow_down_rounded,
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowDown01,
                   color: enabled
                       ? context.sac.textSecondary
                       : context.sac.textTertiary,
@@ -186,7 +188,7 @@ class BottomSheetPickerSheet extends StatefulWidget {
   final List<PickerItem> items;
   final int? selectedId;
   final String? searchHint;
-  final IconData icon;
+  final HugeIconData icon;
 
   const BottomSheetPickerSheet({
     super.key,
@@ -194,7 +196,7 @@ class BottomSheetPickerSheet extends StatefulWidget {
     required this.items,
     this.selectedId,
     this.searchHint,
-    this.icon = Icons.list_rounded,
+    this.icon = HugeIcons.strokeRoundedListView,
   });
 
   @override
@@ -284,10 +286,12 @@ class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
                 hintText: widget.searchHint ?? tr('common.search'),
-                prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                prefixIcon: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedSearch01, size: 20),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.close_rounded, size: 18),
+                        icon: const HugeIcon(
+                            icon: HugeIcons.strokeRoundedCancel01, size: 18),
                         onPressed: () {
                           _searchController.clear();
                         },
@@ -325,8 +329,8 @@ class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          Icons.search_off_rounded,
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedSearchRemove,
                           size: 48,
                           color: context.sac.textTertiary,
                         ),
@@ -351,8 +355,8 @@ class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
 
                       return ListTile(
                         minTileHeight: 48,
-                        leading: Icon(
-                          widget.icon,
+                        leading: HugeIcon(
+                          icon: widget.icon,
                           size: 22,
                           color: isSelected
                               ? AppColors.primary
@@ -369,8 +373,8 @@ class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
                           ),
                         ),
                         trailing: isSelected
-                            ? const Icon(
-                                Icons.check_rounded,
+                            ? const HugeIcon(
+                                icon: HugeIcons.strokeRoundedTick02,
                                 color: AppColors.primary,
                                 size: 20,
                               )

@@ -145,7 +145,9 @@ class _CertificateImportUploadViewState
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.check_circle_rounded, color: c.success),
+                    HugeIcon(
+                        icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                        color: c.success),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
@@ -314,7 +316,9 @@ class _UploadHero extends StatelessWidget {
                   Positioned(
                     top: 12,
                     right: 42,
-                    child: Icon(Icons.auto_awesome_rounded, color: c.warning),
+                    child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedMagicWand01,
+                        color: c.warning),
                   ),
                 ],
               ),

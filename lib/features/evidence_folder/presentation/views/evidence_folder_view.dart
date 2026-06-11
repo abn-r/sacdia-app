@@ -17,6 +17,7 @@ import '../providers/evidence_folder_providers.dart';
 import '../widgets/folder_closed_banner.dart';
 import '../widgets/section_card.dart';
 import 'evidence_section_detail_view.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Vista principal de la Carpeta Anual de Evidencias.
 ///
@@ -135,8 +136,10 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.check_circle_rounded,
-                  color: Colors.white, size: 18),
+              const HugeIcon(
+                  icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                  color: Colors.white,
+                  size: 18),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -162,8 +165,10 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
           SnackBar(
             content: Row(
               children: [
-                const Icon(Icons.error_outline_rounded,
-                    color: Colors.white, size: 18),
+                const HugeIcon(
+                    icon: HugeIcons.strokeRoundedAlert02,
+                    color: Colors.white,
+                    size: 18),
                 const SizedBox(width: 8),
                 Expanded(child: Text(errorMsg)),
               ],
@@ -208,6 +213,8 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
         slivers: [
           // App bar con título
           SliverAppBar(
+            automaticallyImplyLeading: false,
+            leading: sacAutoBackButton(context),
             pinned: true,
             expandedHeight: 0,
             backgroundColor: c.background,

@@ -1128,7 +1128,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
       //         backgroundColor: AppColors.primary,
       //         foregroundColor: Colors.white,
       //         elevation: 4,
-      //         icon: const Icon(Icons.add_rounded, size: 22),
+      //         icon: const HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 22),
       //         label: const Text(
       //           'Nueva Actividad',
       //           style: TextStyle(fontWeight: FontWeight.w600),

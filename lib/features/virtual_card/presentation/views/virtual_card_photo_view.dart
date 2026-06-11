@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 class VirtualCardPhotoView extends StatelessWidget {
   const VirtualCardPhotoView({
@@ -22,6 +23,8 @@ class VirtualCardPhotoView extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: sacAutoBackButton(context),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         title: Text(title),

@@ -11,6 +11,7 @@ import '../../theme/sac_colors.dart';
 import '../sac_image_viewer.dart';
 import '../sac_pdf_viewer.dart';
 import 'staged_file.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Unified grid for displaying both remote (uploaded) and local (staged) files.
 ///
@@ -266,8 +267,8 @@ class _StagedFileCell extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Icon(
-                  Icons.check_rounded,
+                child: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedTick02,
                   size: 14,
                   color: Colors.white,
                 ),
@@ -328,8 +329,8 @@ class _StagedFileCell extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.close_rounded,
+                  child: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedCancel01,
                     size: 14,
                     color: Colors.white,
                   ),
@@ -358,8 +359,8 @@ class _StagedFileCell extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.close_rounded,
+                  child: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedCancel01,
                     size: 14,
                     color: Colors.white,
                   ),
@@ -468,6 +469,8 @@ class _StagedFileCell extends StatelessWidget {
           builder: (_) => Scaffold(
             backgroundColor: Colors.black,
             appBar: AppBar(
+              automaticallyImplyLeading: false,
+              leading: sacAutoBackButton(context),
               backgroundColor: Colors.transparent,
               systemOverlayStyle: SystemUiOverlayStyle.light,
               iconTheme: const IconThemeData(color: Colors.white),

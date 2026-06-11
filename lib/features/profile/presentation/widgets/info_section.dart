@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 /// Sección de información estilo iOS grouped list.
 /// Sin Card — agrupación de filas con Divider fino, header en uppercase.
@@ -71,7 +72,7 @@ class InfoSection extends StatelessWidget {
 
 /// Modelo para un elemento de información
 class InfoItem {
-  final dynamic icon;
+  final HugeIconData icon;
   final String label;
   final String? value;
   final VoidCallback? onTap;
@@ -115,17 +116,11 @@ class _InfoItemWidget extends StatelessWidget {
                 color: context.sac.surfaceVariant,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: item.icon is IconData
-                  ? Icon(
-                      item.icon as IconData,
-                      color: context.sac.textSecondary,
-                      size: 17,
-                    )
-                  : HugeIcon(
-                      icon: item.icon,
-                      color: context.sac.textSecondary,
-                      size: 17,
-                    ),
+              child: HugeIcon(
+                icon: item.icon,
+                color: context.sac.textSecondary,
+                size: 17,
+              ),
             ),
             const SizedBox(width: 12),
             // Label + Valor

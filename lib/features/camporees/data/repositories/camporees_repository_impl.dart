@@ -213,8 +213,9 @@ class CamporeesRepositoryImpl implements CamporeesRepository {
     RequestCancelToken? cancelToken,
   }) async {
     try {
-      final models = await remoteDataSource
-          .getMemberPayments(camporeeId, memberId, cancelToken: cancelToken.asDioCancelToken());
+      final models = await remoteDataSource.getMemberPayments(
+          camporeeId, memberId,
+          cancelToken: cancelToken.asDioCancelToken());
       return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return _serverFailure(e);

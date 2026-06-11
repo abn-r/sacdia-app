@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -490,6 +491,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
           error: (error, _) => Column(
             children: [
               AppBar(
+                automaticallyImplyLeading: false,
+                leading: sacAutoBackButton(context),
                 backgroundColor: context.sac.background,
                 foregroundColor: context.sac.text,
                 elevation: 0,
@@ -676,8 +679,8 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                                             color: Colors.white,
                                           ),
                                         )
-                                      : const Icon(
-                                          Icons.delete_outline_rounded,
+                                      : const HugeIcon(
+                                          icon: HugeIcons.strokeRoundedDelete02,
                                           color: Colors.white,
                                           size: 18,
                                         ),
