@@ -1,5 +1,44 @@
 import 'package:equatable/equatable.dart';
 
+enum HonorCompletionMode { undecided, inApp, external }
+
+extension HonorCompletionModeApi on HonorCompletionMode {
+  String get apiValue {
+    switch (this) {
+      case HonorCompletionMode.inApp:
+        return 'IN_APP';
+      case HonorCompletionMode.external:
+        return 'EXTERNAL';
+      case HonorCompletionMode.undecided:
+        return 'UNDECIDED';
+    }
+  }
+}
+
+HonorCompletionMode honorCompletionModeFromApi(String? value) {
+  switch (value?.toUpperCase()) {
+    case 'IN_APP':
+      return HonorCompletionMode.inApp;
+    case 'EXTERNAL':
+      return HonorCompletionMode.external;
+    default:
+      return HonorCompletionMode.undecided;
+  }
+}
+
+enum HonorFileUploadField { images, document }
+
+extension HonorFileUploadFieldApi on HonorFileUploadField {
+  String get multipartFieldName {
+    switch (this) {
+      case HonorFileUploadField.document:
+        return 'document';
+      case HonorFileUploadField.images:
+        return 'images';
+    }
+  }
+}
+
 /// Entidad de especialidad de usuario del dominio.
 ///
 /// Combina los datos del backend `users_honors` con helpers de display
@@ -11,6 +50,7 @@ class UserHonor extends Equatable {
   final bool active;
   final bool validate;
   final String validationStatus;
+  final HonorCompletionMode completionMode;
   final String certificate;
   final List<String> images;
   final String? document;
@@ -36,6 +76,7 @@ class UserHonor extends Equatable {
     this.active = true,
     this.validate = false,
     this.validationStatus = 'in_progress',
+    this.completionMode = HonorCompletionMode.undecided,
     this.certificate = '',
     this.images = const [],
     this.document,
@@ -99,6 +140,7 @@ class UserHonor extends Equatable {
         active,
         validate,
         validationStatus,
+        completionMode,
         certificate,
         images,
         document,

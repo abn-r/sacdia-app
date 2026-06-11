@@ -156,6 +156,28 @@ class HonorsRepositoryImpl implements HonorsRepository {
   }
 
   @override
+  Future<Either<Failure, UserHonor>> updateHonorCompletionMode({
+    required String userId,
+    required int honorId,
+    required HonorCompletionMode completionMode,
+  }) async {
+    try {
+      final userHonorModel = await remoteDataSource.updateHonorCompletionMode(
+        userId: userId,
+        honorId: honorId,
+        completionMode: completionMode,
+      );
+      return Right(userHonorModel.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> deleteUserHonor(
       String userId, int honorId) async {
     try {
@@ -293,6 +315,7 @@ class HonorsRepositoryImpl implements HonorsRepository {
     required int honorId,
     required File file,
     required String fileName,
+    HonorFileUploadField uploadField = HonorFileUploadField.images,
   }) async {
     try {
       await remoteDataSource.uploadHonorFile(
@@ -300,6 +323,7 @@ class HonorsRepositoryImpl implements HonorsRepository {
         honorId: honorId,
         file: file,
         fileName: fileName,
+        uploadField: uploadField,
       );
       return const Right(null);
     } on ServerException catch (e) {

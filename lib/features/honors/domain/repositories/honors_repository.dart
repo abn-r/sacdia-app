@@ -49,6 +49,13 @@ abstract class HonorsRepository {
     Map<String, dynamic> data,
   );
 
+  /// Actualiza el modo canónico de trabajo de una especialidad inscrita.
+  Future<Either<Failure, UserHonor>> updateHonorCompletionMode({
+    required String userId,
+    required int honorId,
+    required HonorCompletionMode completionMode,
+  });
+
   /// Elimina la inscripción de un usuario en una especialidad
   Future<Either<Failure, void>> deleteUserHonor(String userId, int honorId);
 
@@ -93,6 +100,7 @@ abstract class HonorsRepository {
     required int honorId,
     required File file,
     required String fileName,
+    HonorFileUploadField uploadField = HonorFileUploadField.images,
   });
 
   /// Sube un archivo de evidencia para un requisito específico de una especialidad.

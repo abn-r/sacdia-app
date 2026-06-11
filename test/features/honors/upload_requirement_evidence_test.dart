@@ -33,6 +33,7 @@ class _StubHonorsRepository implements HonorsRepository {
     required int honorId,
     required File file,
     required String fileName,
+    HonorFileUploadField uploadField = HonorFileUploadField.images,
   }) =>
       throw UnimplementedError();
 
@@ -86,6 +87,13 @@ class _StubHonorsRepository implements HonorsRepository {
   @override
   Future<Either<Failure, UserHonor>> updateUserHonor(
           String userId, int honorId, Map<String, dynamic> data) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Either<Failure, UserHonor>> updateHonorCompletionMode(
+          {required String userId,
+          required int honorId,
+          required HonorCompletionMode completionMode}) =>
       throw UnimplementedError();
 
   @override

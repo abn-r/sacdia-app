@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:mime/mime.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../../domain/entities/user_honor.dart';
 import '../../domain/usecases/register_user_honor.dart';
 import '../models/honor_model.dart';
 import '../models/honor_category_model.dart';
@@ -57,6 +59,11 @@ abstract class HonorsRemoteDataSource {
   Future<UserHonorModel> enrollUserInHonor(String userId, int honorId);
   Future<UserHonorModel> updateUserHonor(
       String userId, int honorId, Map<String, dynamic> data);
+  Future<UserHonorModel> updateHonorCompletionMode({
+    required String userId,
+    required int honorId,
+    required HonorCompletionMode completionMode,
+  });
   Future<void> deleteUserHonor(String userId, int honorId);
   Future<UserHonorModel> registerUserHonor(RegisterUserHonorParams params);
   Future<List<HonorGroupModel>> getHonorsGroupedByCategory(
@@ -97,6 +104,7 @@ abstract class HonorsRemoteDataSource {
     required int honorId,
     required File file,
     required String fileName,
+    HonorFileUploadField uploadField = HonorFileUploadField.images,
   });
 
   /// Sube un archivo de evidencia para un requisito específico de una especialidad.
@@ -393,6 +401,17 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   }
 
   @override
+  Future<UserHonorModel> updateHonorCompletionMode({
+    required String userId,
+    required int honorId,
+    required HonorCompletionMode completionMode,
+  }) {
+    return updateUserHonor(userId, honorId, {
+      'completionMode': completionMode.apiValue,
+    });
+  }
+
+  @override
   Future<void> deleteUserHonor(String userId, int honorId) async {
     try {
       final response = await _dio.delete(
@@ -638,12 +657,15 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
     required int honorId,
     required File file,
     required String fileName,
+    HonorFileUploadField uploadField = HonorFileUploadField.images,
   }) async {
     try {
+      final mimeType = lookupMimeType(file.path);
       final formData = FormData.fromMap({
-        'images': await MultipartFile.fromFile(
+        uploadField.multipartFieldName: await MultipartFile.fromFile(
           file.path,
           filename: fileName,
+          contentType: mimeType == null ? null : MediaType.parse(mimeType),
         ),
       });
 

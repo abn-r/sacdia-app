@@ -22,6 +22,7 @@ class UserHonorModel extends Equatable {
   final bool active;
   final bool validate;
   final String validationStatus;
+  final HonorCompletionMode completionMode;
   final String certificate;
   final List<String> images;
   final String? document;
@@ -47,6 +48,7 @@ class UserHonorModel extends Equatable {
     this.active = true,
     this.validate = false,
     this.validationStatus = 'in_progress',
+    this.completionMode = HonorCompletionMode.undecided,
     this.certificate = '',
     this.images = const [],
     this.document,
@@ -127,6 +129,10 @@ class UserHonorModel extends Equatable {
       active: safeBool(json['active'], true),
       validate: safeBool(json['validate']),
       validationStatus: safeString(json['validation_status'], 'in_progress'),
+      completionMode: honorCompletionModeFromApi(
+        safeStringOrNull(json['completion_mode']) ??
+            safeStringOrNull(json['completionMode']),
+      ),
       certificate: safeString(json['certificate']),
       images: images,
       document: safeStringOrNull(json['document']),
@@ -152,6 +158,7 @@ class UserHonorModel extends Equatable {
       'active': active,
       'validate': validate,
       'validation_status': validationStatus,
+      'completion_mode': completionMode.apiValue,
       'certificate': certificate,
       'images': images,
       'document': document,
@@ -172,6 +179,7 @@ class UserHonorModel extends Equatable {
       active: active,
       validate: validate,
       validationStatus: validationStatus,
+      completionMode: completionMode,
       certificate: certificate,
       images: images,
       document: document,
@@ -196,6 +204,7 @@ class UserHonorModel extends Equatable {
     bool? active,
     bool? validate,
     String? validationStatus,
+    HonorCompletionMode? completionMode,
     String? certificate,
     List<String>? images,
     String? document,
@@ -217,6 +226,7 @@ class UserHonorModel extends Equatable {
       active: active ?? this.active,
       validate: validate ?? this.validate,
       validationStatus: validationStatus ?? this.validationStatus,
+      completionMode: completionMode ?? this.completionMode,
       certificate: certificate ?? this.certificate,
       images: images ?? this.images,
       document: document ?? this.document,
@@ -241,6 +251,7 @@ class UserHonorModel extends Equatable {
         active,
         validate,
         validationStatus,
+        completionMode,
         certificate,
         images,
         document,

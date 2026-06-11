@@ -20,6 +20,7 @@ class _FakeHonorsRepository implements HonorsRepository {
   int? capturedHonorId;
   String? capturedPath;
   String? capturedFileName;
+  HonorFileUploadField? capturedUploadField;
   Either<Failure, void> result = const Right(null);
 
   @override
@@ -27,11 +28,13 @@ class _FakeHonorsRepository implements HonorsRepository {
       {required String userId,
       required int honorId,
       required File file,
-      required String fileName}) async {
+      required String fileName,
+      HonorFileUploadField uploadField = HonorFileUploadField.images}) async {
     capturedUserId = userId;
     capturedHonorId = honorId;
     capturedPath = file.path;
     capturedFileName = fileName;
+    capturedUploadField = uploadField;
     return result;
   }
 
@@ -115,6 +118,12 @@ class _FakeHonorsRepository implements HonorsRepository {
           String userId, int honorId, Map<String, dynamic> data) =>
       throw UnimplementedError();
   @override
+  Future<Either<Failure, UserHonor>> updateHonorCompletionMode(
+          {required String userId,
+          required int honorId,
+          required HonorCompletionMode completionMode}) =>
+      throw UnimplementedError();
+  @override
   Future<Either<Failure, RequirementEvidence>> uploadRequirementEvidence(
           String userId, int honorId, int requirementId, File file,
           {required String mimeType}) =>
@@ -141,5 +150,25 @@ void main() {
     expect(repo.capturedHonorId, 7);
     expect(repo.capturedPath, file.path);
     expect(repo.capturedFileName, 'honor.pdf');
+    expect(repo.capturedUploadField, HonorFileUploadField.images);
+  });
+
+  test('delegates completed format upload as document field', () async {
+    final repo = _FakeHonorsRepository();
+    final useCase = UploadHonorFile(repo);
+    final file = File('${Directory.systemTemp.path}/honor.pdf');
+
+    final result = await useCase(
+      UploadHonorFileParams(
+        userId: 'user-1',
+        honorId: 7,
+        file: file,
+        fileName: 'honor.pdf',
+        uploadField: HonorFileUploadField.document,
+      ),
+    );
+
+    expect(result, const Right(null));
+    expect(repo.capturedUploadField, HonorFileUploadField.document);
   });
 }

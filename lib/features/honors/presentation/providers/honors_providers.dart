@@ -235,6 +235,7 @@ class HonorEvidenceActionsNotifier extends AutoDisposeAsyncNotifier<void> {
     required int honorId,
     required File file,
     required String fileName,
+    HonorFileUploadField uploadField = HonorFileUploadField.images,
     bool skipInvalidation = false,
   }) async {
     state = const AsyncValue.loading();
@@ -245,6 +246,7 @@ class HonorEvidenceActionsNotifier extends AutoDisposeAsyncNotifier<void> {
         honorId: honorId,
         file: file,
         fileName: fileName,
+        uploadField: uploadField,
       ),
     );
 
@@ -302,6 +304,46 @@ class HonorEvidenceActionsNotifier extends AutoDisposeAsyncNotifier<void> {
 final honorEvidenceActionsNotifierProvider =
     AsyncNotifierProvider.autoDispose<HonorEvidenceActionsNotifier, void>(
   HonorEvidenceActionsNotifier.new,
+);
+
+// ── Honor completion mode actions ───────────────────────────────────────────
+
+class HonorCompletionModeActionsNotifier extends AutoDisposeAsyncNotifier<void> {
+  @override
+  Future<void> build() async {}
+
+  Future<bool> updateCompletionMode({
+    required String userId,
+    required int honorId,
+    required HonorCompletionMode completionMode,
+  }) async {
+    state = const AsyncValue.loading();
+
+    final result =
+        await ref.read(honorsRepositoryProvider).updateHonorCompletionMode(
+              userId: userId,
+              honorId: honorId,
+              completionMode: completionMode,
+            );
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (_) {
+        state = const AsyncValue.data(null);
+        ref.invalidate(userHonorsProvider);
+        ref.invalidate(userHonorForHonorProvider(honorId));
+        return true;
+      },
+    );
+  }
+}
+
+final honorCompletionModeActionsNotifierProvider =
+    AsyncNotifierProvider.autoDispose<HonorCompletionModeActionsNotifier, void>(
+  HonorCompletionModeActionsNotifier.new,
 );
 
 // ── Registration Notifier ────────────────────────────────────────────────────
