@@ -13,6 +13,7 @@ class Honor extends Equatable {
   final int approval;
   final String? year;
   final int clubTypeId;
+  final String? clubTypeName;
   final bool active;
 
   const Honor({
@@ -27,6 +28,7 @@ class Honor extends Equatable {
     this.approval = 1,
     this.year,
     this.clubTypeId = 1,
+    this.clubTypeName,
     this.active = true,
   });
 
@@ -43,6 +45,7 @@ class Honor extends Equatable {
         approval,
         year,
         clubTypeId,
+        clubTypeName,
         active,
       ];
 }

@@ -53,9 +53,12 @@ class HonorGroupModel extends Equatable {
         name: honorMap['name'] as String,
         description: honorMap['description'] as String?,
         categoryId: (honorMap['honor_category_id'] as int?) ?? categoryId,
+        categoryName: category.name,
         imageUrl: _buildImageUrl(honorMap['honor_image'] as String?),
         skillLevel: honorMap['skill_level'] as int?,
         materialUrl: honorMap['material_url'] as String?,
+        clubTypeId: (honorMap['club_type_id'] as int?) ?? 1,
+        clubTypeName: honorMap['club_type_name'] as String?,
       );
     }).toList();
 

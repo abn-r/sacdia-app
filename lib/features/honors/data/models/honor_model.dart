@@ -36,6 +36,7 @@ class HonorModel extends Equatable {
   final int approval;
   final String? year;
   final int clubTypeId;
+  final String? clubTypeName;
   final bool active;
 
   const HonorModel({
@@ -50,6 +51,7 @@ class HonorModel extends Equatable {
     this.approval = 1,
     this.year,
     this.clubTypeId = 1,
+    this.clubTypeName,
     this.active = true,
   });
 
@@ -71,6 +73,7 @@ class HonorModel extends Equatable {
       approval: (json['approval'] as int?) ?? 1,
       year: json['year'] as String?,
       clubTypeId: (json['club_type_id'] as int?) ?? 1,
+      clubTypeName: json['club_type_name'] as String?,
       active: (json['active'] as bool?) ?? true,
     );
   }
@@ -89,6 +92,7 @@ class HonorModel extends Equatable {
       'approval': approval,
       'year': year,
       'club_type_id': clubTypeId,
+      'club_type_name': clubTypeName,
       'active': active,
     };
   }
@@ -107,6 +111,7 @@ class HonorModel extends Equatable {
       approval: approval,
       year: year,
       clubTypeId: clubTypeId,
+      clubTypeName: clubTypeName,
       active: active,
     );
   }
@@ -124,6 +129,7 @@ class HonorModel extends Equatable {
     int? approval,
     String? year,
     int? clubTypeId,
+    String? clubTypeName,
     bool? active,
   }) {
     return HonorModel(
@@ -138,6 +144,7 @@ class HonorModel extends Equatable {
       approval: approval ?? this.approval,
       year: year ?? this.year,
       clubTypeId: clubTypeId ?? this.clubTypeId,
+      clubTypeName: clubTypeName ?? this.clubTypeName,
       active: active ?? this.active,
     );
   }
@@ -155,6 +162,7 @@ class HonorModel extends Equatable {
         approval,
         year,
         clubTypeId,
+        clubTypeName,
         active,
       ];
 }

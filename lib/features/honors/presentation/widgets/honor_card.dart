@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -9,6 +8,7 @@ import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor.dart';
 import '../theme/honor_category_palette.dart';
 import '../utils/user_honor_presentation_extensions.dart';
+import 'honor_badge_image.dart';
 
 /// Unified honor card for both catalog and my-honors views.
 ///
@@ -191,49 +191,22 @@ class HonorCard extends StatelessWidget {
   }
 
   Widget _buildIconArea() {
-    // Oval dimensions: wider than tall (eye/patch shape)
+    // Give the badge a square-ish canvas and let the asset keep its natural
+    // silhouette. Adventurer patches are often inverted triangles, so forcing
+    // an oval/circle crops the real emblem.
     const double iconWidth = 58.0;
-    const double iconHeight = 44.0;
-    final borderRadius = BorderRadius.all(
-      Radius.elliptical(iconWidth / 2, iconHeight / 2),
-    );
+    const double iconHeight = 52.0;
 
-    // Always show the honor image, with a check overlay when completed
-    final imageWidget = honor.imageUrl != null && honor.imageUrl!.isNotEmpty
-        ? ClipRRect(
-            borderRadius: borderRadius,
-            child: SizedBox(
-              width: iconWidth,
-              height: iconHeight,
-              child: CachedNetworkImage(
-                imageUrl: honor.imageUrl!,
-                memCacheWidth: 174, // 58 * 3 (max device pixel ratio)
-                memCacheHeight: 132, // 44 * 3
-                fit: BoxFit.cover,
-                errorWidget: (_, __, ___) => Container(
-                  color: const Color(0xFFF0F4F5),
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedAward01,
-                    color: _categoryPaintColor,
-                    size: 24,
-                  ),
-                ),
-              ),
-            ),
-          )
-        : Container(
-            width: iconWidth,
-            height: iconHeight,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0F4F5),
-              borderRadius: borderRadius,
-            ),
-            child: HugeIcon(
-              icon: HugeIcons.strokeRoundedAward01,
-              color: _categoryPaintColor,
-              size: 24,
-            ),
-          );
+    final imageWidget = HonorBadgeImage(
+      imageUrl: honor.imageUrl,
+      width: iconWidth,
+      height: iconHeight,
+      padding: const EdgeInsets.all(2),
+      memCacheWidth: 174,
+      memCacheHeight: 156,
+      fallbackColor: _categoryPaintColor,
+      fallbackIconSize: 24,
+    );
 
     if (!_isCompleted) return imageWidget;
 

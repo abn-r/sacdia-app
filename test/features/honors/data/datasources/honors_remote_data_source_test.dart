@@ -3,10 +3,43 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacdia_app/features/honors/data/datasources/honors_remote_data_source.dart';
+import 'package:sacdia_app/features/honors/data/models/honor_group_model.dart';
 import 'package:sacdia_app/features/honors/data/models/user_honor_model.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 
 void main() {
+  group('HonorGroupModel', () {
+    test('preserves club type and category metadata from grouped endpoint', () {
+      final group = HonorGroupModel.fromJson(const {
+        'category': {
+          'honor_category_id': 2,
+          'name': 'ADRA',
+          'description': null,
+          'icon': null,
+        },
+        'honors': [
+          {
+            'honor_id': 99,
+            'name': 'Contar historias bíblicas',
+            'description': 'Especialidad de Aventureros',
+            'honor_image': 'https://cdn.test/honor.png',
+            'skill_level': 1,
+            'material_url': 'https://cdn.test/honor.pdf',
+            'club_type_id': 1,
+            'club_type_name': 'Aventureros',
+          },
+        ],
+      });
+
+      final honor = group.honors.single.toEntity();
+
+      expect(honor.categoryId, 2);
+      expect(honor.categoryName, 'ADRA');
+      expect(honor.clubTypeId, 1);
+      expect(honor.clubTypeName, 'Aventureros');
+    });
+  });
+
   group('UserHonorModel completion mode mapping', () {
     test('maps backend completion_mode into domain enum', () {
       final model = UserHonorModel.fromJson(const {

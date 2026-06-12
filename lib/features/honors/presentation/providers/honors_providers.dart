@@ -547,6 +547,22 @@ final searchQueryProvider = StateProvider.autoDispose<String>((ref) => '');
 /// Currently selected category ID for catalog filtering. null = "Todas".
 final selectedCategoryProvider = StateProvider.autoDispose<int?>((ref) => null);
 
+/// High-level catalog scope filter.
+///
+/// This is intentionally separate from honor categories. Categories describe the
+/// legacy Pathfinder/GM catalog families, while Adventurer specialties are
+/// scoped by club type and often do not have an honor category.
+enum HonorCatalogScope {
+  all,
+  adventurers,
+  pathfindersAndMasterGuides,
+}
+
+final selectedHonorCatalogScopeProvider =
+    StateProvider.autoDispose<HonorCatalogScope>(
+  (ref) => HonorCatalogScope.all,
+);
+
 /// Fetches ALL honors ONCE from the network via the grouped-by-category endpoint
 /// (single DB query, no pagination loop) and flattens the result into a plain list.
 /// Category filtering and text search are done locally in [filteredHonorsProvider].
@@ -589,14 +605,23 @@ final honorByIdProvider =
 final filteredHonorsProvider =
     Provider.autoDispose<AsyncValue<List<Honor>>>((ref) {
   final query = ref.watch(searchQueryProvider).toLowerCase();
+  final scope = ref.watch(selectedHonorCatalogScopeProvider);
   final categoryId = ref.watch(selectedCategoryProvider);
   final allHonorsAsync = ref.watch(allHonorsProvider);
 
   return allHonorsAsync.whenData((honors) {
+    final byScope = switch (scope) {
+      HonorCatalogScope.all => honors,
+      HonorCatalogScope.adventurers =>
+        honors.where((h) => h.clubTypeId == 1).toList(),
+      HonorCatalogScope.pathfindersAndMasterGuides =>
+        honors.where((h) => h.clubTypeId == 2 || h.clubTypeId == 3).toList(),
+    };
+
     // Category filter
     final byCategory = categoryId == null
-        ? honors
-        : honors.where((h) => h.categoryId == categoryId).toList();
+        ? byScope
+        : byScope.where((h) => h.categoryId == categoryId).toList();
 
     // Text search — only applied when query is at least 2 chars
     if (query.length < 2) return byCategory;

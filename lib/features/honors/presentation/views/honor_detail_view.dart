@@ -19,6 +19,7 @@ import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor_requirement_progress.dart';
 import '../theme/honor_category_palette.dart';
 import '../providers/honors_providers.dart';
+import '../widgets/honor_badge_image.dart';
 import '../widgets/honor_work_mode_selector.dart';
 import '../../domain/entities/user_honor.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
@@ -579,23 +580,7 @@ class _SimpleBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 110,
-      height: 110,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.18),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipOval(
-        child: _BadgeImage(honor: honor),
-      ),
-    );
+    return _BadgeImage(honor: honor, size: 110);
   }
 }
 
@@ -614,50 +599,29 @@ class _ProgressBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 130,
-      height: 130,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 12,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: ClipOval(
-        child: _BadgeImage(honor: honor),
-      ),
-    );
+    return _BadgeImage(honor: honor, size: 130);
   }
 }
 
 class _BadgeImage extends StatelessWidget {
   final Honor honor;
+  final double size;
 
-  const _BadgeImage({required this.honor});
+  const _BadgeImage({required this.honor, required this.size});
 
   @override
   Widget build(BuildContext context) {
-    if (honor.imageUrl != null && honor.imageUrl!.isNotEmpty) {
-      return CachedNetworkImage(
-        imageUrl: honor.imageUrl!,
-        fit: BoxFit.contain,
-        memCacheWidth: 390,
-        memCacheHeight: 390,
-        errorWidget: (_, __, ___) => HugeIcon(
-          icon: HugeIcons.strokeRoundedAward01,
-          size: 36,
-          color: AppColors.lightText,
-        ),
-      );
-    }
-    return HugeIcon(
-      icon: HugeIcons.strokeRoundedAward01,
-      size: 36,
-      color: AppColors.lightText,
+    return HonorBadgeImage(
+      imageUrl: honor.imageUrl,
+      width: size,
+      height: size,
+      padding: const EdgeInsets.all(4),
+      memCacheWidth: (size * 3).round(),
+      memCacheHeight: (size * 3).round(),
+      fallbackColor: AppColors.lightText,
+      fallbackBackgroundColor: Colors.white.withValues(alpha: 0.20),
+      fallbackIconSize: 36,
+      fallbackBorderRadius: BorderRadius.circular(18),
     );
   }
 }

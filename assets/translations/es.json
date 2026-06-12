@@ -358,7 +358,10 @@
       "all_category": "Todas",
       "empty": "No hay especialidades en esta categoría",
       "error_load": "Error al cargar especialidades",
-      "retry": "Reintentar"
+      "retry": "Reintentar",
+      "scope_all": "Todas",
+      "scope_adventurers": "Aventureros",
+      "scope_pathfinders_gm": "Conquistadores / Guías"
     },
     "detail": {
       "requirements_count": "{count} requisitos",

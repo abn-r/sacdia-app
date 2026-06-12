@@ -112,11 +112,29 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
             },
           ),
 
-          // ── Category chips ───────────────────────────────────────
-          // Only rebuilds when categories are fetched or the selected
-          // category changes, NOT on search query changes.
+          // ── Scope chips ──────────────────────────────────────────
+          // High-level split to avoid forcing Adventurer members to scroll
+          // through the full Pathfinder/GM catalog first.
           Consumer(
             builder: (context, ref, child) {
+              final selectedScope =
+                  ref.watch(selectedHonorCatalogScopeProvider);
+              return _buildScopeChips(context, selectedScope);
+            },
+          ),
+
+          // ── Category chips ───────────────────────────────────────
+          // Categories remain useful for Pathfinder/GM honors. Adventurer
+          // specialties are scoped by club type and will later receive class
+          // filters when the backend exposes class links to the catalog.
+          Consumer(
+            builder: (context, ref, child) {
+              final selectedScope =
+                  ref.watch(selectedHonorCatalogScopeProvider);
+              if (selectedScope == HonorCatalogScope.adventurers) {
+                return const SizedBox.shrink();
+              }
+
               final categoriesAsync = ref.watch(honorCategoriesProvider);
               final selectedCategory = ref.watch(selectedCategoryProvider);
               return categoriesAsync.when(
@@ -145,6 +163,52 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildScopeChips(
+    BuildContext context,
+    HonorCatalogScope selectedScope,
+  ) {
+    final scopes = <({HonorCatalogScope value, String label, Color color})>[
+      (
+        value: HonorCatalogScope.all,
+        label: 'honors.catalog.scope_all'.tr(),
+        color: AppColors.error,
+      ),
+      (
+        value: HonorCatalogScope.adventurers,
+        label: 'honors.catalog.scope_adventurers'.tr(),
+        color: AppColors.info,
+      ),
+      (
+        value: HonorCatalogScope.pathfindersAndMasterGuides,
+        label: 'honors.catalog.scope_pathfinders_gm'.tr(),
+        color: AppColors.secondaryDark,
+      ),
+    ];
+
+    return SizedBox(
+      height: 56,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        itemBuilder: (context, index) {
+          final scope = scopes[index];
+          return HonorCategoryChip(
+            label: scope.label,
+            isSelected: selectedScope == scope.value,
+            activeColor: scope.color,
+            onTap: () {
+              ref.read(selectedHonorCatalogScopeProvider.notifier).state =
+                  scope.value;
+              ref.read(selectedCategoryProvider.notifier).state = null;
+            },
+          );
+        },
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemCount: scopes.length,
       ),
     );
   }

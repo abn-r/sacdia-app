@@ -358,7 +358,10 @@
       "all_category": "Todas",
       "empty": "Não há especialidades nesta categoria",
       "error_load": "Erro ao carregar especialidades",
-      "retry": "Tentar novamente"
+      "retry": "Tentar novamente",
+      "scope_all": "Todas",
+      "scope_adventurers": "Aventureiros",
+      "scope_pathfinders_gm": "Desbravadores / GM"
     },
     "detail": {
       "requirements_count": "{count} requisitos",

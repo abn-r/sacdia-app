@@ -358,7 +358,10 @@
       "all_category": "All",
       "empty": "No honors in this category",
       "error_load": "Error loading honors",
-      "retry": "Retry"
+      "retry": "Retry",
+      "scope_all": "All",
+      "scope_adventurers": "Adventurers",
+      "scope_pathfinders_gm": "Pathfinders / MG"
     },
     "detail": {
       "requirements_count": "{count} requirements",

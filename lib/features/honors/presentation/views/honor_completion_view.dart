@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -11,6 +10,7 @@ import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor.dart';
 import '../providers/honors_providers.dart';
+import '../widgets/honor_badge_image.dart';
 
 // ── Label helpers ─────────────────────────────────────────────────────────────
 
@@ -340,32 +340,17 @@ class _HonorBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return HonorBadgeImage(
+      imageUrl: _imageUrl,
       width: 88,
       height: 88,
-      decoration: const BoxDecoration(
-        color: AppColors.accent,
-        shape: BoxShape.circle,
-      ),
-      child: _imageUrl != null
-          ? ClipOval(
-              child: CachedNetworkImage(
-                imageUrl: _imageUrl!,
-                fit: BoxFit.contain,
-                memCacheWidth: 264,
-                memCacheHeight: 264,
-                errorWidget: (_, __, ___) => const HugeIcon(
-                  icon: HugeIcons.strokeRoundedAward01,
-                  color: Colors.white,
-                  size: 42,
-                ),
-              ),
-            )
-          : const HugeIcon(
-              icon: HugeIcons.strokeRoundedAward01,
-              color: Colors.white,
-              size: 42,
-            ),
+      padding: const EdgeInsets.all(3),
+      memCacheWidth: 264,
+      memCacheHeight: 264,
+      fallbackColor: Colors.white,
+      fallbackBackgroundColor: AppColors.accent,
+      fallbackIconSize: 42,
+      fallbackBorderRadius: BorderRadius.circular(18),
     );
   }
 }

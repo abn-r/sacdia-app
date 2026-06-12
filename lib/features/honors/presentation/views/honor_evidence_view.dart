@@ -29,6 +29,7 @@ import '../../../validation/presentation/providers/validation_providers.dart'
 import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor.dart';
 import '../providers/honors_providers.dart';
+import '../widgets/honor_badge_image.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
@@ -881,48 +882,17 @@ class _HonorBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Oval shape: 80w x 62h, no border, subtle shadow
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(Radius.elliptical(40, 31)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.20),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.all(Radius.elliptical(40, 31)),
-        child: SizedBox(
-          width: 80,
-          height: 62,
-          child: honor?.imageUrl != null && honor!.imageUrl!.isNotEmpty
-              ? CachedNetworkImage(
-                  imageUrl: honor!.imageUrl!,
-                  fit: BoxFit.contain,
-                  memCacheWidth: 240,
-                  memCacheHeight: 186,
-                  errorWidget: (_, __, ___) => Container(
-                    color: Colors.white.withValues(alpha: 0.20),
-                    child: const HugeIcon(
-                      icon: HugeIcons.strokeRoundedAward01,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                  ),
-                )
-              : Container(
-                  color: Colors.white.withValues(alpha: 0.20),
-                  child: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedAward01,
-                    color: Colors.white,
-                    size: 22,
-                  ),
-                ),
-        ),
-      ),
+    return HonorBadgeImage(
+      imageUrl: honor?.imageUrl,
+      width: 80,
+      height: 68,
+      padding: const EdgeInsets.all(2),
+      memCacheWidth: 240,
+      memCacheHeight: 204,
+      fallbackColor: Colors.white,
+      fallbackBackgroundColor: Colors.white.withValues(alpha: 0.20),
+      fallbackIconSize: 22,
+      fallbackBorderRadius: BorderRadius.circular(14),
     );
   }
 }
