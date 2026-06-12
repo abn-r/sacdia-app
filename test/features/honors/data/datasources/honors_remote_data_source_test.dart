@@ -138,8 +138,8 @@ void main() {
       final captured = await captureUploadRequest(HonorFileUploadField.images);
       final formData = captured.data as FormData;
 
-      expect(captured.path,
-          'https://api.test/api/v1/users/user-1/honors/7/files');
+      expect(
+          captured.path, 'https://api.test/api/v1/users/user-1/honors/7/files');
       expect(formData.files.single.key, 'images');
       expect(formData.files.single.value.contentType.toString(),
           'application/pdf');
@@ -154,6 +154,115 @@ void main() {
       expect(formData.files.single.key, 'document');
       expect(formData.files.single.value.contentType.toString(),
           'application/pdf');
+    });
+  });
+
+  group('HonorsRemoteDataSourceImpl requirement evidence', () {
+    test('parses upload response wrapped in the standard API envelope',
+        () async {
+      late RequestOptions captured;
+      final file = File('${Directory.systemTemp.path}/requirement-photo.jpg')
+        ..writeAsBytesSync([1, 2, 3]);
+      addTearDown(() {
+        if (file.existsSync()) file.deleteSync();
+      });
+
+      final dio = Dio();
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            captured = options;
+            handler.resolve(
+              Response<Map<String, dynamic>>(
+                requestOptions: options,
+                statusCode: 201,
+                data: const {
+                  'status': 'success',
+                  'data': {
+                    'evidence_id': 99,
+                    'evidence_type': 'IMAGE',
+                    'url': 'https://cdn.test/requirement-photo.jpg',
+                    'filename': 'requirement-photo.jpg',
+                    'mime_type': 'image/jpeg',
+                    'file_size': 3,
+                  },
+                },
+              ),
+            );
+          },
+        ),
+      );
+
+      final ds = HonorsRemoteDataSourceImpl(
+        dio: dio,
+        baseUrl: 'https://api.test/api/v1',
+      );
+
+      final result = await ds.uploadRequirementEvidence(
+        'user-1',
+        7,
+        10,
+        file,
+        mimeType: 'image/jpeg',
+      );
+
+      expect(
+        captured.path,
+        'https://api.test/api/v1/users/user-1/honors/7/requirements/10/evidence/upload',
+      );
+      expect(result.id, 99);
+      expect(result.url, 'https://cdn.test/requirement-photo.jpg');
+    });
+
+    test('parses evidence link response wrapped in the standard API envelope',
+        () async {
+      late RequestOptions captured;
+
+      final dio = Dio();
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            captured = options;
+            handler.resolve(
+              Response<Map<String, dynamic>>(
+                requestOptions: options,
+                statusCode: 201,
+                data: const {
+                  'status': 'success',
+                  'data': {
+                    'evidence_id': 100,
+                    'evidence_type': 'LINK',
+                    'url': 'https://example.test/evidence',
+                    'filename': null,
+                    'mime_type': null,
+                    'file_size': null,
+                  },
+                },
+              ),
+            );
+          },
+        ),
+      );
+
+      final ds = HonorsRemoteDataSourceImpl(
+        dio: dio,
+        baseUrl: 'https://api.test/api/v1',
+      );
+
+      final result = await ds.addRequirementEvidenceLink(
+        'user-1',
+        7,
+        10,
+        'https://example.test/evidence',
+      );
+
+      expect(
+        captured.path,
+        'https://api.test/api/v1/users/user-1/honors/7/requirements/10/evidence/link',
+      );
+      expect(captured.data, {'url': 'https://example.test/evidence'});
+      expect(result.id, 100);
+      expect(result.url, 'https://example.test/evidence');
     });
   });
 

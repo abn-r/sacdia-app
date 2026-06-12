@@ -165,6 +165,14 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
   })  : _dio = dio,
         _baseUrl = baseUrl;
 
+  Map<String, dynamic> _unwrapDataObject(Object? responseData) {
+    final raw = responseData as Map<String, dynamic>;
+    final data = raw['data'];
+    if (data is Map<String, dynamic>) return data;
+    if (data is Map) return Map<String, dynamic>.from(data);
+    return raw;
+  }
+
   @override
   Future<List<HonorCategoryModel>> getHonorCategories(
       {CancelToken? cancelToken}) async {
@@ -731,7 +739,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return RequirementEvidenceModel.fromJson(
-            response.data as Map<String, dynamic>);
+            _unwrapDataObject(response.data));
       }
 
       throw ServerException(
@@ -766,7 +774,7 @@ class HonorsRemoteDataSourceImpl implements HonorsRemoteDataSource {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return RequirementEvidenceModel.fromJson(
-            response.data as Map<String, dynamic>);
+            _unwrapDataObject(response.data));
       }
 
       throw ServerException(
