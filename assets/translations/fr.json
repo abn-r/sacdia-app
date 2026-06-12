@@ -359,9 +359,12 @@
       "empty": "Aucune spécialité dans cette catégorie",
       "error_load": "Erreur lors du chargement des spécialités",
       "retry": "Réessayer",
-      "scope_all": "Toutes",
+      "scope_all": "Tout",
       "scope_adventurers": "Aventuriers",
-      "scope_pathfinders_gm": "Explorateurs / GM"
+      "scope_pathfinders_gm": "Expl. / GM",
+      "catalog_filter_label": "Catalogue",
+      "category_filter_label": "Catégorie",
+      "adventurers_filter_hint": "Affichage des spécialités officielles des Aventuriers."
     },
     "detail": {
       "requirements_count": "{count} exigences",

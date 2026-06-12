@@ -359,9 +359,12 @@
       "empty": "No hay especialidades en esta categoría",
       "error_load": "Error al cargar especialidades",
       "retry": "Reintentar",
-      "scope_all": "Todas",
+      "scope_all": "Todo",
       "scope_adventurers": "Aventureros",
-      "scope_pathfinders_gm": "Conquistadores / Guías"
+      "scope_pathfinders_gm": "Conq. / Guías",
+      "catalog_filter_label": "Catálogo",
+      "category_filter_label": "Categoría",
+      "adventurers_filter_hint": "Mostrando especialidades oficiales de Aventureros."
     },
     "detail": {
       "requirements_count": "{count} requisitos",

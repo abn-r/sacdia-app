@@ -359,9 +359,12 @@
       "empty": "Não há especialidades nesta categoria",
       "error_load": "Erro ao carregar especialidades",
       "retry": "Tentar novamente",
-      "scope_all": "Todas",
+      "scope_all": "Tudo",
       "scope_adventurers": "Aventureiros",
-      "scope_pathfinders_gm": "Desbravadores / GM"
+      "scope_pathfinders_gm": "Desb. / GM",
+      "catalog_filter_label": "Catálogo",
+      "category_filter_label": "Categoria",
+      "adventurers_filter_hint": "Mostrando especialidades oficiais dos Aventureiros."
     },
     "detail": {
       "requirements_count": "{count} requisitos",

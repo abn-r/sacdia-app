@@ -361,7 +361,10 @@
       "retry": "Retry",
       "scope_all": "All",
       "scope_adventurers": "Adventurers",
-      "scope_pathfinders_gm": "Pathfinders / MG"
+      "scope_pathfinders_gm": "Path. / MG",
+      "catalog_filter_label": "Catalog",
+      "category_filter_label": "Category",
+      "adventurers_filter_hint": "Showing official Adventurer specialties."
     },
     "detail": {
       "requirements_count": "{count} requirements",
