@@ -4,9 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/entities/activity.dart';
+import 'activity_map_options_sheet.dart';
 
 /// Tap-able address row for presencial / híbrido activities.
 ///
@@ -15,23 +15,6 @@ import '../../domain/entities/activity.dart';
 class ActivityLocationRow extends StatelessWidget {
   final Activity activity;
   const ActivityLocationRow({super.key, required this.activity});
-
-  Future<void> _openInMaps() async {
-    final lat = activity.lat;
-    final lng = activity.longitude;
-    final place = Uri.encodeComponent(activity.activityPlace);
-
-    final Uri uri;
-    if (lat != null && lng != null) {
-      uri = Uri.parse('https://maps.google.com/?q=$lat,$lng');
-    } else {
-      uri = Uri.parse('https://maps.google.com/?q=$place');
-    }
-
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
-  }
 
   void _copyAddress(BuildContext context) {
     Clipboard.setData(ClipboardData(text: activity.activityPlace));
@@ -58,7 +41,7 @@ class ActivityLocationRow extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: _openInMaps,
+        onTap: () => showActivityMapOptions(context, activity),
         onLongPress: () => _copyAddress(context),
         borderRadius: BorderRadius.circular(14),
         child: Container(
@@ -69,6 +52,7 @@ class ActivityLocationRow extends StatelessWidget {
             border: Border.all(color: sac.borderLight, width: 1),
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 width: 32,
@@ -109,26 +93,30 @@ class ActivityLocationRow extends StatelessWidget {
                         color: sac.text,
                         height: 1.25,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      softWrap: true,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'activities.widgets.open_action'.tr(),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const HugeIcon(
+                          icon: HugeIcons.strokeRoundedArrowRight01,
+                          size: 12,
+                          color: AppColors.primary,
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'activities.widgets.open_action'.tr(),
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.primary,
-                ),
-              ),
-              const SizedBox(width: 4),
-              const HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowRight01,
-                size: 12,
-                color: AppColors.primary,
               ),
             ],
           ),

@@ -1,13 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:sacdia_app/core/constants/maps_constants.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/entities/activity.dart';
+import 'activity_map_options_sheet.dart';
 
 /// Hero content for the activity detail screen.
 ///
@@ -27,50 +28,29 @@ class ActivityHeroSection extends StatelessWidget {
 
   // ── map (platform 0) ───────────────────────────────────────────────────────
 
-  /// Builds a Static Maps API URL for the given coordinates.
-  ///
-  /// Uses scale=2 for retina quality and a red marker at the activity location.
-  /// The image is 600×300 logical pixels (1200×600 physical at 2× scale).
-  String _buildStaticMapUrl(double lat, double lng) {
-    return 'https://maps.googleapis.com/maps/api/staticmap'
-        '?center=$lat,$lng'
-        '&zoom=15'
-        '&size=600x300'
-        '&scale=2'
-        '&markers=color:red%7C$lat,$lng'
-        '&key=${MapsConstants.googleMapsApiKey}';
-  }
-
   Widget _buildMapHero(BuildContext context) {
     if (activity.hasLocation) {
-      final lat = activity.lat!;
-      final lng = activity.longitude!;
+      final center = LatLng(activity.lat!, activity.longitude!);
 
-      // Skip the network request when the API key is not configured.
-      // The key is empty when the build was launched without
-      // --dart-define=GOOGLE_MAPS_API_KEY. Firing the request would 403 and
-      // waste bandwidth, so we fall back immediately to the static fallback UI.
-      if (MapsConstants.googleMapsApiKey.isEmpty) {
-        return _buildLocationFallback(context);
-      }
-
-      return GestureDetector(
-        onTap: () => _openInMaps(),
-        child: CachedNetworkImage(
-          imageUrl: _buildStaticMapUrl(lat, lng),
-          fit: BoxFit.cover,
-          width: double.infinity,
-          height: double.infinity,
-          memCacheWidth: 1200,
-          memCacheHeight: 600,
-          placeholder: (context, url) => Container(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            child: const Center(
-              child: CircularProgressIndicator.adaptive(),
-            ),
+      return GoogleMap(
+        initialCameraPosition: CameraPosition(target: center, zoom: 15),
+        markers: {
+          Marker(
+            markerId: const MarkerId('activity-location'),
+            position: center,
+            infoWindow: InfoWindow(title: activity.activityPlace),
+            onTap: () => showActivityMapOptions(context, activity),
           ),
-          errorWidget: (context, url, error) => _buildLocationFallback(context),
-        ),
+        },
+        zoomControlsEnabled: false,
+        scrollGesturesEnabled: false,
+        rotateGesturesEnabled: false,
+        tiltGesturesEnabled: false,
+        zoomGesturesEnabled: false,
+        myLocationButtonEnabled: false,
+        mapToolbarEnabled: false,
+        compassEnabled: false,
+        // liteModeEnabled solo funciona en Android; en iOS deja el mapa en blanco.
       );
     }
 
@@ -78,74 +58,73 @@ class ActivityHeroSection extends StatelessWidget {
   }
 
   Widget _buildLocationFallback(BuildContext context) {
-    return Container(
-      color: AppColors.secondaryLight,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: AppColors.secondary.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: const HugeIcon(
-              icon: HugeIcons.strokeRoundedLocation01,
-              color: AppColors.secondary,
-              size: 28,
-            ),
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: AppColors.secondary.withValues(alpha: 0.15),
+            shape: BoxShape.circle,
           ),
-          const SizedBox(height: 12),
+          child: const HugeIcon(
+            icon: HugeIcons.strokeRoundedLocation01,
+            color: AppColors.secondary,
+            size: 26,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          activity.activityPlace,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: AppColors.secondaryDark,
+                fontWeight: FontWeight.w600,
+              ),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        if (activity.hasLocation) ...[
+          const SizedBox(height: 4),
           Text(
-            activity.activityPlace,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: AppColors.secondaryDark,
-                  fontWeight: FontWeight.w600,
+            '${activity.lat!.toStringAsFixed(4)}, ${activity.longitude!.toStringAsFixed(4)}',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.secondaryDark.withValues(alpha: 0.7),
                 ),
-            textAlign: TextAlign.center,
-          ),
-          if (activity.hasLocation) ...[
-            const SizedBox(height: 4),
-            Text(
-              '${activity.lat!.toStringAsFixed(4)}, ${activity.longitude!.toStringAsFixed(4)}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.secondaryDark.withValues(alpha: 0.7),
-                  ),
-            ),
-          ],
-          const SizedBox(height: 16),
-          TextButton.icon(
-            onPressed: () => _openInMaps(),
-            icon: const HugeIcon(icon: HugeIcons.strokeRoundedMaps, size: 16),
-            label: Text('activities.widgets.open_in_maps'.tr()),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.secondaryDark,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              textStyle:
-                  const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-            ),
           ),
         ],
+        const SizedBox(height: 12),
+        TextButton.icon(
+          onPressed: () => showActivityMapOptions(context, activity),
+          icon: const HugeIcon(icon: HugeIcons.strokeRoundedMaps, size: 16),
+          label: Text('activities.widgets.open_in_maps'.tr()),
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.secondaryDark,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            textStyle:
+                const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    );
+
+    return Container(
+      color: AppColors.secondaryLight,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Center(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 340),
+              child: content,
+            ),
+          ),
+        ),
       ),
     );
-  }
-
-  Future<void> _openInMaps() async {
-    final lat = activity.lat;
-    final lng = activity.longitude;
-    final place = Uri.encodeComponent(activity.activityPlace);
-
-    final Uri uri;
-    if (lat != null && lng != null) {
-      uri = Uri.parse('https://maps.google.com/?q=$lat,$lng');
-    } else {
-      uri = Uri.parse('https://maps.google.com/?q=$place');
-    }
-
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
   }
 
   // ── image hero (platform 1 & 2) ───────────────────────────────────────────
@@ -245,8 +224,10 @@ class ActivityHeroSection extends StatelessWidget {
         hero,
         // Past activity dimming overlay
         if (activity.isPast)
-          Container(
-            color: Colors.black.withValues(alpha: 0.35),
+          IgnorePointer(
+            child: Container(
+              color: Colors.black.withValues(alpha: 0.35),
+            ),
           ),
         // Bottom gradient for readability
         Positioned(
@@ -254,15 +235,17 @@ class ActivityHeroSection extends StatelessWidget {
           left: 0,
           right: 0,
           height: 80,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Colors.black.withValues(alpha: 0.2),
-                ],
+          child: IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.2),
+                  ],
+                ),
               ),
             ),
           ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:sacdia_app/core/auth/club_role_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
@@ -13,6 +14,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../qr/presentation/views/qr_scanner_view.dart';
+import '../../../virtual_card/presentation/views/virtual_card_view.dart';
 import '../../domain/entities/activity.dart';
 import '../providers/activities_providers.dart';
 import '../widgets/activity_attendees_section.dart';
@@ -33,8 +35,9 @@ import 'edit_activity_view.dart';
 ///   D) ActivityLocationRow — tap-able address (presencial / híbrido only).
 ///   E) Meet CTA full-width — SacButton.primary "Unirse a la reunión" (virtual / híbrido).
 ///   F) Description (expandable).
-///   G) Participants section.
-///   H) Creator footer card.
+///   G) Attendance action (permission-gated).
+///   H) Participants section.
+///   I) Creator footer card.
 ///
 /// Tipo and Modalidad are not duplicated in a metadata grid — they are
 /// communicated solely by the chip row above (and the CTA's presence for
@@ -52,6 +55,15 @@ class ActivityDetailView extends ConsumerStatefulWidget {
 }
 
 class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
+  static const Set<String> _attendanceScannerRoles = {
+    ClubRoleNames.director,
+    ClubRoleNames.deputyDirector,
+    ClubRoleNames.secretary,
+    ClubRoleNames.treasurer,
+    ClubRoleNames.secretaryTreasurer,
+    ClubRoleNames.counselor,
+  };
+
   bool _descriptionExpanded = false;
 
   // ── hero height (platform-aware) ───────────────────────────────────────────
@@ -420,6 +432,24 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     );
   }
 
+  Widget _buildAttendanceAction(
+    BuildContext context, {
+    required bool canScanAttendance,
+  }) {
+    return _ActivityActionCard(
+      icon: canScanAttendance
+          ? HugeIcons.strokeRoundedQrCode01
+          : HugeIcons.strokeRoundedQrCode,
+      title: canScanAttendance
+          ? 'qr.scan_attendance_title'.tr()
+          : 'activities.widgets.show_my_qr_title'.tr(),
+      body: canScanAttendance
+          ? 'qr.scan_hint_attendance'.tr()
+          : 'activities.widgets.show_my_qr_body'.tr(),
+      onTap: canScanAttendance ? _openQrScanner : _openMyQr,
+    );
+  }
+
   // ── AppBar action button (circular, white, with dark scrim) ─────────────────
 
   Widget _buildHeroAction({
@@ -458,6 +488,12 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     );
   }
 
+  void _openMyQr() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const VirtualCardView()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final activityAsync = ref.watch(activityDetailProvider(widget.activityId));
@@ -467,25 +503,13 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
     );
 
     final canScanAttendance = activityAsync.hasValue &&
-        hasAnyPermission(user, const {'attendance:manage'});
+        (hasAnyPermission(user, const {'attendance:manage'}) ||
+            hasAnyRole(user, _attendanceScannerRoles));
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: context.sac.background,
-        floatingActionButton: canScanAttendance
-            ? FloatingActionButton.extended(
-                onPressed: _openQrScanner,
-                icon: const HugeIcon(
-                  icon: HugeIcons.strokeRoundedQrCode01,
-                  color: Colors.white,
-                  size: 22,
-                ),
-                label: Text('qr.scan_attendance_title'.tr()),
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-              )
-            : null,
         body: activityAsync.when(
           loading: () => const ActivityDetailSkeleton(),
           error: (error, _) => Column(
@@ -547,47 +571,28 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
             final heroHeight = _heroHeightFor(activity.platform);
             final hasLocation = activity.platform != 1 &&
                 activity.activityPlace.trim().isNotEmpty;
+            final topPadding = MediaQuery.of(context).padding.top;
 
-            return CustomScrollView(
-              slivers: [
-                // A) Hero SliverAppBar
-                SliverAppBar(
-                  pinned: true,
-                  expandedHeight: heroHeight,
-                  backgroundColor: context.sac.background,
-                  surfaceTintColor: Colors.transparent,
-                  systemOverlayStyle: SystemUiOverlayStyle.light,
-                  automaticallyImplyLeading: false,
-                  flexibleSpace: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final topPadding = MediaQuery.of(context).padding.top;
-                      final collapsedHeight = kToolbarHeight + topPadding;
-                      final isCollapsed =
-                          constraints.maxHeight <= collapsedHeight + 1;
-                      // Fade factor: 0 when fully expanded, 1 when collapsed.
-                      final range = heroHeight - collapsedHeight;
-                      final collapseProgress = range <= 0
-                          ? 1.0
-                          : (1 -
-                                  (constraints.maxHeight - collapsedHeight) /
-                                      range)
-                              .clamp(0.0, 1.0);
-
-                      return Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          RepaintBoundary(
-                            child: Visibility(
-                              visible: !isCollapsed,
-                              maintainState: true,
-                              maintainAnimation: true,
+            return Stack(
+              children: [
+                CustomScrollView(
+                  slivers: [
+                    // A) Fixed-size hero.
+                    //
+                    // Keep the native GoogleMap out of a collapsing
+                    // SliverAppBar. Platform views are expensive to resize
+                    // every scroll tick; moving the hero as a fixed-size sliver
+                    // lets the compositor translate it instead of relaying it
+                    // out continuously.
+                    SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: heroHeight,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            RepaintBoundary(
                               child: _buildHeroContent(activity),
                             ),
-                          ),
-                          // Top gradient scrim — guarantees contrast for
-                          // floating action buttons regardless of hero
-                          // content (busy map, bright image, etc.).
-                          if (!isCollapsed)
                             Positioned(
                               top: 0,
                               left: 0,
@@ -608,151 +613,217 @@ class _ActivityDetailViewState extends ConsumerState<ActivityDetailView> {
                                 ),
                               ),
                             ),
-                          // Collapsed title — fades in as the header collapses.
-                          Positioned(
-                            top: topPadding,
-                            left: 56,
-                            right: 110,
-                            height: kToolbarHeight,
-                            child: IgnorePointer(
-                              child: Opacity(
-                                opacity: collapseProgress,
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    activity.name,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          color: context.sac.text,
-                                        ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // ── Scrollable content ───────────────────────────────
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 20),
+
+                            // B) Title + type chip + platform badge
+                            _buildTitleSection(context, activity),
+
+                            const SizedBox(height: 6),
+
+                            // C) Primary info strip (meta line + fecha/hora card)
+                            ActivityInfoStrip(activity: activity),
+
+                            // D) Location row (presencial / híbrido)
+                            if (hasLocation) ...[
+                              const SizedBox(height: 10),
+                              ActivityLocationRow(activity: activity),
+                            ],
+
+                            // E) Meet CTA (virtual / híbrido)
+                            if (activity.hasVirtualLink) ...[
+                              const SizedBox(height: 12),
+                              SacButton.primary(
+                                text: 'activities.detail.join_meeting'.tr(),
+                                icon: HugeIcons.strokeRoundedComputerVideoCall,
+                                onPressed: () =>
+                                    _openMeetLink(activity.linkMeet!),
                               ),
+                            ],
+
+                            // F) Description
+                            if (activity.description != null &&
+                                activity.description!.isNotEmpty) ...[
+                              const SizedBox(height: 24),
+                              _buildDescriptionSection(
+                                  context, activity.description!),
+                            ],
+
+                            // G) Attendance action
+                            const SizedBox(height: 24),
+                            _buildAttendanceAction(
+                              context,
+                              canScanAttendance: canScanAttendance,
                             ),
-                          ),
-                          Positioned(
-                            top: topPadding + 8,
-                            left: 12,
-                            child: _buildHeroAction(
-                              context: context,
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: const HugeIcon(
-                                icon: HugeIcons.strokeRoundedArrowLeft01,
-                                color: Colors.white,
-                                size: 22,
-                              ),
+
+                            // H) Participants
+                            const SizedBox(height: 24),
+                            ActivityAttendeesSection(
+                              attendees: activity.attendees ?? [],
                             ),
-                          ),
-                          Positioned(
-                            top: topPadding + 8,
-                            right: 12,
-                            child: Row(
-                              children: [
-                                _buildHeroAction(
-                                  context: context,
-                                  onPressed: deleteState.isLoading
-                                      ? null
-                                      : () => _navigateToEdit(activity),
-                                  child: HugeIcon(
-                                    icon: HugeIcons.strokeRoundedEdit02,
-                                    size: 18,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                _buildHeroAction(
-                                  context: context,
-                                  onPressed: deleteState.isLoading
-                                      ? null
-                                      : _confirmDelete,
-                                  child: deleteState.isLoading
-                                      ? const SizedBox(
-                                          width: 18,
-                                          height: 18,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                      : const HugeIcon(
-                                          icon: HugeIcons.strokeRoundedDelete02,
-                                          color: Colors.white,
-                                          size: 18,
-                                        ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      );
-                    },
+
+                            // I) Creator footer
+                            const SizedBox(height: 20),
+                            _buildCreatorFooter(context, activity),
+
+                            const SizedBox(height: 40),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Positioned(
+                  top: topPadding + 8,
+                  left: 12,
+                  child: _buildHeroAction(
+                    context: context,
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowLeft01,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
                 ),
-
-                // ── Scrollable content ───────────────────────────────────
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 20),
-
-                        // B) Title + type chip + platform badge
-                        _buildTitleSection(context, activity),
-
-                        const SizedBox(height: 6),
-
-                        // C) Primary info strip (meta line + fecha/hora card)
-                        ActivityInfoStrip(activity: activity),
-
-                        // D) Location row (presencial / híbrido)
-                        if (hasLocation) ...[
-                          const SizedBox(height: 10),
-                          ActivityLocationRow(activity: activity),
-                        ],
-
-                        // E) Meet CTA (virtual / híbrido)
-                        if (activity.hasVirtualLink) ...[
-                          const SizedBox(height: 12),
-                          SacButton.primary(
-                            text: 'activities.detail.join_meeting'.tr(),
-                            icon: HugeIcons.strokeRoundedComputerVideoCall,
-                            onPressed: () => _openMeetLink(activity.linkMeet!),
-                          ),
-                        ],
-
-                        // F) Description
-                        if (activity.description != null &&
-                            activity.description!.isNotEmpty) ...[
-                          const SizedBox(height: 24),
-                          _buildDescriptionSection(
-                              context, activity.description!),
-                        ],
-
-                        // G) Participants
-                        const SizedBox(height: 24),
-                        ActivityAttendeesSection(
-                          attendees: activity.attendees ?? [],
+                Positioned(
+                  top: topPadding + 8,
+                  right: 12,
+                  child: Row(
+                    children: [
+                      _buildHeroAction(
+                        context: context,
+                        onPressed: deleteState.isLoading
+                            ? null
+                            : () => _navigateToEdit(activity),
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedEdit02,
+                          size: 18,
+                          color: Colors.white,
                         ),
-
-                        // H) Creator footer
-                        const SizedBox(height: 20),
-                        _buildCreatorFooter(context, activity),
-
-                        const SizedBox(height: 40),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildHeroAction(
+                        context: context,
+                        onPressed:
+                            deleteState.isLoading ? null : _confirmDelete,
+                        child: deleteState.isLoading
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const HugeIcon(
+                                icon: HugeIcons.strokeRoundedDelete02,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _ActivityActionCard extends StatelessWidget {
+  final List<List<dynamic>> icon;
+  final String title;
+  final String body;
+  final VoidCallback onTap;
+
+  const _ActivityActionCard({
+    required this.icon,
+    required this.title,
+    required this.body,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final sac = context.sac;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.primaryLight.withValues(alpha: 0.55),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.primary.withValues(alpha: 0.16),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: const BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: HugeIcon(
+                    icon: icon,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: sac.text,
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      body,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: sac.textSecondary,
+                            height: 1.3,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
+                size: 18,
+                color: sac.textTertiary,
+              ),
+            ],
+          ),
         ),
       ),
     );

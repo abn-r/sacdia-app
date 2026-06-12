@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:sacdia_app/core/auth/club_role_names.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
@@ -32,6 +33,15 @@ import '../../../virtual_card/presentation/views/virtual_card_view.dart';
 import 'active_sessions_view.dart';
 import 'data_export_view.dart';
 import 'edit_profile_view.dart';
+
+const Set<String> _attendanceScannerRoles = {
+  ClubRoleNames.director,
+  ClubRoleNames.deputyDirector,
+  ClubRoleNames.secretary,
+  ClubRoleNames.treasurer,
+  ClubRoleNames.secretaryTreasurer,
+  ClubRoleNames.counselor,
+};
 
 class SettingsView extends ConsumerStatefulWidget {
   const SettingsView({super.key});
@@ -693,7 +703,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   ),
                 ),
               ),
-              if (hasAnyPermission(user, const {'attendance:manage'})) ...[
+              if (hasAnyPermission(user, const {'attendance:manage'}) ||
+                  hasAnyRole(user, _attendanceScannerRoles)) ...[
                 _groupDivider(),
                 SettingTile(
                   icon: HugeIcons.strokeRoundedQrCode01,
