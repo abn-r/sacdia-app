@@ -65,13 +65,16 @@ void main() {
     );
   }
 
-  UserHonor userHonor(HonorCompletionMode mode) {
+  UserHonor userHonor(
+    HonorCompletionMode mode, {
+    String validationStatus = 'IN_PROGRESS',
+  }) {
     return UserHonor(
       id: 77,
       honorId: 7,
       userId: 'user-1',
       completionMode: mode,
-      validationStatus: 'IN_PROGRESS',
+      validationStatus: validationStatus,
       date: DateTime(2026, 6, 11),
     );
   }
@@ -79,6 +82,7 @@ void main() {
   Future<void> pumpDetail(
     WidgetTester tester,
     HonorCompletionMode mode, {
+    String validationStatus = 'IN_PROGRESS',
     List<Override> extraOverrides = const [],
     bool watchAuth = false,
   }) async {
@@ -91,7 +95,11 @@ void main() {
             (ref) async => const <HonorCategory>[],
           ),
           allHonorsProvider.overrideWith((ref) async => [currentHonor]),
-          userHonorsProvider.overrideWith((ref) async => [userHonor(mode)]),
+          userHonorsProvider.overrideWith(
+            (ref) async => [
+              userHonor(mode, validationStatus: validationStatus),
+            ],
+          ),
           userHonorProgressProvider(currentHonor.id).overrideWith(
             (ref) async => const <UserHonorRequirementProgress>[],
           ),
@@ -131,6 +139,24 @@ void main() {
     expect(find.text('honors.detail.external_flow_cta'), findsNothing);
   });
 
+  testWidgets(
+      'pending review with undecided mode does not allow mode selection',
+      (tester) async {
+    await pumpDetail(
+      tester,
+      HonorCompletionMode.undecided,
+      validationStatus: 'PENDING_REVIEW',
+    );
+
+    expect(find.text('honors.work_mode.title'), findsNothing);
+    expect(find.text('honors.detail.work_mode_locked_title'), findsOneWidget);
+    expect(
+      find.text('honors.detail.work_mode_locked_under_review'),
+      findsOneWidget,
+    );
+    expect(find.text('honors.detail.change_work_mode_cta'), findsNothing);
+  });
+
   testWidgets('in-app mode shows requirements CTA only', (tester) async {
     await pumpDetail(tester, HonorCompletionMode.inApp);
 
@@ -138,6 +164,18 @@ void main() {
         find.text('honors.detail.continue_requirements_cta'), findsOneWidget);
     expect(find.text('honors.detail.change_work_mode_cta'), findsOneWidget);
     expect(find.text('honors.detail.external_flow_cta'), findsNothing);
+  });
+
+  testWidgets('pending review with selected mode hides change mode action',
+      (tester) async {
+    await pumpDetail(
+      tester,
+      HonorCompletionMode.inApp,
+      validationStatus: 'PENDING_REVIEW',
+    );
+
+    expect(find.text('honors.detail.under_review_cta'), findsOneWidget);
+    expect(find.text('honors.detail.change_work_mode_cta'), findsNothing);
   });
 
   testWidgets('external mode shows external flow CTA only', (tester) async {

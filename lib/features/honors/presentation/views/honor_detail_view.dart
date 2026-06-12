@@ -858,6 +858,7 @@ class _StaggeredCardsState extends State<_StaggeredCards>
     if (widget.isEnrolled) {
       final userHonor = widget.userHonor!;
       final completionMode = userHonor.completionMode;
+      final canChangeCompletionMode = userHonor.canSubmit;
 
       if (completionMode == HonorCompletionMode.undecided) {
         return Column(
@@ -866,11 +867,16 @@ class _StaggeredCardsState extends State<_StaggeredCards>
             const SizedBox(height: _kSectionGap),
             _animated(
               0,
-              HonorWorkModeSelector(
-                categoryColor: widget.categoryColor,
-                isLoading: widget.modeActionState.isLoading,
-                onSelected: widget.onSelectCompletionMode,
-              ),
+              canChangeCompletionMode
+                  ? HonorWorkModeSelector(
+                      categoryColor: widget.categoryColor,
+                      isLoading: widget.modeActionState.isLoading,
+                      onSelected: widget.onSelectCompletionMode,
+                    )
+                  : _LockedWorkModeCard(
+                      userHonor: userHonor,
+                      categoryColor: widget.categoryColor,
+                    ),
             ),
             const SizedBox(height: 120),
           ],
@@ -888,15 +894,17 @@ class _StaggeredCardsState extends State<_StaggeredCards>
                 categoryColor: widget.categoryColor,
               ),
             ),
-            const SizedBox(height: 12),
-            _animated(
-              1,
-              _ChangeWorkModeButton(
-                categoryColor: widget.categoryColor,
-                isLoading: widget.modeActionState.isLoading,
-                onPressed: () => _showChangeWorkModeSheet(completionMode),
+            if (canChangeCompletionMode) ...[
+              const SizedBox(height: 12),
+              _animated(
+                1,
+                _ChangeWorkModeButton(
+                  categoryColor: widget.categoryColor,
+                  isLoading: widget.modeActionState.isLoading,
+                  onPressed: () => _showChangeWorkModeSheet(completionMode),
+                ),
               ),
-            ),
+            ],
             if (widget.honor.materialUrl != null &&
                 widget.honor.materialUrl!.isNotEmpty) ...[
               const SizedBox(height: _kSectionGap),
@@ -948,15 +956,17 @@ class _StaggeredCardsState extends State<_StaggeredCards>
               categoryColor: widget.categoryColor,
             ),
           ),
-          const SizedBox(height: 12),
-          _animated(
-            2,
-            _ChangeWorkModeButton(
-              categoryColor: widget.categoryColor,
-              isLoading: widget.modeActionState.isLoading,
-              onPressed: () => _showChangeWorkModeSheet(completionMode),
+          if (canChangeCompletionMode) ...[
+            const SizedBox(height: 12),
+            _animated(
+              2,
+              _ChangeWorkModeButton(
+                categoryColor: widget.categoryColor,
+                isLoading: widget.modeActionState.isLoading,
+                onPressed: () => _showChangeWorkModeSheet(completionMode),
+              ),
             ),
-          ),
+          ],
 
           // Bottom padding for CTA
           const SizedBox(height: 100),
@@ -992,6 +1002,73 @@ class _StaggeredCardsState extends State<_StaggeredCards>
         ),
         const SizedBox(height: 120),
       ],
+    );
+  }
+}
+
+class _LockedWorkModeCard extends StatelessWidget {
+  final UserHonor userHonor;
+  final Color categoryColor;
+
+  const _LockedWorkModeCard({
+    required this.userHonor,
+    required this.categoryColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final messageKey = userHonor.isUnderReview
+        ? 'honors.detail.work_mode_locked_under_review'
+        : userHonor.isCompleted
+            ? 'honors.detail.work_mode_locked_completed'
+            : 'honors.detail.work_mode_locked_default';
+
+    return _ShadowCard(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: categoryColor.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedLock,
+                    size: 24,
+                    color: categoryColor,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    'honors.detail.work_mode_locked_title'.tr(),
+                    style: TextStyle(
+                      color: context.sac.text,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              messageKey.tr(),
+              style: TextStyle(
+                color: context.sac.textSecondary,
+                fontSize: 14,
+                height: 1.45,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
