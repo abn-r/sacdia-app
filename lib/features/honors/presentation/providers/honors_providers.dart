@@ -389,6 +389,9 @@ UserHonor _userHonorWithCompletionMode(
   );
 }
 
+final honorCompletionModeOverrideProvider =
+    StateProvider<Map<int, UserHonor>>((ref) => const <int, UserHonor>{});
+
 class HonorCompletionModeActionsNotifier
     extends AutoDisposeAsyncNotifier<UserHonor?> {
   @override
@@ -418,6 +421,12 @@ class HonorCompletionModeActionsNotifier
           updatedUserHonor,
           completionMode,
         );
+        ref.read(honorCompletionModeOverrideProvider.notifier).update(
+              (overrides) => {
+                ...overrides,
+                honorId: effectiveUserHonor,
+              },
+            );
         state = AsyncValue.data(effectiveUserHonor);
         ref.invalidate(userHonorsProvider);
         ref.invalidate(userHonorForHonorProvider(honorId));
@@ -512,11 +521,22 @@ final honorRegistrationNotifierProvider = NotifierProvider.autoDispose<
 /// "not enrolled" should also watch [userHonorsProvider] directly.
 final userHonorForHonorProvider =
     Provider.autoDispose.family<UserHonor?, int>((ref, honorId) {
-  return ref
+  final userHonor = ref
       .watch(userHonorsProvider)
       .valueOrNull
       ?.where((h) => h.honorId == honorId)
       .firstOrNull;
+
+  final override = ref.watch(
+    honorCompletionModeOverrideProvider.select(
+      (overrides) => overrides[honorId],
+    ),
+  );
+
+  if (override == null) return userHonor;
+  if (userHonor == null) return override;
+
+  return _userHonorWithCompletionMode(userHonor, override.completionMode);
 });
 
 // ── Search & filter providers ─────────────────────────────────────────────

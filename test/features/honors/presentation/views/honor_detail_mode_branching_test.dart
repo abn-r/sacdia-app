@@ -136,6 +136,7 @@ void main() {
 
     expect(
         find.text('honors.detail.continue_requirements_cta'), findsOneWidget);
+    expect(find.text('honors.detail.change_work_mode_cta'), findsOneWidget);
     expect(find.text('honors.detail.external_flow_cta'), findsNothing);
   });
 
@@ -143,6 +144,7 @@ void main() {
     await pumpDetail(tester, HonorCompletionMode.external);
 
     expect(find.text('honors.detail.external_flow_cta'), findsWidgets);
+    expect(find.text('honors.detail.change_work_mode_cta'), findsOneWidget);
     expect(find.text('honors.detail.continue_requirements_cta'), findsNothing);
     expect(find.text('honors.detail.complete_requirements'), findsNothing);
   });

@@ -202,9 +202,23 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           honorsRepositoryProvider.overrideWithValue(repository),
+          userHonorsProvider.overrideWith(
+            (ref) async => [
+              UserHonor(
+                id: 77,
+                honorId: 7,
+                userId: 'user-1',
+                completionMode: HonorCompletionMode.undecided,
+                validationStatus: 'IN_PROGRESS',
+                date: DateTime(2026, 6, 11),
+              ),
+            ],
+          ),
         ],
       );
       addTearDown(container.dispose);
+
+      await container.read(userHonorsProvider.future);
 
       final notifier = container.read(
         honorCompletionModeActionsNotifierProvider.notifier,
@@ -222,6 +236,10 @@ void main() {
       expect(repository.callCount, 1);
       expect(repository.capturedMode, HonorCompletionMode.external);
       expect(state.valueOrNull?.completionMode, HonorCompletionMode.external);
+      expect(
+        container.read(userHonorForHonorProvider(7))?.completionMode,
+        HonorCompletionMode.external,
+      );
     },
   );
 }

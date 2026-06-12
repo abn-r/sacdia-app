@@ -827,6 +827,32 @@ class _StaggeredCardsState extends State<_StaggeredCards>
     );
   }
 
+  Future<void> _showChangeWorkModeSheet(
+    HonorCompletionMode currentMode,
+  ) async {
+    final selectedMode = await showModalBottomSheet<HonorCompletionMode>(
+      context: context,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: HonorWorkModeSelector(
+            categoryColor: widget.categoryColor,
+            isLoading: widget.modeActionState.isLoading,
+            onSelected: (mode) => Navigator.of(sheetContext).pop(mode),
+          ),
+        );
+      },
+    );
+
+    if (!mounted || selectedMode == null || selectedMode == currentMode) {
+      return;
+    }
+
+    widget.onSelectCompletionMode(selectedMode);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.isEnrolled) {
@@ -862,11 +888,20 @@ class _StaggeredCardsState extends State<_StaggeredCards>
                 categoryColor: widget.categoryColor,
               ),
             ),
+            const SizedBox(height: 12),
+            _animated(
+              1,
+              _ChangeWorkModeButton(
+                categoryColor: widget.categoryColor,
+                isLoading: widget.modeActionState.isLoading,
+                onPressed: () => _showChangeWorkModeSheet(completionMode),
+              ),
+            ),
             if (widget.honor.materialUrl != null &&
                 widget.honor.materialUrl!.isNotEmpty) ...[
               const SizedBox(height: _kSectionGap),
               _animated(
-                1,
+                2,
                 _MaterialDownloadCard(
                   materialUrl: widget.honor.materialUrl!,
                   categoryColor: widget.categoryColor,
@@ -875,7 +910,7 @@ class _StaggeredCardsState extends State<_StaggeredCards>
             ],
             const SizedBox(height: _kSectionGap),
             _animated(
-              2,
+              3,
               _EvidenceSection(
                 userHonor: userHonor,
                 honorId: widget.honorId,
@@ -913,6 +948,15 @@ class _StaggeredCardsState extends State<_StaggeredCards>
               categoryColor: widget.categoryColor,
             ),
           ),
+          const SizedBox(height: 12),
+          _animated(
+            2,
+            _ChangeWorkModeButton(
+              categoryColor: widget.categoryColor,
+              isLoading: widget.modeActionState.isLoading,
+              onPressed: () => _showChangeWorkModeSheet(completionMode),
+            ),
+          ),
 
           // Bottom padding for CTA
           const SizedBox(height: 100),
@@ -948,6 +992,57 @@ class _StaggeredCardsState extends State<_StaggeredCards>
         ),
         const SizedBox(height: 120),
       ],
+    );
+  }
+}
+
+class _ChangeWorkModeButton extends StatelessWidget {
+  final Color categoryColor;
+  final bool isLoading;
+  final VoidCallback onPressed;
+
+  const _ChangeWorkModeButton({
+    required this.categoryColor,
+    required this.isLoading,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = isLoading ? context.sac.textTertiary : categoryColor;
+
+    return GestureDetector(
+      onTap: isLoading ? null : onPressed,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: categoryColor.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: categoryColor.withValues(alpha: isLoading ? 0.12 : 0.22),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedRefresh,
+              size: 18,
+              color: foreground,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'honors.detail.change_work_mode_cta'.tr(),
+              style: TextStyle(
+                color: foreground,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
