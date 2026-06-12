@@ -359,6 +359,36 @@ final requirementEvidenceActionsNotifierProvider = AsyncNotifierProvider
 
 // ── Honor completion mode actions ───────────────────────────────────────────
 
+UserHonor _userHonorWithCompletionMode(
+  UserHonor userHonor,
+  HonorCompletionMode completionMode,
+) {
+  if (userHonor.completionMode == completionMode) return userHonor;
+
+  return UserHonor(
+    id: userHonor.id,
+    honorId: userHonor.honorId,
+    userId: userHonor.userId,
+    active: userHonor.active,
+    validate: userHonor.validate,
+    validationStatus: userHonor.validationStatus,
+    completionMode: completionMode,
+    certificate: userHonor.certificate,
+    images: userHonor.images,
+    document: userHonor.document,
+    date: userHonor.date,
+    submittedAt: userHonor.submittedAt,
+    validatedById: userHonor.validatedById,
+    validatedAt: userHonor.validatedAt,
+    rejectionReason: userHonor.rejectionReason,
+    honorName: userHonor.honorName,
+    honorImageUrl: userHonor.honorImageUrl,
+    honorCategoryName: userHonor.honorCategoryName,
+    honorCategoryId: userHonor.honorCategoryId,
+    honorSkillLevel: userHonor.honorSkillLevel,
+  );
+}
+
 class HonorCompletionModeActionsNotifier
     extends AutoDisposeAsyncNotifier<UserHonor?> {
   @override
@@ -384,7 +414,11 @@ class HonorCompletionModeActionsNotifier
         return false;
       },
       (updatedUserHonor) {
-        state = AsyncValue.data(updatedUserHonor);
+        final effectiveUserHonor = _userHonorWithCompletionMode(
+          updatedUserHonor,
+          completionMode,
+        );
+        state = AsyncValue.data(effectiveUserHonor);
         ref.invalidate(userHonorsProvider);
         ref.invalidate(userHonorForHonorProvider(honorId));
         return true;
