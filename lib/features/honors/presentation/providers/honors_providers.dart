@@ -25,6 +25,7 @@ import '../../domain/usecases/start_honor.dart';
 import '../../domain/usecases/update_requirement_progress.dart';
 import '../../domain/usecases/upload_honor_file.dart';
 import '../../domain/usecases/upload_requirement_evidence.dart';
+import '../../../members/presentation/providers/members_providers.dart';
 
 /// Provider para el data source remoto de especialidades
 final honorsRemoteDataSourceProvider = Provider<HonorsRemoteDataSource>((ref) {
@@ -162,9 +163,43 @@ final userHonorsProvider =
   );
 });
 
+/// User honors constrained to the active club section.
+///
+/// Aventureros only sees Adventurer honors. Conquistadores and Guías Mayores
+/// share the Pathfinder/GM honor catalog.
+final sectionScopedUserHonorsProvider =
+    Provider.autoDispose<AsyncValue<List<UserHonor>>>((ref) {
+  final userHonorsAsync = ref.watch(userHonorsProvider);
+  final activeScopeAsync = ref.watch(activeHonorCatalogScopeProvider);
+
+  if (userHonorsAsync is AsyncLoading || activeScopeAsync is AsyncLoading) {
+    return const AsyncValue.loading();
+  }
+  if (userHonorsAsync is AsyncError) {
+    return AsyncValue.error(
+        userHonorsAsync.error!, userHonorsAsync.stackTrace!);
+  }
+  if (activeScopeAsync is AsyncError) {
+    return AsyncValue.error(
+      activeScopeAsync.error!,
+      activeScopeAsync.stackTrace!,
+    );
+  }
+
+  final activeScope = activeScopeAsync.valueOrNull;
+  final userHonors = userHonorsAsync.valueOrNull ?? const <UserHonor>[];
+  if (activeScope == null) return AsyncValue.data(userHonors);
+
+  return AsyncValue.data(
+    userHonors
+        .where((h) => _honorMatchesScope(h.honorClubTypeId, activeScope))
+        .toList(),
+  );
+});
+
 /// Provider para estadísticas de especialidades del usuario derivadas localmente.
 ///
-/// Computes stats synchronously from [userHonorsProvider] — no extra API call.
+/// Computes stats synchronously from [sectionScopedUserHonorsProvider] — no extra API call.
 /// Returns an [AsyncValue<Map<String, dynamic>>] with the same shape used
 /// across the app:
 ///   - 'total'       : total user honors
@@ -173,7 +208,7 @@ final userHonorsProvider =
 ///   - 'in_progress' : count not yet APPROVED
 final userHonorStatsLocalProvider =
     Provider<AsyncValue<Map<String, dynamic>>>((ref) {
-  final userHonorsAsync = ref.watch(userHonorsProvider);
+  final userHonorsAsync = ref.watch(sectionScopedUserHonorsProvider);
 
   return userHonorsAsync.whenData((honors) {
     final total = honors.length;
@@ -522,7 +557,7 @@ final honorRegistrationNotifierProvider = NotifierProvider.autoDispose<
 final userHonorForHonorProvider =
     Provider.autoDispose.family<UserHonor?, int>((ref, honorId) {
   final userHonor = ref
-      .watch(userHonorsProvider)
+      .watch(sectionScopedUserHonorsProvider)
       .valueOrNull
       ?.where((h) => h.honorId == honorId)
       .firstOrNull;
@@ -558,10 +593,60 @@ enum HonorCatalogScope {
   pathfindersAndMasterGuides,
 }
 
+const int _adventurersClubTypeId = 1;
+const int _pathfindersClubTypeId = 2;
+const int _masterGuidesClubTypeId = 3;
+
 final selectedHonorCatalogScopeProvider =
     StateProvider.autoDispose<HonorCatalogScope>(
   (ref) => HonorCatalogScope.all,
 );
+
+HonorCatalogScope? _scopeForClubTypeId(int? clubTypeId) {
+  if (clubTypeId == _adventurersClubTypeId) {
+    return HonorCatalogScope.adventurers;
+  }
+  if (clubTypeId == _pathfindersClubTypeId ||
+      clubTypeId == _masterGuidesClubTypeId) {
+    return HonorCatalogScope.pathfindersAndMasterGuides;
+  }
+  return null;
+}
+
+int? _clubTypeIdFromName(String? clubTypeName) {
+  final normalized = clubTypeName?.trim().toLowerCase();
+  if (normalized == null || normalized.isEmpty) return null;
+  if (normalized.contains('aventur')) return _adventurersClubTypeId;
+  if (normalized.contains('conquist')) return _pathfindersClubTypeId;
+  if (normalized.contains('guia') || normalized.contains('guía')) {
+    return _masterGuidesClubTypeId;
+  }
+  return null;
+}
+
+bool _honorMatchesScope(int? clubTypeId, HonorCatalogScope scope) {
+  return switch (scope) {
+    HonorCatalogScope.all => true,
+    HonorCatalogScope.adventurers => clubTypeId == _adventurersClubTypeId,
+    HonorCatalogScope.pathfindersAndMasterGuides =>
+      clubTypeId == _pathfindersClubTypeId ||
+          clubTypeId == _masterGuidesClubTypeId,
+  };
+}
+
+/// Scope forced by the active club section.
+///
+/// `null` means there is no active section context, so the manual catalog
+/// selector remains in control.
+final activeHonorCatalogScopeProvider =
+    Provider.autoDispose<AsyncValue<HonorCatalogScope?>>((ref) {
+  final clubContextAsync = ref.watch(clubContextProvider);
+  return clubContextAsync.whenData((ctx) {
+    final clubTypeId =
+        ctx?.clubTypeId ?? _clubTypeIdFromName(ctx?.clubTypeName);
+    return _scopeForClubTypeId(clubTypeId);
+  });
+});
 
 /// Fetches ALL honors ONCE from the network via the grouped-by-category endpoint
 /// (single DB query, no pagination loop) and flattens the result into a plain list.
@@ -605,11 +690,21 @@ final honorByIdProvider =
 final filteredHonorsProvider =
     Provider.autoDispose<AsyncValue<List<Honor>>>((ref) {
   final query = ref.watch(searchQueryProvider).toLowerCase();
-  final scope = ref.watch(selectedHonorCatalogScopeProvider);
+  final selectedScope = ref.watch(selectedHonorCatalogScopeProvider);
+  final activeScopeAsync = ref.watch(activeHonorCatalogScopeProvider);
   final categoryId = ref.watch(selectedCategoryProvider);
   final allHonorsAsync = ref.watch(allHonorsProvider);
 
+  if (activeScopeAsync is AsyncLoading) return const AsyncValue.loading();
+  if (activeScopeAsync is AsyncError) {
+    return AsyncValue.error(
+      activeScopeAsync.error!,
+      activeScopeAsync.stackTrace!,
+    );
+  }
+
   return allHonorsAsync.whenData((honors) {
+    final scope = activeScopeAsync.valueOrNull ?? selectedScope;
     final byScope = switch (scope) {
       HonorCatalogScope.all => honors,
       HonorCatalogScope.adventurers =>
@@ -619,9 +714,11 @@ final filteredHonorsProvider =
     };
 
     // Category filter
-    final byCategory = categoryId == null
+    final effectiveCategoryId =
+        scope == HonorCatalogScope.adventurers ? null : categoryId;
+    final byCategory = effectiveCategoryId == null
         ? byScope
-        : byScope.where((h) => h.categoryId == categoryId).toList();
+        : byScope.where((h) => h.categoryId == effectiveCategoryId).toList();
 
     // Text search — only applied when query is at least 2 chars
     if (query.length < 2) return byCategory;
@@ -642,7 +739,7 @@ final filteredHonorsProvider =
 final honorsWithStatusProvider = Provider.autoDispose<
     AsyncValue<List<({Honor honor, UserHonor? userHonor})>>>((ref) {
   final filteredAsync = ref.watch(filteredHonorsProvider);
-  final userHonorsAsync = ref.watch(userHonorsProvider);
+  final userHonorsAsync = ref.watch(sectionScopedUserHonorsProvider);
 
   // If either upstream is loading or errored, propagate that state
   if (filteredAsync is AsyncLoading || userHonorsAsync is AsyncLoading) {

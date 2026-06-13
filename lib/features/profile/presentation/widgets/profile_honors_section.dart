@@ -30,7 +30,7 @@ const Map<String, List<List<dynamic>>> _categoryIcons = {
 
 final _profileHonorsByCategoryProvider =
     Provider.autoDispose<AsyncValue<List<_HonorCategoryGroup>>>((ref) {
-  final userHonorsAsync = ref.watch(userHonorsProvider);
+  final userHonorsAsync = ref.watch(sectionScopedUserHonorsProvider);
   return userHonorsAsync.whenData(_groupUserHonorsByCategory);
 });
 

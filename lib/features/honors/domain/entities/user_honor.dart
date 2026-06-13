@@ -68,6 +68,8 @@ class UserHonor extends Equatable {
   final String? honorCategoryName;
   final int? honorCategoryId;
   final int? honorSkillLevel;
+  final int? honorClubTypeId;
+  final String? honorClubTypeName;
 
   const UserHonor({
     required this.id,
@@ -90,6 +92,8 @@ class UserHonor extends Equatable {
     this.honorCategoryName,
     this.honorCategoryId,
     this.honorSkillLevel,
+    this.honorClubTypeId,
+    this.honorClubTypeName,
   });
 
   // ── Computed display helpers ─────────────────────────────────────────
@@ -163,5 +167,7 @@ class UserHonor extends Equatable {
         honorCategoryName,
         honorCategoryId,
         honorSkillLevel,
+        honorClubTypeId,
+        honorClubTypeName,
       ];
 }

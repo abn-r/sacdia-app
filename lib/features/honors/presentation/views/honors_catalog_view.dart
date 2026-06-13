@@ -117,14 +117,19 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
           // and live inside the same panel to avoid duplicated chip rows.
           Consumer(
             builder: (context, ref, child) {
-              final selectedScope =
-                  ref.watch(selectedHonorCatalogScopeProvider);
+              final activeScope =
+                  ref.watch(activeHonorCatalogScopeProvider).valueOrNull;
+              final manualScope = ref.watch(selectedHonorCatalogScopeProvider);
+              final HonorCatalogScope selectedScope =
+                  activeScope ?? manualScope;
+              final isScopeLocked = activeScope != null;
               final selectedCategory = ref.watch(selectedCategoryProvider);
 
               if (selectedScope == HonorCatalogScope.adventurers) {
                 return _buildCatalogFilters(
                   context,
                   selectedScope: selectedScope,
+                  isScopeLocked: isScopeLocked,
                   selectedCategory: selectedCategory,
                 );
               }
@@ -134,12 +139,14 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                 data: (categories) => _buildCatalogFilters(
                   context,
                   selectedScope: selectedScope,
+                  isScopeLocked: isScopeLocked,
                   categories: categories,
                   selectedCategory: selectedCategory,
                 ),
                 loading: () => _buildCatalogFilters(
                   context,
                   selectedScope: selectedScope,
+                  isScopeLocked: isScopeLocked,
                   selectedCategory: selectedCategory,
                   isCategoryLoading: true,
                 ),
@@ -177,6 +184,7 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
     List<dynamic>? categories,
     int? selectedCategory,
     bool isCategoryLoading = false,
+    bool isScopeLocked = false,
   }) {
     final showCategories = selectedScope != HonorCatalogScope.adventurers;
 
@@ -212,7 +220,11 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: _buildScopeSegmentedControl(context, selectedScope),
+              child: _buildScopeSegmentedControl(
+                context,
+                selectedScope,
+                isScopeLocked: isScopeLocked,
+              ),
             ),
             AnimatedSize(
               duration: const Duration(milliseconds: 220),
@@ -276,9 +288,10 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
 
   Widget _buildScopeSegmentedControl(
     BuildContext context,
-    HonorCatalogScope selectedScope,
-  ) {
-    final scopes = <({HonorCatalogScope value, String label, Color color})>[
+    HonorCatalogScope selectedScope, {
+    bool isScopeLocked = false,
+  }) {
+    final allScopes = <({HonorCatalogScope value, String label, Color color})>[
       (
         value: HonorCatalogScope.all,
         label: 'honors.catalog.scope_all'.tr(),
@@ -295,6 +308,9 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
         color: AppColors.secondaryDark,
       ),
     ];
+    final scopes = isScopeLocked
+        ? allScopes.where((scope) => scope.value == selectedScope).toList()
+        : allScopes;
 
     return Container(
       padding: const EdgeInsets.all(4),
@@ -315,12 +331,16 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
                   color: Colors.transparent,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(13),
-                    onTap: () {
-                      ref
-                          .read(selectedHonorCatalogScopeProvider.notifier)
-                          .state = scope.value;
-                      ref.read(selectedCategoryProvider.notifier).state = null;
-                    },
+                    onTap: isScopeLocked
+                        ? null
+                        : () {
+                            ref
+                                .read(
+                                    selectedHonorCatalogScopeProvider.notifier)
+                                .state = scope.value;
+                            ref.read(selectedCategoryProvider.notifier).state =
+                                null;
+                          },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 180),
                       curve: Curves.easeOutCubic,

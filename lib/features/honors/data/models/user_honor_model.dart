@@ -40,6 +40,8 @@ class UserHonorModel extends Equatable {
   final String? honorCategoryName;
   final int? honorCategoryId;
   final int? honorSkillLevel;
+  final int? honorClubTypeId;
+  final String? honorClubTypeName;
 
   const UserHonorModel({
     required this.id,
@@ -62,6 +64,8 @@ class UserHonorModel extends Equatable {
     this.honorCategoryName,
     this.honorCategoryId,
     this.honorSkillLevel,
+    this.honorClubTypeId,
+    this.honorClubTypeName,
   });
 
   /// Crea una instancia desde JSON
@@ -110,17 +114,27 @@ class UserHonorModel extends Equatable {
     String? honorCategoryName;
     int? honorCategoryId;
     int? honorSkillLevel;
+    int? honorClubTypeId;
+    String? honorClubTypeName;
     final nestedHonor = json['honors'] as Map<String, dynamic>?;
     if (nestedHonor != null) {
       honorName = safeStringOrNull(nestedHonor['name']);
       honorImageUrl =
           _buildImageUrl(safeStringOrNull(nestedHonor['honor_image']));
       honorSkillLevel = safeIntOrNull(nestedHonor['skill_level']);
+      honorClubTypeId = safeIntOrNull(nestedHonor['club_type_id']);
+      final nestedClubType = nestedHonor['club_types'] as Map<String, dynamic>?;
+      honorClubTypeName = safeStringOrNull(
+            nestedClubType?['name'],
+          ) ??
+          safeStringOrNull(nestedHonor['club_type_name']);
       final nestedCategory =
           nestedHonor['honors_categories'] as Map<String, dynamic>?;
       honorCategoryName = safeStringOrNull(nestedCategory?['name']);
       honorCategoryId = safeIntOrNull(nestedCategory?['honor_category_id']);
     }
+    honorClubTypeId ??= safeIntOrNull(json['honor_club_type_id']);
+    honorClubTypeName ??= safeStringOrNull(json['honor_club_type_name']);
 
     return UserHonorModel(
       id: id,
@@ -146,6 +160,8 @@ class UserHonorModel extends Equatable {
       honorCategoryName: honorCategoryName,
       honorCategoryId: honorCategoryId,
       honorSkillLevel: honorSkillLevel,
+      honorClubTypeId: honorClubTypeId,
+      honorClubTypeName: honorClubTypeName,
     );
   }
 
@@ -167,6 +183,8 @@ class UserHonorModel extends Equatable {
       'validated_by_id': validatedById,
       'validated_at': validatedAt?.toIso8601String(),
       'rejection_reason': rejectionReason,
+      'honor_club_type_id': honorClubTypeId,
+      'honor_club_type_name': honorClubTypeName,
     };
   }
 
@@ -193,6 +211,8 @@ class UserHonorModel extends Equatable {
       honorCategoryName: honorCategoryName,
       honorCategoryId: honorCategoryId,
       honorSkillLevel: honorSkillLevel,
+      honorClubTypeId: honorClubTypeId,
+      honorClubTypeName: honorClubTypeName,
     );
   }
 
@@ -218,6 +238,8 @@ class UserHonorModel extends Equatable {
     String? honorCategoryName,
     int? honorCategoryId,
     int? honorSkillLevel,
+    int? honorClubTypeId,
+    String? honorClubTypeName,
   }) {
     return UserHonorModel(
       id: id ?? this.id,
@@ -240,6 +262,8 @@ class UserHonorModel extends Equatable {
       honorCategoryName: honorCategoryName ?? this.honorCategoryName,
       honorCategoryId: honorCategoryId ?? this.honorCategoryId,
       honorSkillLevel: honorSkillLevel ?? this.honorSkillLevel,
+      honorClubTypeId: honorClubTypeId ?? this.honorClubTypeId,
+      honorClubTypeName: honorClubTypeName ?? this.honorClubTypeName,
     );
   }
 
@@ -265,5 +289,7 @@ class UserHonorModel extends Equatable {
         honorCategoryName,
         honorCategoryId,
         honorSkillLevel,
+        honorClubTypeId,
+        honorClubTypeName,
       ];
 }

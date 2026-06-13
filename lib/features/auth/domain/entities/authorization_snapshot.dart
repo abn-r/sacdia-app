@@ -6,6 +6,7 @@ class AuthorizationGrant extends Equatable {
   final List<String> permissions;
   final int? clubId;
   final int? sectionId;
+  final int? clubTypeId;
 
   /// Human-readable club type name for the section (e.g. 'Conquistadores').
   /// Populated from `club_type_name` in the backend grant response.
@@ -26,6 +27,7 @@ class AuthorizationGrant extends Equatable {
     this.permissions = const [],
     this.clubId,
     this.sectionId,
+    this.clubTypeId,
     this.clubTypeName,
     this.status,
     this.expiresAt,
@@ -51,6 +53,7 @@ class AuthorizationGrant extends Equatable {
         permissions,
         clubId,
         sectionId,
+        clubTypeId,
         clubTypeName,
         status,
         expiresAt,

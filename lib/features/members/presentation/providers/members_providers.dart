@@ -62,6 +62,7 @@ final assignClubRoleUseCaseProvider = Provider<AssignClubRole>((ref) {
 class ClubContext {
   final int clubId;
   final int sectionId;
+  final int? clubTypeId;
 
   /// Role name of the active assignment (e.g. 'director', 'counselor').
   /// Null when not available from the authorization grant.
@@ -74,6 +75,7 @@ class ClubContext {
   const ClubContext({
     required this.clubId,
     required this.sectionId,
+    this.clubTypeId,
     this.roleName,
     this.clubTypeName,
   });
@@ -102,6 +104,7 @@ final clubContextProvider = FutureProvider<ClubContext?>((ref) async {
   return ClubContext(
     clubId: activeGrant.clubId!,
     sectionId: activeGrant.sectionId!,
+    clubTypeId: activeGrant.clubTypeId,
     roleName: activeGrant.roleName,
     clubTypeName: activeGrant.clubTypeName,
   );
