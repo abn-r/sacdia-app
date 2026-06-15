@@ -49,6 +49,9 @@ class NotificationsRemoteDataSourceImpl
   })  : _dio = dio,
         _baseUrl = baseUrl;
 
+  bool _isCancellation(Object e) =>
+      e is DioException && e.type == DioExceptionType.cancel;
+
   Never _rethrow(Object e) {
     if (e is DioException) {
       if (e.type == DioExceptionType.cancel) throw e;
@@ -132,6 +135,11 @@ class NotificationsRemoteDataSourceImpl
         code: response.statusCode,
       );
     } catch (e) {
+      if (_isCancellation(e)) {
+        AppLogger.d('getHistory cancelado por una recarga posterior',
+            tag: _tag);
+        _rethrow(e);
+      }
       AppLogger.e('Error en getHistory', tag: _tag, error: e);
       _rethrow(e);
     }

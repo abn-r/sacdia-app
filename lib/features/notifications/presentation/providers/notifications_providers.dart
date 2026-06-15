@@ -95,7 +95,12 @@ class NotificationsInboxNotifier extends Notifier<NotificationsInboxState> {
   }
 
   /// Carga o recarga desde la primera página.
-  Future<void> refresh() => _loadPage(1, refresh: true);
+  Future<void> refresh() {
+    if (state.isLoading && state.items.isEmpty) {
+      return Future.value();
+    }
+    return _loadPage(1, refresh: true);
+  }
 
   /// Actualiza optimistamente el estado leído de un item por su deliveryId.
   ///
@@ -173,7 +178,8 @@ class NotificationsInboxNotifier extends Notifier<NotificationsInboxState> {
     }
 
     _currentToken?.cancel();
-    _currentToken = CancelToken();
+    final requestToken = CancelToken();
+    _currentToken = requestToken;
 
     // Guard: if the notifier was disposed while we were waiting (e.g. during
     // a nuclear reset in tests or rapid navigation), bail out to avoid a
@@ -185,8 +191,14 @@ class NotificationsInboxNotifier extends Notifier<NotificationsInboxState> {
     final result = await repository.getHistory(
       page: page,
       limit: _pageSize,
-      cancelToken: _currentToken,
+      cancelToken: requestToken,
     );
+
+    if (_disposed ||
+        _currentToken != requestToken ||
+        requestToken.isCancelled) {
+      return;
+    }
 
     result.fold(
       (failure) {

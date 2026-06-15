@@ -2560,7 +2560,20 @@
       "empty_subtitle": "When you receive notifications, they will appear here.",
       "error_title": "Error loading notifications",
       "retry": "Retry",
-      "load_more_error": "Error loading more. Tap to retry."
+      "load_more_error": "Error loading more. Tap to retry.",
+      "detail_type": "Type",
+      "detail_received": "Received",
+      "detail_status": "Status",
+      "detail_read": "Read",
+      "detail_unread": "Unread",
+      "detail_sent_by": "Sent by",
+      "detail_accept": "Accept",
+      "type_direct": "Direct",
+      "type_broadcast": "Broadcast",
+      "type_club": "Club",
+      "type_section_role": "Section role",
+      "type_global_role": "Global role",
+      "type_unknown": "Unknown"
     }
   },
   "achievements": {

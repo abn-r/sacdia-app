@@ -19,6 +19,9 @@ class WelcomeHeader extends StatelessWidget {
   /// Si es null, el icono de campana no se muestra.
   final VoidCallback? onNotificationsTap;
 
+  /// Conteo de notificaciones no leídas mostrado sobre la campana.
+  final int unreadNotificationsCount;
+
   /// Callback opcional para abrir el sheet «Más» desde la barra de acciones.
   /// Si es null, el botón Más no se muestra.
   final VoidCallback? onMoreTap;
@@ -28,6 +31,7 @@ class WelcomeHeader extends StatelessWidget {
     required this.userName,
     this.userAvatar,
     this.onNotificationsTap,
+    this.unreadNotificationsCount = 0,
     this.onMoreTap,
   });
 
@@ -93,14 +97,46 @@ class WelcomeHeader extends StatelessWidget {
 
           // Botón de notificaciones
           if (onNotificationsTap != null) ...[
-            IconButton(
-              onPressed: onNotificationsTap,
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedNotification01,
-                size: 24,
-                color: context.sac.text,
-              ),
-              tooltip: tr('dashboard.notifications_tooltip'),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                IconButton(
+                  onPressed: onNotificationsTap,
+                  icon: HugeIcon(
+                    icon: HugeIcons.strokeRoundedNotification01,
+                    size: 24,
+                    color: context.sac.text,
+                  ),
+                  tooltip: tr('dashboard.notifications_tooltip'),
+                ),
+                if (unreadNotificationsCount > 0)
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 1,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.error,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      constraints: const BoxConstraints(minWidth: 16),
+                      child: Text(
+                        unreadNotificationsCount > 99
+                            ? '99+'
+                            : '$unreadNotificationsCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ],
 

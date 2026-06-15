@@ -2560,7 +2560,20 @@
       "empty_subtitle": "Lorsque vous recevrez des notifications, elles apparaîtront ici.",
       "error_title": "Erreur lors du chargement des notifications",
       "retry": "Réessayer",
-      "load_more_error": "Erreur lors du chargement. Appuyer pour réessayer."
+      "load_more_error": "Erreur lors du chargement. Appuyer pour réessayer.",
+      "detail_type": "Type",
+      "detail_received": "Reçue",
+      "detail_status": "Statut",
+      "detail_read": "Lue",
+      "detail_unread": "Non lue",
+      "detail_sent_by": "Envoyée par",
+      "detail_accept": "Accepter",
+      "type_direct": "Directe",
+      "type_broadcast": "Broadcast",
+      "type_club": "Club",
+      "type_section_role": "Rôle de section",
+      "type_global_role": "Rôle global",
+      "type_unknown": "Inconnue"
     }
   },
   "achievements": {

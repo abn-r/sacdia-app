@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,9 +24,115 @@ class NotificationCard extends ConsumerWidget {
     final deliveryId = notification.deliveryId;
 
     if (!notification.isRead && deliveryId != null) {
-      await ref
-          .read(notificationsInboxProvider.notifier)
-          .markAsRead(deliveryId);
+      unawaited(
+        ref.read(notificationsInboxProvider.notifier).markAsRead(deliveryId),
+      );
+    }
+
+    if (!context.mounted) return;
+    await _showDetailsDialog(
+      context,
+      isReadForDialog: notification.isRead || deliveryId != null,
+    );
+  }
+
+  Future<void> _showDetailsDialog(
+    BuildContext context, {
+    required bool isReadForDialog,
+  }) {
+    final c = context.sac;
+    final createdAt =
+        DateFormat('dd/MM/yyyy HH:mm').format(notification.createdAt.toLocal());
+
+    return showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: c.surface,
+          surfaceTintColor: Colors.transparent,
+          titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+          contentPadding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+          actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          title: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              NotificationTypeBadge(type: notification.targetType, size: 36),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  notification.title,
+                  style:
+                      Theme.of(dialogContext).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: c.text,
+                          ),
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  notification.body,
+                  style: Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
+                        color: c.text,
+                        height: 1.45,
+                      ),
+                ),
+                const SizedBox(height: 16),
+                Divider(color: c.divider),
+                const SizedBox(height: 8),
+                _DetailRow(
+                  label: 'notifications.inbox.detail_type'.tr(),
+                  value: _typeLabel(notification.targetType),
+                ),
+                _DetailRow(
+                  label: 'notifications.inbox.detail_received'.tr(),
+                  value:
+                      '$createdAt · ${_relativeTime(notification.createdAt)}',
+                ),
+                _DetailRow(
+                  label: 'notifications.inbox.detail_status'.tr(),
+                  value: isReadForDialog
+                      ? 'notifications.inbox.detail_read'.tr()
+                      : 'notifications.inbox.detail_unread'.tr(),
+                ),
+                if (notification.senderName != null)
+                  _DetailRow(
+                    label: 'notifications.inbox.detail_sent_by'.tr(),
+                    value: notification.senderName!,
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text('notifications.inbox.detail_accept'.tr()),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  String _typeLabel(NotificationTargetType type) {
+    switch (type) {
+      case NotificationTargetType.direct:
+        return 'notifications.inbox.type_direct'.tr();
+      case NotificationTargetType.broadcast:
+        return 'notifications.inbox.type_broadcast'.tr();
+      case NotificationTargetType.club:
+        return 'notifications.inbox.type_club'.tr();
+      case NotificationTargetType.sectionRole:
+        return 'notifications.inbox.type_section_role'.tr();
+      case NotificationTargetType.globalRole:
+        return 'notifications.inbox.type_global_role'.tr();
+      case NotificationTargetType.unknown:
+        return 'notifications.inbox.type_unknown'.tr();
     }
   }
 
@@ -167,6 +276,49 @@ class NotificationCard extends ConsumerWidget {
     return '${date.day.toString().padLeft(2, '0')}/'
         '${date.month.toString().padLeft(2, '0')}/'
         '${date.year}';
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _DetailRow({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 82,
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: c.textTertiary,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: c.textSecondary,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

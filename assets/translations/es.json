@@ -2560,7 +2560,20 @@
       "empty_subtitle": "Cuando recibas notificaciones, van a aparecer aquí.",
       "error_title": "Error al cargar notificaciones",
       "retry": "Reintentar",
-      "load_more_error": "Error al cargar más. Tocar para reintentar."
+      "load_more_error": "Error al cargar más. Tocar para reintentar.",
+      "detail_type": "Tipo",
+      "detail_received": "Recibida",
+      "detail_status": "Estado",
+      "detail_read": "Leída",
+      "detail_unread": "No leída",
+      "detail_sent_by": "Enviada por",
+      "detail_accept": "Aceptar",
+      "type_direct": "Directa",
+      "type_broadcast": "Broadcast",
+      "type_club": "Club",
+      "type_section_role": "Rol de sección",
+      "type_global_role": "Rol global",
+      "type_unknown": "Desconocida"
     }
   },
   "achievements": {

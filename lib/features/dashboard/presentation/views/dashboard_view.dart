@@ -13,6 +13,7 @@ import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../notifications/presentation/providers/unread_notifications_count_provider.dart';
 import '../../../profile/presentation/providers/profile_providers.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/club_info_card.dart';
@@ -39,6 +40,8 @@ class DashboardView extends ConsumerWidget {
     final userGender = ref.watch(
       profileNotifierProvider.select((v) => v.valueOrNull?.gender),
     );
+    final unreadNotificationsCount =
+        ref.watch(unreadNotificationsCountProvider);
 
     final c = context.sac;
 
@@ -88,6 +91,7 @@ class DashboardView extends ConsumerWidget {
                       child: WelcomeHeader(
                         userName: dashboard.userName,
                         userAvatar: dashboard.userAvatar ?? authAvatar,
+                        unreadNotificationsCount: unreadNotificationsCount,
                         onNotificationsTap: () =>
                             context.push(RouteNames.notificationsInbox),
                       ),

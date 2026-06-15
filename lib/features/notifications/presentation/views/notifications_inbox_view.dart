@@ -40,7 +40,7 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
     // the current build frame.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ref.invalidate(notificationsInboxProvider);
+      ref.read(notificationsInboxProvider.notifier).refresh();
       ref.read(unreadNotificationsCountProvider.notifier).refresh();
     });
   }
@@ -59,7 +59,7 @@ class _NotificationsInboxViewState extends ConsumerState<NotificationsInboxView>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      ref.invalidate(notificationsInboxProvider);
+      ref.read(notificationsInboxProvider.notifier).refresh();
       ref.read(unreadNotificationsCountProvider.notifier).refresh();
     }
   }
