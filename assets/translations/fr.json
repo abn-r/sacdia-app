@@ -43,7 +43,8 @@
       "november": "Novembre",
       "december": "Décembre",
       "unknown": "Mois {month}"
-    }
+    },
+    "deleted_account": "Compte supprimé"
   },
   "nav": {
     "home": "Accueil",
@@ -3001,11 +3002,11 @@
       "operation_cancelled": "Opération annulée",
       "password_updated": "Mot de passe mis à jour avec succès.",
       "delete_account_title": "Supprimer le compte",
-      "delete_account_first_confirm_body": "Cette action est irréversible. Toutes vos données, historique et progression seront supprimés. Continuer ?",
+      "delete_account_first_confirm_body": "Cette action est irréversible. Votre compte sera désactivé et vos données personnelles seront anonymisées. Les informations opérationnelles seront conservées conformément à la politique de rétention. Continuer ?",
       "delete_account_first_confirm_action": "Continuer",
       "delete_account_second_title": "Confirmer la suppression",
-      "delete_account_write_eliminate": "Saisissez SUPPRIMER pour confirmer.",
-      "delete_account_error_type_wrong": "Saisissez exactement SUPPRIMER.",
+      "delete_account_write_eliminate": "Saisissez {word} pour confirmer.",
+      "delete_account_error_type_wrong": "Saisissez exactement {word}.",
       "delete_account_enter_password": "Saisissez votre mot de passe actuel pour continuer.",
       "field_password_hint": "Mot de passe",
       "delete_account_error_no_password": "Saisissez votre mot de passe.",
@@ -3028,7 +3029,8 @@
       "logout_tile": "Se déconnecter",
       "logout_confirm": "Êtes-vous sûr de vouloir vous déconnecter ?",
       "logout_confirm_action": "Se déconnecter",
-      "delete_account_tile": "Supprimer le compte"
+      "delete_account_tile": "Supprimer le compte",
+      "delete_account_confirmation_word": "SUPPRIMER"
     },
     "classes_section": {
       "error_load": "Erreur lors du chargement des classes",

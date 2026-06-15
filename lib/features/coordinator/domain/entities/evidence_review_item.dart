@@ -118,6 +118,7 @@ class EvidenceReviewItem extends Equatable {
   final EvidenceReviewType type;
   final EvidenceReviewStatus status;
   final String memberName;
+  final bool memberIsDeleted;
   final String? memberPhotoUrl;
   final String? context;
   final DateTime submittedAt;
@@ -130,6 +131,7 @@ class EvidenceReviewItem extends Equatable {
     required this.type,
     required this.status,
     required this.memberName,
+    this.memberIsDeleted = false,
     this.memberPhotoUrl,
     this.context,
     required this.submittedAt,
@@ -138,12 +140,16 @@ class EvidenceReviewItem extends Equatable {
     this.history = const [],
   });
 
+  String get displayMemberName =>
+      memberIsDeleted ? tr('common.deleted_account') : memberName;
+
   @override
   List<Object?> get props => [
         id,
         type,
         status,
         memberName,
+        memberIsDeleted,
         memberPhotoUrl,
         context,
         submittedAt,

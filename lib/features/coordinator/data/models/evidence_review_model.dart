@@ -83,6 +83,7 @@ class EvidenceReviewItemModel extends Equatable {
   final EvidenceReviewType type;
   final EvidenceReviewStatus status;
   final String memberName;
+  final bool memberIsDeleted;
   final String? memberPhotoUrl;
   final String? context;
   final DateTime submittedAt;
@@ -95,6 +96,7 @@ class EvidenceReviewItemModel extends Equatable {
     required this.type,
     required this.status,
     required this.memberName,
+    this.memberIsDeleted = false,
     this.memberPhotoUrl,
     this.context,
     required this.submittedAt,
@@ -115,6 +117,8 @@ class EvidenceReviewItemModel extends Equatable {
         json['member_name'] ??
         json['memberName'] ??
         '') as String;
+    final memberIsDeleted =
+        json['member_is_deleted'] == true || user?['is_deleted'] == true;
     final memberPhotoUrl = (user?['photo_url'] ??
         user?['avatar'] ??
         json['member_photo_url']) as String?;
@@ -139,6 +143,7 @@ class EvidenceReviewItemModel extends Equatable {
       type: EvidenceReviewType.fromString(typeStr),
       status: EvidenceReviewStatus.fromString(statusStr),
       memberName: memberName,
+      memberIsDeleted: memberIsDeleted,
       memberPhotoUrl: memberPhotoUrl,
       context: (json['context'] ?? json['class_name'] ?? json['honor_name'])
           as String?,
@@ -158,6 +163,7 @@ class EvidenceReviewItemModel extends Equatable {
         type: type,
         status: status,
         memberName: memberName,
+        memberIsDeleted: memberIsDeleted,
         memberPhotoUrl: memberPhotoUrl,
         context: context,
         submittedAt: submittedAt,
@@ -172,6 +178,7 @@ class EvidenceReviewItemModel extends Equatable {
         type,
         status,
         memberName,
+        memberIsDeleted,
         memberPhotoUrl,
         context,
         submittedAt,

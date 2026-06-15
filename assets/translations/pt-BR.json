@@ -43,7 +43,8 @@
       "november": "Novembro",
       "december": "Dezembro",
       "unknown": "Mês {month}"
-    }
+    },
+    "deleted_account": "Conta excluída"
   },
   "nav": {
     "home": "Início",
@@ -3001,11 +3002,11 @@
       "operation_cancelled": "Operação cancelada",
       "password_updated": "Senha atualizada com sucesso.",
       "delete_account_title": "Excluir conta",
-      "delete_account_first_confirm_body": "Esta ação é irreversível. Todos os seus dados, histórico e progresso serão excluídos. Deseja continuar?",
+      "delete_account_first_confirm_body": "Esta ação é irreversível. Sua conta será desativada e seus dados pessoais serão anonimizados. As informações operacionais serão mantidas conforme a política de retenção. Deseja continuar?",
       "delete_account_first_confirm_action": "Continuar",
       "delete_account_second_title": "Confirmar exclusão",
-      "delete_account_write_eliminate": "Digite EXCLUIR para confirmar.",
-      "delete_account_error_type_wrong": "Digite exatamente EXCLUIR.",
+      "delete_account_write_eliminate": "Digite {word} para confirmar.",
+      "delete_account_error_type_wrong": "Digite exatamente {word}.",
       "delete_account_enter_password": "Informe sua senha atual para continuar.",
       "field_password_hint": "Senha",
       "delete_account_error_no_password": "Informe sua senha.",
@@ -3028,7 +3029,8 @@
       "logout_tile": "Sair",
       "logout_confirm": "Tem certeza que deseja sair?",
       "logout_confirm_action": "Sair",
-      "delete_account_tile": "Excluir conta"
+      "delete_account_tile": "Excluir conta",
+      "delete_account_confirmation_word": "EXCLUIR"
     },
     "classes_section": {
       "error_load": "Erro ao carregar classes",

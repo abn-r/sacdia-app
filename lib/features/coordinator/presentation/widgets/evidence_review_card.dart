@@ -48,7 +48,7 @@ class EvidenceReviewCard extends StatelessWidget {
             children: [
               // ── Avatar ──────────────────────────────────────────────────
               _MemberAvatar(
-                name: item.memberName,
+                name: item.displayMemberName,
                 photoUrl: item.memberPhotoUrl,
               ),
               const SizedBox(width: 12),
@@ -62,7 +62,7 @@ class EvidenceReviewCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            item.memberName,
+                            item.displayMemberName,
                             style: Theme.of(context)
                                 .textTheme
                                 .titleSmall

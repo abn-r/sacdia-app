@@ -134,7 +134,7 @@ class EvidenceReviewDetailView extends ConsumerWidget {
       context: context,
       title: 'coordinator.evidence_review.detail.approve_title'.tr(),
       confirmMessage: 'coordinator.evidence_review.detail.approve_msg'
-          .tr(namedArgs: {'name': item.memberName}),
+          .tr(namedArgs: {'name': item.displayMemberName}),
     );
 
     if (!context.mounted) return;
@@ -163,7 +163,7 @@ class EvidenceReviewDetailView extends ConsumerWidget {
       context: context,
       title: 'coordinator.evidence_review.detail.reject_title'.tr(),
       confirmMessage: 'coordinator.evidence_review.detail.reject_msg'
-          .tr(namedArgs: {'name': item.memberName}),
+          .tr(namedArgs: {'name': item.displayMemberName}),
     );
 
     if (reason == null || !context.mounted) return;
@@ -263,7 +263,7 @@ class _MemberHeader extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        item.memberName,
+                        item.displayMemberName,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w700,
                               color: c.text,
@@ -336,8 +336,9 @@ class _MemberHeader extends StatelessWidget {
   }
 
   Widget _buildAvatar(BuildContext context) {
-    final initials = item.memberName.isNotEmpty
-        ? item.memberName
+    final displayName = item.displayMemberName;
+    final initials = displayName.isNotEmpty
+        ? displayName
             .trim()
             .split(' ')
             .take(2)

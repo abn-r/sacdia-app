@@ -359,6 +359,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     String? fieldError;
     bool isLoading = false;
     bool passwordObscure = true;
+    final deleteConfirmationWord =
+        'profile.settings.delete_account_confirmation_word'.tr();
 
     final firstConfirmed = await SacDialog.show(
       context,
@@ -370,7 +372,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
     if (firstConfirmed != true || !mounted) return;
 
-    // Segunda confirmación: escribir "ELIMINAR" + contraseña actual.
+    // Segunda confirmación: escribir la palabra localizada + contraseña actual.
     final secondConfirmed = await showDialog<bool>(
       context: context,
       barrierColor: c.barrierColor,
@@ -386,7 +388,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'profile.settings.delete_account_write_eliminate'.tr(),
+                'profile.settings.delete_account_write_eliminate'.tr(
+                  namedArgs: {'word': deleteConfirmationWord},
+                ),
                 style: TextStyle(fontSize: 14, color: c.textSecondary),
               ),
               const SizedBox(height: 12),
@@ -403,9 +407,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     ),
                   ),
                 ],
-                decoration: const InputDecoration(
-                  hintText: 'ELIMINAR', // intentional: must match exact word
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  hintText: deleteConfirmationWord,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),
@@ -459,10 +463,15 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               onPressed: isLoading
                   ? null
                   : () {
-                      if (confirmCtrl.text.trim() != 'ELIMINAR') {
-                        setDialogState(() => fieldError =
-                            'profile.settings.delete_account_error_type_wrong'
-                                .tr());
+                      if (confirmCtrl.text.trim() !=
+                          deleteConfirmationWord.toUpperCase()) {
+                        setDialogState(() {
+                          fieldError =
+                              'profile.settings.delete_account_error_type_wrong'
+                                  .tr(namedArgs: {
+                            'word': deleteConfirmationWord,
+                          });
+                        });
                         return;
                       }
                       if (passwordCtrl.text.trim().isEmpty) {

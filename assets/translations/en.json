@@ -43,7 +43,8 @@
       "november": "November",
       "december": "December",
       "unknown": "Month {month}"
-    }
+    },
+    "deleted_account": "Deleted account"
   },
   "nav": {
     "home": "Home",
@@ -3001,11 +3002,11 @@
       "operation_cancelled": "Operation cancelled",
       "password_updated": "Password updated successfully.",
       "delete_account_title": "Delete account",
-      "delete_account_first_confirm_body": "This action is irreversible. All your data, history and progress will be deleted. Continue?",
+      "delete_account_first_confirm_body": "This action is irreversible. Your account will be deactivated and your personal data will be anonymized. Operational information is retained according to the retention policy. Continue?",
       "delete_account_first_confirm_action": "Continue",
       "delete_account_second_title": "Confirm deletion",
-      "delete_account_write_eliminate": "Type DELETE to confirm.",
-      "delete_account_error_type_wrong": "Type exactly DELETE.",
+      "delete_account_write_eliminate": "Type {word} to confirm.",
+      "delete_account_error_type_wrong": "Type exactly {word}.",
       "delete_account_enter_password": "Enter your current password to continue.",
       "field_password_hint": "Password",
       "delete_account_error_no_password": "Enter your password.",
@@ -3028,7 +3029,8 @@
       "logout_tile": "Sign out",
       "logout_confirm": "Are you sure you want to sign out?",
       "logout_confirm_action": "Sign out",
-      "delete_account_tile": "Delete account"
+      "delete_account_tile": "Delete account",
+      "delete_account_confirmation_word": "DELETE"
     },
     "classes_section": {
       "error_load": "Error loading classes",
