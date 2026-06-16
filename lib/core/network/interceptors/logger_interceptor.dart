@@ -32,6 +32,14 @@ class LoggerInterceptor extends Interceptor {
     final status = err.response?.statusCode ?? err.type.name;
     final body = err.response?.data;
 
+    if (err.type == DioExceptionType.cancel) {
+      AppLogger.i(
+        '$status ${err.requestOptions.method} ${err.requestOptions.uri.path} | ${err.message ?? 'cancelled'}',
+        tag: _tag,
+      );
+      return handler.next(err);
+    }
+
     AppLogger.e(
       '$status ${err.requestOptions.method} ${err.requestOptions.uri.path}',
       tag: _tag,

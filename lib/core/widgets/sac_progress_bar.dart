@@ -4,9 +4,8 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// Barra de progreso lineal del design system SACDIA "Scout Vibrante"
 ///
-/// Gradiente de indigo a emerald, esquinas redondeadas, animación suave.
-/// Novedad: shimmer effect sobre la barra de relleno en la primera carga,
-/// y animación de fill desde 0 hasta el valor objetivo.
+/// Color sólido por defecto, esquinas redondeadas y animación de fill desde 0
+/// hasta el valor objetivo. Los degradados y shimmer son opt-in explícito.
 class SacProgressBar extends StatefulWidget {
   /// Progreso de 0.0 a 1.0
   final double progress;
@@ -20,7 +19,7 @@ class SacProgressBar extends StatefulWidget {
   /// Color del track de fondo (null = resolved from theme)
   final Color? trackColor;
 
-  /// Usar gradiente primary → secondary
+  /// Usar gradiente primary → secondary.
   final bool useGradient;
 
   /// Radio de bordes (100 = completamente redondeado)
@@ -44,11 +43,11 @@ class SacProgressBar extends StatefulWidget {
     this.height = 6.0,
     this.color = AppColors.primary,
     this.trackColor,
-    this.useGradient = true,
+    this.useGradient = false,
     this.borderRadius = 100.0,
     this.label,
     this.showPercentage = false,
-    this.showShimmer = true,
+    this.showShimmer = false,
     this.fillDuration = const Duration(milliseconds: 700),
   });
 

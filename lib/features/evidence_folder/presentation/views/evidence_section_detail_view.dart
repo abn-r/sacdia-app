@@ -9,6 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
 import '../../../../core/widgets/evidence_staging/staged_file.dart';
+import '../../../../core/widgets/sac_dialog.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../domain/entities/evidence_file.dart';
 import '../../domain/entities/evidence_section.dart';
@@ -76,25 +77,13 @@ class _EvidenceSectionDetailViewState
       canPop: !_hasUnsavedFiles,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        final confirm = await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text('evidence_folder.unsaved_files_dialog.title'.tr()),
-            content: Text(
-              'evidence_folder.unsaved_files_dialog.message'.tr(),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text('evidence_folder.stay'.tr()),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                style: TextButton.styleFrom(foregroundColor: AppColors.error),
-                child: Text('evidence_folder.exit'.tr()),
-              ),
-            ],
-          ),
+        final confirm = await SacDialog.show(
+          context,
+          title: 'evidence_folder.unsaved_files_dialog.title'.tr(),
+          content: 'evidence_folder.unsaved_files_dialog.message'.tr(),
+          confirmIsDestructive: true,
+          cancelLabel: 'evidence_folder.stay'.tr(),
+          confirmLabel: 'evidence_folder.exit'.tr(),
         );
         if (confirm == true && context.mounted) {
           Navigator.pop(context);

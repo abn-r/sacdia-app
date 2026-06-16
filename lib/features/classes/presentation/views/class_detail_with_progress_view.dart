@@ -4,11 +4,19 @@ import 'dart:ui' as ui;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/animations/page_transitions.dart';
+import '../../../../core/auth/club_role_names.dart';
+import '../../../../core/config/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/sac_dialog.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
+import '../../../investiture/domain/entities/investiture_status.dart';
+import '../../../investiture/presentation/providers/investiture_providers.dart';
+import '../../../members/presentation/providers/members_providers.dart';
 import '../../domain/entities/class_module_detail.dart';
 import '../../domain/entities/class_requirement.dart';
 import '../../domain/entities/class_with_progress.dart';
@@ -72,7 +80,7 @@ class ClassDetailWithProgressView extends ConsumerWidget {
 
 // ── Body con datos ─────────────────────────────────────────────────────────────
 
-class _ClassBody extends StatefulWidget {
+class _ClassBody extends ConsumerStatefulWidget {
   final ClassWithProgress classWithProgress;
   final int classId;
   final int? enrollmentId;
@@ -86,10 +94,10 @@ class _ClassBody extends StatefulWidget {
   });
 
   @override
-  State<_ClassBody> createState() => _ClassBodyState();
+  ConsumerState<_ClassBody> createState() => _ClassBodyState();
 }
 
-class _ClassBodyState extends State<_ClassBody> {
+class _ClassBodyState extends ConsumerState<_ClassBody> {
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
   final _query = ValueNotifier<String>('');
@@ -186,9 +194,71 @@ class _ClassBodyState extends State<_ClassBody> {
     );
   }
 
+  Future<void> _submitInvestiture({
+    required int enrollmentId,
+    required int clubId,
+  }) async {
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'Enviar a validación',
+      content:
+          'Tu clase quedará bloqueada mientras el equipo responsable revisa la investidura.',
+      highlight: 'Requisitos validados: 100%',
+      confirmLabel: 'Enviar',
+      cancelLabel: 'Cancelar',
+      icon: Icons.send_rounded,
+      iconColor: AppColors.coral700,
+      iconBackgroundColor: AppColors.coral50,
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    final notifier =
+        ref.read(submitForValidationNotifierProvider(enrollmentId).notifier);
+    final ok = await notifier.submit(clubId: clubId);
+
+    if (!mounted) return;
+
+    if (ok) {
+      ref
+        ..invalidate(classWithProgressProvider(ClassProgressQuery(
+          classId: widget.classId,
+          enrollmentId: widget.enrollmentId,
+        )))
+        ..invalidate(userClassesProvider)
+        ..invalidate(investitureHistoryProvider(enrollmentId));
+    }
+
+    final state = ref.read(submitForValidationNotifierProvider(enrollmentId));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ok
+              ? 'Clase enviada a validación de investidura.'
+              : state.errorMessage ??
+                  'No pudimos enviar la clase a validación. Intenta nuevamente.',
+        ),
+        backgroundColor: ok ? AppColors.coral700 : AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final classData = widget.classWithProgress;
+    final resolvedEnrollmentId = widget.enrollmentId ?? classData.enrollmentId;
+    final investitureStatus = _investitureStatusOf(classData);
+    final showInvestitureCard = _shouldShowInvestitureCard(
+      classData,
+      enrollmentId: resolvedEnrollmentId,
+    );
+    final clubContextAsync =
+        showInvestitureCard ? ref.watch(clubContextProvider) : null;
+    final submitState = showInvestitureCard && resolvedEnrollmentId != null
+        ? ref.watch(submitForValidationNotifierProvider(resolvedEnrollmentId))
+        : null;
 
     return RefreshIndicator(
       color: AppColors.coral500,
@@ -207,6 +277,21 @@ class _ClassBodyState extends State<_ClassBody> {
                   _HeroCard(classData: classData),
                   if (classData.isExpired) const _ExpiredTrajectoryBanner(),
                   _PillsRow(classData: classData),
+                  if (showInvestitureCard)
+                    _InvestitureCompletionCard(
+                      status: investitureStatus,
+                      clubContextAsync: clubContextAsync!,
+                      submitState: submitState,
+                      onSubmit: (clubId) => _submitInvestiture(
+                        enrollmentId: resolvedEnrollmentId!,
+                        clubId: clubId,
+                      ),
+                      onHistoryTap: () => context.push(
+                        RouteNames.investitureHistoryPath(
+                          resolvedEnrollmentId!.toString(),
+                        ),
+                      ),
+                    ),
                   ValueListenableBuilder<String>(
                     valueListenable: _query,
                     builder: (context, query, _) {
@@ -252,10 +337,9 @@ class _ClassBodyState extends State<_ClassBody> {
               final noResults = query.isNotEmpty && filteredModules.isEmpty;
 
               if (noResults) {
-                return SliverFillRemaining(
-                  hasScrollBody: false,
+                return SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
                     child: _NoResultsCard(
                       query: query,
                       suggestions: _suggestions,
@@ -287,6 +371,319 @@ class _ClassBodyState extends State<_ClassBody> {
         ],
       ),
     );
+  }
+}
+
+InvestitureStatus _investitureStatusOf(ClassWithProgress classData) {
+  final raw = classData.investitureStatus;
+  if (raw == null || raw.trim().isEmpty) {
+    return InvestitureStatus.inProgress;
+  }
+  return InvestitureStatus.fromString(raw);
+}
+
+bool _shouldShowInvestitureCard(
+  ClassWithProgress classData, {
+  required int? enrollmentId,
+}) {
+  if (enrollmentId == null || classData.isExpired) return false;
+  if (classData.totalRequirements == 0) return false;
+  return classData.completedRequirements == classData.totalRequirements;
+}
+
+bool _canSubmitInvestiture(InvestitureStatus status) {
+  return status == InvestitureStatus.inProgress ||
+      status == InvestitureStatus.rejected;
+}
+
+bool _isInvestitureReviewer(ClubContext? context) {
+  final role = context?.roleName?.trim().toLowerCase();
+  return role == ClubRoleNames.director || role == ClubRoleNames.counselor;
+}
+
+class _InvestitureCompletionCard extends StatelessWidget {
+  final InvestitureStatus status;
+  final AsyncValue<ClubContext?> clubContextAsync;
+  final InvestitureActionState? submitState;
+  final ValueChanged<int> onSubmit;
+  final VoidCallback onHistoryTap;
+
+  const _InvestitureCompletionCard({
+    required this.status,
+    required this.clubContextAsync,
+    required this.submitState,
+    required this.onSubmit,
+    required this.onHistoryTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final style = _InvestitureCardStyle.forStatus(status);
+    final canSubmit = _canSubmitInvestiture(status);
+    final clubContext = clubContextAsync.valueOrNull;
+    final canCurrentUserSubmit = _isInvestitureReviewer(clubContext);
+    final isContextLoading = clubContextAsync.isLoading;
+    final hasContextError = clubContextAsync.hasError;
+    final isSubmitting = submitState?.isLoading ?? false;
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 12, bottom: 2),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: style.background,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: style.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: AppColors.paper.withValues(alpha: 0.78),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: style.foreground.withValues(alpha: 0.14),
+                  ),
+                ),
+                child: Center(
+                  child: HugeIcon(
+                    icon: style.icon,
+                    size: 21,
+                    color: style.foreground,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      style.title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink900,
+                        height: 1.18,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      style.description,
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.ink600,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              _InvestitureStatusChip(status: status),
+            ],
+          ),
+          const SizedBox(height: 14),
+          if (canSubmit && canCurrentUserSubmit)
+            SacButton.primary(
+              text: status == InvestitureStatus.rejected
+                  ? 'Reenviar a validación'
+                  : 'Enviar a validación',
+              icon: HugeIcons.strokeRoundedSent,
+              isLoading: isSubmitting,
+              isEnabled: !isSubmitting,
+              onPressed: () => onSubmit(clubContext!.clubId),
+              backgroundColor: AppColors.coral700,
+              borderRadius: 14,
+              fontSize: 14,
+            )
+          else if (canSubmit)
+            _InvestitureHelperNote(
+              text: isContextLoading
+                  ? 'Preparando el contexto del club…'
+                  : hasContextError
+                      ? 'No pudimos confirmar tu rol activo. Intenta cambiar de sección o recargar.'
+                      : status == InvestitureStatus.rejected
+                          ? 'La solicitud fue observada. Un consejero o director podrá reenviarla después de corregir el avance.'
+                          : 'Tu clase ya está lista. Un consejero o director debe enviarla a validación de investidura.',
+              color: style.foreground,
+            )
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _InvestitureHelperNote(
+                  text: style.helperText,
+                  color: style.foreground,
+                ),
+                const SizedBox(height: 10),
+                SacButton.outline(
+                  text: 'Ver historial',
+                  icon: HugeIcons.strokeRoundedClock01,
+                  onPressed: onHistoryTap,
+                  textColor: style.foreground,
+                  backgroundColor: AppColors.paper.withValues(alpha: 0.64),
+                  borderRadius: 14,
+                  fontSize: 13,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InvestitureHelperNote extends StatelessWidget {
+  final String text;
+  final Color color;
+
+  const _InvestitureHelperNote({
+    required this.text,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.paper.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.14)),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: color,
+          height: 1.35,
+        ),
+      ),
+    );
+  }
+}
+
+class _InvestitureStatusChip extends StatelessWidget {
+  final InvestitureStatus status;
+
+  const _InvestitureStatusChip({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final style = _InvestitureCardStyle.forStatus(status);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppColors.paper.withValues(alpha: 0.82),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: style.foreground.withValues(alpha: 0.16)),
+      ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 116),
+        child: Text(
+          status.label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 10.5,
+            fontWeight: FontWeight.w800,
+            color: style.foreground,
+            height: 1,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _InvestitureCardStyle {
+  final String title;
+  final String description;
+  final Color background;
+  final Color border;
+  final Color foreground;
+  final dynamic icon;
+  final String helperText;
+
+  const _InvestitureCardStyle({
+    required this.title,
+    required this.description,
+    required this.background,
+    required this.border,
+    required this.foreground,
+    required this.icon,
+    required this.helperText,
+  });
+
+  factory _InvestitureCardStyle.forStatus(InvestitureStatus status) {
+    switch (status) {
+      case InvestitureStatus.rejected:
+        return _InvestitureCardStyle(
+          title: 'Reenvío disponible',
+          description:
+              'La solicitud fue observada. Si ya corregiste el avance, vuelve a enviarla.',
+          helperText:
+              'Revisa las observaciones en el historial antes de reenviar la clase a validación.',
+          background: AppColors.rejectedBg,
+          border: AppColors.rejectedColor.withValues(alpha: 0.24),
+          foreground: AppColors.rejectedDark,
+          icon: HugeIcons.strokeRoundedAlert02,
+        );
+      case InvestitureStatus.submittedForValidation:
+      case InvestitureStatus.clubApproved:
+      case InvestitureStatus.coordinatorApproved:
+      case InvestitureStatus.fieldApproved:
+      case InvestitureStatus.approved:
+        return _InvestitureCardStyle(
+          title: status == InvestitureStatus.submittedForValidation
+              ? 'Clase enviada a validación'
+              : 'Validación en proceso',
+          description:
+              'Tu clase ya fue enviada y será revisada por el equipo responsable.',
+          helperText:
+              'El proceso de revisión puede demorar aproximadamente de 1 a 2 semanas. Te avisaremos cuando haya una actualización.',
+          background: AppColors.sentBg,
+          border: AppColors.sentColor.withValues(alpha: 0.22),
+          foreground: AppColors.sentDark,
+          icon: HugeIcons.strokeRoundedClock01,
+        );
+      case InvestitureStatus.investido:
+        return _InvestitureCardStyle(
+          title: 'Investidura registrada',
+          description:
+              'Esta clase ya quedó reconocida formalmente en el historial del miembro.',
+          helperText:
+              'La investidura ya fue registrada. Puedes consultar el historial para ver el detalle del proceso.',
+          background: AppColors.validatedBg,
+          border: AppColors.validatedColor.withValues(alpha: 0.22),
+          foreground: AppColors.validatedDark,
+          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+        );
+      case InvestitureStatus.inProgress:
+      case InvestitureStatus.expired:
+        return _InvestitureCardStyle(
+          title: 'Clase lista para investidura',
+          description:
+              'Todos los requisitos están validados. El siguiente paso es enviarla a validación.',
+          helperText:
+              'Tu clase ya está lista. Un consejero o director debe enviarla a validación de investidura.',
+          background: AppColors.coral50,
+          border: AppColors.coral200,
+          foreground: AppColors.coral700,
+          icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+        );
+    }
   }
 }
 
@@ -586,15 +983,6 @@ class _SearchBar extends StatelessWidget {
         border: Border.all(
           color: isFocused ? AppColors.coral500 : AppColors.ink150,
         ),
-        boxShadow: isFocused
-            ? [
-                BoxShadow(
-                  color: AppColors.coral500.withValues(alpha: 0.08),
-                  blurRadius: 0,
-                  spreadRadius: 4,
-                )
-              ]
-            : null,
       ),
       child: Row(
         children: [
@@ -621,6 +1009,12 @@ class _SearchBar extends StatelessWidget {
                   color: AppColors.ink400,
                 ),
                 border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
+                filled: false,
                 isDense: true,
                 contentPadding: EdgeInsets.symmetric(vertical: 10),
               ),
@@ -628,9 +1022,11 @@ class _SearchBar extends StatelessWidget {
           ),
           if (hasQuery)
             GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: onClear,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 12),
+              child: SizedBox(
+                width: 44,
+                height: 44,
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedCancel01,
                   size: 16,
@@ -639,7 +1035,7 @@ class _SearchBar extends StatelessWidget {
               ),
             )
           else
-            const SizedBox(width: 12),
+            const SizedBox(width: 12, height: 44),
         ],
       ),
     );
@@ -683,6 +1079,12 @@ class _ModulesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final firstPendingModuleIndex = modules.indexWhere(
+      (module) =>
+          module.requirements.isNotEmpty &&
+          module.completedCount < module.requirements.length,
+    );
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: Container(
@@ -703,8 +1105,7 @@ class _ModulesCard extends StatelessWidget {
                 ),
               ModuleDetailRow(
                 module: modules[i],
-                // First module expanded by default
-                initiallyExpanded: i == 0,
+                initiallyExpanded: i == firstPendingModuleIndex,
                 onRequirementTap: onRequirementTap,
               ),
             ],
@@ -912,12 +1313,16 @@ class _SkeletonBody extends StatelessWidget {
         children: [
           _SkeletonBox(height: 108, radius: 20),
           const SizedBox(height: 12),
-          Row(
-            children: List.generate(
-              5,
-              (i) => Padding(
-                padding: EdgeInsets.only(right: i < 4 ? 6 : 0),
-                child: _SkeletonBox(width: 90, height: 36, radius: 999),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
+            child: Row(
+              children: List.generate(
+                5,
+                (i) => Padding(
+                  padding: EdgeInsets.only(right: i < 4 ? 6 : 0),
+                  child: _SkeletonBox(width: 90, height: 36, radius: 999),
+                ),
               ),
             ),
           ),

@@ -10,6 +10,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/sac_colors.dart';
 import '../sac_image_viewer.dart';
 import '../sac_pdf_viewer.dart';
+import '../sac_dialog.dart';
 import 'staged_file.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
@@ -113,26 +114,16 @@ class StagedFileGrid extends StatelessWidget {
 
   Future<void> _confirmRemoteDelete(
       BuildContext context, StagedFile file) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(tr('core.evidence_staging.delete_dialog_title')),
-        content: Text(
-          tr('core.evidence_staging.delete_dialog_body',
-              namedArgs: {'name': file.name}),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(tr('core.evidence_staging.cancel')),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: Text(tr('core.evidence_staging.delete')),
-          ),
-        ],
+    final confirm = await SacDialog.show(
+      context,
+      title: tr('core.evidence_staging.delete_dialog_title'),
+      content: tr(
+        'core.evidence_staging.delete_dialog_body',
+        namedArgs: {'name': file.name},
       ),
+      confirmIsDestructive: true,
+      cancelLabel: tr('core.evidence_staging.cancel'),
+      confirmLabel: tr('core.evidence_staging.delete'),
     );
 
     if (confirm == true) {

@@ -11,6 +11,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/sac_colors.dart';
 import '../../utils/app_logger.dart';
 import '../sac_button.dart';
+import '../sac_dialog.dart';
 import 'image_source_dialog.dart';
 import 'staged_file.dart';
 import 'staged_file_grid.dart';
@@ -614,53 +615,27 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
   Future<bool> _showSubmitConfirmDialog(BuildContext context) async {
     final totalFiles = _allFiles.length;
     final newFiles = _localFiles.length;
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(tr('core.evidence_staging.submit_dialog_title')),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              tr('core.evidence_staging.submit_dialog_body'),
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              newFiles > 0
-                  ? tr(
-                      'core.evidence_staging.submit_dialog_file_count_with_new',
-                      namedArgs: {
-                        'total': '$totalFiles',
-                        'new_files': '$newFiles',
-                      },
-                    )
-                  : tr(
-                      'core.evidence_staging.submit_dialog_file_count',
-                      namedArgs: {'total': '$totalFiles'},
-                    ),
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                color: AppColors.primary,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(tr('core.evidence_staging.cancel')),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.secondary,
-            ),
-            child: Text(tr('core.evidence_staging.submit')),
-          ),
-        ],
-      ),
+    final fileCountLabel = newFiles > 0
+        ? tr(
+            'core.evidence_staging.submit_dialog_file_count_with_new',
+            namedArgs: {
+              'total': '$totalFiles',
+              'new_files': '$newFiles',
+            },
+          )
+        : tr(
+            'core.evidence_staging.submit_dialog_file_count',
+            namedArgs: {'total': '$totalFiles'},
+          );
+
+    final result = await SacDialog.show(
+      context,
+      title: tr('core.evidence_staging.submit_dialog_title'),
+      content: tr('core.evidence_staging.submit_dialog_body'),
+      highlight: fileCountLabel,
+      icon: Icons.send_rounded,
+      cancelLabel: tr('core.evidence_staging.cancel'),
+      confirmLabel: tr('core.evidence_staging.submit'),
     );
     return result ?? false;
   }

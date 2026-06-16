@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/sac_colors.dart';
+import '../sac_dialog.dart';
 import 'staged_file.dart';
 
 /// Result returned from the upload progress sheet when it closes.
@@ -345,30 +346,18 @@ class _UploadProgressSheetContentState
   }
 
   Future<void> _confirmContinuePartial(BuildContext ctx) async {
-    final confirm = await showDialog<bool>(
-      context: ctx,
-      builder: (dialogCtx) => AlertDialog(
-        title: Text(tr('core.evidence_staging.partial_dialog_title')),
-        content: Text(
-          tr(
-            'core.evidence_staging.partial_dialog_body',
-            namedArgs: {'count': '$_errorCount'},
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogCtx, false),
-            child: Text(tr('core.evidence_staging.cancel')),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogCtx, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.secondary,
-            ),
-            child: Text(tr('core.evidence_staging.btn_continue')),
-          ),
-        ],
+    final confirm = await SacDialog.show(
+      ctx,
+      title: tr('core.evidence_staging.partial_dialog_title'),
+      content: tr(
+        'core.evidence_staging.partial_dialog_body',
+        namedArgs: {'count': '$_errorCount'},
       ),
+      icon: Icons.warning_amber_rounded,
+      iconColor: AppColors.observedDark,
+      iconBackgroundColor: AppColors.observedBg,
+      cancelLabel: tr('core.evidence_staging.cancel'),
+      confirmLabel: tr('core.evidence_staging.btn_continue'),
     );
 
     if (confirm == true && mounted) {

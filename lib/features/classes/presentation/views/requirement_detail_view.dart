@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/evidence_staging/evidence_staging_manager.dart';
 import '../../../../core/widgets/evidence_staging/staged_file.dart';
+import '../../../../core/widgets/sac_dialog.dart';
 import '../../../../core/widgets/sac_loading.dart';
 import '../../../../core/widgets/sac_top_bar.dart';
 import '../../domain/entities/class_requirement.dart';
@@ -47,6 +48,8 @@ class RequirementDetailView extends ConsumerStatefulWidget {
 }
 
 class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
+  final _stagingManagerKey = GlobalKey<EvidenceStagingManagerState>();
+
   bool _hasUnsavedFiles = false;
 
   ClassProgressQuery get _progressQuery => ClassProgressQuery(
@@ -136,26 +139,13 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
       canPop: !_hasUnsavedFiles,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        final confirm = await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text('classes.requirement_detail.unsaved_files_title'.tr()),
-            content: Text(
-              'classes.requirement_detail.unsaved_files_body'.tr(),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text('classes.requirement_detail.stay_button'.tr()),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                style: TextButton.styleFrom(
-                    foregroundColor: AppColors.rejectedColor),
-                child: Text('classes.requirement_detail.leave_button'.tr()),
-              ),
-            ],
-          ),
+        final confirm = await SacDialog.show(
+          context,
+          title: 'classes.requirement_detail.unsaved_files_title'.tr(),
+          content: 'classes.requirement_detail.unsaved_files_body'.tr(),
+          confirmIsDestructive: true,
+          cancelLabel: 'classes.requirement_detail.stay_button'.tr(),
+          confirmLabel: 'classes.requirement_detail.leave_button'.tr(),
         );
         if (confirm == true && context.mounted) {
           Navigator.pop(context);
@@ -190,6 +180,28 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
             ),
           ],
         ),
+        bottomNavigationBar: canModify &&
+                requirement.status != RequirementStatus.observado &&
+                requirement.status != RequirementStatus.rechazado
+            ? EvidenceStagingActionBar(
+                onPickImages: () {
+                  _stagingManagerKey.currentState?.pickImages();
+                },
+                onPickPdfs: () {
+                  _stagingManagerKey.currentState?.pickPdfs();
+                },
+                onSubmit: () {
+                  _stagingManagerKey.currentState?.submitForValidation();
+                },
+                canSubmit: _canSubmitFromStagingManager(
+                  requirement: requirement,
+                  canModify: canModify,
+                ),
+                isLoading: isLoading ||
+                    (_stagingManagerKey.currentState?.isLoadingForActionBar ??
+                        false),
+              )
+            : null,
         body: SafeArea(
           top: false,
           child: Stack(
@@ -334,7 +346,9 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                             ] else ...[
                               // Original EvidenceStagingManager for pending/sent/validated
                               EvidenceStagingManager(
+                                key: _stagingManagerKey,
                                 embeddedMode: true,
+                                showActionBar: false,
                                 existingFiles: requirement.files
                                     .map(StagedFile.fromRequirementEvidence)
                                     .toList(),
@@ -413,8 +427,16 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
                                 },
                                 fileNameBuilder: _buildFileNameWithIndex,
                                 canModify: canModify,
-                                onLocalFilesChanged: (hasLocal) =>
-                                    setState(() => _hasUnsavedFiles = hasLocal),
+                                onLocalFilesChanged: (hasLocal) {
+                                  if (_hasUnsavedFiles != hasLocal) {
+                                    setState(
+                                      () => _hasUnsavedFiles = hasLocal,
+                                    );
+                                  }
+                                },
+                                onActionStateChanged: () {
+                                  if (mounted) setState(() {});
+                                },
                               ),
                             ],
 
@@ -473,6 +495,18 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
   }
 
   String _fmt2(int n) => n.toString().padLeft(2, '0');
+
+  bool _canSubmitFromStagingManager({
+    required ClassRequirement requirement,
+    required bool canModify,
+  }) {
+    final stagingState = _stagingManagerKey.currentState;
+    if (stagingState != null) return stagingState.canSubmitForActionBar;
+
+    return canModify &&
+        requirement.files.isNotEmpty &&
+        requirement.files.length <= requirement.maxFiles;
+  }
 
   void _triggerFilePicker(ClassRequirement req) {
     // File picking is handled by EvidenceStagingManager; for observed/rejected

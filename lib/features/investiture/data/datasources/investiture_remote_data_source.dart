@@ -75,8 +75,17 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
         );
       }
       if (code == 404) {
+        final errorCode = _extractDioCode(e);
+        if (errorCode == 'INVESTITURE_CONFIG_NOT_FOUND') {
+          throw ServerException(
+            message: tr('investiture.errors.config_not_found'),
+            code: code,
+          );
+        }
         throw ServerException(
-          message: tr('investiture.errors.enrollment_not_found'),
+          message: msg.isNotEmpty
+              ? msg
+              : tr('investiture.errors.enrollment_not_found'),
           code: code,
         );
       }
@@ -97,6 +106,16 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
       AppLogger.w('Error al parsear respuesta de error', tag: _tag, error: e);
     }
     return e.message ?? tr('common.error_network');
+  }
+
+  String? _extractDioCode(DioException e) {
+    try {
+      final data = e.response?.data;
+      if (data is Map) return data['code']?.toString();
+    } catch (e) {
+      AppLogger.w('Error al parsear código de error', tag: _tag, error: e);
+    }
+    return null;
   }
 
   // ── POST /api/v1/enrollments/:enrollmentId/submit-for-validation ─────────────
@@ -232,16 +251,10 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // El backend puede devolver { data: [...], total: N } o directamente [...]
-        final raw = response.data;
-        final List<dynamic> list;
-        if (raw is List) {
-          list = raw;
-        } else if (raw is Map && raw['data'] is List) {
-          list = raw['data'] as List;
-        } else {
-          list = [];
-        }
+        final list = extractInvestitureListFromResponse(
+          response.data,
+          'items',
+        );
         return list
             .map((json) =>
                 InvestiturePendingModel.fromJson(json as Map<String, dynamic>))
@@ -273,9 +286,10 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final List<dynamic> data = response.data is List
-            ? response.data as List
-            : ((response.data as Map)['data'] as List? ?? []);
+        final data = extractInvestitureListFromResponse(
+          response.data,
+          'history',
+        );
         return data
             .map((json) => InvestitureHistoryEntryModel.fromJson(
                 json as Map<String, dynamic>))
@@ -292,4 +306,27 @@ class InvestitureRemoteDataSourceImpl implements InvestitureRemoteDataSource {
       _rethrow(e);
     }
   }
+}
+
+List<dynamic> extractInvestitureListFromResponse(
+  dynamic raw,
+  String nestedKey,
+) {
+  if (raw is List) return raw;
+
+  if (raw is Map) {
+    final directNested = raw[nestedKey];
+    if (directNested is List) return directNested;
+
+    final data = raw['data'];
+    if (data is List) return data;
+    if (data is Map) {
+      final nested = data[nestedKey];
+      if (nested is List) return nested;
+      final items = data['items'];
+      if (items is List) return items;
+    }
+  }
+
+  return const [];
 }

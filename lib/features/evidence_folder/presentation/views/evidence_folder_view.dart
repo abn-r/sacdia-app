@@ -9,6 +9,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/widgets/sac_button.dart';
+import '../../../../core/widgets/sac_dialog.dart';
 import '../../../../core/widgets/sac_progress_bar.dart';
 import '../widgets/evidence_folder_loading_skeleton.dart';
 import '../../domain/entities/evidence_folder.dart';
@@ -94,29 +95,15 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
   String? _submittingSectionId;
 
   Future<void> _handleSectionSubmit(EvidenceSection section) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('evidence_folder.submit_section_dialog.title'.tr()),
-        content: Text(
-          'evidence_folder.submit_section_dialog.message'.tr(namedArgs: {
-            'sectionName': section.name,
-          }),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('common.cancel'.tr()),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.info,
-            ),
-            child: Text('evidence_folder.send'.tr()),
-          ),
-        ],
-      ),
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'evidence_folder.submit_section_dialog.title'.tr(),
+      content: 'evidence_folder.submit_section_dialog.message'.tr(namedArgs: {
+        'sectionName': section.name,
+      }),
+      icon: Icons.send_rounded,
+      cancelLabel: 'common.cancel'.tr(),
+      confirmLabel: 'evidence_folder.send'.tr(),
     );
 
     if (confirmed != true || !mounted) return;

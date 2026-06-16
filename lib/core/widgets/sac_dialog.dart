@@ -5,8 +5,8 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 
 /// SACDIA custom dialog widget — iOS-inspired design with SACDIA color system.
 ///
-/// Rounded corners (20px), white/dark surface, title in [AppColors.primary],
-/// iOS-style action buttons separated by thin divider lines.
+/// Rounded corners, elevated white/dark surface, optional semantic icon,
+/// clear copy hierarchy and touch-safe pill actions.
 /// Use [SacDialog.show] for the common confirm/cancel pattern, or build
 /// a fully custom content dialog with the widget directly via [showDialog].
 ///
@@ -24,12 +24,20 @@ import 'package:sacdia_app/core/theme/sac_colors.dart';
 class SacDialog extends StatelessWidget {
   final String title;
   final String? content;
+  final String? highlight;
+  final IconData? icon;
+  final Color? iconColor;
+  final Color? iconBackgroundColor;
   final List<SacDialogAction> actions;
 
   const SacDialog({
     super.key,
     required this.title,
     this.content,
+    this.highlight,
+    this.icon,
+    this.iconColor,
+    this.iconBackgroundColor,
     required this.actions,
   });
 
@@ -44,6 +52,10 @@ class SacDialog extends StatelessWidget {
     required String confirmLabel,
     String? cancelLabel,
     bool confirmIsDestructive = false,
+    String? highlight,
+    IconData? icon,
+    Color? iconColor,
+    Color? iconBackgroundColor,
   }) {
     return showDialog<bool>(
       context: context,
@@ -52,6 +64,15 @@ class SacDialog extends StatelessWidget {
       builder: (context) => SacDialog(
         title: title,
         content: content,
+        highlight: highlight,
+        icon: icon ??
+            (confirmIsDestructive
+                ? Icons.warning_amber_rounded
+                : Icons.check_rounded),
+        iconColor: iconColor ??
+            (confirmIsDestructive ? AppColors.error : AppColors.coral700),
+        iconBackgroundColor: iconBackgroundColor ??
+            (confirmIsDestructive ? AppColors.errorLight : AppColors.coral50),
         actions: [
           SacDialogAction(
             label: cancelLabel ?? tr('core.dialog.cancel'),
@@ -75,88 +96,144 @@ class SacDialog extends StatelessWidget {
     return Dialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
       child: _AnimatedDialogContent(
-        child: Container(
-          decoration: BoxDecoration(
-            color: context.sac.surface,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 340),
+          child: Container(
+            decoration: BoxDecoration(
+              color: context.sac.surface,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: context.sac.border.withValues(alpha: 0.65),
               ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Title and content
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 22, 20, 16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    if (content != null) ...[
-                      const SizedBox(height: 8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.18),
+                  blurRadius: 34,
+                  offset: const Offset(0, 18),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 18),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (icon != null) ...[
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: iconBackgroundColor,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: (iconColor ?? AppColors.validatedDark)
+                                  .withValues(alpha: 0.14),
+                            ),
+                          ),
+                          child: Icon(
+                            icon,
+                            size: 26,
+                            color: iconColor,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                       Text(
-                        content!,
+                        title,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          color: context.sac.textSecondary,
-                          height: 1.4,
+                          fontSize: 19,
+                          fontWeight: FontWeight.w800,
+                          color: context.sac.text,
+                          height: 1.15,
                         ),
                       ),
+                      if (content != null) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          content!,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: context.sac.textSecondary,
+                            height: 1.45,
+                          ),
+                        ),
+                      ],
+                      if (highlight != null) ...[
+                        const SizedBox(height: 14),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: iconBackgroundColor ??
+                                AppColors.primaryLight.withValues(alpha: 0.65),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: (iconColor ?? AppColors.primary)
+                                  .withValues(alpha: 0.12),
+                            ),
+                          ),
+                          child: Text(
+                            highlight!,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: iconColor ?? AppColors.primary,
+                              height: 1.3,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-
-              // Thin top divider before actions
-              Container(
-                height: 0.5,
-                color: context.sac.border,
-              ),
-
-              // Action buttons — iOS-style row layout
-              IntrinsicHeight(
-                child: Row(
-                  children: _buildActionButtons(context),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+                  child: actions.length <= 2
+                      ? Row(
+                          children: _buildHorizontalActionButtons(context),
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: _buildVerticalActionButtons(context),
+                        ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  List<Widget> _buildActionButtons(BuildContext context) {
+  List<Widget> _buildHorizontalActionButtons(BuildContext context) {
     final widgets = <Widget>[];
 
     for (int i = 0; i < actions.length; i++) {
-      if (i > 0) {
-        // Vertical divider between buttons
-        widgets.add(
-          Builder(
-              builder: (ctx) => Container(
-                    width: 0.5,
-                    color: ctx.sac.border,
-                  )),
-        );
-      }
+      if (i > 0) widgets.add(const SizedBox(width: 10));
       widgets.add(Expanded(child: _ActionButton(action: actions[i])));
+    }
+
+    return widgets;
+  }
+
+  List<Widget> _buildVerticalActionButtons(BuildContext context) {
+    final widgets = <Widget>[];
+
+    for (int i = 0; i < actions.length; i++) {
+      if (i > 0) widgets.add(const SizedBox(height: 10));
+      widgets.add(_ActionButton(action: actions[i]));
     }
 
     return widgets;
@@ -221,13 +298,13 @@ class _AnimatedDialogContentState extends State<_AnimatedDialogContent>
 
 /// Visual style variants for [SacDialogAction].
 enum SacDialogActionStyle {
-  /// Primary confirm action — uses [AppColors.primary].
+  /// Primary confirm action.
   confirm,
 
-  /// Destructive action — uses [AppColors.error].
+  /// Destructive action.
   destructive,
 
-  /// Secondary cancel action — uses [AppColors.lightTextSecondary].
+  /// Secondary cancel action.
   cancel,
 }
 
@@ -252,11 +329,21 @@ class _ActionButton extends StatelessWidget {
   Color _labelColor(BuildContext context) {
     switch (action.style) {
       case SacDialogActionStyle.confirm:
-        return AppColors.primary;
+      case SacDialogActionStyle.destructive:
+        return Colors.white;
+      case SacDialogActionStyle.cancel:
+        return context.sac.textSecondary;
+    }
+  }
+
+  Color _backgroundColor(BuildContext context) {
+    switch (action.style) {
+      case SacDialogActionStyle.confirm:
+        return AppColors.coral700;
       case SacDialogActionStyle.destructive:
         return AppColors.error;
       case SacDialogActionStyle.cancel:
-        return context.sac.textSecondary;
+        return Colors.transparent;
     }
   }
 
@@ -272,20 +359,68 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextButton(
-      onPressed: action.onPressed,
-      style: TextButton.styleFrom(
-        foregroundColor: _labelColor(context),
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: const RoundedRectangleBorder(),
-      ),
-      child: Text(
-        action.label,
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: _fontWeight(),
-          color: _labelColor(context),
-        ),
+    final isFilled = action.style != SacDialogActionStyle.cancel;
+
+    return SizedBox(
+      height: 48,
+      child: isFilled
+          ? FilledButton(
+              onPressed: action.onPressed,
+              style: FilledButton.styleFrom(
+                backgroundColor: _backgroundColor(context),
+                foregroundColor: _labelColor(context),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
+              child: _ActionButtonLabel(
+                label: action.label,
+                color: _labelColor(context),
+                fontWeight: _fontWeight(),
+              ),
+            )
+          : TextButton(
+              onPressed: action.onPressed,
+              style: TextButton.styleFrom(
+                foregroundColor: _labelColor(context),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
+              child: _ActionButtonLabel(
+                label: action.label,
+                color: _labelColor(context),
+                fontWeight: _fontWeight(),
+              ),
+            ),
+    );
+  }
+}
+
+class _ActionButtonLabel extends StatelessWidget {
+  final String label;
+  final Color color;
+  final FontWeight fontWeight;
+
+  const _ActionButtonLabel({
+    required this.label,
+    required this.color,
+    required this.fontWeight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontSize: 14,
+        fontWeight: fontWeight,
+        color: color,
+        height: 1.1,
       ),
     );
   }

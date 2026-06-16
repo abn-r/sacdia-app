@@ -13,7 +13,7 @@ import '../../domain/entities/progressive_class.dart';
 /// Card de clase progresiva - Estilo "Scout Vibrante"
 ///
 /// SacCard con barra de acento lateral (color de clase),
-/// progress bar lineal indigo→emerald y badge de estado.
+/// barra de progreso sólida con color de clase y badge de estado.
 class ClassCard extends StatelessWidget {
   final ProgressiveClass progressiveClass;
   final double progress;
@@ -30,7 +30,8 @@ class ClassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final progressPercent = (progress * 100).toInt();
+    final clampedProgress = progress.clamp(0.0, 1.0);
+    final progressPercent = (clampedProgress * 100).round();
     final classColor = AppColors.classColor(progressiveClass.name);
     final logoAsset = AppColors.classLogoAsset(progressiveClass.name);
     final isExpired = progressiveClass.isExpired;
@@ -163,14 +164,21 @@ class ClassCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: SacProgressBar(progress: progress),
+                child: SacProgressBar(
+                  progress: clampedProgress,
+                  color: classColor,
+                  height: 8,
+                  useGradient: false,
+                  showShimmer: false,
+                ),
               ),
               const SizedBox(width: 12),
               Text(
                 '$progressPercent%',
                 style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  height: 1,
                   color: classColor,
                 ),
               ),

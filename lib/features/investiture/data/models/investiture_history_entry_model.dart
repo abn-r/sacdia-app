@@ -28,27 +28,43 @@ class InvestitureHistoryEntryModel extends Equatable {
   });
 
   factory InvestitureHistoryEntryModel.fromJson(Map<String, dynamic> json) {
-    final performer = json['performer'] as Map<String, dynamic>?;
+    final performer = _asMap(json['performer']) ??
+        _asMap(json['performed_by']) ??
+        _asMap(json['users']);
+    final performerLastName = _firstNonEmpty([
+      performer?['last_name'],
+      performer?['paternal_last_name'],
+      json['performer_last_name'],
+    ]);
 
     return InvestitureHistoryEntryModel(
-      id: (json['id'] ?? json['history_id']) as int,
+      id: _asInt(json['id'] ?? json['history_id']),
       action: InvestitureAction.fromString(
-        (json['action'] ?? 'SUBMITTED') as String,
+        (json['action'] ?? 'SUBMITTED').toString(),
       ),
       resultingStatus: json['resulting_status'] != null
-          ? InvestitureStatus.fromString(json['resulting_status'] as String)
+          ? InvestitureStatus.fromString(json['resulting_status'].toString())
           : null,
-      comments: json['comments'] as String?,
+      comments: _firstNonEmpty([json['comments'], json['reason']]),
       performedAt: DateTime.parse(
         (json['performed_at'] ??
-            json['created_at'] ??
-            DateTime.now().toIso8601String()) as String,
+                json['created_at'] ??
+                DateTime.now().toIso8601String())
+            .toString(),
       ),
-      performerName:
-          (performer?['name'] ?? json['performer_name'] ?? 'Sistema') as String,
-      performerLastName:
-          (performer?['last_name'] ?? json['performer_last_name']) as String?,
-      performerRole: (performer?['role'] ?? json['performer_role']) as String?,
+      performerName: _firstNonEmpty([
+            performer?['name'],
+            performer?['first_name'],
+            json['performer_name'],
+          ]) ??
+          'Sistema',
+      performerLastName: performerLastName,
+      performerRole: _firstNonEmpty([
+        performer?['role_label'],
+        performer?['role_name'],
+        performer?['role'],
+        json['performer_role'],
+      ]),
     );
   }
 
@@ -76,4 +92,25 @@ class InvestitureHistoryEntryModel extends Equatable {
         performerLastName,
         performerRole,
       ];
+}
+
+Map<String, dynamic>? _asMap(dynamic value) {
+  if (value is Map<String, dynamic>) return value;
+  if (value is Map) return Map<String, dynamic>.from(value);
+  return null;
+}
+
+int _asInt(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value) ?? 0;
+  return 0;
+}
+
+String? _firstNonEmpty(Iterable<dynamic> values) {
+  for (final value in values) {
+    final text = value?.toString().trim();
+    if (text != null && text.isNotEmpty) return text;
+  }
+  return null;
 }

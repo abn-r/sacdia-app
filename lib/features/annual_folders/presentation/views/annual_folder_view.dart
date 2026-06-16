@@ -6,6 +6,7 @@ import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
+import 'package:sacdia_app/core/widgets/sac_dialog.dart';
 
 import '../../domain/entities/annual_folder.dart';
 import '../providers/annual_folders_providers.dart';
@@ -188,27 +189,13 @@ class _FolderContent extends ConsumerWidget {
     WidgetRef ref,
     AnnualFolder folder,
   ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text('annual_folders.submit_dialog_title'.tr()),
-        content: Text(
-          'annual_folders.submit_dialog_content'.tr(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text('common.cancel'.tr()),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(
-              'annual_folders.send'.tr(),
-              style: const TextStyle(color: AppColors.primary),
-            ),
-          ),
-        ],
-      ),
+    final confirmed = await SacDialog.show(
+      context,
+      title: 'annual_folders.submit_dialog_title'.tr(),
+      content: 'annual_folders.submit_dialog_content'.tr(),
+      icon: Icons.send_rounded,
+      cancelLabel: 'common.cancel'.tr(),
+      confirmLabel: 'annual_folders.send'.tr(),
     );
 
     if (confirmed == true) {
@@ -498,26 +485,14 @@ class _SectionCardState extends ConsumerState<_SectionCard> {
                 canDelete: widget.canUpload,
                 isDeleting: deleteState.isLoading,
                 onDelete: () async {
-                  final confirmed = await showDialog<bool>(
-                    context: context,
-                    builder: (_) => AlertDialog(
-                      title: Text('annual_folders.delete_evidence_title'.tr()),
-                      content: Text('annual_folders.delete_evidence_confirm'
-                          .tr(namedArgs: {'fileName': evidence.fileName})),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: Text('common.cancel'.tr()),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: Text(
-                            'common.delete'.tr(),
-                            style: const TextStyle(color: AppColors.error),
-                          ),
-                        ),
-                      ],
-                    ),
+                  final confirmed = await SacDialog.show(
+                    context,
+                    title: 'annual_folders.delete_evidence_title'.tr(),
+                    content: 'annual_folders.delete_evidence_confirm'
+                        .tr(namedArgs: {'fileName': evidence.fileName}),
+                    confirmIsDestructive: true,
+                    cancelLabel: 'common.cancel'.tr(),
+                    confirmLabel: 'common.delete'.tr(),
                   );
 
                   if (confirmed == true) {

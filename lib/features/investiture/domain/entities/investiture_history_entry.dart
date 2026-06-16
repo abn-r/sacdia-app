@@ -5,20 +5,35 @@ import 'investiture_status.dart';
 /// Tipo de acción registrada en el historial de investidura.
 enum InvestitureAction {
   submitted,
+  clubApproved,
+  coordinatorApproved,
+  fieldApproved,
   approved,
   rejected,
-  invested;
+  invested,
+  expired,
+  reinvestitureRequested;
 
   String get label {
     switch (this) {
       case InvestitureAction.submitted:
         return tr('investiture.history.action_submitted');
+      case InvestitureAction.clubApproved:
+        return tr('investiture.history.action_club_approved');
+      case InvestitureAction.coordinatorApproved:
+        return tr('investiture.history.action_coordinator_approved');
+      case InvestitureAction.fieldApproved:
+        return tr('investiture.history.action_field_approved');
       case InvestitureAction.approved:
         return tr('investiture.history.action_approved');
       case InvestitureAction.rejected:
         return tr('investiture.history.action_rejected');
       case InvestitureAction.invested:
         return tr('investiture.history.action_invested');
+      case InvestitureAction.expired:
+        return tr('investiture.history.action_expired');
+      case InvestitureAction.reinvestitureRequested:
+        return tr('investiture.history.action_reinvestiture_requested');
     }
   }
 
@@ -26,6 +41,12 @@ enum InvestitureAction {
     switch (value.toUpperCase()) {
       case 'SUBMITTED':
         return InvestitureAction.submitted;
+      case 'CLUB_APPROVED':
+        return InvestitureAction.clubApproved;
+      case 'COORDINATOR_APPROVED':
+        return InvestitureAction.coordinatorApproved;
+      case 'FIELD_APPROVED':
+        return InvestitureAction.fieldApproved;
       case 'APPROVED':
         return InvestitureAction.approved;
       case 'REJECTED':
@@ -33,6 +54,10 @@ enum InvestitureAction {
       case 'INVESTED':
       case 'INVESTIDO':
         return InvestitureAction.invested;
+      case 'EXPIRED':
+        return InvestitureAction.expired;
+      case 'REINVESTITURE_REQUESTED':
+        return InvestitureAction.reinvestitureRequested;
       default:
         return InvestitureAction.submitted;
     }
