@@ -165,34 +165,38 @@ final userHonorsProvider =
 
 /// User honors constrained to the active club section.
 ///
-/// Aventureros only sees Adventurer honors. Conquistadores and Guías Mayores
-/// share the Pathfinder/GM honor catalog.
+/// Adventurers only see Adventurer honors. Pathfinders see Pathfinder honors.
+/// Master Guides see both Pathfinder and Master Guide honors because their
+/// curriculum can reuse Pathfinder specialties plus GM-exclusive ones.
 final sectionScopedUserHonorsProvider =
     Provider.autoDispose<AsyncValue<List<UserHonor>>>((ref) {
   final userHonorsAsync = ref.watch(userHonorsProvider);
-  final activeScopeAsync = ref.watch(activeHonorCatalogScopeProvider);
+  final activeClubTypeAsync = ref.watch(activeHonorCatalogClubTypeIdProvider);
 
-  if (userHonorsAsync is AsyncLoading || activeScopeAsync is AsyncLoading) {
+  if (userHonorsAsync is AsyncLoading || activeClubTypeAsync is AsyncLoading) {
     return const AsyncValue.loading();
   }
   if (userHonorsAsync is AsyncError) {
     return AsyncValue.error(
         userHonorsAsync.error!, userHonorsAsync.stackTrace!);
   }
-  if (activeScopeAsync is AsyncError) {
+  if (activeClubTypeAsync is AsyncError) {
     return AsyncValue.error(
-      activeScopeAsync.error!,
-      activeScopeAsync.stackTrace!,
+      activeClubTypeAsync.error!,
+      activeClubTypeAsync.stackTrace!,
     );
   }
 
-  final activeScope = activeScopeAsync.valueOrNull;
+  final activeClubTypeId = activeClubTypeAsync.valueOrNull;
   final userHonors = userHonorsAsync.valueOrNull ?? const <UserHonor>[];
-  if (activeScope == null) return AsyncValue.data(userHonors);
+  if (activeClubTypeId == null) return AsyncValue.data(userHonors);
 
   return AsyncValue.data(
     userHonors
-        .where((h) => _honorMatchesScope(h.honorClubTypeId, activeScope))
+        .where((h) => _honorIsVisibleForActiveClubType(
+              _honorClubTypeIdFor(h.honorClubTypeId, h.honorClubTypeName),
+              activeClubTypeId,
+            ))
         .toList(),
   );
 });
@@ -414,6 +418,9 @@ UserHonor _userHonorWithCompletionMode(
     date: userHonor.date,
     submittedAt: userHonor.submittedAt,
     validatedById: userHonor.validatedById,
+    validatedByName: userHonor.validatedByName,
+    validatedByRoleName: userHonor.validatedByRoleName,
+    validatedByRoleLabel: userHonor.validatedByRoleLabel,
     validatedAt: userHonor.validatedAt,
     rejectionReason: userHonor.rejectionReason,
     honorName: userHonor.honorName,
@@ -582,36 +589,10 @@ final searchQueryProvider = StateProvider.autoDispose<String>((ref) => '');
 /// Currently selected category ID for catalog filtering. null = "Todas".
 final selectedCategoryProvider = StateProvider.autoDispose<int?>((ref) => null);
 
-/// High-level catalog scope filter.
-///
-/// This is intentionally separate from honor categories. Categories describe the
-/// legacy Pathfinder/GM catalog families, while Adventurer specialties are
-/// scoped by club type and often do not have an honor category.
-enum HonorCatalogScope {
-  all,
-  adventurers,
-  pathfindersAndMasterGuides,
-}
-
+/// Numeric club type IDs used by the active section context.
 const int _adventurersClubTypeId = 1;
 const int _pathfindersClubTypeId = 2;
 const int _masterGuidesClubTypeId = 3;
-
-final selectedHonorCatalogScopeProvider =
-    StateProvider.autoDispose<HonorCatalogScope>(
-  (ref) => HonorCatalogScope.all,
-);
-
-HonorCatalogScope? _scopeForClubTypeId(int? clubTypeId) {
-  if (clubTypeId == _adventurersClubTypeId) {
-    return HonorCatalogScope.adventurers;
-  }
-  if (clubTypeId == _pathfindersClubTypeId ||
-      clubTypeId == _masterGuidesClubTypeId) {
-    return HonorCatalogScope.pathfindersAndMasterGuides;
-  }
-  return null;
-}
 
 int? _clubTypeIdFromName(String? clubTypeName) {
   final normalized = clubTypeName?.trim().toLowerCase();
@@ -624,27 +605,37 @@ int? _clubTypeIdFromName(String? clubTypeName) {
   return null;
 }
 
-bool _honorMatchesScope(int? clubTypeId, HonorCatalogScope scope) {
-  return switch (scope) {
-    HonorCatalogScope.all => true,
-    HonorCatalogScope.adventurers => clubTypeId == _adventurersClubTypeId,
-    HonorCatalogScope.pathfindersAndMasterGuides =>
-      clubTypeId == _pathfindersClubTypeId ||
-          clubTypeId == _masterGuidesClubTypeId,
-  };
+int? _honorClubTypeIdFor(int? clubTypeId, String? clubTypeName) {
+  return clubTypeId ?? _clubTypeIdFromName(clubTypeName);
 }
 
-/// Scope forced by the active club section.
+bool isAdventurerHonorClubType(int? clubTypeId) {
+  return clubTypeId == _adventurersClubTypeId;
+}
+
+bool _honorIsVisibleForActiveClubType(
+  int? honorClubTypeId,
+  int activeClubTypeId,
+) {
+  if (honorClubTypeId == null) return false;
+
+  if (activeClubTypeId == _masterGuidesClubTypeId) {
+    return honorClubTypeId == _pathfindersClubTypeId ||
+        honorClubTypeId == _masterGuidesClubTypeId;
+  }
+
+  return honorClubTypeId == activeClubTypeId;
+}
+
+/// Club type forced by the active club section.
 ///
-/// `null` means there is no active section context, so the manual catalog
-/// selector remains in control.
-final activeHonorCatalogScopeProvider =
-    Provider.autoDispose<AsyncValue<HonorCatalogScope?>>((ref) {
+/// `null` means there is no active section context, so the catalog falls back
+/// to showing all loaded honors instead of hiding content unexpectedly.
+final activeHonorCatalogClubTypeIdProvider =
+    Provider.autoDispose<AsyncValue<int?>>((ref) {
   final clubContextAsync = ref.watch(clubContextProvider);
   return clubContextAsync.whenData((ctx) {
-    final clubTypeId =
-        ctx?.clubTypeId ?? _clubTypeIdFromName(ctx?.clubTypeName);
-    return _scopeForClubTypeId(clubTypeId);
+    return ctx?.clubTypeId ?? _clubTypeIdFromName(ctx?.clubTypeName);
   });
 });
 
@@ -690,35 +681,33 @@ final honorByIdProvider =
 final filteredHonorsProvider =
     Provider.autoDispose<AsyncValue<List<Honor>>>((ref) {
   final query = ref.watch(searchQueryProvider).toLowerCase();
-  final selectedScope = ref.watch(selectedHonorCatalogScopeProvider);
-  final activeScopeAsync = ref.watch(activeHonorCatalogScopeProvider);
+  final activeClubTypeAsync = ref.watch(activeHonorCatalogClubTypeIdProvider);
   final categoryId = ref.watch(selectedCategoryProvider);
   final allHonorsAsync = ref.watch(allHonorsProvider);
 
-  if (activeScopeAsync is AsyncLoading) return const AsyncValue.loading();
-  if (activeScopeAsync is AsyncError) {
+  if (activeClubTypeAsync is AsyncLoading) return const AsyncValue.loading();
+  if (activeClubTypeAsync is AsyncError) {
     return AsyncValue.error(
-      activeScopeAsync.error!,
-      activeScopeAsync.stackTrace!,
+      activeClubTypeAsync.error!,
+      activeClubTypeAsync.stackTrace!,
     );
   }
 
   return allHonorsAsync.whenData((honors) {
-    final scope = activeScopeAsync.valueOrNull ?? selectedScope;
-    final byScope = switch (scope) {
-      HonorCatalogScope.all => honors,
-      HonorCatalogScope.adventurers =>
-        honors.where((h) => h.clubTypeId == 1).toList(),
-      HonorCatalogScope.pathfindersAndMasterGuides =>
-        honors.where((h) => h.clubTypeId == 2 || h.clubTypeId == 3).toList(),
-    };
+    final activeClubTypeId = activeClubTypeAsync.valueOrNull;
+    final byClubType = activeClubTypeId == null
+        ? honors
+        : honors
+            .where((h) => _honorIsVisibleForActiveClubType(
+                h.clubTypeId, activeClubTypeId))
+            .toList();
 
-    // Category filter
+    // Adventurer specialties do not use the legacy honor category chips.
     final effectiveCategoryId =
-        scope == HonorCatalogScope.adventurers ? null : categoryId;
+        isAdventurerHonorClubType(activeClubTypeId) ? null : categoryId;
     final byCategory = effectiveCategoryId == null
-        ? byScope
-        : byScope.where((h) => h.categoryId == effectiveCategoryId).toList();
+        ? byClubType
+        : byClubType.where((h) => h.categoryId == effectiveCategoryId).toList();
 
     // Text search — only applied when query is at least 2 chars
     if (query.length < 2) return byCategory;

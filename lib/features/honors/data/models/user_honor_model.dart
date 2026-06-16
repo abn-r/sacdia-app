@@ -31,6 +31,9 @@ class UserHonorModel extends Equatable {
   // Validation audit fields
   final DateTime? submittedAt;
   final String? validatedById;
+  final String? validatedByName;
+  final String? validatedByRoleName;
+  final String? validatedByRoleLabel;
   final DateTime? validatedAt;
   final String? rejectionReason;
 
@@ -57,6 +60,9 @@ class UserHonorModel extends Equatable {
     required this.date,
     this.submittedAt,
     this.validatedById,
+    this.validatedByName,
+    this.validatedByRoleName,
+    this.validatedByRoleLabel,
     this.validatedAt,
     this.rejectionReason,
     this.honorName,
@@ -153,6 +159,12 @@ class UserHonorModel extends Equatable {
       date: date,
       submittedAt: submittedAt,
       validatedById: safeStringOrNull(json['validated_by_id']),
+      validatedByName: safeStringOrNull(json['validated_by_name']) ??
+          safeStringOrNull(json['validatedByName']),
+      validatedByRoleName: safeStringOrNull(json['validated_by_role_name']) ??
+          safeStringOrNull(json['validatedByRoleName']),
+      validatedByRoleLabel: safeStringOrNull(json['validated_by_role_label']) ??
+          safeStringOrNull(json['validatedByRoleLabel']),
       validatedAt: validatedAt,
       rejectionReason: safeStringOrNull(json['rejection_reason']),
       honorName: honorName,
@@ -181,6 +193,9 @@ class UserHonorModel extends Equatable {
       'date': date.toIso8601String(),
       'submitted_at': submittedAt?.toIso8601String(),
       'validated_by_id': validatedById,
+      'validated_by_name': validatedByName,
+      'validated_by_role_name': validatedByRoleName,
+      'validated_by_role_label': validatedByRoleLabel,
       'validated_at': validatedAt?.toIso8601String(),
       'rejection_reason': rejectionReason,
       'honor_club_type_id': honorClubTypeId,
@@ -204,6 +219,9 @@ class UserHonorModel extends Equatable {
       date: date,
       submittedAt: submittedAt,
       validatedById: validatedById,
+      validatedByName: validatedByName,
+      validatedByRoleName: validatedByRoleName,
+      validatedByRoleLabel: validatedByRoleLabel,
       validatedAt: validatedAt,
       rejectionReason: rejectionReason,
       honorName: honorName,
@@ -231,6 +249,9 @@ class UserHonorModel extends Equatable {
     DateTime? date,
     DateTime? submittedAt,
     String? validatedById,
+    String? validatedByName,
+    String? validatedByRoleName,
+    String? validatedByRoleLabel,
     DateTime? validatedAt,
     String? rejectionReason,
     String? honorName,
@@ -255,6 +276,9 @@ class UserHonorModel extends Equatable {
       date: date ?? this.date,
       submittedAt: submittedAt ?? this.submittedAt,
       validatedById: validatedById ?? this.validatedById,
+      validatedByName: validatedByName ?? this.validatedByName,
+      validatedByRoleName: validatedByRoleName ?? this.validatedByRoleName,
+      validatedByRoleLabel: validatedByRoleLabel ?? this.validatedByRoleLabel,
       validatedAt: validatedAt ?? this.validatedAt,
       rejectionReason: rejectionReason ?? this.rejectionReason,
       honorName: honorName ?? this.honorName,
@@ -282,6 +306,9 @@ class UserHonorModel extends Equatable {
         date,
         submittedAt,
         validatedById,
+        validatedByName,
+        validatedByRoleName,
+        validatedByRoleLabel,
         validatedAt,
         rejectionReason,
         honorName,

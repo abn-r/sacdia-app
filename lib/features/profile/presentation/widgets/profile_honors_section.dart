@@ -14,6 +14,7 @@ import 'package:sacdia_app/features/honors/presentation/providers/honors_provide
 import 'package:sacdia_app/features/master_honors/presentation/widgets/master_honor_history_section.dart';
 import 'package:sacdia_app/features/honors/presentation/utils/user_honor_presentation_extensions.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
+import '../utils/profile_honor_navigation.dart';
 
 const Map<String, List<List<dynamic>>> _categoryIcons = {
   'ADRA': HugeIcons.strokeRoundedCharity,
@@ -27,6 +28,20 @@ const Map<String, List<List<dynamic>>> _categoryIcons = {
   'Actividades Vocacionales': HugeIcons.strokeRoundedBriefcase01,
   'Actividades Recreativas': HugeIcons.strokeRoundedFootball,
 };
+
+bool _isLightColor(Color color) => color.computeLuminance() > 0.78;
+
+Color _paintColorForCategory(Color categoryColor, Color categoryAccentColor) {
+  return _isLightColor(categoryColor) ? categoryAccentColor : categoryColor;
+}
+
+Color _foregroundColorForPaint(BuildContext context, Color color) {
+  return _isLightColor(color) ? context.sac.text : Colors.white;
+}
+
+Color _categoryTextColor(BuildContext context, Color color) {
+  return _isLightColor(color) ? context.sac.text : color;
+}
 
 final _profileHonorsByCategoryProvider =
     Provider.autoDispose<AsyncValue<List<_HonorCategoryGroup>>>((ref) {
@@ -198,6 +213,15 @@ class _CategorySection extends StatelessWidget {
       categoryId: categoryId,
       categoryName: categoryName,
     );
+    final categoryAccentColor = getCategoryAccentColor(
+      categoryId: categoryId,
+      categoryName: categoryName,
+    );
+    final categoryPaintColor =
+        _paintColorForCategory(categoryColor, categoryAccentColor);
+    final categoryForegroundColor =
+        _foregroundColorForPaint(context, categoryPaintColor);
+    final categoryTextColor = _categoryTextColor(context, categoryPaintColor);
     final categoryIcon =
         _categoryIcons[categoryName] ?? HugeIcons.strokeRoundedStar;
 
@@ -227,12 +251,12 @@ class _CategorySection extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: categoryColor,
+                    color: categoryPaintColor,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: HugeIcon(
                     icon: categoryIcon,
-                    color: Colors.white,
+                    color: categoryForegroundColor,
                     size: 22,
                   ),
                 ),
@@ -243,7 +267,7 @@ class _CategorySection extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 17,
-                      color: categoryColor,
+                      color: categoryTextColor,
                     ),
                   ),
                 ),
@@ -252,10 +276,10 @@ class _CategorySection extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: categoryColor.withAlpha(20),
+                    color: categoryPaintColor.withAlpha(20),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: categoryColor.withAlpha(60),
+                      color: categoryPaintColor.withAlpha(60),
                     ),
                   ),
                   child: Text(
@@ -263,7 +287,7 @@ class _CategorySection extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: categoryColor,
+                      color: categoryTextColor,
                     ),
                   ),
                 ),
@@ -290,7 +314,7 @@ class _CategorySection extends StatelessWidget {
             itemBuilder: (context, index) {
               return _HonorGridItem(
                 userHonor: userHonors[index],
-                categoryColor: categoryColor,
+                categoryColor: categoryPaintColor,
               );
             },
           ),
@@ -323,11 +347,7 @@ class _HonorGridItem extends StatelessWidget {
     final imageUrl = userHonor.honorImageUrl;
 
     return GestureDetector(
-      onTap: () => context.push(
-        RouteNames.honorDetailPath(
-          userHonor.honorId.toString(),
-        ),
-      ),
+      onTap: () => context.push(profileHonorDestinationPath(userHonor)),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -483,7 +503,7 @@ class _HonorStatusBadgeMeta {
           icon: HugeIcons.strokeRoundedEdit02,
           backgroundColor: categoryColor,
           borderColor: Colors.white,
-          iconColor: Colors.white,
+          iconColor: _foregroundColorForPaint(context, categoryColor),
           semanticLabel: label,
         );
       case 'inscrito':

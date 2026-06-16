@@ -59,6 +59,9 @@ class UserHonor extends Equatable {
   // Validation audit fields
   final DateTime? submittedAt;
   final String? validatedById;
+  final String? validatedByName;
+  final String? validatedByRoleName;
+  final String? validatedByRoleLabel;
   final DateTime? validatedAt;
   final String? rejectionReason;
 
@@ -85,6 +88,9 @@ class UserHonor extends Equatable {
     required this.date,
     this.submittedAt,
     this.validatedById,
+    this.validatedByName,
+    this.validatedByRoleName,
+    this.validatedByRoleLabel,
     this.validatedAt,
     this.rejectionReason,
     this.honorName,
@@ -160,6 +166,9 @@ class UserHonor extends Equatable {
         date,
         submittedAt,
         validatedById,
+        validatedByName,
+        validatedByRoleName,
+        validatedByRoleLabel,
         validatedAt,
         rejectionReason,
         honorName,

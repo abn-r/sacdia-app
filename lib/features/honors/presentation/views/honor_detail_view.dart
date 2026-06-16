@@ -16,6 +16,7 @@ import 'package:sacdia_app/core/utils/icon_helper.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/honor.dart';
+import '../../domain/entities/requirement_evidence.dart';
 import '../../domain/entities/user_honor_requirement_progress.dart';
 import '../theme/honor_category_palette.dart';
 import '../providers/honors_providers.dart';
@@ -33,6 +34,30 @@ const _kSectionGap = 24.0;
 const _kHeroHeight = 300.0;
 
 // ── Label helpers ─────────────────────────────────────────────────────────────
+
+bool _isLightColor(Color color) {
+  return ThemeData.estimateBrightnessForColor(color) == Brightness.light;
+}
+
+Color _paintColorForCategory(Color categoryColor, Color categoryAccentColor) {
+  return _isLightColor(categoryColor) ? categoryAccentColor : categoryColor;
+}
+
+Color _heroForegroundColor(BuildContext context, Color categoryColor) {
+  return _isLightColor(categoryColor) ? context.sac.text : Colors.white;
+}
+
+Color _heroSecondaryForegroundColor(BuildContext context, Color categoryColor) {
+  return _isLightColor(categoryColor)
+      ? context.sac.textSecondary
+      : Colors.white.withValues(alpha: 0.85);
+}
+
+Color _heroOverlayColor(BuildContext context, Color categoryColor) {
+  return _isLightColor(categoryColor)
+      ? context.sac.surfaceVariant.withValues(alpha: 0.85)
+      : Colors.white.withValues(alpha: 0.20);
+}
 
 String _approvalLabel(int level) {
   switch (level) {
@@ -73,6 +98,58 @@ String _completionModeLabel(HonorCompletionMode mode) {
   }
 }
 
+String _completionModeHistoryLabel(UserHonor userHonor) {
+  if (userHonor.completionMode != HonorCompletionMode.undecided) {
+    return _completionModeLabel(userHonor.completionMode);
+  }
+
+  if (!userHonor.isCompleted) {
+    return _completionModeLabel(userHonor.completionMode);
+  }
+
+  if (_isExternalLegacyCompletedHonor(userHonor)) {
+    return 'honors.detail.mode_external_legacy'.tr();
+  }
+
+  return 'honors.detail.mode_not_registered'.tr();
+}
+
+bool _isExternalLegacyCompletedHonor(UserHonor userHonor) {
+  if (!userHonor.isCompleted ||
+      userHonor.completionMode != HonorCompletionMode.undecided) {
+    return false;
+  }
+
+  return userHonor.hasCompletedFormat ||
+      userHonor.images.isNotEmpty ||
+      _trimmedOrNull(userHonor.certificate) != null;
+}
+
+String? _validatorRoleLabel(UserHonor userHonor) {
+  final roleName = _trimmedOrNull(userHonor.validatedByRoleName);
+  final roleLabel = _trimmedOrNull(userHonor.validatedByRoleLabel);
+
+  if (roleLabel == null ||
+      roleLabel.toLowerCase().startsWith('role:') ||
+      roleLabel == roleName) {
+    return _humanizeRoleName(roleName);
+  }
+
+  return roleLabel;
+}
+
+String? _humanizeRoleName(String? roleName) {
+  final normalized = _trimmedOrNull(roleName);
+  if (normalized == null) return null;
+
+  return normalized
+      .replaceAll(RegExp('[-_]'), ' ')
+      .split(' ')
+      .where((part) => part.isNotEmpty)
+      .map((part) => part[0].toUpperCase() + part.substring(1))
+      .join(' ');
+}
+
 String _completionModeConfirmationMessageKey(HonorCompletionMode mode) {
   switch (mode) {
     case HonorCompletionMode.inApp:
@@ -81,6 +158,80 @@ String _completionModeConfirmationMessageKey(HonorCompletionMode mode) {
       return 'honors.work_mode.confirm_external_message';
     case HonorCompletionMode.undecided:
       return 'honors.work_mode.confirm_message';
+  }
+}
+
+String? _trimmedOrNull(String? value) {
+  final trimmed = value?.trim();
+  return trimmed == null || trimmed.isEmpty ? null : trimmed;
+}
+
+String _formatHistoryDate(BuildContext context, DateTime? date) {
+  if (date == null) return 'honors.detail.history_not_available'.tr();
+
+  final locale = Localizations.maybeLocaleOf(context)?.toLanguageTag() ?? 'es';
+  return DateFormat.yMMMd(locale).add_Hm().format(date.toLocal());
+}
+
+String _fileNameFromUrl(String url) {
+  final uri = Uri.tryParse(url);
+  final pathSegments =
+      uri?.pathSegments.where((part) => part.trim().isNotEmpty).toList();
+  final segment =
+      pathSegments == null || pathSegments.isEmpty ? null : pathSegments.last;
+  if (segment != null && segment.isNotEmpty) {
+    return Uri.decodeComponent(segment);
+  }
+
+  final fallback = url.split('/').where((part) => part.trim().isNotEmpty);
+  return fallback.isEmpty ? url : Uri.decodeComponent(fallback.last);
+}
+
+String _evidenceTypeLabel(EvidenceType type) {
+  switch (type) {
+    case EvidenceType.image:
+      return 'honors.detail.evidence_type_image'.tr();
+    case EvidenceType.file:
+      return 'honors.detail.evidence_type_file'.tr();
+    case EvidenceType.link:
+      return 'honors.detail.evidence_type_link'.tr();
+  }
+}
+
+HugeIconData _evidenceTypeIcon(EvidenceType type) {
+  switch (type) {
+    case EvidenceType.image:
+      return HugeIcons.strokeRoundedImage01;
+    case EvidenceType.file:
+      return HugeIcons.strokeRoundedFile01;
+    case EvidenceType.link:
+      return HugeIcons.strokeRoundedLink01;
+  }
+}
+
+Future<void> _openHistoryUrl(BuildContext context, String url) async {
+  final uri = Uri.tryParse(url);
+  if (uri == null || !['http', 'https'].contains(uri.scheme)) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('honors.detail.open_file_error'.tr()),
+        backgroundColor: AppColors.primary,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+    return;
+  }
+
+  final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+  if (!launched && context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('honors.detail.open_file_error'.tr()),
+        backgroundColor: AppColors.primary,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 }
 
@@ -222,6 +373,13 @@ class _HonorDetailContent extends ConsumerWidget {
       categoryId: honor.categoryId,
       categoryName: honor.categoryName ?? categoryName,
     );
+    final categoryAccentColor = getCategoryAccentColor(
+      categoryId: honor.categoryId,
+      categoryName: honor.categoryName ?? categoryName,
+    );
+    final categoryPaintColor =
+        _paintColorForCategory(categoryColor, categoryAccentColor);
+    final heroForegroundColor = _heroForegroundColor(context, categoryColor);
     final isEnrolled = userHonor != null;
 
     // After enrollment, refresh providers so UI switches to enrolled state
@@ -249,7 +407,7 @@ class _HonorDetailContent extends ConsumerWidget {
                 expandedHeight: _kHeroHeight,
                 pinned: true,
                 backgroundColor: categoryColor,
-                foregroundColor: Colors.white,
+                foregroundColor: heroForegroundColor,
                 elevation: 0,
                 leading: GestureDetector(
                   onTap: () {
@@ -259,27 +417,32 @@ class _HonorDetailContent extends ConsumerWidget {
                   child: Container(
                     margin: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
+                      color: _heroOverlayColor(context, categoryColor),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const HugeIcon(
+                    child: HugeIcon(
                       icon: HugeIcons.strokeRoundedArrowLeft01,
-                      color: Colors.white,
+                      color: heroForegroundColor,
                       size: 22,
                     ),
                   ),
                 ),
                 title: Text(
                   categoryName ?? '',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: heroForegroundColor,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 actions: isEnrolled
                     ? [
-                        _StatusBadgePill(status: userHonor.displayStatus),
+                        _StatusBadgePill(
+                          status: userHonor.displayStatus,
+                          defaultBackgroundColor:
+                              _heroOverlayColor(context, categoryColor),
+                          defaultForegroundColor: heroForegroundColor,
+                        ),
                         const SizedBox(width: 12),
                       ]
                     : null,
@@ -287,6 +450,7 @@ class _HonorDetailContent extends ConsumerWidget {
                   background: _HeroSection(
                     honor: honor,
                     categoryColor: categoryColor,
+                    foregroundColor: heroForegroundColor,
                     userHonor: userHonor,
                     honorId: honorId,
                     isEnrolled: isEnrolled,
@@ -301,7 +465,7 @@ class _HonorDetailContent extends ConsumerWidget {
                   child: _StaggeredCards(
                     honor: honor,
                     honorId: honorId,
-                    categoryColor: categoryColor,
+                    categoryColor: categoryPaintColor,
                     userHonor: userHonor,
                     isEnrolled: isEnrolled,
                     userHonorsLoading: userHonorsLoading,
@@ -325,7 +489,7 @@ class _HonorDetailContent extends ConsumerWidget {
               honorId: honorId,
               userHonor: userHonor,
               isEnrolled: isEnrolled,
-              categoryColor: categoryColor,
+              categoryColor: categoryPaintColor,
               userHonorsLoading: userHonorsLoading,
               enrollAsync: enrollAsync,
             ),
@@ -414,6 +578,7 @@ class _HonorDetailContent extends ConsumerWidget {
 class _HeroSection extends ConsumerStatefulWidget {
   final Honor honor;
   final Color categoryColor;
+  final Color foregroundColor;
   final UserHonor? userHonor;
   final int honorId;
   final bool isEnrolled;
@@ -421,6 +586,7 @@ class _HeroSection extends ConsumerStatefulWidget {
   const _HeroSection({
     required this.honor,
     required this.categoryColor,
+    required this.foregroundColor,
     required this.userHonor,
     required this.honorId,
     required this.isEnrolled,
@@ -474,6 +640,9 @@ class _HeroSectionState extends ConsumerState<_HeroSection>
         ? ref.watch(honorProgressStatsProvider(widget.honorId))
         : null;
     final progressPercent = progressStats?.percentage ?? 0.0;
+    final heroSecondaryForeground =
+        _heroSecondaryForegroundColor(context, widget.categoryColor);
+    final heroOverlay = _heroOverlayColor(context, widget.categoryColor);
 
     return Container(
       decoration: BoxDecoration(
@@ -510,8 +679,8 @@ class _HeroSectionState extends ConsumerState<_HeroSection>
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: widget.foregroundColor,
                   fontSize: 24,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.5,
@@ -526,7 +695,7 @@ class _HeroSectionState extends ConsumerState<_HeroSection>
                     'total': '${progressStats.total}',
                   }),
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.85),
+                    color: heroSecondaryForeground,
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                   ),
@@ -540,9 +709,9 @@ class _HeroSectionState extends ConsumerState<_HeroSection>
                       child: LinearProgressIndicator(
                         value: _progressValue.value * progressPercent,
                         minHeight: 4,
-                        backgroundColor: Colors.white.withValues(alpha: 0.25),
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          Colors.white,
+                        backgroundColor: heroOverlay,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          widget.foregroundColor,
                         ),
                       ),
                     );
@@ -551,6 +720,8 @@ class _HeroSectionState extends ConsumerState<_HeroSection>
               ] else if (widget.isEnrolled && widget.userHonor != null) ...[
                 _FrostedPill(
                   label: _completionModeLabel(widget.userHonor!.completionMode),
+                  foregroundColor: widget.foregroundColor,
+                  backgroundColor: heroOverlay,
                 ),
               ] else ...[
                 Wrap(
@@ -560,8 +731,15 @@ class _HeroSectionState extends ConsumerState<_HeroSection>
                   children: [
                     if (widget.honor.skillLevel != null)
                       _FrostedPill(
-                          label: _skillLevelLabel(widget.honor.skillLevel)),
-                    _FrostedPill(label: _approvalLabel(widget.honor.approval)),
+                        label: _skillLevelLabel(widget.honor.skillLevel),
+                        foregroundColor: widget.foregroundColor,
+                        backgroundColor: heroOverlay,
+                      ),
+                    _FrostedPill(
+                      label: _approvalLabel(widget.honor.approval),
+                      foregroundColor: widget.foregroundColor,
+                      backgroundColor: heroOverlay,
+                    ),
                   ],
                 ),
               ],
@@ -628,21 +806,27 @@ class _BadgeImage extends StatelessWidget {
 
 class _FrostedPill extends StatelessWidget {
   final String label;
+  final Color foregroundColor;
+  final Color backgroundColor;
 
-  const _FrostedPill({required this.label});
+  const _FrostedPill({
+    required this.label,
+    required this.foregroundColor,
+    required this.backgroundColor,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.20),
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         label,
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: foregroundColor,
           fontSize: 11,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.3,
@@ -654,8 +838,14 @@ class _FrostedPill extends StatelessWidget {
 
 class _StatusBadgePill extends StatelessWidget {
   final String status;
+  final Color defaultBackgroundColor;
+  final Color defaultForegroundColor;
 
-  const _StatusBadgePill({required this.status});
+  const _StatusBadgePill({
+    required this.status,
+    required this.defaultBackgroundColor,
+    required this.defaultForegroundColor,
+  });
 
   Color _bgColor() {
     switch (status) {
@@ -666,7 +856,18 @@ class _StatusBadgePill extends StatelessWidget {
       case 'rechazado':
         return AppColors.error;
       default:
-        return Colors.white.withValues(alpha: 0.25);
+        return defaultBackgroundColor;
+    }
+  }
+
+  Color _fgColor() {
+    switch (status) {
+      case 'validado':
+      case 'enviado':
+      case 'rechazado':
+        return Colors.white;
+      default:
+        return defaultForegroundColor;
     }
   }
 
@@ -695,8 +896,8 @@ class _StatusBadgePill extends StatelessWidget {
       ),
       child: Text(
         _label(),
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: _fgColor(),
           fontSize: 11,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.5,
@@ -823,6 +1024,24 @@ class _StaggeredCardsState extends State<_StaggeredCards>
       final userHonor = widget.userHonor!;
       final completionMode = userHonor.completionMode;
       final canChangeCompletionMode = userHonor.canSubmit;
+
+      if (userHonor.isCompleted) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: _kSectionGap),
+            _animated(
+              0,
+              _CompletedHonorHistorySection(
+                honorId: widget.honorId,
+                userHonor: userHonor,
+                categoryColor: widget.categoryColor,
+              ),
+            ),
+            const SizedBox(height: 120),
+          ],
+        );
+      }
 
       if (completionMode == HonorCompletionMode.undecided) {
         return Column(
@@ -966,6 +1185,774 @@ class _StaggeredCardsState extends State<_StaggeredCards>
         ),
         const SizedBox(height: 120),
       ],
+    );
+  }
+}
+
+class _CompletedHonorHistorySection extends ConsumerWidget {
+  final int honorId;
+  final UserHonor userHonor;
+  final Color categoryColor;
+
+  const _CompletedHonorHistorySection({
+    required this.honorId,
+    required this.userHonor,
+    required this.categoryColor,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isLegacyExternal = _isExternalLegacyCompletedHonor(userHonor);
+    final showExternalHistory =
+        userHonor.hasCompletedFormat || userHonor.images.isNotEmpty;
+    final showRequirementsHistory =
+        userHonor.completionMode != HonorCompletionMode.external &&
+            !isLegacyExternal;
+    final progressAsync = showRequirementsHistory
+        ? ref.watch(userHonorProgressProvider(honorId))
+        : null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _ValidationHistoryCard(
+          userHonor: userHonor,
+          categoryColor: categoryColor,
+        ),
+        if (showExternalHistory) ...[
+          const SizedBox(height: _kSectionGap),
+          _ExternalWorkHistoryCard(
+            userHonor: userHonor,
+            categoryColor: categoryColor,
+          ),
+        ],
+        if (showRequirementsHistory) ...[
+          const SizedBox(height: _kSectionGap),
+          _RequirementsHistoryCard(
+            progressAsync: progressAsync!,
+            categoryColor: categoryColor,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _ValidationHistoryCard extends StatelessWidget {
+  final UserHonor userHonor;
+  final Color categoryColor;
+
+  const _ValidationHistoryCard({
+    required this.userHonor,
+    required this.categoryColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final validator = _trimmedOrNull(userHonor.validatedByName) ??
+        'honors.detail.history_not_available'.tr();
+    final validatorRole = _validatorRoleLabel(userHonor);
+
+    return _ShadowCard(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                    size: 24,
+                    color: AppColors.success,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'honors.detail.validation_history_title'.tr(),
+                        style: TextStyle(
+                          color: context.sac.text,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'honors.detail.validation_history_subtitle'.tr(),
+                        style: TextStyle(
+                          color: context.sac.textSecondary,
+                          fontSize: 13,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _HistoryInfoRow(
+              icon: HugeIcons.strokeRoundedTaskEdit01,
+              label: 'honors.detail.history_mode_label'.tr(),
+              value: _completionModeHistoryLabel(userHonor),
+              categoryColor: categoryColor,
+            ),
+            _CardDivider(),
+            _HistoryInfoRow(
+              icon: HugeIcons.strokeRoundedCalendar01,
+              label: 'honors.detail.history_registered_label'.tr(),
+              value: _formatHistoryDate(context, userHonor.date),
+              categoryColor: categoryColor,
+            ),
+            _CardDivider(),
+            _HistoryInfoRow(
+              icon: HugeIcons.strokeRoundedClock01,
+              label: 'honors.detail.history_submitted_label'.tr(),
+              value: _formatHistoryDate(context, userHonor.submittedAt),
+              categoryColor: categoryColor,
+            ),
+            _CardDivider(),
+            _HistoryInfoRow(
+              icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+              label: 'honors.detail.history_validated_label'.tr(),
+              value: _formatHistoryDate(context, userHonor.validatedAt),
+              categoryColor: AppColors.success,
+            ),
+            _CardDivider(),
+            _HistoryInfoRow(
+              icon: HugeIcons.strokeRoundedUser,
+              label: 'honors.detail.history_validated_by_label'.tr(),
+              value: validator,
+              detail: validatorRole,
+              categoryColor: categoryColor,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HistoryInfoRow extends StatelessWidget {
+  final HugeIconData icon;
+  final String label;
+  final String value;
+  final String? detail;
+  final Color categoryColor;
+
+  const _HistoryInfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.detail,
+    required this.categoryColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: categoryColor.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: HugeIcon(icon: icon, size: 18, color: categoryColor),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: context.sac.textTertiary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: context.sac.text,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    height: 1.35,
+                  ),
+                ),
+                if (_trimmedOrNull(detail) != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    detail!,
+                    style: TextStyle(
+                      color: context.sac.textSecondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      height: 1.3,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ExternalWorkHistoryCard extends StatelessWidget {
+  final UserHonor userHonor;
+  final Color categoryColor;
+
+  const _ExternalWorkHistoryCard({
+    required this.userHonor,
+    required this.categoryColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _ShadowCard(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _HistorySectionHeader(
+              icon: HugeIcons.strokeRoundedFiles01,
+              title: 'honors.detail.external_history_title'.tr(),
+              subtitle: 'honors.detail.external_history_subtitle'.tr(),
+              categoryColor: categoryColor,
+            ),
+            const SizedBox(height: 14),
+            if (userHonor.hasCompletedFormat)
+              _HistoryFileRow(
+                title: 'honors.detail.completed_format_file'.tr(),
+                subtitle: _fileNameFromUrl(userHonor.document!),
+                url: userHonor.document!,
+                icon: HugeIcons.strokeRoundedPdf01,
+                categoryColor: categoryColor,
+              ),
+            if (userHonor.hasCompletedFormat && userHonor.images.isNotEmpty)
+              const SizedBox(height: 10),
+            ...userHonor.images.asMap().entries.map(
+                  (entry) => Padding(
+                    padding: EdgeInsets.only(
+                      bottom: entry.key == userHonor.images.length - 1 ? 0 : 10,
+                    ),
+                    child: _HistoryImageRow(
+                      title: 'honors.detail.general_evidence_item'.tr(
+                        namedArgs: {'index': '${entry.key + 1}'},
+                      ),
+                      url: entry.value,
+                      categoryColor: categoryColor,
+                    ),
+                  ),
+                ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RequirementsHistoryCard extends StatelessWidget {
+  final AsyncValue<List<UserHonorRequirementProgress>> progressAsync;
+  final Color categoryColor;
+
+  const _RequirementsHistoryCard({
+    required this.progressAsync,
+    required this.categoryColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return progressAsync.when(
+      data: (progressList) {
+        return _ShadowCard(
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _HistorySectionHeader(
+                  icon: HugeIcons.strokeRoundedTaskDone01,
+                  title: 'honors.detail.requirements_history_title'.tr(),
+                  subtitle: 'honors.detail.requirements_history_subtitle'.tr(),
+                  categoryColor: categoryColor,
+                ),
+                const SizedBox(height: 14),
+                if (progressList.isEmpty)
+                  Text(
+                    'honors.detail.requirements_history_empty'.tr(),
+                    style: TextStyle(
+                      color: context.sac.textSecondary,
+                      fontSize: 13,
+                      height: 1.45,
+                    ),
+                  )
+                else
+                  ...progressList.asMap().entries.map(
+                        (entry) => Padding(
+                          padding: EdgeInsets.only(
+                            bottom:
+                                entry.key == progressList.length - 1 ? 0 : 12,
+                          ),
+                          child: _RequirementHistoryItem(
+                            requirement: entry.value,
+                            categoryColor: categoryColor,
+                          ),
+                        ),
+                      ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => _ShadowCard(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: categoryColor,
+            ),
+          ),
+        ),
+      ),
+      error: (_, __) => _ShadowCard(
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Text(
+            'honors.detail.requirements_history_error'.tr(),
+            style: TextStyle(
+              color: context.sac.textSecondary,
+              fontSize: 13,
+              height: 1.45,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HistorySectionHeader extends StatelessWidget {
+  final HugeIconData icon;
+  final String title;
+  final String subtitle;
+  final Color categoryColor;
+
+  const _HistorySectionHeader({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.categoryColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: categoryColor.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(13),
+          ),
+          child: HugeIcon(icon: icon, size: 21, color: categoryColor),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  color: context.sac.text,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  color: context.sac.textSecondary,
+                  fontSize: 12,
+                  height: 1.45,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RequirementHistoryItem extends StatelessWidget {
+  final UserHonorRequirementProgress requirement;
+  final Color categoryColor;
+
+  const _RequirementHistoryItem({
+    required this.requirement,
+    required this.categoryColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final response = _trimmedOrNull(requirement.textResponse);
+    final notes = _trimmedOrNull(requirement.notes);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: context.sac.surfaceVariant.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: context.sac.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: requirement.completed
+                      ? AppColors.success.withValues(alpha: 0.14)
+                      : categoryColor.withValues(alpha: 0.10),
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  '${requirement.requirementNumber}',
+                  style: TextStyle(
+                    color: requirement.completed
+                        ? AppColors.success
+                        : categoryColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  requirement.text,
+                  style: TextStyle(
+                    color: context.sac.text,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    height: 1.35,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              HugeIcon(
+                icon: requirement.completed
+                    ? HugeIcons.strokeRoundedCheckmarkCircle02
+                    : HugeIcons.strokeRoundedClock01,
+                size: 18,
+                color: requirement.completed
+                    ? AppColors.success
+                    : context.sac.textTertiary,
+              ),
+            ],
+          ),
+          if (response != null) ...[
+            const SizedBox(height: 12),
+            _HistoryTextBlock(
+              label: 'honors.detail.requirement_response_label'.tr(),
+              value: response,
+            ),
+          ],
+          if (notes != null) ...[
+            const SizedBox(height: 10),
+            _HistoryTextBlock(
+              label: 'honors.detail.requirement_notes_label'.tr(),
+              value: notes,
+            ),
+          ],
+          if (requirement.completedAt != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              'honors.detail.requirement_completed_at_label'.tr(
+                namedArgs: {
+                  'date': _formatHistoryDate(context, requirement.completedAt),
+                },
+              ),
+              style: TextStyle(
+                color: context.sac.textTertiary,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+          if (requirement.evidences.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              'honors.detail.requirement_evidence_count'.tr(
+                namedArgs: {'count': '${requirement.evidences.length}'},
+              ),
+              style: TextStyle(
+                color: context.sac.textSecondary,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...requirement.evidences.map(
+              (evidence) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _RequirementEvidenceHistoryRow(
+                  evidence: evidence,
+                  categoryColor: categoryColor,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _HistoryTextBlock extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _HistoryTextBlock({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: context.sac.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: context.sac.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: context.sac.textTertiary,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.2,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              color: context.sac.textSecondary,
+              fontSize: 13,
+              height: 1.45,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RequirementEvidenceHistoryRow extends StatelessWidget {
+  final RequirementEvidence evidence;
+  final Color categoryColor;
+
+  const _RequirementEvidenceHistoryRow({
+    required this.evidence,
+    required this.categoryColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final title =
+        _trimmedOrNull(evidence.filename) ?? _fileNameFromUrl(evidence.url);
+    final subtitle = _evidenceTypeLabel(evidence.evidenceType);
+
+    return _HistoryFileRow(
+      title: title,
+      subtitle: subtitle,
+      url: evidence.url,
+      icon: _evidenceTypeIcon(evidence.evidenceType),
+      categoryColor: categoryColor,
+    );
+  }
+}
+
+class _HistoryFileRow extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String url;
+  final HugeIconData icon;
+  final Color categoryColor;
+
+  const _HistoryFileRow({
+    required this.title,
+    required this.subtitle,
+    required this.url,
+    required this.icon,
+    required this.categoryColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () => _openHistoryUrl(context, url),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 50),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: context.sac.surfaceVariant.withValues(alpha: 0.55),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: context.sac.border),
+        ),
+        child: Row(
+          children: [
+            HugeIcon(icon: icon, size: 20, color: categoryColor),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: context.sac.text,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: context.sac.textTertiary,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedLink01,
+              size: 16,
+              color: context.sac.textTertiary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HistoryImageRow extends StatelessWidget {
+  final String title;
+  final String url;
+  final Color categoryColor;
+
+  const _HistoryImageRow({
+    required this.title,
+    required this.url,
+    required this.categoryColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () => _openHistoryUrl(context, url),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 58),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: context.sac.surfaceVariant.withValues(alpha: 0.55),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: context.sac.border),
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: CachedNetworkImage(
+                imageUrl: url,
+                width: 42,
+                height: 42,
+                fit: BoxFit.cover,
+                memCacheWidth: 126,
+                memCacheHeight: 126,
+                errorWidget: (_, __, ___) => Container(
+                  width: 42,
+                  height: 42,
+                  color: context.sac.border,
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedImageDelete01,
+                    size: 18,
+                    color: context.sac.textTertiary,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  color: context.sac.text,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedLink01,
+              size: 16,
+              color: categoryColor,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -2224,6 +3211,8 @@ class _EnrollCtaButtonState extends ConsumerState<_EnrollCtaButton>
 
   @override
   Widget build(BuildContext context) {
+    final foregroundColor = _heroForegroundColor(context, widget.categoryColor);
+
     return ScaleTransition(
       scale: _pressScale,
       child: GestureDetector(
@@ -2245,8 +3234,8 @@ class _EnrollCtaButtonState extends ConsumerState<_EnrollCtaButton>
           alignment: Alignment.center,
           child: Text(
             'honors.detail.enroll_cta'.tr(),
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: foregroundColor,
               fontSize: 16,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.2,
@@ -2267,6 +3256,8 @@ class _LoadingCtaButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final foregroundColor = _heroForegroundColor(context, categoryColor);
+
     return Container(
       width: double.infinity,
       height: 48,
@@ -2275,11 +3266,11 @@ class _LoadingCtaButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
       ),
       alignment: Alignment.center,
-      child: const SizedBox(
+      child: SizedBox(
         width: 22,
         height: 22,
         child: CircularProgressIndicator(
-          color: Colors.white,
+          color: foregroundColor,
           strokeWidth: 2.5,
         ),
       ),
@@ -2302,6 +3293,8 @@ class _EnrolledCtaButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final actionForegroundColor = _heroForegroundColor(context, categoryColor);
+
     // Under review — disabled
     if (userHonor.isUnderReview) {
       return Container(
@@ -2429,8 +3422,8 @@ class _EnrolledCtaButton extends StatelessWidget {
         alignment: Alignment.center,
         child: Text(
           label,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: actionForegroundColor,
             fontSize: 16,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.2,

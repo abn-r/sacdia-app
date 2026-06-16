@@ -5,6 +5,7 @@ import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor.dart';
 import 'package:sacdia_app/features/honors/domain/entities/honor_category.dart';
+import 'package:sacdia_app/features/honors/domain/entities/requirement_evidence.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor.dart';
 import 'package:sacdia_app/features/honors/domain/entities/user_honor_requirement_progress.dart';
 import 'package:sacdia_app/features/honors/presentation/providers/honors_providers.dart';
@@ -68,6 +69,14 @@ void main() {
   UserHonor userHonor(
     HonorCompletionMode mode, {
     String validationStatus = 'IN_PROGRESS',
+    DateTime? submittedAt,
+    String? validatedById,
+    String? validatedByName,
+    String? validatedByRoleName,
+    String? validatedByRoleLabel,
+    DateTime? validatedAt,
+    String? document,
+    List<String> images = const [],
   }) {
     return UserHonor(
       id: 77,
@@ -75,7 +84,15 @@ void main() {
       userId: 'user-1',
       completionMode: mode,
       validationStatus: validationStatus,
+      document: document,
+      images: images,
       date: DateTime(2026, 6, 11),
+      submittedAt: submittedAt,
+      validatedById: validatedById,
+      validatedByName: validatedByName,
+      validatedByRoleName: validatedByRoleName,
+      validatedByRoleLabel: validatedByRoleLabel,
+      validatedAt: validatedAt,
     );
   }
 
@@ -83,10 +100,14 @@ void main() {
     WidgetTester tester,
     HonorCompletionMode mode, {
     String validationStatus = 'IN_PROGRESS',
+    UserHonor? userHonorOverride,
+    List<UserHonorRequirementProgress> progress = const [],
     List<Override> extraOverrides = const [],
     bool watchAuth = false,
   }) async {
     final currentHonor = honor();
+    final currentUserHonor = userHonorOverride ??
+        userHonor(mode, validationStatus: validationStatus);
 
     await tester.pumpWidget(
       ProviderScope(
@@ -95,13 +116,16 @@ void main() {
             (ref) async => const <HonorCategory>[],
           ),
           allHonorsProvider.overrideWith((ref) async => [currentHonor]),
+          activeHonorCatalogClubTypeIdProvider.overrideWith(
+            (ref) => const AsyncValue.data(null),
+          ),
           userHonorsProvider.overrideWith(
             (ref) async => [
-              userHonor(mode, validationStatus: validationStatus),
+              currentUserHonor,
             ],
           ),
           userHonorProgressProvider(currentHonor.id).overrideWith(
-            (ref) async => const <UserHonorRequirementProgress>[],
+            (ref) async => progress,
           ),
           ...extraOverrides,
         ],
@@ -157,6 +181,32 @@ void main() {
     expect(find.text('honors.detail.change_work_mode_cta'), findsNothing);
   });
 
+  testWidgets('approved honor shows validation history instead of locked mode',
+      (tester) async {
+    await pumpDetail(
+      tester,
+      HonorCompletionMode.undecided,
+      validationStatus: 'APPROVED',
+      userHonorOverride: userHonor(
+        HonorCompletionMode.undecided,
+        validationStatus: 'APPROVED',
+        submittedAt: DateTime(2026, 6, 12, 9, 30),
+        validatedAt: DateTime(2026, 6, 13, 16, 45),
+        validatedByName: 'Directora Local',
+        validatedByRoleName: 'director',
+        validatedByRoleLabel: 'Director',
+        images: const ['https://example.com/evidence.jpg'],
+      ),
+    );
+
+    expect(find.text('honors.detail.work_mode_locked_title'), findsNothing);
+    expect(find.text('honors.detail.validation_history_title'), findsOneWidget);
+    expect(find.text('honors.detail.mode_external_legacy'), findsOneWidget);
+    expect(find.text('Directora Local'), findsOneWidget);
+    expect(find.text('Director'), findsOneWidget);
+    expect(find.text('honors.detail.completed_cta'), findsOneWidget);
+  });
+
   testWidgets('in-app mode shows requirements CTA only', (tester) async {
     await pumpDetail(tester, HonorCompletionMode.inApp);
 
@@ -176,6 +226,48 @@ void main() {
 
     expect(find.text('honors.detail.under_review_cta'), findsOneWidget);
     expect(find.text('honors.detail.change_work_mode_cta'), findsNothing);
+  });
+
+  testWidgets('approved in-app honor shows requirement responses and evidences',
+      (tester) async {
+    await pumpDetail(
+      tester,
+      HonorCompletionMode.inApp,
+      validationStatus: 'APPROVED',
+      userHonorOverride: userHonor(
+        HonorCompletionMode.inApp,
+        validationStatus: 'APPROVED',
+        validatedById: 'validator-1',
+        validatedAt: DateTime(2026, 6, 13, 16, 45),
+      ),
+      progress: [
+        UserHonorRequirementProgress(
+          requirementId: 101,
+          requirementNumber: 1,
+          text: 'Explica lo aprendido',
+          completed: true,
+          completedAt: DateTime(2026, 6, 12, 10),
+          textResponse: 'Aprendí a documentar mi trabajo.',
+          evidences: const [
+            RequirementEvidence(
+              id: 1,
+              evidenceType: EvidenceType.file,
+              url: 'https://example.com/evidence.pdf',
+              filename: 'evidence.pdf',
+            ),
+          ],
+        ),
+      ],
+    );
+
+    expect(find.text('honors.detail.work_mode_locked_title'), findsNothing);
+    expect(
+      find.text('honors.detail.requirements_history_title'),
+      findsOneWidget,
+    );
+    expect(find.text('validator-1'), findsNothing);
+    expect(find.text('Aprendí a documentar mi trabajo.'), findsOneWidget);
+    expect(find.text('evidence.pdf'), findsOneWidget);
   });
 
   testWidgets('external mode shows external flow CTA only', (tester) async {

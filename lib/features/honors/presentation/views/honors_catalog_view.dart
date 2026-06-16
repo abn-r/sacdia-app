@@ -112,47 +112,38 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
             },
           ),
 
-          // ── Catalog filters ──────────────────────────────────────
-          // Scope is a primary mode switch; categories are a secondary filter
-          // and live inside the same panel to avoid duplicated chip rows.
+          // ── Category filters ─────────────────────────────────────
+          // Club type visibility is forced by the active section; the UI only
+          // keeps category chips for catalogs that actually use categories.
           Consumer(
             builder: (context, ref, child) {
-              final activeScope =
-                  ref.watch(activeHonorCatalogScopeProvider).valueOrNull;
-              final manualScope = ref.watch(selectedHonorCatalogScopeProvider);
-              final HonorCatalogScope selectedScope =
-                  activeScope ?? manualScope;
-              final isScopeLocked = activeScope != null;
+              final activeClubTypeAsync =
+                  ref.watch(activeHonorCatalogClubTypeIdProvider);
+              final activeClubTypeId = activeClubTypeAsync.valueOrNull;
               final selectedCategory = ref.watch(selectedCategoryProvider);
 
-              if (selectedScope == HonorCatalogScope.adventurers) {
-                return _buildCatalogFilters(
-                  context,
-                  selectedScope: selectedScope,
-                  isScopeLocked: isScopeLocked,
-                  selectedCategory: selectedCategory,
-                );
+              if (activeClubTypeAsync is AsyncLoading) {
+                return const SizedBox(height: 8);
+              }
+
+              if (isAdventurerHonorClubType(activeClubTypeId)) {
+                return const SizedBox.shrink();
               }
 
               final categoriesAsync = ref.watch(honorCategoriesProvider);
               return categoriesAsync.when(
-                data: (categories) => _buildCatalogFilters(
+                data: (categories) => _buildCategoryFilter(
                   context,
-                  selectedScope: selectedScope,
-                  isScopeLocked: isScopeLocked,
                   categories: categories,
                   selectedCategory: selectedCategory,
                 ),
-                loading: () => _buildCatalogFilters(
+                loading: () => _buildCategoryFilter(
                   context,
-                  selectedScope: selectedScope,
-                  isScopeLocked: isScopeLocked,
                   selectedCategory: selectedCategory,
                   isCategoryLoading: true,
                 ),
-                error: (_, __) => _buildCatalogFilters(
+                error: (_, __) => _buildCategoryFilter(
                   context,
-                  selectedScope: selectedScope,
                   selectedCategory: selectedCategory,
                 ),
               );
@@ -178,28 +169,24 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
     );
   }
 
-  Widget _buildCatalogFilters(
+  Widget _buildCategoryFilter(
     BuildContext context, {
-    required HonorCatalogScope selectedScope,
     List<dynamic>? categories,
     int? selectedCategory,
     bool isCategoryLoading = false,
-    bool isScopeLocked = false,
   }) {
-    final showCategories = selectedScope != HonorCatalogScope.adventurers;
-
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
       child: Container(
         decoration: BoxDecoration(
           color: context.sac.surface,
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(color: context.sac.borderLight),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
@@ -207,203 +194,26 @@ class _HonorsCatalogViewState extends ConsumerState<HonorsCatalogView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
               child: Text(
-                'honors.catalog.catalog_filter_label'.tr(),
+                'honors.catalog.category_filter_label'.tr(),
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.2,
-                  color: context.sac.textSecondary,
+                  color: context.sac.textTertiary,
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: _buildScopeSegmentedControl(
-                context,
-                selectedScope,
-                isScopeLocked: isScopeLocked,
+            if (isCategoryLoading)
+              const SizedBox(height: 52)
+            else
+              _buildCategoryChips(
+                categories ?? const [],
+                selectedCategory,
               ),
-            ),
-            AnimatedSize(
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeInOut,
-              alignment: Alignment.topCenter,
-              child: showCategories
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Divider(
-                                  height: 1,
-                                  color: context.sac.borderLight,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(14, 2, 14, 8),
-                          child: Text(
-                            'honors.catalog.category_filter_label'.tr(),
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: context.sac.textTertiary,
-                            ),
-                          ),
-                        ),
-                        if (isCategoryLoading)
-                          const SizedBox(height: 52)
-                        else
-                          _buildCategoryChips(
-                            categories ?? const [],
-                            selectedCategory,
-                          ),
-                      ],
-                    )
-                  : Padding(
-                      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-                      child: Text(
-                        'honors.catalog.adventurers_filter_hint'.tr(),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: context.sac.textSecondary,
-                          height: 1.25,
-                        ),
-                      ),
-                    ),
-            ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildScopeSegmentedControl(
-    BuildContext context,
-    HonorCatalogScope selectedScope, {
-    bool isScopeLocked = false,
-  }) {
-    final allScopes = <({HonorCatalogScope value, String label, Color color})>[
-      (
-        value: HonorCatalogScope.all,
-        label: 'honors.catalog.scope_all'.tr(),
-        color: AppColors.error,
-      ),
-      (
-        value: HonorCatalogScope.adventurers,
-        label: 'honors.catalog.scope_adventurers'.tr(),
-        color: AppColors.info,
-      ),
-      (
-        value: HonorCatalogScope.pathfindersAndMasterGuides,
-        label: 'honors.catalog.scope_pathfinders_gm'.tr(),
-        color: AppColors.secondaryDark,
-      ),
-    ];
-    final scopes = isScopeLocked
-        ? allScopes.where((scope) => scope.value == selectedScope).toList()
-        : allScopes;
-
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: context.sac.surfaceVariant,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: scopes.map((scope) {
-          final isSelected = selectedScope == scope.value;
-          return Expanded(
-            child: Semantics(
-              button: true,
-              selected: isSelected,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(13),
-                    onTap: isScopeLocked
-                        ? null
-                        : () {
-                            ref
-                                .read(
-                                    selectedHonorCatalogScopeProvider.notifier)
-                                .state = scope.value;
-                            ref.read(selectedCategoryProvider.notifier).state =
-                                null;
-                          },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
-                      curve: Curves.easeOutCubic,
-                      constraints: const BoxConstraints(minHeight: 44),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? context.sac.surface
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(13),
-                        boxShadow: isSelected
-                            ? [
-                                BoxShadow(
-                                  color: scope.color.withValues(alpha: 0.16),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ]
-                            : null,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 180),
-                            width: isSelected ? 7 : 0,
-                            height: isSelected ? 7 : 0,
-                            margin: EdgeInsets.only(right: isSelected ? 6 : 0),
-                            decoration: BoxDecoration(
-                              color: scope.color,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          Flexible(
-                            child: Text(
-                              scope.label,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: isSelected
-                                    ? FontWeight.w800
-                                    : FontWeight.w600,
-                                color: isSelected
-                                    ? context.sac.text
-                                    : context.sac.textSecondary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
       ),
     );
   }

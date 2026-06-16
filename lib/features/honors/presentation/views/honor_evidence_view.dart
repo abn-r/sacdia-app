@@ -40,6 +40,24 @@ const _kHeroHeight = 200.0;
 
 enum _ExternalUploadKind { completedFormat, generalEvidence }
 
+bool _isLightColor(Color color) {
+  return ThemeData.estimateBrightnessForColor(color) == Brightness.light;
+}
+
+Color _paintColorForCategory(Color categoryColor, Color categoryAccentColor) {
+  return _isLightColor(categoryColor) ? categoryAccentColor : categoryColor;
+}
+
+Color _heroForegroundColor(BuildContext context, Color categoryColor) {
+  return _isLightColor(categoryColor) ? context.sac.text : Colors.white;
+}
+
+Color _heroOverlayColor(BuildContext context, Color categoryColor) {
+  return _isLightColor(categoryColor)
+      ? context.sac.surfaceVariant.withValues(alpha: 0.85)
+      : Colors.white.withValues(alpha: 0.20);
+}
+
 /// Evidence & progress screen for an enrolled honor.
 ///
 /// Minimalist gamified design (Duolingo-inspired) consistent with
@@ -681,6 +699,14 @@ class _EvidenceBody extends StatelessWidget {
       categoryId: honor?.categoryId ?? userHonor.honorCategoryId,
       categoryName: honor?.categoryName ?? userHonor.honorCategoryName,
     );
+    final categoryAccentColor = getCategoryAccentColor(
+      categoryId: honor?.categoryId ?? userHonor.honorCategoryId,
+      categoryName: honor?.categoryName ?? userHonor.honorCategoryName,
+    );
+    final categoryPaintColor =
+        _paintColorForCategory(categoryColor, categoryAccentColor);
+    final heroForegroundColor = _heroForegroundColor(context, categoryColor);
+    final heroOverlayColor = _heroOverlayColor(context, categoryColor);
 
     return Scaffold(
       backgroundColor: context.sac.background,
@@ -694,7 +720,7 @@ class _EvidenceBody extends StatelessWidget {
                 expandedHeight: _kHeroHeight,
                 pinned: true,
                 backgroundColor: categoryColor,
-                foregroundColor: Colors.white,
+                foregroundColor: heroForegroundColor,
                 elevation: 0,
                 leading: GestureDetector(
                   onTap: () {
@@ -704,12 +730,12 @@ class _EvidenceBody extends StatelessWidget {
                   child: Container(
                     margin: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
+                      color: heroOverlayColor,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const HugeIcon(
+                    child: HugeIcon(
                       icon: HugeIcons.strokeRoundedArrowLeft01,
-                      color: Colors.white,
+                      color: heroForegroundColor,
                       size: 22,
                     ),
                   ),
@@ -717,14 +743,18 @@ class _EvidenceBody extends StatelessWidget {
                 // Category name or "Mi especialidad" as compact title
                 title: Text(
                   'honors.evidence.my_honor_title'.tr(),
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: heroForegroundColor,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 actions: [
-                  _StatusPill(status: userHonor.displayStatus),
+                  _StatusPill(
+                    status: userHonor.displayStatus,
+                    defaultBackgroundColor: heroOverlayColor,
+                    defaultForegroundColor: heroForegroundColor,
+                  ),
                   const SizedBox(width: 12),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
@@ -732,6 +762,7 @@ class _EvidenceBody extends StatelessWidget {
                     honor: honor,
                     userHonor: userHonor,
                     categoryColor: categoryColor,
+                    foregroundColor: heroForegroundColor,
                   ),
                 ),
               ),
@@ -752,7 +783,7 @@ class _EvidenceBody extends StatelessWidget {
                           honor!.materialUrl!.isNotEmpty) ...[
                         _MaterialCard(
                           materialUrl: honor!.materialUrl!,
-                          categoryColor: categoryColor,
+                          categoryColor: categoryPaintColor,
                           onOpen: onOpenMaterial,
                         ),
                         const SizedBox(height: _kSectionGap),
@@ -760,7 +791,7 @@ class _EvidenceBody extends StatelessWidget {
 
                       _CompletedFormatCard(
                         userHonor: userHonor,
-                        categoryColor: categoryColor,
+                        categoryColor: categoryPaintColor,
                         onUploadCompletedFormat: onUploadCompletedFormat,
                         onOpenDocument: onOpenMaterial,
                       ),
@@ -769,7 +800,7 @@ class _EvidenceBody extends StatelessWidget {
                       // Evidence section card
                       _EvidenceSectionCard(
                         userHonor: userHonor,
-                        categoryColor: categoryColor,
+                        categoryColor: categoryPaintColor,
                         onAddEvidence: onAddEvidence,
                         onDeleteEvidence: onDeleteEvidence,
                         onViewEvidence: onViewEvidence,
@@ -800,7 +831,7 @@ class _EvidenceBody extends StatelessWidget {
             right: 0,
             child: _BottomCtaBar(
               userHonor: userHonor,
-              categoryColor: categoryColor,
+              categoryColor: categoryPaintColor,
               onSubmit: onSubmit,
               onUploadCompletedFormat: onUploadCompletedFormat,
               onAddEvidence: onAddEvidence,
@@ -818,15 +849,19 @@ class _HeroSection extends StatelessWidget {
   final Honor? honor;
   final UserHonor userHonor;
   final Color categoryColor;
+  final Color foregroundColor;
 
   const _HeroSection({
     required this.honor,
     required this.userHonor,
     required this.categoryColor,
+    required this.foregroundColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final foregroundColor = _heroForegroundColor(context, categoryColor);
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -846,7 +881,11 @@ class _HeroSection extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               // Honor badge image — oval shape, no border
-              _HonorBadge(honor: honor),
+              _HonorBadge(
+                honor: honor,
+                foregroundColor: foregroundColor,
+                backgroundColor: _heroOverlayColor(context, categoryColor),
+              ),
               const SizedBox(height: 12),
 
               // Honor name
@@ -857,8 +896,8 @@ class _HeroSection extends StatelessWidget {
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: foregroundColor,
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -0.3,
@@ -877,8 +916,14 @@ class _HeroSection extends StatelessWidget {
 
 class _HonorBadge extends StatelessWidget {
   final Honor? honor;
+  final Color foregroundColor;
+  final Color backgroundColor;
 
-  const _HonorBadge({required this.honor});
+  const _HonorBadge({
+    required this.honor,
+    required this.foregroundColor,
+    required this.backgroundColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -889,8 +934,8 @@ class _HonorBadge extends StatelessWidget {
       padding: const EdgeInsets.all(2),
       memCacheWidth: 240,
       memCacheHeight: 204,
-      fallbackColor: Colors.white,
-      fallbackBackgroundColor: Colors.white.withValues(alpha: 0.20),
+      fallbackColor: foregroundColor,
+      fallbackBackgroundColor: backgroundColor,
       fallbackIconSize: 22,
       fallbackBorderRadius: BorderRadius.circular(14),
     );
@@ -901,8 +946,14 @@ class _HonorBadge extends StatelessWidget {
 
 class _StatusPill extends StatelessWidget {
   final String status;
+  final Color defaultBackgroundColor;
+  final Color defaultForegroundColor;
 
-  const _StatusPill({required this.status});
+  const _StatusPill({
+    required this.status,
+    required this.defaultBackgroundColor,
+    required this.defaultForegroundColor,
+  });
 
   Color _bgColor() {
     switch (status) {
@@ -913,9 +964,19 @@ class _StatusPill extends StatelessWidget {
       case 'rechazado':
         return AppColors.error;
       case 'en_progreso':
-        return Colors.white.withValues(alpha: 0.30);
       default:
-        return Colors.white.withValues(alpha: 0.25);
+        return defaultBackgroundColor;
+    }
+  }
+
+  Color _fgColor() {
+    switch (status) {
+      case 'validado':
+      case 'enviado':
+      case 'rechazado':
+        return Colors.white;
+      default:
+        return defaultForegroundColor;
     }
   }
 
@@ -944,8 +1005,8 @@ class _StatusPill extends StatelessWidget {
       ),
       child: Text(
         _label(),
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: _fgColor(),
           fontSize: 11,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.3,
@@ -1281,6 +1342,8 @@ class _EmptyEvidenceState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final foregroundColor = _heroForegroundColor(context, categoryColor);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 32),
@@ -1332,15 +1395,16 @@ class _EmptyEvidenceState extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const HugeIcon(
-                        icon: HugeIcons.strokeRoundedAdd01,
-                        color: Colors.white,
-                        size: 18),
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedAdd01,
+                      color: foregroundColor,
+                      size: 18,
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       'honors.evidence.add_button'.tr(),
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: foregroundColor,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
@@ -1863,6 +1927,8 @@ class _CtaButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDisabled = onPressed == null && !isLoading;
+    final foregroundColor = _heroForegroundColor(context, color);
+    final disabledForegroundColor = Colors.white.withValues(alpha: 0.70);
 
     return SizedBox(
       width: double.infinity,
@@ -1871,21 +1937,22 @@ class _CtaButton extends StatelessWidget {
         onPressed: isLoading ? null : onPressed,
         style: FilledButton.styleFrom(
           backgroundColor: isDisabled ? AppColors.pendingColor : color,
-          foregroundColor: Colors.white,
+          foregroundColor:
+              isDisabled ? disabledForegroundColor : foregroundColor,
           disabledBackgroundColor: AppColors.pendingColor,
-          disabledForegroundColor: Colors.white.withValues(alpha: 0.70),
+          disabledForegroundColor: disabledForegroundColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
           padding: const EdgeInsets.symmetric(vertical: 14),
         ),
         child: isLoading
-            ? const SizedBox(
+            ? SizedBox(
                 width: 22,
                 height: 22,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
-                  color: Colors.white,
+                  color: foregroundColor,
                 ),
               )
             : Row(
