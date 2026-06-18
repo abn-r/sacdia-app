@@ -5,6 +5,7 @@ import '../../../../core/network/network_info.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../../../../core/network/cancel_token_adapter.dart';
 import '../../domain/entities/coordinator_club.dart';
+import '../../domain/entities/coordinator_scope.dart';
 import '../../domain/entities/sla_dashboard.dart';
 import '../../domain/entities/evidence_review_item.dart';
 import '../../domain/entities/camporee_approval.dart';
@@ -33,6 +34,24 @@ class CoordinatorRepositoryImpl implements CoordinatorRepository {
       Left(UnexpectedFailure(message: e.toString()));
 
   // ── Clubs list ────────────────────────────────────────────────────────────────
+
+  @override
+  Future<Either<Failure, CoordinatorScope>> getMyScope({
+    RequestCancelToken? cancelToken,
+  }) async {
+    try {
+      final model = await remoteDataSource.getMyScope(
+        cancelToken: cancelToken.asDioCancelToken(),
+      );
+      return Right(model);
+    } on ServerException catch (e) {
+      return _serverFailure(e);
+    } on AuthException catch (e) {
+      return _authFailure(e);
+    } catch (e) {
+      return _unexpectedFailure(e);
+    }
+  }
 
   @override
   Future<Either<Failure, List<CoordinatorClub>>> listClubs({

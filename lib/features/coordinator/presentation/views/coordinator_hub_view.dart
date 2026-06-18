@@ -8,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../domain/entities/coordinator_scope.dart';
 import '../../domain/entities/sla_dashboard.dart';
 import '../providers/coordinator_providers.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
@@ -16,13 +17,14 @@ import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 ///
 /// Muestra resumen de KPIs desde el endpoint SLA y accesos directos a cada
 /// sub-módulo del coordinador: investiduras, revisión de evidencias,
-/// aprobaciones de camporees y dashboard operativo.
+/// clubes/secciones bajo gestión y dashboard operativo.
 class CoordinatorHubView extends ConsumerWidget {
   const CoordinatorHubView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final slaAsync = ref.watch(slaDashboardProvider);
+    final scopeAsync = ref.watch(coordinatorScopeProvider);
     final user = ref.watch(
       authNotifierProvider.select((v) => v.valueOrNull),
     );
@@ -33,7 +35,11 @@ class CoordinatorHubView extends ConsumerWidget {
       backgroundColor: c.background,
       body: RefreshIndicator(
         color: AppColors.primary,
-        onRefresh: () async => ref.invalidate(slaDashboardProvider),
+        onRefresh: () async {
+          ref.invalidate(slaDashboardProvider);
+          ref.invalidate(coordinatorScopeProvider);
+          ref.invalidate(coordinatorClubsRawProvider);
+        },
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
@@ -94,9 +100,21 @@ class CoordinatorHubView extends ConsumerWidget {
               padding: EdgeInsets.fromLTRB(hPad, 20, hPad, 32),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
+                  scopeAsync.when(
+                    data: (scope) => _ScopeBanner(scope: scope),
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                  ),
+
+                  const SizedBox(height: 16),
+
                   // ── Summary cards ──────────────────────────────────────
                   slaAsync.when(
-                    data: (sla) => _SummaryRow(sla: sla),
+                    data: (sla) => _SummaryRow(
+                      sla: sla,
+                      sectionCount:
+                          scopeAsync.valueOrNull?.clubSectionIds.length,
+                    ),
                     loading: () => const _SummarySkeleton(),
                     error: (_, __) => const SizedBox.shrink(),
                   ),
@@ -134,12 +152,11 @@ class CoordinatorHubView extends ConsumerWidget {
                   const SizedBox(height: 10),
 
                   _NavCard(
-                    icon: HugeIcons.strokeRoundedCalendar04,
+                    icon: HugeIcons.strokeRoundedBuilding04,
                     color: AppColors.secondary,
-                    title: 'coordinator.nav.camporees_title'.tr(),
-                    subtitle: 'coordinator.nav.camporees_subtitle'.tr(),
-                    onTap: () =>
-                        context.push(RouteNames.coordinatorCamporeeApprovals),
+                    title: 'coordinator.nav.clubs_title'.tr(),
+                    subtitle: 'coordinator.nav.clubs_subtitle'.tr(),
+                    onTap: () => context.push(RouteNames.coordinatorClubs),
                   ),
                   const SizedBox(height: 10),
 
@@ -162,10 +179,67 @@ class CoordinatorHubView extends ConsumerWidget {
 
 // ── Summary row ───────────────────────────────────────────────────────────────
 
+class _ScopeBanner extends StatelessWidget {
+  final CoordinatorScope scope;
+
+  const _ScopeBanner({required this.scope});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final hasScope = scope.hasAssignedSections;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: hasScope
+            ? AppColors.info.withValues(alpha: 0.10)
+            : AppColors.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: hasScope
+              ? AppColors.info.withValues(alpha: 0.30)
+              : AppColors.warning.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          HugeIcon(
+            icon: hasScope
+                ? HugeIcons.strokeRoundedCheckmarkCircle01
+                : HugeIcons.strokeRoundedInformationCircle,
+            size: 20,
+            color: hasScope ? AppColors.info : AppColors.warning,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              hasScope
+                  ? 'coordinator.scope.assigned'.tr(
+                      namedArgs: {
+                        'count': scope.clubSectionIds.length.toString(),
+                      },
+                    )
+                  : 'coordinator.scope.empty'.tr(),
+              style: TextStyle(
+                fontSize: 13,
+                color: c.text,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SummaryRow extends StatelessWidget {
   final SlaDashboard sla;
+  final int? sectionCount;
 
-  const _SummaryRow({required this.sla});
+  const _SummaryRow({required this.sla, this.sectionCount});
 
   @override
   Widget build(BuildContext context) {
@@ -206,10 +280,10 @@ class _SummaryRow extends StatelessWidget {
             children: [
               Expanded(
                 child: _SummaryTile(
-                  label: 'coordinator.summary.camporees'.tr(),
-                  count: sla.camporee.pending,
+                  label: 'coordinator.summary.sections'.tr(),
+                  count: sectionCount ?? 0,
                   color: AppColors.secondary,
-                  icon: HugeIcons.strokeRoundedCalendar04,
+                  icon: HugeIcons.strokeRoundedBuilding04,
                 ),
               ),
               const SizedBox(width: 10),

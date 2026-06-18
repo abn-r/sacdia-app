@@ -5,7 +5,6 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
-import 'package:sacdia_app/features/master_honors/domain/entities/master_honor_roadmap.dart';
 import 'package:sacdia_app/features/master_honors/domain/entities/user_master_honor.dart';
 import 'package:sacdia_app/features/master_honors/presentation/providers/master_honors_providers.dart';
 
@@ -54,11 +53,11 @@ class MasterHonorHistorySection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final roadmapAsync = ref.watch(userMasterHonorRoadmapProvider);
+    final honorsAsync = ref.watch(userMasterHonorsProvider);
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
-      child: roadmapAsync.when(
+      child: honorsAsync.when(
         loading: () => _MasterHonorProfileSkeleton(
           key: const ValueKey('master-honor-profile-skeleton'),
           showHeader: showHeader,
@@ -66,11 +65,11 @@ class MasterHonorHistorySection extends ConsumerWidget {
         error: (_, __) => _MasterHonorProfileError(
           key: const ValueKey('master-honor-profile-error'),
           showHeader: showHeader,
-          onRetry: () => ref.invalidate(userMasterHonorRoadmapProvider),
+          onRetry: () => ref.invalidate(userMasterHonorsProvider),
         ),
         data: (items) => _MasterHonorProfileSummary(
           key: const ValueKey('master-honor-profile-data'),
-          items: items,
+          honors: items,
           showHeader: showHeader,
         ),
       ),
@@ -81,16 +80,16 @@ class MasterHonorHistorySection extends ConsumerWidget {
 class _MasterHonorProfileSummary extends StatelessWidget {
   const _MasterHonorProfileSummary({
     super.key,
-    required this.items,
+    required this.honors,
     required this.showHeader,
   });
 
-  final List<MasterHonorRoadmap> items;
+  final List<UserMasterHonor> honors;
   final bool showHeader;
 
   @override
   Widget build(BuildContext context) {
-    final awardedItems = items.where((item) => item.isAwarded).toList();
+    final awardedItems = _orderedMasterHonors(honors);
     final totalAwarded = awardedItems.length;
     final label = totalAwarded == 1 ? 'Maestría' : 'Maestrías';
 
@@ -177,11 +176,61 @@ class _MasterHonorProfileSummary extends StatelessWidget {
                       imageUrl: item.masterImage,
                       name: item.name,
                       size: 44,
-                      color: masterHonorAccentColor(item),
+                      color: _masterHonorAccentColor(item),
                     );
                   },
                 ),
               ),
+            ),
+          if (awardedItems.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            ...awardedItems.map(
+              (honor) => _MasterHonorHistoryLine(honor: honor),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _MasterHonorHistoryLine extends StatelessWidget {
+  const _MasterHonorHistoryLine({required this.honor});
+
+  final UserMasterHonor honor;
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor = context.sac.textSecondary;
+    final tertiary = context.sac.textTertiary;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${honor.name} · ${_statusLabel(honor)}',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+            ),
+          ),
+          if (honor.awardedAt != null)
+            Text(
+              'Concedida: ${_formatShortDate(honor.awardedAt!)}',
+              style: TextStyle(fontSize: 11, color: tertiary),
+            ),
+          if (honor.revokedAt != null)
+            Text(
+              'Revocada: ${_formatShortDate(honor.revokedAt!)}',
+              style: TextStyle(fontSize: 11, color: tertiary),
+            ),
+          if (honor.recoveredAt != null)
+            Text(
+              'Recuperada: ${_formatShortDate(honor.recoveredAt!)}',
+              style: TextStyle(fontSize: 11, color: tertiary),
             ),
         ],
       ),
@@ -427,6 +476,22 @@ DateTime? _latestDate(UserMasterHonor honor) {
   ].whereType<DateTime>().toList();
   if (dates.isEmpty) return null;
   return dates.reduce((a, b) => a.isAfter(b) ? a : b);
+}
+
+String _statusLabel(UserMasterHonor honor) {
+  final label = honor.displayStatusLabel.trim();
+  if (label.isNotEmpty) return label;
+  return honor.isCurrent ? 'Vigente' : 'No vigente';
+}
+
+Color _masterHonorAccentColor(UserMasterHonor honor) {
+  return honor.isCurrent ? AppColors.secondary : AppColors.error;
+}
+
+String _formatShortDate(DateTime date) {
+  final day = date.day.toString().padLeft(2, '0');
+  final month = date.month.toString().padLeft(2, '0');
+  return '$day/$month/${date.year}';
 }
 
 bool _isDark(BuildContext context) {

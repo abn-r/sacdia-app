@@ -15,8 +15,9 @@ import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Dashboard SLA operativo del coordinador.
 ///
-/// Muestra KPIs de los tres procesos (investiture, evidence, camporee),
-/// pipeline de revisión y throughput semanal.
+/// Muestra KPIs de investiduras y evidencias, pipeline de revisión y
+/// throughput semanal. Camporee no forma parte de la superficie móvil de
+/// coordinación.
 /// Se auto-refresca cada 60 segundos.
 class SLADashboardView extends ConsumerStatefulWidget {
   const SLADashboardView({super.key});
@@ -101,13 +102,6 @@ class _SLADashboardViewState extends ConsumerState<SLADashboardView> {
                     stat: sla.evidence,
                     accentColor: AppColors.accent,
                     icon: HugeIcons.strokeRoundedFolder01,
-                  ),
-                  const SizedBox(height: 10),
-                  SlaStatCard(
-                    title: 'coordinator.summary.camporees'.tr(),
-                    stat: sla.camporee,
-                    accentColor: AppColors.secondary,
-                    icon: HugeIcons.strokeRoundedCalendar04,
                   ),
 
                   const SizedBox(height: 24),

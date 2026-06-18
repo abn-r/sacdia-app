@@ -1340,6 +1340,7 @@
       "reject_evidence": "Erreur lors du rejet de la preuve",
       "bulk_approve_evidence": "Erreur lors de l'approbation en lot",
       "bulk_reject_evidence": "Erreur lors du rejet en lot",
+      "fetch_scope": "Erreur lors de la récupération du périmètre de coordination",
       "fetch_local_camporees": "Erreur lors de la récupération des camporées",
       "fetch_union_camporees": "Erreur lors de la récupération des camporées d'union",
       "fetch_local_pending": "Erreur lors de la récupération des approbations en attente",
@@ -1362,6 +1363,8 @@
       "investitures_subtitle": "Valider les demandes d'investiture",
       "evidence_title": "Révision des preuves",
       "evidence_subtitle": "Approuver ou rejeter dossiers, cours et honneurs",
+      "clubs_title": "Clubs et sections",
+      "clubs_subtitle": "Voir les clubs et sections sous votre coordination",
       "camporees_title": "Approbations de camporées",
       "camporees_subtitle": "Clubs, membres et paiements en attente",
       "dashboard_title": "Tableau de bord opérationnel",
@@ -1370,8 +1373,13 @@
     "summary": {
       "investitures": "Investitures",
       "evidence": "Preuves",
+      "sections": "Sections",
       "camporees": "Camporées",
       "overdue": "En retard"
+    },
+    "scope": {
+      "assigned": "Vous avez {count} sections assignées pour la coordination.",
+      "empty": "Vous n'avez aucune section assignée comme coordinateur. Si vous êtes aussi directeur, vos fonctions de directeur restent visibles dans l'app."
     },
     "camporee_approvals": {
       "title": "Approbations de camporées",
@@ -1514,12 +1522,13 @@
       "honor": "Honneur"
     },
     "clubs": {
-      "title": "Clubs",
+      "title": "Clubs assignés",
       "search_hint": "Rechercher un club...",
-      "empty_title": "Aucun club",
-      "empty_subtitle": "Il n'y a aucun club assigné à votre champ local.",
+      "empty_title": "Aucun club assigné",
+      "empty_subtitle": "Il n'y a aucun club ou section dans votre périmètre de coordination.",
       "error_load": "Erreur lors du chargement des clubs",
-      "field_id_label": "Champ local #{id}"
+      "field_id_label": "Champ local #{id}",
+      "sections_label": "{count} sections"
     }
   },
   "classes": {

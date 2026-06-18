@@ -14,9 +14,6 @@ import 'package:sacdia_app/features/coordinator/presentation/providers/coordinat
 
 /// Vista principal de la rama Clubes del coordinador.
 ///
-/// Reemplaza el placeholder [CamporeeApprovalsView] que ocupaba el
-/// branchIndex=1 del StatefulShellRoute de coordinación (PR-4 / FR-2).
-///
 /// Muestra todos los clubs accesibles al coordinador con búsqueda por nombre
 /// y navega al detalle de club al tocar una tarjeta.
 class CoordinatorClubsListView extends ConsumerWidget {
@@ -52,7 +49,12 @@ class CoordinatorClubsListView extends ConsumerWidget {
                 ),
                 data: (clubs) => clubs.isEmpty
                     ? const _ClubsEmptyState()
-                    : _ClubsList(clubs: clubs, hPad: hPad),
+                    : _ClubsList(
+                        clubs: clubs,
+                        hPad: hPad,
+                        onRefresh: () =>
+                            ref.invalidate(coordinatorClubsRawProvider),
+                      ),
               ),
             ),
           ],
@@ -218,15 +220,20 @@ class _ClubSearchBarState extends ConsumerState<_ClubSearchBar> {
 class _ClubsList extends StatelessWidget {
   final List<CoordinatorClub> clubs;
   final double hPad;
+  final VoidCallback onRefresh;
 
-  const _ClubsList({required this.clubs, required this.hPad});
+  const _ClubsList({
+    required this.clubs,
+    required this.hPad,
+    required this.onRefresh,
+  });
 
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
       color: AppColors.primary,
       onRefresh: () async {
-        // Handled by invalidate in header — pull-to-refresh triggers same path
+        onRefresh();
       },
       child: ListView.separated(
         padding: EdgeInsets.fromLTRB(hPad, 4, hPad, 24),
@@ -257,10 +264,18 @@ class _ClubCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
 
-    // ClubModel only carries name and localFieldId — no clubTypeName.
-    // We fall back to AppColors.primary until the backend exposes type info.
-    // GAP: coordinator list endpoint does not return club type — documented.
     final accentColor = AppColors.primary;
+    final locationParts = <String>[
+      if (club.districtName != null && club.districtName!.isNotEmpty)
+        club.districtName!,
+      if (club.localFieldName != null && club.localFieldName!.isNotEmpty)
+        club.localFieldName!
+      else if (club.localFieldId > 0)
+        'coordinator.clubs.field_id_label'
+            .tr(namedArgs: {'id': '${club.localFieldId}'}),
+    ];
+    final locationLabel = locationParts.join(' · ');
+    final sectionSummary = club.sectionSummary;
 
     return Semantics(
       label: club.name,
@@ -313,14 +328,28 @@ class _ClubCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        'coordinator.clubs.field_id_label'
-                            .tr(namedArgs: {'id': '${club.localFieldId}'}),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: c.textSecondary,
+                      if (locationLabel.isNotEmpty) ...[
+                        Text(
+                          locationLabel,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: c.textSecondary,
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 4),
+                      ],
+                      if (sectionSummary.isNotEmpty)
+                        Text(
+                          '${'coordinator.clubs.sections_label'.tr(namedArgs: {
+                                'count': '${club.sectionCount}',
+                              })}: $sectionSummary',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: c.textSecondary,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                     ],
                   ),
                 ),

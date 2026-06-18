@@ -353,7 +353,7 @@ class _UploadProgressSheetContentState
         'core.evidence_staging.partial_dialog_body',
         namedArgs: {'count': '$_errorCount'},
       ),
-      icon: Icons.warning_amber_rounded,
+      icon: HugeIcons.strokeRoundedAlert02,
       iconColor: AppColors.observedDark,
       iconBackgroundColor: AppColors.observedBg,
       cancelLabel: tr('core.evidence_staging.cancel'),

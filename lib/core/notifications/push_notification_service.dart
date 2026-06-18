@@ -778,7 +778,6 @@ class PushNotificationService {
     RouteNames.coordinator,
     RouteNames.coordinatorSla,
     RouteNames.coordinatorEvidenceReview,
-    RouteNames.coordinatorCamporeeApprovals,
   };
 
   // ── Notification type handlers ───────────────────���───────────────────────

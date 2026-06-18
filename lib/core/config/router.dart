@@ -51,7 +51,6 @@ import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_h
 import 'package:sacdia_app/features/coordinator/presentation/views/sla_dashboard_view.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/evidence_review_list_view.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/evidence_review_detail_view.dart';
-import 'package:sacdia_app/features/coordinator/presentation/views/camporee_approvals_view.dart';
 import 'package:sacdia_app/features/coordinator/presentation/views/coordinator_clubs_list_view.dart';
 import 'package:sacdia_app/features/coordinator/domain/entities/evidence_review_item.dart';
 import 'package:sacdia_app/features/notifications/presentation/views/notifications_inbox_view.dart';
@@ -1086,16 +1085,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             EvidenceReviewDetailView(type: type, id: id),
           );
         },
-      ),
-
-      // Coordinador: aprobaciones de camporees (deep-link / sub-view entry)
-      GoRoute(
-        path: RouteNames.coordinatorCamporeeApprovals,
-        pageBuilder: (context, state) => _sharedAxisBuild(
-          context,
-          state,
-          const CamporeeApprovalsView(),
-        ),
       ),
 
       // Bandeja de notificaciones

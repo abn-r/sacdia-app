@@ -1340,6 +1340,7 @@
       "reject_evidence": "Error rejecting evidence",
       "bulk_approve_evidence": "Error in bulk approval",
       "bulk_reject_evidence": "Error in bulk rejection",
+      "fetch_scope": "Error fetching coordination scope",
       "fetch_local_camporees": "Error fetching camporees",
       "fetch_union_camporees": "Error fetching union camporees",
       "fetch_local_pending": "Error fetching pending approvals",
@@ -1362,6 +1363,8 @@
       "investitures_subtitle": "Validate investiture requests",
       "evidence_title": "Evidence Review",
       "evidence_subtitle": "Approve or reject folders, classes and honors",
+      "clubs_title": "Clubs and sections",
+      "clubs_subtitle": "View clubs and sections under your coordination",
       "camporees_title": "Camporee Approvals",
       "camporees_subtitle": "Clubs, members and pending payments",
       "dashboard_title": "Operational Dashboard",
@@ -1370,8 +1373,13 @@
     "summary": {
       "investitures": "Investitures",
       "evidence": "Evidence",
+      "sections": "Sections",
       "camporees": "Camporees",
       "overdue": "Overdue"
+    },
+    "scope": {
+      "assigned": "You have {count} sections assigned for coordination.",
+      "empty": "You do not have sections assigned as coordinator. If you are also a director, your director features still appear in the app."
     },
     "camporee_approvals": {
       "title": "Camporee Approvals",
@@ -1514,12 +1522,13 @@
       "honor": "Honor"
     },
     "clubs": {
-      "title": "Clubs",
+      "title": "Assigned clubs",
       "search_hint": "Search club...",
-      "empty_title": "No clubs",
-      "empty_subtitle": "There are no clubs assigned to your local field.",
+      "empty_title": "No assigned clubs",
+      "empty_subtitle": "There are no clubs or sections inside your coordination scope.",
       "error_load": "Error loading clubs",
-      "field_id_label": "Local field #{id}"
+      "field_id_label": "Local field #{id}",
+      "sections_label": "{count} sections"
     }
   },
   "classes": {

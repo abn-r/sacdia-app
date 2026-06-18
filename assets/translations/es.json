@@ -1340,6 +1340,7 @@
       "reject_evidence": "Error al rechazar evidencia",
       "bulk_approve_evidence": "Error en aprobación masiva",
       "bulk_reject_evidence": "Error en rechazo masivo",
+      "fetch_scope": "Error al obtener alcance de coordinación",
       "fetch_local_camporees": "Error al obtener camporees",
       "fetch_union_camporees": "Error al obtener camporees de unión",
       "fetch_local_pending": "Error al obtener aprobaciones pendientes",
@@ -1362,6 +1363,8 @@
       "investitures_subtitle": "Validar solicitudes de investidura",
       "evidence_title": "Revisión de Evidencias",
       "evidence_subtitle": "Aprobar o rechazar carpetas, clases y honores",
+      "clubs_title": "Clubes y secciones",
+      "clubs_subtitle": "Ver clubes y secciones bajo tu coordinación",
       "camporees_title": "Aprobaciones de Camporees",
       "camporees_subtitle": "Clubs, miembros y pagos pendientes",
       "dashboard_title": "Dashboard Operativo",
@@ -1370,8 +1373,13 @@
     "summary": {
       "investitures": "Investiduras",
       "evidence": "Evidencias",
+      "sections": "Secciones",
       "camporees": "Camporees",
       "overdue": "Vencidos"
+    },
+    "scope": {
+      "assigned": "Tienes {count} secciones asignadas para coordinación.",
+      "empty": "No tienes secciones asignadas como coordinador. Si también eres director, tus funciones de director siguen apareciendo en la app."
     },
     "camporee_approvals": {
       "title": "Aprobaciones de Camporees",
@@ -1514,12 +1522,13 @@
       "honor": "Honor"
     },
     "clubs": {
-      "title": "Clubs",
+      "title": "Clubes asignados",
       "search_hint": "Buscar club...",
-      "empty_title": "Sin clubs",
-      "empty_subtitle": "No hay clubs asignados a tu campo local.",
-      "error_load": "Error al cargar clubs",
-      "field_id_label": "Campo local #{id}"
+      "empty_title": "Sin clubes asignados",
+      "empty_subtitle": "No hay clubes o secciones dentro de tu alcance de coordinación.",
+      "error_load": "Error al cargar clubes",
+      "field_id_label": "Campo local #{id}",
+      "sections_label": "{count} secciones"
     }
   },
   "classes": {

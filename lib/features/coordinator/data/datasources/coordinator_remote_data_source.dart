@@ -6,13 +6,17 @@ import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/evidence_review_item.dart';
 import '../../domain/entities/camporee_approval.dart';
 import '../models/coordinator_club_model.dart';
+import '../models/coordinator_scope_model.dart';
 import '../models/sla_dashboard_model.dart';
 import '../models/evidence_review_model.dart';
 import '../models/camporee_approval_model.dart';
 
 /// Interfaz para la fuente de datos remota del coordinador.
 abstract class CoordinatorRemoteDataSource {
-  /// GET /clubs?localFieldId=...
+  /// GET /coordination/me/scope
+  Future<CoordinatorScopeModel> getMyScope({CancelToken? cancelToken});
+
+  /// Lista los clubs agrupando las secciones de /coordination/me/scope.
   Future<List<CoordinatorClubModel>> listClubs({
     int? localFieldId,
     CancelToken? cancelToken,
@@ -213,7 +217,37 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
 
   bool _isOk(int? code) => code == 200 || code == 201 || code == 204;
 
-  // ── GET /clubs ───────────────────────────────────────────────────────────────
+  // ── GET /coordination/me/scope ─────────────────────────────────────────────
+
+  @override
+  Future<CoordinatorScopeModel> getMyScope({CancelToken? cancelToken}) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.coordination}/me/scope',
+        cancelToken: cancelToken,
+      );
+
+      if (_isOk(response.statusCode)) {
+        final raw = response.data;
+        final data = raw is Map
+            ? raw['data'] is Map
+                ? Map<String, dynamic>.from(raw['data'] as Map)
+                : Map<String, dynamic>.from(raw)
+            : <String, dynamic>{};
+
+        return CoordinatorScopeModel.fromJson(data);
+      }
+      throw ServerException(
+        message: tr('coordinator.errors.fetch_scope'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getMyScope (coordinator)', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /coordination/me/scope → clubs agrupados ───────────────────────────
 
   @override
   Future<List<CoordinatorClubModel>> listClubs({
@@ -222,28 +256,11 @@ class CoordinatorRemoteDataSourceImpl implements CoordinatorRemoteDataSource {
   }) async {
     try {
       AppLogger.i(
-        'Listando clubs para coordinador (localFieldId=$localFieldId)',
+        'Listando clubs para coordinador desde scope efectivo',
         tag: _tag,
       );
-      final queryParams = <String, dynamic>{};
-      if (localFieldId != null) queryParams['localFieldId'] = localFieldId;
-
-      final response = await _dio.get(
-        '$_baseUrl${ApiEndpoints.clubs}',
-        queryParameters: queryParams.isEmpty ? null : queryParams,
-        cancelToken: cancelToken,
-      );
-
-      if (_isOk(response.statusCode)) {
-        return _parseList(
-          response.data,
-          CoordinatorClubModel.fromJson,
-        );
-      }
-      throw ServerException(
-        message: tr('coordinator.clubs.error_load'),
-        code: response.statusCode,
-      );
+      final scope = await getMyScope(cancelToken: cancelToken);
+      return CoordinatorClubModel.fromSections(scope.sections);
     } catch (e) {
       AppLogger.e('Error en listClubs (coordinator)', tag: _tag, error: e);
       _rethrow(e);
