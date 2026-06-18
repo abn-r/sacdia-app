@@ -193,7 +193,7 @@ class _FolderContent extends ConsumerWidget {
       context,
       title: 'annual_folders.submit_dialog_title'.tr(),
       content: 'annual_folders.submit_dialog_content'.tr(),
-      icon: Icons.send_rounded,
+      icon: HugeIcons.strokeRoundedMailSend01,
       cancelLabel: 'common.cancel'.tr(),
       confirmLabel: 'annual_folders.send'.tr(),
     );

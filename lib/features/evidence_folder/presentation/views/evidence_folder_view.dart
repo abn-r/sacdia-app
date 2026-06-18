@@ -101,7 +101,7 @@ class _FolderBodyState extends ConsumerState<_FolderBody> {
       content: 'evidence_folder.submit_section_dialog.message'.tr(namedArgs: {
         'sectionName': section.name,
       }),
-      icon: Icons.send_rounded,
+      icon: HugeIcons.strokeRoundedMailSend01,
       cancelLabel: 'common.cancel'.tr(),
       confirmLabel: 'evidence_folder.send'.tr(),
     );

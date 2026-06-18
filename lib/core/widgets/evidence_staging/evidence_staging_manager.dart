@@ -633,7 +633,7 @@ class EvidenceStagingManagerState extends State<EvidenceStagingManager> {
       title: tr('core.evidence_staging.submit_dialog_title'),
       content: tr('core.evidence_staging.submit_dialog_body'),
       highlight: fileCountLabel,
-      icon: Icons.send_rounded,
+      icon: HugeIcons.strokeRoundedMailSend01,
       cancelLabel: tr('core.evidence_staging.cancel'),
       confirmLabel: tr('core.evidence_staging.submit'),
     );

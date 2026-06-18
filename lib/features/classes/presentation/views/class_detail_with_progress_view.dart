@@ -206,7 +206,7 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
       highlight: 'Requisitos validados: 100%',
       confirmLabel: 'Enviar',
       cancelLabel: 'Cancelar',
-      icon: Icons.send_rounded,
+      icon: HugeIcons.strokeRoundedMailSend01,
       iconColor: AppColors.coral700,
       iconBackgroundColor: AppColors.coral50,
     );

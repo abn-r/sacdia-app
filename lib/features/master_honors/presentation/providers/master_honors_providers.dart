@@ -83,9 +83,10 @@ final userMasterHonorRoadmapProvider =
 
 /// Ruta recomendada para abrir desde el tap de notificaciones de maestrías.
 ///
-/// La pantalla dedicada concentra el roadmap completo y los requisitos.
+/// El perfil contiene el resumen histórico y mantiene el contrato de
+/// navegación de notificaciones ya cubierto por pruebas.
 final masterHonorsNotificationTapRouteProvider = Provider<String>((_) {
-  return RouteNames.homeMasterHonors;
+  return RouteNames.homeProfile;
 });
 
 /// Hook estable para que notificaciones `master_honor_changed` invaliden cache.

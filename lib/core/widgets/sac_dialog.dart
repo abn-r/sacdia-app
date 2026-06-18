@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 
@@ -25,7 +26,7 @@ class SacDialog extends StatelessWidget {
   final String title;
   final String? content;
   final String? highlight;
-  final IconData? icon;
+  final List<List<dynamic>>? icon;
   final Color? iconColor;
   final Color? iconBackgroundColor;
   final List<SacDialogAction> actions;
@@ -53,7 +54,7 @@ class SacDialog extends StatelessWidget {
     String? cancelLabel,
     bool confirmIsDestructive = false,
     String? highlight,
-    IconData? icon,
+    List<List<dynamic>>? icon,
     Color? iconColor,
     Color? iconBackgroundColor,
   }) {
@@ -67,8 +68,8 @@ class SacDialog extends StatelessWidget {
         highlight: highlight,
         icon: icon ??
             (confirmIsDestructive
-                ? Icons.warning_amber_rounded
-                : Icons.check_rounded),
+                ? HugeIcons.strokeRoundedAlert02
+                : HugeIcons.strokeRoundedCheckmarkCircle02),
         iconColor: iconColor ??
             (confirmIsDestructive ? AppColors.error : AppColors.coral700),
         iconBackgroundColor: iconBackgroundColor ??
@@ -135,8 +136,8 @@ class SacDialog extends StatelessWidget {
                                   .withValues(alpha: 0.14),
                             ),
                           ),
-                          child: Icon(
-                            icon,
+                          child: HugeIcon(
+                            icon: icon!,
                             size: 26,
                             color: iconColor,
                           ),
