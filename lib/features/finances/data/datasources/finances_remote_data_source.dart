@@ -21,6 +21,8 @@ abstract class FinancesRemoteDataSource {
 
   Future<FinanceSummaryModel> getSummary({
     required int clubId,
+    int? year,
+    int? month,
     CancelToken? cancelToken,
   });
 
@@ -121,11 +123,17 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
   @override
   Future<FinanceSummaryModel> getSummary({
     required int clubId,
+    int? year,
+    int? month,
     CancelToken? cancelToken,
   }) async {
     try {
       final response = await _dio.get(
         '$_baseUrl${ApiEndpoints.clubs}/$clubId/finances/summary',
+        queryParameters: {
+          if (year != null) 'year': year,
+          if (month != null) 'month': month,
+        },
         cancelToken: cancelToken,
       );
 

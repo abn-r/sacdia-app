@@ -7,6 +7,7 @@ import '../repositories/inventory_repository.dart';
 
 class CreateInventoryItemParams extends Equatable {
   final int clubId;
+  final String instanceType;
   final String name;
   final int categoryId;
   final int quantity;
@@ -21,6 +22,7 @@ class CreateInventoryItemParams extends Equatable {
 
   const CreateInventoryItemParams({
     required this.clubId,
+    required this.instanceType,
     required this.name,
     required this.categoryId,
     required this.quantity,
@@ -37,6 +39,7 @@ class CreateInventoryItemParams extends Equatable {
   @override
   List<Object?> get props => [
         clubId,
+        instanceType,
         name,
         categoryId,
         quantity,
@@ -60,6 +63,7 @@ class CreateInventoryItem {
       CreateInventoryItemParams params) {
     return repository.createItem(
       clubId: params.clubId,
+      instanceType: params.instanceType,
       name: params.name,
       categoryId: params.categoryId,
       quantity: params.quantity,

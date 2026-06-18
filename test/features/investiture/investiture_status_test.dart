@@ -23,5 +23,14 @@ void main() {
 
       expect(status['expired'], 'Vencida');
     });
+
+    test('defines submitted for validation as a reader-facing label', () async {
+      final raw = await rootBundle.loadString('assets/translations/es.json');
+      final json = jsonDecode(raw) as Map<String, dynamic>;
+      final investiture = json['investiture'] as Map<String, dynamic>;
+      final status = investiture['status'] as Map<String, dynamic>;
+
+      expect(status['submitted'], 'Enviado a validación');
+    });
   });
 }

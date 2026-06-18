@@ -1947,6 +1947,8 @@
       "no_diseases": "No diseases registered",
       "no_medicines": "No medications registered",
       "no_emergency_contacts": "No emergency contacts registered",
+      "call_contact_tooltip": "Call contact",
+      "call_contact_failed": "Could not open the phone dialer",
       "load_error": "Error loading",
       "profile_load_error": "Error loading profile"
     },
@@ -2146,7 +2148,8 @@
       "get_item": "Error fetching item",
       "create_item": "Error creating item",
       "update_item": "Error updating item",
-      "delete_item": "Error deleting item"
+      "delete_item": "Error deleting item",
+      "upload_evidence": "Error uploading item evidence"
     },
     "detail": {
       "title": "Item Detail",
@@ -2213,7 +2216,13 @@
       "updated_success": "Item updated successfully",
       "registered_success": "Item registered successfully",
       "select_date": "Select date",
-      "categories_error": "Could not load categories"
+      "categories_error": "Could not load categories",
+      "section_evidence": "Item evidence",
+      "evidence_hint": "Add 1 to 3 clear photos of the item.",
+      "evidence_count": "{count}/3 evidences",
+      "evidence_required": "Add at least one item photo",
+      "evidence_limit": "You can attach up to 3 photos",
+      "evidence_pick_error": "Could not select the photo"
     },
     "filter": {
       "sort_name_asc": "Name A-Z",
@@ -2543,7 +2552,7 @@
     },
     "status": {
       "in_progress": "In progress",
-      "submitted": "Submitted",
+      "submitted": "Submitted for validation",
       "club_approved": "Approved by club",
       "coordinator_approved": "Approved by coordinator",
       "field_approved": "Approved by field",

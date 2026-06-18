@@ -23,6 +23,7 @@ abstract class InventoryRepository {
   /// Crea un nuevo ítem en el inventario.
   Future<Either<Failure, InventoryItem>> createItem({
     required int clubId,
+    required String instanceType,
     required String name,
     required int categoryId,
     required int quantity,
@@ -54,6 +55,14 @@ abstract class InventoryRepository {
 
   /// Elimina (soft-delete) un ítem del inventario.
   Future<Either<Failure, void>> deleteItem({required int itemId});
+
+  /// Sube una foto de evidencia para un ítem del inventario.
+  Future<Either<Failure, InventoryEvidence>> uploadEvidence({
+    required int itemId,
+    required String filePath,
+    required String fileName,
+    required String mimeType,
+  });
 
   /// Devuelve las categorías de inventario disponibles.
   Future<Either<Failure, List<InventoryCategory>>> getCategories({

@@ -42,15 +42,12 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
   Widget build(BuildContext context) {
     final filteredAsync = ref.watch(filteredInventoryItemsProvider);
     final canManageAsync = ref.watch(canManageInventoryProvider);
-    final summaryAsync = ref.watch(inventorySummaryProvider);
     final filters = ref.watch(inventoryFiltersProvider);
 
     final canManage = canManageAsync.valueOrNull ?? false;
 
     return Scaffold(
       backgroundColor: context.sac.background,
-      floatingActionButton:
-          canManage ? _AddFab(onTap: () => _openAddSheet(context)) : null,
       body: SafeArea(
         child: RefreshIndicator(
           color: AppColors.primary,
@@ -78,6 +75,16 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
                 ),
                 centerTitle: false,
                 actions: [
+                  if (canManage)
+                    IconButton(
+                      tooltip: 'inventory.view.add_button'.tr(),
+                      onPressed: () => _openAddSheet(context),
+                      icon: HugeIcon(
+                        icon: HugeIcons.strokeRoundedAdd01,
+                        size: 22,
+                        color: AppColors.primary,
+                      ),
+                    ),
                   IconButton(
                     onPressed: () => ref.invalidate(inventoryItemsProvider),
                     icon: HugeIcon(
@@ -88,12 +95,6 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
                   ),
                 ],
               ),
-
-              // ── Stats row ────────────────────────────────────────────────
-              if (summaryAsync != null)
-                SliverToBoxAdapter(
-                  child: InventoryStatsRow(summary: summaryAsync),
-                ),
 
               // ── Search + filter button ───────────────────────────────────
               SliverToBoxAdapter(
@@ -179,9 +180,8 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
                         },
                       ),
 
-                      // FAB clearance
                       const SliverToBoxAdapter(
-                        child: SizedBox(height: 88),
+                        child: SizedBox(height: 24),
                       ),
                     ],
                   );
@@ -637,32 +637,6 @@ class _EmptyState extends StatelessWidget {
             ),
           ],
         ],
-      ),
-    );
-  }
-}
-
-// ── FAB ─────────────────────────────────────────────────────────────────────────
-
-class _AddFab extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _AddFab({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return FloatingActionButton.extended(
-      onPressed: onTap,
-      backgroundColor: AppColors.primary,
-      foregroundColor: Colors.white,
-      icon: const HugeIcon(
-        icon: HugeIcons.strokeRoundedAdd01,
-        size: 20,
-        color: Colors.white,
-      ),
-      label: Text(
-        'inventory.view.add_button'.tr(),
-        style: const TextStyle(fontWeight: FontWeight.w700),
       ),
     );
   }

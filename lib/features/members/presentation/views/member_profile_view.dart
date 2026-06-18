@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/responsive.dart';
@@ -11,10 +12,12 @@ import 'package:sacdia_app/core/widgets/sac_badge.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import 'package:sacdia_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sacdia_app/features/investiture/domain/entities/investiture_status.dart';
 import 'package:sacdia_app/features/profile/presentation/widgets/info_section.dart';
 
 import '../../domain/entities/club_member.dart';
 import '../providers/members_providers.dart';
+import '../utils/member_profile_display.dart';
 
 import '../../../classes/domain/entities/progressive_class.dart';
 
@@ -202,7 +205,7 @@ class _PersonalInfoSection extends StatelessWidget {
           InfoItem(
             icon: HugeIcons.strokeRoundedBlood,
             label: 'members.profile_view.blood_type_label'.tr(),
-            value: detail.blood,
+            value: formatMemberBloodTypeDisplay(detail.blood) ?? detail.blood,
           ),
       ],
     );
@@ -218,17 +221,10 @@ class _ClubInfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String? baptismValue;
-    if (detail.baptism == true) {
-      if (detail.baptismDate != null) {
-        baptismValue =
-            "\${'common.yes'.tr()} · \${DateFormat('dd/MM/yyyy').format(detail.baptismDate!)}";
-      } else {
-        baptismValue = 'common.yes'.tr();
-      }
-    } else if (detail.baptism == false) {
-      baptismValue = 'common.no'.tr();
-    }
+    final baptismValue = formatMemberBaptismDisplay(
+      baptized: detail.baptism,
+      baptismDate: detail.baptismDate,
+    );
 
     return InfoSection(
       title: 'members.profile_view.club_info_title'.tr(),
@@ -323,6 +319,8 @@ class _ClassItem extends StatelessWidget {
     final classColor = AppColors.classColor(progressiveClass.name);
     final logoAsset = AppColors.classLogoAsset(progressiveClass.name);
     final progress = progressiveClass.overallProgress;
+    final investitureStatus =
+        memberProfileInvestitureStatus(progressiveClass.investitureStatus);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -373,20 +371,20 @@ class _ClassItem extends StatelessWidget {
               ],
             ),
           ),
-          if (progressiveClass.investitureStatus != null)
+          if (investitureStatus != null)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: _investitureColor(progressiveClass.investitureStatus!)
+                color: _investitureColor(investitureStatus)
                     .withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                _investitureLabel(progressiveClass.investitureStatus!),
+                investitureStatus.label,
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: _investitureColor(progressiveClass.investitureStatus!),
+                  color: _investitureColor(investitureStatus),
                 ),
               ),
             ),
@@ -395,25 +393,21 @@ class _ClassItem extends StatelessWidget {
     );
   }
 
-  Color _investitureColor(String status) {
-    switch (status.toUpperCase()) {
-      case 'INVESTIDO':
+  Color _investitureColor(InvestitureStatus status) {
+    switch (status) {
+      case InvestitureStatus.investido:
         return AppColors.secondary;
-      case 'PENDIENTE':
+      case InvestitureStatus.submittedForValidation:
         return AppColors.accent;
-      default:
+      case InvestitureStatus.rejected:
+      case InvestitureStatus.expired:
+        return AppColors.error;
+      case InvestitureStatus.inProgress:
+      case InvestitureStatus.clubApproved:
+      case InvestitureStatus.coordinatorApproved:
+      case InvestitureStatus.fieldApproved:
+      case InvestitureStatus.approved:
         return AppColors.info;
-    }
-  }
-
-  String _investitureLabel(String status) {
-    switch (status.toUpperCase()) {
-      case 'INVESTIDO':
-        return 'members.common.invested'.tr();
-      case 'PENDIENTE':
-        return 'members.common.pending'.tr();
-      default:
-        return status;
     }
   }
 }
@@ -797,11 +791,24 @@ class _EmergencyContactsBody extends ConsumerWidget {
                       color: AppColors.primaryLight,
                       shape: BoxShape.circle,
                     ),
-                    child: Center(
-                      child: HugeIcon(
-                        icon: HugeIcons.strokeRoundedUser,
-                        color: AppColors.primaryDark,
-                        size: 16,
+                    child: Material(
+                      color: Colors.transparent,
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: () =>
+                            _openEmergencyContactDialer(context, contact.phone),
+                        child: Tooltip(
+                          message:
+                              'members.profile_view.call_contact_tooltip'.tr(),
+                          child: Center(
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedCall,
+                              color: AppColors.primaryDark,
+                              size: 16,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -835,6 +842,26 @@ class _EmergencyContactsBody extends ConsumerWidget {
         );
       },
     );
+  }
+
+  Future<void> _openEmergencyContactDialer(
+    BuildContext context,
+    String phone,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final uri = memberPhoneDialUri(phone);
+    final launched = uri != null &&
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+    if (!launched && context.mounted) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('members.profile_view.call_contact_failed'.tr()),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 }
 

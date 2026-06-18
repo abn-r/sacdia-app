@@ -164,13 +164,18 @@ final financeSummaryProvider =
   final clubId = await ref.watch(currentClubIdProvider.future);
   if (clubId == null) return null;
 
+  final selected = ref.watch(selectedMonthProvider);
   final useCase = ref.read(getFinanceSummaryUseCaseProvider);
 
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
 
   final result = await useCase(
-    GetFinanceSummaryParams(clubId: clubId),
+    GetFinanceSummaryParams(
+      clubId: clubId,
+      year: selected.year,
+      month: selected.month,
+    ),
     cancelToken: cancelToken,
   );
 

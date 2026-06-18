@@ -37,6 +37,13 @@ class ClubMemberModel extends ClubMember {
     // Clase actual del miembro
     final currentClassData = json['current_class'] as Map<String, dynamic>? ??
         user['current_class'] as Map<String, dynamic>?;
+    final currentClassName = currentClassData?['name'] as String? ??
+        json['current_class_name'] as String? ??
+        user['current_class_name'] as String?;
+    final currentClassIdRaw = currentClassData?['class_id'] ??
+        currentClassData?['id'] ??
+        json['current_class_id'] ??
+        user['current_class_id'];
 
     // Rol asignado en el club
     final roleData = json['club_role'] as Map<String, dynamic>? ??
@@ -75,10 +82,10 @@ class ClubMemberModel extends ClubMember {
       clubRoleAssignmentId: json['assignment_id']?.toString() ??
           json['club_role_assignment_id']?.toString() ??
           json['id']?.toString(),
-      currentClass: currentClassData?['name'] as String?,
-      currentClassId: currentClassData?['id'] is int
-          ? currentClassData!['id'] as int
-          : int.tryParse(currentClassData?['id']?.toString() ?? ''),
+      currentClass: currentClassName,
+      currentClassId: currentClassIdRaw is int
+          ? currentClassIdRaw
+          : int.tryParse(currentClassIdRaw?.toString() ?? ''),
       isEnrolled:
           json['is_enrolled'] as bool? ?? json['enrolled'] as bool? ?? true,
       clubSectionId: json['club_section_id'] is int

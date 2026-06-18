@@ -49,11 +49,15 @@ class FinancesRepositoryImpl implements FinancesRepository {
   @override
   Future<Either<Failure, FinanceSummary>> getSummary({
     required int clubId,
+    int? year,
+    int? month,
     RequestCancelToken? cancelToken,
   }) async {
     try {
       final model = await remoteDataSource.getSummary(
         clubId: clubId,
+        year: year,
+        month: month,
         cancelToken: cancelToken.asDioCancelToken(),
       );
       return Right(model.toEntity());

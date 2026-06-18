@@ -3,9 +3,10 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/utils/icon_helper.dart';
 import '../../domain/entities/transaction.dart';
 
-/// Fila de transacción con chip de categoría con emoji, descripción y monto.
+/// Fila de transacción con ícono de categoría, descripción y monto.
 class TransactionTile extends StatelessWidget {
   final FinanceTransaction transaction;
   final VoidCallback? onTap;
@@ -16,17 +17,17 @@ class TransactionTile extends StatelessWidget {
     this.onTap,
   });
 
-  static const _emojiMap = {
-    1: '🛒',
-    2: '🏠',
-    3: '🚗',
-    4: '⭐',
-    5: '❤️',
-    6: '📚',
-    7: '🎁',
-    8: '💰',
-    9: '💼',
-    10: '🏷️',
+  static const _iconMap = <int, HugeIconData>{
+    1: HugeIcons.strokeRoundedShoppingCart01,
+    2: HugeIcons.strokeRoundedHome01,
+    3: HugeIcons.strokeRoundedCar01,
+    4: HugeIcons.strokeRoundedStar,
+    5: HugeIcons.strokeRoundedFavourite,
+    6: HugeIcons.strokeRoundedBookOpen01,
+    7: HugeIcons.strokeRoundedGift,
+    8: HugeIcons.strokeRoundedMoney01,
+    9: HugeIcons.strokeRoundedBriefcaseDollar,
+    10: HugeIcons.strokeRoundedTag01,
   };
 
   static const _accentColors = {
@@ -43,7 +44,7 @@ class TransactionTile extends StatelessWidget {
   };
 
   static const _defaultAccent = Color(0xFF6B7280);
-  static const _defaultEmoji = '💵';
+  static const HugeIconData _defaultIcon = HugeIcons.strokeRoundedMoney01;
   static final _currencyFormatter = NumberFormat.currency(
     locale: 'en_US',
     symbol: '\$',
@@ -57,7 +58,7 @@ class TransactionTile extends StatelessWidget {
     final isIncome = transaction.type.isIncome;
     final category = transaction.category;
     final accentColor = _accentColors[category.iconIndex] ?? _defaultAccent;
-    final emoji = _emojiMap[category.iconIndex] ?? _defaultEmoji;
+    final icon = _iconFor(category.name, category.iconIndex);
 
     final transactionSurface =
         isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8FAFC);
@@ -89,7 +90,7 @@ class TransactionTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Emoji icon in a small rounded square (no chip with text)
+            // Category icon in a small rounded square (no chip with text)
             Container(
               width: 36,
               height: 36,
@@ -98,9 +99,10 @@ class TransactionTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Center(
-                child: Text(
-                  emoji,
-                  style: const TextStyle(fontSize: 16),
+                child: HugeIcon(
+                  icon: icon,
+                  size: 20,
+                  color: accentColor,
                 ),
               ),
             ),
@@ -197,5 +199,38 @@ class TransactionTile extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  static HugeIconData _iconFor(String categoryName, int iconIndex) {
+    final iconByIndex = _iconMap[iconIndex];
+    if (iconByIndex != null) return iconByIndex;
+
+    final normalized = categoryName.toLowerCase();
+    if (normalized.contains('venta')) {
+      return HugeIcons.strokeRoundedMoneyReceive01;
+    }
+    if (normalized.contains('seguro') || normalized.contains('médico')) {
+      return HugeIcons.strokeRoundedHealth;
+    }
+    if (normalized.contains('cuadern') ||
+        normalized.contains('material') ||
+        normalized.contains('clase')) {
+      return HugeIcons.strokeRoundedBookOpen01;
+    }
+    if (normalized.contains('transporte')) {
+      return HugeIcons.strokeRoundedCar01;
+    }
+    if (normalized.contains('comida')) {
+      return HugeIcons.strokeRoundedShoppingBasket01;
+    }
+    if (normalized.contains('inscripción') ||
+        normalized.contains('inscripcion')) {
+      return HugeIcons.strokeRoundedInvoice03;
+    }
+    if (normalized.contains('apoyo')) {
+      return HugeIcons.strokeRoundedGift;
+    }
+
+    return _defaultIcon;
   }
 }

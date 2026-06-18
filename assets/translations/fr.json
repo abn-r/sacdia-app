@@ -1947,6 +1947,8 @@
       "no_diseases": "Aucune maladie enregistrée",
       "no_medicines": "Aucun médicament enregistré",
       "no_emergency_contacts": "Aucun contact d'urgence enregistré",
+      "call_contact_tooltip": "Appeler le contact",
+      "call_contact_failed": "Impossible d’ouvrir le composeur téléphonique",
       "load_error": "Erreur de chargement",
       "profile_load_error": "Erreur lors du chargement du profil"
     },
@@ -2146,7 +2148,8 @@
       "get_item": "Erreur lors de la récupération de l'article",
       "create_item": "Erreur lors de la création de l'article",
       "update_item": "Erreur lors de la mise à jour de l'article",
-      "delete_item": "Erreur lors de la suppression de l'article"
+      "delete_item": "Erreur lors de la suppression de l'article",
+      "upload_evidence": "Erreur lors du téléversement de la preuve de l'article"
     },
     "detail": {
       "title": "Détail de l'article",
@@ -2213,7 +2216,13 @@
       "updated_success": "Article mis à jour avec succès",
       "registered_success": "Article enregistré avec succès",
       "select_date": "Sélectionner une date",
-      "categories_error": "Impossible de charger les catégories"
+      "categories_error": "Impossible de charger les catégories",
+      "section_evidence": "Preuves de l'article",
+      "evidence_hint": "Ajoutez 1 à 3 photos claires de l'article.",
+      "evidence_count": "{count}/3 preuves",
+      "evidence_required": "Ajoutez au moins une photo de l'article",
+      "evidence_limit": "Vous pouvez joindre au maximum 3 photos",
+      "evidence_pick_error": "Impossible de sélectionner la photo"
     },
     "filter": {
       "sort_name_asc": "Nom A-Z",
@@ -2543,7 +2552,7 @@
     },
     "status": {
       "in_progress": "En cours",
-      "submitted": "Soumis",
+      "submitted": "Soumis pour validation",
       "club_approved": "Approuvé par le club",
       "coordinator_approved": "Approuvé par le coordinateur",
       "field_approved": "Approuvé par le champ",

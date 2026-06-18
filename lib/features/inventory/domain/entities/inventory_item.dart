@@ -32,6 +32,41 @@ enum ItemCondition {
   }
 }
 
+/// Foto/evidencia asociada a un artículo de inventario.
+class InventoryEvidence extends Equatable {
+  final int id;
+  final int inventoryId;
+  final String url;
+  final String fileName;
+  final String fileType;
+  final int? fileSize;
+  final String? uploadedById;
+  final DateTime uploadedAt;
+
+  const InventoryEvidence({
+    required this.id,
+    required this.inventoryId,
+    required this.url,
+    required this.fileName,
+    required this.fileType,
+    this.fileSize,
+    this.uploadedById,
+    required this.uploadedAt,
+  });
+
+  @override
+  List<Object?> get props => [
+        id,
+        inventoryId,
+        url,
+        fileName,
+        fileType,
+        fileSize,
+        uploadedById,
+        uploadedAt,
+      ];
+}
+
 /// Representa un ítem del inventario del club.
 class InventoryItem extends Equatable {
   final int id;
@@ -42,6 +77,7 @@ class InventoryItem extends Equatable {
   final ItemCondition condition;
   final String? serialNumber;
   final String? photoUrl;
+  final List<InventoryEvidence> evidences;
   final DateTime? purchaseDate;
   final double? estimatedValue;
   final String? location;
@@ -61,6 +97,7 @@ class InventoryItem extends Equatable {
     required this.condition,
     this.serialNumber,
     this.photoUrl,
+    this.evidences = const [],
     this.purchaseDate,
     this.estimatedValue,
     this.location,
@@ -82,6 +119,7 @@ class InventoryItem extends Equatable {
         condition,
         serialNumber,
         photoUrl,
+        evidences,
         purchaseDate,
         estimatedValue,
         location,

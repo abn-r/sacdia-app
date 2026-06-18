@@ -20,9 +20,14 @@ abstract class FinancesRepository {
     RequestCancelToken? cancelToken,
   });
 
-  /// Devuelve el resumen financiero global del club.
+  /// Devuelve el resumen financiero del club.
+  ///
+  /// Cuando [year] y [month] están presentes, el backend devuelve el saldo
+  /// acumulado del año eclesiástico hasta ese mes.
   Future<Either<Failure, FinanceSummary>> getSummary({
     required int clubId,
+    int? year,
+    int? month,
     RequestCancelToken? cancelToken,
   });
 

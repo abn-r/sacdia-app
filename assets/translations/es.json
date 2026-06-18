@@ -1947,6 +1947,8 @@
       "no_diseases": "Sin enfermedades registradas",
       "no_medicines": "Sin medicamentos registrados",
       "no_emergency_contacts": "Sin contactos de emergencia registrados",
+      "call_contact_tooltip": "Llamar contacto",
+      "call_contact_failed": "No se pudo abrir el marcador telefónico",
       "load_error": "Error al cargar",
       "profile_load_error": "Error al cargar el perfil"
     },
@@ -2146,7 +2148,8 @@
       "get_item": "Error al obtener el ítem",
       "create_item": "Error al crear el ítem",
       "update_item": "Error al actualizar el ítem",
-      "delete_item": "Error al eliminar el ítem"
+      "delete_item": "Error al eliminar el ítem",
+      "upload_evidence": "Error al subir la evidencia del artículo"
     },
     "detail": {
       "title": "Detalle del Artículo",
@@ -2213,7 +2216,13 @@
       "updated_success": "Artículo actualizado correctamente",
       "registered_success": "Artículo registrado correctamente",
       "select_date": "Seleccionar fecha",
-      "categories_error": "No se pudieron cargar las categorías"
+      "categories_error": "No se pudieron cargar las categorías",
+      "section_evidence": "Evidencias del artículo",
+      "evidence_hint": "Agrega de 1 a 3 fotos claras del artículo.",
+      "evidence_count": "{count}/3 evidencias",
+      "evidence_required": "Agrega al menos una foto del artículo",
+      "evidence_limit": "Puedes adjuntar máximo 3 fotos",
+      "evidence_pick_error": "No se pudo seleccionar la foto"
     },
     "filter": {
       "sort_name_asc": "Nombre A-Z",
@@ -2543,7 +2552,7 @@
     },
     "status": {
       "in_progress": "En progreso",
-      "submitted": "Enviado",
+      "submitted": "Enviado a validación",
       "club_approved": "Aprobado por el club",
       "coordinator_approved": "Aprobado por coordinador",
       "field_approved": "Aprobado por campo",

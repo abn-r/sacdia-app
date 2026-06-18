@@ -33,7 +33,8 @@ class FinanceTransactionModel extends FinanceTransaction {
 
     final category = FinanceCategoryModel.fromJson(categoryJson).toEntity();
 
-    // Determinar tipo por el typeCode de la categoría (1=ingreso, 2=egreso).
+    // Determinar tipo por el contrato vigente del backend:
+    // finances_categories.type: 0=ingreso, 1=egreso.
     // Si no se puede determinar, usar el campo 'type' si existe.
     final rawType =
         json['type']?.toString() ?? json['transaction_type']?.toString() ?? '';
@@ -66,15 +67,15 @@ class FinanceTransactionModel extends FinanceTransaction {
   }
 
   static TransactionType _parseType(String raw, FinanceCategory category) {
-    if (raw == 'income' || raw == '1' || raw == 'ingreso') {
+    if (raw == 'income' || raw == '0' || raw == 'ingreso') {
       return TransactionType.income;
     }
-    if (raw == 'expense' || raw == '2' || raw == 'egreso') {
+    if (raw == 'expense' || raw == '1' || raw == '2' || raw == 'egreso') {
       return TransactionType.expense;
     }
     // Inferir por el tipo de categoría
-    if (category.typeCode == 1) return TransactionType.income;
-    if (category.typeCode == 2) return TransactionType.expense;
+    if (category.typeCode == 0) return TransactionType.income;
+    if (category.typeCode != 0) return TransactionType.expense;
     return TransactionType.income; // default
   }
 

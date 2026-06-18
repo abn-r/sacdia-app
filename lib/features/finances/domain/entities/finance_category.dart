@@ -8,10 +8,10 @@ class FinanceCategory extends Equatable {
   final String name;
   final String? description;
 
-  /// Índice de ícono almacenado en la BD (0 = genérico, ver [FinanceCategoryIcon]).
+  /// Índice de ícono almacenado en la BD.
   final int iconIndex;
 
-  /// Tipo de categoría: 1 = ingreso, 2 = egreso, 0 = ambos.
+  /// Tipo de categoría según el backend: 0 = ingreso, 1 = egreso.
   final int typeCode;
 
   const FinanceCategory({
@@ -23,10 +23,10 @@ class FinanceCategory extends Equatable {
   });
 
   /// Devuelve true si la categoría aplica a [TransactionType.income].
-  bool get appliesToIncome => typeCode == 0 || typeCode == 1;
+  bool get appliesToIncome => typeCode == 0;
 
   /// Devuelve true si la categoría aplica a [TransactionType.expense].
-  bool get appliesToExpense => typeCode == 0 || typeCode == 2;
+  bool get appliesToExpense => typeCode != 0;
 
   @override
   List<Object?> get props => [id, name, description, iconIndex, typeCode];

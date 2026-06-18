@@ -14,8 +14,8 @@ class FinanceCategoryModel extends FinanceCategory {
       id: _parseInt(json['finance_category_id'] ?? json['id'] ?? 0),
       name: (json['name'] ?? 'Sin nombre').toString(),
       description: json['description']?.toString(),
-      iconIndex: _parseInt(json['icon'] ?? 0),
-      typeCode: _parseInt(json['type'] ?? 0),
+      iconIndex: _parseInt(json['iconIndex'] ?? json['icon'] ?? 0),
+      typeCode: _parseInt(json['typeCode'] ?? json['type'] ?? 0),
     );
   }
 

@@ -8,11 +8,17 @@ import '../repositories/finances_repository.dart';
 
 class GetFinanceSummaryParams extends Equatable {
   final int clubId;
+  final int? year;
+  final int? month;
 
-  const GetFinanceSummaryParams({required this.clubId});
+  const GetFinanceSummaryParams({
+    required this.clubId,
+    this.year,
+    this.month,
+  });
 
   @override
-  List<Object?> get props => [clubId];
+  List<Object?> get props => [clubId, year, month];
 }
 
 class GetFinanceSummary {
@@ -26,6 +32,8 @@ class GetFinanceSummary {
   }) {
     return repository.getSummary(
       clubId: params.clubId,
+      year: params.year,
+      month: params.month,
       cancelToken: cancelToken,
     );
   }

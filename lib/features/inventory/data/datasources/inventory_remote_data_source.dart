@@ -22,6 +22,7 @@ abstract class InventoryRemoteDataSource {
 
   Future<InventoryItemModel> createItem({
     required int clubId,
+    required String instanceType,
     required String name,
     required int categoryId,
     required int quantity,
@@ -51,6 +52,13 @@ abstract class InventoryRemoteDataSource {
   });
 
   Future<void> deleteItem({required int itemId});
+
+  Future<InventoryEvidenceModel> uploadEvidence({
+    required int itemId,
+    required String filePath,
+    required String fileName,
+    required String mimeType,
+  });
 
   Future<List<InventoryCategoryModel>> getCategories({
     CancelToken? cancelToken,
@@ -173,6 +181,7 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
   @override
   Future<InventoryItemModel> createItem({
     required int clubId,
+    required String instanceType,
     required String name,
     required int categoryId,
     required int quantity,
@@ -189,20 +198,10 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
       final body = <String, dynamic>{
         'name': name,
         'inventory_category_id': categoryId,
-        'quantity': quantity,
-        'condition': InventoryItemModel.conditionToString(condition),
+        'amount': quantity,
+        'instanceType': instanceType,
         if (description != null && description.isNotEmpty)
           'description': description,
-        if (serialNumber != null && serialNumber.isNotEmpty)
-          'serial_number': serialNumber,
-        if (purchaseDate != null)
-          'purchase_date':
-              '${purchaseDate.year}-${purchaseDate.month.toString().padLeft(2, '0')}-${purchaseDate.day.toString().padLeft(2, '0')}',
-        if (estimatedValue != null) 'estimated_value': estimatedValue,
-        if (location != null && location.isNotEmpty) 'location': location,
-        if (assignedTo != null && assignedTo.isNotEmpty)
-          'assigned_to': assignedTo,
-        if (notes != null && notes.isNotEmpty) 'notes': notes,
       };
 
       final response = await _dio.post(
@@ -249,18 +248,8 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
       final body = <String, dynamic>{
         if (name != null) 'name': name,
         if (categoryId != null) 'inventory_category_id': categoryId,
-        if (quantity != null) 'quantity': quantity,
-        if (condition != null)
-          'condition': InventoryItemModel.conditionToString(condition),
+        if (quantity != null) 'amount': quantity,
         if (description != null) 'description': description,
-        if (serialNumber != null) 'serial_number': serialNumber,
-        if (purchaseDate != null)
-          'purchase_date':
-              '${purchaseDate.year}-${purchaseDate.month.toString().padLeft(2, '0')}-${purchaseDate.day.toString().padLeft(2, '0')}',
-        if (estimatedValue != null) 'estimated_value': estimatedValue,
-        if (location != null) 'location': location,
-        if (assignedTo != null) 'assigned_to': assignedTo,
-        if (notes != null) 'notes': notes,
       };
 
       final response = await _dio.patch(
@@ -307,6 +296,47 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
       );
     } catch (e) {
       AppLogger.e('Error en deleteItem', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── POST /inventory/inventory/:id/evidences ───────────────────────────────
+
+  @override
+  Future<InventoryEvidenceModel> uploadEvidence({
+    required int itemId,
+    required String filePath,
+    required String fileName,
+    required String mimeType,
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          filePath,
+          filename: fileName,
+          contentType: DioMediaType.parse(mimeType),
+        ),
+      });
+
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.inventory}/inventory/$itemId/evidences',
+        data: formData,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final resp = response.data as Map<String, dynamic>;
+        final json = resp.containsKey('data')
+            ? resp['data'] as Map<String, dynamic>
+            : resp;
+        return InventoryEvidenceModel.fromJson(json);
+      }
+
+      throw ServerException(
+        message: tr('inventory.errors.upload_evidence'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en uploadEvidence', tag: _tag, error: e);
       _rethrow(e);
     }
   }

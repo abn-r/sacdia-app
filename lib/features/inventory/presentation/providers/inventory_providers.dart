@@ -17,6 +17,7 @@ import '../../domain/usecases/get_inventory_categories.dart';
 import '../../domain/usecases/get_inventory_item.dart';
 import '../../domain/usecases/get_inventory_items.dart';
 import '../../domain/usecases/update_inventory_item.dart';
+import '../../domain/usecases/upload_inventory_evidence.dart';
 
 // ── Infrastructure ──────────────────────────────────────────────────────────────
 
@@ -57,6 +58,11 @@ final deleteInventoryItemUseCaseProvider = Provider<DeleteInventoryItem>((ref) {
   return DeleteInventoryItem(ref.read(inventoryRepositoryProvider));
 });
 
+final uploadInventoryEvidenceUseCaseProvider =
+    Provider<UploadInventoryEvidence>((ref) {
+  return UploadInventoryEvidence(ref.read(inventoryRepositoryProvider));
+});
+
 final getInventoryCategoriesUseCaseProvider =
     Provider<GetInventoryCategories>((ref) {
   return GetInventoryCategories(ref.read(inventoryRepositoryProvider));
@@ -64,10 +70,16 @@ final getInventoryCategoriesUseCaseProvider =
 
 // ── Club context helpers ────────────────────────────────────────────────────────
 
-/// Obtiene el clubId del contexto activo del usuario.
+/// The inventory endpoint is named `/clubs/:clubId/inventory`, but the RBAC
+/// resource behind it resolves that path segment as `club_sections.club_section_id`.
+/// Using the main club id here causes `GUARD_CLUB_SCOPE_REQUIRED` for valid
+/// users whose active assignment belongs to another section id.
+int? inventoryResourceIdFromContext(ClubContext? context) => context?.sectionId;
+
+/// Obtiene el identificador de la sección activa para el recurso de inventario.
 final inventoryClubIdProvider = FutureProvider.autoDispose<int?>((ref) async {
   final context = await ref.watch(clubContextProvider.future);
-  return context?.clubId;
+  return inventoryResourceIdFromContext(context);
 });
 
 /// Maps the human-readable club type name to the backend instanceType query
@@ -311,22 +323,27 @@ class InventoryItemFormState {
   final bool isLoading;
   final String? errorMessage;
   final bool success;
+  final InventoryItem? savedItem;
 
   const InventoryItemFormState({
     this.isLoading = false,
     this.errorMessage,
     this.success = false,
+    this.savedItem,
   });
 
   InventoryItemFormState copyWith({
     bool? isLoading,
     String? errorMessage,
     bool? success,
+    InventoryItem? savedItem,
+    bool clearSavedItem = false,
   }) {
     return InventoryItemFormState(
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
       success: success ?? this.success,
+      savedItem: clearSavedItem ? null : (savedItem ?? this.savedItem),
     );
   }
 }
@@ -338,6 +355,7 @@ class InventoryItemFormNotifier
 
   Future<bool> save({
     required int clubId,
+    required String instanceType,
     required String name,
     required int categoryId,
     required int quantity,
@@ -351,7 +369,12 @@ class InventoryItemFormNotifier
     String? notes,
     int? existingId, // non-null → update
   }) async {
-    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+    state = state.copyWith(
+      isLoading: true,
+      errorMessage: null,
+      success: false,
+      clearSavedItem: true,
+    );
 
     if (existingId != null) {
       final result = await ref.read(updateInventoryItemUseCaseProvider)(
@@ -377,9 +400,14 @@ class InventoryItemFormNotifier
               state.copyWith(isLoading: false, errorMessage: failure.message);
           return false;
         },
-        (_) {
-          state = state.copyWith(isLoading: false, success: true);
+        (item) {
+          state = state.copyWith(
+            isLoading: false,
+            success: true,
+            savedItem: item,
+          );
           ref.invalidate(inventoryItemsProvider);
+          ref.invalidate(inventoryItemDetailProvider(existingId));
           return true;
         },
       );
@@ -387,6 +415,7 @@ class InventoryItemFormNotifier
       final result = await ref.read(createInventoryItemUseCaseProvider)(
         CreateInventoryItemParams(
           clubId: clubId,
+          instanceType: instanceType,
           name: name,
           categoryId: categoryId,
           quantity: quantity,
@@ -407,13 +436,56 @@ class InventoryItemFormNotifier
               state.copyWith(isLoading: false, errorMessage: failure.message);
           return false;
         },
-        (_) {
-          state = state.copyWith(isLoading: false, success: true);
+        (item) {
+          state = state.copyWith(
+            isLoading: false,
+            success: true,
+            savedItem: item,
+          );
           ref.invalidate(inventoryItemsProvider);
           return true;
         },
       );
     }
+  }
+
+  Future<bool> uploadEvidence({
+    required int itemId,
+    required String filePath,
+    required String fileName,
+    required String mimeType,
+  }) async {
+    state = state.copyWith(
+      isLoading: true,
+      errorMessage: null,
+      success: false,
+    );
+
+    final result = await ref.read(uploadInventoryEvidenceUseCaseProvider)(
+      UploadInventoryEvidenceParams(
+        itemId: itemId,
+        filePath: filePath,
+        fileName: fileName,
+        mimeType: mimeType,
+      ),
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+          success: false,
+        );
+        return false;
+      },
+      (_) {
+        state = state.copyWith(isLoading: false, success: true);
+        ref.invalidate(inventoryItemsProvider);
+        ref.invalidate(inventoryItemDetailProvider(itemId));
+        return true;
+      },
+    );
   }
 
   void reset() => state = const InventoryItemFormState();

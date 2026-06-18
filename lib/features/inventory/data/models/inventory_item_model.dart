@@ -1,6 +1,48 @@
 import '../../domain/entities/inventory_item.dart';
 import 'inventory_category_model.dart';
 
+class InventoryEvidenceModel extends InventoryEvidence {
+  const InventoryEvidenceModel({
+    required super.id,
+    required super.inventoryId,
+    required super.url,
+    required super.fileName,
+    required super.fileType,
+    super.fileSize,
+    super.uploadedById,
+    required super.uploadedAt,
+  });
+
+  factory InventoryEvidenceModel.fromJson(Map<String, dynamic> json) {
+    return InventoryEvidenceModel(
+      id: InventoryItemModel._parseInt(json['evidence_id'] ??
+          json['inventory_evidence_file_id'] ??
+          json['id'] ??
+          0),
+      inventoryId: InventoryItemModel._parseInt(json['inventory_id'] ?? 0),
+      url: (json['url'] ?? json['file_url'] ?? '').toString(),
+      fileName: (json['file_name'] ?? json['name'] ?? 'Evidencia').toString(),
+      fileType: (json['file_type'] ?? json['mime_type'] ?? '').toString(),
+      fileSize: json['file_size'] != null
+          ? InventoryItemModel._parseInt(json['file_size'])
+          : null,
+      uploadedById: json['uploaded_by_id']?.toString(),
+      uploadedAt: InventoryItemModel._parseDate(json['uploaded_at']),
+    );
+  }
+
+  InventoryEvidence toEntity() => InventoryEvidence(
+        id: id,
+        inventoryId: inventoryId,
+        url: url,
+        fileName: fileName,
+        fileType: fileType,
+        fileSize: fileSize,
+        uploadedById: uploadedById,
+        uploadedAt: uploadedAt,
+      );
+}
+
 class InventoryItemModel extends InventoryItem {
   const InventoryItemModel({
     required super.id,
@@ -11,6 +53,7 @@ class InventoryItemModel extends InventoryItem {
     required super.condition,
     super.serialNumber,
     super.photoUrl,
+    super.evidences,
     super.purchaseDate,
     super.estimatedValue,
     super.location,
@@ -38,15 +81,22 @@ class InventoryItemModel extends InventoryItem {
     final registeredByName = _extractName(
         createdByUser, json['created_by']?.toString() ?? 'Sistema');
 
+    final evidences = (json['evidences'] as List<dynamic>? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map(InventoryEvidenceModel.fromJson)
+        .toList();
+
     return InventoryItemModel(
       id: _parseInt(json['inventory_id'] ?? json['id'] ?? 0),
       name: (json['name'] ?? 'Sin nombre').toString(),
       description: json['description']?.toString(),
       category: category,
-      quantity: _parseInt(json['quantity'] ?? 1),
+      quantity: _parseInt(json['amount'] ?? json['quantity'] ?? 1),
       condition: _parseCondition(json['condition']?.toString()),
       serialNumber: json['serial_number']?.toString(),
-      photoUrl: json['photo_url']?.toString(),
+      photoUrl: json['photo_url']?.toString() ??
+          (evidences.isNotEmpty ? evidences.first.url : null),
+      evidences: evidences,
       purchaseDate: json['purchase_date'] != null
           ? _parseDate(json['purchase_date'])
           : null,
@@ -125,6 +175,7 @@ class InventoryItemModel extends InventoryItem {
         condition: condition,
         serialNumber: serialNumber,
         photoUrl: photoUrl,
+        evidences: evidences,
         purchaseDate: purchaseDate,
         estimatedValue: estimatedValue,
         location: location,

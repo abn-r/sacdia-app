@@ -18,8 +18,9 @@ class FinanceSummaryModel extends FinanceSummary {
         rawBars.map((e) => _barFromJson(e as Map<String, dynamic>)).toList();
 
     return FinanceSummaryModel(
-      totalBalance:
-          _parseDouble(json['total_balance'] ?? json['totalBalance'] ?? 0),
+      totalBalance: _parseDouble(
+        json['balance'] ?? json['total_balance'] ?? json['totalBalance'] ?? 0,
+      ),
       totalIncome:
           _parseDouble(json['total_income'] ?? json['totalIncome'] ?? 0),
       totalExpense:

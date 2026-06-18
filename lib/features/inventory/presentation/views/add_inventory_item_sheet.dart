@@ -1,13 +1,17 @@
+import 'dart:io';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
 
+import '../../../../core/widgets/evidence_staging/image_source_dialog.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/utils/icon_helper.dart';
 import '../../domain/entities/inventory_category.dart';
 import '../../domain/entities/inventory_item.dart';
 import '../providers/inventory_providers.dart';
@@ -36,10 +40,13 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
   final _locationController = TextEditingController();
   final _assignedToController = TextEditingController();
   final _notesController = TextEditingController();
+  final _imagePicker = ImagePicker();
 
   ItemCondition _condition = ItemCondition.bueno;
   InventoryCategory? _selectedCategory;
   DateTime? _purchaseDate;
+  final List<XFile> _newEvidenceFiles = [];
+  String? _evidenceError;
 
   bool get _isEditing => widget.existing != null;
 
@@ -176,34 +183,34 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
                             ref.invalidate(inventoryCategoriesProvider),
                       ),
                       data: (cats) {
-                        InventoryCategory? dropdownValue;
-                        if (_selectedCategory != null) {
-                          try {
-                            dropdownValue = cats.firstWhere(
-                                (c) => c.id == _selectedCategory!.id);
-                          } catch (_) {
-                            dropdownValue = null;
-                          }
-                        }
+                        final pickerValue = _selectedCategory != null &&
+                                cats.any((c) => c.id == _selectedCategory!.id)
+                            ? cats.firstWhere(
+                                (c) => c.id == _selectedCategory!.id)
+                            : null;
 
-                        return DropdownButtonFormField<InventoryCategory>(
-                          // ignore: deprecated_member_use
-                          value: dropdownValue,
-                          decoration: _inputDecoration(
-                            hint: 'inventory.form.category_hint'.tr(),
-                            context: context,
-                          ),
-                          items: cats
-                              .map((cat) => DropdownMenuItem(
-                                    value: cat,
-                                    child: Text(cat.name),
-                                  ))
-                              .toList(),
-                          onChanged: (cat) =>
-                              setState(() => _selectedCategory = cat),
+                        return FormField<InventoryCategory>(
+                          key: ValueKey(pickerValue?.id ?? 'no-category'),
+                          initialValue: pickerValue,
                           validator: (v) => v == null
                               ? 'inventory.form.category_required'.tr()
                               : null,
+                          builder: (field) => _CategoryPickerField(
+                            value: field.value,
+                            hint: 'inventory.form.category_hint'.tr(),
+                            errorText: field.errorText,
+                            onTap: () async {
+                              final picked = await _showCategoryPicker(
+                                context,
+                                categories: cats,
+                                selected: field.value,
+                              );
+                              if (!mounted || picked == null) return;
+
+                              field.didChange(picked);
+                              setState(() => _selectedCategory = picked);
+                            },
+                          ),
                         );
                       },
                     ),
@@ -247,6 +254,26 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
                     _ConditionSelector(
                       selected: _condition,
                       onChanged: (cond) => setState(() => _condition = cond),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // ── Section: Evidencias ───────────────────────────────
+                    _SectionHeader(
+                      icon: HugeIcons.strokeRoundedImage01,
+                      title: 'inventory.form.section_evidence'.tr(),
+                    ),
+                    const SizedBox(height: 12),
+
+                    _EvidencePicker(
+                      existingEvidences: widget.existing?.evidences ?? const [],
+                      newFiles: _newEvidenceFiles,
+                      errorText: _evidenceError,
+                      onAdd: _pickEvidence,
+                      onRemoveNew: (file) => setState(() {
+                        _newEvidenceFiles.remove(file);
+                        _evidenceError = null;
+                      }),
                     ),
 
                     const SizedBox(height: 16),
@@ -437,8 +464,24 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
     final formState = _formKey.currentState;
     if (formState == null || !formState.validate()) return;
 
+    final existingEvidenceCount = widget.existing?.evidences.length ?? 0;
+    final totalEvidenceCount = existingEvidenceCount + _newEvidenceFiles.length;
+    if (!_isEditing && _newEvidenceFiles.isEmpty) {
+      setState(() {
+        _evidenceError = 'inventory.form.evidence_required'.tr();
+      });
+      return;
+    }
+    if (totalEvidenceCount > 3) {
+      setState(() {
+        _evidenceError = 'inventory.form.evidence_limit'.tr();
+      });
+      return;
+    }
+
     final clubId = await ref.read(inventoryClubIdProvider.future);
     if (clubId == null) return;
+    final instanceType = await ref.read(inventoryInstanceTypeProvider.future);
 
     final quantity = int.tryParse(_quantityController.text) ?? 1;
     final value = _valueController.text.isNotEmpty
@@ -448,6 +491,7 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
     final success =
         await ref.read(inventoryItemFormNotifierProvider.notifier).save(
               clubId: clubId,
+              instanceType: instanceType,
               name: _nameController.text.trim(),
               categoryId: _selectedCategory!.id,
               quantity: quantity,
@@ -472,7 +516,19 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
               existingId: _isEditing ? widget.existing!.id : null,
             );
 
-    if (success && mounted) {
+    if (!success || !mounted) return;
+
+    final savedItem = ref.read(inventoryItemFormNotifierProvider).savedItem ??
+        widget.existing;
+    final itemId = savedItem?.id;
+    if (itemId == null) return;
+
+    if (_newEvidenceFiles.isNotEmpty) {
+      final uploaded = await _uploadEvidenceFiles(itemId);
+      if (!uploaded || !mounted) return;
+    }
+
+    if (mounted) {
       ref.read(inventoryItemFormNotifierProvider.notifier).reset();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -485,6 +541,74 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
       );
       Navigator.pop(context, true);
     }
+  }
+
+  Future<void> _pickEvidence() async {
+    final existingEvidenceCount = widget.existing?.evidences.length ?? 0;
+    final remaining = 3 - existingEvidenceCount - _newEvidenceFiles.length;
+    if (remaining <= 0) {
+      setState(() => _evidenceError = 'inventory.form.evidence_limit'.tr());
+      return;
+    }
+
+    final source = await showImageSourceDialog(context);
+    if (!mounted || source == null) return;
+
+    try {
+      final picked = <XFile>[];
+      if (source == ImageSource.camera) {
+        final image = await _imagePicker.pickImage(
+          source: ImageSource.camera,
+          maxWidth: 2048,
+          maxHeight: 2048,
+          imageQuality: 85,
+        );
+        if (image != null) picked.add(image);
+      } else {
+        final images = await _imagePicker.pickMultiImage(
+          maxWidth: 2048,
+          maxHeight: 2048,
+          imageQuality: 85,
+        );
+        picked.addAll(images.take(remaining));
+      }
+
+      if (picked.isEmpty || !mounted) return;
+      setState(() {
+        _newEvidenceFiles.addAll(picked.take(remaining));
+        _evidenceError = null;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _evidenceError = 'inventory.form.evidence_pick_error'.tr();
+      });
+    }
+  }
+
+  Future<bool> _uploadEvidenceFiles(int itemId) async {
+    final notifier = ref.read(inventoryItemFormNotifierProvider.notifier);
+    for (final file in _newEvidenceFiles) {
+      final success = await notifier.uploadEvidence(
+        itemId: itemId,
+        filePath: file.path,
+        fileName: file.name,
+        mimeType: _mimeFor(file),
+      );
+      if (!success) {
+        setState(() {
+          _evidenceError =
+              ref.read(inventoryItemFormNotifierProvider).errorMessage ??
+                  'inventory.errors.upload_evidence'.tr();
+        });
+        return false;
+      }
+    }
+    return true;
+  }
+
+  String _mimeFor(XFile file) {
+    return file.mimeType ?? lookupMimeType(file.path) ?? 'image/jpeg';
   }
 
   InputDecoration _inputDecoration({
@@ -525,7 +649,7 @@ class _AddInventoryItemSheetState extends ConsumerState<AddInventoryItemSheet> {
 // ── Section header ──────────────────────────────────────────────────────────────
 
 class _SectionHeader extends StatelessWidget {
-  final HugeIconData icon;
+  final List<List<dynamic>> icon;
   final String title;
 
   const _SectionHeader({required this.icon, required this.title});
@@ -737,6 +861,460 @@ class _DatePickerField extends StatelessWidget {
       locale: const Locale('es', 'ES'),
     );
     if (picked != null) onDateSelected(picked);
+  }
+}
+
+// ── Category picker field ─────────────────────────────────────────────────────
+
+class _CategoryPickerField extends StatelessWidget {
+  final InventoryCategory? value;
+  final String hint;
+  final String? errorText;
+  final VoidCallback onTap;
+
+  const _CategoryPickerField({
+    required this.value,
+    required this.hint,
+    required this.onTap,
+    this.errorText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasValue = value != null;
+    final borderColor = errorText != null
+        ? AppColors.error
+        : Theme.of(context).dividerColor.withValues(alpha: 0.4);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Semantics(
+          button: true,
+          label: hasValue ? value!.name : hint,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(14),
+              child: Ink(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .surfaceContainerHighest
+                      .withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: borderColor,
+                    width: errorText != null ? 1.4 : 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColors.primarySurface,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedTag01,
+                        size: 20,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        hasValue ? value!.name : hint,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight:
+                                  hasValue ? FontWeight.w600 : FontWeight.w500,
+                              color: hasValue
+                                  ? context.sac.text
+                                  : context.sac.textTertiary,
+                            ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowDown01,
+                      size: 20,
+                      color: context.sac.textSecondary,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (errorText != null) ...[
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.only(left: 12),
+            child: Text(
+              errorText!,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.error,
+                  ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+Future<InventoryCategory?> _showCategoryPicker(
+  BuildContext context, {
+  required List<InventoryCategory> categories,
+  InventoryCategory? selected,
+}) {
+  return showModalBottomSheet<InventoryCategory>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => _CategoryPickerSheet(
+      categories: categories,
+      selected: selected,
+    ),
+  );
+}
+
+class _CategoryPickerSheet extends StatelessWidget {
+  final List<InventoryCategory> categories;
+  final InventoryCategory? selected;
+
+  const _CategoryPickerSheet({
+    required this.categories,
+    this.selected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final maxHeight = MediaQuery.of(context).size.height * 0.64;
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      child: Container(
+        decoration: BoxDecoration(
+          color: context.sac.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: context.sac.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.primarySurface,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedTag01,
+                      size: 22,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'inventory.form.category_label'.tr(),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Flexible(
+              child: ListView.separated(
+                padding: EdgeInsets.fromLTRB(
+                  12,
+                  4,
+                  12,
+                  MediaQuery.of(context).padding.bottom + 12,
+                ),
+                itemCount: categories.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 4),
+                itemBuilder: (_, index) {
+                  final category = categories[index];
+                  final isSelected = category.id == selected?.id;
+
+                  return _CategoryPickerOption(
+                    category: category,
+                    isSelected: isSelected,
+                    onTap: () => Navigator.of(context).pop(category),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CategoryPickerOption extends StatelessWidget {
+  final InventoryCategory category;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _CategoryPickerOption({
+    required this.category,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = isSelected ? AppColors.primary : context.sac.text;
+    final background = isSelected
+        ? AppColors.primary.withValues(alpha: 0.08)
+        : Colors.transparent;
+
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: category.name,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Ink(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: background,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isSelected
+                    ? AppColors.primary.withValues(alpha: 0.24)
+                    : context.sac.borderLight,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.primarySurface
+                        : context.sac.surfaceVariant,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedTag01,
+                    size: 20,
+                    color: isSelected
+                        ? AppColors.primary
+                        : context.sac.textSecondary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    category.name,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: foreground,
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w500,
+                        ),
+                  ),
+                ),
+                if (isSelected)
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedTick02,
+                    size: 20,
+                    color: AppColors.primary,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Evidence picker ────────────────────────────────────────────────────────────
+
+class _EvidencePicker extends StatelessWidget {
+  final List<InventoryEvidence> existingEvidences;
+  final List<XFile> newFiles;
+  final String? errorText;
+  final VoidCallback onAdd;
+  final ValueChanged<XFile> onRemoveNew;
+
+  const _EvidencePicker({
+    required this.existingEvidences,
+    required this.newFiles,
+    required this.onAdd,
+    required this.onRemoveNew,
+    this.errorText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final total = existingEvidences.length + newFiles.length;
+    final canAdd = total < 3;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'inventory.form.evidence_hint'.tr(),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: context.sac.textSecondary,
+              ),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            ...existingEvidences.map(
+              (evidence) => _EvidenceTile.network(evidence.url),
+            ),
+            ...newFiles.map(
+              (file) => _EvidenceTile.file(
+                file,
+                onRemove: () => onRemoveNew(file),
+              ),
+            ),
+            if (canAdd) _EvidenceAddTile(onTap: onAdd),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'inventory.form.evidence_count'
+              .tr(namedArgs: {'count': total.toString()}),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: context.sac.textTertiary,
+              ),
+        ),
+        if (errorText != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            errorText!,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.error,
+                ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _EvidenceAddTile extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _EvidenceAddTile({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          width: 92,
+          height: 92,
+          decoration: BoxDecoration(
+            color: context.sac.surfaceVariant,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.primary.withValues(alpha: 0.35),
+            ),
+          ),
+          child: Center(
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedAdd01,
+              size: 26,
+              color: AppColors.primary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EvidenceTile extends StatelessWidget {
+  final String? url;
+  final XFile? file;
+  final VoidCallback? onRemove;
+
+  const _EvidenceTile.network(this.url)
+      : file = null,
+        onRemove = null;
+
+  const _EvidenceTile.file(this.file, {required this.onRemove}) : url = null;
+
+  @override
+  Widget build(BuildContext context) {
+    final image = file != null
+        ? Image.file(File(file!.path), fit: BoxFit.cover)
+        : Image.network(url!, fit: BoxFit.cover);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Stack(
+        children: [
+          SizedBox(width: 92, height: 92, child: image),
+          if (onRemove != null)
+            Positioned(
+              top: 6,
+              right: 6,
+              child: GestureDetector(
+                onTap: onRemove,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.55),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Center(
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedCancel01,
+                      size: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
 
