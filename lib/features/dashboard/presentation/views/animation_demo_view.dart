@@ -1939,7 +1939,7 @@ class _DynamicIslandPreviewState extends State<_DynamicIslandPreview> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: const [
                               Text(
-                                'Honor aprobado',
+                                'Especialidad aprobada',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w900,
