@@ -74,6 +74,7 @@ import 'package:sacdia_app/features/rankings/presentation/screens/club_rankings_
 import 'package:sacdia_app/features/rankings/presentation/screens/section_ranking_screen.dart';
 
 import '../../features/auth/presentation/providers/auth_providers.dart';
+import '../../features/auth/presentation/providers/logout_cleanup.dart';
 import '../providers/app_bootstrap_provider.dart';
 import '../notifications/push_notification_provider.dart';
 import '../../features/auth/presentation/views/forgot_password_view.dart';
@@ -133,6 +134,8 @@ Page<void> _slideUpBuild(
 /// callback WITHOUT rebuilding the router itself, avoiding race conditions that
 /// stem from constructing a new GoRouter mid-navigation.
 final routerProvider = Provider<GoRouter>((ref) {
+  var wasAuthenticated = ref.read(authNotifierProvider).valueOrNull != null;
+
   final router = GoRouter(
     navigatorKey: pushNavigatorKey,
     initialLocation: RouteNames.splash,
@@ -1314,7 +1317,16 @@ final routerProvider = Provider<GoRouter>((ref) {
   // callback re-evaluates with the latest state. This replaces the previous
   // ref.watch() pattern which caused the GoRouter instance to be recreated on
   // every state change, introducing race conditions and double redirects.
-  ref.listen<AsyncValue<dynamic>>(authNotifierProvider, (_, __) {
+  ref.listen<AsyncValue<dynamic>>(authNotifierProvider, (_, next) {
+    final user = next.valueOrNull;
+
+    if (user != null) {
+      wasAuthenticated = true;
+    } else if (wasAuthenticated && !next.isLoading) {
+      clearUserStateOnLogout(ref);
+      wasAuthenticated = false;
+    }
+
     router.refresh();
   });
 

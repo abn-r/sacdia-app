@@ -16,10 +16,10 @@ import '../../../../core/utils/app_logger.dart';
 /// (clubTypes, districts, etc.) NO se invalidan aquí porque son datos de
 /// referencia agnósticos al usuario.
 ///
-/// Llamar desde el widget inmediatamente después de que [AuthNotifier.signOut]
-/// retorne `true`. Se ubica en un archivo separado de auth_providers.dart para
-/// evitar importaciones circulares (los providers de features ya importan
-/// auth_providers.dart).
+/// Ejecutar desde un provider estable, no desde una pantalla que puede ser
+/// desmontada por GoRouter durante logout. Se ubica en un archivo separado de
+/// auth_providers.dart para evitar importaciones circulares (los providers de
+/// features ya importan auth_providers.dart).
 ///
 /// Providers invalidados:
 ///   - dashboardNotifierProvider   AsyncNotifierProvider          (non-autoDispose)
@@ -29,7 +29,7 @@ import '../../../../core/utils/app_logger.dart';
 ///   - currentEnrollmentProvider   FutureProvider                 (non-autoDispose)
 ///   - currentClubSectionProvider  FutureProvider.autoDispose     + keepAlive (club-specific)
 ///   - clubActivitiesProvider      FutureProvider.autoDispose     + keepAlive (club-specific)
-void clearUserStateOnLogout(WidgetRef ref) {
+void clearUserStateOnLogout(Ref ref) {
   for (final provider in userSpecificProviders) {
     ref.invalidate(provider);
   }

@@ -19,7 +19,6 @@ import '../../../auth/domain/entities/user_entity.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../auth/presentation/providers/logout_cleanup.dart';
 import '../providers/notification_preferences_providers.dart';
 import '../widgets/setting_tile.dart';
 import '../../../qr/presentation/views/qr_scanner_view.dart';
@@ -345,8 +344,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
     if (shouldLogout == true && mounted) {
       final success = await ref.read(authNotifierProvider.notifier).signOut();
-      if (success) clearUserStateOnLogout(ref);
-      if (mounted) {
+      if (success && mounted) {
         Navigator.pop(context);
       }
     }
@@ -540,8 +538,6 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
     if (error == null) {
-      // Éxito — limpiar estado de providers y navegar a login.
-      clearUserStateOnLogout(ref);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('profile.settings.account_deleted'.tr()),

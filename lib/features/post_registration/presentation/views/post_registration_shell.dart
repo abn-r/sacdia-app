@@ -11,7 +11,6 @@ import 'package:sacdia_app/core/utils/responsive.dart';
 import 'package:sacdia_app/features/auth/domain/entities/user_entity.dart';
 import 'package:sacdia_app/features/auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../auth/presentation/providers/logout_cleanup.dart';
 import '../providers/post_registration_flow_providers.dart';
 import '../providers/post_registration_providers.dart';
 import '../providers/personal_info_providers.dart';
@@ -224,7 +223,6 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
 
     if (confirmed == true && mounted) {
       final success = await ref.read(authNotifierProvider.notifier).signOut();
-      if (success) clearUserStateOnLogout(ref);
       if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

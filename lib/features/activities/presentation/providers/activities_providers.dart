@@ -102,6 +102,11 @@ class ClubActivitiesParams {
 /// tapping a chip never triggers an additional network request.
 final clubActivitiesProvider = FutureProvider.autoDispose
     .family<List<Activity>, ClubActivitiesParams>((ref, params) async {
+  final user = await ref.watch(authNotifierProvider.future);
+  if (user == null) {
+    return const <Activity>[];
+  }
+
   ref.keepAlive();
   final cancelToken = CancelToken();
   ref.onDispose(() => cancelToken.cancel());
