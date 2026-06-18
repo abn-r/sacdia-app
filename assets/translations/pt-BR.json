@@ -1340,6 +1340,7 @@
       "reject_evidence": "Erro ao rejeitar evidência",
       "bulk_approve_evidence": "Erro na aprovação em massa",
       "bulk_reject_evidence": "Erro na rejeição em massa",
+      "fetch_scope": "Erro ao obter escopo de coordenação",
       "fetch_local_camporees": "Erro ao obter camporis",
       "fetch_union_camporees": "Erro ao obter camporis da união",
       "fetch_local_pending": "Erro ao obter aprovações pendentes",
@@ -1362,6 +1363,8 @@
       "investitures_subtitle": "Validar solicitações de investidura",
       "evidence_title": "Revisão de Evidências",
       "evidence_subtitle": "Aprovar ou rejeitar pastas, aulas e honras",
+      "clubs_title": "Clubes e seções",
+      "clubs_subtitle": "Ver clubes e seções sob sua coordenação",
       "camporees_title": "Aprovações de Camporis",
       "camporees_subtitle": "Clubes, membros e pagamentos pendentes",
       "dashboard_title": "Painel Operacional",
@@ -1370,8 +1373,13 @@
     "summary": {
       "investitures": "Investiduras",
       "evidence": "Evidências",
+      "sections": "Seções",
       "camporees": "Camporis",
       "overdue": "Vencidos"
+    },
+    "scope": {
+      "assigned": "Você tem {count} seções atribuídas para coordenação.",
+      "empty": "Você não tem seções atribuídas como coordenador. Se também for diretor, suas funções de diretor continuam aparecendo no app."
     },
     "camporee_approvals": {
       "title": "Aprovações de Camporis",
@@ -1514,12 +1522,13 @@
       "honor": "Honra"
     },
     "clubs": {
-      "title": "Clubes",
+      "title": "Clubes atribuídos",
       "search_hint": "Buscar clube...",
-      "empty_title": "Sem clubes",
-      "empty_subtitle": "Não há clubes atribuídos ao seu campo local.",
+      "empty_title": "Sem clubes atribuídos",
+      "empty_subtitle": "Não há clubes ou seções dentro do seu escopo de coordenação.",
       "error_load": "Erro ao carregar clubes",
-      "field_id_label": "Campo local #{id}"
+      "field_id_label": "Campo local #{id}",
+      "sections_label": "{count} seções"
     }
   },
   "classes": {

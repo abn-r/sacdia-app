@@ -2,16 +2,25 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/cancellation_token.dart';
 import '../entities/coordinator_club.dart';
+import '../entities/coordinator_scope.dart';
 import '../entities/sla_dashboard.dart';
 import '../entities/evidence_review_item.dart';
 import '../entities/camporee_approval.dart';
 
 /// Repositorio del módulo de coordinador (interfaz del dominio).
 abstract class CoordinatorRepository {
+  // ── Scope ────────────────────────────────────────────────────────────────
+
+  /// Devuelve el alcance efectivo del coordinador actual.
+  /// GET /coordination/me/scope
+  Future<Either<Failure, CoordinatorScope>> getMyScope({
+    RequestCancelToken? cancelToken,
+  });
+
   // ── Clubs list ────────────────────────────────────────────────────────────
 
   /// Devuelve la lista de clubs accesibles para el coordinador.
-  /// GET /clubs?localFieldId=... (coordinadores ven todos los clubs de su campo)
+  /// Derivado de /coordination/me/scope, agrupado por club.
   Future<Either<Failure, List<CoordinatorClub>>> listClubs({
     int? localFieldId,
     RequestCancelToken? cancelToken,

@@ -47,7 +47,14 @@ final List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
     icon: HugeIcons.strokeRoundedAnalytics01,
     color: AppColors.info,
     route: RouteNames.coordinator,
-    requiredRoles: {'coordinator', 'admin', 'super-admin', 'assistant-admin'},
+    requiredRoles: {
+      'coordinator',
+      'zone-coordinator',
+      'general-coordinator',
+      'admin',
+      'super-admin',
+      'assistant-admin',
+    },
   ),
   // Administrative: member list — users:read_detail is held by counselor+
   _QuickAccessItemConfig(

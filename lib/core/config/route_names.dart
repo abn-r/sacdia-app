@@ -152,12 +152,13 @@ class RouteNames {
       '/coordinator/evidence-review';
   static const String coordinatorEvidenceReviewDetailRoute =
       '/coordinator/evidence-review/:type/:id';
+  // Legacy constant retained for compatibility; no active GoRoute.
   static const String coordinatorCamporeeApprovals =
       '/coordinator/camporee-approvals';
 
   // Coordinator shell tab routes (PR-4, separate StatefulShellRoute)
   // Branch 0: /coordinator        — Hub (reuses coordinator root)
-  // Branch 1: /coordinator/clubs  — Clubes / Aprobaciones
+  // Branch 1: /coordinator/clubs  — Clubes / secciones asignadas
   static const String coordinatorClubs = '/coordinator/clubs';
   // Branch 2: /coordinator/reports — Reportes / SLA dashboard
   static const String coordinatorReports = '/coordinator/reports';

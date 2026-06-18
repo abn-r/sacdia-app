@@ -7,6 +7,7 @@ import '../../../../core/errors/failures.dart';
 import '../../data/datasources/coordinator_remote_data_source.dart';
 import '../../data/repositories/coordinator_repository_impl.dart';
 import '../../domain/entities/coordinator_club.dart';
+import '../../domain/entities/coordinator_scope.dart';
 import '../../domain/entities/sla_dashboard.dart';
 import '../../domain/entities/evidence_review_item.dart';
 import '../../domain/entities/camporee_approval.dart';
@@ -28,6 +29,21 @@ final coordinatorRepositoryProvider = Provider<CoordinatorRepository>((ref) {
   return CoordinatorRepositoryImpl(
     remoteDataSource: ref.read(coordinatorRemoteDataSourceProvider),
     networkInfo: ref.read(networkInfoProvider),
+  );
+});
+
+// ── Scope ───────────────────────────────────────────────────────────────────
+
+/// Alcance efectivo del coordinador actual.
+final coordinatorScopeProvider =
+    FutureProvider.autoDispose<CoordinatorScope>((ref) async {
+  final repository = ref.read(coordinatorRepositoryProvider);
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final result = await repository.getMyScope(cancelToken: cancelToken);
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (scope) => scope,
   );
 });
 
