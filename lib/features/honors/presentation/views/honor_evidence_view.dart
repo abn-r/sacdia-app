@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -13,14 +12,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/utils/icon_helper.dart';
 import 'package:sacdia_app/core/widgets/evidence_staging/staged_file.dart';
 import 'package:sacdia_app/core/widgets/evidence_staging/upload_progress_sheet.dart';
-import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
-import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
+import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
+import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
+import 'package:sacdia_app/core/widgets/sac_loading.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import '../theme/honor_category_palette.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../validation/domain/entities/validation.dart';
@@ -29,8 +28,9 @@ import '../../../validation/presentation/providers/validation_providers.dart'
 import '../../domain/entities/honor.dart';
 import '../../domain/entities/user_honor.dart';
 import '../providers/honors_providers.dart';
+import '../theme/honor_category_palette.dart';
 import '../widgets/honor_badge_image.dart';
-import 'package:sacdia_app/core/utils/icon_helper.dart';
+import '../widgets/honor_signed_evidence_image.dart';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 
@@ -575,7 +575,11 @@ class _HonorEvidenceViewState extends ConsumerState<HonorEvidenceView> {
     final lower = url.toLowerCase();
     final isPdf = lower.endsWith('.pdf') || lower.contains('/pdf');
     if (isPdf) {
-      _launchUrl(url);
+      SacPdfViewer.show(
+        context,
+        pdfSource: url,
+        title: 'honors.evidence.general_section_title'.tr(),
+      );
     } else {
       SacImageViewer.show(
         context,
@@ -1623,7 +1627,7 @@ class _EvidenceThumbnail extends StatelessWidget {
                 ),
               )
             else
-              CachedNetworkImage(
+              HonorSignedEvidenceImage(
                 imageUrl: imageUrl,
                 fit: BoxFit.cover,
                 memCacheWidth: 400,

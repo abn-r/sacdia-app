@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 /// A full-screen PDF viewer that accepts either a local file path or a public
 /// remote URL.
@@ -50,6 +51,9 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
   String? _localPath;
   bool _loading = true;
   String? _error;
+  String? _fileName;
+  final GlobalKey _saveButtonKey = GlobalKey();
+  bool _isSharing = false;
   int _currentPage = 0;
   int _totalPages = 0;
 
@@ -80,6 +84,7 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
     if (file.existsSync()) {
       setState(() {
         _localPath = widget.pdfSource;
+        _fileName = _safePdfFileNameFromSource(widget.pdfSource);
         _loading = false;
       });
     } else {
@@ -95,8 +100,10 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
   Future<void> _downloadPdf() async {
     try {
       final dir = await getTemporaryDirectory();
-      final filename =
-          'sacdia_pdf_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final filename = _safePdfFileNameFromSource(
+        widget.pdfSource,
+        fallback: 'sacdia_pdf_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      );
       final filePath = '${dir.path}/$filename';
 
       // Plain Dio is intentional here: this path is only reached for public
@@ -107,6 +114,7 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
         _ownsTempFile = true;
         setState(() {
           _localPath = filePath;
+          _fileName = filename;
           _loading = false;
         });
       }
@@ -131,6 +139,39 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
       }
     } catch (_) {
       // Cleanup failure is non-fatal — temp files are evicted by the OS anyway.
+    }
+  }
+
+  Future<void> _sharePdf() async {
+    final localPath = _localPath;
+    if (_isSharing || localPath == null) return;
+
+    setState(() => _isSharing = true);
+    final messenger = ScaffoldMessenger.of(context);
+
+    try {
+      await Share.shareXFiles(
+        [
+          XFile(
+            localPath,
+            name: _fileName ?? _safePdfFileNameFromSource(widget.pdfSource),
+            mimeType: 'application/pdf',
+          ),
+        ],
+        sharePositionOrigin: _sharePositionOriginForContext(
+          _saveButtonKey.currentContext ?? context,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(tr('core.pdf_viewer.error_download')),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSharing = false);
     }
   }
 
@@ -171,6 +212,21 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
           icon: const HugeIcon(icon: HugeIcons.strokeRoundedCancel01),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            key: _saveButtonKey,
+            tooltip: 'common.save'.tr(),
+            onPressed:
+                _localPath == null || _loading || _isSharing ? null : _sharePdf,
+            icon: _isSharing
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const HugeIcon(icon: HugeIcons.strokeRoundedDownload01),
+          ),
+        ],
       ),
       body: _buildBody(),
     );
@@ -238,4 +294,33 @@ class _SacPdfViewerState extends State<SacPdfViewer> {
       },
     );
   }
+}
+
+Rect? _sharePositionOriginForContext(BuildContext context) {
+  final renderObject = context.findRenderObject();
+  if (renderObject is! RenderBox || !renderObject.hasSize) return null;
+  final size = renderObject.size;
+  if (size.isEmpty) return null;
+  return renderObject.localToGlobal(Offset.zero) & size;
+}
+
+String? _lastNonEmptySegment(List<String>? segments) {
+  if (segments == null) return null;
+  for (final segment in segments.reversed) {
+    if (segment.trim().isNotEmpty) return segment;
+  }
+  return null;
+}
+
+String _safePdfFileNameFromSource(String source, {String? fallback}) {
+  final fallbackName = fallback ??
+      'sacdia_document_${DateTime.now().millisecondsSinceEpoch}.pdf';
+  final uri = Uri.tryParse(source);
+  final rawSegment = _lastNonEmptySegment(uri?.pathSegments);
+  final decoded =
+      rawSegment == null ? fallbackName : Uri.decodeComponent(rawSegment);
+  var sanitized = decoded.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
+  if (sanitized.isEmpty) sanitized = fallbackName;
+  if (!sanitized.toLowerCase().endsWith('.pdf')) sanitized = '$sanitized.pdf';
+  return sanitized;
 }

@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,6 +12,8 @@ import 'package:sacdia_app/core/config/route_names.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/widgets/sac_image_viewer.dart';
+import 'package:sacdia_app/core/widgets/sac_pdf_viewer.dart';
 
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/honor.dart';
@@ -21,6 +22,7 @@ import '../../domain/entities/user_honor_requirement_progress.dart';
 import '../theme/honor_category_palette.dart';
 import '../providers/honors_providers.dart';
 import '../widgets/honor_badge_image.dart';
+import '../widgets/honor_signed_evidence_image.dart';
 import '../widgets/honor_work_mode_selector.dart';
 import '../../domain/entities/user_honor.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
@@ -209,7 +211,24 @@ HugeIconData _evidenceTypeIcon(EvidenceType type) {
   }
 }
 
-Future<void> _openHistoryUrl(BuildContext context, String url) async {
+bool _isPdfEvidenceUrl(String url) {
+  final lowerPath = Uri.tryParse(url)?.path.toLowerCase() ?? url.toLowerCase();
+  final lowerUrl = url.toLowerCase();
+  return lowerPath.endsWith('.pdf') || lowerUrl.contains('/pdf');
+}
+
+bool _isImageEvidenceUrl(String url) {
+  final lowerPath = Uri.tryParse(url)?.path.toLowerCase() ?? url.toLowerCase();
+  return lowerPath.endsWith('.jpg') ||
+      lowerPath.endsWith('.jpeg') ||
+      lowerPath.endsWith('.png') ||
+      lowerPath.endsWith('.webp') ||
+      lowerPath.endsWith('.gif') ||
+      lowerPath.endsWith('.heic') ||
+      lowerPath.endsWith('.heif');
+}
+
+Future<void> _openExternalHistoryUrl(BuildContext context, String url) async {
   final uri = Uri.tryParse(url);
   if (uri == null || !['http', 'https'].contains(uri.scheme)) {
     if (!context.mounted) return;
@@ -233,6 +252,36 @@ Future<void> _openHistoryUrl(BuildContext context, String url) async {
       ),
     );
   }
+}
+
+Future<void> _openHistoryAttachment(
+  BuildContext context, {
+  required String url,
+  String? title,
+  EvidenceType? evidenceType,
+  List<String>? imageUrls,
+  int initialIndex = 0,
+}) async {
+  if (_isPdfEvidenceUrl(url)) {
+    SacPdfViewer.show(context, pdfSource: url, title: title);
+    return;
+  }
+
+  final shouldOpenAsImage = evidenceType == EvidenceType.image ||
+      imageUrls != null ||
+      _isImageEvidenceUrl(url);
+  if (shouldOpenAsImage) {
+    SacImageViewer.show(
+      context,
+      imageUrl: url,
+      title: title,
+      imageUrls: imageUrls,
+      initialIndex: initialIndex,
+    );
+    return;
+  }
+
+  await _openExternalHistoryUrl(context, url);
 }
 
 // ── Main View ─────────────────────────────────────────────────────────────────
@@ -1431,6 +1480,10 @@ class _ExternalWorkHistoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final imageEvidenceUrls = userHonor.images
+        .where((url) => !_isPdfEvidenceUrl(url))
+        .toList(growable: false);
+
     return _ShadowCard(
       child: Padding(
         padding: const EdgeInsets.all(18),
@@ -1454,20 +1507,40 @@ class _ExternalWorkHistoryCard extends StatelessWidget {
               ),
             if (userHonor.hasCompletedFormat && userHonor.images.isNotEmpty)
               const SizedBox(height: 10),
-            ...userHonor.images.asMap().entries.map(
-                  (entry) => Padding(
-                    padding: EdgeInsets.only(
-                      bottom: entry.key == userHonor.images.length - 1 ? 0 : 10,
-                    ),
-                    child: _HistoryImageRow(
-                      title: 'honors.detail.general_evidence_item'.tr(
-                        namedArgs: {'index': '${entry.key + 1}'},
-                      ),
-                      url: entry.value,
-                      categoryColor: categoryColor,
-                    ),
+            ...userHonor.images.asMap().entries.map((entry) {
+              final title = 'honors.detail.general_evidence_item'.tr(
+                namedArgs: {'index': '${entry.key + 1}'},
+              );
+              final url = entry.value;
+              final bottom =
+                  entry.key == userHonor.images.length - 1 ? 0.0 : 10.0;
+
+              if (_isPdfEvidenceUrl(url)) {
+                return Padding(
+                  padding: EdgeInsets.only(bottom: bottom),
+                  child: _HistoryFileRow(
+                    title: title,
+                    subtitle: _fileNameFromUrl(url),
+                    url: url,
+                    icon: HugeIcons.strokeRoundedPdf01,
+                    categoryColor: categoryColor,
+                    evidenceType: EvidenceType.file,
                   ),
+                );
+              }
+
+              final initialIndex = imageEvidenceUrls.indexOf(url);
+              return Padding(
+                padding: EdgeInsets.only(bottom: bottom),
+                child: _HistoryImageRow(
+                  title: title,
+                  url: url,
+                  categoryColor: categoryColor,
+                  imageUrls: imageEvidenceUrls,
+                  initialIndex: initialIndex < 0 ? 0 : initialIndex,
                 ),
+              );
+            }),
           ],
         ),
       ),
@@ -1626,6 +1699,13 @@ class _RequirementHistoryItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final response = _trimmedOrNull(requirement.textResponse);
     final notes = _trimmedOrNull(requirement.notes);
+    final imageEvidenceUrls = requirement.evidences
+        .where((evidence) =>
+            evidence.evidenceType == EvidenceType.image ||
+            (!_isPdfEvidenceUrl(evidence.url) &&
+                _isImageEvidenceUrl(evidence.url)))
+        .map((evidence) => evidence.url)
+        .toList(growable: false);
 
     return Container(
       width: double.infinity,
@@ -1734,6 +1814,7 @@ class _RequirementHistoryItem extends StatelessWidget {
                 child: _RequirementEvidenceHistoryRow(
                   evidence: evidence,
                   categoryColor: categoryColor,
+                  imageUrls: imageEvidenceUrls,
                 ),
               ),
             ),
@@ -1793,10 +1874,12 @@ class _HistoryTextBlock extends StatelessWidget {
 class _RequirementEvidenceHistoryRow extends StatelessWidget {
   final RequirementEvidence evidence;
   final Color categoryColor;
+  final List<String> imageUrls;
 
   const _RequirementEvidenceHistoryRow({
     required this.evidence,
     required this.categoryColor,
+    required this.imageUrls,
   });
 
   @override
@@ -1805,12 +1888,17 @@ class _RequirementEvidenceHistoryRow extends StatelessWidget {
         _trimmedOrNull(evidence.filename) ?? _fileNameFromUrl(evidence.url);
     final subtitle = _evidenceTypeLabel(evidence.evidenceType);
 
+    final initialIndex = imageUrls.indexOf(evidence.url);
+
     return _HistoryFileRow(
       title: title,
       subtitle: subtitle,
       url: evidence.url,
       icon: _evidenceTypeIcon(evidence.evidenceType),
       categoryColor: categoryColor,
+      evidenceType: evidence.evidenceType,
+      imageUrls: imageUrls.isEmpty ? null : imageUrls,
+      initialIndex: initialIndex < 0 ? 0 : initialIndex,
     );
   }
 }
@@ -1821,6 +1909,9 @@ class _HistoryFileRow extends StatelessWidget {
   final String url;
   final HugeIconData icon;
   final Color categoryColor;
+  final EvidenceType? evidenceType;
+  final List<String>? imageUrls;
+  final int initialIndex;
 
   const _HistoryFileRow({
     required this.title,
@@ -1828,13 +1919,23 @@ class _HistoryFileRow extends StatelessWidget {
     required this.url,
     required this.icon,
     required this.categoryColor,
+    this.evidenceType,
+    this.imageUrls,
+    this.initialIndex = 0,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
-      onTap: () => _openHistoryUrl(context, url),
+      onTap: () => _openHistoryAttachment(
+        context,
+        url: url,
+        title: title,
+        evidenceType: evidenceType,
+        imageUrls: imageUrls,
+        initialIndex: initialIndex,
+      ),
       child: Container(
         constraints: const BoxConstraints(minHeight: 50),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -1891,18 +1992,29 @@ class _HistoryImageRow extends StatelessWidget {
   final String title;
   final String url;
   final Color categoryColor;
+  final List<String> imageUrls;
+  final int initialIndex;
 
   const _HistoryImageRow({
     required this.title,
     required this.url,
     required this.categoryColor,
+    required this.imageUrls,
+    required this.initialIndex,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
-      onTap: () => _openHistoryUrl(context, url),
+      onTap: () => _openHistoryAttachment(
+        context,
+        url: url,
+        title: title,
+        evidenceType: EvidenceType.image,
+        imageUrls: imageUrls,
+        initialIndex: initialIndex,
+      ),
       child: Container(
         constraints: const BoxConstraints(minHeight: 58),
         padding: const EdgeInsets.all(8),
@@ -1915,7 +2027,7 @@ class _HistoryImageRow extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: CachedNetworkImage(
+              child: HonorSignedEvidenceImage(
                 imageUrl: url,
                 width: 42,
                 height: 42,
@@ -2863,7 +2975,7 @@ class _EvidenceSection extends StatelessWidget {
                   itemBuilder: (context, index) {
                     return ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: CachedNetworkImage(
+                      child: HonorSignedEvidenceImage(
                         imageUrl: userHonor.images[index],
                         width: 56,
                         height: 56,
