@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
 
 /// Debounced search field for the All Transactions screen.
@@ -26,17 +27,28 @@ class TransactionSearchField extends StatefulWidget {
 
 class _TransactionSearchFieldState extends State<TransactionSearchField> {
   late final TextEditingController _controller;
+  late final FocusNode _focusNode;
   Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.initialValue);
+    _focusNode = FocusNode()..addListener(_handleFocusChanged);
+  }
+
+  void _handleFocusChanged() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
+    _focusNode
+      ..removeListener(_handleFocusChanged)
+      ..dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -61,15 +73,21 @@ class _TransactionSearchFieldState extends State<TransactionSearchField> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8FAFC);
-    final borderColor =
-        isDark ? const Color(0xFF252525) : const Color(0xFFE2E8F0);
+    final borderColor = _focusNode.hasFocus
+        ? AppColors.primary
+        : isDark
+            ? const Color(0xFF252525)
+            : const Color(0xFFE2E8F0);
 
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 160),
+      curve: Curves.easeOut,
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: borderColor),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+            color: borderColor, width: _focusNode.hasFocus ? 1.5 : 1),
       ),
       child: Row(
         children: [
@@ -84,6 +102,8 @@ class _TransactionSearchFieldState extends State<TransactionSearchField> {
           Expanded(
             child: TextField(
               controller: _controller,
+              focusNode: _focusNode,
+              cursorColor: AppColors.primary,
               onChanged: _onChanged,
               style: TextStyle(
                 fontSize: 14,
@@ -98,6 +118,12 @@ class _TransactionSearchFieldState extends State<TransactionSearchField> {
                   color: context.sac.textTertiary,
                 ),
                 border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
+                filled: false,
                 contentPadding: const EdgeInsets.symmetric(vertical: 14),
               ),
             ),

@@ -11,6 +11,43 @@ enum TransactionType {
   bool get isExpense => this == TransactionType.expense;
 }
 
+class FinanceEvidence extends Equatable {
+  final int id;
+  final int financeId;
+  final String url;
+  final String fileName;
+  final String fileType;
+  final int? fileSize;
+  final String uploadedById;
+  final DateTime uploadedAt;
+  final bool active;
+
+  const FinanceEvidence({
+    required this.id,
+    required this.financeId,
+    required this.url,
+    required this.fileName,
+    required this.fileType,
+    this.fileSize,
+    required this.uploadedById,
+    required this.uploadedAt,
+    required this.active,
+  });
+
+  @override
+  List<Object?> get props => [
+        id,
+        financeId,
+        url,
+        fileName,
+        fileType,
+        fileSize,
+        uploadedById,
+        uploadedAt,
+        active,
+      ];
+}
+
 /// Representa un movimiento financiero individual del club.
 class FinanceTransaction extends Equatable {
   final int id;
@@ -30,6 +67,7 @@ class FinanceTransaction extends Equatable {
   final DateTime registeredAt;
   final String? modifiedByName;
   final DateTime? modifiedAt;
+  final List<FinanceEvidence> evidences;
 
   const FinanceTransaction({
     required this.id,
@@ -46,6 +84,7 @@ class FinanceTransaction extends Equatable {
     required this.registeredAt,
     this.modifiedByName,
     this.modifiedAt,
+    this.evidences = const [],
   });
 
   @override
@@ -64,5 +103,6 @@ class FinanceTransaction extends Equatable {
         registeredAt,
         modifiedByName,
         modifiedAt,
+        evidences,
       ];
 }

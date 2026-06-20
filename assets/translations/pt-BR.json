@@ -1796,12 +1796,13 @@
       "update": "Erro ao atualizar o movimento",
       "delete": "Erro ao excluir o movimento",
       "fetch_categories": "Erro ao obter categorias",
-      "fetch_paginated": "Erro ao obter transações"
+      "fetch_paginated": "Erro ao obter transações",
+      "upload_evidence": "Não foi possível enviar a evidência"
     },
     "view": {
       "title": "Finanças",
       "empty_title": "Sem movimentos este mês",
-      "empty_subtitle": "Toque em + para adicionar o primeiro registro.",
+      "empty_subtitle": "Toque em Adicionar para criar o primeiro registro.",
       "error_title": "Erro ao carregar finanças",
       "recent_transactions": "Transações Recentes",
       "view_all": "Ver tudo →",
@@ -1828,7 +1829,12 @@
       "register_button": "Registrar movimento",
       "save_success": "Transação salva com sucesso",
       "income": "Receita",
-      "expense": "Despesa"
+      "expense": "Despesa",
+      "evidence_label": "Evidências",
+      "evidence_hint": "Adicione até 3 fotos do comprovante.",
+      "evidence_count": "{count}/3 fotos",
+      "evidence_limit": "Você pode adicionar no máximo 3 fotos de evidência",
+      "evidence_pick_error": "Não foi possível selecionar a foto"
     },
     "transaction_detail": {
       "title": "Detalhe do Movimento",
@@ -1845,7 +1851,8 @@
       "modified_by": "Modificado por",
       "modification_date": "Data de modificação",
       "income": "Receita",
-      "expense": "Despesa"
+      "expense": "Despesa",
+      "evidence_title": "Evidências"
     },
     "all_transactions": {
       "title": "Transações",

@@ -1,11 +1,16 @@
+import 'dart:io';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/evidence_staging/image_source_dialog.dart';
 import '../../domain/entities/finance_category.dart';
 import '../../domain/entities/transaction.dart';
 import '../providers/finances_providers.dart';
@@ -28,10 +33,13 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
   final _amountController = TextEditingController();
   final _descController = TextEditingController();
   final _notesController = TextEditingController();
+  final _imagePicker = ImagePicker();
+  final List<XFile> _newEvidenceFiles = [];
 
   TransactionType _type = TransactionType.income;
   FinanceCategory? _selectedCategory;
   DateTime _selectedDate = DateTime.now();
+  String? _evidenceError;
 
   bool get _isEditing => widget.existing != null;
 
@@ -263,6 +271,24 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                       ),
                     ),
 
+                    const SizedBox(height: 16),
+
+                    // Evidence photos (optional)
+                    _SectionLabel(
+                      'finances.add_transaction.evidence_label'.tr(),
+                    ),
+                    const SizedBox(height: 6),
+                    _EvidencePicker(
+                      existingEvidences: widget.existing?.evidences ?? const [],
+                      newFiles: _newEvidenceFiles,
+                      errorText: _evidenceError,
+                      onAdd: _pickEvidence,
+                      onRemoveNew: (file) => setState(() {
+                        _newEvidenceFiles.remove(file);
+                        _evidenceError = null;
+                      }),
+                    ),
+
                     const SizedBox(height: 24),
 
                     // Error
@@ -327,6 +353,15 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     final formState = _formKey.currentState;
     if (formState == null || !formState.validate()) return;
 
+    final existingEvidenceCount = widget.existing?.evidences.length ?? 0;
+    final totalEvidenceCount = existingEvidenceCount + _newEvidenceFiles.length;
+    if (totalEvidenceCount > 3) {
+      setState(() {
+        _evidenceError = 'finances.add_transaction.evidence_limit'.tr();
+      });
+      return;
+    }
+
     final amount = double.parse(_amountController.text);
     final clubIdAsync = await ref.read(currentClubIdProvider.future);
     if (clubIdAsync == null) return;
@@ -343,7 +378,35 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
               existingId: _isEditing ? widget.existing!.id : null,
             );
 
-    if (success && mounted) {
+    if (!success || !mounted) return;
+
+    final savedTransaction =
+        ref.read(transactionFormNotifierProvider).savedTransaction ??
+            widget.existing;
+    final financeId = savedTransaction?.id;
+    if (financeId == null) return;
+
+    if (_newEvidenceFiles.isNotEmpty) {
+      final uploaded = await _uploadEvidenceFiles(financeId);
+      if (!uploaded || !mounted) {
+        if (mounted) {
+          final error =
+              _evidenceError ?? 'finances.errors.upload_evidence'.tr();
+          ref.read(transactionFormNotifierProvider.notifier).reset();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(error),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          Navigator.pop(context, true);
+        }
+        return;
+      }
+    }
+
+    if (mounted) {
       ref.read(transactionFormNotifierProvider.notifier).reset();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -354,6 +417,76 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
       );
       Navigator.pop(context, true);
     }
+  }
+
+  Future<void> _pickEvidence() async {
+    final existingEvidenceCount = widget.existing?.evidences.length ?? 0;
+    final remaining = 3 - existingEvidenceCount - _newEvidenceFiles.length;
+    if (remaining <= 0) {
+      setState(() {
+        _evidenceError = 'finances.add_transaction.evidence_limit'.tr();
+      });
+      return;
+    }
+
+    final source = await showImageSourceDialog(context);
+    if (!mounted || source == null) return;
+
+    try {
+      final picked = <XFile>[];
+      if (source == ImageSource.camera) {
+        final image = await _imagePicker.pickImage(
+          source: ImageSource.camera,
+          maxWidth: 2048,
+          maxHeight: 2048,
+          imageQuality: 85,
+        );
+        if (image != null) picked.add(image);
+      } else {
+        final images = await _imagePicker.pickMultiImage(
+          maxWidth: 2048,
+          maxHeight: 2048,
+          imageQuality: 85,
+        );
+        picked.addAll(images.take(remaining));
+      }
+
+      if (picked.isEmpty || !mounted) return;
+      setState(() {
+        _newEvidenceFiles.addAll(picked.take(remaining));
+        _evidenceError = null;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _evidenceError = 'finances.add_transaction.evidence_pick_error'.tr();
+      });
+    }
+  }
+
+  Future<bool> _uploadEvidenceFiles(int financeId) async {
+    final notifier = ref.read(transactionFormNotifierProvider.notifier);
+    for (final file in _newEvidenceFiles) {
+      final success = await notifier.uploadEvidence(
+        financeId: financeId,
+        filePath: file.path,
+        fileName: file.name,
+        mimeType: _mimeFor(file),
+      );
+      if (!success) {
+        setState(() {
+          _evidenceError =
+              ref.read(transactionFormNotifierProvider).errorMessage ??
+                  'finances.errors.upload_evidence'.tr();
+        });
+        return false;
+      }
+    }
+    return true;
+  }
+
+  String _mimeFor(XFile file) {
+    return file.mimeType ?? lookupMimeType(file.path) ?? 'image/jpeg';
   }
 
   InputDecoration _inputDecoration({
@@ -382,6 +515,165 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: AppColors.primary, width: 2),
+      ),
+    );
+  }
+}
+
+// ── Evidence picker ────────────────────────────────────────────────────────────
+
+class _EvidencePicker extends StatelessWidget {
+  final List<FinanceEvidence> existingEvidences;
+  final List<XFile> newFiles;
+  final String? errorText;
+  final VoidCallback onAdd;
+  final ValueChanged<XFile> onRemoveNew;
+
+  const _EvidencePicker({
+    required this.existingEvidences,
+    required this.newFiles,
+    required this.onAdd,
+    required this.onRemoveNew,
+    this.errorText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final total = existingEvidences.length + newFiles.length;
+    final canAdd = total < 3;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'finances.add_transaction.evidence_hint'.tr(),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: context.sac.textSecondary,
+              ),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            ...existingEvidences.map(
+              (evidence) => _EvidenceTile.network(evidence.url),
+            ),
+            ...newFiles.map(
+              (file) => _EvidenceTile.file(
+                file,
+                onRemove: () => onRemoveNew(file),
+              ),
+            ),
+            if (canAdd) _EvidenceAddTile(onTap: onAdd),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'finances.add_transaction.evidence_count'
+              .tr(namedArgs: {'count': total.toString()}),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: context.sac.textTertiary,
+              ),
+        ),
+        if (errorText != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            errorText!,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.error,
+                ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _EvidenceAddTile extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _EvidenceAddTile({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          width: 92,
+          height: 92,
+          decoration: BoxDecoration(
+            color: Theme.of(context)
+                .colorScheme
+                .surfaceContainerHighest
+                .withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.primary.withValues(alpha: 0.35),
+            ),
+          ),
+          child: Center(
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedAdd01,
+              size: 28,
+              color: AppColors.primary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EvidenceTile extends StatelessWidget {
+  final String? url;
+  final XFile? file;
+  final VoidCallback? onRemove;
+
+  const _EvidenceTile.network(this.url)
+      : file = null,
+        onRemove = null;
+
+  const _EvidenceTile.file(this.file, {required this.onRemove}) : url = null;
+
+  @override
+  Widget build(BuildContext context) {
+    final image = file != null
+        ? Image.file(File(file!.path), fit: BoxFit.cover)
+        : Image.network(url!, fit: BoxFit.cover);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Stack(
+        children: [
+          SizedBox(width: 92, height: 92, child: image),
+          if (onRemove != null)
+            Positioned(
+              top: 6,
+              right: 6,
+              child: GestureDetector(
+                onTap: onRemove,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.55),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Center(
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedCancel01,
+                      size: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

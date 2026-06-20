@@ -59,6 +59,14 @@ abstract class FinancesRepository {
     DateTime? date,
   });
 
+  /// Sube una foto de evidencia para un ingreso o egreso.
+  Future<Either<Failure, FinanceEvidence>> uploadEvidence({
+    required int financeId,
+    required String filePath,
+    required String fileName,
+    required String mimeType,
+  });
+
   /// Desactiva (soft-delete) un movimiento.
   Future<Either<Failure, void>> deleteTransaction({required int financeId});
 

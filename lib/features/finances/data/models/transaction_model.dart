@@ -2,6 +2,55 @@ import '../../domain/entities/finance_category.dart';
 import '../../domain/entities/transaction.dart';
 import 'finance_category_model.dart';
 
+class FinanceEvidenceModel extends FinanceEvidence {
+  const FinanceEvidenceModel({
+    required super.id,
+    required super.financeId,
+    required super.url,
+    required super.fileName,
+    required super.fileType,
+    super.fileSize,
+    required super.uploadedById,
+    required super.uploadedAt,
+    required super.active,
+  });
+
+  factory FinanceEvidenceModel.fromJson(Map<String, dynamic> json) {
+    return FinanceEvidenceModel(
+      id: FinanceTransactionModel._parseInt(
+        json['evidence_id'] ?? json['finance_evidence_file_id'] ?? json['id'],
+      ),
+      financeId: FinanceTransactionModel._parseInt(
+          json['finance_id'] ?? json['financeId']),
+      url: (json['url'] ?? json['file_url'] ?? '').toString(),
+      fileName: (json['file_name'] ?? json['fileName'] ?? '').toString(),
+      fileType:
+          (json['file_type'] ?? json['fileType'] ?? 'image/jpeg').toString(),
+      fileSize: json['file_size'] == null && json['fileSize'] == null
+          ? null
+          : FinanceTransactionModel._parseInt(
+              json['file_size'] ?? json['fileSize']),
+      uploadedById:
+          (json['uploaded_by_id'] ?? json['uploadedById'] ?? '').toString(),
+      uploadedAt: FinanceTransactionModel._parseDateTime(
+          json['uploaded_at'] ?? json['uploadedAt']),
+      active: json['active'] as bool? ?? true,
+    );
+  }
+
+  FinanceEvidence toEntity() => FinanceEvidence(
+        id: id,
+        financeId: financeId,
+        url: url,
+        fileName: fileName,
+        fileType: fileType,
+        fileSize: fileSize,
+        uploadedById: uploadedById,
+        uploadedAt: uploadedAt,
+        active: active,
+      );
+}
+
 class FinanceTransactionModel extends FinanceTransaction {
   const FinanceTransactionModel({
     required super.id,
@@ -18,6 +67,7 @@ class FinanceTransactionModel extends FinanceTransaction {
     required super.registeredAt,
     super.modifiedByName,
     super.modifiedAt,
+    super.evidences,
   });
 
   factory FinanceTransactionModel.fromJson(Map<String, dynamic> json) {
@@ -45,6 +95,10 @@ class FinanceTransactionModel extends FinanceTransaction {
     final registeredByName = _extractName(
         createdByUser, json['created_by']?.toString() ?? 'Sistema');
     final registeredByPhoto = createdByUser['user_image']?.toString();
+    final evidences = (json['evidences'] as List<dynamic>? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map((e) => FinanceEvidenceModel.fromJson(e).toEntity())
+        .toList();
 
     return FinanceTransactionModel(
       id: _parseInt(json['finance_id'] ?? json['id'] ?? 0),
@@ -63,6 +117,7 @@ class FinanceTransactionModel extends FinanceTransaction {
       modifiedAt: json['modified_at'] != null
           ? _parseDateTime(json['modified_at'])
           : null,
+      evidences: evidences,
     );
   }
 
@@ -128,5 +183,6 @@ class FinanceTransactionModel extends FinanceTransaction {
         registeredAt: registeredAt,
         modifiedByName: modifiedByName,
         modifiedAt: modifiedAt,
+        evidences: evidences,
       );
 }

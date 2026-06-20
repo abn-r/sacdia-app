@@ -1796,12 +1796,13 @@
       "update": "Error updating transaction",
       "delete": "Error deleting transaction",
       "fetch_categories": "Error fetching categories",
-      "fetch_paginated": "Error fetching transactions"
+      "fetch_paginated": "Error fetching transactions",
+      "upload_evidence": "Could not upload the evidence"
     },
     "view": {
       "title": "Finances",
       "empty_title": "No movements this month",
-      "empty_subtitle": "Tap + to add the first record.",
+      "empty_subtitle": "Tap Add to create the first record.",
       "error_title": "Error loading finances",
       "recent_transactions": "Recent Transactions",
       "view_all": "View all →",
@@ -1828,7 +1829,12 @@
       "register_button": "Register movement",
       "save_success": "Transaction saved successfully",
       "income": "Income",
-      "expense": "Expense"
+      "expense": "Expense",
+      "evidence_label": "Evidence",
+      "evidence_hint": "Add up to 3 receipt photos.",
+      "evidence_count": "{count}/3 photos",
+      "evidence_limit": "You can add up to 3 evidence photos only",
+      "evidence_pick_error": "Could not select the photo"
     },
     "transaction_detail": {
       "title": "Movement Detail",
@@ -1845,7 +1851,8 @@
       "modified_by": "Modified by",
       "modification_date": "Modification date",
       "income": "Income",
-      "expense": "Expense"
+      "expense": "Expense",
+      "evidence_title": "Evidence"
     },
     "all_transactions": {
       "title": "Transactions",

@@ -37,14 +37,11 @@ class FinancesView extends ConsumerWidget {
 
     final isOpen = financeMonthAsync.valueOrNull?.isOpen ?? true;
     final canManage = canManageAsync.valueOrNull ?? false;
-    final showFab = canManage && isOpen;
+    final showAddButton = canManage && isOpen;
 
     return SecureScreen(
       child: Scaffold(
         backgroundColor: context.sac.background,
-        floatingActionButton:
-            showFab ? _AddFab(onTap: () => _openAddSheet(context, ref)) : null,
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         body: SafeArea(
           child: RefreshIndicator(
             color: AppColors.primary,
@@ -74,6 +71,13 @@ class FinancesView extends ConsumerWidget {
                   ),
                   centerTitle: false,
                   actions: [
+                    if (showAddButton)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: _AddTransactionAction(
+                          onTap: () => _openAddSheet(context, ref),
+                        ),
+                      ),
                     if (financeMonthAsync.isLoading)
                       const Padding(
                         padding: EdgeInsets.all(14),
@@ -112,7 +116,6 @@ class FinancesView extends ConsumerWidget {
                     data: (financeMonth) => _FinanceBody(
                       financeMonth: financeMonth,
                       summaryAsync: summaryAsync,
-                      canManage: canManage,
                     ),
                   ),
                 ),
@@ -140,12 +143,10 @@ class FinancesView extends ConsumerWidget {
 class _FinanceBody extends ConsumerWidget {
   final FinanceMonth? financeMonth;
   final AsyncValue summaryAsync;
-  final bool canManage;
 
   const _FinanceBody({
     required this.financeMonth,
     required this.summaryAsync,
-    required this.canManage,
   });
 
   @override
@@ -192,8 +193,8 @@ class _FinanceBody extends ConsumerWidget {
         if (transactions.isNotEmpty)
           _VerTodoLink(onTap: () => _openFullTransactionList(context)),
 
-        // FAB clearance
-        const SizedBox(height: 80),
+        // Bottom navigation clearance
+        const SizedBox(height: 40),
       ],
     );
   }
@@ -474,37 +475,55 @@ class _VerTodoLink extends StatelessWidget {
   }
 }
 
-// ── FAB ────────────────────────────────────────────────────────────────────────
+// ── Header add action ─────────────────────────────────────────────────────────
 
-class _AddFab extends StatelessWidget {
+class _AddTransactionAction extends StatelessWidget {
   final VoidCallback onTap;
 
-  const _AddFab({required this.onTap});
+  const _AddTransactionAction({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF9333EA), Color(0xFF7C3AED)],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF9333EA).withValues(alpha: 0.4),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
+    final c = context.sac;
+
+    return Semantics(
+      label: 'finances.add_transaction.new_title'.tr(),
+      button: true,
+      child: Material(
+        color: c.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: c.border),
         ),
-        child: const HugeIcon(
-            icon: HugeIcons.strokeRoundedAdd01, color: Colors.white, size: 28),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedAdd01,
+                    size: 20,
+                    color: c.textSecondary,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    'common.add'.tr(),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: c.text,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

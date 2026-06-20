@@ -21,6 +21,7 @@ import '../../domain/usecases/get_categories.dart';
 import '../../domain/usecases/get_finance_summary.dart';
 import '../../domain/usecases/get_finances.dart';
 import '../../domain/usecases/update_transaction.dart';
+import '../../domain/usecases/upload_finance_evidence.dart';
 
 // ── Infrastructure ─────────────────────────────────────────────────────────────
 
@@ -64,6 +65,11 @@ final updateTransactionUseCaseProvider = Provider<UpdateTransaction>((ref) {
 
 final deleteTransactionUseCaseProvider = Provider<DeleteTransaction>((ref) {
   return DeleteTransaction(ref.read(financesRepositoryProvider));
+});
+
+final uploadFinanceEvidenceUseCaseProvider =
+    Provider<UploadFinanceEvidence>((ref) {
+  return UploadFinanceEvidence(ref.read(financesRepositoryProvider));
 });
 
 // ── Selected month navigation state ───────────────────────────────────────────
@@ -224,22 +230,29 @@ class TransactionFormState {
   final bool isLoading;
   final String? errorMessage;
   final bool success;
+  final FinanceTransaction? savedTransaction;
 
   const TransactionFormState({
     this.isLoading = false,
     this.errorMessage,
     this.success = false,
+    this.savedTransaction,
   });
 
   TransactionFormState copyWith({
     bool? isLoading,
     String? errorMessage,
     bool? success,
+    FinanceTransaction? savedTransaction,
+    bool clearSavedTransaction = false,
   }) {
     return TransactionFormState(
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
       success: success ?? this.success,
+      savedTransaction: clearSavedTransaction
+          ? null
+          : savedTransaction ?? this.savedTransaction,
     );
   }
 }
@@ -275,7 +288,12 @@ class TransactionFormNotifier
     required int month,
     int? existingId, // non-null → update
   }) async {
-    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+    state = state.copyWith(
+      isLoading: true,
+      errorMessage: null,
+      success: false,
+      clearSavedTransaction: true,
+    );
 
     if (existingId != null) {
       // Update — backend only accepts amount, description, finance_category_id,
@@ -295,10 +313,15 @@ class TransactionFormNotifier
               state.copyWith(isLoading: false, errorMessage: failure.message);
           return false;
         },
-        (_) {
-          state = state.copyWith(isLoading: false, success: true);
+        (transaction) {
+          state = state.copyWith(
+            isLoading: false,
+            success: true,
+            savedTransaction: transaction,
+          );
           ref.invalidate(financeMonthProvider);
           ref.invalidate(financeSummaryProvider);
+          ref.invalidate(transactionDetailProvider(existingId));
           return true;
         },
       );
@@ -328,8 +351,12 @@ class TransactionFormNotifier
               state.copyWith(isLoading: false, errorMessage: failure.message);
           return false;
         },
-        (_) {
-          state = state.copyWith(isLoading: false, success: true);
+        (transaction) {
+          state = state.copyWith(
+            isLoading: false,
+            success: true,
+            savedTransaction: transaction,
+          );
           ref.invalidate(financeMonthProvider);
           ref.invalidate(financeSummaryProvider);
           return true;
@@ -339,7 +366,12 @@ class TransactionFormNotifier
   }
 
   Future<bool> delete({required int financeId}) async {
-    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+    state = state.copyWith(
+      isLoading: true,
+      errorMessage: null,
+      success: false,
+      clearSavedTransaction: true,
+    );
 
     final result = await ref.read(deleteTransactionUseCaseProvider)(
       financeId: financeId,
@@ -354,6 +386,47 @@ class TransactionFormNotifier
         state = state.copyWith(isLoading: false, success: true);
         ref.invalidate(financeMonthProvider);
         ref.invalidate(financeSummaryProvider);
+        ref.invalidate(transactionDetailProvider(financeId));
+        return true;
+      },
+    );
+  }
+
+  Future<bool> uploadEvidence({
+    required int financeId,
+    required String filePath,
+    required String fileName,
+    required String mimeType,
+  }) async {
+    state = state.copyWith(
+      isLoading: true,
+      errorMessage: null,
+      success: false,
+    );
+
+    final result = await ref.read(uploadFinanceEvidenceUseCaseProvider)(
+      UploadFinanceEvidenceParams(
+        financeId: financeId,
+        filePath: filePath,
+        fileName: fileName,
+        mimeType: mimeType,
+      ),
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+          success: false,
+        );
+        return false;
+      },
+      (_) {
+        state = state.copyWith(isLoading: false, success: true);
+        ref.invalidate(financeMonthProvider);
+        ref.invalidate(financeSummaryProvider);
+        ref.invalidate(transactionDetailProvider(financeId));
         return true;
       },
     );

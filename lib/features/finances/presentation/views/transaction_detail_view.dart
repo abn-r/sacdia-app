@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/utils/icon_helper.dart';
+import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/sac_colors.dart';
+import '../../../../core/widgets/sac_image_viewer.dart';
 import '../../domain/entities/transaction.dart';
 import '../providers/finances_providers.dart';
 import 'add_transaction_sheet.dart';
-import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
 /// Vista de detalle de un movimiento financiero.
 ///
@@ -106,6 +107,11 @@ class TransactionDetailView extends ConsumerWidget {
             ),
 
             const SizedBox(height: 16),
+
+            if (transaction.evidences.isNotEmpty) ...[
+              _EvidenceCard(evidences: transaction.evidences),
+              const SizedBox(height: 16),
+            ],
 
             // Audit card
             _DetailCard(
@@ -282,6 +288,107 @@ class _AmountHero extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Evidence card ─────────────────────────────────────────────────────────────
+
+class _EvidenceCard extends StatelessWidget {
+  final List<FinanceEvidence> evidences;
+
+  const _EvidenceCard({required this.evidences});
+
+  @override
+  Widget build(BuildContext context) {
+    final urls = evidences.map((e) => e.url).toList();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.4),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: context.sac.shadow,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedImage01,
+                size: 18,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'finances.transaction_detail.evidence_title'.tr(),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              for (var index = 0; index < evidences.length; index++)
+                _EvidenceThumb(
+                  url: evidences[index].url,
+                  onTap: () => SacImageViewer.show(
+                    context,
+                    imageUrl: evidences[index].url,
+                    imageUrls: urls,
+                    initialIndex: index,
+                    title: 'finances.transaction_detail.evidence_title'.tr(),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EvidenceThumb extends StatelessWidget {
+  final String url;
+  final VoidCallback onTap;
+
+  const _EvidenceThumb({required this.url, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Ink(
+          width: 92,
+          height: 92,
+          decoration: BoxDecoration(
+            color: context.sac.surfaceVariant,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: Image.network(url, fit: BoxFit.cover),
+          ),
+        ),
       ),
     );
   }

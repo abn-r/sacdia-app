@@ -1796,12 +1796,13 @@
       "update": "Erreur lors de la mise à jour du mouvement",
       "delete": "Erreur lors de la suppression du mouvement",
       "fetch_categories": "Erreur lors de la récupération des catégories",
-      "fetch_paginated": "Erreur lors de la récupération des transactions"
+      "fetch_paginated": "Erreur lors de la récupération des transactions",
+      "upload_evidence": "Impossible de téléverser la preuve"
     },
     "view": {
       "title": "Finances",
       "empty_title": "Aucun mouvement ce mois-ci",
-      "empty_subtitle": "Appuyez sur + pour ajouter le premier enregistrement.",
+      "empty_subtitle": "Appuyez sur Ajouter pour créer le premier enregistrement.",
       "error_title": "Erreur lors du chargement des finances",
       "recent_transactions": "Transactions récentes",
       "view_all": "Voir tout →",
@@ -1828,7 +1829,12 @@
       "register_button": "Enregistrer le mouvement",
       "save_success": "Transaction enregistrée avec succès",
       "income": "Revenu",
-      "expense": "Dépense"
+      "expense": "Dépense",
+      "evidence_label": "Preuves",
+      "evidence_hint": "Ajoutez jusqu’à 3 photos du justificatif.",
+      "evidence_count": "{count}/3 photos",
+      "evidence_limit": "Vous pouvez ajouter jusqu’à 3 photos de preuve",
+      "evidence_pick_error": "Impossible de sélectionner la photo"
     },
     "transaction_detail": {
       "title": "Détail du mouvement",
@@ -1845,7 +1851,8 @@
       "modified_by": "Modifié par",
       "modification_date": "Date de modification",
       "income": "Revenu",
-      "expense": "Dépense"
+      "expense": "Dépense",
+      "evidence_title": "Preuves"
     },
     "all_transactions": {
       "title": "Transactions",

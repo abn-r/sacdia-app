@@ -64,5 +64,41 @@ void main() {
       expect(transaction.category.typeCode, 0);
       expect(transaction.category.appliesToIncome, isTrue);
     });
+
+    test('parses evidence files attached to a movement', () {
+      final transaction = FinanceTransactionModel.fromJson(const {
+        'finance_id': 12,
+        'amount': 300,
+        'description': 'Ventas',
+        'finance_date': '2026-06-18',
+        'year': 2026,
+        'month': 6,
+        'created_at': '2026-06-18T16:57:00Z',
+        'finances_categories': {
+          'finance_category_id': 8,
+          'name': 'Ventas',
+          'type': 0,
+          'icon': 8,
+        },
+        'evidences': [
+          {
+            'evidence_id': 7,
+            'finance_id': 12,
+            'url': 'https://example.com/evidence.jpg',
+            'file_name': 'recibo.jpg',
+            'file_type': 'image/jpeg',
+            'file_size': 1024,
+            'uploaded_by_id': 'user-1',
+            'uploaded_at': '2026-06-18T17:00:00Z',
+            'active': true,
+          }
+        ],
+      });
+
+      expect(transaction.evidences, hasLength(1));
+      expect(transaction.evidences.first.id, 7);
+      expect(
+          transaction.evidences.first.url, 'https://example.com/evidence.jpg');
+    });
   });
 }

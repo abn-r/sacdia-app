@@ -15,7 +15,6 @@ import '../widgets/sort_bottom_sheet.dart';
 import '../widgets/transaction_search_field.dart';
 import '../widgets/transaction_tile.dart';
 import '../widgets/transaction_type_tabs.dart';
-import 'add_transaction_sheet.dart';
 import 'transaction_detail_view.dart';
 
 // ── View ───────────────────────────────────────────────────────────────────────
@@ -82,19 +81,6 @@ class _AllTransactionsViewState extends ConsumerState<AllTransactionsView> {
     );
   }
 
-  void _openAddSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const AddTransactionSheet(),
-    ).then((_) {
-      // Refresh the list after adding a transaction.
-      ref.read(allTransactionsFilterNotifierProvider.notifier).reset();
-    });
-  }
-
   void _openSortSheet() {
     final filter = ref.read(allTransactionsFilterNotifierProvider).filter;
     showModalBottomSheet(
@@ -141,10 +127,6 @@ class _AllTransactionsViewState extends ConsumerState<AllTransactionsView> {
   @override
   Widget build(BuildContext context) {
     final txState = ref.watch(allTransactionsFilterNotifierProvider);
-    final canManage = ref.watch(canManageFinancesProvider).valueOrNull ?? false;
-    final financeMonth = ref.watch(financeMonthProvider).valueOrNull;
-    final isOpen = financeMonth?.isOpen ?? true;
-    final showFab = canManage && isOpen;
     final rangeLabel = ref.watch(allTransactionsRangeLabelProvider);
 
     return Scaffold(
@@ -171,8 +153,6 @@ class _AllTransactionsViewState extends ConsumerState<AllTransactionsView> {
           ),
         ],
       ),
-      floatingActionButton: showFab ? _AddFab(onTap: _openAddSheet) : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: SafeArea(
         top: false,
         child: Column(
@@ -305,7 +285,7 @@ class _TransactionListBodyState extends State<_TransactionListBody> {
           if (txState.isLoadingMore) {
             return const _LoadMoreIndicator();
           }
-          return const SizedBox(height: 80);
+          return const SizedBox(height: 32);
         }
 
         final item = items[index];
@@ -493,42 +473,6 @@ class _ErrorState extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// ── FAB ────────────────────────────────────────────────────────────────────────
-
-class _AddFab extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _AddFab({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF9333EA), Color(0xFF7C3AED)],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF9333EA).withValues(alpha: 0.4),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: const HugeIcon(
-            icon: HugeIcons.strokeRoundedAdd01, color: Colors.white, size: 28),
       ),
     );
   }

@@ -51,6 +51,13 @@ abstract class FinancesRemoteDataSource {
     DateTime? date,
   });
 
+  Future<FinanceEvidenceModel> uploadEvidence({
+    required int financeId,
+    required String filePath,
+    required String fileName,
+    required String mimeType,
+  });
+
   Future<void> deleteTransaction({required int financeId});
 
   Future<List<FinanceCategoryModel>> getCategories({
@@ -275,6 +282,47 @@ class FinancesRemoteDataSourceImpl implements FinancesRemoteDataSource {
       );
     } catch (e) {
       AppLogger.e('Error en updateTransaction', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── POST /finances/:financeId/evidences ──────────────────────────────────
+
+  @override
+  Future<FinanceEvidenceModel> uploadEvidence({
+    required int financeId,
+    required String filePath,
+    required String fileName,
+    required String mimeType,
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          filePath,
+          filename: fileName,
+          contentType: DioMediaType.parse(mimeType),
+        ),
+      });
+
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.finances}/$financeId/evidences',
+        data: formData,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = response.data as Map<String, dynamic>;
+        final json = body.containsKey('data')
+            ? body['data'] as Map<String, dynamic>
+            : body;
+        return FinanceEvidenceModel.fromJson(json);
+      }
+
+      throw ServerException(
+        message: tr('finances.errors.upload_evidence'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en uploadEvidence', tag: _tag, error: e);
       _rethrow(e);
     }
   }

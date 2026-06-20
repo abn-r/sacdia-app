@@ -151,6 +151,30 @@ class FinancesRepositoryImpl implements FinancesRepository {
   }
 
   @override
+  Future<Either<Failure, FinanceEvidence>> uploadEvidence({
+    required int financeId,
+    required String filePath,
+    required String fileName,
+    required String mimeType,
+  }) async {
+    try {
+      final model = await remoteDataSource.uploadEvidence(
+        financeId: financeId,
+        filePath: filePath,
+        fileName: fileName,
+        mimeType: mimeType,
+      );
+      return Right(model.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> deleteTransaction(
       {required int financeId}) async {
     try {
