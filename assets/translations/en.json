@@ -1278,7 +1278,21 @@
       "points": "{points} pts",
       "members_count": "{count} members",
       "empty_title": "You have no units assigned",
-      "empty_subtitle": "Contact your club director\nto have a unit assigned to you."
+      "empty_subtitle": "Contact your club director\nto have a unit assigned to you.",
+      "leader_label": "Leader: {name}",
+      "summary_count": "{count} active units",
+      "summary_manage": "Manage roles and members from touch-friendly actions.",
+      "summary_view": "Open a unit to review members and record points.",
+      "manage_unit": "Manage unit {name}",
+      "action_sheet_title": "Manage unit",
+      "edit_action_title": "Edit details",
+      "edit_action_subtitle": "Update name, leaders, and members.",
+      "delete_action_title": "Deactivate unit",
+      "delete_action_subtitle": "Close the unit without deleting its history.",
+      "delete_sheet_title": "Deactivate unit",
+      "delete_sheet_body": "The unit \"{name}\" will become inactive and keep its operational history.",
+      "delete_sheet_confirm": "Deactivate unit",
+      "delete_sheet_cancel": "Keep unit"
     },
     "detail": {
       "scores_title": "Puntos del dia",

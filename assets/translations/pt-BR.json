@@ -1278,7 +1278,21 @@
       "points": "{points} pts",
       "members_count": "{count} membros",
       "empty_title": "Você não tem unidades atribuídas",
-      "empty_subtitle": "Entre em contato com o diretor do seu clube\npara que ele atribua uma unidade a você."
+      "empty_subtitle": "Entre em contato com o diretor do seu clube\npara que ele atribua uma unidade a você.",
+      "leader_label": "Líder: {name}",
+      "summary_count": "{count} unidades ativas",
+      "summary_manage": "Gerencie funções e membros com ações táteis.",
+      "summary_view": "Abra uma unidade para revisar membros e registrar pontos.",
+      "manage_unit": "Gerenciar unidade {name}",
+      "action_sheet_title": "Gerenciar unidade",
+      "edit_action_title": "Editar dados",
+      "edit_action_subtitle": "Atualize nome, líderes e membros.",
+      "delete_action_title": "Desativar unidade",
+      "delete_action_subtitle": "Fecha a unidade sem apagar o histórico.",
+      "delete_sheet_title": "Desativar unidade",
+      "delete_sheet_body": "A unidade \"{name}\" ficará inativa e manterá seu histórico operacional.",
+      "delete_sheet_confirm": "Desativar unidade",
+      "delete_sheet_cancel": "Manter unidade"
     },
     "detail": {
       "scores_title": "Puntos del dia",

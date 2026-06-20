@@ -1278,7 +1278,21 @@
       "points": "{points} pts",
       "members_count": "{count} membres",
       "empty_title": "Aucune unité ne vous est attribuée",
-      "empty_subtitle": "Contactez le directeur de votre club\npour qu'il vous attribue une unité."
+      "empty_subtitle": "Contactez le directeur de votre club\npour qu'il vous attribue une unité.",
+      "leader_label": "Responsable : {name}",
+      "summary_count": "{count} unités actives",
+      "summary_manage": "Gérez les rôles et membres avec des actions tactiles.",
+      "summary_view": "Ouvrez une unité pour consulter les membres et saisir les points.",
+      "manage_unit": "Gérer l'unité {name}",
+      "action_sheet_title": "Gérer l'unité",
+      "edit_action_title": "Modifier les données",
+      "edit_action_subtitle": "Mettez à jour le nom, les responsables et les membres.",
+      "delete_action_title": "Désactiver l'unité",
+      "delete_action_subtitle": "Ferme l'unité sans supprimer son historique.",
+      "delete_sheet_title": "Désactiver l'unité",
+      "delete_sheet_body": "L'unité « {name} » deviendra inactive et conservera son historique opérationnel.",
+      "delete_sheet_confirm": "Désactiver l'unité",
+      "delete_sheet_cancel": "Conserver l'unité"
     },
     "detail": {
       "scores_title": "Puntos del dia",

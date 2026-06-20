@@ -1,11 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:sacdia_app/core/animations/page_transitions.dart';
 import 'package:sacdia_app/core/theme/app_colors.dart';
+import 'package:sacdia_app/core/theme/app_theme.dart';
 import 'package:sacdia_app/core/theme/sac_colors.dart';
+import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_card.dart';
 import 'package:sacdia_app/core/widgets/sac_back_button.dart';
 
@@ -216,37 +219,40 @@ class _Body extends ConsumerWidget {
     final clubContextAsync = ref.watch(clubContextProvider);
 
     return clubContextAsync.when(
-      data: (ctx) => ListView.builder(
+      data: (ctx) => ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
-        itemCount: visibleUnits.length + (state.memberOfMonth != null ? 1 : 0),
-        itemBuilder: (context, index) {
-          // Primer elemento: card de Miembro del Mes (solo si hay datos)
-          if (state.memberOfMonth != null) {
-            if (index == 0) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: _MemberOfMonthCard(
-                  memberOfMonth: state.memberOfMonth!,
-                  onTap: ctx != null
-                      ? () => onMemberOfMonthTap(ctx.clubId, ctx.sectionId)
-                      : null,
-                ),
-              );
-            }
-            // Ajustar índice para la lista de unidades
-            final unitIndex = index - 1;
-            return _buildUnitCard(
-                context, ref, visibleUnits[unitIndex], unitIndex);
-          }
-          return _buildUnitCard(context, ref, visibleUnits[index], index);
-        },
+        children: [
+          _UnitsOverviewHeader(
+            count: visibleUnits.length,
+            canManage: canManage,
+          ),
+          const SizedBox(height: 10),
+          if (state.memberOfMonth != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _MemberOfMonthCard(
+                memberOfMonth: state.memberOfMonth!,
+                onTap: ctx != null
+                    ? () => onMemberOfMonthTap(ctx.clubId, ctx.sectionId)
+                    : null,
+              ),
+            ),
+          for (final entry in visibleUnits.asMap().entries)
+            _buildUnitCard(context, ref, entry.value, entry.key),
+        ],
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => ListView.builder(
+      error: (_, __) => ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
-        itemCount: visibleUnits.length,
-        itemBuilder: (context, index) =>
-            _buildUnitCard(context, ref, visibleUnits[index], index),
+        children: [
+          _UnitsOverviewHeader(
+            count: visibleUnits.length,
+            canManage: canManage,
+          ),
+          const SizedBox(height: 10),
+          for (final entry in visibleUnits.asMap().entries)
+            _buildUnitCard(context, ref, entry.value, entry.key),
+        ],
       ),
     );
   }
@@ -258,54 +264,137 @@ class _Body extends ConsumerWidget {
     int index,
   ) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 10),
       child: SacCard(
         animate: true,
         animationDelay: Duration(milliseconds: index * 80),
         onTap: () => onUnitTap(unit),
-        accentColor: AppColors.primary,
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.zero,
+        borderColor: context.sac.borderLight,
         child: _UnitCard(
           unit: unit,
           canManage: canManage,
-          canDelete: canDelete,
-          onEdit: canManage
-              ? () => showUnitFormSheet(context: context, ref: ref, unit: unit)
-              : null,
-          onDelete: canDelete
-              ? () async {
-                  final confirmed = await showDialog<bool>(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: Text('units.list.delete_title'.tr()),
-                          content: Text(
-                            'units.list.delete_confirm'
-                                .tr(namedArgs: {'name': unit.name}),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(ctx).pop(false),
-                              child: Text('common.cancel'.tr()),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(ctx).pop(true),
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.red,
-                              ),
-                              child: Text('common.delete'.tr()),
-                            ),
-                          ],
-                        ),
-                      ) ??
-                      false;
-                  if (confirmed) {
-                    await ref
-                        .read(unitsNotifierProvider.notifier)
-                        .deleteUnit(unitId: unit.id);
-                  }
-                }
+          onActions: canManage
+              ? () => _showUnitActionsSheet(context, ref, unit)
               : null,
         ),
+      ),
+    );
+  }
+
+  Future<void> _showUnitActionsSheet(
+    BuildContext context,
+    WidgetRef ref,
+    Unit unit,
+  ) async {
+    HapticFeedback.selectionClick();
+    final action = await showModalBottomSheet<_UnitAction>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _UnitActionsSheet(unit: unit, canDelete: canDelete),
+    );
+
+    if (!context.mounted || action == null) return;
+
+    switch (action) {
+      case _UnitAction.edit:
+        await showUnitFormSheet(context: context, ref: ref, unit: unit);
+        break;
+      case _UnitAction.delete:
+        await _confirmDeleteUnit(context, ref, unit);
+        break;
+    }
+  }
+
+  Future<void> _confirmDeleteUnit(
+    BuildContext context,
+    WidgetRef ref,
+    Unit unit,
+  ) async {
+    final confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _DeleteUnitSheet(unit: unit),
+    );
+
+    if (!context.mounted || confirmed != true) return;
+    HapticFeedback.mediumImpact();
+    await ref.read(unitsNotifierProvider.notifier).deleteUnit(unitId: unit.id);
+  }
+}
+
+// ── Overview Header ──────────────────────────────────────────────────────────
+
+class _UnitsOverviewHeader extends StatelessWidget {
+  final int count;
+  final bool canManage;
+
+  const _UnitsOverviewHeader({
+    required this.count,
+    required this.canManage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Color.alphaBlend(
+          AppColors.primary.withValues(alpha: 0.06),
+          c.surface,
+        ),
+        borderRadius: BorderRadius.circular(AppTheme.radiusXL),
+        border: Border.all(color: c.borderLight),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+            ),
+            child: const HugeIcon(
+              icon: HugeIcons.strokeRoundedUserGroup,
+              color: AppColors.primary,
+              size: 21,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'units.list.summary_count'.tr(
+                    namedArgs: {'count': '$count'},
+                  ),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: c.text,
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  canManage
+                      ? 'units.list.summary_manage'.tr()
+                      : 'units.list.summary_view'.tr(),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: c.textSecondary,
+                        height: 1.35,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -576,155 +665,232 @@ class _MomInitials extends StatelessWidget {
 class _UnitCard extends StatelessWidget {
   final Unit unit;
   final bool canManage;
-  final bool canDelete;
-  final VoidCallback? onEdit;
-  final VoidCallback? onDelete;
+  final VoidCallback? onActions;
 
   const _UnitCard({
     required this.unit,
     this.canManage = false,
-    this.canDelete = false,
-    this.onEdit,
-    this.onDelete,
+    this.onActions,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final accent = _unitAccentColor(unit.type);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Row(
+        children: [
+          _UnitIdentityMark(unit: unit, accent: accent),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  unit.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: c.text,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.2,
+                      ),
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 5,
+                  children: [
+                    _InfoChip(
+                      icon: HugeIcons.strokeRoundedLabel,
+                      label: unit.type,
+                    ),
+                    _InfoChip(
+                      icon: HugeIcons.strokeRoundedUser,
+                      label: 'units.list.members_count'
+                          .tr(namedArgs: {'count': '${unit.memberCount}'}),
+                    ),
+                  ],
+                ),
+                if (unit.leaderName != null) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedUserStar01,
+                        size: 12,
+                        color: c.textTertiary,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          'units.list.leader_label'.tr(
+                            namedArgs: {'name': unit.leaderName!},
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: c.textTertiary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          if (canManage)
+            Semantics(
+              button: true,
+              label: 'units.list.manage_unit'.tr(
+                namedArgs: {'name': unit.name},
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onActions,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusLG),
+                  child: Ink(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(AppTheme.radiusLG),
+                    ),
+                    child: Center(
+                      child: Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: Color.alphaBlend(
+                            accent.withValues(alpha: 0.09),
+                            c.surface,
+                          ),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusMD),
+                        ),
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedMoreHorizontal,
+                          size: 14,
+                          color: accent,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          else
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              size: 20,
+              color: c.textTertiary,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Discriminated union for the unit card contextual actions.
+enum _UnitAction { edit, delete }
+
+class _UnitIdentityMark extends StatelessWidget {
+  final Unit unit;
+  final Color accent;
+
+  const _UnitIdentityMark({
+    required this.unit,
+    required this.accent,
   });
 
   @override
   Widget build(BuildContext context) {
     final c = context.sac;
 
-    return Row(
+    return Stack(
+      clipBehavior: Clip.none,
       children: [
-        // Icono de unidad
         Container(
-          width: 52,
-          height: 52,
+          width: 54,
+          height: 54,
           decoration: BoxDecoration(
-            color: AppColors.primaryLight,
-            borderRadius: BorderRadius.circular(14),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                accent.withValues(alpha: 0.20),
+                accent.withValues(alpha: 0.08),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: accent.withValues(alpha: 0.16)),
           ),
-          child: const HugeIcon(
-            icon: HugeIcons.strokeRoundedUserGroup,
-            size: 26,
-            color: AppColors.primary,
+          alignment: Alignment.center,
+          child: Text(
+            _unitInitials(unit.name),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: accent,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.5,
+                ),
           ),
         ),
-        const SizedBox(width: 14),
-
-        // Info
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                unit.name,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: c.text,
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  _InfoChip(
-                    icon: HugeIcons.strokeRoundedLabel,
-                    label: unit.type,
-                  ),
-                  const SizedBox(width: 8),
-                  _InfoChip(
-                    icon: HugeIcons.strokeRoundedUser,
-                    label: 'units.list.members_count'
-                        .tr(namedArgs: {'count': '${unit.memberCount}'}),
-                  ),
-                ],
-              ),
-              if (unit.leaderName != null) ...[
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedUserStar01,
-                      size: 13,
-                      color: c.textTertiary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      unit.leaderName!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: c.textTertiary,
-                          ),
-                    ),
-                  ],
+        Positioned(
+          right: -2,
+          bottom: -2,
+          child: Container(
+            width: 22,
+            height: 22,
+            decoration: BoxDecoration(
+              color: c.surface,
+              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+              border: Border.all(color: c.borderLight),
+              boxShadow: [
+                BoxShadow(
+                  color: c.shadow,
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
                 ),
               ],
-            ],
+            ),
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedUserGroup,
+              size: 12,
+              color: accent,
+            ),
           ),
         ),
-
-        // Trailing: popup menu for management roles, chevron otherwise
-        if (canManage)
-          PopupMenuButton<_UnitAction>(
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedMoreVertical,
-              size: 20,
-              color: c.textTertiary,
-            ),
-            onSelected: (action) {
-              if (action == _UnitAction.edit) {
-                onEdit?.call();
-              } else if (action == _UnitAction.delete) {
-                onDelete?.call();
-              }
-            },
-            itemBuilder: (_) {
-              return <PopupMenuEntry<_UnitAction>>[
-                PopupMenuItem(
-                  value: _UnitAction.edit,
-                  child: Row(
-                    children: [
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedPencilEdit02,
-                        size: 18,
-                        color: AppColors.primary,
-                      ),
-                      SizedBox(width: 10),
-                      Text('common.edit'.tr()),
-                    ],
-                  ),
-                ),
-                if (canDelete)
-                  PopupMenuItem(
-                    value: _UnitAction.delete,
-                    child: Row(
-                      children: [
-                        HugeIcon(
-                          icon: HugeIcons.strokeRoundedDelete02,
-                          size: 18,
-                          color: AppColors.error,
-                        ),
-                        SizedBox(width: 10),
-                        Text(
-                          'common.delete'.tr(),
-                          style: TextStyle(color: AppColors.error),
-                        ),
-                      ],
-                    ),
-                  ),
-              ];
-            },
-          )
-        else
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowRight01,
-            size: 20,
-            color: c.textTertiary,
-          ),
       ],
     );
   }
 }
 
-/// Discriminated union for the unit card popup actions.
-enum _UnitAction { edit, delete }
+Color _unitAccentColor(String type) {
+  final lower = type.toLowerCase();
+  if (lower.contains('aventurer')) return AppColors.secondary;
+  if (lower.contains('guía') || lower.contains('guia')) {
+    return AppColors.colorGuiaMayor;
+  }
+  if (lower.contains('conquistador')) return AppColors.primary;
+  return AppColors.primary;
+}
+
+String _unitInitials(String name) {
+  final words = name.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
+  if (words.isEmpty) return '--';
+
+  final initials = words.length >= 2
+      ? words.take(2).map((word) => String.fromCharCodes(word.runes.take(1)))
+      : [String.fromCharCodes(words.first.runes.take(2))];
+
+  return initials.join().toUpperCase();
+}
 
 class _InfoChip extends StatelessWidget {
   final List<List<dynamic>> icon;
@@ -736,18 +902,304 @@ class _InfoChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.sac;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        HugeIcon(icon: icon, size: 12, color: c.textSecondary),
-        const SizedBox(width: 3),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: c.textSecondary,
-              ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+      decoration: BoxDecoration(
+        color: c.surfaceVariant,
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          HugeIcon(icon: icon, size: 11, color: c.textSecondary),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: c.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Mobile Action Sheets ─────────────────────────────────────────────────────
+
+class _UnitActionsSheet extends StatelessWidget {
+  final Unit unit;
+  final bool canDelete;
+
+  const _UnitActionsSheet({
+    required this.unit,
+    required this.canDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final accent = _unitAccentColor(unit.type);
+    final bottom = MediaQuery.of(context).padding.bottom;
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(20, 12, 20, bottom + 20),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(28),
         ),
-      ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: c.textTertiary.withValues(alpha: 0.28),
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+              ),
+            ),
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              _UnitIdentityMark(unit: unit, accent: accent),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'units.list.action_sheet_title'.tr(),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: c.text,
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      unit.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: c.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          _ActionSheetTile(
+            icon: HugeIcons.strokeRoundedPencilEdit02,
+            title: 'units.list.edit_action_title'.tr(),
+            subtitle: 'units.list.edit_action_subtitle'.tr(),
+            color: accent,
+            onTap: () => Navigator.of(context).pop(_UnitAction.edit),
+          ),
+          if (canDelete) ...[
+            const SizedBox(height: 10),
+            _ActionSheetTile(
+              icon: HugeIcons.strokeRoundedDelete02,
+              title: 'units.list.delete_action_title'.tr(),
+              subtitle: 'units.list.delete_action_subtitle'.tr(),
+              color: c.error,
+              destructive: true,
+              onTap: () => Navigator.of(context).pop(_UnitAction.delete),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _DeleteUnitSheet extends StatelessWidget {
+  final Unit unit;
+
+  const _DeleteUnitSheet({required this.unit});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+    final bottom = MediaQuery.of(context).padding.bottom;
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(20, 12, 20, bottom + 20),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(28),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: c.textTertiary.withValues(alpha: 0.28),
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+              ),
+            ),
+          ),
+          const SizedBox(height: 22),
+          Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              color: c.error.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusLG),
+            ),
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedDelete02,
+              color: c.error,
+              size: 26,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'units.list.delete_sheet_title'.tr(),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: c.text,
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'units.list.delete_sheet_body'.tr(namedArgs: {'name': unit.name}),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: c.textSecondary,
+                  height: 1.45,
+                ),
+          ),
+          const SizedBox(height: 22),
+          SacButton.destructive(
+            text: 'units.list.delete_sheet_confirm'.tr(),
+            icon: HugeIcons.strokeRoundedDelete02,
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+          const SizedBox(height: 10),
+          SacButton(
+            text: 'units.list.delete_sheet_cancel'.tr(),
+            variant: SacButtonVariant.ghost,
+            fullWidth: true,
+            textColor: c.textSecondary,
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActionSheetTile extends StatelessWidget {
+  final List<List<dynamic>> icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final bool destructive;
+  final VoidCallback onTap;
+
+  const _ActionSheetTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+    this.destructive = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Semantics(
+      button: true,
+      label: title,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppTheme.radiusLG),
+          child: Ink(
+            decoration: BoxDecoration(
+              color: destructive
+                  ? color.withValues(alpha: 0.08)
+                  : c.surfaceVariant,
+              borderRadius: BorderRadius.circular(AppTheme.radiusLG),
+              border: Border.all(
+                color:
+                    destructive ? color.withValues(alpha: 0.16) : c.borderLight,
+              ),
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 60),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+                      ),
+                      child: HugeIcon(
+                        icon: icon,
+                        color: color,
+                        size: 17,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style:
+                                Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                      color: destructive ? color : c.text,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            subtitle,
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: c.textSecondary,
+                                      height: 1.35,
+                                    ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowRight01,
+                      size: 16,
+                      color: destructive ? color : c.textTertiary,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

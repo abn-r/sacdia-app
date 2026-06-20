@@ -8,9 +8,45 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
 import '../../../../core/utils/icon_helper.dart';
 import '../../domain/entities/unit.dart';
+import '../../domain/usecases/get_unit_detail.dart';
 import '../../../members/domain/entities/club_member.dart';
+import '../../../members/domain/usecases/get_club_members.dart';
 import '../../../members/presentation/providers/members_providers.dart';
 import '../providers/units_providers.dart';
+
+final _unitFormDetailProvider =
+    FutureProvider.autoDispose.family<Unit, int>((ref, unitId) async {
+  final ctx = await ref.watch(clubContextProvider.future);
+  if (ctx == null) {
+    throw Exception('units.form.club_context_error'.tr());
+  }
+
+  final result = await ref.read(getUnitDetailUseCaseProvider).call(
+        GetUnitDetailParams(clubId: ctx.clubId, unitId: unitId),
+      );
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (unit) => unit,
+  );
+});
+
+final _unitFormMembersProvider =
+    FutureProvider.autoDispose.family<List<ClubMember>, int>(
+  (ref, sectionId) async {
+    final ctx = await ref.watch(clubContextProvider.future);
+    if (ctx == null) return const <ClubMember>[];
+
+    final result = await ref.read(getClubMembersUseCaseProvider).call(
+          GetClubMembersParams(clubId: ctx.clubId, sectionId: sectionId),
+        );
+
+    return result.fold(
+      (failure) => throw Exception(failure.message),
+      (members) => members,
+    );
+  },
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Public entry point
@@ -111,6 +147,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
   List<ClubMember> _members = [];
 
   bool _isSaving = false;
+  bool _didResolveEditFields = false;
 
   bool get _isEditMode => widget.unit != null;
 
@@ -135,11 +172,10 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
 
   // ── Edit-mode pre-population ────────────────────────────────────────────────
 
-  /// Finds [ClubMember] instances matching the IDs stored in [widget.unit].
+  /// Finds [ClubMember] instances matching the IDs stored in [unit].
   /// Called once after the members list is available.
-  void _resolveEditFields(List<ClubMember> allMembers) {
-    if (!_isEditMode) return;
-    final unit = widget.unit!;
+  void _resolveEditFields(Unit unit, List<ClubMember> allMembers) {
+    if (!_isEditMode || _didResolveEditFields || !mounted) return;
 
     ClubMember? find(String? id) =>
         id == null ? null : allMembers.where((m) => m.userId == id).firstOrNull;
@@ -148,6 +184,7 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
     final unitMemberIds = unit.members.map((um) => um.id).toSet();
 
     setState(() {
+      _didResolveEditFields = true;
       _captain = find(unit.captainId);
       _secretary = find(unit.secretaryId);
       _advisor = find(unit.advisorId);
@@ -246,6 +283,12 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────────
+
+  String _formatLoadError(Object? error) {
+    final message = error?.toString().replaceFirst('Exception: ', '').trim();
+    if (message == null || message.isEmpty) return 'common.error_generic'.tr();
+    return message;
+  }
 
   /// Maps the club type name string (from [ClubContext]) to its backend integer ID.
   ///
@@ -348,20 +391,38 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
     final c = context.sac;
     final theme = Theme.of(context);
 
-    // Watch members — when the async value first resolves in edit mode,
-    // pre-populate the role fields.
-    final membersAsync = ref.watch(membersNotifierProvider);
-    final allMembers = membersAsync.valueOrNull?.members ?? const [];
+    final unitDetailAsync = _isEditMode
+        ? ref.watch(_unitFormDetailProvider(widget.unit!.id))
+        : null;
+    final editUnit = unitDetailAsync?.valueOrNull ?? widget.unit;
 
-    // Pre-populate role fields once data arrives in edit mode.
-    // We track whether we've done this with a flag to avoid repeated resets.
-    ref.listen<AsyncValue<MembersData>>(membersNotifierProvider, (prev, next) {
-      if (_isEditMode &&
-          prev?.valueOrNull == null &&
-          next.valueOrNull != null) {
-        _resolveEditFields(next.valueOrNull!.members);
-      }
-    });
+    final clubContextAsync = ref.watch(clubContextProvider);
+    final targetSectionId =
+        editUnit?.clubSectionId ?? clubContextAsync.valueOrNull?.sectionId;
+
+    final membersAsync = targetSectionId == null
+        ? const AsyncValue<List<ClubMember>>.loading()
+        : ref.watch(_unitFormMembersProvider(targetSectionId));
+    final allMembers = membersAsync.valueOrNull ?? const <ClubMember>[];
+
+    final canResolveEditFields =
+        _isEditMode && editUnit != null && unitDetailAsync?.hasValue == true;
+    if (canResolveEditFields &&
+        !_didResolveEditFields &&
+        membersAsync.hasValue) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _didResolveEditFields) return;
+        _resolveEditFields(editUnit, membersAsync.valueOrNull ?? const []);
+      });
+    }
+
+    final isLoadingFormData =
+        membersAsync.isLoading || (unitDetailAsync?.isLoading ?? false);
+    final formLoadError = unitDetailAsync?.hasError == true
+        ? unitDetailAsync!.error
+        : membersAsync.hasError
+            ? membersAsync.error
+            : null;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.88,
@@ -427,183 +488,200 @@ class _UnitFormSheetState extends ConsumerState<_UnitFormSheet> {
 
                 // ── Scrollable form body ───────────────────────────────────
                 Expanded(
-                  child: membersAsync.isLoading
+                  child: isLoadingFormData
                       ? const Center(child: CircularProgressIndicator())
-                      : ListView(
-                          controller: scrollController,
-                          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                          children: [
-                            // ── Name ────────────────────────────────────
-                            _SectionLabel(
-                              icon: HugeIcons.strokeRoundedPencilEdit01,
-                              label: 'units.form.name_label'.tr(),
-                            ),
-                            const SizedBox(height: 8),
-                            TextFormField(
-                              controller: _nameController,
-                              textCapitalization: TextCapitalization.words,
-                              decoration: InputDecoration(
-                                hintText: 'units.form.name_hint'.tr(),
-                                hintStyle: TextStyle(color: c.textTertiary),
-                                filled: true,
-                                fillColor: c.surfaceVariant,
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 14),
-                                border: OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(AppTheme.radiusSM),
-                                  borderSide: BorderSide(color: c.border),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(AppTheme.radiusSM),
-                                  borderSide: BorderSide(color: c.border),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(AppTheme.radiusSM),
-                                  borderSide: const BorderSide(
-                                      color: AppColors.primary, width: 2),
-                                ),
-                                errorBorder: OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(AppTheme.radiusSM),
-                                  borderSide:
-                                      const BorderSide(color: AppColors.error),
-                                ),
-                                focusedErrorBorder: OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(AppTheme.radiusSM),
-                                  borderSide: const BorderSide(
-                                      color: AppColors.error, width: 2),
+                      : formLoadError != null
+                          ? Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(24),
+                                child: Text(
+                                  _formatLoadError(formLoadError),
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: c.textSecondary,
+                                  ),
                                 ),
                               ),
-                              validator: (v) {
-                                if (v == null || v.trim().isEmpty) {
-                                  return 'units.form.name_required'.tr();
-                                }
-                                return null;
-                              },
-                            ),
-
-                            const SizedBox(height: 24),
-
-                            // ── Captain ──────────────────────────────────
-                            _SectionLabel(
-                              icon: HugeIcons.strokeRoundedUserStar01,
-                              label: 'units.form.captain_label'.tr(),
-                              required: true,
-                            ),
-                            const SizedBox(height: 8),
-                            _MemberPickerField(
-                              hint: 'units.form.captain_hint'.tr(),
-                              selected: _captain,
-                              onTap: () => _pickCaptain(allMembers),
-                            ),
-
-                            const SizedBox(height: 20),
-
-                            // ── Secretary ────────────────────────────────
-                            _SectionLabel(
-                              icon: HugeIcons.strokeRoundedUserAccount,
-                              label: 'units.form.secretary_label'.tr(),
-                              required: true,
-                            ),
-                            const SizedBox(height: 8),
-                            _MemberPickerField(
-                              hint: 'units.form.secretary_hint'.tr(),
-                              selected: _secretary,
-                              onTap: () => _pickSecretary(allMembers),
-                            ),
-
-                            const SizedBox(height: 20),
-
-                            // ── Advisor ──────────────────────────────────
-                            _SectionLabel(
-                              icon: HugeIcons.strokeRoundedUserShield01,
-                              label: 'units.form.advisor_label'.tr(),
-                              required: true,
-                            ),
-                            const SizedBox(height: 8),
-                            _MemberPickerField(
-                              hint: 'units.form.advisor_hint'.tr(),
-                              selected: _advisor,
-                              onTap: () => _pickAdvisor(allMembers),
-                            ),
-
-                            const SizedBox(height: 20),
-
-                            // ── Substitute Advisor ───────────────────────
-                            _SectionLabel(
-                              icon: HugeIcons.strokeRoundedUserStar01,
-                              label: 'units.form.substitute_advisor_label'.tr(),
-                            ),
-                            const SizedBox(height: 8),
-                            _MemberPickerField(
-                              hint: 'units.form.substitute_advisor_hint'.tr(),
-                              selected: _substituteAdvisor,
-                              optional: true,
-                              onTap: () => _pickSubstituteAdvisor(allMembers),
-                              onClear: _substituteAdvisor != null
-                                  ? () =>
-                                      setState(() => _substituteAdvisor = null)
-                                  : null,
-                            ),
-
-                            const SizedBox(height: 28),
-
-                            // ── Members ───────────────────────────────────
-                            Row(
+                            )
+                          : ListView(
+                              controller: scrollController,
+                              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                               children: [
-                                HugeIcon(
-                                  icon: HugeIcons.strokeRoundedUserGroup,
-                                  color: AppColors.primary,
-                                  size: 18,
+                                // ── Name ────────────────────────────────────
+                                _SectionLabel(
+                                  icon: HugeIcons.strokeRoundedPencilEdit01,
+                                  label: 'units.form.name_label'.tr(),
                                 ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'units.form.members_section'.tr(),
-                                  style: theme.textTheme.titleMedium
-                                      ?.copyWith(fontWeight: FontWeight.w600),
-                                ),
-                                const Spacer(),
-                                TextButton.icon(
-                                  onPressed: allMembers.isEmpty
-                                      ? null
-                                      : () => _pickMembers(allMembers),
-                                  icon: const HugeIcon(
-                                    icon: HugeIcons.strokeRoundedAdd01,
-                                    size: 18,
+                                const SizedBox(height: 8),
+                                TextFormField(
+                                  controller: _nameController,
+                                  textCapitalization: TextCapitalization.words,
+                                  decoration: InputDecoration(
+                                    hintText: 'units.form.name_hint'.tr(),
+                                    hintStyle: TextStyle(color: c.textTertiary),
+                                    filled: true,
+                                    fillColor: c.surfaceVariant,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 14),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(
+                                          AppTheme.radiusSM),
+                                      borderSide: BorderSide(color: c.border),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(
+                                          AppTheme.radiusSM),
+                                      borderSide: BorderSide(color: c.border),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(
+                                          AppTheme.radiusSM),
+                                      borderSide: const BorderSide(
+                                          color: AppColors.primary, width: 2),
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(
+                                          AppTheme.radiusSM),
+                                      borderSide: const BorderSide(
+                                          color: AppColors.error),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(
+                                          AppTheme.radiusSM),
+                                      borderSide: const BorderSide(
+                                          color: AppColors.error, width: 2),
+                                    ),
                                   ),
-                                  label:
-                                      Text('units.form.add_member_button'.tr()),
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: AppColors.primary,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 6),
-                                  ),
+                                  validator: (v) {
+                                    if (v == null || v.trim().isEmpty) {
+                                      return 'units.form.name_required'.tr();
+                                    }
+                                    return null;
+                                  },
                                 ),
+
+                                const SizedBox(height: 24),
+
+                                // ── Captain ──────────────────────────────────
+                                _SectionLabel(
+                                  icon: HugeIcons.strokeRoundedUserStar01,
+                                  label: 'units.form.captain_label'.tr(),
+                                  required: true,
+                                ),
+                                const SizedBox(height: 8),
+                                _MemberPickerField(
+                                  hint: 'units.form.captain_hint'.tr(),
+                                  selected: _captain,
+                                  onTap: () => _pickCaptain(allMembers),
+                                ),
+
+                                const SizedBox(height: 20),
+
+                                // ── Secretary ────────────────────────────────
+                                _SectionLabel(
+                                  icon: HugeIcons.strokeRoundedUserAccount,
+                                  label: 'units.form.secretary_label'.tr(),
+                                  required: true,
+                                ),
+                                const SizedBox(height: 8),
+                                _MemberPickerField(
+                                  hint: 'units.form.secretary_hint'.tr(),
+                                  selected: _secretary,
+                                  onTap: () => _pickSecretary(allMembers),
+                                ),
+
+                                const SizedBox(height: 20),
+
+                                // ── Advisor ──────────────────────────────────
+                                _SectionLabel(
+                                  icon: HugeIcons.strokeRoundedUserShield01,
+                                  label: 'units.form.advisor_label'.tr(),
+                                  required: true,
+                                ),
+                                const SizedBox(height: 8),
+                                _MemberPickerField(
+                                  hint: 'units.form.advisor_hint'.tr(),
+                                  selected: _advisor,
+                                  onTap: () => _pickAdvisor(allMembers),
+                                ),
+
+                                const SizedBox(height: 20),
+
+                                // ── Substitute Advisor ───────────────────────
+                                _SectionLabel(
+                                  icon: HugeIcons.strokeRoundedUserStar01,
+                                  label: 'units.form.substitute_advisor_label'
+                                      .tr(),
+                                ),
+                                const SizedBox(height: 8),
+                                _MemberPickerField(
+                                  hint:
+                                      'units.form.substitute_advisor_hint'.tr(),
+                                  selected: _substituteAdvisor,
+                                  optional: true,
+                                  onTap: () =>
+                                      _pickSubstituteAdvisor(allMembers),
+                                  onClear: _substituteAdvisor != null
+                                      ? () => setState(
+                                          () => _substituteAdvisor = null)
+                                      : null,
+                                ),
+
+                                const SizedBox(height: 28),
+
+                                // ── Members ───────────────────────────────────
+                                Row(
+                                  children: [
+                                    HugeIcon(
+                                      icon: HugeIcons.strokeRoundedUserGroup,
+                                      color: AppColors.primary,
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'units.form.members_section'.tr(),
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                              fontWeight: FontWeight.w600),
+                                    ),
+                                    const Spacer(),
+                                    TextButton.icon(
+                                      onPressed: allMembers.isEmpty
+                                          ? null
+                                          : () => _pickMembers(allMembers),
+                                      icon: const HugeIcon(
+                                        icon: HugeIcons.strokeRoundedAdd01,
+                                        size: 18,
+                                      ),
+                                      label: Text(
+                                          'units.form.add_member_button'.tr()),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: AppColors.primary,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 6),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 12),
+
+                                if (_members.isEmpty)
+                                  _EmptyMembersPlaceholder(
+                                    onTap: allMembers.isEmpty
+                                        ? null
+                                        : () => _pickMembers(allMembers),
+                                  )
+                                else
+                                  _MembersChipGrid(
+                                    members: _members,
+                                    onRemove: (m) =>
+                                        setState(() => _members.remove(m)),
+                                  ),
+
+                                const SizedBox(height: 32),
                               ],
                             ),
-
-                            const SizedBox(height: 12),
-
-                            if (_members.isEmpty)
-                              _EmptyMembersPlaceholder(
-                                onTap: allMembers.isEmpty
-                                    ? null
-                                    : () => _pickMembers(allMembers),
-                              )
-                            else
-                              _MembersChipGrid(
-                                members: _members,
-                                onRemove: (m) =>
-                                    setState(() => _members.remove(m)),
-                              ),
-
-                            const SizedBox(height: 32),
-                          ],
-                        ),
                 ),
 
                 // ── Bottom action bar ─────────────────────────────────────
