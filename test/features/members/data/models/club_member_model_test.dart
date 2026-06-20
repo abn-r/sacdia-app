@@ -36,5 +36,15 @@ void main() {
       expect(member.currentClass, 'Amigo');
       expect(member.currentClassId, 1);
     });
+
+    test('parses class counselor eligibility from backend projection', () {
+      final member = ClubMemberModel.fromJson({
+        'user_id': 'user-3',
+        'name': 'Luis',
+        'class_counselor_eligible': true,
+      });
+
+      expect(member.classCounselorEligible, isTrue);
+    });
   });
 }

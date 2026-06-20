@@ -32,6 +32,7 @@ class RequirementDetailView extends ConsumerStatefulWidget {
   final ClassRequirement requirement;
   final int classId;
   final int? enrollmentId;
+  final String? targetUserId;
   final bool isClassExpired;
 
   const RequirementDetailView({
@@ -39,6 +40,7 @@ class RequirementDetailView extends ConsumerStatefulWidget {
     required this.requirement,
     required this.classId,
     this.enrollmentId,
+    this.targetUserId,
     this.isClassExpired = false,
   });
 
@@ -55,6 +57,7 @@ class _RequirementDetailViewState extends ConsumerState<RequirementDetailView> {
   ClassProgressQuery get _progressQuery => ClassProgressQuery(
         classId: widget.classId,
         enrollmentId: widget.enrollmentId,
+        targetUserId: widget.targetUserId,
       );
 
   ClassRequirement _liveRequirement(AsyncValue<dynamic> classAsync) {

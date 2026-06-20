@@ -1277,8 +1277,6 @@
       "points_with_tie": "{points} pts (empate)",
       "points": "{points} pts",
       "members_count": "{count} miembros",
-      "empty_title": "No tienes unidades asignadas",
-      "empty_subtitle": "Contacta al director de tu club\npara que te asigne una unidad.",
       "leader_label": "Líder: {name}",
       "summary_count": "{count} unidades activas",
       "summary_manage": "Administra roles y miembros desde acciones táctiles.",
@@ -1292,7 +1290,9 @@
       "delete_sheet_title": "Desactivar unidad",
       "delete_sheet_body": "La unidad \"{name}\" quedará inactiva y conservará su historial operativo.",
       "delete_sheet_confirm": "Desactivar unidad",
-      "delete_sheet_cancel": "Conservar unidad"
+      "delete_sheet_cancel": "Conservar unidad",
+      "empty_title": "No tienes unidades asignadas",
+      "empty_subtitle": "Contacta al director de tu club\npara que te asigne una unidad."
     },
     "detail": {
       "scores_title": "Puntos del dia",
@@ -1673,6 +1673,67 @@
       "enroll_button": "Inscribirse",
       "already_enrolled": "Ya estás inscrito en esta clase",
       "enroll_success": "Inscripción en \"{className}\" registrada exitosamente"
+    },
+    "teaching_scope": {
+      "title": "Clases a cargo",
+      "context_error_title": "No pudimos resolver tu sección",
+      "no_context_title": "No hay sección activa",
+      "no_context_body": "Selecciona un club y una sección para ver las clases a tu cargo.",
+      "empty_title": "No hay clases asignadas",
+      "empty_body": "Aún no tienes clases configuradas para supervisar en esta sección.",
+      "load_error_title": "No se pudieron cargar las clases",
+      "section_scope_title": "Alcance de toda la sección",
+      "section_scope_body": "Puedes supervisar el avance de todas las clases de esta sección.",
+      "assigned_scope_title": "Clases asignadas",
+      "assigned_scope_body": "Puedes supervisar sólo las clases que te fueron asignadas.",
+      "open_members": "Ver miembros y progreso"
+    },
+    "class_assignments": {
+      "title": "Gestionar clases",
+      "add_button": "Asignar",
+      "header_title": "Responsables por clase",
+      "header_body": "Asigna consejeros o secretaría a las clases de esta sección. El director conserva alcance total.",
+      "readonly_body": "Puedes revisar quién acompaña cada clase de esta sección.",
+      "empty_title": "Sin responsables asignados",
+      "empty_body": "Aún no hay consejeros o secretaría asignados a clases.",
+      "load_error_title": "No se pudieron cargar las asignaciones",
+      "create_title": "Asignar clase",
+      "edit_title": "Editar asignación",
+      "form_body": "El responsable formal acompaña el progreso anual de los miembros inscritos en esa clase.",
+      "class_label": "Clase",
+      "responsible_label": "Responsable",
+      "responsibility_label": "Tipo de responsabilidad",
+      "exceptional_label": "Asignación excepcional",
+      "exceptional_hint": "Úsala si la persona tendrá una segunda clase o un caso fuera de lo normal.",
+      "reason_label": "Motivo de la excepción",
+      "class_required": "Selecciona una clase",
+      "responsible_required": "Selecciona un responsable",
+      "reason_required": "Indica el motivo de la excepción",
+      "exceptional_chip": "Excepcional",
+      "revoke_action": "Revocar",
+      "revoke_title": "Revocar asignación",
+      "revoke_body": "¿Quieres revocar a {name} de la clase {className}?",
+      "revoke_confirm": "Revocar",
+      "create_success": "Asignación creada.",
+      "update_success": "Asignación actualizada.",
+      "revoke_success": "Asignación revocada.",
+      "no_club_type": "No se pudo resolver el tipo de club.",
+      "loading_catalog": "Estamos cargando clases y miembros.",
+      "catalog_error": "No se pudo cargar el catálogo o los miembros.",
+      "no_classes": "No hay clases disponibles para esta sección.",
+      "no_candidates": "No hay consejeros o secretaría activos que estén cursando o hayan completado Guía Mayor.",
+      "responsibility": {
+        "primary": "Principal",
+        "assistant": "Apoyo",
+        "substitute": "Suplente"
+      }
+    },
+    "members_progress": {
+      "empty_title": "No hay miembros inscritos",
+      "empty_body": "Esta clase todavía no tiene miembros activos en la sección.",
+      "load_error_title": "No se pudo cargar el progreso",
+      "member_count": "{count} miembros inscritos",
+      "completed_sections": "Secciones completadas: {value}"
     }
   },
   "camporees": {

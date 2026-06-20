@@ -63,12 +63,17 @@ class ProgressRing extends StatelessWidget {
 
 /// Donut de 56×56 para el HeroCard de avances.
 ///
-/// Track: `ink100`, arco: `coral500`, stroke 6px, linecap round, arranca arriba.
+/// Track: `ink100`, arco configurable, stroke 6px, linecap round, arranca arriba.
 class HeroDonut extends StatelessWidget {
   /// Progreso de 0.0 a 1.0.
   final double progress;
+  final Color color;
 
-  const HeroDonut({super.key, required this.progress});
+  const HeroDonut({
+    super.key,
+    required this.progress,
+    this.color = AppColors.coral500,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +82,10 @@ class HeroDonut extends StatelessWidget {
         width: 56,
         height: 56,
         child: CustomPaint(
-          painter: _HeroDonutPainter(progress: progress.clamp(0.0, 1.0)),
+          painter: _HeroDonutPainter(
+            progress: progress.clamp(0.0, 1.0),
+            color: color,
+          ),
         ),
       ),
     );
@@ -86,8 +94,12 @@ class HeroDonut extends StatelessWidget {
 
 class _HeroDonutPainter extends CustomPainter {
   final double progress;
+  final Color color;
 
-  const _HeroDonutPainter({required this.progress});
+  const _HeroDonutPainter({
+    required this.progress,
+    required this.color,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -107,7 +119,7 @@ class _HeroDonutPainter extends CustomPainter {
     // Progress arc
     if (progress > 0) {
       final progressPaint = Paint()
-        ..color = AppColors.coral500
+        ..color = color
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth
         ..strokeCap = StrokeCap.round;
@@ -124,5 +136,5 @@ class _HeroDonutPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _HeroDonutPainter oldDelegate) =>
-      oldDelegate.progress != progress;
+      oldDelegate.progress != progress || oldDelegate.color != color;
 }

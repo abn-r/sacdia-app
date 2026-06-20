@@ -82,7 +82,20 @@ class RouteNames {
 
   // Helpers para paths con parámetros
   static String clubDetailPath(String clubId) => '/club/$clubId';
-  static String classDetailPath(String classId) => '/class/$classId';
+  static String classDetailPath(
+    String classId, {
+    int? enrollmentId,
+    String? targetUserId,
+  }) {
+    final queryParameters = <String, String>{
+      if (enrollmentId != null) 'enrollmentId': enrollmentId.toString(),
+      if (targetUserId != null && targetUserId.isNotEmpty)
+        'targetUserId': targetUserId,
+    };
+    final query = Uri(queryParameters: queryParameters).query;
+    return query.isEmpty ? '/class/$classId' : '/class/$classId?$query';
+  }
+
   static String honorDetailPath(String honorId) => '/honor/$honorId';
   static String certificationDetailPath(String certificationId) =>
       '/certification/$certificationId';

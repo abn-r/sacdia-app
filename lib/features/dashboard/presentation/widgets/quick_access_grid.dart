@@ -97,7 +97,7 @@ final List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
     route: RouteNames.homeUnits,
     requiredPermissions: {'units:update'},
   ),
-  // Administrative: group class management — classes:submit_progress is held by counselor+
+  // Pedagogical class supervision — classes:submit_progress is held by counselor+
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.grouped_class',
     icon: HugeIcons.strokeRoundedBookOpen01,

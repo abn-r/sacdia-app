@@ -1277,8 +1277,6 @@
       "points_with_tie": "{points} pts (tied)",
       "points": "{points} pts",
       "members_count": "{count} members",
-      "empty_title": "You have no units assigned",
-      "empty_subtitle": "Contact your club director\nto have a unit assigned to you.",
       "leader_label": "Leader: {name}",
       "summary_count": "{count} active units",
       "summary_manage": "Manage roles and members from touch-friendly actions.",
@@ -1292,7 +1290,9 @@
       "delete_sheet_title": "Deactivate unit",
       "delete_sheet_body": "The unit \"{name}\" will become inactive and keep its operational history.",
       "delete_sheet_confirm": "Deactivate unit",
-      "delete_sheet_cancel": "Keep unit"
+      "delete_sheet_cancel": "Keep unit",
+      "empty_title": "You have no units assigned",
+      "empty_subtitle": "Contact your club director\nto have a unit assigned to you."
     },
     "detail": {
       "scores_title": "Puntos del dia",
@@ -1673,6 +1673,67 @@
       "enroll_button": "Enroll",
       "already_enrolled": "You are already enrolled in this class",
       "enroll_success": "Enrollment in \"{className}\" registered successfully"
+    },
+    "teaching_scope": {
+      "title": "Assigned classes",
+      "context_error_title": "We could not resolve your section",
+      "no_context_title": "No active section",
+      "no_context_body": "Select a club and section to view the classes you supervise.",
+      "empty_title": "No assigned classes",
+      "empty_body": "There are no classes configured for you to supervise in this section yet.",
+      "load_error_title": "Could not load classes",
+      "section_scope_title": "Whole-section scope",
+      "section_scope_body": "You can supervise progress for every class in this section.",
+      "assigned_scope_title": "Assigned classes",
+      "assigned_scope_body": "You can supervise only the classes assigned to you.",
+      "open_members": "View members and progress"
+    },
+    "class_assignments": {
+      "title": "Manage classes",
+      "add_button": "Assign",
+      "header_title": "Class leaders",
+      "header_body": "Assign counselors or secretaries to this section’s classes. The director keeps full-section scope.",
+      "readonly_body": "You can review who is assigned to each class in this section.",
+      "empty_title": "No leaders assigned",
+      "empty_body": "No counselors or secretaries have been assigned to classes yet.",
+      "load_error_title": "Could not load assignments",
+      "create_title": "Assign class",
+      "edit_title": "Edit assignment",
+      "form_body": "The formal leader follows the yearly progress of members enrolled in that class.",
+      "class_label": "Class",
+      "responsible_label": "Leader",
+      "responsibility_label": "Responsibility type",
+      "exceptional_label": "Exceptional assignment",
+      "exceptional_hint": "Use it when the person will carry a second class or an unusual case.",
+      "reason_label": "Exception reason",
+      "class_required": "Select a class",
+      "responsible_required": "Select a leader",
+      "reason_required": "Enter the exception reason",
+      "exceptional_chip": "Exceptional",
+      "revoke_action": "Revoke",
+      "revoke_title": "Revoke assignment",
+      "revoke_body": "Do you want to revoke {name} from class {className}?",
+      "revoke_confirm": "Revoke",
+      "create_success": "Assignment created.",
+      "update_success": "Assignment updated.",
+      "revoke_success": "Assignment revoked.",
+      "no_club_type": "Could not resolve the club type.",
+      "loading_catalog": "Classes and members are still loading.",
+      "catalog_error": "Could not load the catalog or members.",
+      "no_classes": "No classes are available for this section.",
+      "no_candidates": "There are no active counselors or secretaries who are studying or have completed Master Guide.",
+      "responsibility": {
+        "primary": "Primary",
+        "assistant": "Assistant",
+        "substitute": "Substitute"
+      }
+    },
+    "members_progress": {
+      "empty_title": "No enrolled members",
+      "empty_body": "This class does not have active members in the section yet.",
+      "load_error_title": "Could not load progress",
+      "member_count": "{count} enrolled members",
+      "completed_sections": "Completed sections: {value}"
     }
   },
   "camporees": {

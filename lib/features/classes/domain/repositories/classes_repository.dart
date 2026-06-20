@@ -5,7 +5,10 @@ import '../entities/progressive_class.dart';
 import '../entities/class_module.dart';
 import '../entities/class_progress.dart';
 import '../entities/class_with_progress.dart';
+import '../entities/class_members_progress.dart';
+import '../entities/progress_scope.dart';
 import '../entities/requirement_evidence.dart';
+import '../entities/class_counselor_assignment.dart';
 
 /// Repositorio de clases progresivas (interfaz del dominio)
 abstract class ClassesRepository {
@@ -34,6 +37,52 @@ abstract class ClassesRepository {
   Future<Either<Failure, ClassProgress>> updateUserClassProgress(
       String userId, int classId, Map<String, dynamic> progressData,
       {int? enrollmentId});
+
+  /// Lista las clases que el actor autenticado puede supervisar en una sección.
+  Future<Either<Failure, ProgressScopeResult>> getProgressScope(
+      int clubId, int sectionId,
+      {int? yearId, RequestCancelToken? cancelToken});
+
+  /// Lista el avance resumido de miembros activos de una sección por clase.
+  Future<Either<Failure, ClassMembersProgressResult>> getClassMembersProgress(
+      int clubId, int sectionId, int classId,
+      {int? yearId, RequestCancelToken? cancelToken});
+
+  Future<Either<Failure, List<ClassCounselorAssignment>>>
+      getClassCounselorAssignments(int clubId, int sectionId,
+          {int? yearId,
+          int? classId,
+          bool? active,
+          RequestCancelToken? cancelToken});
+
+  Future<Either<Failure, ClassCounselorAssignment>>
+      createClassCounselorAssignment(
+    int clubId,
+    int sectionId, {
+    required String userId,
+    required int classId,
+    int? ecclesiasticalYearId,
+    String? responsibilityType,
+    bool? exceptional,
+    String? exceptionReason,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+
+  Future<Either<Failure, ClassCounselorAssignment>>
+      updateClassCounselorAssignment(
+    String assignmentId, {
+    String? responsibilityType,
+    bool? exceptional,
+    String? exceptionReason,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+
+  Future<Either<Failure, ClassCounselorAssignment>>
+      revokeClassCounselorAssignment(
+    String assignmentId,
+  );
 
   // ── Inscripcion en clases anteriores ─────────────────────────────────────
 

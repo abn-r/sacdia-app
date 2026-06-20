@@ -1277,8 +1277,6 @@
       "points_with_tie": "{points} pts (empate)",
       "points": "{points} pts",
       "members_count": "{count} membros",
-      "empty_title": "Você não tem unidades atribuídas",
-      "empty_subtitle": "Entre em contato com o diretor do seu clube\npara que ele atribua uma unidade a você.",
       "leader_label": "Líder: {name}",
       "summary_count": "{count} unidades ativas",
       "summary_manage": "Gerencie funções e membros com ações táteis.",
@@ -1292,7 +1290,9 @@
       "delete_sheet_title": "Desativar unidade",
       "delete_sheet_body": "A unidade \"{name}\" ficará inativa e manterá seu histórico operacional.",
       "delete_sheet_confirm": "Desativar unidade",
-      "delete_sheet_cancel": "Manter unidade"
+      "delete_sheet_cancel": "Manter unidade",
+      "empty_title": "Você não tem unidades atribuídas",
+      "empty_subtitle": "Entre em contato com o diretor do seu clube\npara que ele atribua uma unidade a você."
     },
     "detail": {
       "scores_title": "Puntos del dia",
@@ -1673,6 +1673,67 @@
       "enroll_button": "Inscrever-se",
       "already_enrolled": "Você já está inscrito nesta classe",
       "enroll_success": "Inscrição em \"{className}\" registrada com sucesso"
+    },
+    "teaching_scope": {
+      "title": "Classes atribuídas",
+      "context_error_title": "Não foi possível resolver sua seção",
+      "no_context_title": "Nenhuma seção ativa",
+      "no_context_body": "Selecione um clube e uma seção para ver as classes sob sua supervisão.",
+      "empty_title": "Nenhuma classe atribuída",
+      "empty_body": "Ainda não há classes configuradas para sua supervisão nesta seção.",
+      "load_error_title": "Não foi possível carregar as classes",
+      "section_scope_title": "Escopo de toda a seção",
+      "section_scope_body": "Você pode supervisionar o progresso de todas as classes desta seção.",
+      "assigned_scope_title": "Classes atribuídas",
+      "assigned_scope_body": "Você pode supervisionar apenas as classes atribuídas a você.",
+      "open_members": "Ver membros e progresso"
+    },
+    "class_assignments": {
+      "title": "Gerenciar classes",
+      "add_button": "Atribuir",
+      "header_title": "Responsáveis por classe",
+      "header_body": "Atribua conselheiros ou secretaria às classes desta seção. O diretor mantém o escopo total.",
+      "readonly_body": "Você pode revisar quem acompanha cada classe desta seção.",
+      "empty_title": "Nenhum responsável atribuído",
+      "empty_body": "Ainda não há conselheiros ou secretaria atribuídos às classes.",
+      "load_error_title": "Não foi possível carregar as atribuições",
+      "create_title": "Atribuir classe",
+      "edit_title": "Editar atribuição",
+      "form_body": "O responsável formal acompanha o progresso anual dos membros inscritos nessa classe.",
+      "class_label": "Classe",
+      "responsible_label": "Responsável",
+      "responsibility_label": "Tipo de responsabilidade",
+      "exceptional_label": "Atribuição excepcional",
+      "exceptional_hint": "Use quando a pessoa terá uma segunda classe ou um caso incomum.",
+      "reason_label": "Motivo da exceção",
+      "class_required": "Selecione uma classe",
+      "responsible_required": "Selecione um responsável",
+      "reason_required": "Informe o motivo da exceção",
+      "exceptional_chip": "Excepcional",
+      "revoke_action": "Revogar",
+      "revoke_title": "Revogar atribuição",
+      "revoke_body": "Deseja revogar {name} da classe {className}?",
+      "revoke_confirm": "Revogar",
+      "create_success": "Atribuição criada.",
+      "update_success": "Atribuição atualizada.",
+      "revoke_success": "Atribuição revogada.",
+      "no_club_type": "Não foi possível resolver o tipo de clube.",
+      "loading_catalog": "Estamos carregando classes e membros.",
+      "catalog_error": "Não foi possível carregar o catálogo ou os membros.",
+      "no_classes": "Não há classes disponíveis para esta seção.",
+      "no_candidates": "Não há conselheiros ou secretaria ativos que estejam cursando ou tenham concluído Guia Maior.",
+      "responsibility": {
+        "primary": "Principal",
+        "assistant": "Apoio",
+        "substitute": "Substituto"
+      }
+    },
+    "members_progress": {
+      "empty_title": "Nenhum membro inscrito",
+      "empty_body": "Esta classe ainda não tem membros ativos na seção.",
+      "load_error_title": "Não foi possível carregar o progresso",
+      "member_count": "{count} membros inscritos",
+      "completed_sections": "Seções concluídas: {value}"
     }
   },
   "camporees": {

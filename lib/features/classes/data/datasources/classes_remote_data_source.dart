@@ -6,7 +6,10 @@ import '../../../../core/utils/app_logger.dart';
 import '../models/class_model.dart';
 import '../models/class_module_model.dart';
 import '../models/class_progress_model.dart';
+import '../models/class_members_progress_result_model.dart';
+import '../models/progress_scope_result_model.dart';
 import '../models/class_with_progress_model.dart';
+import '../models/class_counselor_assignment_model.dart';
 import '../models/requirement_evidence_model.dart';
 
 /// Interfaz para la fuente de datos remota de clases progresivas
@@ -23,6 +26,42 @@ abstract class ClassesRemoteDataSource {
   Future<ClassProgressModel> updateUserClassProgress(
       String userId, int classId, Map<String, dynamic> progressData,
       {int? enrollmentId});
+  Future<ProgressScopeResultModel> getProgressScope(int clubId, int sectionId,
+      {int? yearId, CancelToken? cancelToken});
+  Future<ClassMembersProgressResultModel> getClassMembersProgress(
+      int clubId, int sectionId, int classId,
+      {int? yearId, CancelToken? cancelToken});
+  Future<List<ClassCounselorAssignmentModel>> getClassCounselorAssignments(
+    int clubId,
+    int sectionId, {
+    int? yearId,
+    int? classId,
+    bool? active,
+    CancelToken? cancelToken,
+  });
+  Future<ClassCounselorAssignmentModel> createClassCounselorAssignment(
+    int clubId,
+    int sectionId, {
+    required String userId,
+    required int classId,
+    int? ecclesiasticalYearId,
+    String? responsibilityType,
+    bool? exceptional,
+    String? exceptionReason,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+  Future<ClassCounselorAssignmentModel> updateClassCounselorAssignment(
+    String assignmentId, {
+    String? responsibilityType,
+    bool? exceptional,
+    String? exceptionReason,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+  Future<ClassCounselorAssignmentModel> revokeClassCounselorAssignment(
+    String assignmentId,
+  );
 
   // ── Inscripción en clases anteriores ─────────────────────────────────────
 
@@ -103,6 +142,25 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
 
   Map<String, dynamic>? _enrollmentQuery(int? enrollmentId) =>
       enrollmentId == null ? null : {'enrollmentId': enrollmentId};
+
+  Map<String, dynamic>? _yearQuery(int? yearId) =>
+      yearId == null ? null : {'yearId': yearId};
+
+  Map<String, dynamic>? _classIdQuery(int? classId) =>
+      classId == null ? null : {'classId': classId};
+
+  Map<String, dynamic>? _activeQuery(bool? active) =>
+      active == null ? null : {'active': active};
+
+  Map<String, dynamic> _mergeQueryMaps(List<Map<String, dynamic>?> maps) {
+    final result = <String, dynamic>{};
+    for (final map in maps) {
+      if (map != null) {
+        result.addAll(map);
+      }
+    }
+    return result;
+  }
 
   // ── POST /users/:userId/classes/enroll ──────────────────────────────────────
 
@@ -316,6 +374,249 @@ class ClassesRemoteDataSourceImpl implements ClassesRemoteDataSource {
           code: response.statusCode);
     } catch (e) {
       AppLogger.e('Error en updateUserClassProgress', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /clubs/:clubId/sections/:sectionId/classes/progress-scope ──────────
+
+  @override
+  Future<ProgressScopeResultModel> getProgressScope(
+    int clubId,
+    int sectionId, {
+    int? yearId,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/classes/progress-scope',
+        queryParameters: _yearQuery(yearId),
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return ProgressScopeResultModel.fromJson(
+            response.data as Map<String, dynamic>);
+      }
+
+      throw ServerException(
+        message: tr('classes.errors.fetch_list'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getProgressScope', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /clubs/:clubId/sections/:sectionId/classes/:classId/members-progress
+
+  @override
+  Future<ClassMembersProgressResultModel> getClassMembersProgress(
+    int clubId,
+    int sectionId,
+    int classId, {
+    int? yearId,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/classes/$classId/members-progress',
+        queryParameters: _yearQuery(yearId),
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return ClassMembersProgressResultModel.fromJson(
+            response.data as Map<String, dynamic>);
+      }
+
+      throw ServerException(
+        message: tr('classes.errors.fetch_progress'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getClassMembersProgress', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── GET /clubs/:clubId/sections/:sectionId/class-counselor-assignments ────
+
+  @override
+  Future<List<ClassCounselorAssignmentModel>> getClassCounselorAssignments(
+    int clubId,
+    int sectionId, {
+    int? yearId,
+    int? classId,
+    bool? active,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/class-counselor-assignments',
+        queryParameters: _mergeQueryMaps([
+          _yearQuery(yearId),
+          _classIdQuery(classId),
+          _activeQuery(active),
+        ]),
+        cancelToken: cancelToken,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final List<dynamic> data = response.data as List<dynamic>;
+        return data
+            .map(
+              (json) => ClassCounselorAssignmentModel.fromJson(
+                json as Map<String, dynamic>,
+              ),
+            )
+            .toList();
+      }
+
+      throw ServerException(
+        message: tr('classes.errors.fetch_list'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en getClassCounselorAssignments', tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── POST /clubs/:clubId/sections/:sectionId/class-counselor-assignments ────
+
+  @override
+  Future<ClassCounselorAssignmentModel> createClassCounselorAssignment(
+    int clubId,
+    int sectionId, {
+    required String userId,
+    required int classId,
+    int? ecclesiasticalYearId,
+    String? responsibilityType,
+    bool? exceptional,
+    String? exceptionReason,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      final payload = <String, dynamic>{
+        'user_id': userId,
+        'class_id': classId,
+      };
+      if (ecclesiasticalYearId != null) {
+        payload['ecclesiastical_year_id'] = ecclesiasticalYearId;
+      }
+      if (responsibilityType != null) {
+        payload['responsibility_type'] = responsibilityType;
+      }
+      if (exceptional != null) {
+        payload['exceptional'] = exceptional;
+      }
+      if (exceptionReason != null) {
+        payload['exception_reason'] = exceptionReason;
+      }
+      if (startDate != null) {
+        payload['start_date'] = startDate.toIso8601String();
+      }
+      if (endDate != null) {
+        payload['end_date'] = endDate.toIso8601String();
+      }
+
+      final response = await _dio.post(
+        '$_baseUrl${ApiEndpoints.clubs}/$clubId/sections/$sectionId/class-counselor-assignments',
+        data: payload,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return ClassCounselorAssignmentModel.fromJson(
+            response.data as Map<String, dynamic>);
+      }
+
+      throw ServerException(
+        message: tr('classes.errors.fetch_list'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en createClassCounselorAssignment',
+          tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── PATCH /class-counselor-assignments/:assignmentId ───────────────────────
+
+  @override
+  Future<ClassCounselorAssignmentModel> updateClassCounselorAssignment(
+    String assignmentId, {
+    String? responsibilityType,
+    bool? exceptional,
+    String? exceptionReason,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      final payload = <String, dynamic>{};
+      if (responsibilityType != null) {
+        payload['responsibility_type'] = responsibilityType;
+      }
+      if (exceptional != null) {
+        payload['exceptional'] = exceptional;
+      }
+      if (exceptionReason != null) {
+        payload['exception_reason'] = exceptionReason;
+      }
+      if (startDate != null) {
+        payload['start_date'] = startDate.toIso8601String();
+      }
+      if (endDate != null) {
+        payload['end_date'] = endDate.toIso8601String();
+      }
+
+      final response = await _dio.patch(
+        '$_baseUrl/class-counselor-assignments/$assignmentId',
+        data: payload,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return ClassCounselorAssignmentModel.fromJson(
+            response.data as Map<String, dynamic>);
+      }
+
+      throw ServerException(
+        message: tr('classes.errors.fetch_list'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en updateClassCounselorAssignment',
+          tag: _tag, error: e);
+      _rethrow(e);
+    }
+  }
+
+  // ── DELETE /class-counselor-assignments/:assignmentId ─────────────────────
+
+  @override
+  Future<ClassCounselorAssignmentModel> revokeClassCounselorAssignment(
+    String assignmentId,
+  ) async {
+    try {
+      final response = await _dio.delete(
+        '$_baseUrl/class-counselor-assignments/$assignmentId',
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return ClassCounselorAssignmentModel.fromJson(
+            response.data as Map<String, dynamic>);
+      }
+
+      throw ServerException(
+        message: tr('classes.errors.fetch_list'),
+        code: response.statusCode,
+      );
+    } catch (e) {
+      AppLogger.e('Error en revokeClassCounselorAssignment',
+          tag: _tag, error: e);
       _rethrow(e);
     }
   }

@@ -84,10 +84,10 @@ import '../../features/auth/presentation/views/splash_view.dart';
 import '../../features/post_registration/presentation/views/post_registration_shell.dart';
 import '../../features/dashboard/presentation/views/animation_demo_view.dart';
 import '../../features/dashboard/presentation/views/dashboard_view.dart';
-import '../../features/classes/presentation/providers/classes_providers.dart';
 import '../../features/classes/presentation/views/classes_tabs_view.dart';
 import '../../features/classes/presentation/views/class_detail_with_progress_view.dart';
 import '../../features/classes/presentation/views/roadmap_full_screen_view.dart';
+import '../../features/classes/presentation/views/teaching_scope_view.dart';
 import '../../features/members/presentation/views/members_view.dart';
 import '../../features/profile/presentation/views/profile_view.dart';
 import '../../features/profile/presentation/views/medical_info_view.dart';
@@ -456,7 +456,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 pageBuilder: (context, state) => _fadeThroughBuild(
                   context,
                   state,
-                  const _ActiveClassDetailShell(),
+                  const TeachingScopeView(),
                 ),
               ),
             ],
@@ -655,10 +655,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) {
           final classIdStr = state.pathParameters['classId']!;
           final classId = int.tryParse(classIdStr) ?? 0;
+          final enrollmentId =
+              int.tryParse(state.uri.queryParameters['enrollmentId'] ?? '');
+          final targetUserId = state.uri.queryParameters['targetUserId'];
           return _sharedAxisBuild(
             context,
             state,
-            ClassDetailWithProgressView(classId: classId),
+            ClassDetailWithProgressView(
+              classId: classId,
+              enrollmentId: enrollmentId,
+              targetUserId: targetUserId,
+            ),
           );
         },
       ),
@@ -1554,71 +1561,6 @@ class _EvidenceFolderShell extends ConsumerWidget {
           );
         }
         return EvidenceFolderView(clubSectionId: section.id.toString());
-      },
-    );
-  }
-}
-
-/// Shell que resuelve la clase activa del usuario y pasa su ID a
-/// [ClassDetailWithProgressView].
-///
-/// Sigue el mismo patrón que [_EvidenceFolderShell]: observa un provider
-/// asíncrono y muestra loading / error / data según el estado.
-///
-/// Si el usuario no tiene ninguna clase inscrita muestra un mensaje informativo
-/// en lugar de la vista de detalle.
-class _ActiveClassDetailShell extends ConsumerWidget {
-  const _ActiveClassDetailShell();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final classesAsync = ref.watch(userClassesProvider);
-
-    return classesAsync.when(
-      loading: () => Scaffold(
-        body: Center(
-          child: LoadingAnimationWidget.stretchedDots(
-            color: AppColors.primary,
-            size: 50,
-          ),
-        ),
-      ),
-      error: (e, _) => Scaffold(
-        appBar: AppBar(
-            automaticallyImplyLeading: false,
-            leading: sacAutoBackButton(context),
-            title: Text(tr('router.active_class.title'))),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Text(
-              tr('router.active_class.load_error', namedArgs: {
-                'error': e.toString().replaceFirst('Exception: ', ''),
-              }),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      ),
-      data: (classes) {
-        if (classes.isEmpty) {
-          return Scaffold(
-            appBar: AppBar(
-                automaticallyImplyLeading: false,
-                leading: sacAutoBackButton(context),
-                title: Text(tr('router.active_class.title'))),
-            body: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Text(
-                  tr('router.active_class.no_class_assigned'),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          );
-        }
-        return ClassDetailWithProgressView(classId: classes.first.id);
       },
     );
   }

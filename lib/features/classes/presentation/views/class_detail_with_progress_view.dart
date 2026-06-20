@@ -21,6 +21,7 @@ import '../../domain/entities/class_module_detail.dart';
 import '../../domain/entities/class_requirement.dart';
 import '../../domain/entities/class_with_progress.dart';
 import '../providers/classes_providers.dart';
+import '../widgets/class_identity_badge.dart';
 import '../widgets/module_expansion_tile.dart';
 import '../widgets/progress_ring.dart';
 import 'requirement_detail_view.dart';
@@ -33,11 +34,13 @@ import 'requirement_detail_view.dart';
 class ClassDetailWithProgressView extends ConsumerWidget {
   final int classId;
   final int? enrollmentId;
+  final String? targetUserId;
 
   const ClassDetailWithProgressView({
     super.key,
     required this.classId,
     this.enrollmentId,
+    this.targetUserId,
   });
 
   @override
@@ -45,6 +48,7 @@ class ClassDetailWithProgressView extends ConsumerWidget {
     final progressQuery = ClassProgressQuery(
       classId: classId,
       enrollmentId: enrollmentId,
+      targetUserId: targetUserId,
     );
     final classAsync = ref.watch(classWithProgressProvider(progressQuery));
 
@@ -69,6 +73,7 @@ class ClassDetailWithProgressView extends ConsumerWidget {
             classWithProgress: classWithProgress,
             classId: classId,
             enrollmentId: enrollmentId ?? classWithProgress.enrollmentId,
+            targetUserId: targetUserId,
             onRefresh: () async =>
                 ref.invalidate(classWithProgressProvider(progressQuery)),
           ),
@@ -84,12 +89,14 @@ class _ClassBody extends ConsumerStatefulWidget {
   final ClassWithProgress classWithProgress;
   final int classId;
   final int? enrollmentId;
+  final String? targetUserId;
   final Future<void> Function() onRefresh;
 
   const _ClassBody({
     required this.classWithProgress,
     required this.classId,
     this.enrollmentId,
+    this.targetUserId,
     required this.onRefresh,
   });
 
@@ -188,6 +195,7 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
           classId: widget.classId,
           enrollmentId:
               widget.enrollmentId ?? widget.classWithProgress.enrollmentId,
+          targetUserId: widget.targetUserId,
           isClassExpired: widget.classWithProgress.isExpired,
         ),
       ),
@@ -224,6 +232,7 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
         ..invalidate(classWithProgressProvider(ClassProgressQuery(
           classId: widget.classId,
           enrollmentId: widget.enrollmentId,
+          targetUserId: widget.targetUserId,
         )))
         ..invalidate(userClassesProvider)
         ..invalidate(investitureHistoryProvider(enrollmentId));
@@ -248,6 +257,7 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
   @override
   Widget build(BuildContext context) {
     final classData = widget.classWithProgress;
+    final classColor = AppColors.classColor(classData.name);
     final resolvedEnrollmentId = widget.enrollmentId ?? classData.enrollmentId;
     final investitureStatus = _investitureStatusOf(classData);
     final showInvestitureCard = _shouldShowInvestitureCard(
@@ -261,7 +271,7 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
         : null;
 
     return RefreshIndicator(
-      color: AppColors.coral500,
+      color: classColor,
       onRefresh: widget.onRefresh,
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(
@@ -274,7 +284,7 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _HeroCard(classData: classData),
+                  _HeroCard(classData: classData, classColor: classColor),
                   if (classData.isExpired) const _ExpiredTrajectoryBanner(),
                   _PillsRow(classData: classData),
                   if (showInvestitureCard)
@@ -301,6 +311,7 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
                           return _SearchBar(
                             controller: _searchController,
                             focusNode: _searchFocusNode,
+                            accentColor: classColor,
                             isFocused: isFocused,
                             hasQuery: query.isNotEmpty,
                             onChanged: _onSearchChanged,
@@ -347,6 +358,7 @@ class _ClassBodyState extends ConsumerState<_ClassBody> {
                         _searchController.text = term;
                         _query.value = term;
                       },
+                      accentColor: classColor,
                     ),
                   ),
                 );
@@ -718,8 +730,12 @@ class _ExpiredTrajectoryBanner extends StatelessWidget {
 
 class _HeroCard extends StatelessWidget {
   final ClassWithProgress classData;
+  final Color classColor;
 
-  const _HeroCard({required this.classData});
+  const _HeroCard({
+    required this.classData,
+    required this.classColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -733,7 +749,7 @@ class _HeroCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.paper,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.ink150),
+        border: Border.all(color: classColor.withValues(alpha: 0.18)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -761,21 +777,21 @@ class _HeroCard extends StatelessWidget {
                     children: [
                       TextSpan(
                         text: '$pct',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 44,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.coral500,
+                          color: classColor,
                           height: 1,
                           letterSpacing: -1.3,
                           fontFeatures: [FontFeature.tabularFigures()],
                         ),
                       ),
-                      const TextSpan(
+                      TextSpan(
                         text: '%',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.coral500,
+                          color: classColor,
                           height: 1,
                         ),
                       ),
@@ -808,8 +824,24 @@ class _HeroCard extends StatelessWidget {
 
           const SizedBox(width: 16),
 
-          // Right: 56×56 donut
-          HeroDonut(progress: classData.completionRatio),
+          // Right: class identity + 56×56 donut
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              HeroDonut(
+                progress: classData.completionRatio,
+                color: classColor,
+              ),
+              ClassIdentityBadge(
+                className: classData.name,
+                imageUrl: classData.imageUrl,
+                size: 34,
+                logoPadding: 5,
+                borderRadius: 11,
+                fallbackIcon: HugeIcons.strokeRoundedBookOpen01,
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -958,6 +990,7 @@ class _StatusPill extends StatelessWidget {
 class _SearchBar extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
+  final Color accentColor;
   final bool isFocused;
   final bool hasQuery;
   final ValueChanged<String> onChanged;
@@ -966,6 +999,7 @@ class _SearchBar extends StatelessWidget {
   const _SearchBar({
     required this.controller,
     required this.focusNode,
+    required this.accentColor,
     required this.isFocused,
     required this.hasQuery,
     required this.onChanged,
@@ -981,7 +1015,7 @@ class _SearchBar extends StatelessWidget {
         color: AppColors.paper,
         borderRadius: BorderRadius.circular(isFocused ? 14 : 12),
         border: Border.all(
-          color: isFocused ? AppColors.coral500 : AppColors.ink150,
+          color: isFocused ? accentColor : AppColors.ink150,
         ),
       ),
       child: Row(
@@ -990,7 +1024,7 @@ class _SearchBar extends StatelessWidget {
           HugeIcon(
             icon: HugeIcons.strokeRoundedSearch01,
             size: 16,
-            color: isFocused ? AppColors.coral500 : AppColors.ink400,
+            color: isFocused ? accentColor : AppColors.ink400,
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -1121,11 +1155,13 @@ class _ModulesCard extends StatelessWidget {
 class _NoResultsCard extends StatelessWidget {
   final String query;
   final List<String> suggestions;
+  final Color accentColor;
   final void Function(String) onSuggestionTap;
 
   const _NoResultsCard({
     required this.query,
     required this.suggestions,
+    required this.accentColor,
     required this.onSuggestionTap,
   });
 
@@ -1154,7 +1190,7 @@ class _NoResultsCard extends StatelessWidget {
               child: RepaintBoundary(
                 child: CustomPaint(
                   size: const Size(64, 64),
-                  painter: _SearchIllustrationPainter(),
+                  painter: _SearchIllustrationPainter(accentColor),
                 ),
               ),
             ),
@@ -1219,16 +1255,18 @@ class _NoResultsCard extends StatelessWidget {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.coral50,
+                        color: accentColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: AppColors.coral100),
+                        border: Border.all(
+                          color: accentColor.withValues(alpha: 0.18),
+                        ),
                       ),
                       child: Text(
                         term,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.coral700,
+                          color: accentColor,
                         ),
                       ),
                     ),
@@ -1244,6 +1282,10 @@ class _NoResultsCard extends StatelessWidget {
 }
 
 class _SearchIllustrationPainter extends CustomPainter {
+  final Color accentColor;
+
+  const _SearchIllustrationPainter(this.accentColor);
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width * 0.44, size.height * 0.44);
@@ -1258,9 +1300,9 @@ class _SearchIllustrationPainter extends CustomPainter {
       ..strokeWidth = strokeWidth;
     canvas.drawCircle(center, outerRadius, outerPaint);
 
-    // Inner fill (coral50)
+    // Inner fill
     final innerFill = Paint()
-      ..color = AppColors.coral50
+      ..color = accentColor.withValues(alpha: 0.1)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, innerRadius, innerFill);
 
@@ -1278,12 +1320,12 @@ class _SearchIllustrationPainter extends CustomPainter {
 
     // "?" text
     final tp = TextPainter(
-      text: const TextSpan(
+      text: TextSpan(
         text: '?',
         style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w700,
-          color: AppColors.coral500,
+          color: accentColor,
           height: 1,
         ),
       ),
@@ -1296,7 +1338,8 @@ class _SearchIllustrationPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _SearchIllustrationPainter oldDelegate) =>
+      oldDelegate.accentColor != accentColor;
 }
 
 // ── Skeleton loading ───────────────────────────────────────────────────────────

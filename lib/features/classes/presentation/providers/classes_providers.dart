@@ -12,6 +12,9 @@ import '../../domain/entities/progressive_class.dart';
 import '../../domain/entities/class_module.dart';
 import '../../domain/entities/class_progress.dart';
 import '../../domain/entities/class_with_progress.dart';
+import '../../domain/entities/class_members_progress.dart';
+import '../../domain/entities/progress_scope.dart';
+import '../../domain/entities/class_counselor_assignment.dart';
 import '../../domain/repositories/classes_repository.dart';
 import '../../domain/usecases/get_user_classes.dart';
 import '../../domain/usecases/get_class_detail.dart';
@@ -181,10 +184,12 @@ final classModulesProvider = FutureProvider.autoDispose
 class ClassProgressQuery extends Equatable {
   final int classId;
   final int? enrollmentId;
+  final String? targetUserId;
 
   const ClassProgressQuery({
     required this.classId,
     this.enrollmentId,
+    this.targetUserId,
   });
 
   factory ClassProgressQuery.fromClass(ProgressiveClass progressiveClass) {
@@ -195,7 +200,7 @@ class ClassProgressQuery extends Equatable {
   }
 
   @override
-  List<Object?> get props => [classId, enrollmentId];
+  List<Object?> get props => [classId, enrollmentId, targetUserId];
 }
 
 final classWithProgressProvider = FutureProvider.autoDispose
@@ -211,10 +216,11 @@ final classWithProgressProvider = FutureProvider.autoDispose
     throw Exception(tr('errors.user_not_authenticated'));
   }
 
+  final targetUserId = query.targetUserId ?? userId;
   final useCase = ref.read(getClassWithProgressUseCaseProvider);
   final result = await useCase(
     GetClassWithProgressParams(
-      userId: userId,
+      userId: targetUserId,
       classId: query.classId,
       enrollmentId: query.enrollmentId,
     ),
@@ -224,6 +230,78 @@ final classWithProgressProvider = FutureProvider.autoDispose
   return result.fold(
     (failure) => throw Exception(failure.message),
     (classWithProgress) => classWithProgress,
+  );
+});
+
+class TeachingScopeQuery extends Equatable {
+  final int clubId;
+  final int sectionId;
+  final int? yearId;
+
+  const TeachingScopeQuery({
+    required this.clubId,
+    required this.sectionId,
+    this.yearId,
+  });
+
+  @override
+  List<Object?> get props => [clubId, sectionId, yearId];
+}
+
+final classProgressScopeProvider = FutureProvider.autoDispose
+    .family<ProgressScopeResult, TeachingScopeQuery>((ref, query) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
+  final repository = ref.read(classesRepositoryProvider);
+  final result = await repository.getProgressScope(
+    query.clubId,
+    query.sectionId,
+    yearId: query.yearId,
+    cancelToken: cancelToken,
+  );
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (scope) => scope,
+  );
+});
+
+class ClassMembersProgressQuery extends Equatable {
+  final int clubId;
+  final int sectionId;
+  final int classId;
+  final int? yearId;
+
+  const ClassMembersProgressQuery({
+    required this.clubId,
+    required this.sectionId,
+    required this.classId,
+    this.yearId,
+  });
+
+  @override
+  List<Object?> get props => [clubId, sectionId, classId, yearId];
+}
+
+final classMembersProgressProvider = FutureProvider.autoDispose
+    .family<ClassMembersProgressResult, ClassMembersProgressQuery>(
+        (ref, query) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
+  final repository = ref.read(classesRepositoryProvider);
+  final result = await repository.getClassMembersProgress(
+    query.clubId,
+    query.sectionId,
+    query.classId,
+    yearId: query.yearId,
+    cancelToken: cancelToken,
+  );
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (membersProgress) => membersProgress,
   );
 });
 
@@ -254,6 +332,224 @@ class RequirementOperationState {
   }
 }
 
+class ClassCounselorAssignmentsQuery extends Equatable {
+  final int clubId;
+  final int sectionId;
+  final int? yearId;
+  final int? classId;
+  final bool? active;
+
+  const ClassCounselorAssignmentsQuery({
+    required this.clubId,
+    required this.sectionId,
+    this.yearId,
+    this.classId,
+    this.active,
+  });
+
+  @override
+  List<Object?> get props => [clubId, sectionId, yearId, classId, active];
+}
+
+final classCounselorAssignmentsProvider = FutureProvider.autoDispose
+    .family<List<ClassCounselorAssignment>, ClassCounselorAssignmentsQuery>(
+        (ref, query) async {
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+
+  final repository = ref.read(classesRepositoryProvider);
+  final result = await repository.getClassCounselorAssignments(
+    query.clubId,
+    query.sectionId,
+    yearId: query.yearId,
+    classId: query.classId,
+    active: query.active,
+    cancelToken: cancelToken,
+  );
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (assignments) => assignments,
+  );
+});
+
+class ClassCounselorAssignmentActionState {
+  final bool isLoading;
+  final String? errorMessage;
+  final bool success;
+
+  const ClassCounselorAssignmentActionState({
+    this.isLoading = false,
+    this.errorMessage,
+    this.success = false,
+  });
+
+  ClassCounselorAssignmentActionState copyWith({
+    bool? isLoading,
+    String? errorMessage,
+    bool? success,
+  }) {
+    return ClassCounselorAssignmentActionState(
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage,
+      success: success ?? this.success,
+    );
+  }
+}
+
+class ClassCounselorAssignmentsNotifier extends AutoDisposeFamilyNotifier<
+    ClassCounselorAssignmentActionState, ClassCounselorAssignmentsQuery> {
+  @override
+  ClassCounselorAssignmentActionState build(
+          ClassCounselorAssignmentsQuery arg) =>
+      const ClassCounselorAssignmentActionState();
+
+  ClassCounselorAssignmentsQuery get _query => arg;
+
+  Future<bool> create({
+    required String userId,
+    required int classId,
+    int? ecclesiasticalYearId,
+    String? responsibilityType,
+    bool? exceptional,
+    String? exceptionReason,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+
+    final repository = ref.read(classesRepositoryProvider);
+    final result = await repository.createClassCounselorAssignment(
+      _query.clubId,
+      _query.sectionId,
+      userId: userId,
+      classId: classId,
+      ecclesiasticalYearId: ecclesiasticalYearId,
+      responsibilityType: responsibilityType,
+      exceptional: exceptional,
+      exceptionReason: exceptionReason,
+      startDate: startDate,
+      endDate: endDate,
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+          success: false,
+        );
+        return false;
+      },
+      (_) {
+        state = state.copyWith(isLoading: false, success: true);
+        ref.invalidate(classCounselorAssignmentsProvider(_query));
+        ref.invalidate(
+          classProgressScopeProvider(
+            TeachingScopeQuery(
+              clubId: _query.clubId,
+              sectionId: _query.sectionId,
+              yearId: _query.yearId,
+            ),
+          ),
+        );
+        return true;
+      },
+    );
+  }
+
+  Future<bool> update({
+    required String assignmentId,
+    String? responsibilityType,
+    bool? exceptional,
+    String? exceptionReason,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+
+    final repository = ref.read(classesRepositoryProvider);
+    final result = await repository.updateClassCounselorAssignment(
+      assignmentId,
+      responsibilityType: responsibilityType,
+      exceptional: exceptional,
+      exceptionReason: exceptionReason,
+      startDate: startDate,
+      endDate: endDate,
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+          success: false,
+        );
+        return false;
+      },
+      (_) {
+        state = state.copyWith(isLoading: false, success: true);
+        ref.invalidate(classCounselorAssignmentsProvider(_query));
+        ref.invalidate(
+          classProgressScopeProvider(
+            TeachingScopeQuery(
+              clubId: _query.clubId,
+              sectionId: _query.sectionId,
+              yearId: _query.yearId,
+            ),
+          ),
+        );
+        return true;
+      },
+    );
+  }
+
+  Future<bool> revoke({
+    required String assignmentId,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+
+    final repository = ref.read(classesRepositoryProvider);
+    final result =
+        await repository.revokeClassCounselorAssignment(assignmentId);
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: failure.message,
+          success: false,
+        );
+        return false;
+      },
+      (_) {
+        state = state.copyWith(isLoading: false, success: true);
+        ref.invalidate(classCounselorAssignmentsProvider(_query));
+        ref.invalidate(
+          classProgressScopeProvider(
+            TeachingScopeQuery(
+              clubId: _query.clubId,
+              sectionId: _query.sectionId,
+              yearId: _query.yearId,
+            ),
+          ),
+        );
+        return true;
+      },
+    );
+  }
+
+  void reset() {
+    state = const ClassCounselorAssignmentActionState();
+  }
+}
+
+final classCounselorAssignmentsNotifierProvider = NotifierProvider.autoDispose
+    .family<ClassCounselorAssignmentsNotifier,
+        ClassCounselorAssignmentActionState, ClassCounselorAssignmentsQuery>(
+  ClassCounselorAssignmentsNotifier.new,
+);
+
 /// Notifier para gestionar el estado de un requerimiento activo.
 ///
 /// Maneja operaciones de subida de archivos, eliminacion y envio a validacion.
@@ -266,6 +562,11 @@ class RequirementNotifier extends AutoDisposeFamilyNotifier<
       const RequirementOperationState();
 
   String get _userId {
+    final targetUserId = _query.targetUserId;
+    if (targetUserId != null && targetUserId.isNotEmpty) {
+      return targetUserId;
+    }
+
     final authState = ref.read(authNotifierProvider);
     return authState.value?.id ?? '';
   }

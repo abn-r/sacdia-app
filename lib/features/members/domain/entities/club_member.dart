@@ -20,6 +20,11 @@ class ClubMember extends Equatable {
   final String? currentClass;
   final int? currentClassId;
 
+  /// Indica si el usuario puede ser responsable formal de una clase.
+  ///
+  /// Regla vigente: debe estar cursando o haber completado Guía Mayor.
+  final bool classCounselorEligible;
+
   /// Estado de inscripción en el club
   final bool isEnrolled;
 
@@ -46,6 +51,7 @@ class ClubMember extends Equatable {
     this.clubRoleAssignmentId,
     this.currentClass,
     this.currentClassId,
+    this.classCounselorEligible = false,
     this.isEnrolled = true,
     this.clubSectionId,
     this.blood,
@@ -86,6 +92,7 @@ class ClubMember extends Equatable {
         clubRoleAssignmentId,
         currentClass,
         currentClassId,
+        classCounselorEligible,
         isEnrolled,
         clubSectionId,
         blood,

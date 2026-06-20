@@ -16,6 +16,7 @@ class ClubMemberModel extends ClubMember {
     super.clubRoleAssignmentId,
     super.currentClass,
     super.currentClassId,
+    super.classCounselorEligible,
     super.isEnrolled,
     super.clubSectionId,
     super.blood,
@@ -44,6 +45,10 @@ class ClubMemberModel extends ClubMember {
         currentClassData?['id'] ??
         json['current_class_id'] ??
         user['current_class_id'];
+    final classCounselorEligibleRaw = json['class_counselor_eligible'] ??
+        json['classCounselorEligible'] ??
+        user['class_counselor_eligible'] ??
+        user['classCounselorEligible'];
 
     // Rol asignado en el club
     final roleData = json['club_role'] as Map<String, dynamic>? ??
@@ -86,6 +91,9 @@ class ClubMemberModel extends ClubMember {
       currentClassId: currentClassIdRaw is int
           ? currentClassIdRaw
           : int.tryParse(currentClassIdRaw?.toString() ?? ''),
+      classCounselorEligible: classCounselorEligibleRaw is bool
+          ? classCounselorEligibleRaw
+          : _looksLikeGuideMajor(currentClassName),
       isEnrolled:
           json['is_enrolled'] as bool? ?? json['enrolled'] as bool? ?? true,
       clubSectionId: json['club_section_id'] is int
@@ -113,7 +121,19 @@ class ClubMemberModel extends ClubMember {
       'club_role': clubRole,
       'assignment_id': clubRoleAssignmentId,
       'current_class': currentClass,
+      'class_counselor_eligible': classCounselorEligible,
       'is_enrolled': isEnrolled,
     };
+  }
+
+  static bool _looksLikeGuideMajor(String? className) {
+    final normalized = (className ?? '')
+        .toLowerCase()
+        .replaceAll('í', 'i')
+        .replaceAll('á', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('ó', 'o')
+        .replaceAll('ú', 'u');
+    return normalized.contains('guia mayor');
   }
 }
