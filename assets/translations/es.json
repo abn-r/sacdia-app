@@ -2167,12 +2167,24 @@
       "deleted_success": "Artículo eliminado correctamente",
       "delete_error": "No se pudo eliminar el artículo",
       "edit_button": "Editar artículo",
-      "no_photo": "Sin foto"
+      "no_photo": "Sin foto",
+      "category": "Categoría",
+      "condition": "Estado de conservación",
+      "evidences": "Evidencias",
+      "evidence_title": "Evidencias del artículo",
+      "evidence_count_value": "{count}/3 fotos",
+      "club_type": "Tipo de club",
+      "record_status": "Estado del registro",
+      "active_status": "Activo",
+      "inactive_status": "Inactivo",
+      "registered_at": "Fecha de registro"
     },
     "view": {
       "title": "Inventario",
-      "item_count_one": "{count} artículo",
-      "item_count_other": "{count} artículos",
+      "item_count": {
+        "one": "{count} artículo",
+        "other": "{count} artículos"
+      },
       "filter_status": "Estado: {status}",
       "error_load": "Error al cargar el inventario",
       "empty_title": "Tu inventario está vacío",

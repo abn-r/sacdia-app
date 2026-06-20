@@ -8,7 +8,9 @@ class InventoryCategoryModel extends InventoryCategory {
 
   factory InventoryCategoryModel.fromJson(Map<String, dynamic> json) {
     return InventoryCategoryModel(
-      id: _parseInt(json['inventory_category_id'] ?? json['id'] ?? 0),
+      id: _parseInt(
+        json['inventory_category_id'] ?? json['category_id'] ?? json['id'] ?? 0,
+      ),
       name: (json['name'] ?? 'Sin categoría').toString(),
     );
   }

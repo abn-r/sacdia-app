@@ -39,5 +39,40 @@ void main() {
       expect(item.evidences.first.fileName, 'carpa.jpg');
       expect(item.photoUrl, 'https://cdn.test/carpa.jpg');
     });
+
+    test('parses created_by object as registeredByName', () {
+      final item = InventoryItemModel.fromJson(const {
+        'inventory_id': 10,
+        'name': 'Carpas',
+        'amount': 7,
+        'category': {'category_id': 3, 'name': 'Camping'},
+        'created_at': '2026-06-18T22:48:04.568Z',
+        'created_by': {
+          'user_id': 'user-abc',
+          'name': 'Ana',
+          'paternal_last_name': 'López',
+        },
+      });
+
+      expect(item.registeredByName, 'Ana López');
+    });
+
+    test('parses created_by avatar url for registeredByAvatarUrl', () {
+      final item = InventoryItemModel.fromJson(const {
+        'inventory_id': 10,
+        'name': 'Carpas',
+        'amount': 7,
+        'category': {'category_id': 3, 'name': 'Camping'},
+        'created_at': '2026-06-18T22:48:04.568Z',
+        'created_by': {
+          'user_id': 'user-abc',
+          'name': 'Ana',
+          'paternal_last_name': 'López',
+          'avatar_url': 'https://signed.example/ana.jpg',
+        },
+      });
+
+      expect(item.registeredByAvatarUrl, 'https://signed.example/ana.jpg');
+    });
   });
 }

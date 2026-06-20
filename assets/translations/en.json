@@ -2167,12 +2167,24 @@
       "deleted_success": "Item deleted successfully",
       "delete_error": "Could not delete the item",
       "edit_button": "Edit item",
-      "no_photo": "No photo"
+      "no_photo": "No photo",
+      "category": "Category",
+      "condition": "Condition",
+      "evidences": "Evidence",
+      "evidence_title": "Item evidence",
+      "evidence_count_value": "{count}/3 photos",
+      "club_type": "Club type",
+      "record_status": "Record status",
+      "active_status": "Active",
+      "inactive_status": "Inactive",
+      "registered_at": "Registration date"
     },
     "view": {
       "title": "Inventory",
-      "item_count_one": "{count} item",
-      "item_count_other": "{count} items",
+      "item_count": {
+        "one": "{count} item",
+        "other": "{count} items"
+      },
       "filter_status": "Status: {status}",
       "error_load": "Error loading inventory",
       "empty_title": "Your inventory is empty",

@@ -7,7 +7,9 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/sac_colors.dart';
-import '../../../../core/utils/icon_helper.dart';
+import '../../../../core/widgets/sac_image_viewer.dart';
+import '../../../members/presentation/providers/members_providers.dart'
+    show ClubContext, clubContextProvider;
 import '../../domain/entities/inventory_item.dart';
 import '../providers/inventory_providers.dart';
 import '../widgets/condition_badge.dart';
@@ -28,6 +30,10 @@ class InventoryItemDetailView extends ConsumerWidget {
     final canManageAsync = ref.watch(canManageInventoryProvider);
     final canManage = canManageAsync.valueOrNull ?? false;
     final deleteState = ref.watch(inventoryDeleteNotifierProvider);
+    final detailAsync = ref.watch(inventoryItemDetailProvider(item.id));
+    final detailItem = detailAsync.valueOrNull ?? item;
+    final clubContext = ref.watch(clubContextProvider).valueOrNull;
+    final clubTypeName = _clubTypeNameForItem(detailItem, clubContext);
 
     return Scaffold(
       backgroundColor: context.sac.background,
@@ -49,10 +55,9 @@ class InventoryItemDetailView extends ConsumerWidget {
       // Action bar at bottom — thumb zone
       bottomNavigationBar: canManage
           ? _BottomActionBar(
-              item: item,
               isDeleting: deleteState.isLoading,
-              onEdit: () => _openEdit(context),
-              onDelete: () => _confirmDelete(context, ref),
+              onEdit: () => _openEdit(context, detailItem),
+              onDelete: () => _confirmDelete(context, ref, detailItem),
             )
           : null,
 
@@ -63,9 +68,21 @@ class InventoryItemDetailView extends ConsumerWidget {
           children: [
             // Photo hero — tag matches thumbnail tag in item card
             Hero(
-              tag: 'inv-photo-${item.id}',
-              child: _PhotoSection(photoUrl: item.photoUrl),
+              tag: 'inv-photo-${detailItem.id}',
+              child: _PhotoSection(
+                photoUrl: detailItem.photoUrl,
+                imageUrls: detailItem.evidences.map((e) => e.url).toList(),
+                title: detailItem.name,
+              ),
             ),
+
+            if (detailItem.evidences.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _EvidenceCard(
+                itemName: detailItem.name,
+                evidences: detailItem.evidences,
+              ),
+            ],
 
             const SizedBox(height: 20),
 
@@ -75,7 +92,7 @@ class InventoryItemDetailView extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    item.name,
+                    detailItem.name,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w800,
                           color: context.sac.text,
@@ -83,7 +100,7 @@ class InventoryItemDetailView extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                ConditionBadge(condition: item.condition),
+                ConditionBadge(condition: detailItem.condition),
               ],
             ),
 
@@ -97,7 +114,7 @@ class InventoryItemDetailView extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                item.category.name,
+                detailItem.category.name,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.primaryDark,
                       fontWeight: FontWeight.w700,
@@ -105,10 +122,11 @@ class InventoryItemDetailView extends ConsumerWidget {
               ),
             ),
 
-            if (item.description != null && item.description!.isNotEmpty) ...[
+            if (detailItem.description != null &&
+                detailItem.description!.isNotEmpty) ...[
               const SizedBox(height: 16),
               Text(
-                item.description!,
+                detailItem.description!,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: context.sac.textSecondary,
                       height: 1.5,
@@ -124,59 +142,99 @@ class InventoryItemDetailView extends ConsumerWidget {
                 _InfoRow(
                   icon: HugeIcons.strokeRoundedPackage,
                   label: 'inventory.detail.quantity'.tr(),
-                  value: item.quantity.toString(),
+                  value: detailItem.quantity.toString(),
                 ),
-                if (item.serialNumber != null && item.serialNumber!.isNotEmpty)
+                _InfoRow(
+                  icon: HugeIcons.strokeRoundedTag01,
+                  label: 'inventory.detail.category'.tr(),
+                  value: detailItem.category.name,
+                ),
+                _InfoRow(
+                  icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                  label: 'inventory.detail.condition'.tr(),
+                  value: detailItem.condition.label,
+                  valueColor: _conditionColor(detailItem.condition),
+                ),
+                _InfoRow(
+                  icon: HugeIcons.strokeRoundedImage01,
+                  label: 'inventory.detail.evidences'.tr(),
+                  value: 'inventory.detail.evidence_count_value'.tr(
+                    namedArgs: {
+                      'count': detailItem.evidences.length.toString(),
+                    },
+                  ),
+                ),
+                if (clubTypeName != null)
+                  _InfoRow(
+                    icon: HugeIcons.strokeRoundedHome01,
+                    label: 'inventory.detail.club_type'.tr(),
+                    value: clubTypeName,
+                  ),
+                _InfoRow(
+                  icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                  label: 'inventory.detail.record_status'.tr(),
+                  value: detailItem.isActive
+                      ? 'inventory.detail.active_status'.tr()
+                      : 'inventory.detail.inactive_status'.tr(),
+                  valueColor: detailItem.isActive
+                      ? AppColors.secondary
+                      : AppColors.error,
+                ),
+                if (detailItem.serialNumber != null &&
+                    detailItem.serialNumber!.isNotEmpty)
                   _InfoRow(
                     icon: HugeIcons.strokeRoundedTag01,
                     label: 'inventory.detail.serial_number'.tr(),
-                    value: item.serialNumber!,
+                    value: detailItem.serialNumber!,
                   ),
-                if (item.purchaseDate != null)
+                if (detailItem.purchaseDate != null)
                   _InfoRow(
                     icon: HugeIcons.strokeRoundedCalendar01,
                     label: 'inventory.detail.purchase_date'.tr(),
                     value: DateFormat('dd/MM/yyyy')
-                        .format(item.purchaseDate!.toLocal()),
+                        .format(detailItem.purchaseDate!.toLocal()),
                   ),
-                if (item.estimatedValue != null)
+                if (detailItem.estimatedValue != null)
                   _InfoRow(
                     icon: HugeIcons.strokeRoundedMoney01,
                     label: 'inventory.detail.estimated_value'.tr(),
-                    value: '\$${item.estimatedValue!.toStringAsFixed(2)}',
+                    value: '\$${detailItem.estimatedValue!.toStringAsFixed(2)}',
                     valueColor: AppColors.secondary,
                   ),
               ],
             ),
 
-            if (item.location != null || item.assignedTo != null) ...[
+            if (detailItem.location != null ||
+                detailItem.assignedTo != null) ...[
               const SizedBox(height: 12),
               _InfoCard(
                 children: [
-                  if (item.location != null && item.location!.isNotEmpty)
+                  if (detailItem.location != null &&
+                      detailItem.location!.isNotEmpty)
                     _InfoRow(
                       icon: HugeIcons.strokeRoundedLocation01,
                       label: 'inventory.detail.location'.tr(),
-                      value: item.location!,
+                      value: detailItem.location!,
                     ),
-                  if (item.assignedTo != null && item.assignedTo!.isNotEmpty)
+                  if (detailItem.assignedTo != null &&
+                      detailItem.assignedTo!.isNotEmpty)
                     _InfoRow(
                       icon: HugeIcons.strokeRoundedUser,
                       label: 'inventory.detail.assigned_to'.tr(),
-                      value: item.assignedTo!,
+                      value: detailItem.assignedTo!,
                     ),
                 ],
               ),
             ],
 
-            if (item.notes != null && item.notes!.isNotEmpty) ...[
+            if (detailItem.notes != null && detailItem.notes!.isNotEmpty) ...[
               const SizedBox(height: 12),
               _InfoCard(
                 children: [
                   _InfoRow(
                     icon: HugeIcons.strokeRoundedNote01,
                     label: 'inventory.detail.notes'.tr(),
-                    value: item.notes!,
+                    value: detailItem.notes!,
                     isMultiline: true,
                   ),
                 ],
@@ -190,16 +248,28 @@ class InventoryItemDetailView extends ConsumerWidget {
               children: [
                 _InfoRow(
                   icon: HugeIcons.strokeRoundedUser,
+                  leading: _ActorAvatar(
+                    imageUrl: detailItem.registeredByAvatarUrl,
+                  ),
                   label: 'inventory.detail.registered_by'.tr(),
-                  value:
-                      '${item.registeredByName} · ${DateFormat('dd/MM/yyyy').format(item.registeredAt.toLocal())}',
+                  value: detailItem.registeredByName,
                 ),
-                if (item.modifiedByName != null)
+                _InfoRow(
+                  icon: HugeIcons.strokeRoundedCalendar01,
+                  label: 'inventory.detail.registered_at'.tr(),
+                  value: _formatDateTime(detailItem.registeredAt),
+                ),
+                if (detailItem.modifiedAt != null ||
+                    detailItem.modifiedByName != null)
                   _InfoRow(
                     icon: HugeIcons.strokeRoundedEdit01,
                     label: 'inventory.detail.last_modified'.tr(),
-                    value:
-                        '${item.modifiedByName} · ${item.modifiedAt != null ? DateFormat('dd/MM/yyyy').format(item.modifiedAt!.toLocal()) : ''}',
+                    value: _joinNonEmpty([
+                      detailItem.modifiedByName,
+                      detailItem.modifiedAt != null
+                          ? _formatDateTime(detailItem.modifiedAt!)
+                          : null,
+                    ]),
                   ),
               ],
             ),
@@ -209,23 +279,27 @@ class InventoryItemDetailView extends ConsumerWidget {
     );
   }
 
-  void _openEdit(BuildContext context) {
+  void _openEdit(BuildContext context, InventoryItem selectedItem) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => AddInventoryItemSheet(existing: item),
+      builder: (_) => AddInventoryItemSheet(existing: selectedItem),
     );
   }
 
-  void _confirmDelete(BuildContext context, WidgetRef ref) {
+  void _confirmDelete(
+    BuildContext context,
+    WidgetRef ref,
+    InventoryItem selectedItem,
+  ) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('inventory.detail.delete_title'.tr()),
         content: Text('inventory.detail.delete_confirm'
-            .tr(namedArgs: {'name': item.name})),
+            .tr(namedArgs: {'name': selectedItem.name})),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -236,7 +310,7 @@ class InventoryItemDetailView extends ConsumerWidget {
               Navigator.pop(ctx);
               final success = await ref
                   .read(inventoryDeleteNotifierProvider.notifier)
-                  .deleteItem(item.id);
+                  .deleteItem(selectedItem.id);
               if (success && context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -264,16 +338,45 @@ class InventoryItemDetailView extends ConsumerWidget {
   }
 }
 
+Color _conditionColor(ItemCondition condition) {
+  switch (condition) {
+    case ItemCondition.bueno:
+      return AppColors.secondary;
+    case ItemCondition.regular:
+      return AppColors.warning;
+    case ItemCondition.malo:
+      return AppColors.error;
+  }
+}
+
+String _formatDateTime(DateTime value) {
+  return DateFormat('dd/MM/yyyy HH:mm').format(value.toLocal());
+}
+
+String? _clubTypeNameForItem(InventoryItem item, ClubContext? context) {
+  final clubTypeName = context?.clubTypeName?.trim();
+  if (clubTypeName == null || clubTypeName.isEmpty) return null;
+  if (item.clubSectionId != null && item.clubSectionId != context?.sectionId) {
+    return null;
+  }
+  return clubTypeName;
+}
+
+String _joinNonEmpty(List<String?> values) {
+  return values
+      .where((value) => value != null && value.trim().isNotEmpty)
+      .map((value) => value!.trim())
+      .join(' · ');
+}
+
 // ── Bottom action bar ───────────────────────────────────────────────────────────
 
 class _BottomActionBar extends StatelessWidget {
-  final InventoryItem item;
   final bool isDeleting;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const _BottomActionBar({
-    required this.item,
     required this.isDeleting,
     required this.onEdit,
     required this.onDelete,
@@ -292,29 +395,35 @@ class _BottomActionBar extends StatelessWidget {
           children: [
             // Delete button
             Expanded(
-              child: OutlinedButton.icon(
-                onPressed: isDeleting ? null : onDelete,
-                icon: isDeleting
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.error,
-                        ),
-                      )
-                    : const HugeIcon(
-                        icon: HugeIcons.strokeRoundedDelete02,
-                        size: 18,
-                        color: AppColors.error,
-                      ),
-                label: Text('common.delete'.tr()),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.error,
-                  side: const BorderSide(color: AppColors.error),
-                  minimumSize: const Size(0, 48),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+              child: SizedBox(
+                height: 56,
+                child: OutlinedButton(
+                  onPressed: isDeleting ? null : onDelete,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.error,
+                    side: const BorderSide(color: AppColors.error),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                    ),
+                  ),
+                  child: _ActionButtonLabel(
+                    icon: isDeleting
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.error,
+                            ),
+                          )
+                        : const HugeIcon(
+                            icon: HugeIcons.strokeRoundedDelete02,
+                            size: 18,
+                            color: AppColors.error,
+                          ),
+                    label: 'common.delete'.tr(),
+                    color: AppColors.error,
                   ),
                 ),
               ),
@@ -324,20 +433,25 @@ class _BottomActionBar extends StatelessWidget {
 
             // Edit button
             Expanded(
-              flex: 2,
-              child: FilledButton.icon(
-                onPressed: onEdit,
-                icon: const HugeIcon(
-                  icon: HugeIcons.strokeRoundedEdit01,
-                  size: 18,
-                  color: Colors.white,
-                ),
-                label: Text('inventory.detail.edit_button'.tr()),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  minimumSize: const Size(0, 48),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+              child: SizedBox(
+                height: 56,
+                child: FilledButton(
+                  onPressed: onEdit,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSM),
+                    ),
+                  ),
+                  child: _ActionButtonLabel(
+                    icon: const HugeIcon(
+                      icon: HugeIcons.strokeRoundedEdit01,
+                      size: 18,
+                      color: Colors.white,
+                    ),
+                    label: 'inventory.detail.edit_button'.tr(),
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -349,28 +463,205 @@ class _BottomActionBar extends StatelessWidget {
   }
 }
 
+class _ActionButtonLabel extends StatelessWidget {
+  final Widget icon;
+  final String label;
+  final Color color;
+
+  const _ActionButtonLabel({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        icon,
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            softWrap: false,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 // ── Photo section ───────────────────────────────────────────────────────────────
 
 class _PhotoSection extends StatelessWidget {
   final String? photoUrl;
+  final List<String> imageUrls;
+  final String title;
 
-  const _PhotoSection({this.photoUrl});
+  const _PhotoSection({
+    this.photoUrl,
+    this.imageUrls = const [],
+    required this.title,
+  });
 
   @override
   Widget build(BuildContext context) {
     if (photoUrl != null && photoUrl!.isNotEmpty) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: CachedNetworkImage(
-          imageUrl: photoUrl!,
-          width: double.infinity,
-          height: 220,
-          fit: BoxFit.cover,
-          errorWidget: (_, __, ___) => const _PhotoPlaceholder(),
+      final urls = imageUrls.isNotEmpty ? imageUrls : [photoUrl!];
+
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => SacImageViewer.show(
+            context,
+            imageUrl: photoUrl!,
+            imageUrls: urls,
+            title: title,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: CachedNetworkImage(
+              imageUrl: photoUrl!,
+              width: double.infinity,
+              height: 220,
+              fit: BoxFit.cover,
+              errorWidget: (_, __, ___) => const _PhotoPlaceholder(),
+            ),
+          ),
         ),
       );
     }
     return const _PhotoPlaceholder();
+  }
+}
+
+class _EvidenceCard extends StatelessWidget {
+  final String itemName;
+  final List<InventoryEvidence> evidences;
+
+  const _EvidenceCard({
+    required this.itemName,
+    required this.evidences,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final urls = evidences.map((e) => e.url).toList();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: context.sac.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+        border: Border.all(
+          color: context.sac.border.withValues(alpha: 0.7),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedImage01,
+                size: 18,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'inventory.detail.evidence_title'.tr(),
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: context.sac.text,
+                      ),
+                ),
+              ),
+              Text(
+                'inventory.detail.evidence_count_value'.tr(
+                  namedArgs: {'count': evidences.length.toString()},
+                ),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: context.sac.textTertiary,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              for (var index = 0; index < evidences.length; index++)
+                _EvidenceThumb(
+                  url: evidences[index].url,
+                  onTap: () => SacImageViewer.show(
+                    context,
+                    imageUrl: evidences[index].url,
+                    imageUrls: urls,
+                    initialIndex: index,
+                    title: itemName,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EvidenceThumb extends StatelessWidget {
+  final String url;
+  final VoidCallback onTap;
+
+  const _EvidenceThumb({
+    required this.url,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Ink(
+          width: 82,
+          height: 82,
+          decoration: BoxDecoration(
+            color: context.sac.surfaceVariant,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: CachedNetworkImage(
+              imageUrl: url,
+              fit: BoxFit.cover,
+              errorWidget: (_, __, ___) => Center(
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedImageNotFound01,
+                  size: 22,
+                  color: context.sac.textTertiary,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -446,7 +737,8 @@ class _InfoCard extends StatelessWidget {
 // ── Info row ────────────────────────────────────────────────────────────────────
 
 class _InfoRow extends StatelessWidget {
-  final HugeIconData icon;
+  final List<List<dynamic>> icon;
+  final Widget? leading;
   final String label;
   final String value;
   final Color? valueColor;
@@ -454,6 +746,7 @@ class _InfoRow extends StatelessWidget {
 
   const _InfoRow({
     required this.icon,
+    this.leading,
     required this.label,
     required this.value,
     this.valueColor,
@@ -468,11 +761,12 @@ class _InfoRow extends StatelessWidget {
         crossAxisAlignment:
             isMultiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
         children: [
-          HugeIcon(
-            icon: icon,
-            size: 18,
-            color: context.sac.textSecondary,
-          ),
+          leading ??
+              HugeIcon(
+                icon: icon,
+                size: 18,
+                color: context.sac.textSecondary,
+              ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -497,6 +791,55 @@ class _InfoRow extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ActorAvatar extends StatelessWidget {
+  final String? imageUrl;
+
+  const _ActorAvatar({this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    final avatarUrl = imageUrl?.trim();
+    if (avatarUrl == null || avatarUrl.isEmpty) {
+      return HugeIcon(
+        icon: HugeIcons.strokeRoundedUser,
+        size: 18,
+        color: context.sac.textSecondary,
+      );
+    }
+
+    return ClipOval(
+      child: CachedNetworkImage(
+        imageUrl: avatarUrl,
+        width: 28,
+        height: 28,
+        fit: BoxFit.cover,
+        errorWidget: (_, __, ___) => HugeIcon(
+          icon: HugeIcons.strokeRoundedUser,
+          size: 18,
+          color: context.sac.textSecondary,
+        ),
+        placeholder: (_, __) => Container(
+          width: 28,
+          height: 28,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: context.sac.surfaceVariant,
+          ),
+          child: SizedBox(
+            width: 12,
+            height: 12,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: context.sac.textTertiary,
+            ),
+          ),
+        ),
       ),
     );
   }

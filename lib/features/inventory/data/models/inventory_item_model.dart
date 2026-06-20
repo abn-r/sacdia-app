@@ -51,6 +51,8 @@ class InventoryItemModel extends InventoryItem {
     required super.category,
     required super.quantity,
     required super.condition,
+    super.clubSectionId,
+    super.isActive,
     super.serialNumber,
     super.photoUrl,
     super.evidences,
@@ -60,8 +62,10 @@ class InventoryItemModel extends InventoryItem {
     super.assignedTo,
     super.notes,
     required super.registeredByName,
+    super.registeredByAvatarUrl,
     required super.registeredAt,
     super.modifiedByName,
+    super.modifiedByAvatarUrl,
     super.modifiedAt,
   });
 
@@ -77,9 +81,33 @@ class InventoryItemModel extends InventoryItem {
     final category = InventoryCategoryModel.fromJson(categoryJson).toEntity();
 
     // Datos del creador
-    final createdByUser = json['users'] as Map<String, dynamic>? ?? {};
+    final createdByUser = _mapOrNull(json['users']) ??
+        _mapOrNull(json['created_by']) ??
+        _mapOrNull(json['registered_by']) ??
+        {};
     final registeredByName = _extractName(
-        createdByUser, json['created_by']?.toString() ?? 'Sistema');
+      createdByUser,
+      json['created_by_name']?.toString() ??
+          _stringOrNull(json['created_by']) ??
+          'Sistema',
+    );
+    final registeredByAvatarUrl = _extractAvatar(
+      createdByUser,
+      json['created_by_avatar_url']?.toString() ??
+          json['registered_by_avatar_url']?.toString(),
+    );
+
+    final modifiedByUser = _mapOrNull(json['modified_by']) ?? {};
+    final modifiedByName = _emptyToNull(_extractName(
+      modifiedByUser,
+      json['modified_by_name']?.toString() ??
+          _stringOrNull(json['modified_by']) ??
+          '',
+    ));
+    final modifiedByAvatarUrl = _extractAvatar(
+      modifiedByUser,
+      json['modified_by_avatar_url']?.toString(),
+    );
 
     final evidences = (json['evidences'] as List<dynamic>? ?? [])
         .whereType<Map<String, dynamic>>()
@@ -93,6 +121,10 @@ class InventoryItemModel extends InventoryItem {
       category: category,
       quantity: _parseInt(json['amount'] ?? json['quantity'] ?? 1),
       condition: _parseCondition(json['condition']?.toString()),
+      clubSectionId: json['club_section_id'] != null
+          ? _parseInt(json['club_section_id'])
+          : null,
+      isActive: json['active'] != false,
       serialNumber: json['serial_number']?.toString(),
       photoUrl: json['photo_url']?.toString() ??
           (evidences.isNotEmpty ? evidences.first.url : null),
@@ -107,8 +139,10 @@ class InventoryItemModel extends InventoryItem {
       assignedTo: json['assigned_to']?.toString(),
       notes: json['notes']?.toString(),
       registeredByName: registeredByName,
+      registeredByAvatarUrl: registeredByAvatarUrl,
       registeredAt: _parseDate(json['created_at']),
-      modifiedByName: json['modified_by_name']?.toString(),
+      modifiedByName: modifiedByName,
+      modifiedByAvatarUrl: modifiedByAvatarUrl,
       modifiedAt:
           json['updated_at'] != null ? _parseDate(json['updated_at']) : null,
     );
@@ -142,6 +176,32 @@ class InventoryItemModel extends InventoryItem {
     return full.isNotEmpty ? full : fallback;
   }
 
+  static String? _extractAvatar(Map<String, dynamic> user, String? fallback) {
+    final value = user['avatar_url'] ??
+        user['avatar'] ??
+        user['user_image'] ??
+        user['photo_url'] ??
+        fallback;
+    final text = value?.toString().trim();
+    return text == null || text.isEmpty ? null : text;
+  }
+
+  static Map<String, dynamic>? _mapOrNull(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) return Map<String, dynamic>.from(value);
+    return null;
+  }
+
+  static String? _stringOrNull(dynamic value) {
+    if (value is String && value.trim().isNotEmpty) return value;
+    return null;
+  }
+
+  static String? _emptyToNull(String value) {
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
   static int _parseInt(dynamic v) {
     if (v is int) return v;
     if (v is double) return v.toInt();
@@ -173,6 +233,8 @@ class InventoryItemModel extends InventoryItem {
         category: category,
         quantity: quantity,
         condition: condition,
+        clubSectionId: clubSectionId,
+        isActive: isActive,
         serialNumber: serialNumber,
         photoUrl: photoUrl,
         evidences: evidences,
@@ -182,8 +244,10 @@ class InventoryItemModel extends InventoryItem {
         assignedTo: assignedTo,
         notes: notes,
         registeredByName: registeredByName,
+        registeredByAvatarUrl: registeredByAvatarUrl,
         registeredAt: registeredAt,
         modifiedByName: modifiedByName,
+        modifiedByAvatarUrl: modifiedByAvatarUrl,
         modifiedAt: modifiedAt,
       );
 

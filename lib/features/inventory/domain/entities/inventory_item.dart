@@ -75,6 +75,8 @@ class InventoryItem extends Equatable {
   final InventoryCategory category;
   final int quantity;
   final ItemCondition condition;
+  final int? clubSectionId;
+  final bool isActive;
   final String? serialNumber;
   final String? photoUrl;
   final List<InventoryEvidence> evidences;
@@ -84,8 +86,10 @@ class InventoryItem extends Equatable {
   final String? assignedTo;
   final String? notes;
   final String registeredByName;
+  final String? registeredByAvatarUrl;
   final DateTime registeredAt;
   final String? modifiedByName;
+  final String? modifiedByAvatarUrl;
   final DateTime? modifiedAt;
 
   const InventoryItem({
@@ -95,6 +99,8 @@ class InventoryItem extends Equatable {
     required this.category,
     required this.quantity,
     required this.condition,
+    this.clubSectionId,
+    this.isActive = true,
     this.serialNumber,
     this.photoUrl,
     this.evidences = const [],
@@ -104,8 +110,10 @@ class InventoryItem extends Equatable {
     this.assignedTo,
     this.notes,
     required this.registeredByName,
+    this.registeredByAvatarUrl,
     required this.registeredAt,
     this.modifiedByName,
+    this.modifiedByAvatarUrl,
     this.modifiedAt,
   });
 
@@ -117,6 +125,8 @@ class InventoryItem extends Equatable {
         category,
         quantity,
         condition,
+        clubSectionId,
+        isActive,
         serialNumber,
         photoUrl,
         evidences,
@@ -126,8 +136,10 @@ class InventoryItem extends Equatable {
         assignedTo,
         notes,
         registeredByName,
+        registeredByAvatarUrl,
         registeredAt,
         modifiedByName,
+        modifiedByAvatarUrl,
         modifiedAt,
       ];
 }

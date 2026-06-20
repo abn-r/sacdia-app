@@ -149,7 +149,10 @@ class _InventoryViewState extends ConsumerState<InventoryView> {
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
                           child: Text(
-                            'inventory.view.item_count'.plural(items.length),
+                            'inventory.view.item_count'.plural(
+                              items.length,
+                              name: 'count',
+                            ),
                             style:
                                 Theme.of(context).textTheme.bodySmall?.copyWith(
                                       color: context.sac.textSecondary,

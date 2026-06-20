@@ -2167,12 +2167,24 @@
       "deleted_success": "Article supprimé avec succès",
       "delete_error": "Impossible de supprimer l'article",
       "edit_button": "Modifier l'article",
-      "no_photo": "Pas de photo"
+      "no_photo": "Pas de photo",
+      "category": "Catégorie",
+      "condition": "État de conservation",
+      "evidences": "Preuves",
+      "evidence_title": "Preuves de l'article",
+      "evidence_count_value": "{count}/3 photos",
+      "club_type": "Type de club",
+      "record_status": "Statut de l'enregistrement",
+      "active_status": "Actif",
+      "inactive_status": "Inactif",
+      "registered_at": "Date d'enregistrement"
     },
     "view": {
       "title": "Inventaire",
-      "item_count_one": "{count} article",
-      "item_count_other": "{count} articles",
+      "item_count": {
+        "one": "{count} article",
+        "other": "{count} articles"
+      },
       "filter_status": "Statut : {status}",
       "error_load": "Erreur lors du chargement de l'inventaire",
       "empty_title": "Votre inventaire est vide",
