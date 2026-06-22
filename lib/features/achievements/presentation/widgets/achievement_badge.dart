@@ -118,6 +118,7 @@ class _AchievementBadgeState extends State<AchievementBadge>
         widget.visualState == AchievementVisualState.inProgress;
     final isLocked = widget.visualState == AchievementVisualState.locked;
     final tierColor = achievementTierColor(widget.tier);
+    final imageCacheSize = (widget.size * 3).round();
     final showSecret = widget.isSecret && !isUnlocked;
 
     // Border color and width
@@ -171,6 +172,8 @@ class _AchievementBadgeState extends State<AchievementBadge>
         imageUrl: effectiveUrl,
         width: widget.size,
         height: widget.size,
+        memCacheWidth: imageCacheSize,
+        memCacheHeight: imageCacheSize,
         fit: BoxFit.cover,
         placeholder: (context, url) => Container(
           width: widget.size,

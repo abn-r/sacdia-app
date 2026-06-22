@@ -56,6 +56,8 @@ class MasterHonorRoadmapGridItem extends StatelessWidget {
         ? CachedNetworkImage(
             imageUrl: imageUrl,
             fit: BoxFit.contain,
+            memCacheWidth: 192,
+            memCacheHeight: 192,
             errorWidget: (_, __, ___) => MasterHonorInitialsBox(
               initials: initials,
               color: visualColor,
@@ -169,6 +171,8 @@ class MasterHonorLogo extends StatelessWidget {
       child: CachedNetworkImage(
         imageUrl: image,
         fit: BoxFit.contain,
+        memCacheWidth: (size * 3).round(),
+        memCacheHeight: (size * 3).round(),
         placeholder: (_, __) => fallback,
         errorWidget: (_, __, ___) => fallback,
       ),

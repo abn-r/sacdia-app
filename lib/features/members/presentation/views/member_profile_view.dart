@@ -336,7 +336,12 @@ class _ClassItem extends StatelessWidget {
             child: logoAsset != null
                 ? Padding(
                     padding: const EdgeInsets.all(6),
-                    child: Image.asset(logoAsset, fit: BoxFit.contain),
+                    child: Image.asset(
+                      logoAsset,
+                      fit: BoxFit.contain,
+                      cacheWidth: 108,
+                      cacheHeight: 108,
+                    ),
                   )
                 : Center(
                     child: HugeIcon(

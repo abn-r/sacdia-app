@@ -932,10 +932,20 @@ class MemberOfMonthHistoryParams {
     required this.clubId,
     required this.sectionId,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MemberOfMonthHistoryParams &&
+          other.clubId == clubId &&
+          other.sectionId == sectionId;
+
+  @override
+  int get hashCode => Object.hash(clubId, sectionId);
 }
 
 /// Notifier para el historial paginado del Miembro del Mes.
-class MemberOfMonthHistoryNotifier extends FamilyNotifier<
+class MemberOfMonthHistoryNotifier extends AutoDisposeFamilyNotifier<
     MemberOfMonthHistoryState, MemberOfMonthHistoryParams> {
   static const _pageSize = 12;
 
@@ -988,7 +998,7 @@ class MemberOfMonthHistoryNotifier extends FamilyNotifier<
 /// Provider para el historial del Miembro del Mes.
 ///
 /// Se parametriza con [MemberOfMonthHistoryParams] para soportar múltiples secciones.
-final memberOfMonthHistoryProvider = NotifierProvider.family<
+final memberOfMonthHistoryProvider = NotifierProvider.autoDispose.family<
     MemberOfMonthHistoryNotifier,
     MemberOfMonthHistoryState,
     MemberOfMonthHistoryParams>(

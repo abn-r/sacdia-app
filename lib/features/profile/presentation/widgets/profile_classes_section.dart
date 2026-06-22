@@ -229,6 +229,8 @@ class _ClassGridItem extends StatelessWidget {
                       ? Image.asset(
                           logoAsset,
                           fit: BoxFit.contain,
+                          cacheWidth: 180,
+                          cacheHeight: 180,
                           errorBuilder: (_, __, ___) => HugeIcon(
                             icon: HugeIcons.strokeRoundedSchool,
                             size: 30,

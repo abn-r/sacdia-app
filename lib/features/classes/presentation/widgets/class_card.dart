@@ -72,6 +72,8 @@ class ClassCard extends StatelessWidget {
                                   child: Image.asset(
                                     logoAsset,
                                     fit: BoxFit.contain,
+                                    cacheWidth: 132,
+                                    cacheHeight: 132,
                                   ),
                                 )
                               : Center(
@@ -89,6 +91,8 @@ class ClassCard extends StatelessWidget {
                             child: Image.asset(
                               logoAsset,
                               fit: BoxFit.contain,
+                              cacheWidth: 132,
+                              cacheHeight: 132,
                             ),
                           )
                         : Center(

@@ -439,73 +439,79 @@ class _ActionCard extends ConsumerWidget {
 
   Future<void> _confirmCancel(BuildContext context, WidgetRef ref) async {
     final reasonController = TextEditingController();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Cancelar pedido'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('¿Estás seguro de que deseas cancelar este pedido?'),
-            const SizedBox(height: 12),
-            TextField(
-              controller: reasonController,
-              decoration: const InputDecoration(
-                labelText: 'Motivo (requerido)',
-                border: OutlineInputBorder(),
+    try {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Cancelar pedido'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('¿Estás seguro de que deseas cancelar este pedido?'),
+              const SizedBox(height: 12),
+              TextField(
+                controller: reasonController,
+                decoration: const InputDecoration(
+                  labelText: 'Motivo (requerido)',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 2,
               ),
-              maxLines: 2,
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Volver'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('Cancelar pedido'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Volver'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Cancelar pedido'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true || !context.mounted) return;
-
-    final reason = reasonController.text.trim();
-    if (reason.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ingresá un motivo de cancelación.')),
       );
-      return;
+
+      if (confirmed != true || !context.mounted) return;
+
+      final reason = reasonController.text.trim();
+      if (reason.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ingresá un motivo de cancelación.')),
+        );
+        return;
+      }
+
+      final result = await ref.read(cancelOrderProvider.notifier).cancel(
+            folioOrId: orden.folioReferencia ?? orden.id,
+            reason: reason,
+          );
+
+      if (!context.mounted) return;
+
+      result.fold(
+        (failure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(failure.message),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        },
+        (_) {
+          ref.invalidate(
+            orderDetailProvider(orden.folioReferencia ?? orden.id),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Pedido cancelado.')),
+          );
+        },
+      );
+    } finally {
+      reasonController.dispose();
     }
-
-    final result = await ref.read(cancelOrderProvider.notifier).cancel(
-          folioOrId: orden.folioReferencia ?? orden.id,
-          reason: reason,
-        );
-
-    if (!context.mounted) return;
-
-    result.fold(
-      (failure) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(failure.message),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      },
-      (_) {
-        ref.invalidate(orderDetailProvider(orden.folioReferencia ?? orden.id));
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pedido cancelado.')),
-        );
-      },
-    );
   }
 }
 

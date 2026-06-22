@@ -479,6 +479,8 @@ class _EvidencePreview extends StatelessWidget {
             imageUrl: insurance.evidenceFileUrl!,
             width: double.infinity,
             height: 200,
+            memCacheWidth: 1200,
+            memCacheHeight: 600,
             fit: BoxFit.cover,
             placeholder: (context, url) =>
                 const Center(child: CircularProgressIndicator.adaptive()),

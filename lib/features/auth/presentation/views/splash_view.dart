@@ -129,6 +129,8 @@ class _SplashViewState extends ConsumerState<SplashView>
                         'assets/img/LogoSACDIA.png',
                         width: 140,
                         height: 140,
+                        cacheWidth: 420,
+                        cacheHeight: 420,
                       ),
                     ),
                   ),

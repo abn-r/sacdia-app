@@ -394,6 +394,8 @@ class _StagedFileCell extends StatelessWidget {
       return CachedNetworkImage(
         imageUrl: file.remoteUrl!,
         fit: BoxFit.cover,
+        memCacheWidth: 360,
+        memCacheHeight: 360,
         errorWidget: (_, __, ___) => _fallbackIcon(),
         progressIndicatorBuilder: (context, url, downloadProgress) {
           return Container(
@@ -415,6 +417,8 @@ class _StagedFileCell extends StatelessWidget {
       return Image.file(
         File(file.localPath!),
         fit: BoxFit.cover,
+        cacheWidth: 360,
+        cacheHeight: 360,
         errorBuilder: (_, __, ___) => _fallbackIcon(),
       );
     }
@@ -470,7 +474,11 @@ class _StagedFileCell extends StatelessWidget {
             ),
             body: Center(
               child: InteractiveViewer(
-                child: Image.file(File(file.localPath!), fit: BoxFit.contain),
+                child: Image.file(
+                  File(file.localPath!),
+                  fit: BoxFit.contain,
+                  cacheWidth: 1600,
+                ),
               ),
             ),
           ),

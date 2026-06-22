@@ -533,6 +533,8 @@ class _PhotoSection extends StatelessWidget {
               imageUrl: photoUrl!,
               width: double.infinity,
               height: 220,
+              memCacheWidth: 1200,
+              memCacheHeight: 660,
               fit: BoxFit.cover,
               errorWidget: (_, __, ___) => const _PhotoPlaceholder(),
             ),
@@ -650,6 +652,8 @@ class _EvidenceThumb extends StatelessWidget {
             child: CachedNetworkImage(
               imageUrl: url,
               fit: BoxFit.cover,
+              memCacheWidth: 246,
+              memCacheHeight: 246,
               errorWidget: (_, __, ___) => Center(
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedImageNotFound01,
@@ -817,6 +821,8 @@ class _ActorAvatar extends StatelessWidget {
         imageUrl: avatarUrl,
         width: 28,
         height: 28,
+        memCacheWidth: 84,
+        memCacheHeight: 84,
         fit: BoxFit.cover,
         errorWidget: (_, __, ___) => HugeIcon(
           icon: HugeIcons.strokeRoundedUser,

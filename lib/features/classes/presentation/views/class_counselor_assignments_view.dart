@@ -751,6 +751,8 @@ class _PersonIdentityMark extends StatelessWidget {
                   fit: BoxFit.cover,
                   width: 54,
                   height: 54,
+                  memCacheWidth: 162,
+                  memCacheHeight: 162,
                   errorWidget: (_, __, ___) => Text(
                     initials.isEmpty ? '?' : initials,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(

@@ -150,7 +150,13 @@ class _CredencialQrFullscreenState extends State<CredencialQrFullscreen> {
                 // Header
                 Row(
                   children: [
-                    Image.asset(sec.logo, width: 32, height: 32),
+                    Image.asset(
+                      sec.logo,
+                      width: 32,
+                      height: 32,
+                      cacheWidth: 96,
+                      cacheHeight: 96,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(

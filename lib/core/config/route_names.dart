@@ -100,8 +100,9 @@ class RouteNames {
   static String certificationDetailPath(String certificationId) =>
       '/certification/$certificationId';
   static String certificationProgressPath(
-          String certificationId, String enrollmentId) =>
-      '/certification/$certificationId/progress/$enrollmentId';
+    String certificationId,
+    String enrollmentId,
+  ) => '/certification/$certificationId/progress/$enrollmentId';
   static String investitureHistoryPath(String enrollmentId) =>
       '/investiture/enrollment/$enrollmentId/history';
   static String certificateImportProcessingPath(String batchId) =>
@@ -137,14 +138,11 @@ class RouteNames {
   static String honorCompletionPath(String honorId, String userHonorId) =>
       '/honor/$honorId/completion/$userHonorId';
   static String honorRequirementsPath(
-          String honorId, String userHonorId, String honorName) =>
+    String honorId,
+    String userHonorId,
+    String honorName,
+  ) =>
       '/honor/$honorId/requirements/$userHonorId?name=${Uri.encodeComponent(honorName)}';
-
-  // Carpetas anuales
-  static const String annualFolder = '/annual-folder/:enrollmentId';
-
-  static String annualFolderPath(int enrollmentId) =>
-      '/annual-folder/$enrollmentId';
 
   // Informes mensuales
   static const String monthlyReports = '/monthly-reports/:enrollmentId';

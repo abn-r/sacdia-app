@@ -735,7 +735,7 @@ class _DiseasesSelectionViewState extends ConsumerState<DiseasesSelectionView> {
                                 isExpanded: isExpanded,
                                 controller: isSelected
                                     ? _availableControllerFor(item.id)
-                                    : TextEditingController(),
+                                    : null,
                                 onTap: () => _handleAvailableTap(item.id),
                                 onYearChanged: (year) {
                                   setState(
@@ -854,7 +854,7 @@ class _DiseaseTile extends StatelessWidget {
   final String name;
   final bool isSelected;
   final bool isExpanded;
-  final TextEditingController controller;
+  final TextEditingController? controller;
   final VoidCallback onTap;
   final ValueChanged<int?> onYearChanged;
   final VoidCallback onRemove;
@@ -920,14 +920,14 @@ class _DiseaseTile extends StatelessWidget {
                 ),
               ),
             ),
-            if (isExpanded)
+            if (isExpanded && controller != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _YearEditor(
-                      controller: controller,
+                      controller: controller!,
                       onChanged: onYearChanged,
                     ),
                     const SizedBox(height: 8),

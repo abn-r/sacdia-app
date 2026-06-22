@@ -248,7 +248,12 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
       },
     );
 
-    if (submitted != true || !mounted) return;
+    if (submitted != true || !mounted) {
+      currentCtrl.dispose();
+      newCtrl.dispose();
+      confirmCtrl.dispose();
+      return;
+    }
 
     // Confirmación biométrica antes de cambiar la contraseña
     // (no-op si el usuario no tiene biometría habilitada).
@@ -368,7 +373,11 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
       confirmIsDestructive: true,
     );
 
-    if (firstConfirmed != true || !mounted) return;
+    if (firstConfirmed != true || !mounted) {
+      confirmCtrl.dispose();
+      passwordCtrl.dispose();
+      return;
+    }
 
     // Segunda confirmación: escribir la palabra localizada + contraseña actual.
     final secondConfirmed = await showDialog<bool>(
@@ -878,6 +887,8 @@ class _AccountHeaderTile extends StatelessWidget {
                   ? CachedNetworkImage(
                       imageUrl: avatar,
                       fit: BoxFit.cover,
+                      memCacheWidth: 156,
+                      memCacheHeight: 156,
                       errorWidget: (_, __, ___) => _AvatarFallback(name: name),
                     )
                   : _AvatarFallback(name: name),

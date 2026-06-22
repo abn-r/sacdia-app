@@ -361,6 +361,8 @@ class _HonorGridItem extends StatelessWidget {
                     ? CachedNetworkImage(
                         imageUrl: imageUrl,
                         fit: BoxFit.contain,
+                        memCacheWidth: 288,
+                        memCacheHeight: 288,
                         errorWidget: (_, __, ___) => _InitialsBox(
                           initials: initials,
                           categoryColor: categoryColor,

@@ -707,6 +707,8 @@ class _SelectedFileTile extends StatelessWidget {
                     File(file.path),
                     width: 52,
                     height: 52,
+                    cacheWidth: 156,
+                    cacheHeight: 156,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => _FileIconBox(),
                   )

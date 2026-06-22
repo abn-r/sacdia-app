@@ -63,7 +63,13 @@ class CredencialCard extends StatelessWidget {
                 opacity: 0.10,
                 child: Transform.rotate(
                   angle: -0.21, // ~-12°
-                  child: Image.asset(sec.logo, width: 280, height: 280),
+                  child: Image.asset(
+                    sec.logo,
+                    width: 280,
+                    height: 280,
+                    cacheWidth: 840,
+                    cacheHeight: 840,
+                  ),
                 ),
               ),
             ),
@@ -105,7 +111,13 @@ class CredencialCard extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 10),
       child: Row(
         children: [
-          Image.asset(sec.logo, width: 36, height: 36),
+          Image.asset(
+            sec.logo,
+            width: 36,
+            height: 36,
+            cacheWidth: 108,
+            cacheHeight: 108,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(

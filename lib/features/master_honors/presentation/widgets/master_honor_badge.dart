@@ -142,6 +142,8 @@ class _HonorImage extends StatelessWidget {
         child: CachedNetworkImage(
           imageUrl: image,
           fit: BoxFit.cover,
+          memCacheWidth: (size * 3).round(),
+          memCacheHeight: (size * 3).round(),
           errorWidget: (_, __, ___) => fallback,
           placeholder: (_, __) => fallback,
         ),

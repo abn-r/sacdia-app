@@ -335,6 +335,8 @@ class _OptionCard extends StatelessWidget {
                                     width: 28,
                                     height: 28,
                                     fit: BoxFit.contain,
+                                    cacheWidth: 84,
+                                    cacheHeight: 84,
                                     errorBuilder: (_, __, ___) => HugeIcon(
                                       icon: HugeIcons.strokeRoundedUserGroup,
                                       color: color,

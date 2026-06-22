@@ -732,7 +732,7 @@ class _MedicinesSelectionViewState
                                 isExpanded: isExpanded,
                                 controller: isSelected
                                     ? _availableControllerFor(item.id)
-                                    : TextEditingController(),
+                                    : null,
                                 onTap: () => _handleAvailableTap(item.id),
                                 onDoseChanged: (dose) {
                                   setState(
@@ -851,7 +851,7 @@ class _MedicineTile extends StatelessWidget {
   final String name;
   final bool isSelected;
   final bool isExpanded;
-  final TextEditingController controller;
+  final TextEditingController? controller;
   final VoidCallback onTap;
   final ValueChanged<String?> onDoseChanged;
   final VoidCallback onRemove;
@@ -917,14 +917,14 @@ class _MedicineTile extends StatelessWidget {
                 ),
               ),
             ),
-            if (isExpanded)
+            if (isExpanded && controller != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _DoseEditor(
-                      controller: controller,
+                      controller: controller!,
                       onChanged: onDoseChanged,
                     ),
                     const SizedBox(height: 8),

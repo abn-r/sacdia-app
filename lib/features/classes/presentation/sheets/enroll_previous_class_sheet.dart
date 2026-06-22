@@ -377,6 +377,8 @@ class _EnrollPreviousClassSheetState
                                               child: Image.asset(
                                                 logoAsset,
                                                 fit: BoxFit.contain,
+                                                cacheWidth: 108,
+                                                cacheHeight: 108,
                                               ),
                                             )
                                           : Center(
@@ -395,6 +397,8 @@ class _EnrollPreviousClassSheetState
                                         child: Image.asset(
                                           logoAsset,
                                           fit: BoxFit.contain,
+                                          cacheWidth: 108,
+                                          cacheHeight: 108,
                                         ),
                                       )
                                     : Center(

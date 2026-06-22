@@ -188,6 +188,8 @@ class CurrentClassCard extends ConsumerWidget {
                         child: Image.asset(
                           logoAsset,
                           fit: BoxFit.contain,
+                          cacheWidth: 120,
+                          cacheHeight: 120,
                         ),
                       )
                     : Center(
@@ -205,6 +207,8 @@ class CurrentClassCard extends ConsumerWidget {
                   child: Image.asset(
                     logoAsset,
                     fit: BoxFit.contain,
+                    cacheWidth: 120,
+                    cacheHeight: 120,
                   ),
                 )
               : Center(

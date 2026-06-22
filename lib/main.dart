@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart' as rendering;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' as widgets;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -190,14 +191,15 @@ Future<void> main() async {
 
       final sharedPreferences = results[1] as SharedPreferences;
 
+      // Use SACDIA's bounded image cache for every CachedNetworkImage call site
+      // by default. This avoids silently falling back to DefaultCacheManager
+      // on high-volume screens such as honors/profile grids.
+      CachedNetworkImageProvider.defaultCacheManager = SacCacheManager.instance;
+
       // Diferimos la activación de AppCheck al post-frame: no bloquea el primer
       // frame y el handshake con el servidor de AppCheck puede tomar ~1-2 s.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _initializeFirebaseExtras();
-        // Eagerly initialize the app-wide image cache manager so the first
-        // honors/profile screen doesn't pay the singleton creation cost.
-        // SacCacheManager: 500 objects / 30-day stalePeriod (see cache_config.dart).
-        SacCacheManager.instance;
       });
 
       // Ejecutamos la aplicación con la configuración inicial

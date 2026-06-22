@@ -105,46 +105,50 @@ Future<String?> showApproveDialog({
 }) async {
   final commentsCtrl = TextEditingController();
 
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text(title),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(confirmMessage, style: const TextStyle(fontSize: 14)),
-          const SizedBox(height: 16),
-          TextField(
-            controller: commentsCtrl,
-            maxLines: 3,
-            decoration: InputDecoration(
-              labelText: 'coordinator.actions.comment_label'.tr(),
-              hintText: 'coordinator.actions.comment_hint'.tr(),
-              border: const OutlineInputBorder(),
+  try {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(confirmMessage, style: const TextStyle(fontSize: 14)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: commentsCtrl,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'coordinator.actions.comment_label'.tr(),
+                hintText: 'coordinator.actions.comment_hint'.tr(),
+                border: const OutlineInputBorder(),
+              ),
             ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('coordinator.actions.cancel'.tr()),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.secondary,
+              foregroundColor: Colors.white,
+            ),
+            child: Text('coordinator.actions.approve'.tr()),
           ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, false),
-          child: Text('coordinator.actions.cancel'.tr()),
-        ),
-        ElevatedButton(
-          onPressed: () => Navigator.pop(ctx, true),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.secondary,
-            foregroundColor: Colors.white,
-          ),
-          child: Text('coordinator.actions.approve'.tr()),
-        ),
-      ],
-    ),
-  );
+    );
 
-  if (confirmed != true) return null;
-  return commentsCtrl.text.trim();
+    if (confirmed != true) return null;
+    return commentsCtrl.text.trim();
+  } finally {
+    commentsCtrl.dispose();
+  }
 }
 
 /// Muestra el diálogo de rechazo con campo de motivo requerido.
@@ -158,56 +162,60 @@ Future<String?> showRejectDialog({
   final reasonCtrl = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text(title),
-      content: Form(
-        key: formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(confirmMessage, style: const TextStyle(fontSize: 14)),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: reasonCtrl,
-              maxLines: 3,
-              decoration: InputDecoration(
-                labelText: 'coordinator.actions.reject_reason_label'.tr(),
-                hintText: 'coordinator.actions.reject_reason_hint'.tr(),
-                border: const OutlineInputBorder(),
+  try {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(confirmMessage, style: const TextStyle(fontSize: 14)),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: reasonCtrl,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: 'coordinator.actions.reject_reason_label'.tr(),
+                  hintText: 'coordinator.actions.reject_reason_hint'.tr(),
+                  border: const OutlineInputBorder(),
+                ),
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'coordinator.actions.reject_reason_required'.tr()
+                    : null,
               ),
-              validator: (v) => (v == null || v.trim().isEmpty)
-                  ? 'coordinator.actions.reject_reason_required'.tr()
-                  : null,
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, false),
-          child: Text('coordinator.actions.cancel'.tr()),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            if (formKey.currentState!.validate()) {
-              Navigator.pop(ctx, true);
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.error,
-            foregroundColor: Colors.white,
+            ],
           ),
-          child: Text('coordinator.actions.reject'.tr()),
         ),
-      ],
-    ),
-  );
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('coordinator.actions.cancel'.tr()),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(ctx, true);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+            ),
+            child: Text('coordinator.actions.reject'.tr()),
+          ),
+        ],
+      ),
+    );
 
-  if (confirmed != true) return null;
-  return reasonCtrl.text.trim();
+    if (confirmed != true) return null;
+    return reasonCtrl.text.trim();
+  } finally {
+    reasonCtrl.dispose();
+  }
 }
 
 // ── Snackbar helper ───────────────────────────────────────────────────────────

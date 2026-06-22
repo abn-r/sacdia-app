@@ -309,7 +309,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state, navigationShell) =>
             _MainShell(navigationShell: navigationShell),
         branches: [
-          // ── Branch 0: Dashboard ──────────────────────────────────────────
+          // Mantener sólo las 4 tabs primarias como branches preservadas.
+          // Los módulos quick-access viven en el branch Dashboard para no
+          // retener 18 Navigators/árboles extra después de visitarlos.
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -326,6 +328,119 @@ final routerProvider = Provider<GoRouter>((ref) {
                     ),
                   ),
                 ],
+              ),
+
+              // Quick-access modules: shell-visible, but not branch-preserved.
+              GoRoute(
+                path: RouteNames.homeMembers,
+                pageBuilder: (context, state) =>
+                    _fadeThroughBuild(context, state, const MembersView()),
+              ),
+              GoRoute(
+                path: RouteNames.homeClub,
+                pageBuilder: (context, state) =>
+                    _fadeThroughBuild(context, state, const ClubView()),
+              ),
+              GoRoute(
+                path: RouteNames.homeEvidences,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const _EvidenceFolderShell(),
+                ),
+              ),
+              GoRoute(
+                path: RouteNames.homeFinances,
+                pageBuilder: (context, state) =>
+                    _fadeThroughBuild(context, state, const FinancesView()),
+              ),
+              GoRoute(
+                path: RouteNames.homeUnits,
+                pageBuilder: (context, state) =>
+                    _fadeThroughBuild(context, state, const UnitsListView()),
+              ),
+              GoRoute(
+                path: RouteNames.homeGroupedClass,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const TeachingScopeView(),
+                ),
+              ),
+              GoRoute(
+                path: RouteNames.homeInsurance,
+                pageBuilder: (context, state) =>
+                    _fadeThroughBuild(context, state, const InsuranceView()),
+              ),
+              GoRoute(
+                path: RouteNames.homeInventory,
+                pageBuilder: (context, state) =>
+                    _fadeThroughBuild(context, state, const InventoryView()),
+              ),
+              GoRoute(
+                path: RouteNames.homeResources,
+                pageBuilder: (context, state) =>
+                    _fadeThroughBuild(context, state, const ResourcesView()),
+              ),
+              GoRoute(
+                path: RouteNames.homeHonors,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const HonorsCatalogView(),
+                ),
+              ),
+              GoRoute(
+                path: RouteNames.homeCertifications,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const CertificationsListView(),
+                ),
+              ),
+              GoRoute(
+                path: RouteNames.homeCamporees,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const CamporeesListView(),
+                ),
+              ),
+              GoRoute(
+                path: RouteNames.homeAchievements,
+                pageBuilder: (context, state) =>
+                    _fadeThroughBuild(context, state, const AchievementsView()),
+              ),
+              GoRoute(
+                path: RouteNames.homeMasterHonors,
+                pageBuilder: (context, state) =>
+                    _fadeThroughBuild(context, state, const MasterHonorsView()),
+              ),
+              GoRoute(
+                path: RouteNames.homeMyRanking,
+                pageBuilder: (context, state) =>
+                    _fadeThroughBuild(context, state, const MyRankingScreen()),
+              ),
+              GoRoute(
+                path: RouteNames.homeClubRankings,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const ClubRankingsScreen(),
+                ),
+              ),
+              GoRoute(
+                path: RouteNames.homeMaterials,
+                pageBuilder: (context, state) =>
+                    _fadeThroughBuild(context, state, const CatalogView()),
+              ),
+              GoRoute(
+                path: RouteNames.homeReports,
+                pageBuilder: (context, state) => _fadeThroughBuild(
+                  context,
+                  state,
+                  const MonthlyReportsVisibleListView(),
+                ),
               ),
             ],
           ),
@@ -377,258 +492,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-
-          // ── Branch 4: Miembros (quick-access, no nav bar) ────────────────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.homeMembers,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const MembersView(),
-                ),
-              ),
-            ],
-          ),
-
-          // ── Branch 5: Club (quick-access, no nav bar) ────────────────────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.homeClub,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const ClubView(),
-                ),
-              ),
-            ],
-          ),
-
-          // ── Branch 6: Carpeta de evidencias (quick-access, no nav bar) ───
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.homeEvidences,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const _EvidenceFolderShell(),
-                ),
-              ),
-            ],
-          ),
-
-          // ── Branch 7: Finanzas (quick-access, no nav bar) ────────────────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.homeFinances,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const FinancesView(),
-                ),
-              ),
-            ],
-          ),
-
-          // ── Branch 8: Unidades (quick-access, no nav bar) ────────────────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.homeUnits,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const UnitsListView(),
-                ),
-              ),
-            ],
-          ),
-
-          // ── Branch 9: Clase agrupada (quick-access, no nav bar) ──────────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.homeGroupedClass,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const TeachingScopeView(),
-                ),
-              ),
-            ],
-          ),
-
-          // ── Branch 10: Seguro (quick-access, no nav bar) ─────────────────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.homeInsurance,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const InsuranceView(),
-                ),
-              ),
-            ],
-          ),
-
-          // ── Branch 11: Inventario (quick-access, no nav bar) ─────────────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.homeInventory,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const InventoryView(),
-                ),
-              ),
-            ],
-          ),
-
-          // ── Branch 12: Recursos (quick-access, no nav bar) ───────────────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.homeResources,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const ResourcesView(),
-                ),
-              ),
-            ],
-          ),
-
-          // ── Branch 13: Honores (quick-access, no nav bar) ────────────────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.homeHonors,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const HonorsCatalogView(),
-                ),
-              ),
-            ],
-          ),
-
-          // ── Branch 14: Certificaciones (quick-access, no nav bar) ────────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.homeCertifications,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const CertificationsListView(),
-                ),
-              ),
-            ],
-          ),
-
-          // ── Branch 15: Camporees (quick-access, no nav bar) ──────────────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.homeCamporees,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const CamporeesListView(),
-                ),
-              ),
-            ],
-          ),
-
-          // ── Branch 16: Logros / Achievements (quick-access, no nav bar) ──
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.homeAchievements,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const AchievementsView(),
-                ),
-              ),
-            ],
-          ),
-
-          // ── Branch 17: Maestrías (quick-access, no nav bar) ──────────────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.homeMasterHonors,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const MasterHonorsView(),
-                ),
-              ),
-            ],
-          ),
-
-          // ── Branch 18: Mi Ranking (quick-access, no nav bar) ─────────────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.homeMyRanking,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const MyRankingScreen(),
-                ),
-              ),
-            ],
-          ),
-
-          // ── Branch 19: Ranking institucional de clubes ───────────────────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.homeClubRankings,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const ClubRankingsScreen(),
-                ),
-              ),
-            ],
-          ),
-
-          // ── Branch 20: Materiales / Pedidos (quick-access, no nav bar) ────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.homeMaterials,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const CatalogView(),
-                ),
-              ),
-            ],
-          ),
-
-          // ── Branch 21: Reportes (quick-access, no nav bar) ────────────────
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: RouteNames.homeReports,
-                pageBuilder: (context, state) => _fadeThroughBuild(
-                  context,
-                  state,
-                  const MonthlyReportsVisibleListView(),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
 
@@ -645,7 +508,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) {
           final clubId = state.pathParameters['clubId']!;
           return _sharedAxisBuild(
-              context, state, ClubDetailView(clubId: clubId));
+            context,
+            state,
+            ClubDetailView(clubId: clubId),
+          );
         },
       ),
 
@@ -655,8 +521,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) {
           final classIdStr = state.pathParameters['classId']!;
           final classId = int.tryParse(classIdStr) ?? 0;
-          final enrollmentId =
-              int.tryParse(state.uri.queryParameters['enrollmentId'] ?? '');
+          final enrollmentId = int.tryParse(
+            state.uri.queryParameters['enrollmentId'] ?? '',
+          );
           final targetUserId = state.uri.queryParameters['targetUserId'];
           return _sharedAxisBuild(
             context,
@@ -854,9 +721,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             state,
             Scaffold(
               appBar: AppBar(
-                  automaticallyImplyLeading: false,
-                  leading: sacAutoBackButton(context),
-                  title: const Text('Registro importado')),
+                automaticallyImplyLeading: false,
+                leading: sacAutoBackButton(context),
+                title: const Text('Registro importado'),
+              ),
               body: Padding(
                 padding: const EdgeInsets.all(16),
                 child: item == null
@@ -906,11 +774,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Lista de solicitudes de traslado
       GoRoute(
         path: RouteNames.transferRequests,
-        pageBuilder: (context, state) => _sharedAxisBuild(
-          context,
-          state,
-          const TransferRequestsView(),
-        ),
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const TransferRequestsView()),
       ),
 
       // Detalle de solicitud de traslado
@@ -979,15 +844,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // Compat legacy: la carpeta anual ahora usa el flujo canónico por sección
-      // activa en EvidenceFolderView. El enrollment en el path se conserva sólo
-      // para no romper deep links antiguos.
-      GoRoute(
-        path: RouteNames.annualFolder,
-        pageBuilder: (context, state) =>
-            _sharedAxisBuild(context, state, const _EvidenceFolderShell()),
-      ),
-
       // Lista de informes mensuales de un enrollment
       GoRoute(
         path: RouteNames.monthlyReports,
@@ -1017,11 +873,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Asignaciones de rol
       GoRoute(
         path: RouteNames.roleAssignments,
-        pageBuilder: (context, state) => _sharedAxisBuild(
-          context,
-          state,
-          const RoleAssignmentsView(),
-        ),
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const RoleAssignmentsView()),
       ),
 
       // Coordinador — hub (deep-link / direct entry, fuera del shell principal).
@@ -1034,11 +887,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Coordinador — lista de clubes
       GoRoute(
         path: RouteNames.coordinatorClubs,
-        pageBuilder: (context, state) => _sharedAxisBuild(
-          context,
-          state,
-          const CoordinatorClubsListView(),
-        ),
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const CoordinatorClubsListView()),
       ),
 
       // Coordinador — reportes / SLA hub
@@ -1065,21 +915,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Coordinador: dashboard SLA operativo (deep-link / sub-view entry)
       GoRoute(
         path: RouteNames.coordinatorSla,
-        pageBuilder: (context, state) => _sharedAxisBuild(
-          context,
-          state,
-          const SLADashboardView(),
-        ),
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const SLADashboardView()),
       ),
 
       // Coordinador: lista de evidencias pendientes (deep-link / sub-view entry)
       GoRoute(
         path: RouteNames.coordinatorEvidenceReview,
-        pageBuilder: (context, state) => _sharedAxisBuild(
-          context,
-          state,
-          const EvidenceReviewListView(),
-        ),
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const EvidenceReviewListView()),
       ),
 
       // Coordinador: detalle de evidencia
@@ -1100,11 +944,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Bandeja de notificaciones
       GoRoute(
         path: RouteNames.notificationsInbox,
-        pageBuilder: (context, state) => _sharedAxisBuild(
-          context,
-          state,
-          const NotificationsInboxView(),
-        ),
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const NotificationsInboxView()),
       ),
 
       // Miembro del Mes — Historial
@@ -1118,10 +959,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           return _sharedAxisBuild(
             context,
             state,
-            MemberOfMonthHistoryView(
-              clubId: clubId,
-              sectionId: sectionId,
-            ),
+            MemberOfMonthHistoryView(clubId: clubId, sectionId: sectionId),
           );
         },
       ),
@@ -1130,11 +968,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Opens the achievements list; the UI can scroll to the specific item.
       GoRoute(
         path: RouteNames.achievementDetail,
-        pageBuilder: (context, state) => _sharedAxisBuild(
-          context,
-          state,
-          const AchievementsView(),
-        ),
+        pageBuilder: (context, state) =>
+            _sharedAxisBuild(context, state, const AchievementsView()),
       ),
 
       // Ranking de sección — drill-down fuera del shell (push).
@@ -1148,9 +983,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             return _sharedAxisBuild(
               context,
               state,
-              const Scaffold(
-                body: Center(child: Text('Sección inválida')),
-              ),
+              const Scaffold(body: Center(child: Text('Sección inválida'))),
             );
           }
           return _sharedAxisBuild(
@@ -1183,10 +1016,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           return _sharedAxisBuild(
             context,
             state,
-            MemberBreakdownScreen(
-              enrollmentId: enrollmentId,
-              yearId: yearId,
-            ),
+            MemberBreakdownScreen(enrollmentId: enrollmentId, yearId: yearId),
           );
         },
       ),
@@ -1426,16 +1256,10 @@ class _MainShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(
-      authNotifierProvider.select((v) => v.valueOrNull),
-    );
+    final user = ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
     final authorization = user?.authorization;
 
-    final filteredItems = _filterNavItems(
-      _navItemsConfig,
-      user,
-      authorization,
-    );
+    final filteredItems = _filterNavItems(_navItemsConfig, user, authorization);
 
     // Map the shell's current branch index to the filtered UI position.
     // Quick-access branches are not shown in the nav bar, so we fall back to
@@ -1527,16 +1351,20 @@ class _EvidenceFolderShell extends ConsumerWidget {
       ),
       error: (e, _) => Scaffold(
         appBar: AppBar(
-            automaticallyImplyLeading: false,
-            leading: sacAutoBackButton(context),
-            title: Text(tr('router.evidence_folder.title'))),
+          automaticallyImplyLeading: false,
+          leading: sacAutoBackButton(context),
+          title: Text(tr('router.evidence_folder.title')),
+        ),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(32),
             child: Text(
-              tr('router.evidence_folder.context_error', namedArgs: {
-                'error': e.toString().replaceFirst('Exception: ', ''),
-              }),
+              tr(
+                'router.evidence_folder.context_error',
+                namedArgs: {
+                  'error': e.toString().replaceFirst('Exception: ', ''),
+                },
+              ),
               textAlign: TextAlign.center,
             ),
           ),
@@ -1546,9 +1374,10 @@ class _EvidenceFolderShell extends ConsumerWidget {
         if (section == null) {
           return Scaffold(
             appBar: AppBar(
-                automaticallyImplyLeading: false,
-                leading: sacAutoBackButton(context),
-                title: Text(tr('router.evidence_folder.title'))),
+              automaticallyImplyLeading: false,
+              leading: sacAutoBackButton(context),
+              title: Text(tr('router.evidence_folder.title')),
+            ),
             body: Center(
               child: Padding(
                 padding: const EdgeInsets.all(32),
@@ -1641,10 +1470,7 @@ class _OAuthCallbackScreenState extends ConsumerState<_OAuthCallbackScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            LoadingAnimationWidget.waveDots(
-              color: AppColors.primary,
-              size: 30,
-            ),
+            LoadingAnimationWidget.waveDots(color: AppColors.primary, size: 30),
             const SizedBox(height: 24),
             Text(
               tr('router.oauth_callback.completing_signin'),

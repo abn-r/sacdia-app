@@ -133,6 +133,8 @@ class _LoginViewState extends ConsumerState<LoginView> {
                           'assets/img/LogoSACDIA.png',
                           width: logoSize,
                           height: logoSize,
+                          cacheWidth: (logoSize * 3).round(),
+                          cacheHeight: (logoSize * 3).round(),
                         ),
                       ),
                       SizedBox(height: logoBottomSpacing),

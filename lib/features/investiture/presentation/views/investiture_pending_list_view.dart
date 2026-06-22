@@ -387,137 +387,146 @@ class _PendingCard extends ConsumerWidget {
   Future<void> _showApproveDialog(BuildContext context, WidgetRef ref) async {
     final commentsCtrl = TextEditingController();
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('investiture.pending.dialog_approve_title'.tr()),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'investiture.pending.dialog_approve_body'
-                  .tr(namedArgs: {'name': item.fullName}),
-              style: const TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: commentsCtrl,
-              maxLines: 3,
-              decoration: InputDecoration(
-                labelText: 'investiture.pending.field_comments_label'.tr(),
-                hintText: 'investiture.pending.field_comments_hint'.tr(),
-                border: const OutlineInputBorder(),
+    try {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('investiture.pending.dialog_approve_title'.tr()),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'investiture.pending.dialog_approve_body'
+                    .tr(namedArgs: {'name': item.fullName}),
+                style: const TextStyle(fontSize: 14),
               ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: commentsCtrl,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: 'investiture.pending.field_comments_label'.tr(),
+                  hintText: 'investiture.pending.field_comments_hint'.tr(),
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text('common.cancel'.tr()),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.secondary,
+                foregroundColor: Colors.white,
+              ),
+              child: Text('investiture.pending.btn_approve'.tr()),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('common.cancel'.tr()),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.secondary,
-              foregroundColor: Colors.white,
-            ),
-            child: Text('investiture.pending.btn_approve'.tr()),
-          ),
-        ],
-      ),
-    );
+      );
 
-    if (confirmed != true || !context.mounted) return;
+      if (confirmed != true || !context.mounted) return;
 
-    final notifier = ref
-        .read(validateEnrollmentNotifierProvider(item.enrollmentId).notifier);
-    final ok = await notifier.approve(
-      comments:
-          commentsCtrl.text.trim().isEmpty ? null : commentsCtrl.text.trim(),
-    );
+      final comments = commentsCtrl.text.trim();
+      final notifier = ref
+          .read(validateEnrollmentNotifierProvider(item.enrollmentId).notifier);
+      final ok = await notifier.approve(
+        comments: comments.isEmpty ? null : comments,
+      );
 
-    if (!context.mounted) return;
-    _showSnackbar(
-      context,
-      ok
-          ? 'investiture.pending.snack_approved'.tr()
-          : 'investiture.pending.snack_approve_error'.tr(),
-      ok ? AppColors.secondary : AppColors.error,
-    );
+      if (!context.mounted) return;
+      _showSnackbar(
+        context,
+        ok
+            ? 'investiture.pending.snack_approved'.tr()
+            : 'investiture.pending.snack_approve_error'.tr(),
+        ok ? AppColors.secondary : AppColors.error,
+      );
+    } finally {
+      commentsCtrl.dispose();
+    }
   }
 
   Future<void> _showRejectDialog(BuildContext context, WidgetRef ref) async {
     final commentsCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('investiture.pending.dialog_reject_title'.tr()),
-        content: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'investiture.pending.dialog_reject_body'
-                    .tr(namedArgs: {'name': item.fullName}),
-                style: const TextStyle(fontSize: 14),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: commentsCtrl,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: 'investiture.pending.field_reason_label'.tr(),
-                  hintText: 'investiture.pending.field_reason_hint'.tr(),
-                  border: const OutlineInputBorder(),
+    try {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('investiture.pending.dialog_reject_title'.tr()),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'investiture.pending.dialog_reject_body'
+                      .tr(namedArgs: {'name': item.fullName}),
+                  style: const TextStyle(fontSize: 14),
                 ),
-                validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'investiture.pending.field_reason_error'.tr()
-                    : null,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('common.cancel'.tr()),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                Navigator.pop(ctx, true);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: commentsCtrl,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    labelText: 'investiture.pending.field_reason_label'.tr(),
+                    hintText: 'investiture.pending.field_reason_hint'.tr(),
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? 'investiture.pending.field_reason_error'.tr()
+                      : null,
+                ),
+              ],
             ),
-            child: Text('investiture.pending.btn_reject'.tr()),
           ),
-        ],
-      ),
-    );
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text('common.cancel'.tr()),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  Navigator.pop(ctx, true);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.error,
+                foregroundColor: Colors.white,
+              ),
+              child: Text('investiture.pending.btn_reject'.tr()),
+            ),
+          ],
+        ),
+      );
 
-    if (confirmed != true || !context.mounted) return;
+      if (confirmed != true || !context.mounted) return;
 
-    final notifier = ref
-        .read(validateEnrollmentNotifierProvider(item.enrollmentId).notifier);
-    final ok = await notifier.reject(comments: commentsCtrl.text.trim());
+      final comments = commentsCtrl.text.trim();
+      final notifier = ref
+          .read(validateEnrollmentNotifierProvider(item.enrollmentId).notifier);
+      final ok = await notifier.reject(comments: comments);
 
-    if (!context.mounted) return;
-    _showSnackbar(
-      context,
-      ok
-          ? 'investiture.pending.snack_rejected'.tr()
-          : 'investiture.pending.snack_reject_error'.tr(),
-      ok ? AppColors.accent : AppColors.error,
-    );
+      if (!context.mounted) return;
+      _showSnackbar(
+        context,
+        ok
+            ? 'investiture.pending.snack_rejected'.tr()
+            : 'investiture.pending.snack_reject_error'.tr(),
+        ok ? AppColors.accent : AppColors.error,
+      );
+    } finally {
+      commentsCtrl.dispose();
+    }
   }
 
   void _showSnackbar(BuildContext context, String msg, Color color) {

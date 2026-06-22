@@ -386,7 +386,12 @@ class _EvidenceThumb extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(14),
-            child: Image.network(url, fit: BoxFit.cover),
+            child: Image.network(
+              url,
+              fit: BoxFit.cover,
+              cacheWidth: 276,
+              cacheHeight: 276,
+            ),
           ),
         ),
       ),

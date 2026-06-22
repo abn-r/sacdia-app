@@ -68,6 +68,8 @@ class ProfilePhotoPicker extends StatelessWidget {
                     child: Image.file(
                       File(imagePath!),
                       fit: BoxFit.cover,
+                      cacheWidth: 600,
+                      cacheHeight: 600,
                     ),
                   ),
                 ),

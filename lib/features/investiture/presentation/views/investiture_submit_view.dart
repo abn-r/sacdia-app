@@ -259,71 +259,77 @@ class _MemberSubmitCard extends ConsumerWidget {
   Future<void> _showSubmitDialog(BuildContext context, WidgetRef ref) async {
     final commentsCtrl = TextEditingController();
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('investiture.submit.dialog_title'.tr()),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'investiture.submit.dialog_body'
-                  .tr(namedArgs: {'name': member.fullName}),
-              style: const TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: commentsCtrl,
-              maxLines: 3,
-              decoration: InputDecoration(
-                labelText: 'investiture.submit.field_comments_label'.tr(),
-                hintText: 'investiture.submit.field_comments_hint'.tr(),
-                border: const OutlineInputBorder(),
+    try {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('investiture.submit.dialog_title'.tr()),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'investiture.submit.dialog_body'
+                    .tr(namedArgs: {'name': member.fullName}),
+                style: const TextStyle(fontSize: 14),
               ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: commentsCtrl,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: 'investiture.submit.field_comments_label'.tr(),
+                  hintText: 'investiture.submit.field_comments_hint'.tr(),
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text('common.cancel'.tr()),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              child: Text('investiture.submit.btn_send'.tr()),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('common.cancel'.tr()),
+      );
+
+      if (confirmed != true || !context.mounted) return;
+
+      final comments = commentsCtrl.text.trim();
+      final notifier = ref.read(
+        submitForValidationNotifierProvider(member.enrollmentId).notifier,
+      );
+      final ok = await notifier.submit(
+        clubId: clubId,
+        comments: comments.isEmpty ? null : comments,
+      );
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ok
+                ? 'investiture.submit.snack_sent'.tr()
+                : 'investiture.submit.snack_send_error'.tr(),
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-            child: Text('investiture.submit.btn_send'.tr()),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true || !context.mounted) return;
-
-    final notifier = ref.read(
-        submitForValidationNotifierProvider(member.enrollmentId).notifier);
-    final ok = await notifier.submit(
-      clubId: clubId,
-      comments:
-          commentsCtrl.text.trim().isEmpty ? null : commentsCtrl.text.trim(),
-    );
-
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          ok
-              ? 'investiture.submit.snack_sent'.tr()
-              : 'investiture.submit.snack_send_error'.tr(),
+          backgroundColor: ok ? AppColors.secondary : AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
-        backgroundColor: ok ? AppColors.secondary : AppColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+      );
+    } finally {
+      commentsCtrl.dispose();
+    }
   }
 }
 

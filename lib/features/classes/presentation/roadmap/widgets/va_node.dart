@@ -48,6 +48,7 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
     final isDone = item.status == ClassStatus.done;
     final isExpired = item.status == ClassStatus.expired;
     final isLeft = widget.side == 'left';
+    final shieldCacheSize = (RoadmapTokens.nodeShieldSize * 3).round();
 
     return Padding(
       padding: EdgeInsets.only(
@@ -164,6 +165,8 @@ class _VANodeState extends State<VANode> with SingleTickerProviderStateMixin {
                               fit: BoxFit.contain,
                               width: RoadmapTokens.nodeShieldSize,
                               height: RoadmapTokens.nodeShieldSize,
+                              cacheWidth: shieldCacheSize,
+                              cacheHeight: shieldCacheSize,
                             ),
                           ),
                           // Lock overlay

@@ -72,14 +72,14 @@ final List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
     route: RouteNames.homeClub,
     requiredPermissions: {'clubs:update'},
   ),
-  // Administrative: evidence folder management — uses users:read_detail.
-  // Members access their OWN evidence via the profile screen, not this view.
+  // Administrative: Annual Evidence Folder. Visible only to roles that can
+  // read/update the canonical annual-folders flow for the active section.
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.evidence_folder',
     icon: HugeIcons.strokeRoundedFolder01,
     color: AppColors.accent,
     route: RouteNames.homeEvidences,
-    requiredPermissions: {'users:read_detail'},
+    requiredPermissions: {'evidence_folders:read'},
   ),
   // Administrative: financial records — finances:read is held by treasurer+
   _QuickAccessItemConfig(
@@ -129,12 +129,12 @@ final List<_QuickAccessItemConfig> _quickAccessItemsConfig = [
     route: RouteNames.homeMaterials,
     requiredPermissions: {'materiales:create'},
   ),
-  // Club-wide shared resources — folders:read is granted to every club role.
+  // Club-wide shared resources — independent from retired legacy folders.
   _QuickAccessItemConfig(
     labelKey: 'dashboard.quick_access.resources',
     icon: HugeIcons.strokeRoundedFiles01,
     route: RouteNames.homeResources,
-    requiredPermissions: {'folders:read'},
+    requiredPermissions: {'resources:read'},
   ),
   // Reportes institucionales — backend scopes directors/secretaries to their
   // active club section and higher roles to their hierarchy.
@@ -220,9 +220,9 @@ class QuickAccessGrid extends ConsumerWidget {
       children: [
         Text(
           tr('dashboard.quick_access.title'),
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         GridView.builder(

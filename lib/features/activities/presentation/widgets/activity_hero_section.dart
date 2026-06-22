@@ -139,6 +139,8 @@ class ActivityHeroSection extends StatelessWidget {
         fit: BoxFit.cover,
         width: double.infinity,
         height: double.infinity,
+        memCacheWidth: 1200,
+        memCacheHeight: 720,
         placeholder: (_, __) => Container(
           color: context.sac.surfaceVariant,
           child: const Center(

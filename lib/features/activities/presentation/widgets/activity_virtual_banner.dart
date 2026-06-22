@@ -38,6 +38,8 @@ class ActivityVirtualBanner extends StatelessWidget {
         fit: BoxFit.cover,
         width: double.infinity,
         height: double.infinity,
+        memCacheWidth: 1080,
+        memCacheHeight: 420,
         placeholder: (_, __) => _gradient(),
         errorWidget: (_, __, ___) => _gradient(),
       );

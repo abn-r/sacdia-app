@@ -94,6 +94,8 @@ class ClubInfoCard extends ConsumerWidget {
                       width: 30,
                       height: 30,
                       fit: BoxFit.contain,
+                      cacheWidth: 90,
+                      cacheHeight: 90,
                       errorBuilder: (_, __, ___) => HugeIcon(
                         icon: HugeIcons.strokeRoundedUserGroup,
                         color: clubColor,

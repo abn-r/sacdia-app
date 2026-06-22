@@ -318,6 +318,8 @@ class _ClassLogo extends StatelessWidget {
       return Image.asset(
         assetPath,
         fit: BoxFit.contain,
+        cacheWidth: 156,
+        cacheHeight: 156,
         errorBuilder: (_, __, ___) => HugeIcon(
           icon: HugeIcons.strokeRoundedSecurityCheck,
           color: color,
@@ -336,6 +338,8 @@ class _ClassLogo extends StatelessWidget {
       child: Image.asset(
         assetPath,
         fit: BoxFit.contain,
+        cacheWidth: 156,
+        cacheHeight: 156,
         errorBuilder: (_, __, ___) => HugeIcon(
           icon: HugeIcons.strokeRoundedSecurityCheck,
           color: c.textTertiary,

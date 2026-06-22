@@ -642,8 +642,18 @@ class _EvidenceTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final image = file != null
-        ? Image.file(File(file!.path), fit: BoxFit.cover)
-        : Image.network(url!, fit: BoxFit.cover);
+        ? Image.file(
+            File(file!.path),
+            fit: BoxFit.cover,
+            cacheWidth: 276,
+            cacheHeight: 276,
+          )
+        : Image.network(
+            url!,
+            fit: BoxFit.cover,
+            cacheWidth: 276,
+            cacheHeight: 276,
+          );
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),

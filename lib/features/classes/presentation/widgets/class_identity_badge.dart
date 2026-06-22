@@ -36,6 +36,8 @@ class ClassIdentityBadge extends StatelessWidget {
           child: Image.asset(
             logoAsset,
             fit: BoxFit.contain,
+            cacheWidth: cacheSize,
+            cacheHeight: cacheSize,
           ),
         );
       }
