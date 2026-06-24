@@ -7,6 +7,7 @@ class ClassModel extends Equatable {
   final int? minAge;
   final int? maxAge;
   final int clubTypeId;
+  final String? assetCode;
 
   const ClassModel({
     required this.id,
@@ -14,6 +15,7 @@ class ClassModel extends Equatable {
     this.minAge,
     this.maxAge,
     required this.clubTypeId,
+    this.assetCode,
   });
 
   /// Crea una instancia desde JSON
@@ -21,6 +23,7 @@ class ClassModel extends Equatable {
     // Tolerar claves alternativas para el ID
     final rawId = json['class_id'] ?? json['id'];
     final rawClubTypeId = json['club_type_id'];
+    final rawAssetCode = json['asset_code'] ?? json['assetCode'];
 
     return ClassModel(
       id: rawId is int ? rawId : (int.tryParse(rawId?.toString() ?? '') ?? 0),
@@ -30,6 +33,7 @@ class ClassModel extends Equatable {
       clubTypeId: rawClubTypeId is int
           ? rawClubTypeId
           : (int.tryParse(rawClubTypeId?.toString() ?? '') ?? 0),
+      assetCode: rawAssetCode?.toString(),
     );
   }
 
@@ -41,6 +45,7 @@ class ClassModel extends Equatable {
       'min_age': minAge,
       'max_age': maxAge,
       'club_type_id': clubTypeId,
+      if (assetCode != null) 'asset_code': assetCode,
     };
   }
 
@@ -51,6 +56,7 @@ class ClassModel extends Equatable {
     int? minAge,
     int? maxAge,
     int? clubTypeId,
+    String? assetCode,
   }) {
     return ClassModel(
       id: id ?? this.id,
@@ -58,9 +64,17 @@ class ClassModel extends Equatable {
       minAge: minAge ?? this.minAge,
       maxAge: maxAge ?? this.maxAge,
       clubTypeId: clubTypeId ?? this.clubTypeId,
+      assetCode: assetCode ?? this.assetCode,
     );
   }
 
   @override
-  List<Object?> get props => [id, name, minAge, maxAge, clubTypeId];
+  List<Object?> get props => [
+        id,
+        name,
+        minAge,
+        maxAge,
+        clubTypeId,
+        assetCode,
+      ];
 }

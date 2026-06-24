@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/datasources/personal_info_remote_data_source.dart';
 import '../../data/models/emergency_contact_model.dart';
 import '../../data/models/legal_representative_model.dart';
@@ -11,11 +12,12 @@ import '../../data/models/relationship_type_model.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../profile/presentation/widgets/blood_type_selector.dart';
 import '../../../../providers/dio_provider.dart';
+import '../../../../providers/storage_provider.dart';
 import '../../../../core/utils/app_logger.dart';
 
 // Re-export entry DTOs so views can import them from one place
 export '../../data/datasources/personal_info_remote_data_source.dart'
-    show AllergyEntry, DiseaseEntry, MedicineEntry;
+    show AllergyEntry, DiseaseEntry, MedicineEntry, PersonalInfoSnapshot;
 
 /// Provider del data source de información personal
 final personalInfoDataSourceProvider =
@@ -44,6 +46,23 @@ class PersonalInfoFormState {
     this.bloodType,
   });
 
+  factory PersonalInfoFormState.fromSnapshot(PersonalInfoSnapshot snapshot) {
+    return PersonalInfoFormState(
+      gender: snapshot.gender,
+      birthdate: snapshot.birthdate,
+      baptized: snapshot.baptized,
+      baptismDate: snapshot.baptized ? snapshot.baptismDate : null,
+      bloodType: BloodType.fromDisplay(snapshot.blood),
+    );
+  }
+
+  bool get hasAnyInput =>
+      gender != null ||
+      birthdate != null ||
+      baptized ||
+      baptismDate != null ||
+      bloodType != null;
+
   PersonalInfoFormState copyWith({
     String? gender,
     DateTime? birthdate,
@@ -66,6 +85,117 @@ final personalInfoFormProvider =
     StateProvider.autoDispose<PersonalInfoFormState>((ref) {
   return const PersonalInfoFormState();
 });
+
+/// Provider que precarga datos personales ya guardados en backend.
+final personalInfoSnapshotProvider =
+    FutureProvider.autoDispose<PersonalInfoSnapshot?>((ref) async {
+  final userId = await ref.watch(
+    authNotifierProvider.selectAsync((user) => user?.id),
+  );
+  if (userId == null) return null;
+
+  final cancelToken = CancelToken();
+  ref.onDispose(() => cancelToken.cancel());
+  final dataSource = ref.watch(personalInfoDataSourceProvider);
+  return await dataSource.getPersonalInfo(userId, cancelToken: cancelToken);
+});
+
+enum HealthNoneCategory { allergies, diseases, medicines }
+
+/// Estado local de declaraciones explícitas "No tengo..." por usuario.
+///
+/// El backend actual representa alergias/enfermedades/medicamentos como listas:
+/// una lista vacía no distingue "sin declarar" de "declaró explícitamente que
+/// no tiene". Este estado conserva esa intención para el flujo móvil.
+class HealthNoneState {
+  final bool allergies;
+  final bool diseases;
+  final bool medicines;
+
+  const HealthNoneState({
+    this.allergies = false,
+    this.diseases = false,
+    this.medicines = false,
+  });
+
+  bool get any => allergies || diseases || medicines;
+
+  bool isActive(HealthNoneCategory category) {
+    return switch (category) {
+      HealthNoneCategory.allergies => allergies,
+      HealthNoneCategory.diseases => diseases,
+      HealthNoneCategory.medicines => medicines,
+    };
+  }
+
+  HealthNoneState copyWith({
+    bool? allergies,
+    bool? diseases,
+    bool? medicines,
+  }) {
+    return HealthNoneState(
+      allergies: allergies ?? this.allergies,
+      diseases: diseases ?? this.diseases,
+      medicines: medicines ?? this.medicines,
+    );
+  }
+}
+
+final healthNoneStateProvider =
+    AsyncNotifierProvider.autoDispose<HealthNoneStateNotifier, HealthNoneState>(
+  HealthNoneStateNotifier.new,
+);
+
+class HealthNoneStateNotifier
+    extends AutoDisposeAsyncNotifier<HealthNoneState> {
+  static const _prefix = 'post_registration.health_none';
+
+  @override
+  Future<HealthNoneState> build() async {
+    final userId = await ref.watch(
+      authNotifierProvider.selectAsync((user) => user?.id),
+    );
+    if (userId == null) return const HealthNoneState();
+
+    final prefs = ref.watch(sharedPreferencesProvider);
+    return _readState(prefs, userId);
+  }
+
+  Future<void> setAllergies(bool value) =>
+      setCategory(HealthNoneCategory.allergies, value);
+
+  Future<void> setDiseases(bool value) =>
+      setCategory(HealthNoneCategory.diseases, value);
+
+  Future<void> setMedicines(bool value) =>
+      setCategory(HealthNoneCategory.medicines, value);
+
+  Future<void> setCategory(HealthNoneCategory category, bool value) async {
+    final authState = ref.read(authNotifierProvider);
+    final userId = authState.valueOrNull?.id ??
+        await ref.read(authNotifierProvider.future).then((user) => user?.id);
+    if (userId == null) return;
+
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setBool(_key(userId, category), value);
+    state = AsyncValue.data(_readState(prefs, userId));
+  }
+
+  static HealthNoneState _readState(SharedPreferences prefs, String userId) {
+    return HealthNoneState(
+      allergies:
+          prefs.getBool(_key(userId, HealthNoneCategory.allergies)) ?? false,
+      diseases:
+          prefs.getBool(_key(userId, HealthNoneCategory.diseases)) ?? false,
+      medicines:
+          prefs.getBool(_key(userId, HealthNoneCategory.medicines)) ?? false,
+    );
+  }
+
+  static String _key(String userId, HealthNoneCategory category) {
+    return '$_prefix.$userId.${category.name}';
+  }
+}
 
 /// Provider de tipos de relación
 final relationshipTypesProvider =
@@ -139,6 +269,7 @@ class UserAllergiesNotifier
       ref.read(selectedAllergiesProvider.notifier).state =
           currentIds.where((id) => id != allergyId).toList();
 
+      await ref.read(healthNoneStateProvider.notifier).setAllergies(false);
       return await dataSource.getUserAllergies(userId);
     });
   }
@@ -159,6 +290,9 @@ class UserAllergiesNotifier
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
       await dataSource.saveUserAllergies(userId, entries);
+      await ref
+          .read(healthNoneStateProvider.notifier)
+          .setAllergies(entries.isEmpty);
 
       return await dataSource.getUserAllergies(userId);
     });
@@ -223,6 +357,7 @@ class UserDiseasesNotifier
       ref.read(selectedDiseasesProvider.notifier).state =
           currentIds.where((id) => id != diseaseId).toList();
 
+      await ref.read(healthNoneStateProvider.notifier).setDiseases(false);
       return await dataSource.getUserDiseases(userId);
     });
   }
@@ -242,6 +377,9 @@ class UserDiseasesNotifier
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
       await dataSource.saveUserDiseases(userId, entries);
+      await ref
+          .read(healthNoneStateProvider.notifier)
+          .setDiseases(entries.isEmpty);
 
       return await dataSource.getUserDiseases(userId);
     });
@@ -319,6 +457,7 @@ class UserMedicinesNotifier
       ref.read(selectedMedicinesProvider.notifier).state =
           currentIds.where((id) => id != medicineId).toList();
 
+      await ref.read(healthNoneStateProvider.notifier).setMedicines(false);
       return await dataSource.getUserMedicines(userId);
     });
   }
@@ -338,6 +477,9 @@ class UserMedicinesNotifier
 
       final dataSource = ref.read(personalInfoDataSourceProvider);
       await dataSource.saveUserMedicines(userId, entries);
+      await ref
+          .read(healthNoneStateProvider.notifier)
+          .setMedicines(entries.isEmpty);
 
       return await dataSource.getUserMedicines(userId);
     });
@@ -596,6 +738,7 @@ class SavePersonalInfoNotifier extends AutoDisposeAsyncNotifier<void> {
         baptismDate: formState.baptismDate?.toUtc().toIso8601String(),
         blood: formState.bloodType?.apiKey,
       );
+      ref.invalidate(personalInfoSnapshotProvider);
 
       final selectedAllergies = ref.read(selectedAllergiesProvider);
       if (selectedAllergies.isNotEmpty) {

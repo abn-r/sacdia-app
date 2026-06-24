@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../providers/catalogs_provider.dart';
 import '../../../../providers/dio_provider.dart';
 import '../../data/datasources/club_selection_remote_data_source.dart';
 import '../../data/models/country_model.dart';
@@ -10,6 +11,9 @@ import '../../data/models/local_field_model.dart';
 import '../../data/models/club_model.dart';
 import '../../data/models/club_section_model.dart';
 import '../../data/models/class_model.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import 'personal_info_providers.dart';
+import '../utils/club_selection_age_rules.dart';
 
 /// Provider para la fuente de datos remota de selección de club
 final clubSelectionDataSourceProvider =
@@ -21,9 +25,29 @@ final clubSelectionDataSourceProvider =
   );
 });
 
-/// Provider para la edad del usuario
-/// Este valor debe ser establecido desde la información del usuario
-final userAgeProvider = StateProvider.autoDispose<int?>((ref) => null);
+/// Provider para la edad del usuario al inicio del año eclesiástico activo.
+///
+/// Toma primero la fecha elegida en el paso de datos personales y cae al
+/// cumpleaños del usuario autenticado cuando el flujo inicia directamente en
+/// selección de club.
+///
+/// Importante: el backend valida la clase progresiva con la edad calculada
+/// contra `ecclesiastical_years.start_date`, no contra la fecha del dispositivo.
+final userAgeProvider = Provider.autoDispose<int?>((ref) {
+  final birthdate =
+      ref.watch(personalInfoFormProvider.select((state) => state.birthdate));
+  final authBirthdate = ref.watch(
+    authNotifierProvider.select((state) => state.valueOrNull?.birthday),
+  );
+  final currentYear = ref.watch(currentEcclesiasticalYearProvider).valueOrNull;
+
+  if (currentYear == null) return null;
+
+  return calculateAgeFromBirthdate(
+    birthdate ?? authBirthdate,
+    today: currentYear.startDate,
+  );
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DATA PROVIDERS — fetch data only, no side effects
@@ -177,32 +201,7 @@ final selectedClubSectionProvider = StateProvider.autoDispose<int?>((ref) {
   final age = ref.watch(userAgeProvider);
   if (age == null) return null;
 
-  ClubSectionModel? recommended;
-  if (age >= 4 && age <= 9) {
-    recommended = sections.firstWhere(
-      (section) =>
-          section.clubTypeSlug == 'adventurers' ||
-          (section.clubTypeName?.toLowerCase().contains('aventurero') ?? false),
-      orElse: () => sections.first,
-    );
-  } else if (age >= 10 && age <= 15) {
-    recommended = sections.firstWhere(
-      (section) =>
-          section.clubTypeSlug == 'pathfinders' ||
-          (section.clubTypeName?.toLowerCase().contains('conquistador') ??
-              false),
-      orElse: () => sections.first,
-    );
-  } else if (age >= 16) {
-    recommended = sections.firstWhere(
-      (section) =>
-          section.clubTypeSlug == 'master_guild' ||
-          (section.clubTypeName?.toLowerCase().contains('guía') ?? false),
-      orElse: () => sections.first,
-    );
-  }
-
-  return recommended?.id;
+  return recommendedClubSectionForAge(sections, age)?.id;
 });
 
 /// Provider para el slug del tipo de club de la sección seleccionada.
@@ -235,14 +234,7 @@ final selectedClassProvider = StateProvider.autoDispose<int?>((ref) {
   final age = ref.watch(userAgeProvider);
   if (age == null) return null;
 
-  final recommended = classes.where((classModel) {
-    if (classModel.minAge != null && classModel.maxAge != null) {
-      return age >= classModel.minAge! && age <= classModel.maxAge!;
-    }
-    return false;
-  }).firstOrNull;
-
-  return recommended?.id;
+  return recommendedProgressiveClassForAge(classes, age)?.id;
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

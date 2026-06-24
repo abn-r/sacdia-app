@@ -10,7 +10,7 @@ import '../providers/personal_info_providers.dart';
 import '../../../profile/presentation/widgets/medico/medico_tokens.dart';
 import '../../../profile/presentation/widgets/medico/medico_section_card.dart';
 import '../../../profile/presentation/widgets/medico/medical_chip.dart';
-import '../../../profile/presentation/widgets/medico/empty_hint.dart';
+import '../utils/health_selection_state.dart';
 
 /// Redesigned view for managing user medicines.
 /// Mint tone. Inline dose editor. None toggle above search.
@@ -77,6 +77,28 @@ class _MedicinesSelectionViewState
     }
   }
 
+  void _hydrateSavedNone(bool savedNone) {
+    if (!savedNone ||
+        _serverIds.isNotEmpty ||
+        _noneExplicit ||
+        _selectedIds.isNotEmpty ||
+        _modifiedRegistered.isNotEmpty) {
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          !savedNone ||
+          _serverIds.isNotEmpty ||
+          _noneExplicit ||
+          _selectedIds.isNotEmpty ||
+          _modifiedRegistered.isNotEmpty) {
+        return;
+      }
+      setState(() => _noneExplicit = true);
+    });
+  }
+
   // ── Helpers ──────────────────────────────────────────────────────────────
 
   String? _doseFor(int id) => _pendingDoseMap[id];
@@ -85,10 +107,11 @@ class _MedicinesSelectionViewState
       : _serverDoseMap[id];
 
   bool get _hasPendingChanges {
-    if (_selectedIds.isNotEmpty) return true;
-    if (_modifiedRegistered.isNotEmpty) return true;
-    if (_noneExplicit && _serverIds.isNotEmpty) return true;
-    return false;
+    return hasHealthSelectionPendingChanges(
+      noneExplicit: _noneExplicit,
+      hasNewSelections: _selectedIds.isNotEmpty,
+      hasModifiedRegistered: _modifiedRegistered.isNotEmpty,
+    );
   }
 
   int get _pendingCount => _selectedIds.length + _modifiedRegistered.length;
@@ -356,6 +379,8 @@ class _MedicinesSelectionViewState
       await ref.read(userMedicinesProvider.notifier).saveAll(entries);
 
       final updated = ref.read(userMedicinesProvider).valueOrNull ?? [];
+      ref.read(selectedMedicinesProvider.notifier).state =
+          updated.map((m) => m.id).toList();
       setState(() {
         _serverSeeded = false;
         _selectedIds.clear();
@@ -428,6 +453,9 @@ class _MedicinesSelectionViewState
 
     final catalogAsync = ref.watch(medicinesCatalogProvider);
     final userAsync = ref.watch(userMedicinesProvider);
+    final savedNone =
+        ref.watch(healthNoneStateProvider).valueOrNull?.medicines ?? false;
+    _hydrateSavedNone(savedNone);
 
     return Scaffold(
       backgroundColor: MedicoTokens.canvas,
@@ -527,7 +555,7 @@ class _MedicinesSelectionViewState
                                 fgColor: MedicoTokens.mintInk,
                                 iconWidget: const HugeIcon(
                                   icon: HugeIcons.strokeRoundedMedicine01,
-                                  size: 20,
+                                  size: 16,
                                   color: MedicoTokens.mint500,
                                 ),
                               ),
@@ -572,12 +600,7 @@ class _MedicinesSelectionViewState
                                     controllerFor: _registeredControllerFor,
                                   ),
                                 ),
-                              ] else
-                                EmptyHint(
-                                  label:
-                                      'post_registration.health.medicines.empty_registered'
-                                          .tr(),
-                                ),
+                              ],
 
                               const SizedBox(height: 14),
 
@@ -684,7 +707,6 @@ class _MedicinesSelectionViewState
                                   style: const TextStyle(
                                     fontSize: 13,
                                     color: MedicoTokens.ink500,
-                                    fontStyle: FontStyle.italic,
                                   ),
                                 ),
                               ),
@@ -1054,23 +1076,23 @@ class _InfoBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           iconWidget,
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               text,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 12,
                 color: fgColor,
-                height: 1.4,
+                height: 1.25,
               ),
             ),
           ),
@@ -1139,7 +1161,10 @@ class _NoneToggleCard extends StatelessWidget {
             Switch(
               value: isActive,
               onChanged: (_) => onTap(),
-              activeThumbColor: MedicoTokens.mint500,
+              activeThumbColor: MedicoTokens.paper,
+              activeTrackColor: MedicoTokens.mintInk,
+              inactiveThumbColor: MedicoTokens.paper,
+              inactiveTrackColor: MedicoTokens.ink300,
             ),
           ],
         ),

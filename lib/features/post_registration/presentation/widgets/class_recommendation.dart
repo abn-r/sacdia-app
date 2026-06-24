@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 
 import '../providers/club_selection_providers.dart';
+import '../utils/club_selection_age_rules.dart';
 
 /// Widget para mostrar recomendación de clase progresiva basada en edad
 class ClassRecommendation extends ConsumerWidget {
@@ -21,21 +22,10 @@ class ClassRecommendation extends ConsumerWidget {
       data: (classes) {
         if (classes.isEmpty) return const SizedBox.shrink();
 
-        // Buscar clase recomendada para la edad
-        final recommendedClass = classes.firstWhere(
-          (classModel) {
-            if (classModel.minAge != null && classModel.maxAge != null) {
-              return userAge >= classModel.minAge! &&
-                  userAge <= classModel.maxAge!;
-            }
-            return false;
-          },
-          orElse: () => classes.first,
-        );
+        final recommendedClass =
+            recommendedProgressiveClassForAge(classes, userAge);
 
-        // Solo mostrar si encontramos una clase con rango de edad
-        if (recommendedClass.minAge == null ||
-            recommendedClass.maxAge == null) {
+        if (recommendedClass == null || recommendedClass.minAge == null) {
           return const SizedBox.shrink();
         }
 
@@ -78,8 +68,7 @@ class ClassRecommendation extends ConsumerWidget {
                         color: AppColors.primaryDark,
                       ),
                     ),
-                    if (recommendedClass.minAge != null &&
-                        recommendedClass.maxAge != null)
+                    if (recommendedClass.maxAge != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(

@@ -59,6 +59,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
   PageController? _pageController;
   bool _isCompletingStep = false;
   bool _statusLoaded = false;
+  int _currentStep = 1;
 
   @override
   void initState() {
@@ -79,6 +80,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     }
 
     final step = status.currentStep;
+    _currentStep = step;
     ref.read(currentStepProvider.notifier).state = step;
 
     // Create PageController at the correct initial page BEFORE building
@@ -93,6 +95,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
   }
 
   void _goToStep(int step) {
+    setState(() => _currentStep = step);
     ref.read(currentStepProvider.notifier).state = step;
     _pageController?.animateToPage(
       step - 1,
@@ -102,7 +105,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
   }
 
   void _onBack() {
-    final currentStep = ref.read(currentStepProvider);
+    final currentStep = _currentStep;
     if (currentStep > 1) {
       _goToStep(currentStep - 1);
     }
@@ -110,7 +113,7 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
 
   Future<void> _onContinue() async {
     if (_isCompletingStep) return;
-    final currentStep = ref.read(currentStepProvider);
+    final currentStep = _currentStep;
 
     if (currentStep == 1) {
       await _completeStep1();
@@ -245,7 +248,14 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
       );
     }
 
-    final currentStep = ref.watch(currentStepProvider);
+    final providerStep = ref.watch(currentStepProvider);
+    final currentStep = _currentStep;
+    if (providerStep != currentStep) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(currentStepProvider.notifier).state = currentStep;
+      });
+    }
     final authUser =
         ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
     final selectedPhoto = ref.watch(selectedPhotoPathProvider);
@@ -356,6 +366,12 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
             Expanded(
               child: PageView(
                 controller: _pageController!,
+                onPageChanged: (index) {
+                  final step = index + 1;
+                  if (_currentStep == step) return;
+                  setState(() => _currentStep = step);
+                  ref.read(currentStepProvider.notifier).state = step;
+                },
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   const PhotoStepView(),

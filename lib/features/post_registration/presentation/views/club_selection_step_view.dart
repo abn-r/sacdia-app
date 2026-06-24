@@ -11,9 +11,9 @@ import '../../data/models/union_model.dart';
 import '../../data/models/local_field_model.dart';
 import '../../data/models/club_model.dart';
 import '../providers/club_selection_providers.dart';
+import '../utils/progressive_class_logo_asset.dart';
 import '../widgets/bottom_sheet_picker.dart';
 import '../widgets/club_type_selector.dart';
-import '../widgets/class_recommendation.dart';
 
 /// Vista del paso 3: Selección de club - Estilo "Scout Vibrante"
 ///
@@ -80,6 +80,10 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
     final selectedClassName = classesAsync.valueOrNull
         ?.where((c) => c.id == selectedClassId)
         .map((c) => c.name)
+        .firstOrNull;
+    final selectedClassLogoAsset = classesAsync.valueOrNull
+        ?.where((c) => c.id == selectedClassId)
+        .map(progressiveClassLogoAsset)
         .firstOrNull;
 
     // Responsive title style — smaller on very small phones
@@ -347,59 +351,84 @@ class _ClubSelectionStepViewState extends ConsumerState<ClubSelectionStepView> {
           // ── Tipo de Club ─────────────────────────────────────────────────
           if (selectedClubId != null) ...[
             const SizedBox(height: 24),
-            Row(
-              children: [
-                HugeIcon(
-                    icon: HugeIcons.strokeRoundedUserGroup,
-                    size: 20,
-                    color: AppColors.primary),
-                const SizedBox(width: 8),
-                Text(
-                  'post_registration.club_selection.club_type_section'.tr(),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
+            // Row(
+            //   children: [
+            //     HugeIcon(
+            //         icon: HugeIcons.strokeRoundedUserGroup,
+            //         size: 20,
+            //         color: AppColors.primary),
+            //     const SizedBox(width: 8),
+            //     Text(
+            //       'post_registration.club_selection.club_type_section'.tr(),
+            //       style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            //             fontWeight: FontWeight.w600,
+            //           ),
+            //     ),
+            //   ],
+            // ),
+            //const SizedBox(height: 12),
             const ClubTypeSelector(),
           ],
 
           // ── Clase progresiva ─────────────────────────────────────────────
           if (ref.watch(selectedClubSectionProvider) != null) ...[
             const SizedBox(height: 24),
-            Row(
-              children: [
-                HugeIcon(
-                    icon: HugeIcons.strokeRoundedSchool,
-                    size: 20,
-                    color: AppColors.primary),
-                const SizedBox(width: 8),
-                Text(
-                  'post_registration.club_selection.your_class'.tr(),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const ClassRecommendation(),
-            const SizedBox(height: 12),
+            // Row(
+            //   children: [
+            //     HugeIcon(
+            //         icon: HugeIcons.strokeRoundedSchool,
+            //         size: 20,
+            //         color: AppColors.primary),
+            //     const SizedBox(width: 8),
+            //     Text(
+            //       'post_registration.club_selection.your_class'.tr(),
+            //       style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            //             fontWeight: FontWeight.w600,
+            //           ),
+            //     ),
+            //   ],
+            // ),
+            // const SizedBox(height: 12),
             classesAsync.when(
               data: (classes) {
                 if (classes.isEmpty) {
                   return _buildEmptyText(
                       'post_registration.club_selection.no_classes'.tr());
                 }
+                final items = classes
+                    .map(
+                      (progressiveClass) => PickerItem(
+                        id: progressiveClass.id,
+                        name: progressiveClass.name,
+                        logoAsset: progressiveClassLogoAsset(progressiveClass),
+                      ),
+                    )
+                    .toList();
                 return PickerField(
                   label:
                       'post_registration.club_selection.progressive_class'.tr(),
                   hint: 'post_registration.club_selection.select_class'.tr(),
                   icon: HugeIcons.strokeRoundedSchool,
+                  selectedLogoAsset: selectedClassLogoAsset,
                   selectedName: selectedClassName,
-                  enabled: false,
+                  enabled: !isSaving,
+                  onTap: () async {
+                    final picked = await showPickerSheet(
+                      context: context,
+                      title:
+                          'post_registration.club_selection.select_progressive_class'
+                              .tr(),
+                      items: items,
+                      selectedId: selectedClassId,
+                      searchHint:
+                          'post_registration.club_selection.search_class'.tr(),
+                      icon: HugeIcons.strokeRoundedSchool,
+                    );
+
+                    if (picked != null && picked != selectedClassId) {
+                      ref.read(selectedClassProvider.notifier).state = picked;
+                    }
+                  },
                 );
               },
               loading: () => PickerField(

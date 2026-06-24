@@ -15,8 +15,13 @@ import 'package:sacdia_app/core/utils/icon_helper.dart';
 class PickerItem {
   final int id;
   final String name;
+  final String? logoAsset;
 
-  const PickerItem({required this.id, required this.name});
+  const PickerItem({
+    required this.id,
+    required this.name,
+    this.logoAsset,
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -70,6 +75,9 @@ class PickerField extends StatelessWidget {
   /// Icon shown on the left side of the field.
   final HugeIconData icon;
 
+  /// Optional logo shown before [selectedName]. Falls back to [icon].
+  final String? selectedLogoAsset;
+
   /// Called when the user taps the field (and enabled is true).
   final VoidCallback? onTap;
 
@@ -84,6 +92,7 @@ class PickerField extends StatelessWidget {
     required this.label,
     required this.hint,
     required this.icon,
+    this.selectedLogoAsset,
     this.selectedName,
     this.onTap,
     this.enabled = true,
@@ -126,12 +135,19 @@ class PickerField extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
             child: Row(
               children: [
-                HugeIcon(
-                  icon: icon,
-                  size: 20,
-                  color:
-                      hasValue ? AppColors.primary : context.sac.textSecondary,
-                ),
+                selectedLogoAsset != null
+                    ? _PickerLogo(
+                        assetPath: selectedLogoAsset!,
+                        isSelected: hasValue,
+                        fallbackIcon: icon,
+                      )
+                    : HugeIcon(
+                        icon: icon,
+                        size: 20,
+                        color: hasValue
+                            ? AppColors.primary
+                            : context.sac.textSecondary,
+                      ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: isLoading
@@ -355,13 +371,19 @@ class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
 
                       return ListTile(
                         minTileHeight: 48,
-                        leading: HugeIcon(
-                          icon: widget.icon,
-                          size: 22,
-                          color: isSelected
-                              ? AppColors.primary
-                              : context.sac.textSecondary,
-                        ),
+                        leading: item.logoAsset != null
+                            ? _PickerLogo(
+                                assetPath: item.logoAsset!,
+                                isSelected: isSelected,
+                                fallbackIcon: widget.icon,
+                              )
+                            : HugeIcon(
+                                icon: widget.icon,
+                                size: 22,
+                                color: isSelected
+                                    ? AppColors.primary
+                                    : context.sac.textSecondary,
+                              ),
                         title: Text(
                           item.name,
                           style: theme.textTheme.bodyMedium?.copyWith(
@@ -388,6 +410,48 @@ class _BottomSheetPickerSheetState extends State<BottomSheetPickerSheet> {
           // Bottom safe-area padding
           SizedBox(height: MediaQuery.of(context).padding.bottom + 8),
         ],
+      ),
+    );
+  }
+}
+
+class _PickerLogo extends StatelessWidget {
+  final String assetPath;
+  final bool isSelected;
+  final HugeIconData fallbackIcon;
+
+  const _PickerLogo({
+    required this.assetPath,
+    required this.isSelected,
+    required this.fallbackIcon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 32,
+      height: 32,
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: isSelected
+            ? AppColors.primary.withValues(alpha: 0.08)
+            : context.sac.surfaceVariant,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.35)
+              : context.sac.border,
+        ),
+      ),
+      child: Image.asset(
+        assetPath,
+        fit: BoxFit.contain,
+        excludeFromSemantics: true,
+        errorBuilder: (_, __, ___) => HugeIcon(
+          icon: fallbackIcon,
+          size: 20,
+          color: isSelected ? AppColors.primary : context.sac.textSecondary,
+        ),
       ),
     );
   }

@@ -42,9 +42,35 @@ class PersonalInfoStepView extends ConsumerStatefulWidget {
 
 class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
   final _formKey = GlobalKey<FormState>();
+  bool _personalInfoSeeded = false;
+
+  void _seedPersonalInfo(PersonalInfoSnapshot snapshot) {
+    if (_personalInfoSeeded) return;
+
+    final current = ref.read(personalInfoFormProvider);
+    if (current.hasAnyInput) {
+      _personalInfoSeeded = true;
+      return;
+    }
+
+    ref.read(personalInfoFormProvider.notifier).state =
+        PersonalInfoFormState.fromSnapshot(snapshot);
+    _personalInfoSeeded = true;
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.canReadSensitiveData) {
+      ref.listen<AsyncValue<PersonalInfoSnapshot?>>(
+        personalInfoSnapshotProvider,
+        (_, next) {
+          final snapshot = next.valueOrNull;
+          if (snapshot != null) _seedPersonalInfo(snapshot);
+        },
+      );
+      ref.watch(personalInfoSnapshotProvider);
+    }
+
     final authUser =
         ref.watch(authNotifierProvider.select((v) => v.valueOrNull));
     final formState = ref.watch(personalInfoFormProvider);
@@ -71,6 +97,22 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
       targetUserId: widget.targetUserId,
       family: SensitiveUserFamily.health,
     );
+    final userAllergiesAsync =
+        canReadHealth ? ref.watch(userAllergiesProvider) : null;
+    final userDiseasesAsync =
+        canReadHealth ? ref.watch(userDiseasesProvider) : null;
+    final userMedicinesAsync =
+        canReadHealth ? ref.watch(userMedicinesProvider) : null;
+    final healthNone = canReadHealth
+        ? ref.watch(healthNoneStateProvider).valueOrNull ??
+            const HealthNoneState()
+        : const HealthNoneState();
+    final allergiesCount =
+        userAllergiesAsync?.valueOrNull?.length ?? selectedAllergies.length;
+    final diseasesCount =
+        userDiseasesAsync?.valueOrNull?.length ?? selectedDiseases.length;
+    final medicinesCount =
+        userMedicinesAsync?.valueOrNull?.length ?? selectedMedicines.length;
 
     // Responsive title style — smaller on very small phones
     final titleStyle = Responsive.isSmallPhone(context)
@@ -425,9 +467,10 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
               icon: HugeIcons.strokeRoundedFirstAidKit,
               title: tr('post_registration.personal_info.health.section_title'),
               subtitle: tr('post_registration.personal_info.health.optional'),
-              isCompleted: selectedAllergies.isNotEmpty ||
-                  selectedDiseases.isNotEmpty ||
-                  selectedMedicines.isNotEmpty,
+              isCompleted: allergiesCount > 0 ||
+                  diseasesCount > 0 ||
+                  medicinesCount > 0 ||
+                  healthNone.any,
             ),
             const SizedBox(height: 12),
             SacCard(
@@ -438,7 +481,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: selectedAllergies.isNotEmpty
+                      color: allergiesCount > 0 || healthNone.allergies
                           ? AppColors.errorLight
                           : context.sac.surfaceVariant,
                       borderRadius: BorderRadius.circular(10),
@@ -447,7 +490,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                       child: HugeIcon(
                         icon: HugeIcons.strokeRoundedBandage,
                         size: 20,
-                        color: selectedAllergies.isNotEmpty
+                        color: allergiesCount > 0 || healthNone.allergies
                             ? AppColors.error
                             : context.sac.textTertiary,
                       ),
@@ -456,10 +499,13 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      selectedAllergies.isEmpty
-                          ? tr(
-                              'post_registration.personal_info.health.allergies_empty')
-                          : '${selectedAllergies.length} alergia(s)',
+                      allergiesCount > 0
+                          ? '$allergiesCount alergia(s)'
+                          : healthNone.allergies
+                              ? tr(
+                                  'post_registration.health.allergies.no_allergies_toggle_label')
+                              : tr(
+                                  'post_registration.personal_info.health.allergies_empty'),
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
@@ -482,7 +528,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: selectedDiseases.isNotEmpty
+                      color: diseasesCount > 0 || healthNone.diseases
                           ? AppColors.accentLight
                           : context.sac.surfaceVariant,
                       borderRadius: BorderRadius.circular(10),
@@ -491,7 +537,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                       child: HugeIcon(
                         icon: HugeIcons.strokeRoundedStethoscope,
                         size: 20,
-                        color: selectedDiseases.isNotEmpty
+                        color: diseasesCount > 0 || healthNone.diseases
                             ? AppColors.accent
                             : context.sac.textTertiary,
                       ),
@@ -500,10 +546,13 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      selectedDiseases.isEmpty
-                          ? tr(
-                              'post_registration.personal_info.health.diseases_empty')
-                          : '${selectedDiseases.length} enfermedad(es)',
+                      diseasesCount > 0
+                          ? '$diseasesCount enfermedad(es)'
+                          : healthNone.diseases
+                              ? tr(
+                                  'post_registration.health.diseases.no_diseases_toggle_label')
+                              : tr(
+                                  'post_registration.personal_info.health.diseases_empty'),
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
@@ -526,7 +575,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: selectedMedicines.isNotEmpty
+                      color: medicinesCount > 0 || healthNone.medicines
                           ? AppColors.secondaryLight
                           : context.sac.surfaceVariant,
                       borderRadius: BorderRadius.circular(10),
@@ -535,7 +584,7 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                       child: HugeIcon(
                         icon: HugeIcons.strokeRoundedMedicine01,
                         size: 20,
-                        color: selectedMedicines.isNotEmpty
+                        color: medicinesCount > 0 || healthNone.medicines
                             ? AppColors.secondary
                             : context.sac.textTertiary,
                       ),
@@ -544,10 +593,13 @@ class _PersonalInfoStepViewState extends ConsumerState<PersonalInfoStepView> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      selectedMedicines.isEmpty
-                          ? tr(
-                              'post_registration.personal_info.health.medicines_empty')
-                          : '${selectedMedicines.length} medicamento(s)',
+                      medicinesCount > 0
+                          ? '$medicinesCount medicamento(s)'
+                          : healthNone.medicines
+                              ? tr(
+                                  'post_registration.health.medicines.no_medicines_toggle_label')
+                              : tr(
+                                  'post_registration.personal_info.health.medicines_empty'),
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,

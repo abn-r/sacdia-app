@@ -98,6 +98,8 @@ class _PhotoStepViewState extends ConsumerState<PhotoStepView> {
           ),
           IOSUiSettings(
             title: 'post_registration.photo.crop_title'.tr(),
+            doneButtonTitle: 'common.done'.tr(),
+            cancelButtonTitle: 'common.cancel'.tr(),
             aspectRatioLockEnabled: true,
             resetAspectRatioEnabled: false,
           ),

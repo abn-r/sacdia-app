@@ -193,7 +193,7 @@ class ProfilePhotoPicker extends StatelessWidget {
               Expanded(
                 child: SacCard(
                   onTap: isUploading ? null : onTakePhoto,
-                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   child: Column(
                     children: [
                       HugeIcon(
@@ -218,7 +218,7 @@ class ProfilePhotoPicker extends StatelessWidget {
               Expanded(
                 child: SacCard(
                   onTap: isUploading ? null : onPickFromGallery,
-                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   child: Column(
                     children: [
                       HugeIcon(

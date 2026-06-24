@@ -54,8 +54,49 @@ class MedicineEntry {
   }
 }
 
+/// Snapshot mínimo de datos personales devuelto por GET /users/:id.
+///
+/// El post-registro lo usa para rehidratar el formulario al volver al paso 2.
+class PersonalInfoSnapshot {
+  final String? gender;
+  final DateTime? birthdate;
+  final bool baptized;
+  final DateTime? baptismDate;
+  final String? blood;
+
+  const PersonalInfoSnapshot({
+    this.gender,
+    this.birthdate,
+    this.baptized = false,
+    this.baptismDate,
+    this.blood,
+  });
+
+  factory PersonalInfoSnapshot.fromJson(Map<String, dynamic> json) {
+    DateTime? parseDate(dynamic value) {
+      if (value == null) return null;
+      if (value is DateTime) return value;
+      if (value is String && value.trim().isNotEmpty) {
+        return DateTime.tryParse(value);
+      }
+      return null;
+    }
+
+    return PersonalInfoSnapshot(
+      gender: json['gender'] as String?,
+      birthdate: parseDate(json['birthday']),
+      baptized: json['baptism'] as bool? ?? false,
+      baptismDate: parseDate(json['baptism_date']),
+      blood: json['blood'] as String?,
+    );
+  }
+}
+
 /// Interface del data source remoto para información personal
 abstract class PersonalInfoRemoteDataSource {
+  Future<PersonalInfoSnapshot> getPersonalInfo(String userId,
+      {CancelToken? cancelToken});
+
   Future<void> updatePersonalInfo(
     String userId, {
     String? gender,
@@ -126,6 +167,34 @@ class PersonalInfoRemoteDataSourceImpl implements PersonalInfoRemoteDataSource {
       if (data is List) return data;
     }
     return [];
+  }
+
+  Map<String, dynamic> _extractMap(dynamic responseData) {
+    if (responseData is Map<String, dynamic>) {
+      final data = responseData['data'];
+      if (data is Map<String, dynamic>) return data;
+      return responseData;
+    }
+    return const {};
+  }
+
+  @override
+  Future<PersonalInfoSnapshot> getPersonalInfo(
+    String userId, {
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await dio.get(
+        '$_baseUrl${ApiEndpoints.users}/$userId',
+        cancelToken: cancelToken,
+      );
+
+      return PersonalInfoSnapshot.fromJson(_extractMap(response.data));
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.cancel) rethrow;
+      throw Exception(
+          '${tr('post_registration.personal_info.errors.fetch_personal_info')}: ${e.message}');
+    }
   }
 
   @override
