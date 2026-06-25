@@ -87,6 +87,9 @@ class PickerField extends StatelessWidget {
   /// Whether the field is in a loading state (shows a spinner).
   final bool isLoading;
 
+  /// Whether to show the dropdown chevron.
+  final bool showChevron;
+
   const PickerField({
     super.key,
     required this.label,
@@ -97,6 +100,7 @@ class PickerField extends StatelessWidget {
     this.onTap,
     this.enabled = true,
     this.isLoading = false,
+    this.showChevron = true,
   });
 
   @override
@@ -171,13 +175,14 @@ class PickerField extends StatelessWidget {
                           ),
                         ),
                 ),
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedArrowDown01,
-                  color: enabled
-                      ? context.sac.textSecondary
-                      : context.sac.textTertiary,
-                  size: 22,
-                ),
+                if (showChevron)
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowDown01,
+                    color: enabled
+                        ? context.sac.textSecondary
+                        : context.sac.textTertiary,
+                    size: 22,
+                  ),
               ],
             ),
           ),

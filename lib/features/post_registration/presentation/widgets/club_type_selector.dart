@@ -14,7 +14,7 @@ import 'bottom_sheet_picker.dart';
 ///
 /// La selección inicial se deriva automáticamente por edad en
 /// [selectedClubSectionProvider]; este widget sólo presenta el valor resultante
-/// y permite cambiarlo desde un bottom sheet, igual que los demás pickers.
+/// sin permitir cambios manuales desde el cliente.
 class ClubTypeSelector extends ConsumerWidget {
   const ClubTypeSelector({super.key});
 
@@ -66,15 +66,6 @@ class ClubTypeSelector extends ConsumerWidget {
             .where((section) => section.id == selectedSectionId)
             .map(_clubTypeLogoAsset)
             .firstOrNull;
-        final items = sections
-            .map(
-              (section) => PickerItem(
-                id: section.id,
-                name: section.displayName,
-                logoAsset: _clubTypeLogoAsset(section),
-              ),
-            )
-            .toList();
         final label = 'post_registration.club_type.label'.tr();
 
         return PickerField(
@@ -84,20 +75,7 @@ class ClubTypeSelector extends ConsumerWidget {
           icon: HugeIcons.strokeRoundedUserGroup,
           selectedLogoAsset: selectedLogoAsset,
           selectedName: selectedName,
-          onTap: () async {
-            final picked = await showPickerSheet(
-              context: context,
-              title: label,
-              items: items,
-              selectedId: selectedSectionId,
-              icon: HugeIcons.strokeRoundedUserGroup,
-            );
-
-            if (picked != null && picked != selectedSectionId) {
-              ref.read(selectedClubSectionProvider.notifier).state = picked;
-              ref.read(selectedClassProvider.notifier).state = null;
-            }
-          },
+          showChevron: false,
         );
       },
       loading: () => Center(

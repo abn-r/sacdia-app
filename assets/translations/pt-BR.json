@@ -3294,6 +3294,11 @@
     },
     "load_null_error": "Não foi possível carregar o painel",
     "load_error": "Erro ao carregar o painel",
+    "pending_state": {
+      "title": "Solicitação enviada",
+      "body": "Sua solicitação para entrar no clube foi enviada. O diretor do clube a analisará em breve. Enquanto isso, você pode registrar sua formação pessoal pelo seu perfil.",
+      "profile_action": "Ir para meu perfil"
+    },
     "notifications_tooltip": "Notificações",
     "club_info": {
       "no_club": "Nenhum clube atribuído"

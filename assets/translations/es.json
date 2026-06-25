@@ -3292,6 +3292,11 @@
     },
     "load_null_error": "No se pudo cargar el dashboard",
     "load_error": "Error al cargar el dashboard",
+    "pending_state": {
+      "title": "Solicitud enviada",
+      "body": "Tu solicitud para unirte al club fue enviada. El director del club la revisará pronto. Mientras tanto, puedes registrar tu formación personal desde tu perfil.",
+      "profile_action": "Ir a mi perfil"
+    },
     "notifications_tooltip": "Notificaciones",
     "club_info": {
       "no_club": "Sin club asignado"

@@ -3294,6 +3294,11 @@
     },
     "load_null_error": "Impossible de charger le tableau de bord",
     "load_error": "Erreur lors du chargement du tableau de bord",
+    "pending_state": {
+      "title": "Demande envoyée",
+      "body": "Votre demande pour rejoindre le club a été envoyée. Le directeur du club l'examinera bientôt. En attendant, vous pouvez enregistrer votre formation personnelle depuis votre profil.",
+      "profile_action": "Aller à mon profil"
+    },
     "notifications_tooltip": "Notifications",
     "club_info": {
       "no_club": "Aucun club assigné"

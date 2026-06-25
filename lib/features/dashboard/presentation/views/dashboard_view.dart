@@ -12,6 +12,7 @@ import 'package:sacdia_app/core/utils/role_utils.dart';
 import 'package:sacdia_app/core/widgets/sac_button.dart';
 import 'package:sacdia_app/core/widgets/sac_loading.dart';
 
+import '../../../auth/domain/utils/authorization_utils.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../notifications/presentation/providers/unread_notifications_count_provider.dart';
 import '../../../profile/presentation/providers/profile_providers.dart';
@@ -34,8 +35,8 @@ class DashboardView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dashboardState = ref.watch(dashboardNotifierProvider);
-    final authAvatar = ref.watch(
-      authNotifierProvider.select((v) => v.valueOrNull?.avatar),
+    final user = ref.watch(
+      authNotifierProvider.select((v) => v.valueOrNull),
     );
     final userGender = ref.watch(
       profileNotifierProvider.select((v) => v.valueOrNull?.gender),
@@ -51,6 +52,13 @@ class DashboardView extends ConsumerWidget {
         child: dashboardState.when(
           data: (dashboard) {
             if (dashboard == null) {
+              final statusGrant = membershipGrantForDisplay(
+                user?.authorization,
+              );
+              if (statusGrant?.isPending ?? false) {
+                return const _PendingMembershipDashboardState();
+              }
+
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -90,7 +98,7 @@ class DashboardView extends ConsumerWidget {
                       initialDelay: const Duration(milliseconds: 60),
                       child: WelcomeHeader(
                         userName: dashboard.userName,
-                        userAvatar: dashboard.userAvatar ?? authAvatar,
+                        userAvatar: dashboard.userAvatar ?? user?.avatar,
                         unreadNotificationsCount: unreadNotificationsCount,
                         onNotificationsTap: () =>
                             context.push(RouteNames.notificationsInbox),
@@ -218,6 +226,65 @@ class DashboardView extends ConsumerWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PendingMembershipDashboardState extends StatelessWidget {
+  const _PendingMembershipDashboardState();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sac;
+
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Center(
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedClock01,
+                  size: 36,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              tr('dashboard.pending_state.title'),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: c.text,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              tr('dashboard.pending_state.body'),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: c.textSecondary,
+                    height: 1.45,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            SacButton.primary(
+              text: tr('dashboard.pending_state.profile_action'),
+              icon: HugeIcons.strokeRoundedUser,
+              onPressed: () => context.go(RouteNames.homeProfile),
+            ),
+          ],
         ),
       ),
     );

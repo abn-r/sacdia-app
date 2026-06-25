@@ -108,7 +108,6 @@ class PostRegistrationFlowNotifier extends AutoDisposeAsyncNotifier<void> {
             unionId: ref.read(selectedUnionProvider)!,
             localFieldId: ref.read(selectedLocalFieldProvider)!,
             clubSectionId: ref.read(selectedClubSectionProvider)!,
-            classId: ref.read(selectedClassProvider),
           );
 
       state = const AsyncValue.data(null);

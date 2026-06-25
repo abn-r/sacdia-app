@@ -27,11 +27,11 @@ class ClubSectionModel extends Equatable {
   /// También usa `main_club_id` en vez de `club_id`.
   factory ClubSectionModel.fromJson(Map<String, dynamic> json) {
     final rawId = json['club_section_id'] ?? json['id'];
-    final rawClubTypeId = json['club_type_id'];
     final rawClubId = json['main_club_id'] ?? json['club_id'];
 
     // El nombre viene anidado en club_types.name o como campo plano
     final clubTypes = json['club_types'] as Map<String, dynamic>?;
+    final rawClubTypeId = json['club_type_id'] ?? clubTypes?['club_type_id'];
     final clubTypeName =
         json['club_type_name'] as String? ?? clubTypes?['name'] as String?;
 

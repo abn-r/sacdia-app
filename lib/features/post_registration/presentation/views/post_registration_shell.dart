@@ -193,7 +193,11 @@ class _PostRegistrationShellState extends ConsumerState<PostRegistrationShell> {
     }
 
     // Update auth state so router redirects correctly
-    ref.read(authNotifierProvider.notifier).markPostRegisterComplete();
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+    authNotifier.markPostRegisterComplete();
+    await authNotifier.refreshCurrentUser(keepCurrentOnFailure: true);
+
+    if (!mounted) return;
 
     context.go(RouteNames.homeDashboard);
   }

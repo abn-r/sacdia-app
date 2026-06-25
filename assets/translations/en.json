@@ -3294,6 +3294,11 @@
     },
     "load_null_error": "Could not load the dashboard",
     "load_error": "Error loading the dashboard",
+    "pending_state": {
+      "title": "Request sent",
+      "body": "Your request to join the club has been sent. The club director will review it soon. In the meantime, you can record your personal formation from your profile.",
+      "profile_action": "Go to my profile"
+    },
     "notifications_tooltip": "Notifications",
     "club_info": {
       "no_club": "No club assigned"

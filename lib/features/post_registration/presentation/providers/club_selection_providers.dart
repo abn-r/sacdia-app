@@ -120,11 +120,8 @@ final classesProvider =
   final sectionsAsync = ref.watch(clubSectionsProvider);
   final clubTypeId = sectionsAsync.maybeWhen(
     data: (sections) {
-      final section = sections.firstWhere(
-        (s) => s.id == clubSectionId,
-        orElse: () => sections.first,
-      );
-      return section.clubTypeId;
+      final section = sections.where((s) => s.id == clubSectionId).firstOrNull;
+      return section?.clubTypeId;
     },
     orElse: () => null,
   );
